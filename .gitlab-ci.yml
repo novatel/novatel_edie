@@ -1,0 +1,250 @@
+stages:
+  - build
+  - test
+  - coverage
+  - docs
+  - publish
+  - release
+
+image: ubuntu:latest
+
+.build_matrix:
+  parallel:
+    matrix:
+      - BUILD_TYPE: [Release, Debug]
+        ARCH: [x64, x86]
+
+.build:
+  extends: .build_matrix
+  stage: build
+  rules:
+    - when: always
+  artifacts:
+    paths:
+      # For unit tests 
+      - build/**/**/**/test/
+      # windows libs
+      - src/**/**/bin
+      # gtest libs
+      - build/lib/
+      # linux libraries
+      - bin/
+      # version files
+      - src/**/version.h
+      - src/**/version.h.in
+      - src/**/version.txt
+    expire_in: 1 week
+
+build:windows:
+  extends: .build
+  tags: 
+    - windows
+    - archive_share
+  script:
+    - mkdir build 
+    - cd build
+    - if ( $ARCH -eq "x86" ) { $ARCH="Win32" }
+    - echo "Starting Windows Build for $ARCH-$BUILD_TYPE"
+    - cmake .. -G "Visual Studio 16 2019" -A "$ARCH" -DARCH="$ARCH" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCMAKE_LIB_SHARED:BOOL=ON
+    - cmake --build . --config "$BUILD_TYPE"
+    - echo "Build for $ARCH-$BUILD_TYPE Done!"
+
+.unit-tests:windows:
+  stage: test
+  tags: 
+    - windows
+    - archive_share
+  script:
+    - echo "Starting windows test build for $ARCH-$BUILD_TYPE"
+    - Start-Process .\build\src\decoders\common\test\$ENV:BUILD_TYPE\CommonTest.exe --gtest_output="xml:.\unittest-report\Common_XML_Report.xml" -Wait
+    - Start-Process .\build\src\decoders\novatel\test\$ENV:BUILD_TYPE\NovatelTest.exe --gtest_output="xml:.\unittest-report\NovatelDecoder_XML_Report.xml" -Wait
+    - Start-Process .\build\src\decoders\jsoninterface\test\$ENV:BUILD_TYPE\JsonInterfaceTest.exe --gtest_output="xml:.\unittest-report\JsonInterface_XML_Report.xml" -Wait
+    - Start-Process .\build\src\hw_interface\stream_interface\test\$ENV:BUILD_TYPE\StreamInterfaceTest.exe --gtest_output="xml:.\unittest-report\StreamInterface_XML_Report.xml" -Wait
+  artifacts:
+    paths:
+      - unittest-report
+    reports:
+      # Visualize unittest report in gitlab
+      junit: unittest-report/*.xml
+  rules:
+    - allow_failure: true
+
+unit-test-x64-release:windows:
+  extends: .unit-tests:windows
+  dependencies:
+    - "build:windows: [Release, x64]"
+  variables:
+    ARCH: "x64"
+    BUILD_TYPE: "Release"
+
+unit-test-x64-debug:windows:
+  extends: .unit-tests:windows
+  dependencies:
+    - "build:windows: [Debug, x64]"
+  variables:
+    ARCH: "x64"
+    BUILD_TYPE: "Debug"
+
+build:linux:
+  extends: .build
+  tags: 
+    - linux
+    - archive_share
+  script:
+    - echo "Starting Linux Build for $ARCH-$BUILD_TYPE"
+    - apt-get update
+    - apt-get autoclean
+    - apt-get install -y tzdata 
+    - apt-get install -y git    
+    - apt-get install -y cmake make g++
+    - apt-get install -y gcc-multilib g++-multilib
+    - apt-get install -y python-dev python3-pip
+    - pip3 install requests python-gitlab semver
+    - cd scripts
+    - python3 -c 'import generate_version; generate_version.generate_new_version_file("../src/decoders/version.h.in", "patch")'
+    - mv version.txt ../src/decoders/version.txt
+    - cd ..
+    - mkdir build
+    - cd build
+    - cmake -DARCH=$ARCH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCOVERAGE="TRUE" -DBUILD_SHARED_LIBS:BOOL=ON ..
+    - cat ../src/decoders/version.txt && export PACKAGE_VERSION=$(cat ../src/decoders/version.txt)
+    - make -j8
+    - echo "Build for $ARCH-$BUILD_TYPE Done!"
+
+.unit-tests:linux:
+  stage: test
+  script: 
+    - mkdir unittest-report
+    - ./build/src/decoders/common/test/CommonTest --gtest_output="xml:\unittest-report/Common_XML_Report.xml"
+    - ./build/src/decoders/jsoninterface/test/JsonInterfaceTest --gtest_output="xml:\unittest-report/JsonInterface_XML_Report.xml"
+    - ./build/src/decoders/novatel/test/NovatelTest --gtest_output="xml:\unittest-report/NovatelDecoder_XML_Report.xml"
+    - ./build/src/hw_interface/stream_interface/test/StreamInterfaceTest --gtest_output="xml:\unittest-report/StreamInterface_XML_Report.xml"
+  artifacts:
+    paths:
+      - unittest-report
+    reports:
+      # Visualize unittest report in gitlab
+      junit: unittest-report/*.xml
+  rules:
+    - allow_failure: true
+ 
+unit-test-x64-release:linux:
+  extends: .unit-tests:linux
+  dependencies:
+    - "build:linux: [Release, x64]"
+  artifacts:
+    paths:
+      - build/**/**/**/test/
+  
+unit-test-x64-debug:linux:
+  extends: .unit-tests:linux
+  dependencies:
+    - "build:linux: [Debug, x64]"
+
+lint:
+  image: docker-registry.devops.corp.novatel.ca/novdevops_pclint
+  stage: test
+  script:
+    # Removing following Driver Interface cpp files for now
+    - rm src/hw_interface/stream_interface/src/*port*.cpp
+    - pclp64_linux -summary=lint_summary.log -os[edie_lint.html] ./lint/lint-includes.lnt ./lint/env-html.lnt ./lint/co-gcc.lnt ./lint/au-misra3.lnt ./lint/au-misra-cpp.lnt ./lint/misra_easy.lnt -max_threads=4 ./src/**/**/src/*.cpp  
+  artifacts:
+    when: always    
+    paths: 
+      - edie_lint.html
+  rules:
+    - allow_failure: true
+
+code-coverage:
+  stage: coverage
+  dependencies:
+    # Get reports from release and create html out of it  
+    - unit-test-x64-release:linux
+  script:
+    - echo "Generating code coverage report for Novatel Dynamic Decoder..."
+    - mkdir build/code-coverage
+    - apt-get update
+    - apt-get install -y python3-pip
+    - pip3 install gcovr
+    # Generate HTML code coverage reports
+    - gcovr -r ./src/ . --html --html-details -o ./build/code-coverage/index.html 
+    # for Visualization in gitlab itself under pipeline of this job
+    - gcovr -r ./src/ .  --xml-pretty --exclude-unreachable-branches --print-summary -o ./build/coverage.xml 
+  coverage: /^\s*lines:\s*\d+.\d+\%/  
+  artifacts:
+    paths:
+      # html coverage output
+      - ./build/code-coverage
+      # single coverage file, can be omited from artifacts
+      - ./build/coverage.xml 
+    reports:
+      # Visualize unittest coverage % in gitlab
+      cobertura: ./build/coverage.xml    
+    expire_in: 1 week
+  rules:
+    - allow_failure: true 
+    
+docs:
+  stage: docs
+  dependencies: []
+  script:
+    - export PACKAGE_VERSION=$(cat src/decoders/version.txt)
+    - echo $PACKAGE_VERSION
+    - apt-get update
+    - apt-get install -y tzdata 
+    - apt-get install -y doxygen python3-pip
+    - pip3 install exhale sphinx_rtd_theme
+    - sphinx-build src/decoders/common/doc doc/decoders/common/doc/html
+    - sphinx-build src/decoders/novatel/doc doc/decoders/novatel/doc/html
+    - sphinx-build src/decoders/jsoninterface/doc doc/decoders/jsoninterface/doc/html
+    - sphinx-build src/hw_interface/stream_interface/doc doc/hw_interface/stream_interface/doc/html
+    - echo "Generated docs for all the components here"
+  artifacts:
+    paths:
+      - doc
+    expire_in: 1 week
+
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  dependencies:
+    - "build:linux: [Release, x64]"
+  variables:
+    PACKAGE_VERSION: $(cat src/decoders/version.txt)
+  script:
+    - '[ -f src/decoders/version.txt ] && export PACKAGE_VERSION=$(cat src/decoders/version.txt)'
+    - echo "Releasing $CI_PROJECT_NAME v$PACKAGE_VERSION"
+    - release-cli create --name "v$PACKAGE_VERSION" --description "$Releasing $CI_PROJECT_NAME v$PACKAGE_VERSION" --tag-name $PACKAGE_VERSION
+  only:
+    - master  
+
+publish_version:linux:
+  stage: publish
+  image: python:3.7
+  dependencies:
+    - "build:linux: [Release, x64]"
+  script:
+    - apt-get update    
+    - apt-get install -y python-dev python3-pip
+    - pip3 install requests python-gitlab semver
+    - cd scripts
+    - python -c 'from generate_version import push_version; push_version("src/decoders/version.h.in", "'$CI_SERVER_URL'", "'$CI_DEPLOYMENT_TOKEN'",'$CI_PROJECT_ID', "'$CI_COMMIT_BRANCH'", "../src/decoders/version.h.in")'
+  only: 
+    refs:
+      - master
+
+publish_artifacts:
+  stage: publish
+  image: python:3.7
+  tags: 
+    - linux
+    - archive_share
+  script:
+      - echo "Commented out until the build binaries are output to the bin directory"
+      - export PACKAGE_VERSION=$(cat src/decoders/version.txt)
+      - mkdir --parents /mnt/data_archive/$PACKAGE_VERSION/
+      - cp -rf bin /mnt/data_archive/$PACKAGE_VERSION
+      - cp -rf doc /mnt/data_archive/$PACKAGE_VERSION
+  only: 
+    refs:
+      - master

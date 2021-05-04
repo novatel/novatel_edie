@@ -1,0 +1,5 @@
+include readme.md
+include tox.ini
+
+recursive-include novatel_edie *.dll
+recursive-include novatel_edie *.json
