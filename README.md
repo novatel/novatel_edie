@@ -6,9 +6,6 @@
 EDIE, the Encode Decode Interface Engine software development kit allows interfacing and decoding data output from [**NovAtel's**](https://www.novatel.com) [**OEM7**](https://novatel.com/products/receivers/oem-receiver-boards/oem7-receivers) receivers.
 
 ## Building EDIE from source code
-### Prerequisites
-* Linux (Ubuntu tested) or Windows 10
-* TODO: Compilers
 
 ### Compiling binaries
 #### Linux
@@ -17,7 +14,7 @@ These instructions assume that you are using Ubuntu 18.04 or newer.
 1. Open terminal 
 2. Update the system: ```apt-get update```
 3. Install make, cmake tools and g++ compiler: `apt-get install -y cmake make g++`
-4. Install multilib for gcc anf g++: `apt-get install --yes gcc-multilib g++-multilib`
+4. Install multilib for gcc and g++: `apt-get install --yes gcc-multilib g++-multilib`
 5. Clone the EDIE repository and change the folder permission: `sudo chmod -R 777 nov-decoder/`
 6. Create a build folder in the root directory: `mkdir build`
 7. Go to build folder: `cd build`
@@ -77,6 +74,7 @@ A: The database folder contains the file novatel_log_definitions.hpp that can be
 * Create a script to generate log and fieldnames so it's will be easier to use the JSON format
 * Expose more Stream Interfaces though the dynamic library
 * More unit testing
+* Support compiling in Windows with Cygwin
 
 #### Long-term
 * Rewrite Framing and Decoder code to remove the current couping from each other and clean up the codebase and logic
