@@ -45,13 +45,13 @@ if(LINUX)
     #Install the shared/dynamic lib.
     if(CMAKE_LIB_SHARED)
         install(TARGETS ${PROJECT_NAME} DynamicCommon
-        ARCHIVE DESTINATION /usr/lib
-        LIBRARY DESTINATION /usr/lib
-        PUBLIC_HEADER DESTINATION /usr/include/novatel/edie/decoders/common)
+        ARCHIVE DESTINATION usr/lib
+        LIBRARY DESTINATION usr/lib
+        PUBLIC_HEADER DESTINATION usr/include/novatel/edie/decoders/common)
     else()
         install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION /usr/lib
-        LIBRARY DESTINATION /usr/lib
-        PUBLIC_HEADER DESTINATION /usr/include/novatel/edie/decoders/common)
+        ARCHIVE DESTINATION usr/lib
+        LIBRARY DESTINATION usr/lib
+        PUBLIC_HEADER DESTINATION usr/include/novatel/edie/decoders/common)
     endif()
 endif()

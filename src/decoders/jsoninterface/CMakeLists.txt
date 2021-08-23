@@ -45,14 +45,14 @@ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${MY_PUBLIC_HEAD
 #Install the shared/dynamic lib.
 if(CMAKE_LIB_SHARED)
 install(TARGETS ${PROJECT_NAME} DynamicJsonInterface
-        ARCHIVE DESTINATION /usr/lib
-        LIBRARY DESTINATION /usr/lib
-        PUBLIC_HEADER DESTINATION /usr/include/novatel/edie/decoders/jsoninterface)
+        ARCHIVE DESTINATION usr/lib
+        LIBRARY DESTINATION usr/lib
+        PUBLIC_HEADER DESTINATION usr/include/novatel/edie/decoders/jsoninterface)
 else()		
 install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION /usr/lib
-        LIBRARY DESTINATION /usr/lib
-        PUBLIC_HEADER DESTINATION /usr/include/novatel/edie/decoders/jsoninterface)
+        ARCHIVE DESTINATION usr/lib
+        LIBRARY DESTINATION usr/lib
+        PUBLIC_HEADER DESTINATION usr/include/novatel/edie/decoders/jsoninterface)
 endif()
 		
 endif()

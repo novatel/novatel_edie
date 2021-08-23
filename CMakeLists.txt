@@ -74,7 +74,6 @@ if(LINUX)
 
 endif(LINUX)
 
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # build EDIE components
 add_subdirectory(src/decoders)
