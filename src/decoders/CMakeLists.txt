@@ -6,17 +6,28 @@ add_subdirectory(jsoninterface)
 add_subdirectory(novatel)
 add_subdirectory(dynamic_library)
 
-# Find Git package, if not need to install manually or through .yml file
-find_package(Git)
-if(Git_FOUND)
-  message("Git found: ${GIT_EXECUTABLE}")
+
+if(VERSION)
+	execute_process(COMMAND ${CMAKE_COMMAND}
+	    -D VERSION=${VERSION} 
+	    -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/version.h.in 
+	    -D DST=${CMAKE_CURRENT_SOURCE_DIR}/version.h 
+	    -D GIT_EXECUTABLE=${GIT_EXECUTABLE} 
+	    -P ${CMAKE_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
+else()
+	# Find Git package, if not need to install manually or through .yml file
+	find_package(Git)
+	if(Git_FOUND)
+	  message("Git found: ${GIT_EXECUTABLE}")
+	endif()
+
+	if(GIT_EXECUTABLE)
+	    execute_process(COMMAND ${CMAKE_COMMAND}
+	        -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/version.h.in 
+	        -D DST=${CMAKE_CURRENT_SOURCE_DIR}/version.h 
+	        -D GIT_EXECUTABLE=${GIT_EXECUTABLE} 
+	        -P ${CMAKE_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
+	endif()
 endif()
 
-# Build vesion 
-if(GIT_EXECUTABLE)
-    execute_process(COMMAND ${CMAKE_COMMAND} 
-        -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/version.h.in 
-        -D DST=${CMAKE_CURRENT_SOURCE_DIR}/version.h 
-        -D GIT_EXECUTABLE=${GIT_EXECUTABLE} 
-        -P ${CMAKE_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
-endif()
+
