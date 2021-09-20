@@ -74,31 +74,31 @@ if(GIT_EXECUTABLE AND NOT DEFINED VERSION)
 endif()
 
 # Final fallback: Just use a bogus version string that is semantically older
-# than anything else and spit out a warning to the developer.
+# than anything else and spit out a notice to the developer.
 
 if(NOT DEFINED VERSION)
   set(VERSION v0.0.0-unknown)
-  message(WARNING "Failed to determine VERSION from repository tags. Using default version \"${VERSION}\".")
+  message(STATUS "Failed to determine VERSION from repository tags. Using default version \"${VERSION}\".")
 endif()
 
 if(NOT DEFINED GIT_SHA)
   set(GIT_SHA 0000000000000000)
-  message(WARNING "Failed to determine GIT_SHA from repository tags. Using default version \"${GIT_SHA}\".")
+  message(STATUS "Failed to determine GIT_SHA from repository tags. Using default version \"${GIT_SHA}\".")
 endif()
 
 if(NOT DEFINED GIT_BRANCH)
   set(GIT_BRANCH Error)
-  message(WARNING "Failed to determine GIT_BRANCH from repository tags. Using default version \"${GIT_BRANCH}\".")
+  message(STATUS "Failed to determine GIT_BRANCH from repository tags. Using default version \"${GIT_BRANCH}\".")
 endif()
 
 if(NOT DEFINED GIT_IS_DIRTY)
   set(GIT_IS_DIRTY false)
-  message(WARNING "Failed to determine GIT_IS_DIRTY from repository tags. Using default version \"${GIT_IS_DIRTY}\".")
+  message(STATUS "Failed to determine GIT_IS_DIRTY from repository tags. Using default version \"${GIT_IS_DIRTY}\".")
 endif()
 
 if(NOT DEFINED BUILD_TIMESTAMP)
   set(BUILD_TIMESTAMP 0000-00-00T00:00:00)
-  message(WARNING "Failed to determine BUILD_TIMESTAMP from repository tags. Using default version \"${BUILD_TIMESTAMP}\".")
+  message(STATUS "Failed to determine BUILD_TIMESTAMP from repository tags. Using default version \"${BUILD_TIMESTAMP}\".")
 endif()
 
 message(DEBUG "Version \"${VERSION}\".")
