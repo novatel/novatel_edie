@@ -3,9 +3,9 @@
 </div>
 
 # EDIE
-EDIE, the Encode Decode Interface Engine software development kit allows interfacing and decoding data output from [**NovAtel's**](https://www.novatel.com) [**OEM7**](https://novatel.com/products/receivers/oem-receiver-boards/oem7-receivers) receivers.
+EDIE, the encode decode interface engine software development kit allows interfacing and decoding data output from [**NovAtel's**](https://www.novatel.com) [**OEM7**](https://novatel.com/products/receivers/oem-receiver-boards/oem7-receivers) receivers.
 
-## Building EDIE from source code
+## Building the EDIE kit from source code
 
 ### Compiling binaries
 #### Linux
@@ -44,7 +44,7 @@ These instructions assume that you are using Windows 10.
     - '--config' could be 'Release or Debug' 
 
 Build artifacts (such as public include files) will be copied to the bin directory in the root of the project.
-Building EDIE in Windows will also create a solution file (<project>.sln) in the build directory, which can be opened in Visual Studio 2017. EDIE can be built by Visual Studio through this solution file. Alternatively newer version of Visual Studio can open cmake projects directly.
+Building the EDIE library in Windows will also create a solution file (<project>.sln) in the build directory, which can be opened in Visual Studio 2017. The EDIE library can be built by Visual Studio through this solution file. Alternatively newer version of Visual Studio can open cmake projects directly.
 
 ### Generate documentation
 ### Linux
