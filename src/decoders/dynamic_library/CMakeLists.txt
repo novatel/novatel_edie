@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION 3.10.2)
 project(decoders_dynamic_library VERSION 1.0.0)
 
 
@@ -29,9 +29,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "decoders")
 set_property(TARGET objdynamicdecoder PROPERTY FOLDER "decoders")
 
 if (WIN32)
-    add_compile_definitions(DECODERS_EXPORTS)
+    add_definitions(-DDECODERS_EXPORTS)
 else()
-    add_compile_definitions(DECODERS_STATIC_DEFINE)
+    add_definitions(-DDECODERS_STATIC_DEFINE)
 endif()
 
 target_include_directories(objdynamicdecoder PUBLIC src)

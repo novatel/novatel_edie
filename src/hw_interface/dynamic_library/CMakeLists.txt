@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION 3.10.2)
 project(hwinterface_dynamic_library VERSION 1.0.0)
 
 
@@ -29,9 +29,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "hw_interface")
 set_property(TARGET objdynamichwinterface PROPERTY FOLDER "hw_interface")
 
 if (WIN32)
-    add_compile_definitions(HWINTERFACE_EXPORTS)
+    add_definitions(-DHWINTERFACE_EXPORTS)
 else()
-    add_compile_definitions(HWINTERFACE_STATIC_DEFINE)
+    add_definitions(-DHWINTERFACE_STATIC_DEFINE)
 endif()
 
 target_include_directories(objdynamichwinterface PUBLIC src)

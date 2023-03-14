@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12.4)
+cmake_minimum_required(VERSION 3.10.2)
 
 project(NovatelTest VERSION 1.0.0)
 
@@ -9,7 +9,7 @@ LIST(APPEND NOVATELTEST_SOURCES ${SOURCES})
 add_executable(${PROJECT_NAME} ${NOVATELTEST_SOURCES})
 
 add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
-add_compile_definitions(DATADIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/")
+add_definitions(-DDATADIR="${CMAKE_CURRENT_SOURCE_DIR}/resources/")
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "decoders/tests")
 
 get_directory_property( DirDefs COMPILE_DEFINITIONS )
