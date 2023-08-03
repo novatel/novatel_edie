@@ -54,7 +54,7 @@ public:
 	 *  
 	 * \param [in] uiBufferSize - Length of circullar buffer to be created.
 	 */ 
-	MemoryStream(UINT uiBufferSize);
+	MemoryStream(uint32_t uiBufferSize);
 
     /*! A Constructor
 	 *  \brief  Creates circullar buffer and append buffer content provided.
@@ -65,7 +65,7 @@ public:
 	 *  \remark If Circullar buffer length is lesser than provided uiContentSize, 
 	 *   then circullar buffer will auto enlarge to created reuested size before append.
 	 */ 	
-	MemoryStream(UCHAR* pucBuffer, UINT uiContentSize);
+	MemoryStream(uint8_t* pucBuffer, uint32_t uiContentSize);
 
     /*! A Constructor
 	 *  \brief  Creates default MemoryStream object. Inside, Calls default CircullarBuffer class object.
@@ -90,38 +90,38 @@ public:
 	 */ 
 	void Flush();
 
-    /*! \fn INStreamReadStatusT Read(CHAR* pucBuffer, UINT uiSize)
+    /*! \fn INStreamReadStatusT Read(char* pucBuffer, uint32_t uiSize)
 	 *  \brief Reads the required amount(uiSize) from buffer into pucBuffer
 	 * 
 	 *  \return StreamReadStatus structure with read statistics.
 	 */ 
-	StreamReadStatus Read(CHAR* pucBuffer, UINT uiSize);
+	StreamReadStatus Read(char* pucBuffer, uint32_t uiSize);
 
-    /*! \fn UINT Read(void)
+    /*! \fn uint32_t Read(void)
 	 *  \brief Read the one byte from the buffer
 	 * 
 	 *  \return Byte read from buffer.
 	 *  \remark update StreamReadStatus structure with read statistics.
 	 */ 
-    UINT Read(void);
+    uint32_t Read(void);
 
-    /*! \fn UINT Write(UCHAR)
+    /*! \fn uint32_t Write(uint8_t)
 	 *  \brief Write one byte or character to buffer and update read statistics(StreamReadStatus)
 	 * 
 	 */ 
-    UINT Write(UCHAR);
+    uint32_t Write(uint8_t);
 
-    /*! \fn UINT Write(UCHAR* pucBuffer, UINT uisize)
+    /*! \fn uint32_t Write(uint8_t* pucBuffer, uint32_t uisize)
 	 *  \brief Write provided buffer of dezired length.
 	 *  \return Returns length of bytes append/write.
 	 */ 	
-	UINT Write(UCHAR* pucBuffer, UINT uisize);
+	uint32_t Write(uint8_t* pucBuffer, uint32_t uisize);
 
-    /*! \fn UINT CalculatePercentage(UINT uipercentage)
+    /*! \fn uint32_t CalculatePercentage(uint32_t uipercentage)
 	 *  \brief Calculates the percentage of current Memory(Circuallr Buffer) read.
 	 *  \return percentage of read compare to total buffer.
 	 */ 	
-	UINT CalculatePercentage(UINT);
+	uint32_t CalculatePercentage(UINT);
 
     /*! For testing MemoryStream class private methods */ 
 	friend class MemoryStreamTest;

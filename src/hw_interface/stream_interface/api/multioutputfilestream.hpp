@@ -39,10 +39,11 @@
 //-----------------------------------------------------------------------
 #include "outputstreaminterface.hpp"
 #include "filestream.hpp"
-#include "decoders/novatel/api/filters/messagedatafilter.hpp"
+#include "decoders/common/api/common.hpp"
 #include "decoders/common/api/nexcept.h"
-
-
+#include "decoders/novatel/api/common.hpp"
+#include <string>
+#include <map>
 
 /*! \def MIN_TIME_SPLIT_SEC
  *  \brief Minimum split time in seconds.
@@ -79,17 +80,9 @@ public:
     /*! A Constructor
 	 *  \brief  Default class constructor.
 	 *
-	 *  \remark All private members are defaults to 0.
+	 *  \remark All private members default to 0.
 	 */
-   MultiOutputFileStream();
-
-    /*! A Constructor
-	 *  \brief  Class constructor with MessageDataFilter object.
-	 *
-	 *  \remark MessageDataFilter object Will be apply when filtering enbled
-    *  in writing decoded data to output file.
-	 */
-   MultiOutputFileStream(MessageDataFilter&);
+   MultiOutputFileStream() = default;
 
     /*! A virtual Destructor
 	 *  \brief  Class destructor.
@@ -98,7 +91,6 @@ public:
 	 */
    virtual ~MultiOutputFileStream();
 
-#ifdef WIDE_CHAR_SUPPORT
    /*! \fn void SelectFileStream(std::wstring stFileName)
     *  \brief Sets the output file in which to be decoded ouput will be written.
     *  \param [in] stFileName - Name of the File to be created.
@@ -106,7 +98,14 @@ public:
     *  \remark FileStream Object will be created and added to map.
     *  If already created, The file with name stFileName will be set for writing.
     */
-   void SelectFileStream(std::wstring );
+   void SelectFileStream(std::u32string s32FileName_);
+
+   /*! \fn void ClearWCFileStreamMap()
+    *  \brief Delete all the output files assosiated Wide Character FileStream objects.
+    *  \remark Clears the map in which all the output file stream objects will be saved.
+    */
+
+   void ClearWCFileStreamMap();
 
    /*! \fn void ConfigureBaseFileName(std::wstring stFileName)
     *  \brief Gets base file name with wide characters and extension of it.
@@ -114,43 +113,62 @@ public:
     *  \remark Sets Base file name (before '.' in file name)
     *          Sets Extension of the file.
     */
-   void ConfigureBaseFileName(std::wstring);
+   void ConfigureBaseFileName(std::u32string s32FileName_);
 
-   /*! \fn void ClearWCFileStreamMap()
-    *  \brief Delete all the output files assosiated Wide Character FileStream objects.
-    *  \remark Clears the map in which all the output file stream objects will be saved.
-    */
-   void ClearWCFileStreamMap();
 
-   /*! \fn void SelectWCLogFile(BaseMessageData&)
-    *  \brief Sets the output file name  from the log name from BaseMessageData.
-    *  \param [in] BaseMessageData pointer
+   /*! \fn void SelectWCLogFile(std::string strMsgName_)
+    *  \brief Sets the output file name  from the log name from strMsgName_.
+    *  \param [in] std::string strMsgName_
     *  \remark Sets output file name like "basename_logname".
     */
-   void SelectWCLogFile(BaseMessageData&);
+   void SelectWCLogFile(std::string strMsgName_);
 
-   /*! \fn void SelectWCSizeFile(BaseMessageData&)
+   /*! \fn void SelectWCSizeFile(uint32_t uiSize_)
     *  \brief Sets the output file name(with Wide Characters) included with the split size
-    *  \param [in] BaseMessageData pointer
+    *  \param [in] uint32_t uiSize_
     *  \remark Example: output files could be basename_part<1/2/3...etc>
     */
-   void SelectWCSizeFile(BaseMessageData&);
+   void SelectWCSizeFile(uint32_t uiSize_);
 
-   /*! \fn void SelectWCTimeFile(BaseMessageData&)
+   /*! \fn void SelectWCTimeFile(TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
     *  \brief Sets the number of output files can be created based the time provided
-    *  \param [in] BaseMessageData pointer
+    *  \param [in] TIME_STATUS eStatus_
+    *  \param [in] uint16_t usWeek_
+    *  \param [in] double dMilliseconds_
     *  \remark Example: output files could be basename_part<1/2/3...etc>
     */
-   void SelectWCTimeFile(BaseMessageData&);
-#endif
-   /*! \fn UINT WriteData(BaseMessageData&)
-    *  \brief
-    *  \param [in] pclBaseMessageData BaseMessageData object.
+   void SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
+
+   /*! \fn uint32_t WriteData(char* pcData_, uint32_t uiDataLength_, std::string strMsgName_, uint32_t uiSize_, novatel::edie::oem::TIME_STATUS eStatus_, uint16_t usWeek_, DOUBLE dMilliseconds_)
+    *  \param [in] char* pcData_
+    *  \param [in] uint32_t uiDataLength_
+    *  \param [in] std::string strMsgName_
+    *  \param [in] uint32_t uiSize_
+    *  \param [in] novatel::edie::oem::TIME_STATUS eStatus_
+    *  \param [in] uint16_t usWeek_
+    *  \param [in] double dMilliseconds_
     *  \return Number of bytes written to output file.
     *  \remark Set Split type and write data to output files. If split type was not set,
     *  Then writing can be done to only one file.
     */
-   UINT WriteData(BaseMessageData& pclBaseMessageData);
+   uint32_t WriteData(
+      char* pcData_,
+      uint32_t uiDataLength_,
+      std::string strMsgName_,
+      uint32_t uiSize_,
+      novatel::edie::TIME_STATUS eStatus_,
+      uint16_t usWeek_,
+      double dMilliseconds_);
+
+   /*! \fn uint32_t WriteData(CHAR *pcFrameBuf_, uint32_t uiLength)
+    *  \brief Write Buffer to outputfile.
+    *  \param [in] *pcFrameBuf_ pointer to buffer to be written to output file
+    *  \param [in] uiLength Length of the buffer to be written to output file
+    *  \return Number of bytes written to output file.
+    *  \remark Set Split type and write data to output files. If split type was not set,
+    *  Then writing can be done to only one file.
+    */
+   uint32_t WriteData(char* pcData_, uint32_t uiDataLength_);
 
    /*! \fn void SelectFileStream(std::string stFileName)
     *  \brief Sets the output file in which to be decoded ouput will be written.
@@ -175,49 +193,52 @@ public:
     */
    void ClearFileStreamMap();
 
-   /*! \fn void ConfigureSplitByLog(BOOL)
+   /*! \fn void ConfigureSplitByLog(bool)
     *  \brief Enalbe/Diable Splitting of logs into different output files.
     *  \param [in] bStatus
     *  \remark Enable/Disable log Splitting. If enable, split type will be set to SPLIT_LOG
     *  If disabled split type will be set to SPLIT_NONE
     */
-   void ConfigureSplitByLog(BOOL bStatus);
+   void ConfigureSplitByLog(bool bStatus);
 
-   /*! \fn void SelectLogFile(BaseMessageData&)
-    *  \brief Sets the output file name  from the log name from BaseMessageData.
-    *  \param [in] pclBaseMessageData BaseMessageData object
+   /*! \fn void SelectLogFile(std::string strMsgName_)
+    *  \brief Sets the output file name  from the log name from strMsgName_.
+    *  \param [in] std::string strMsgName_
     *  \remark Sets output file name like "basename_logname".
     */
-   void SelectLogFile(BaseMessageData& pclBaseMessageData);
+   void SelectLogFile(std::string strMsgName_);
 
-   /*! \fn void ConfigureSplitBySize(ULONGLONG)
+   /*! \fn void ConfigureSplitBySize(uint64_t )
     *  \brief Split file into different output file with defined size.
     *  \param [in] ullFileSplitSize
     *  \remark Output files with ullFileSplitSize size will be created while writing to the output.
     */
-   void ConfigureSplitBySize(ULONGLONG ullFileSplitSize);
+   void ConfigureSplitBySize(uint64_t  ullFileSplitSize);
 
-   /*! \fn void SelectSizeFile(BaseMessageData&)
+   /*! \fn void SelectSizeFile(uint32_t uiSize_)
     *  \brief Sets the output file name included with the split size
-    *  \param [in] pclBaseMessageData BaseMessageData object
+    *  \param [in] uint32_t uiSize_
     *  \remark Example: output files could be basename_part<1/2/3...etc>
     */
-   void SelectSizeFile(BaseMessageData& pclBaseMessageData);
+   void SelectSizeFile(uint32_t uiSize_);
 
-   /*! \fn void ConfigureSplitByTime(DOUBLE dFileSplitTime)
+   /*! \fn void ConfigureSplitByTime(double dFileSplitTime)
     *  \brief Sets the interval of time the file to be splitted.
     *  \param [in] dFileSplitTime
     *  \remark Diffrent output files will be created with the logs,
     *  in which will be captured in the tiem interval provided.
     */
-   void ConfigureSplitByTime(DOUBLE dFileSplitTime);
+   void ConfigureSplitByTime(double dFileSplitTime);
 
-   /*! \fn void SelectTimeFile(BaseMessageData&)
+
+   /*! \fn void SelectTimeFile(TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
     *  \brief Sets the number of output files can be created based the time provided
-    *  \param [in] pclBaseMessageData BaseMessageData object
+    *  \param [in] TIME_STATUS eStatus_
+    *  \param [in] uint16_t usWeek_
+    *  \param [in] double dMilliseconds_
     *  \remark Example: output files could be basename_part<1/2/3...etc>
     */
-   void SelectTimeFile(BaseMessageData& pclBaseMessageData);
+   void SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
 
    /*! \fn std::map<std::string, FileStream*> GetFileMap()
     *  \brief Gets the output file map
@@ -226,11 +247,19 @@ public:
     */
    std::map<std::string, FileStream*> GetFileMap() { return mMyFstreamMap;}
 
+   /*! \fn std::map<std::u32string, FileStream*> GetFileMap()
+    *  \brief Gets the output file map
+    *  \return Map with filename and FileStream Struct as key-value pair
+    *  \sa FileStream
+    */
+   std::map<std::u32string, FileStream*> Get32FileMap() { return wmMyFstreamMap;}
+
    /*! \fn void SetExtensionName(std::string
     *  \brief Sets the extension name of the output file
     *  \param [in] strExt std::string - Output file name
     */
-   void SetExtensionName(std::string strExt) { stMyExtentionName = strExt; }   
+   void SetExtensionName(std::string strExt) { stMyExtentionName = strExt; }
+   void SetExtensionName(std::u32string strExt) { s32MyExtentionName = strExt; }
 
    /*! Frind class to test private methods. */
    friend class MultiOutputFileStreamTest;
@@ -252,88 +281,85 @@ private:
    /*! FileStream class object pointer
     * \sa FileStream
     */
-   FileStream* pLocalFileStream;
-
-   /*! MessageDataFilter class object pointer
-    * \sa MessageDataFilter
-    */
-   MessageDataFilter* pMyMessageDataFilter;
+   FileStream* pLocalFileStream{ nullptr };
 
    /*! \var eMyFileSplitMethodEnum.
     * \sa FileSplitMethodEnum
     *
     * An enumaration variable
     */
-   FileSplitMethodEnum eMyFileSplitMethodEnum;
+   FileSplitMethodEnum eMyFileSplitMethodEnum{ SPLIT_NONE };
 
    /*! \var bMyFileSplit
-    *  \remark Values can be TRUE or FALSE.
+    *  \remark Values can be true or false.
     *
     *  Boolean variable to enable/disable split mechanism.
     */
-   BOOL bMyFileSplit;
+   bool bMyFileSplit{ false };
 
    /*! \var uiMyFileCount
     *
     * Number of output files created.
     */
-   UINT uiMyFileCount;
+   uint32_t uiMyFileCount{ 0 };
 
    /*! \var dMyTimeSplitSize
     *
     *  Time interval to be used for splitting of file.
     */
-   DOUBLE dMyTimeSplitSize;
+   double dMyTimeSplitSize{ 0.0 };
 
    /*! \var dMyTimeInSeconds
     *
     * Time interval to be used for calculating start/end time of logs to be written to output.
     */
-   DOUBLE dMyTimeInSeconds;
+   double dMyTimeInSeconds{ 0.0 };
 
    /*! \var dMyStartTimeInSeconds
     *
     * Start time of the Logs to be written to the output.
     */
-   DOUBLE dMyStartTimeInSeconds;
+   double dMyStartTimeInSeconds{ 0.0 };
 
    /*! \var dMyStartTimeInSeconds
     *
     * Start GPS Week of the Logs to be written to the output.
     */
-   ULONG ulMyStartWeek;
+   uint32_t ulMyStartWeek{ 0UL };
 
    /*! \var dMyStartTimeInSeconds
     *
     * Start GPS Week of the Logs to be written to the output.
     */
-   ULONG ulMyWeek;
+   uint32_t ulMyWeek{ 0UL };
 
-#ifdef WIDE_CHAR_SUPPORT
    /*! Wide Character Base name of the output file */
-   std::wstring wstMyBaseName;
+   std::u32string s32MyBaseName{ U"DefaultBase" };
    /*! Wide Character extension name of the output file */
-   std::wstring wstMyExtentionName;
+   std::u32string s32MyExtentionName{ U"DefaultExt" };
+
    /*! std::map to save output file name with wide charater and associated FileStream class object. */
-   typedef std::map<std::wstring, FileStream* > WCFstreamMap;
+   typedef std::map<std::u32string, FileStream* > WCFstreamMap;
    /*! Wide Character file Map variable */
    WCFstreamMap wmMyFstreamMap;
    /*! Enable or Disable Wide Character support of file names.*/
-   BOOL bEnableWideCharSupport;
+#ifdef WIDE_CHAR_SUPPORT
+   bool bEnableWideCharSupport{ true };
+#else
+   bool bEnableWideCharSupport{ false };
 #endif
    /*! Base name of the output file */
-   std::string stMyBaseName;
+   std::string stMyBaseName{ "DefaultBase" };
    /*! Extension name of the output file */
-   std::string stMyExtentionName;
+   std::string stMyExtentionName{ "DefaultExt" };
    /*! std::map to save output file name and associated FileStream class object. */
-   typedef std::map<std::string, FileStream* > FstreamMap;
+   typedef std::map<std::string, FileStream*> FstreamMap;
    /*! Map variable */
    FstreamMap mMyFstreamMap;
    /*! The splitted output file size */
-   ULONGLONG ullMyFileSplitSize;
+   uint64_t  ullMyFileSplitSize{ 0ULL };
    /*! Total File size */
-   ULONGLONG ullMyFileSize;
-
+   uint64_t  ullMyFileSize{ 0ULL };
 };
 
 #endif

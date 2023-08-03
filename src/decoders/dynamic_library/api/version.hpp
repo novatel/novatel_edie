@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 NovAtel Inc.
+// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//                            DESCRIPTION
+//
+//! \file version.hpp
+//! \brief DLL version info.
+////////////////////////////////////////////////////////////////////////
 
-/*! \file   version.hpp
- *  \brief  File to get the DLL version
- */
+//-----------------------------------------------------------------------
+// Recursive Inclusion
+//-----------------------------------------------------------------------
+#ifndef DYNAMIC_LIBRARY_VERSION_HPP
+#define DYNAMIC_LIBRARY_VERSION_HPP
 
+//-----------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------
 #include "decoders_export.h"
-#include "src/decoders/version.h"
 
 extern "C" {
-   DECODERS_EXPORT char* version();
-   DECODERS_EXPORT char* pretty_version();
+   DECODERS_EXPORT const char* version();
+   DECODERS_EXPORT const char* pretty_version();
 }
+
+#endif

@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 NovAtel Inc.
+// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,17 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//                            DESCRIPTION
+//
+//! \file nexcept.h
+//! \brief Used for rasing exceptions with valid error message.
+////////////////////////////////////////////////////////////////////////
 
-/*! \file nexcept.h
- *  \brief Used for rasing exceptions with valid error message.
- *  \author akhan
- *  \date   FEB 2021
- *
- *  This class will be used for rasing/catching exceptions in the library
- *  with valid error message and in which class exception was raised.
- */
-
+//-----------------------------------------------------------------------
+// Recursive Inclusion
+//-----------------------------------------------------------------------
 #ifndef NEXCEPT_H
 #define NEXCEPT_H
 
@@ -41,80 +40,74 @@
 #include <stdarg.h>
 #include <string.h>
 
-/*! \brief Used for rasing exceptions with valid error message in the library.
- *
- *  Having buffer of 256 bytes to hold the error message.
- *  Will store exception message including in which class it was raised.
- *  Parent class for generating exceptions in entire library.
- */
+//============================================================================
+//! \class JsonReaderFailure
+//! \brief Used for rasing exceptions with valid error message in the library.
+//============================================================================
 class nExcept
 {
 public:
-   /*! \var buffer
-    *  \brief Character buffer of 256 bytes to hold exception message
-    */
-	char buffer[256];
+   char buffer[256]{ '\0' }; //!< Character buffer of 256 bytes to hold exception message
 
-   /*! \brief default exception class constructor with no arguments.
-    *
-    */
-   ///////////////////////////////////////////////////////////////////////////////
-   nExcept() {}
+   //----------------------------------------------------------------------------
+   //! \brief A constructor for the nExcept class.
+   //----------------------------------------------------------------------------
+   nExcept() = default;
 
-   /*! \brief Exception Class constructor
-    *
-    *  \param[in] nNew Another nExcept Class object.
-    *
-    *  \remarks Will copy exception data from nNew class object
-    */
-   nExcept (const nExcept &nNew)
+   //----------------------------------------------------------------------------
+   //! \brief Exception Class constructor.
+   //
+   //! \param[in] clNew Another nExcept Class object.
+   //----------------------------------------------------------------------------
+   nExcept (const nExcept &clNew)
    {
-		strncpy(buffer, nNew.buffer, 256);
+      strncpy(buffer, clNew.buffer, 256);
    }
 
-   /*! \brief Exception class with variable number of arguments which included
-    *
-    *  Exception message in which class it was raised and line number ...etc
-    */
+   //----------------------------------------------------------------------------
+   //! \brief Exception class with variable number of arguments which included.
+   //
+   //! \param[in] szFormat String formatting.
+   //----------------------------------------------------------------------------
    nExcept(const char* szFormat, ...)
    {
       va_list arg_ptr;
 
-      va_start (arg_ptr, szFormat);
-      vsprintf (buffer,szFormat, arg_ptr);
-      perror (buffer);
-      va_end (arg_ptr);
+      va_start(arg_ptr, szFormat);
+      vsprintf(buffer,szFormat, arg_ptr);
+      perror(buffer);
+      va_end(arg_ptr);
    }
 
-   /*! \brief Copy Exception class constructor.
-    *
-    */
-   nExcept &operator= (const nExcept &nNew)
+   //----------------------------------------------------------------------------
+   //! \brief Assignment operator for nExcept.
+   //----------------------------------------------------------------------------
+   nExcept &operator= (const nExcept &clNew)
    {
-		strncpy(buffer, nNew.buffer, 256);
+      strncpy(buffer, clNew.buffer, 256);
 
       return *this;
    }
 
-   /*! \brief Method to print exception with vatiable arguments which included
-    *
-    *  Exception message in which class it was raised and line number ...etc
-    */
+   //----------------------------------------------------------------------------
+   //! \brief Method to print exception with vatiable arguments which included.
+   //
+   //! \param[in] szFormat String formatting.
+   //----------------------------------------------------------------------------
    void Printf( const char* szFormat, ...)
    {
       va_list arg_ptr;
 
-      va_start (arg_ptr, szFormat);
-
-      vsprintf (buffer,szFormat, arg_ptr);
-      perror (buffer);
-      va_end (arg_ptr);
+      va_start(arg_ptr, szFormat);
+      vsprintf(buffer,szFormat, arg_ptr);
+      perror(buffer);
+      va_end(arg_ptr);
    }
 
-   /*! \brief default exception class destructor.
-    *
-    */
-   ~nExcept() {}
+   //----------------------------------------------------------------------------
+   //! \brief Destructor for the nExcept class.
+   //----------------------------------------------------------------------------
+   ~nExcept() = default;
 };
 
 #endif

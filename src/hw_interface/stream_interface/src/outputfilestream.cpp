@@ -25,64 +25,30 @@
 // Includes
 #include "outputfilestream.hpp"
 
-// code
-#ifdef WIDE_CHAR_SUPPORT
+
 // ---------------------------------------------------------
-OutputFileStream::OutputFileStream(const wchar_t* pcFileName)
+OutputFileStream::OutputFileStream(const std::u32string s32FileName)
 {
-   pOutFileStream = new FileStream(pcFileName);
-   pOutFileStream->OpenFile(FileStream::OUTPUT);
-   pMessageDataFilter = NULL;
+   pOutFileStream = new FileStream(s32FileName);
+   pOutFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
 }
 
 // ---------------------------------------------------------
-OutputFileStream::OutputFileStream(const wchar_t* pcFileName, MessageDataFilter& rMessageDataFilter)
+OutputFileStream::OutputFileStream(const char* pcFileName)
 {
    pOutFileStream = new FileStream(pcFileName);
-   pOutFileStream->OpenFile(FileStream::OUTPUT);
-   pMessageDataFilter = &rMessageDataFilter;
+   pOutFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
 }
-#endif
-// ---------------------------------------------------------
-OutputFileStream::OutputFileStream(const CHAR* pcFileName)
-{
-   pOutFileStream = new FileStream(pcFileName);
-   pOutFileStream->OpenFile(FileStream::OUTPUT);
-   pMessageDataFilter = NULL;
-}
-
-// ---------------------------------------------------------
-OutputFileStream::OutputFileStream(const CHAR* pcFileName, MessageDataFilter& rMessageDataFilter)
-{
-   pOutFileStream = new FileStream(pcFileName);
-   pOutFileStream->OpenFile(FileStream::OUTPUT);
-   pMessageDataFilter = &rMessageDataFilter;
-}
-
 
 // ---------------------------------------------------------
 OutputFileStream::~OutputFileStream()
 {
+   pOutFileStream->CloseFile();
    delete pOutFileStream;
-   pMessageDataFilter = NULL;
 }
 
 // ---------------------------------------------------------
-UINT OutputFileStream::WriteData(BaseMessageData& pBaseMessageData)
+uint32_t OutputFileStream::WriteData(char* cData, uint32_t uiSize)
 {
-   UINT uiReturn = 0;
-   if (pMessageDataFilter != NULL)  
-   {
-      if (pMessageDataFilter->Filter(pBaseMessageData) == TRUE )
-      {
-         uiReturn = pOutFileStream->WriteFile(pBaseMessageData.getMessageData() , pBaseMessageData.getMessageLength());
-      }
-   }
-   else
-   {
-      uiReturn = pOutFileStream->WriteFile(pBaseMessageData.getMessageData() , pBaseMessageData.getMessageLength());
-   }
-   return uiReturn;
+   return pOutFileStream->WriteFile(cData, uiSize);
 }
-
-

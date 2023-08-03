@@ -24,8 +24,8 @@
 
 /*! \file inputstreaminterface.hpp
  *  \brief Interface class for reading data from all types of decoder input(File/Port/Buffer)
- * 
- */ 
+ *
+ */
 
 //-----------------------------------------------------------------------
 // Recursive Inclusion
@@ -36,18 +36,17 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "decoders/common/api/common.hpp"
+#include "common.hpp"
 #include <iostream>
 
 //-----------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------
 class MemoryStream;
-class NovatelParser;
 
 /*! \class InputStreamInterface
  *   \brief An Interface Class used by application ro provide input to the decoder.
- * 
+ *
  *  Interface class for reading data from all types of decoder input(File/Port/Buffer)
 */
 class InputStreamInterface
@@ -58,7 +57,7 @@ public:
     * \sa ReadData()
     * \param [in] pReadDataStructure ReadDataStructure variable to hold decoded log
     * \return StreamReadStatus structure - Read data statistics
-    */   
+    */
    virtual StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure) = 0;
 
    /** A virtual member.
@@ -68,16 +67,16 @@ public:
     * \param [in]  Number of bytes in data buffer.
     * \return Number of bytes written to the stream
     * \throws "dont have method" -if not have any concrete method derived.
-    */ 
-	virtual UINT Write(UCHAR*,UINT ){throw "dont have method";}
+    */
+	virtual uint32_t Write(uint8_t*,uint32_t ){throw "dont have method";}
 
    /** A virtual member.
-    * \brief Checks weather the data in circullar buffer avaialble to decode or not.
+    * \brief Checks whether the data in circullar buffer avaialble to decode or not.
     * \sa IsStreamAvailable().
-    * \return TRUE or FALSE.
-    * \remark If no concrete derived method, It simply returns FALSE.
-    */   
-   virtual BOOL IsStreamAvailable(void){return FALSE;}
+    * \return true or false.
+    * \remark If no concrete derived method, It simply returns false.
+    */
+   virtual bool IsStreamAvailable(void){return false;}
 
    /** A virtual member.
     * \brief Read one line from the file.
@@ -93,29 +92,17 @@ public:
     * \return Returns the extension of the input file to be decoded.
     * \remark If no concrete derived method, It simply returns NULL string.
     */
-   virtual std::string GetFileExtension(){return NULL;};
-   
-   /** A virtual member.
-    * \brief Registers call back to driver.
-    * \sa RegisterCallBack().
-    * \remark default returns 0.
-    */   
-   virtual void RegisterCallBack(NovatelParser*){};
+   virtual std::string GetFileExtension(){ return NULL;};
+
+   virtual std::string GetFileName(){ return NULL;};
 
    /** A virtual member.
     * \brief Waiting period on port for incoming data to be decode.
     * \sa SetTimeOut().
     * \remark No default implementation.
     */
-   virtual void SetTimeOut(DOUBLE){};
+   virtual void SetTimeOut(double){};
 
-   /** A virtual member.
-    * \brief Enable call back method when reading from port for decoder input.
-    * \sa EnableCallBack().
-    * \remark No default implementation.
-    */
-   virtual void EnableCallBack(BOOL){};
-   
    /** A virtual member.
     * \brief Set/Reset File Position from which next read will be done.
     * \sa Reset().
@@ -124,18 +111,11 @@ public:
    virtual void Reset(std::streamoff, std::ios_base::seekdir){};
 
    /** A virtual member.
-    * \brief Enable/Disable Call back mechanism for port reading.
-    * \sa IsCallBackEnable().
-    * \remark Default returns FALSE.
-    */
-   virtual BOOL IsCallBackEnable(){return FALSE;};
-
-   /** A virtual member.
     * \brief Returns the current file position from which next read will be done.
     * \sa GetCurrentFilePosition().
     * \remark Default returns 0.
     */
-   virtual ULONGLONG GetCurrentFilePosition() { return 0; };
+   virtual uint64_t  GetCurrentFilePosition() { return 0; };
 
    /** A virtual default destructor.
     */
@@ -146,20 +126,20 @@ public:
     * \sa SetCurrentFileOffset().
     * \remark No default implementation.
     */
-	virtual void SetCurrentFileOffset(ULONGLONG) {};
+	virtual void SetCurrentFileOffset(uint64_t ) {};
 
    /** A virtual member.
     * \brief Returns Cuurent file offset..
     * \sa GetCurrentFileOffset().
     * \remark returns 0, if no concrete derived method for it.
     */
-   virtual ULONGLONG GetCurrentFileOffset(void)const { return 0; };
+   virtual uint64_t  GetCurrentFileOffset(void)const { return 0; };
 
    /** A virtual member.
     * \brief Returns the class object which has interfacesed or derived from circuallar buffer.
     * \sa GetMemoryStream().
     * \remark MemoryStream* class Object to access circullar buffer.
-    */   
+    */
 	virtual MemoryStream* GetMemoryStream(){return NULL;};
 private:
 };

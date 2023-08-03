@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 NovAtel Inc.
+// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//                            DESCRIPTION
+//
+//! \file main.cpp
+////////////////////////////////////////////////////////////////////////
 
+//-----------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------
 #include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

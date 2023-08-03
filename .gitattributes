@@ -4,6 +4,7 @@
 *.txt text eol=crlf
 *.GPS text eol=crlf
 *.gps text eol=crlf
+*.BIN -text
 
 # another way of doing
 #  git config --global core.autocrlf false

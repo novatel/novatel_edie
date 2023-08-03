@@ -24,29 +24,28 @@
 
 // Includes
 #include "inputfilestream.hpp"
+#include <codecvt>
 
 // code
-#ifdef WIDE_CHAR_SUPPORT
 // ---------------------------------------------------------
-InputFileStream::InputFileStream(const wchar_t* pwFileName)
-   :stwFileName(pwFileName)
+InputFileStream::InputFileStream(const std::u32string s32FileName_)
 {
-   pInFileStream = new FileStream(pwFileName);
-   pInFileStream->OpenFile(FileStream::INPUT);
+   pInFileStream = new FileStream(s32FileName_);
+   pInFileStream->OpenFile(FileStream::FILEMODES::INPUT);
    pInFileStream->GetFileSize();
-   bEnableWideCharSupport = TRUE;
+   bEnableWideCharSupport = true;
 }
-#endif
+
 // ---------------------------------------------------------
-InputFileStream::InputFileStream(const CHAR* pName)
+InputFileStream::InputFileStream(const char* pName)
    :stFileName(pName)
 {
    pInFileStream = new FileStream(pName);
-   pInFileStream->OpenFile(FileStream::INPUT);
+   pInFileStream->OpenFile(FileStream::FILEMODES::INPUT);
    pInFileStream->GetFileSize();
-#ifdef WIDE_CHAR_SUPPORT
-   bEnableWideCharSupport = FALSE;
-#endif
+
+   bEnableWideCharSupport = false;
+
 }
 
 // ---------------------------------------------------------
@@ -59,7 +58,7 @@ InputFileStream::~InputFileStream()
 StreamReadStatus InputFileStream::ReadData(ReadDataStructure& pReadDataStructure )
 {
    StreamReadStatus stFileReadStatus;
-   stFileReadStatus = pInFileStream->ReadFile(pReadDataStructure.cData , pReadDataStructure.uiDataSize );
+   stFileReadStatus = pInFileStream->ReadFile(pReadDataStructure.cData , pReadDataStructure.uiDataSize);
    return stFileReadStatus;
 }
 
@@ -76,18 +75,18 @@ void InputFileStream::Reset(std::streamoff offset, std::ios_base::seekdir dir)
 }
 
 // ---------------------------------------------------------
-ULONGLONG InputFileStream:: GetCurrentFilePosition()
+uint64_t  InputFileStream:: GetCurrentFilePosition()
 {
    return pInFileStream->GetCurrentFileSize();
 }
 // ---------------------------------------------------------
-void InputFileStream::SetCurrentFileOffset(ULONGLONG ullCurrentFileOffset) 
+void InputFileStream::SetCurrentFileOffset(uint64_t  ullCurrentFileOffset)
 {
    pInFileStream->SetCurrentFileOffset(ullCurrentFileOffset);
 }
 
-ULONGLONG InputFileStream::GetCurrentFileOffset(void) const
-{ 
+uint64_t  InputFileStream::GetCurrentFileOffset(void) const
+{
    return pInFileStream->GetCurrentFileOffset();
 }
 
@@ -103,27 +102,28 @@ std::string InputFileStream::FileExtension()
 }
 
 // ---------------------------------------------------------
-#ifdef WIDE_CHAR_SUPPORT
 std::string InputFileStream::WCFileExtension()
 {
    size_t BaseNameLength = stwFileName.find_last_of(L".");
    if (BaseNameLength != std::string::npos)
    {
-      std::wstring wextension = stwFileName.substr(BaseNameLength + 1);
-      std::string extension(wextension.begin(), wextension.end());
-      return extension;
+      std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+      return converter.to_bytes(stwFileName.substr(BaseNameLength + 1));
    }
    return NULL;
 }
-#endif
 
 // ---------------------------------------------------------
 std::string InputFileStream::GetFileExtension()
 {
-#ifdef WIDE_CHAR_SUPPORT
-   if (bEnableWideCharSupport == TRUE)
+   if (bEnableWideCharSupport)
       return WCFileExtension();
    else
-#endif
       return FileExtension();
+}
+
+// ---------------------------------------------------------
+std::string InputFileStream::GetFileName()
+{
+   return stFileName;
 }

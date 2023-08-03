@@ -28,28 +28,31 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "stream_interface.hpp"
 
-InputFileStream* ifs_init(const char* file)
+InputFileStream* ifs_init(char* pcInputFilePath_)
 {
-   return new InputFileStream(file);
+   InputFileStream* pclIFS = new InputFileStream(pcInputFilePath_);
+   return pclIFS;
 }
 
-void ifs_read(InputFileStream* ifs, StreamReadStatus* srs, char* databuffer, int& iSize)
+void ifs_del(InputStreamInterface* pclIFS_)
 {
-   StreamReadStatus status;
-   ReadDataStructure data;
-   data.cData = databuffer;
-   data.uiDataSize = iSize;
-   // read data from input stream
-   status = ifs->ReadData(data);
-   srs->bEOS = status.bEOS;
-   srs->uiCurrentStreamRead = status.uiCurrentStreamRead;
-   srs->uiPercentStreamRead = status.uiPercentStreamRead;
-   srs->ullStreamLength = status.ullStreamLength;
-   iSize = data.uiDataSize;
+   if (pclIFS_)
+   {
+      delete pclIFS_;
+      pclIFS_ = NULL;
+   }
 }
 
-void is_del(InputStreamInterface* pSteam)
+void ifs_read(InputFileStream* pclIFS_, StreamReadStatus* pstReadStatus_, char* pcReadBuf_, int iBufSize_)
 {
-   if (pSteam)
-      delete pSteam;
+   StreamReadStatus stReadStatus;
+   ReadDataStructure stReadData;
+   stReadData.cData = pcReadBuf_;
+   stReadData.uiDataSize = iBufSize_;
+   stReadStatus = pclIFS_->ReadData(stReadData);
+
+   pstReadStatus_->bEOS = stReadStatus.bEOS;
+   pstReadStatus_->uiCurrentStreamRead = stReadStatus.uiCurrentStreamRead;
+   pstReadStatus_->uiPercentStreamRead = stReadStatus.uiPercentStreamRead;
+   pstReadStatus_->ullStreamLength = stReadStatus.ullStreamLength;
 }

@@ -24,12 +24,10 @@
 
 // Includes
 #include "hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "string"
+#include "paths.hpp"
+#include <string>
+#include <filesystem>
 #include <gtest/gtest.h>
-
-#ifndef DATADIR
-    #define DATADIR
-#endif
 
 class OutputFileStreamTest : public ::testing::Test {
 public:
@@ -48,66 +46,18 @@ protected:
 TEST_F(OutputFileStreamTest, Constructor1)
 {
    OutputFileStream* pMyTestCommand = NULL;
-   std::string filename = std::string(DATADIR) + "outputfilestream_file1.asc";       
-   
-   const char* filepath = filename.c_str();
-   pMyTestCommand = new OutputFileStream(filepath);
+   pMyTestCommand = new OutputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "outputfilestream_file1.asc").string().c_str());
    ASSERT_TRUE(pMyTestCommand->pOutFileStream != NULL);
    delete pMyTestCommand;
 }
 
-// Constructor2
-TEST_F(OutputFileStreamTest, Constructor2)
+// Constructor Wide Char
+TEST_F(OutputFileStreamTest, ConstructorWideChar)
 {
+   std::cout<<"In Output Stream Test, Constructor WC"<<std::endl;
    OutputFileStream* pMyTestCommand = NULL;
-   MessageDataFilter* pMyTestCommand1 = MessageDataFilter::CreateFilter(MESSAGE_FILTER);
-   std::string filename = std::string(DATADIR) + "outputfilestream_file2.asc";       
-   
-   const char* filepath = filename.c_str();
-   pMyTestCommand = new OutputFileStream(filepath, *pMyTestCommand1);
+   pMyTestCommand = new OutputFileStream(std::u32string((std::filesystem::path(*TEST_RESOURCE_PATH) / U"不同语言的文件.gps").generic_u32string()));
    ASSERT_TRUE(pMyTestCommand->pOutFileStream != NULL);
    delete pMyTestCommand;
-   delete pMyTestCommand1;
-}
-
-// WriteData Test
-TEST_F(OutputFileStreamTest, WriteData)
-{
-   MessageHeader stMessageHeader;
-   char* chDecodedMessage = new char[strlen("This is outputfilestream_file3.") + 1];
-   strcpy(chDecodedMessage, "This is outputfilestream_file3.");
-   stMessageHeader.eMessageFormat = MessageFormatEnum::MESSAGE_ASCII;
-   BaseMessageData clBaseMessageData(&stMessageHeader, chDecodedMessage);
-   clBaseMessageData.setMessageLength((UINT)strlen("This is outputfilestream_file3."));
-   OutputFileStream* pMyTestCommand = NULL;
-   std::string filename = std::string(DATADIR) + "outputfilestream_file3.asc";       
-   
-   const char* filepath = filename.c_str();
-   pMyTestCommand = new OutputFileStream(filepath);
-   UINT uiLenght = pMyTestCommand->WriteData(clBaseMessageData);
-   ASSERT_EQ(31, (INT)uiLenght);
-
-   FilterConfig stFilterConfig;
-   stFilterConfig.AddIDFormatPair(5, MESSAGE_BINARY);
-   stFilterConfig.AddIDFormatPair(6, MESSAGE_ASCII);
-   stFilterConfig.IsNegativeFilter(FALSE);
-   MessageDataFilter* pMyTestCommand2 = MessageDataFilter::CreateFilter(MESSAGE_FILTER);
-   pMyTestCommand2->ConfigureFilter(stFilterConfig);
-
-   OutputFileStream* pMyTestCommand1 = NULL;
-   filename = std::string(DATADIR) + "outputfilestream_file4.asc";          
-   filepath = filename.c_str();
-   pMyTestCommand1 = new OutputFileStream(filepath, *pMyTestCommand2);
-   chDecodedMessage = new char[strlen("This is outputfilestream_file4.") + 1];
-   strcpy(chDecodedMessage, "This is outputfilestream_file4.");
-   stMessageHeader.eMessageFormat = MessageFormatEnum::MESSAGE_ASCII;
-   BaseMessageData clBaseMessageData1(&stMessageHeader, chDecodedMessage);
-   clBaseMessageData1.setMessageLength((UINT)strlen("This is outputfilestream_file4."));
-   clBaseMessageData1.setMessageTimeStatus(MessageTimeStatusEnum::TIME_FINE);
-   clBaseMessageData1.setMessageID(6);
-   clBaseMessageData1.setMessageFormat(MESSAGE_ASCII);
-   uiLenght = pMyTestCommand1->WriteData(clBaseMessageData1);
-   ASSERT_EQ(31, (INT)uiLenght);
-
-   delete pMyTestCommand;
+   std::cout<<"Made it past ASSERT and Delete. Output Stream Test, Constructor WC"<<std::endl;
 }

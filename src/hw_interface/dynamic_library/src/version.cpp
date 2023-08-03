@@ -28,7 +28,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "version.hpp"
 
-char* get_version()
+const char* get_version()
 {
    return "0.1.0";
 }

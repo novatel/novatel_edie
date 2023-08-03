@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 NovAtel Inc.
+// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,18 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//                            DESCRIPTION
 //
-//  DESCRIPTION:
-//    unit test cases for circular buffer implemenatation
-//
-////////////////////////////////////////////////////////////////////////////////
-#include "common/api/circularbuffer.hpp"
-#include <gtest/gtest.h>
+//! \file circularbufferunittest.cpp
+//! \brief Unit test cases for circular buffer implemenatation.
+////////////////////////////////////////////////////////////////////////
 
-#ifndef DATADIR
-    #define DATADIR
-#endif
+//-----------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------
+#include "decoders/common/api/circularbuffer.hpp"
+#include <gtest/gtest.h>
 
 class CircularBufferTest : public ::testing::Test {
 public:
@@ -44,10 +44,12 @@ public:
 private:
 };
 
-
-TEST_F(CircularBufferTest, SetCapacity)
+// -------------------------------------------------------------------------------------------------------
+// CircularBuffer Unit Tests
+// -------------------------------------------------------------------------------------------------------
+TEST_F(CircularBufferTest, SET_CAPACITY)
 {
-   UINT uiCapacity = 100;
+   uint32_t uiCapacity = 100;
    CircularBuffer cCircularBuffer;
    cCircularBuffer.SetCapacity(uiCapacity);
    ASSERT_DOUBLE_EQ(cCircularBuffer.GetCapacity(), uiCapacity);
@@ -57,32 +59,31 @@ TEST_F(CircularBufferTest, SetCapacity)
 
    try
    {
-      // Allocate huge amount of memory 
-      long lHugeMemory_Size = 0x7fffffff*5; 
-      cCircularBuffer.SetCapacity(lHugeMemory_Size);
+      // Allocate huge amount of memory
+      cCircularBuffer.SetCapacity(INT32_MAX);
       ASSERT_EQ(0, 0);
    }
    catch(const std::exception& e)
    {
       std::cerr << e.what() << '\n';
-   }   
+   }
 }
 
-TEST_F(CircularBufferTest, Append)
+TEST_F(CircularBufferTest, APPEND)
 {
-   const CHAR* pcData = "test data";
-   UINT uiBytes = (UINT)strlen(pcData);
+   const char* pcData = "test data";
+   uint32_t uiBytes = static_cast<uint32_t>(strlen(pcData));
    CircularBuffer cCircularBuffer;
-   ASSERT_DOUBLE_EQ(cCircularBuffer.Append((UCHAR*)pcData, uiBytes), uiBytes);
+   ASSERT_DOUBLE_EQ(cCircularBuffer.Append(reinterpret_cast<const unsigned char*>(pcData), uiBytes), uiBytes);
 }
 
-TEST_F(CircularBufferTest, GetByte)
+TEST_F(CircularBufferTest, GET_BYTE)
 {
-   const CHAR* pcData = "test data";
-   UINT uiBytes = (UINT)strlen(pcData);
+   const char* pcData = "test data";
+   uint32_t uiBytes = static_cast<uint32_t>(strlen(pcData));
 
    CircularBuffer cCircularBuffer;
-   cCircularBuffer.Append((UCHAR*)pcData, uiBytes);
+   cCircularBuffer.Append(reinterpret_cast<const unsigned char*>(pcData), uiBytes);
 
    ASSERT_EQ(cCircularBuffer.GetByte(0), 't');
    ASSERT_EQ(cCircularBuffer.GetByte(uiBytes-1), 'a');
@@ -91,15 +92,15 @@ TEST_F(CircularBufferTest, GetByte)
    ASSERT_EQ(cCircularBuffer.GetByte(-1), '\0');
 
    cCircularBuffer.Discard(4);
-   ASSERT_EQ(cCircularBuffer.GetByte(uiBytes), '\0');   
+   ASSERT_EQ(cCircularBuffer.GetByte(uiBytes), '\0');
 }
 
-TEST_F(CircularBufferTest, Discard)
+TEST_F(CircularBufferTest, DISCARD)
 {
-   const CHAR* pcData = "test data";
-   size_t uiBytes = strlen(pcData);
+   const char* pcData = "test data";
+   uint32_t uiBytes = static_cast<uint32_t>(strlen(pcData));
    CircularBuffer cCircularBuffer;
-   cCircularBuffer.Append((UCHAR*)pcData, (UINT)uiBytes);
+   cCircularBuffer.Append(reinterpret_cast<const unsigned char*>(pcData), uiBytes);
    cCircularBuffer.Discard(1);
    ASSERT_TRUE(cCircularBuffer.GetLength() == uiBytes-1);
    cCircularBuffer.Discard(1);
@@ -107,31 +108,30 @@ TEST_F(CircularBufferTest, Discard)
    cCircularBuffer.Discard(uiBytes-2);
    ASSERT_TRUE(cCircularBuffer.GetLength() == 0);
    cCircularBuffer.Discard(1);
-   ASSERT_TRUE(cCircularBuffer.GetLength() == 0);      
-   cCircularBuffer.Append((UCHAR*)pcData, (UINT)uiBytes);
+   ASSERT_TRUE(cCircularBuffer.GetLength() == 0);
+   cCircularBuffer.Append(reinterpret_cast<const unsigned char*>(pcData), uiBytes);
    ASSERT_TRUE(cCircularBuffer.GetLength() == uiBytes);
-   cCircularBuffer.Discard(uiBytes+1);   
+   cCircularBuffer.Discard(uiBytes+1);
 }
 
-TEST_F(CircularBufferTest, Clear)
+TEST_F(CircularBufferTest, CLEAR)
 {
-   const CHAR* pcData = "test data";
-   size_t uiBytes = strlen(pcData);
+   std::string pcData("test data");
    CircularBuffer cCircularBuffer;
-   cCircularBuffer.Append((UCHAR*)pcData, (UINT)uiBytes);
+   cCircularBuffer.Append(reinterpret_cast<const unsigned char*>(pcData.c_str()), static_cast<uint32_t>(pcData.length()));
    cCircularBuffer.Clear();
    ASSERT_TRUE(cCircularBuffer.GetLength() == 0);
 }
 
-TEST_F(CircularBufferTest, Copy)
+TEST_F(CircularBufferTest, COPY)
 {
    CircularBuffer cCircularBuffer;
 
-   const CHAR* pcData = "test data";
-   size_t uiBytes = strlen(pcData);
-   cCircularBuffer.Append((UCHAR*)pcData, (UINT)uiBytes);
+   const char* pcData = "test data";
+   uint32_t uiBytes = static_cast<uint32_t>(strlen(pcData));
+   cCircularBuffer.Append(reinterpret_cast<const unsigned char*>(pcData), uiBytes);
 
-   UCHAR* pcData_ = new UCHAR[uiBytes+1]; // more than uiBytes
-   UINT uiBytes_ = cCircularBuffer.Copy(pcData_, uiBytes+1);
+   char* pcData_ = new char[uiBytes + 1]; // more than uiBytes
+   uint32_t uiBytes_ = cCircularBuffer.Copy(reinterpret_cast<unsigned char*>(pcData_), uiBytes + 1);
    ASSERT_EQ(uiBytes_, uiBytes);
 }

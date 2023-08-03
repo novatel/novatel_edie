@@ -30,12 +30,10 @@
 // Includes
 #include "hw_interface/stream_interface/api/multioutputfilestream.hpp"
 #include "string"
+#include <filesystem>
 
 #include <gtest/gtest.h>
 
-#ifndef DATADIR
-    #define DATADIR
-#endif
 
 class MultiOutputFileStreamTest : public ::testing::Test {
 public:
@@ -47,22 +45,26 @@ public:
 
   typedef std::map<std::string, FileStream* > FstreamMap;
   MultiOutputFileStream::FstreamMap::iterator itFstreamMapIterator;
+  MultiOutputFileStream::WCFstreamMap::iterator itWFstreamMapIterator;
 
-  BOOL IsFileSplit() { return pMyTestCommand->bMyFileSplit; }
+  bool IsFileSplit() { return pMyTestCommand->bMyFileSplit; }
   FileStream* GetLocalFileStream() { return pMyTestCommand->pLocalFileStream; }
-  MessageDataFilter* GetMessageDataFilter() { return pMyTestCommand->pMyMessageDataFilter; }
   FileSplitMethodEnum GetFileSplitMethodEnum() { return pMyTestCommand->eMyFileSplitMethodEnum; }
   std::string GetBaseFileName() { return pMyTestCommand->stMyBaseName; }
   std::string GetExtensionName() { return pMyTestCommand->stMyExtentionName; }
-  UINT GetFileSplitSize() { return (UINT)pMyTestCommand->ullMyFileSplitSize; }
-  ULONGLONG GetFileSize() { return pMyTestCommand->ullMyFileSize; }
-  UINT GetFileCount() { return pMyTestCommand->uiMyFileCount; }
-  DOUBLE GetTimeSplitSize() { return pMyTestCommand->dMyTimeSplitSize; }
-  DOUBLE GetTimeInSeconds() { return pMyTestCommand->dMyTimeInSeconds; }
-  DOUBLE GetStartTimeInSecs() { return pMyTestCommand->dMyStartTimeInSeconds; }
-  ULONG GetWeek() { return pMyTestCommand->ulMyWeek; }
-  ULONG GetStartWeek() { return pMyTestCommand->ulMyStartWeek; }
-  FstreamMap GetMap() { return pMyTestCommand->GetFileMap(); }private:
+  std::u32string GetBase32FileName() { return pMyTestCommand->s32MyBaseName; }
+  std::u32string Get32ExtensionName() { return pMyTestCommand->s32MyExtentionName; }
+  uint64_t GetFileSplitSize() { return pMyTestCommand->ullMyFileSplitSize; }
+  uint64_t GetFileSize() { return pMyTestCommand->ullMyFileSize; }
+  uint32_t GetFileCount() { return pMyTestCommand->uiMyFileCount; }
+  double GetTimeSplitSize() { return pMyTestCommand->dMyTimeSplitSize; }
+  double GetTimeInSeconds() { return pMyTestCommand->dMyTimeInSeconds; }
+  double GetStartTimeInSecs() { return pMyTestCommand->dMyStartTimeInSeconds; }
+  uint32_t GetWeek() { return pMyTestCommand->ulMyWeek; }
+  uint32_t GetStartWeek() { return pMyTestCommand->ulMyStartWeek; }
+  FstreamMap GetMap() { return pMyTestCommand->GetFileMap(); }
+  MultiOutputFileStream::WCFstreamMap Get32StringMap() { return pMyTestCommand->Get32FileMap(); }
+private:
 
 protected:
 	MultiOutputFileStream* pMyTestCommand = NULL;
@@ -71,35 +73,15 @@ protected:
 
 };
 
-// Constructor
-TEST_F(MultiOutputFileStreamTest, Constructor)
-{
-	MessageDataFilter* pMessageDataFilter = NULL;
-	pMyTestCommand = new MultiOutputFileStream(*pMessageDataFilter);
-	ASSERT_EQ(0, IsFileSplit());
-	ASSERT_TRUE(GetLocalFileStream() == NULL);
-	ASSERT_TRUE(GetMessageDataFilter() == NULL);
-	ASSERT_EQ(3, (INT)GetFileSplitMethodEnum());
-	ASSERT_STREQ("DefaultBase", GetBaseFileName().c_str());
-	ASSERT_STREQ("DefaultExt", GetExtensionName().c_str());
-	ASSERT_EQ(0, GetFileSplitSize());
-	ASSERT_EQ(0, GetFileSize());
-	ASSERT_EQ(0, GetFileCount());
-	ASSERT_EQ(0.0, GetTimeSplitSize());
-	ASSERT_EQ(0.0, GetTimeInSeconds());
-	ASSERT_EQ(0.0, GetStartTimeInSecs());
-	delete pMyTestCommand;
-}
-
 TEST_F(MultiOutputFileStreamTest, ConfigureSplitByLog)
 {
    pMyTestCommand = new MultiOutputFileStream();
 
-   pMyTestCommand->ConfigureSplitByLog(TRUE);
-   ASSERT_TRUE(IsFileSplit() == TRUE);
+   pMyTestCommand->ConfigureSplitByLog(true);
+   ASSERT_TRUE(IsFileSplit());
 
-   pMyTestCommand->ConfigureSplitByLog(FALSE);
-   ASSERT_TRUE(IsFileSplit() == FALSE);
+   pMyTestCommand->ConfigureSplitByLog(false);
+   ASSERT_FALSE(IsFileSplit());
 
    delete pMyTestCommand;
 }
@@ -120,6 +102,21 @@ TEST_F(MultiOutputFileStreamTest, ConfigureBaseFileName)
    delete pMyTestCommand;
 }
 
+TEST_F(MultiOutputFileStreamTest, ConfigureBase32StringFileName)
+{
+   pMyTestCommand = new MultiOutputFileStream();
+
+   pMyTestCommand->ConfigureBaseFileName(U"multiOutputfilestream_不同语言的文件");
+   ASSERT_EQ(std::u32string(U"multiOutputfilestream_不同语言的文件"), GetBase32FileName());
+   ASSERT_EQ(std::u32string(U"DefaultExt"), Get32ExtensionName());
+
+   pMyTestCommand->ConfigureBaseFileName(U"multiOutputfilestream_不同语言的文件.txt");
+   ASSERT_EQ(std::u32string(U"multiOutputfilestream_不同语言的文件"), GetBase32FileName());
+   ASSERT_EQ(std::u32string(U"txt"), Get32ExtensionName());
+
+   delete pMyTestCommand;
+}
+
 // Test the SelectLogFile method.
 TEST_F(MultiOutputFileStreamTest, SelectLogFile)
 {
@@ -129,21 +126,18 @@ TEST_F(MultiOutputFileStreamTest, SelectLogFile)
   pMyTestCommand = new MultiOutputFileStream();
   pMyTestCommand->ConfigureBaseFileName("multiOutputfilestream_file14.asc");
 
-  BaseMessageData clBaseMessageData;
-  clBaseMessageData.setMessageName("bestpos");
-
-  pMyTestCommand->SelectLogFile(clBaseMessageData);
+  pMyTestCommand->SelectLogFile("bestpos");
   myMap = GetMap();
   itFstreamMapIterator = myMap.begin();
 
   std::string strFileName = GetBaseFileName() +  "_" + "bestpos" + "." + GetExtensionName();
   ASSERT_STREQ(strFileName.c_str(), (itFstreamMapIterator->first).c_str());
 
-  ASSERT_STREQ(strFileName.c_str(), itFstreamMapIterator->second->GetFileName());
+  ASSERT_EQ(strFileName, itFstreamMapIterator->second->GetFileName());
 
   pMyTestCommand->ConfigureBaseFileName("multiOutputfilestream_file15");
   pMyTestCommand->SetExtensionName("DefaultExt");
-  pMyTestCommand->SelectLogFile(clBaseMessageData);
+  pMyTestCommand->SelectLogFile("bestpos");
 
   itFstreamMapIterator++;
   strFileName = GetBaseFileName() +  "_" + "bestpos";
@@ -155,18 +149,46 @@ TEST_F(MultiOutputFileStreamTest, SelectLogFile)
   delete pMyTestCommand;
 }
 
+// Test the SelectLogFile method.
+TEST_F(MultiOutputFileStreamTest, Select32StringLogFile)
+{
+  typedef std::map<std::u32string, FileStream* > WCFstreamMap;
+  WCFstreamMap myMap;
+
+  pMyTestCommand = new MultiOutputFileStream();
+  pMyTestCommand->ConfigureBaseFileName(U"multiOutputfilestream不同_file14.asc");
+
+  pMyTestCommand->SelectWCLogFile("bestpos");
+  myMap = Get32StringMap();
+  itWFstreamMapIterator = myMap.begin();
+
+  std::u32string strFileName = GetBase32FileName() +  U"_" + U"bestpos" + U"." + Get32ExtensionName();
+  ASSERT_EQ(strFileName, (itWFstreamMapIterator->first));
+
+  ASSERT_EQ(strFileName, itWFstreamMapIterator->second->Get32StringFileName());
+
+  pMyTestCommand->ConfigureBaseFileName(U"multiOutputfilestream不同_file15");
+  pMyTestCommand->SetExtensionName(U"DefaultExt");
+  pMyTestCommand->SelectLogFile("bestpos");
+
+  itWFstreamMapIterator++;
+  strFileName = GetBase32FileName() +  U"_" + U"bestpos";
+
+  // Need to improve further here
+  //printf("myMap size: %d\n", myMap.size());
+  //printf("first: %s\n", (itFstreamMapIterator->first).c_str());
+  //ASSERT_STREQ(strFileName.c_str(), (itFstreamMapIterator->first).c_str());
+  delete pMyTestCommand;
+}
+
 TEST_F(MultiOutputFileStreamTest, WriteData)
 {
    pMyTestCommand = new MultiOutputFileStream();
-   pMyTestCommand->ConfigureSplitByLog(TRUE);
+   pMyTestCommand->ConfigureSplitByLog(true);
    pMyTestCommand->ConfigureBaseFileName("Log.txt");
 
-   BaseMessageData* clBMD = new BaseMessageData();
-   clBMD->setMessageName("BESTPOS");
-   clBMD->setMessageData("HELLO");
-   clBMD->setMessageLength(5);
-
-   INT iLen = pMyTestCommand->WriteData(*clBMD);
+   char pcCommand[] = "HELLO";
+   int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, std::string("BESTPOS"), 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
    ASSERT_TRUE(iLen == 5);
 
    std::ifstream ifile("Log_BESTPOS.txt");
@@ -181,21 +203,41 @@ TEST_F(MultiOutputFileStreamTest, WriteData)
    pMyTestCommand->ClearFileStreamMap();
 }
 
+TEST_F(MultiOutputFileStreamTest, WriteDataWideFile)
+{
+   pMyTestCommand = new MultiOutputFileStream();
+   pMyTestCommand->ConfigureSplitByLog(true);
+   pMyTestCommand->ConfigureBaseFileName(U"Log不同.txt");
+
+   char pcCommand[] = "HELLO";
+   int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "BESTPOS", 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
+   ASSERT_TRUE(iLen == 5);
+
+   std::filesystem::path clUnicodePath(U"Log不同_BESTPOS.txt");
+
+   std::ifstream ifile(clUnicodePath);
+   if (ifile) {
+     // The file exists, and is open for input
+   }
+   else
+      ASSERT_TRUE(4 == 5); // Simple fails
+
+   ifile.close();
+
+   pMyTestCommand->ClearWCFileStreamMap();
+}
+
 TEST_F(MultiOutputFileStreamTest, ConfigureSplitBySize)
 {
    pMyTestCommand = new MultiOutputFileStream();
    pMyTestCommand->ConfigureSplitBySize(1);
-   ASSERT_TRUE((BOOL)1 == IsFileSplit());
-   ASSERT_TRUE(1 == (INT)GetFileSplitSize());
+   ASSERT_TRUE(IsFileSplit());
+   ASSERT_TRUE(GetFileSplitSize() == 1);
 
    pMyTestCommand->ConfigureBaseFileName("Log.txt");
 
-   BaseMessageData* clBMD = new BaseMessageData();
-   clBMD->setMessageName("BESTPOS");
-   clBMD->setMessageData("HELLO");
-   clBMD->setMessageLength(5);
-
-   INT iLen = pMyTestCommand->WriteData(*clBMD);
+   char pcCommand[] = "HELLO";
+   int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "", 1, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
    ASSERT_TRUE(iLen == 5);
 
    std::ifstream ifile("Log_Part0.txt");
@@ -228,12 +270,8 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitByTime)
    pMyTestCommand->ConfigureSplitByTime(0.01);
    pMyTestCommand->ConfigureBaseFileName("Log.txt");
 
-   BaseMessageData* clBMD = new BaseMessageData();
-   clBMD->setMessageName("BESTPOS");
-   clBMD->setMessageData("HELLO");
-   clBMD->setMessageLength(5);
-
-   INT iLen = pMyTestCommand->WriteData(*clBMD);
+   char pcCommand[] = "HELLO";
+   int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "", 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.01);
    ASSERT_TRUE(iLen == 5);
 
    std::ifstream ifile("Log_Part0.txt");
@@ -261,23 +299,17 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitByTime)
 
 TEST_F(MultiOutputFileStreamTest, SelectTimeFile)
 {
-   BaseMessageData* clBMD = new BaseMessageData();
-   clBMD->setMessageName("BESTPOS");
-   clBMD->setMessageData("HELLO");
-   clBMD->setMessageLength(5);
-
    pMyTestCommand  = new MultiOutputFileStream();
    pMyTestCommand->ConfigureSplitByTime(0.01);
    pMyTestCommand->SelectFileStream("Log.txt");
-   pMyTestCommand->SelectTimeFile(*clBMD);
+   pMyTestCommand->SelectTimeFile(novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.01);
 
    ASSERT_TRUE(GetTimeInSeconds() == 0.0);
    ASSERT_TRUE(GetStartTimeInSecs() == 0.0);
    ASSERT_TRUE(GetWeek() == 0);
    ASSERT_TRUE(GetStartWeek() == 0);
 
-   clBMD->setMessageTimeStatus(MessageTimeStatusEnum::TIME_SATTIME);
-   pMyTestCommand->SelectTimeFile(*clBMD);
+   pMyTestCommand->SelectTimeFile(novatel::edie::TIME_STATUS::SATTIME, 0, 0.0);
 
    ASSERT_TRUE(GetTimeInSeconds() == 0.0);
    ASSERT_TRUE(GetStartTimeInSecs() == 0.0);

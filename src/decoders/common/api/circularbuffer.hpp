@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 NovAtel Inc.
+// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,175 +20,175 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-////////////////////////////////////////////////////////////////////////////////
-
-#ifndef CIRCULARBUFFER_H
-#define CIRCULARBUFFER_H
-
-/*! \file circularbuffer.hpp
- *  \brief Circular buffer class to hold data read from file or port used by parser
- *  \author Gopi R
- *  \date   FEB 2021
- *  Additional details can follow in subsequent paragraphs.
- */ 
+////////////////////////////////////////////////////////////////////////
+//                            DESCRIPTION
+//
+//! \file circularbuffer.hpp
+//! \brief Circular buffer class to hold data read from file or port
+//! used by parser.
+////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------------------------------------
-// Includes                                                               
+// Recursive Inclusion
 //-----------------------------------------------------------------------
-#include "env.hpp"
-#include "nexcept.h"
+#ifndef CIRCULARBUFFER_HPP
+#define CIRCULARBUFFER_HPP
 
-/*! \brief Circular buffer class to hold data read from file or port used by parser
- *
- * This class had methods like Append/Discard and clear as well.
- * No need to expose to the Application/User.
- */ 
+//-----------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------
+#include <cstdint>
+
+//============================================================================
+//! \class CircularBuffer
+//============================================================================
 class CircularBuffer
 {
 private:
-
-   UCHAR* pucMyBuffer;       /**< Data buffer (circular buffer) */
-   UINT   uiMyCapacity;      /**< Capacity of data buffer (bytes) */
-   UINT   uiMyLength;        /**< Amount of data currently in buffer (bytes) */
-   UCHAR* pucMyHead;         /**< Logical beginning of buffer */
-   UCHAR* pucMyTail;         /**< Logical tail of buffer (could be computed, but maintained as a convenience) */
+   unsigned char* pucMyBuffer{ nullptr }; //!< Data buffer (circular buffer)
+   uint32_t uiMyCapacity{ 0 };            //!< Capacity of data buffer (bytes)
+   uint32_t uiMyLength{ 0 };              //!< Amount of data currently in buffer (bytes)
+   unsigned char* pucMyHead{ nullptr };   //!< Logical beginning of buffer
+   unsigned char* pucMyTail{ nullptr };   //!< Logical tail of buffer (could be computed, but maintained as a convenience)
 
 public:
-   /*! \brief default circular buffer class constructor.
-    *
-    *  Circular Buffer Head, Tail, Buffer will be intialized to NULL. 
-    *  And Capicity of Buffer and current length of data will be set to 0.
-    */
-   CircularBuffer();        
+   //----------------------------------------------------------------------------
+   //! \brief A constructor for the CircularBuffer class.
+   //! \remark Circular Buffer Head, Tail, Buffer will be initialized to nullptr.
+   //! And Capacity of Buffer and current length of data will be set to 0.
+   //----------------------------------------------------------------------------
+   CircularBuffer() = default;
 
-   /*! \brief default circular buffer class Destructor.*/
-   ~CircularBuffer();
+   //----------------------------------------------------------------------------
+   //! \brief Default circular buffer class Destructor.
+   //----------------------------------------------------------------------------
+   ~CircularBuffer() = default;
 
-   /*! \brief Sets the size of the circular buffer (bytes)
-    *
-    *  Dynamic memory will be created for the capicity provided.
-    *  if new failed.... exception will be thrown.
-    *
-    *  \pre None
-    *  \post None
-    * 
-    *  \param[in] uiCapacity_ Size of buffer (bytes).  
-    * 
-    *  \return None
-    *  \remark If uiCapacity_, smaller than current capacity, no effect..
-    */ 
-   void SetCapacity (UINT uiCapacity_);          
+   //----------------------------------------------------------------------------
+   //! \brief Sets the size of the circular buffer (bytes)
+   //
+   //! \param[in] uiCapacity_ Size of buffer (bytes).
+   //
+   //! \remark If uiCapacity_, smaller than current capacity, no effect..
+   //----------------------------------------------------------------------------
+   void SetCapacity (uint32_t uiCapacity_);
 
-   /*! Returns current capacity of buffer. */
-   inline UINT GetCapacity();     
+   //----------------------------------------------------------------------------
+   //! \brief Returns current capacity of buffer.
+   //----------------------------------------------------------------------------
+   inline uint32_t GetCapacity() const;
 
-   /*! Returns number of bytes of data in buffer. Number of bytes between beggining of buffer and write cursor.*/
-   inline UINT GetLength();       
+   //----------------------------------------------------------------------------
+   //! \brief Returns number of bytes of data in buffer. Number of bytes between
+   //! beginning of buffer and write cursor.
+   //----------------------------------------------------------------------------
+   inline uint32_t GetLength() const;
 
-   /*! Returns the current buffer.*/
-   inline UCHAR* GetBuffer();     
+   //----------------------------------------------------------------------------
+   //! \brief Returns the current buffer.
+   //----------------------------------------------------------------------------
+   inline unsigned char* GetBuffer() const;
 
-   /*! \brief Append data to end of buffer.  Will increase buffer size if needed.
-    *
-    *  Will Enlarge the buffer if byte count is more than capacity.
-    *  To prevent having to allocate memory excessively, will allocate a little 
-    *  more than we really need.
-    * 
-    *  \pre None
-    *  \post None
-    * 
-    *  \param[in] pucData_ CHAR buffer pointer from which data to append to the queue
-    *  \param[in] uiBytes_  Size of data (in bytes) to append from above address
-    * 
-    *  \return UINT - Return number of bytes actually appended
-    *  \remark If size of data is nore then capacity of buffer, heap will be created on time.
-    */ 
-   UINT Append(UCHAR* pucData_, UINT uiBytes_);
+   //----------------------------------------------------------------------------
+   //! \brief Append data to end of buffer.  Will increase buffer size if needed.
+   //
+   //! \param[in] pucData_ unsigned char buffer pointer from which data to
+   //! append to the queue.
+   //! \param[in] uiBytes_ Size of data (in bytes) to append from above address.
+   //
+   //! \return AReturn number of bytes actually appended
+   //! \remark If size of data is more than the capacity of buffer, heap will be
+   //! created on time.
+   //----------------------------------------------------------------------------
+   uint32_t Append(const unsigned char* pucData_, uint32_t uiBytes_);
 
-   /*! \brief Remove data from beginning of buffer.
-    *
-    *  It can't remove more data than is currently in buffer. 
-    *  And will be wrapped after removing.
-    * 
-    *  \pre None
-    *  \post Length of bytes will be removed
-    * 
-    *  \param[in] uiBytes_  Size of data (in bytes) to be rmoved from buffer
-    * 
-    *  \return None
-    *  \remark If data is not avail in circular buffer nothing to be done here.
-    */ 
-   void Discard(UINT uiBytes_);         
+   //----------------------------------------------------------------------------
+   //! \brief Remove data from beginning of buffer.
+   //
+   //! \param[in] uiBytes_ Size of data (in bytes) to be removed from buffer.
+   //
+   //! \remark If data is not avail in circular buffer nothing to be done here.
+   //----------------------------------------------------------------------------
+   void Discard(uint32_t uiBytes_);
 
-   /*! Remove all data from buffer, Buffer will be clear after this call. */
-   inline void Clear();      
+   //----------------------------------------------------------------------------
+   //! \brief Remove all data from buffer, Buffer will be clear after this call.
+   //----------------------------------------------------------------------------
+   inline void Clear();
 
-   /*! \brief Copy buffer from circular buffer to target
-    *
-    *  Don't copy more than we have. Will copy what ever it has.
-    * 
-    *  \pre None
-    *  \post None
-    * 
-    *  \param[in] pucTarget_  Destination of copy data from circular buffer
-    *  \param[in] uiBytes_  Amount of data (in bytes) to copy
-    * 
-    *  \return Number of bytes copied to destination
-    *  \remark If data is not avail in circular buffer, should return some value?
-    */ 
-   UINT Copy(UCHAR* pucTarget_, UINT uiBytes_);      
+   //----------------------------------------------------------------------------
+   //! \brief Copy buffer from circular buffer to target
+   //
+   //! \param[in] pucTarget_ Destination of copy data from circular buffer
+   //! \param[in] uiBytes_ Amount of data (in bytes) to copy
+   //
+   //! \return Number of bytes copied to destination
+   //----------------------------------------------------------------------------
+   uint32_t Copy(unsigned char* pucTarget_, uint32_t uiBytes_) const;
 
-   /*! Overloading Subscript or array index operator [] */
-   inline UCHAR operator[] (INT iIndex_) const;    
+   //----------------------------------------------------------------------------
+   //! \brief Overloading Subscript or array index operator []
+   //----------------------------------------------------------------------------
+   inline unsigned char operator[] (int32_t iIndex_) const;
 
-   /*! \brief Return copy of byte at iIndex_ (throw exception if iIndex_ out of bounds)
-    *
-    *  \param [in] iIndex_ integer value
-    *  \return unsigned char value 
-    */ 
-   UCHAR GetByte(INT iIndex_) const;    
+   //----------------------------------------------------------------------------
+   //! \brief Return copy of byte at iIndex_ (throw exception if iIndex_ out of
+   //! bounds)
+   //
+   //! \param [in] iIndex_ integer value
+   //
+   //! \return The byte at the provided index.
+   //----------------------------------------------------------------------------
+   unsigned char GetByte(int32_t iIndex_) const;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of inline functions
-///////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------
+// Inline Functions
+//-----------------------------------------------------------------------
 
-/*! \brief Returns the current capacity of buffer.*/
-inline UINT CircularBuffer::GetCapacity()
-{  
+//----------------------------------------------------------------------------
+//! \brief Returns the current capacity of buffer.
+//----------------------------------------------------------------------------
+inline uint32_t CircularBuffer::GetCapacity() const
+{
    return uiMyCapacity;
 }
 
-/*! \brief Returns number of bytes of data in buffer.
- *
- * Number of bytes between beggining of buffer and write cursor.
- */ 
-inline UINT CircularBuffer::GetLength()
-{ 
+//----------------------------------------------------------------------------
+//! \brief Returns number of bytes of data in buffer.
+//----------------------------------------------------------------------------
+inline uint32_t CircularBuffer::GetLength() const
+{
    return uiMyLength;
 }
 
-/*! \brief Delete contents of buffer, Internally called Discard method. */
+//----------------------------------------------------------------------------
+//! \brief Delete contents of buffer, internally called Discard method.
+//----------------------------------------------------------------------------
 inline void CircularBuffer::Clear()
-{ 
-   Discard( uiMyLength );
-   return;
+{
+   Discard(uiMyLength);
 }
 
-/*! \brief Returns entire circulat buffer. */
-inline UCHAR* CircularBuffer::GetBuffer()
-{ 
+//----------------------------------------------------------------------------
+//! \brief Returns entire circular buffer.
+//----------------------------------------------------------------------------
+inline unsigned char* CircularBuffer::GetBuffer() const
+{
    return pucMyBuffer;
 }
 
-/*! \brief Returns copy of byte at iIndex_ (throw exception if iIndex_ out of bounds)
- *
- *  \param [in] iIndex_ integer value
- *  \return unsigned chatacter
- */ 
-inline UCHAR CircularBuffer::operator[] (INT iIndex_) const
+//----------------------------------------------------------------------------
+//! \brief Returns copy of byte at iIndex_ (throw exception if iIndex_ out of
+//! bounds)
+//
+//! \param [in] iIndex_ integer value
+//
+//! \return unsigned character
+//----------------------------------------------------------------------------
+inline unsigned char CircularBuffer::operator[] (int32_t iIndex_) const
 {
    return GetByte( iIndex_ );
 }
 
-#endif // CIRCULARBUFFER_H
+#endif // CIRCULARBUFFER_HPP

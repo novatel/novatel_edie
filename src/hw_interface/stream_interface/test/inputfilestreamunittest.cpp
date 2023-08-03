@@ -24,11 +24,13 @@
 
 // Includes
 #include "hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "string"
+#include <string>
+#include <filesystem>
 #include <gtest/gtest.h>
+#include "paths.hpp"
 
-#ifndef DATADIR
-    #define DATADIR
+#ifndef RESOURCE_DIR
+    #define RESOURCE_DIR
 #endif
 
 class InputFileStreamTest : public ::testing::Test {
@@ -47,10 +49,8 @@ protected:
 TEST_F(InputFileStreamTest, ReadData)
 {
    ReadDataStructure stReadDataStructure;
-   InputFileStream* pMyTestCommand = NULL;
-   std::string filename = std::string(DATADIR) + "streaminterface_testread.asc";
-   const char* filepath = filename.c_str();
-   pMyTestCommand = new InputFileStream(filepath);
+   InputFileStream* pMyTestCommand = nullptr;
+   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
    stReadDataStructure.uiDataSize = 20;
    stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
    stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
@@ -60,36 +60,51 @@ TEST_F(InputFileStreamTest, ReadData)
    delete pMyTestCommand;
 }
 
+TEST_F(InputFileStreamTest, ReadDataWideCharPath)
+{
+   ReadDataStructure stReadDataStructure;
+   InputFileStream* pMyTestCommand = nullptr;
+   pMyTestCommand = new InputFileStream(std::u32string(((std::filesystem::path(*TEST_RESOURCE_PATH) / U"inputfilestream不同语言的文件.gps").generic_u32string())));
+   stReadDataStructure.uiDataSize = 69;
+   stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
+   stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
+   pMyTestCommand->ReadData(stReadDataStructure);
+   std::cout<<"Made it past READ. Input Stream Test, Read Data WC"<<std::endl;
+   ASSERT_STREQ("#RANGEA,COM1,0,77.5,FINESTEERING,2195,512277.000,02000020,9691,16696;", stReadDataStructure.cData);
+   delete[] stReadDataStructure.cData;
+   std::cout<<"Made it past 1st delete. Input Stream Test, Read Data WC"<<std::endl;
+   delete pMyTestCommand;
+   std::cout<<"Made it past 2nd delete. Input Stream Test, Read Data WC"<<std::endl;
+}
+
 // ReadLine
 TEST_F(InputFileStreamTest, ReadLine)
 {
    ReadDataStructure stReadDataStructure;
    StreamReadStatus stReadStatus;
 
-   InputFileStream* pMyTestCommand = NULL;
-   std::string filename = std::string(DATADIR) + "streaminterface_testread.asc"; 
-   const char* filepath = filename.c_str();
-   pMyTestCommand = new InputFileStream(filepath);
+   InputFileStream* pMyTestCommand = nullptr;
+   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
    std::string linestring;
    stReadStatus = pMyTestCommand->ReadLine(linestring);
    ASSERT_STREQ("This is a test file. it will\r", linestring.c_str());
    ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
-   ASSERT_TRUE(FALSE == stReadStatus.bEOS);
+   ASSERT_FALSE(stReadStatus.bEOS);
 
    stReadStatus = pMyTestCommand->ReadLine(linestring);
    ASSERT_STREQ("be used to perform unit test cases\r", linestring.c_str());
    ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
-   ASSERT_TRUE(FALSE == stReadStatus.bEOS);
+   ASSERT_FALSE(stReadStatus.bEOS);
 
    stReadStatus = pMyTestCommand->ReadLine(linestring);
    ASSERT_STREQ("for file stream functionalities.\r", linestring.c_str());
    ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
-   ASSERT_TRUE(FALSE == stReadStatus.bEOS);
+   ASSERT_FALSE(stReadStatus.bEOS);
 
    stReadStatus = pMyTestCommand->ReadLine(linestring);
    ASSERT_TRUE(linestring.size() == 0);
    ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
-   ASSERT_TRUE(TRUE == stReadStatus.bEOS);
+   ASSERT_TRUE(stReadStatus.bEOS);
 
    delete pMyTestCommand;
 }
@@ -99,23 +114,21 @@ TEST_F(InputFileStreamTest, Reset)
 {
    ReadDataStructure stReadDataStructure;
    InputFileStream* pMyTestCommand = NULL;
-   std::string filename = std::string(DATADIR) + "streaminterface_testread.asc";
-   const char* filepath = filename.c_str();
-   pMyTestCommand = new InputFileStream(filepath);
+   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
    stReadDataStructure.uiDataSize = 20;
    stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
    stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
    pMyTestCommand->ReadData(stReadDataStructure);
    ASSERT_STREQ("This is a test file.", stReadDataStructure.cData);
 
-   memset(&stReadDataStructure.cData[0], 0, sizeof(stReadDataStructure.cData));
+   memset(&stReadDataStructure.cData[0], 0, stReadDataStructure.uiDataSize);
    pMyTestCommand->Reset();
    stReadDataStructure.uiDataSize = 5;
    stReadDataStructure.cData[5] = 0;
    pMyTestCommand->ReadData(stReadDataStructure);
    ASSERT_STREQ("This ", stReadDataStructure.cData);
 
-   memset(&stReadDataStructure.cData[0], 0, sizeof(stReadDataStructure.cData));
+   memset(&stReadDataStructure.cData[0], 0, stReadDataStructure.uiDataSize);
    pMyTestCommand->Reset(2, std::ios::beg);
    stReadDataStructure.uiDataSize = 5;
    stReadDataStructure.cData[5] = 0;
@@ -129,42 +142,37 @@ TEST_F(InputFileStreamTest, Reset)
 // Test File Extension
 TEST_F(InputFileStreamTest, GetFileExtension)
 {
-   InputFileStream* pMyTestCommand = NULL;
+   InputFileStream* pMyTestCommand = nullptr;
 
-   std::string filename = std::string(DATADIR) + "streaminterface_testread.asc";
-   const char* filepath = filename.c_str();
-   pMyTestCommand = new InputFileStream(filepath);
+   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
    ASSERT_TRUE("asc" == pMyTestCommand->GetFileExtension());
    delete pMyTestCommand;
-   pMyTestCommand = NULL;
 }
 
 TEST_F(InputFileStreamTest, GetCurrentFileStats)
 {
    ReadDataStructure stReadDataStructure;
-   InputFileStream* pMyTestCommand = NULL;
-   std::string filename = std::string(DATADIR) + "streaminterface_testread.asc";    
-   const char* filepath = filename.c_str();
-   pMyTestCommand = new InputFileStream(filepath);
+   InputFileStream* pMyTestCommand = nullptr;
+   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
    stReadDataStructure.uiDataSize = 20;
    stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
    stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
    pMyTestCommand->ReadData(stReadDataStructure);
    ASSERT_STREQ("This is a test file.", stReadDataStructure.cData);
 
-   memset(&stReadDataStructure.cData[0], 0, sizeof(stReadDataStructure.cData));
+   memset(&stReadDataStructure.cData[0], 0, stReadDataStructure.uiDataSize);
    pMyTestCommand->Reset();
    stReadDataStructure.uiDataSize = 5;
    stReadDataStructure.cData[5] = 0;
    pMyTestCommand->ReadData(stReadDataStructure);
    ASSERT_STREQ("This ", stReadDataStructure.cData);
 
-   ASSERT_TRUE(5 == pMyTestCommand->GetCurrentFilePosition());   
-   ASSERT_TRUE(0 == pMyTestCommand->GetCurrentFileOffset());  
+   ASSERT_TRUE(5 == pMyTestCommand->GetCurrentFilePosition());
+   ASSERT_TRUE(0 == pMyTestCommand->GetCurrentFileOffset());
 
    pMyTestCommand->Reset(7);
-   ASSERT_TRUE(7 == pMyTestCommand->GetCurrentFilePosition());   
-   ASSERT_TRUE(7 == pMyTestCommand->GetCurrentFileOffset()); 
+   ASSERT_TRUE(7 == pMyTestCommand->GetCurrentFilePosition());
+   ASSERT_TRUE(7 == pMyTestCommand->GetCurrentFileOffset());
 
    delete[] stReadDataStructure.cData;
    delete pMyTestCommand;

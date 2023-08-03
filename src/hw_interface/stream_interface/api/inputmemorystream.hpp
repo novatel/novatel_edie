@@ -63,7 +63,7 @@ public:
     *  \sa MemoryStream
 	 *  \param [in] uiBufferSize Buffer size 
 	 */ 
-   InputMemoryStream(UINT uiBufferSize);
+   InputMemoryStream(uint32_t uiBufferSize);
 
     /*! A Constructor
 	 *  \brief  Created buffer of given size and append provided data.
@@ -72,7 +72,7 @@ public:
     *  \param [in] uiContentSize size of the data
 	 * 
 	 */    
-   InputMemoryStream(UCHAR* pucBuffer, UINT uiContentSize);
+   InputMemoryStream(uint8_t* pucBuffer, uint32_t uiContentSize);
 
    /*! a default destructor */
    virtual ~InputMemoryStream();
@@ -85,21 +85,21 @@ public:
     */ 
    StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure);
 
-   /*! \fn UINT Write(UCHAR* pcData_,UINT uiBytes_ )
+   /*! \fn uint32_t Write(uint8_t* pcData_, uint32_t uiBytes_ )
     *  \brief Write buffer data with desired size uiBytes_.
     *   
     *  \param [in] pcData_ Data to be written the circullar buffer, will be used to decode.
     *  \param [in] uiBytes_ Number of bytes in data buffer.
     *  \return Number of bytes written to the stream.
     */    
-   UINT Write(UCHAR* pcData_,UINT uiBytes_ );
+   uint32_t Write(uint8_t* pcData_, uint32_t uiBytes_ );
 
-   /*! \fn BOOL IsStreamAvailable(void)
-    *  \brief Checks weather the data in circullar buffer avaialble to decode or not.
+   /*! \fn bool IsStreamAvailable(void)
+    *  \brief Checks whether the data in circullar buffer avaialble to decode or not.
     *   
-    *  \return TRUE or FALSE.
+    *  \return true or false.
     */    
-   BOOL IsStreamAvailable(void);
+   bool IsStreamAvailable(void);
 
    /*! \fn MemoryStream* GetMemoryStream()
     *  \brief Returns the class object which has interfacesed or derived from circuallar buffer.

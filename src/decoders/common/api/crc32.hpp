@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 NovAtel Inc.
+// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,70 +20,61 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-////////////////////////////////////////////////////////////////////////////////
-
-#ifndef CRC32_H
-#define CRC32_H
-
-/*! \file crc24.hpp
- *  \brief Class to Calculate the CRC32 of a message
- *  \author Gopi R
- *  \date FEB 2021
- * 
- * The ASCII and Binary OEM7 family and SMART2 message formats all contain a 32-bit CRC
- * for data verification. This allows the user to ensure the data received (or transmitted) 
- * is valid with a high level of certainty.
- * 
- * The functions below may be implemented to generate the CRC of a block of data.
- */ 
+////////////////////////////////////////////////////////////////////////
+//                            DESCRIPTION
+//
+//! \file crc32.hpp
+//! \brief Functions to Calculate the CRC32 of a message.
+////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------------------------------------
-// Includes                                                               
+// Recursive Inclusion
 //-----------------------------------------------------------------------
-#include "env.hpp"
+#ifndef CRC32_HPP
+#define CRC32_HPP
 
-/*! \brief Class to Calculate the CRC32 of a message
- *
- *  
- */ 
-class CRC32
+//-----------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------
+#include <cstdint>
+#include <array>
+
+constexpr auto uiCRCTable = []
 {
-public:
+   std::array<uint32_t, 256> uiPreCalcCRCTable{};
 
-   /*! \brief default crc32 class constructor.
-    *
-    *  Class constructor which creates CRC 32 lookup table.
-    */ 
-   CRC32();
-   
-   /*!  \brief default crc32 class constructor. */
-   ~CRC32();
+   for (uint32_t i = 0; i < 256; ++i)
+   {
+      uint32_t crc = i;
 
-   /*! \brief Calculates the CRC-32 of a block of data all at once
-    *
-    *  
-    *  \pre None
-    *  \post None
-    * 
-    *  \param[in] ulCount Number of bytes in buffer  
-    *  \param[in] ulCRC Seed Variable to hold CRC-32 value
-    *  \param[in] ucBuffer Buffer used for calculating CRC-32
-    * 
-    *  \return CRC-32 of a string 
-    */
-   UINT CalculateBlockCRC32(UINT ulCount, UINT ulCRC, UCHAR *ucBuffer);
+      for (uint32_t j = 0; j < 8; ++j)
+         crc = (crc & 1) ? (crc >> 1) ^ 0xEDB88320L : crc >> 1;
 
-   /*! \brief Calculates the CRC-32 of a block of data one character for each call 
-    *
-    *  \pre None
-    *  \post None
-    * 
-    *  \param[in] ulCRC CRC-32 Seed value  
-    *  \param[in] ucChar Character used for calculating CRC-32
-    * 
-    *  \return CRC-32 of a block of data
-    */ 
-   UINT CalculateCharacterCRC32(UINT ulCRC, UCHAR ucChar);
-};
+      uiPreCalcCRCTable[i] = crc;
+   }
 
-#endif // CRC32_H
+   return uiPreCalcCRCTable;
+}();
+
+// --------------------------------------------------------------------------
+// Calculates the CRC-32 of a block of data one character for each call
+// --------------------------------------------------------------------------
+constexpr uint32_t CalculateCharacterCRC32(uint32_t uiCRC, unsigned char ucChar)
+{
+   uint32_t uiIndex = (static_cast<int32_t>(uiCRC) ^ ucChar) & 0xff;
+   return ((uiCRC >> 8) & 0x00FFFFFFL) ^ (uiCRCTable[uiIndex]);
+}
+
+// --------------------------------------------------------------------------
+// Calculates the CRC-32 of a block of data all at once
+// --------------------------------------------------------------------------
+constexpr uint32_t CalculateBlockCRC32(uint32_t uiCount, uint32_t uiCRC, const unsigned char* ucBuffer)
+{
+   while (uiCount-- != 0)
+   {
+      uiCRC = CalculateCharacterCRC32(uiCRC, *ucBuffer++);
+   }
+   return (uiCRC);
+}
+
+#endif // CRC32_HPP

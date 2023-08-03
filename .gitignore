@@ -3,7 +3,13 @@
 ################################################################################
 
 /.vs
+/.vscode/
+/build/
 /out/build/
+/src/version.h
 /CMakeSettings.json
 **/bin/
 **/venv/
+/.idea
+**/edie.*.log
+**/edie.log

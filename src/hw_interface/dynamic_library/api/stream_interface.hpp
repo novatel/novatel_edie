@@ -22,16 +22,21 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-/*! \file   composer.hpp
- *  \brief  Class to start conversion from ASCII to BINARY and vice vera process
+/*! \file   stream_interface.hpp
+ *  \brief  Expose the stream interfaces in a DLL.
  */
+
+#ifndef DYNAMIC_LIBRARY_STREAM_INTERFACE_HPP
+#define DYNAMIC_LIBRARY_STREAM_INTERFACE_HPP
 
 #include "hwinterface_export.h"
 
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
+#include "hw_interface/stream_interface/api/inputfilestream.hpp"
 
 extern "C" {
-   HWINTERFACE_EXPORT InputFileStream* ifs_init(const char* file);
-   HWINTERFACE_EXPORT void is_del(InputStreamInterface* pSteam);
-   HWINTERFACE_EXPORT void ifs_read(InputFileStream* ifs, StreamReadStatus* srs, char* databuffer, int& iSize);
+   HWINTERFACE_EXPORT InputFileStream* ifs_init(char* pcInputFilePath_);
+   HWINTERFACE_EXPORT void ifs_del(InputStreamInterface* pclIFS_);
+   HWINTERFACE_EXPORT void ifs_read(InputFileStream* pclIFS_, StreamReadStatus* srs_, char* pcReadBuf_, int iBufSize_);
 }
+
+#endif //DYNAMIC_LIBRARY_STREAM_INTERFACE_HPP

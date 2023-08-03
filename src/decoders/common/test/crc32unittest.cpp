@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2020 NovAtel Inc.
+// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,18 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//                            DESCRIPTION
+//
+//! \file crc32unittest.cpp
+//! \brief Unit test cases for circular buffer implemenatation.
+////////////////////////////////////////////////////////////////////////
 
-#include "common/api/crc32.hpp"
+//-----------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------
 #include "string.h"
-#include "common/api/common.hpp"
-#include "common/api/env.hpp"
+#include "decoders/common/api/common.hpp"
+#include "decoders/common/api/crc32.hpp"
+#include "decoders/novatel/api/common.hpp"
 
 #include <gtest/gtest.h>
-
-#ifndef DATADIR
-    #define DATADIR
-#endif
 
 class CRC32Test : public ::testing::Test {
 public:
@@ -44,28 +48,25 @@ public:
 private:
 };
 
+// -------------------------------------------------------------------------------------------------------
+// CRC32/ Unit Tests
+// -------------------------------------------------------------------------------------------------------
 TEST_F(CRC32Test, CalculateBlockCRC32)
 {
-   UINT uiLength = strlen("#BESTPOSA,SPECIAL,0,72.5,FINESTEERING,2000,202512.000,02000020,b1f6,32768;SOL_COMPUTED,SINGLE,17.44306884140,78.37411522222,649.8119,-76.8000,WGS84,0.9206,1.0236,1.9887,\"\",0.000,0.000,34,34,34,34,00,06,39,33*42d4f5cc\r\n");
-   CHAR* pcMessage = new CHAR[uiLength + 1];
-   strcpy(pcMessage, "#BESTPOSA,SPECIAL,0,72.5,FINESTEERING,2000,202512.000,02000020,b1f6,32768;SOL_COMPUTED,SINGLE,17.44306884140,78.37411522222,649.8119,-76.8000,WGS84,0.9206,1.0236,1.9887,\"\",0.000,0.000,34,34,34,34,00,06,39,33*42d4f5cc\r\n");
+   std::string sMessage("#BESTPOSA,SPECIAL,0,72.5,FINESTEERING,2000,202512.000,02000020,b1f6,32768;SOL_COMPUTED,SINGLE,17.44306884140,78.37411522222,649.8119,-76.8000,WGS84,0.9206,1.0236,1.9887,\"\",0.000,0.000,34,34,34,34,00,06,39,33*42d4f5cc\r\n");
 
-   CRC32 clCRC32;
-   UINT ulCRC = 0;
-   ulCRC = clCRC32.CalculateBlockCRC32(uiLength+2, ulCRC, (UCHAR*)pcMessage);
+   uint32_t uiCalculatedCRC = 0;
+   uint64_t uiTerminatorIndex = sMessage.length() - (novatel::edie::oem::OEM4_ASCII_CRC_LENGTH + 3);
 
-   UINT uiCalculatedCRC = 0;
-   UINT iTerminatorIndex = uiLength - (OEM4_ASCII_CRC_LENGTH + 3);
-
-   if(iTerminatorIndex <= 0)
+   if (uiTerminatorIndex == 0)
       return;
 
-   for(INT i = 1; i < iTerminatorIndex; i++)
+   for (uint64_t i = 1ULL; i < uiTerminatorIndex; i++)
    {
-      if(pcMessage[i] == '\0')
+      if (sMessage[i] == '\0')
          break;
-      uiCalculatedCRC = clCRC32.CalculateCharacterCRC32(uiCalculatedCRC, pcMessage[i]);
+      uiCalculatedCRC = CalculateCharacterCRC32(uiCalculatedCRC, sMessage[i]);
    }
 
-   ASSERT_EQ(uiCalculatedCRC, 0x42d4f5cc);
+   ASSERT_EQ(uiCalculatedCRC, 0x42d4f5ccUL);
 }
