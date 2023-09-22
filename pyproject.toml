@@ -1,0 +1,20 @@
+[project]
+name = "novatel_edie"
+description = "SDK for interfacing with and decoding data from NovAtel OEM7 receivers"
+version = "3.2.24"
+readme = "python/readme.md"
+license = {text = "MIT"}
+authors = [{name = "rdoris", email = "rdoris@novatel.com"}]
+
+[build-system]
+requires = [
+    "scikit-build-core",
+    "conan >= 2.0"
+]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+cmake.minimum-version = "3.24"
+cmake.targets = ["decoders_dynamic_library", "hwinterface_dynamic_library"]
+install.components = ["dynamic_libs", "data"]
+wheel.license-files = ["LICENSE"]

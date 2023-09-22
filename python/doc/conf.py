@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# nov_edie documentation build configuration file, created by
+# novatel_edie documentation build configuration file, created by
 # sphinx-quickstart on Mon Mar 13 15:24:01 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -21,7 +21,7 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 main_ns = {}
-ver_path = os.path.abspath('../nov_edie/version.py')
+ver_path = os.path.abspath('../novatel_edie/version.py')
 with open(ver_path) as ver_file:
     exec(ver_file.read(), main_ns)
 VERSION = main_ns['__version__']
@@ -56,7 +56,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'nov_edie'
+project = u'novatel_edie'
 copyright = u'2021, rdoris'
 author = u'rdoris'
 
@@ -144,7 +144,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'novedie.tex', u'nov_edie Documentation',
+    (master_doc, 'novedie.tex', u'novatel_edie Documentation',
      u'rdoris', 'manual'),
 ]
 
@@ -154,7 +154,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'novedie', u'nov_edie Documentation',
+    (master_doc, 'novedie', u'novatel_edie Documentation',
      [author], 1)
 ]
 
@@ -165,7 +165,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'novedie', u'nov_edie Documentation',
+    (master_doc, 'novedie', u'novatel_edie Documentation',
      author, 'novedie', 'Package for working with NovAtel receiver data.',
      'Miscellaneous'),
 ]

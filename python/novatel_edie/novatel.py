@@ -1,25 +1,9 @@
-import os
-import sys
 import json
 from ctypes import *
-import logging
 
-LOGGER = logging.getLogger(__name__)
+from . import _util
 
-if sys.maxsize > 2**32:
-    ARCH = 'x64'
-else:
-    ARCH = 'x32'
-
-DECODERS_JSON = os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', 'novatel_log_definitions.json'))
-if sys.platform == 'linux':
-    raise Exception('Handle loading the LINUX SO library')
-elif sys.platform == 'win32':
-    try:
-        DECODERS_DLL = CDLL(os.path.abspath(os.path.join(
-        os.path.dirname(__file__), 'resources', 'decoders_dynamic_library_{}.dll'.format(ARCH))))
-    except Exception:
-        DECODERS_DLL = CDLL("decoders_dynamic_library.dll")
+DECODERS_DLL = _util.load_shared_library("decoders_dynamic_library")
 
 # Patch c_bool be 4 bytes in size
 temp_c_bool = c_bool
@@ -254,7 +238,7 @@ class Decoder:
 
     """
 
-    def __init__(self, input_stream, json_database=DECODERS_JSON, msg_filter=None):
+    def __init__(self, input_stream, json_database=_util.JSON_DB_PATH, msg_filter=None):
         self._Decoder = DECODERS_DLL.decoder_init(json_database.encode(),
                                                   input_stream.data_stream,
                                                   msg_filter)
@@ -360,3 +344,13 @@ class Decoder:
                     return Log(edie_log['header'], unknown_data=bytes(self._msg_data.value))
             else:
                 return Log(edie_log['header'], edie_log['body'])
+
+
+__all__ = [
+    "StreamReadStatus",
+    "Log",
+    "DecoderMessageHeader",
+    "FramerMessageHeader",
+    "Framer",
+    "Decoder",
+]

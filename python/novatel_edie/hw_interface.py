@@ -1,20 +1,8 @@
-import os
-import sys
 from ctypes import *
 
-if sys.maxsize > 2**32:
-    ARCH = 'x64'
-else:
-    ARCH = 'x32'
+from . import _util
 
-if sys.platform == 'linux':
-    raise Exception('Handle loading the LINUX SO library')
-elif sys.platform == 'win32':
-    try:
-        HWINTERFACE_DLL = CDLL(os.path.abspath(os.path.join(
-        os.path.dirname(__file__), 'resources', 'hwinterface_dynamic_library_{}.dll'.format(ARCH))))
-    except Exception:
-        HWINTERFACE_DLL = CDLL("decoders_dynamic_library.dll")
+HWINTERFACE_DLL = _util.load_shared_library("hwinterface_dynamic_library")
 
 HWINTERFACE_DLL.ifs_init.restype = c_void_p
 HWINTERFACE_DLL.ifs_init.argtypes = [c_char_p]
@@ -101,3 +89,10 @@ class InputFileStream:
         HWINTERFACE_DLL.ifs_read(self.data_stream, byref(status), cast(self.data_buf.buf, c_char_p),
                                  byref(c_uint(bytes_to_read)))
         return status, self.data_buf.buf.value
+
+
+__all__ = [
+    "InputBuffer",
+    "InputFileStream",
+    "StreamReadStatus",
+]
