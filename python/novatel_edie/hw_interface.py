@@ -1,39 +1,41 @@
-from ctypes import *
+import ctypes as ct
 
 from . import _util
 
 HWINTERFACE_DLL = _util.load_shared_library("hwinterface_dynamic_library")
 
-HWINTERFACE_DLL.ifs_init.restype = c_void_p
-HWINTERFACE_DLL.ifs_init.argtypes = [c_char_p]
+HWINTERFACE_DLL.ifs_init.restype = ct.c_void_p
+HWINTERFACE_DLL.ifs_init.argtypes = [ct.c_char_p]
 HWINTERFACE_DLL.ifs_read.restype = None
-HWINTERFACE_DLL.ifs_read.argtypes = [c_void_p, c_void_p, c_char_p, POINTER(c_ulong)]
+HWINTERFACE_DLL.ifs_read.argtypes = [ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.POINTER(ct.c_ulong)]
 
 HWINTERFACE_DLL.is_del.restype = None
-HWINTERFACE_DLL.is_del.argtypes = [c_void_p]
+HWINTERFACE_DLL.is_del.argtypes = [ct.c_void_p]
 
 
-class StreamReadStatus(Structure):
+class StreamReadStatus(ct.Structure):
     # Hint available types
-    stream_percentage_read: c_uint
-    stream_current_read: c_uint
-    stream_length: c_ulonglong
-    stream_end: c_bool
+    stream_percentage_read: ct.c_uint
+    stream_current_read: ct.c_uint
+    stream_length: ct.c_ulonglong
+    stream_end: ct.c_bool
     """StreamReadStatus is the equivalent to the StreamReadStatus in the dll.
 
     The __init__ with allocate a pointer to a StreamReadStatus object. The __del__ will delete the memory of this
     object. Currently fields in this object are read only.
     """
-    _fields_ = [("stream_percentage_read", c_uint),
-                ("stream_current_read", c_uint),
-                ("stream_length", c_ulonglong),
-                ("stream_end", c_bool)]
+    _fields_ = [("stream_percentage_read", ct.c_uint),
+                ("stream_current_read", ct.c_uint),
+                ("stream_length", ct.c_ulonglong),
+                ("stream_end", ct.c_bool)]
 
     def __str__(self):
-        return '{} {} {} {}'.format(self.stream_percentage_read,
-                                    self.stream_current_read,
-                                    self.stream_length,
-                                    self.stream_end)
+        return " ".join(str(x) for x in [
+            self.stream_percentage_read,
+            self.stream_current_read,
+            self.stream_length,
+            self.stream_end,
+        ])
 
 
 class InputBuffer:
@@ -43,7 +45,7 @@ class InputBuffer:
 
     def __init__(self, buf_size=1024):
         self.buf_size = buf_size
-        self.buf = create_string_buffer(self.buf_size + 1)
+        self.buf = ct.create_string_buffer(self.buf_size + 1)
 
 
 class InputFileStream:
@@ -86,8 +88,9 @@ class InputFileStream:
         if bytes_to_read > self.data_buf.buf_size:
             bytes_to_read = self.data_buf.buf_size
         status = StreamReadStatus()
-        HWINTERFACE_DLL.ifs_read(self.data_stream, byref(status), cast(self.data_buf.buf, c_char_p),
-                                 byref(c_uint(bytes_to_read)))
+        HWINTERFACE_DLL.ifs_read(self.data_stream, ct.byref(status),
+                                 ct.cast(self.data_buf.buf, ct.c_char_p),
+                                 ct.byref(ct.c_uint(bytes_to_read)))
         return status, self.data_buf.buf.value
 
 
