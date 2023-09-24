@@ -28,8 +28,8 @@ nanobind_add_module(decoders_bindings STABLE_ABI NB_STATIC LTO
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/decoders.cpp
 )
 
-target_link_libraries(hw_interface_bindings PRIVATE EDIE::stream_interface EDIE::novatel)
-target_link_libraries(decoders_bindings PRIVATE EDIE::stream_interface EDIE::novatel)
+target_link_libraries(hw_interface_bindings PRIVATE stream_interface)
+target_link_libraries(decoders_bindings PRIVATE oem_decoder)
 
 if(DEFINED SKBUILD_PROJECT_NAME)
     set(PYTHON_INSTALL_DIR ${SKBUILD_PROJECT_NAME})
