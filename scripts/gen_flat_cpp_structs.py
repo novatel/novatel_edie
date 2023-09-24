@@ -67,7 +67,7 @@ NOVATEL_TO_CTYPES = {
 
     # NovAtel specific data type conversion
     'HEXBYTE': 'uint8_t',
-    'SATELLITEID': 'uint32_t',
+    'SatelliteId': 'uint32_t',
     'RTCMV3_CHAR8': 'int8_t',
     'RTCMV3_UINT8': 'uint8_t',
     'RTCMV3_INT16': 'int16_t'

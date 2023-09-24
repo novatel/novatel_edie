@@ -24,9 +24,9 @@
 ########################################################################
 #                            DESCRIPTION
 #
-# \file command_encoding.py
-# \brief Demonstrate how to use the Python source for OEM command
-# encoding from Abbreviated ASCII to ASCII/BINARY.
+# ! \file command_encoding.py
+# ! \brief Demonstrate how to use the Python source for OEM command
+# ! encoding from Abbreviated ASCII to ASCII/BINARY.
 ########################################################################
 
 import sys
@@ -48,7 +48,7 @@ def main():
 
     encode_format_str = sys.argv[1]
     encode_format = ne.string_to_encode_format(encode_format_str)
-    if encode_format == ne.ENCODEFORMAT.UNSPECIFIED:
+    if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
         logger.error("Unsupported output format. Choose from:\n\tASCII\n\tBINARY")
         exit(1)
 

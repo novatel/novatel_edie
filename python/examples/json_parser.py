@@ -72,7 +72,7 @@ def main():
 
     encode_format_str = sys.argv[1]
     encode_format = ne.string_to_encode_format(encode_format_str)
-    if encode_format == ne.ENCODEFORMAT.UNSPECIFIED:
+    if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
         logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
         exit(1)
 

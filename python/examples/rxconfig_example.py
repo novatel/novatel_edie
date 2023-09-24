@@ -72,7 +72,7 @@ def main():
 
     encode_format_str = sys.argv[1]
     encode_format = ne.string_to_encode_format(encode_format_str)
-    if encode_format == ne.ENCODEFORMAT.UNSPECIFIED:
+    if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
         logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
         exit(1)
 
@@ -110,19 +110,19 @@ def main():
                 convertedrxconfigofs.WriteData(messagedata)
 
                 # Make the embedded message valid by flipping the CRC.
-                if encode_format == ne.ENCODEFORMAT.ASCII:
+                if encode_format == ne.ENCODE_FORMAT.ASCII:
                     # Flip the CRC at the end of the embedded message and add a CRLF so it becomes a valid command.
                     crcbegin = embeddedmessagedata[-ne.OEM4_ASCII_CRC_LENGTH :]
                     flippedcrc = strtoul(crcbegin, NULL, 16) ^ 0xFFFFFFFF
                     snprintf(crcbegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", flippedcrc)
                     strippedrxconfigofs.WriteData(embeddedmessagedata)
                     strippedrxconfigofs.WriteData(b"\r\n")
-                elif encode_format == ne.ENCODEFORMAT.BINARY:
+                elif encode_format == ne.ENCODE_FORMAT.BINARY:
                     # Flip the CRC at the end of the embedded message so it becomes a valid command.
                     crcbegin = embeddedmessagedata[-ne.OEM4_BINARY_CRC_LENGTH :]
                     crcbegin ^= 0xFFFFFFFF
                     strippedrxconfigofs.WriteData(embeddedmessagedata)
-                elif encode_format == ne.ENCODEFORMAT.JSON:
+                elif encode_format == ne.ENCODE_FORMAT.JSON:
                     # Write in a comma and CRLF to make the files parse-able by JSON readers.
                     convertedrxconfigofs.WriteData(b",\r\n")
                     strippedrxconfigofs.WriteData(b",\r\n")
