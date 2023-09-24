@@ -1,2 +1,2 @@
-from .hw_interface import *
-from .novatel import *
+from .hw_interface_bindings import *
+from .decoders_bindings import *

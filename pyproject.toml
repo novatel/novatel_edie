@@ -4,17 +4,57 @@ description = "SDK for interfacing with and decoding data from NovAtel OEM7 rece
 version = "3.2.24"
 readme = "python/readme.md"
 license = {text = "MIT"}
-authors = [{name = "rdoris", email = "rdoris@novatel.com"}]
+requires-python = ">=3.8"
+dependencies = [
+    "importlib_resources",
+]
 
 [build-system]
 requires = [
-    "scikit-build-core",
-    "conan >= 2.0"
+    "scikit-build-core >=0.4.3",
+    "nanobind >=1.3.2",
+    "conan >=2.0.5",
 ]
 build-backend = "scikit_build_core.build"
 
+# For development, it is more efficient to install the build dependencies
+# in your environment once and use the following command that avoid
+# a costly creation of a new virtual environment at every compilation:
+# =====================================================================
+#  $ pip install --upgrade nanobind scikit-build-core[pyproject]
+#  $ pip install --no-build-isolation -ve .
+# =====================================================================
+# You may optionally add -Ceditable.rebuild=true to auto-rebuild when
+# the package is imported. Otherwise, you need to re-run the above
+# after editing C++ files.
+# For development without scikit-build-core, you can use the following:
+# =====================================================================
+#  $ pip install --upgrade nanobind
+#  $ cmake .. -DBUILD_PYTHON=1
+# =====================================================================
+
 [tool.scikit-build]
 cmake.minimum-version = "3.24"
-cmake.targets = ["decoders_dynamic_library", "hwinterface_dynamic_library"]
-install.components = ["dynamic_libs", "data"]
+cmake.targets = ["hw_interface_bindings", "decoders_bindings"]
+install.components = ["python"]
 wheel.license-files = ["LICENSE"]
+build-dir = "build/{wheel_tag}"
+# Build stable ABI wheels for CPython 3.12+
+wheel.py-api = "cp312"
+
+[tool.scikit-build.cmake.define]
+BUILD_PYTHON = true
+BUILD_SHARED_LIBS = false
+
+[tool.cibuildwheel]
+build = "*"
+# Disable building of PyPy wheels on all platforms
+skip = "pp*"
+test-requires = "pytest"
+test-command = "pytest {project}/python/test --color=yes -v"
+build-verbosity = 1
+archs = "auto"
+
+# Needed for full C++17 support
+[tool.cibuildwheel.macos.environment]
+MACOSX_DEPLOYMENT_TARGET = "10.15"
