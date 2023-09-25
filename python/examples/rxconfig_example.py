@@ -35,21 +35,21 @@ import sys
 import timeit
 
 import novatel_edie as ne
-import spdlog as spd
+from novatel_edie import Logger, LogLevel
 
 
 def main():
     # This example uses the default logger config, but you can also pass a config file to the Logger() ctor
     # An example config file: doc\example_logger_config.toml
-    logger = Logger().RegisterLogger("rxconfig_converter")
-    logger.set_level(spd.LogLevel.DEBUG)
-    Logger.AddConsoleLogging(logger)
-    Logger.AddRotatingFileLogger(logger)
+    logger = Logger().register_logger("rxconfig_converter")
+    logger.set_level(LogLevel.DEBUG)
+    Logger.add_console_logging(logger)
+    Logger.add_rotating_file_logger(logger)
 
     # Get command line arguments
-    logger.info(f"Decoder library information:\n{ne.get_pretty_version()}")
+    logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encodeformat = "ASCII"
+    encode_format = "ASCII"
     if "-V" in sys.argv:
         exit(0)
     if len(sys.argv) - 1 < 3:
@@ -57,7 +57,7 @@ def main():
         logger.error("Example: converter <path to Json DB> <path to input file> <output format>")
         exit(1)
     if len(sys.argv) - 1 == 4:
-        encodeformat = sys.argv[3]
+        encode_format = sys.argv[3]
 
     # Check command line arguments
     jsondb = sys.argv[1]
@@ -85,13 +85,13 @@ def main():
 
     # Setup filestreams
     ifs = ne.InputFileStream(infilename)
-    convertedrxconfigofs = ne.OutputFileStream(f"{infilename}.{encodeformat}")
-    strippedrxconfigofs = ne.OutputFileStream(f"{infilename}.STRIPPED.{encodeformat}")
+    convertedrxconfigofs = ne.OutputFileStream(f"{infilename}.{encode_format}")
+    strippedrxconfigofs = ne.OutputFileStream(f"{infilename}.STRIPPED.{encode_format}")
 
     metadata = ne.MetaDataStruct()
     embeddedmetadata = ne.MetaDataStruct()
-    messagedata = ne.MessageDataStruct()
-    embeddedmessagedata = ne.MessageDataStruct()
+    mesage_data = ne.MessageDataStruct()
+    embeddedmesage_data = ne.MessageDataStruct()
 
     rxconfighandler = ne.RxConfigHandler(json_db)
 
@@ -102,26 +102,26 @@ def main():
 
         while True:
             status = rxconfighandler.Convert(
-                messagedata, metadata, embeddedmessagedata, embeddedmetadata, encode_format
+                mesage_data, metadata, embeddedmesage_data, embeddedmetadata, encode_format
             )
             if status == ne.STATUS.SUCCESS:
-                messagedata.message[messagedata.messagelength] = "\0"
-                logger.info(f"Encoded: ({messagedata.messagelength}) {messagedata.message}")
-                convertedrxconfigofs.WriteData(messagedata)
+                mesage_data.message[mesage_data.messagelength] = "\0"
+                logger.info(f"Encoded: ({mesage_data.messagelength}) {mesage_data.message}")
+                convertedrxconfigofs.WriteData(mesage_data)
 
                 # Make the embedded message valid by flipping the CRC.
                 if encode_format == ne.ENCODE_FORMAT.ASCII:
                     # Flip the CRC at the end of the embedded message and add a CRLF so it becomes a valid command.
-                    crcbegin = embeddedmessagedata[-ne.OEM4_ASCII_CRC_LENGTH :]
+                    crcbegin = embeddedmesage_data[-ne.OEM4_ASCII_CRC_LENGTH :]
                     flippedcrc = strtoul(crcbegin, NULL, 16) ^ 0xFFFFFFFF
                     snprintf(crcbegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", flippedcrc)
-                    strippedrxconfigofs.WriteData(embeddedmessagedata)
+                    strippedrxconfigofs.WriteData(embeddedmesage_data)
                     strippedrxconfigofs.WriteData(b"\r\n")
                 elif encode_format == ne.ENCODE_FORMAT.BINARY:
                     # Flip the CRC at the end of the embedded message so it becomes a valid command.
-                    crcbegin = embeddedmessagedata[-ne.OEM4_BINARY_CRC_LENGTH :]
+                    crcbegin = embeddedmesage_data[-ne.OEM4_BINARY_CRC_LENGTH :]
                     crcbegin ^= 0xFFFFFFFF
-                    strippedrxconfigofs.WriteData(embeddedmessagedata)
+                    strippedrxconfigofs.WriteData(embeddedmesage_data)
                 elif encode_format == ne.ENCODE_FORMAT.JSON:
                     # Write in a comma and CRLF to make the files parse-able by JSON readers.
                     convertedrxconfigofs.WriteData(b",\r\n")
@@ -132,7 +132,7 @@ def main():
         if readstatus.eos:
             break
 
-    Logger.Shutdown()
+    Logger.shutdown()
 
 
 if __name__ == "__main__":

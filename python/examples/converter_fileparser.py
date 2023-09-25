@@ -35,17 +35,19 @@ import sys
 import timeit
 
 import novatel_edie as ne
-import spdlog as spd
+from novatel_edie import Logger, LogLevel
 
 
 def main():
-    logger = spd.ConsoleLogger("CommandEncoder")
-    logger.set_level(spd.LogLevel.DEBUG)
+    logger = Logger().register_logger("converter")
+    logger.set_level(LogLevel.DEBUG)
+    Logger.add_console_logging(logger)
+    Logger.add_rotating_file_logger(logger)
 
     # Get command line arguments
-    logger.info(f"Decoder library information:\n{ne.get_pretty_version()}")
+    logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encodeformat = "ASCII"
+    encode_format = "ASCII"
     if "-V" in sys.argv:
         exit(0)
     if len(sys.argv) - 1 < 3:
@@ -53,7 +55,7 @@ def main():
         logger.error("Example: converter <path to Json DB> <path to input file> <output format>")
         exit(1)
     if len(sys.argv) - 1 == 4:
-        encodeformat = sys.argv[3]
+        encode_format = sys.argv[3]
 
     if not os.path.exists(sys.argv[1]):
         logger.error(f'File "{sys.argv[1]}" does not exist')
@@ -90,27 +92,27 @@ def main():
     loop = timeit.default_timer()
 
     fileparser = ne.FileParser(json_db)
-    fileparser.SetLoggerLevel(spd.LogLevel.DEBUG)
-    Logger.AddConsoleLogging(fileparser.GetLogger())
-    Logger.AddRotatingFileLogger(fileparser.GetLogger())
+    fileparser.logger.set_level(LogLevel.DEBUG)
+    logger.add_console_logging(fileparser.logger)
+    Logger.add_rotating_file_logger(fileparser.logger)
 
     filter = ne.Filter()
-    filter.SetLoggerLevel(spd.LogLevel.DEBUG)
-    Logger.AddConsoleLogging(filter.GetLogger())
-    Logger.AddRotatingFileLogger(filter.GetLogger())
+    filter.logger.set_level(LogLevel.DEBUG)
+    Logger.add_console_logging(filter.logger)
+    Logger.add_rotating_file_logger(filter.logger)
 
     # Initialize structures and error codes
     status = ne.STATUS.UNKNOWN
 
     metadata = ne.MetaDataStruct()
-    messagedata = ne.MessageDataStruct()
+    mesage_data = ne.MessageDataStruct()
 
     fileparser.SetFilter(filter)
     fileparser.SetEncodeFormat(encode_format)
 
     # Setup filestreams
     ifs = ne.InputFileStream(infilename)
-    convertedlogsofs = ne.OutputFileStream(f"{infilename}.{encodeformat}")
+    convertedlogsofs = ne.OutputFileStream(f"{infilename}.{encode_format}")
     ne.OutputFileStream(f"{infilename}.UNKNOWN")
 
     if not fileparser.SetStream(ifs):
@@ -124,11 +126,11 @@ def main():
 
     while status != ne.STATUS.STREAM_EMPTY:
         try:
-            status = fileparser.Read(messagedata, metadata)
+            status = fileparser.Read(mesage_data, metadata)
             if status == ne.STATUS.SUCCESS:
-                convertedlogsofs.WriteData(messagedata)
-                messagedata.message[messagedata.messagelength] = "\0"
-                logger.info(f"Encoded: ({messagedata.messagelength}) {messagedata.message}")
+                convertedlogsofs.WriteData(mesage_data)
+                mesage_data.message[mesage_data.messagelength] = "\0"
+                logger.info(f"Encoded: ({mesage_data.messagelength}) {mesage_data.message}")
                 completemessages += 1
         except Exception as e:
             logger.error(f"Exception thrown:  {__DATE__}, {__TIME__} \n{e}\n")
@@ -140,7 +142,7 @@ def main():
             loop = timeit.default_timer()
     logger.info(f"Converted {completemessages} logs in {timeit.default_timer() - start:.3f}s from {infilename}")
 
-    Logger.Shutdown()
+    Logger.shutdown()
 
 
 if __name__ == "__main__":

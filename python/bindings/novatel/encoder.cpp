@@ -12,8 +12,7 @@ void init_novatel_encoder(nb::module_& m)
     nb::class_<oem::Encoder>(m, "Encoder")
         .def(nb::init<JsonReader*>(), "json_db"_a)
         .def("open", &oem::Encoder::LoadJsonDb, "json_db"_a)
-        //      .def_prop_ro("logger", &Encoder::GetLogger, "json_db"_a)
-        .def("set_logger_level", &oem::Encoder::SetLoggerLevel, "level"_a)
+        .def_prop_ro("logger", &oem::Encoder::GetLogger)
         .def(
             "encode",
             [](oem::Encoder& encoder, oem::IntermediateHeader& header, IntermediateMessage& message,

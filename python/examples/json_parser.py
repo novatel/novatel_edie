@@ -35,17 +35,19 @@ import sys
 import timeit
 
 import novatel_edie as ne
-import spdlog as spd
+from novatel_edie import Logger, LogLevel
 
 
 def main():
-    logger = spd.ConsoleLogger("CommandEncoder")
-    logger.set_level(spd.LogLevel.DEBUG)
+    logger = Logger().register_logger("converter")
+    logger.set_level(LogLevel.DEBUG)
+    Logger.add_console_logging(logger)
+    Logger.add_rotating_file_logger(logger)
 
     # Get command line arguments
-    logger.info(f"Decoder library information:\n{ne.get_pretty_version()}")
+    logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encodeformat = "ASCII"
+    encode_format = "ASCII"
     if (len(sys.argv) - 1 == 2) and (sys.argv[1] == "-V"):
         exit(0)
     if len(sys.argv) - 1 < 3:
@@ -53,7 +55,7 @@ def main():
         logger.error("Example: converter <path to Json DB> <path to input file> <output format>")
         exit(1)
     if len(sys.argv) - 1 == 4 or len(sys.argv) - 1 == 5:
-        encodeformat = sys.argv[3]
+        encode_format = sys.argv[3]
 
     appendmsg = ""
     if len(sys.argv) - 1 == 5:
@@ -85,7 +87,7 @@ def main():
 
     logger.info("Appending Message...")
     start = timeit.default_timer()
-    jsondb.AppendMessages(appendmsg)
+    jsondb.append_messages(appendmsg)
     logger.info(f"Done in {timeit.default_timer() - start:.0f}ms")
 
     # Setup timers
@@ -93,20 +95,20 @@ def main():
 
     parser = ne.Parser(json_db)
     parser.SetEncodeFormat(encode_format)
-    parser.SetLoggerLevel(spd.LogLevel.DEBUG)
-    Logger.AddConsoleLogging(parser.GetLogger())
-    Logger.AddRotatingFileLogger(parser.GetLogger())
+    parser.logger.set_level(LogLevel.DEBUG)
+    Logger.add_console_logging(parser.logger)
+    Logger.add_rotating_file_logger(parser.logger)
 
     filter = ne.Filter()
-    filter.SetLoggerLevel(spd.LogLevel.DEBUG)
-    Logger.AddConsoleLogging(filter.GetLogger())
-    Logger.AddRotatingFileLogger(filter.GetLogger())
+    filter.logger.set_level(LogLevel.DEBUG)
+    Logger.add_console_logging(filter.logger)
+    Logger.add_rotating_file_logger(filter.logger)
 
     parser.SetFilter(filter)
 
     # Setup filestreams
     ifs = ne.InputFileStream(infilename)
-    convertedlogsofs = ne.OutputFileStream(f"{infilename}.{encodeformat}")
+    convertedlogsofs = ne.OutputFileStream(f"{infilename}.{encode_format}")
     unknownbytesofs = ne.OutputFileStream(f"{infilename}.UNKNOWN")
 
     completemessages = 0
@@ -119,11 +121,11 @@ def main():
         parser.Write(readdata)
 
         while True:
-            status = parser.Read(messagedata, metadata)
+            status = parser.Read(mesage_data, metadata)
 
             if status == ne.STATUS.SUCCESS:
-                convertedlogsofs.WriteData(messagedata)
-                logger.info(f"Encoded: ({messagedata.messagelength}) {messagedata.message}")
+                convertedlogsofs.WriteData(mesage_data)
+                logger.info(f"Encoded: ({mesage_data.messagelength}) {mesage_data.message}")
                 completemessages += 1
 
             if timeit.default_timer() - loop > 1:
@@ -137,7 +139,7 @@ def main():
             break
     logger.info(f"Converted {completemessages} logs in {timeit.default_timer() - start:.3f}s from {infilename}")
 
-    Logger.Shutdown()
+    Logger.shutdown()
 
 
 if __name__ == "__main__":

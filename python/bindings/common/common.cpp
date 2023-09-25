@@ -1,6 +1,7 @@
 #include "novatel_edie/decoders/common/common.hpp"
 
 #include "bindings_core.h"
+#include "novatel_edie/version.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -88,4 +89,11 @@ void init_common_common(nb::module_& m)
     m.attr("MAX_SHORT_BINARY_MESSAGE_LENGTH") = MAX_SHORT_BINARY_MESSAGE_LENGTH;
     m.attr("MAX_ABB_ASCII_RESPONSE_LENGTH") = MAX_ABB_ASCII_RESPONSE_LENGTH;
     m.attr("MAX_NMEA_MESSAGE_LENGTH") = MAX_NMEA_MESSAGE_LENGTH;
+
+    m.attr("version") = RELEASE_VERSION;
+    m.attr("git_sha") = GIT_SHA;
+    m.attr("git_branch") = GIT_BRANCH;
+    m.attr("git_is_dirty") = GIT_IS_DIRTY;
+    m.attr("build_timestamp") = BUILD_TIMESTAMP;
+    m.attr("pretty_version") = caPrettyPrint;
 }
