@@ -30,7 +30,16 @@ nanobind_add_module(decoders_bindings STABLE_ABI NB_STATIC LTO
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/json_reader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/commander.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/common.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/encoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/file_parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/filter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/framer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/header_decoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/message_decoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/range_decompressor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/rxconfig_handler.cpp
 )
 
 target_include_directories(stream_interface_bindings PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/bindings)

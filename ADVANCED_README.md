@@ -61,13 +61,13 @@ The `MetaDataStruct` stores message information before it was decoded, or inform
 ```cpp
 struct MetaDataStruct
 {
-   HEADERFORMAT eFormat;                                // The format of the message when it was framed.
+   HEADER_FORMAT eFormat;                                // The format of the message when it was framed.
    MEASUREMENT_SOURCE eMeasurementSource;               // Also called the sibling ID.
    TIME_STATUS eTimeStatus;                             // The GPS Time Status of the message.
    bool bResponse;                                      // True if the message is a response to a command.
    uint16_t usWeek;                                     // The GPS Week number.
    double dMilliseconds;                                // The GPS Milliseconds.
-   uint32_t uiBinaryMsgLength;                          // Message length according to the binary header. This field is only used if eFormat is HEADERFORMAT::BINARY.
+   uint32_t uiBinaryMsgLength;                          // Message length according to the binary header. This field is only used if eFormat is HEADER_FORMAT::BINARY.
    uint32_t uiLength;                                   // Length of the entire message, including the header and CRC.
    uint32_t uiHeaderLength;                             // The length of the message header.
    uint16_t usMessageID;                                // The message ID.

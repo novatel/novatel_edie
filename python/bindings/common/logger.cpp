@@ -21,7 +21,7 @@ void init_common_logger(nb::module_& m)
         .value("LOCAL", spdlog::pattern_time_type::local)
         .value("UTC", spdlog::pattern_time_type::utc);
 
-    nb::class_<spd::logger>(m, "_SpdlogLogger")
+    nb::class_<spdlog::logger>(m, "_SpdlogLogger")
         .def(nb::init<std::string>())
         .def(
             "log", [](spd::logger& logger, spd::level::level_enum level, std::string_view msg) { logger.log(level, msg); }, "level"_a, "msg"_a)
