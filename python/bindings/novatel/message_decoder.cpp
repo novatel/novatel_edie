@@ -19,8 +19,7 @@ void init_novatel_message_decoder(nb::module_& m)
             [](oem::MessageDecoder& decoder, nb::bytes header, oem::MetaDataStruct& metadata) {
                 IntermediateMessage intermediate_message;
                 STATUS status = decoder.Decode((unsigned char*)header.c_str(), intermediate_message, metadata);
-                if (status != STATUS::SUCCESS) throw DecoderException(status);
-                return nb::make_tuple(intermediate_message, metadata);
+                return nb::make_tuple(status, intermediate_message, metadata);
             },
             "header"_a, "metadata"_a);
 }

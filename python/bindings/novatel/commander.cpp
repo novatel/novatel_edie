@@ -18,8 +18,7 @@ void init_novatel_commander(nb::module_& m)
                 char buffer[MESSAGE_SIZE_MAX];
                 uint32_t buf_size = MESSAGE_SIZE_MAX;
                 STATUS status = commander.Encode(command.c_str(), command.length(), buffer, buf_size, format);
-                if (status != STATUS::SUCCESS) throw DecoderException(status);
-                return nb::bytes(buffer, buf_size);
+                return nb::make_tuple(status, nb::bytes(buffer, buf_size));
             },
             "abbrev_ascii_command"_a, "encode_format"_a);
 }
