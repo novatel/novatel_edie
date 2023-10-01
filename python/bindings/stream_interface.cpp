@@ -100,6 +100,48 @@ NB_MODULE(stream_interface_bindings, m)
         .def_prop_ro("file_map", &MultiOutputFileStream::Get32FileMap)
         .def("set_extension_name", nb::overload_cast<const std::u32string&>(&MultiOutputFileStream::SetExtensionName), "ext"_a);
 
+    // # stream_interface/inputfilestream.hpp
+
+    nb::class_<InputFileStream>(m, "InputFileStream")
+        .def(nb::init<const std::u32string&>(), "file_name"_a)
+        .def_rw("file_stream", &InputFileStream::pInFileStream)
+        .def(
+            "read",
+            [](InputFileStream& self, size_t size) {
+                std::vector<char> buffer(size);
+                ReadDataStructure read_data;
+                read_data.cData = buffer.data();
+                read_data.uiDataSize = size;
+                StreamReadStatus status = self.ReadData(read_data);
+                return nb::make_tuple(nb::bytes(buffer.data(), status.uiCurrentStreamRead), status);
+            },
+            "n"_a)
+        .def("readline",
+             [](InputFileStream& self) {
+                 std::string line;
+                 StreamReadStatus status = self.ReadLine(line);
+                 return nb::make_tuple(nb::bytes(line.c_str(), line.size()), status);
+             })
+        .def(
+            "reset",
+            [](InputFileStream& self, std::streamoff offset, int dir) {
+                std::ios_base::seekdir seek_dir;
+                switch (dir)
+                {
+                case 0: seek_dir = std::ios::beg; break;
+                case 1: seek_dir = std::ios::cur; break;
+                case 2: seek_dir = std::ios::end; break;
+                default: seek_dir = std::ios::beg; break;
+                }
+                self.Reset(offset, seek_dir);
+            },
+            "offset"_a = 0, "whence"_a = 0)
+        .def_prop_ro("file_extension", &InputFileStream::GetFileExtension)
+        .def_prop_ro("file_name", &InputFileStream::GetFileName)
+        .def_prop_ro("current_position", &InputFileStream::GetCurrentFilePosition)
+        .def("set_current_offset", &InputFileStream::SetCurrentFileOffset)
+        .def_prop_ro("current_offset", &InputFileStream::GetCurrentFileOffset);
+
     // # stream_interface/outputfilestream.hpp
 
     nb::class_<OutputFileStream>(m, "OutputFileStream")
