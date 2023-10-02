@@ -34,280 +34,262 @@
 #include <fstream>
 #include <filesystem>
 
-class RxConfigTest : public ::testing::Test {
+class RxConfigTest : public .testing.Test {
 
 protected:
-   static JsonReader* pclMyJsonDb;
-   static RxConfigHandler* pclMyRxConfigHandler;
-
+   static JsonReader* my_json_db
+   static RxConfigHandler* my_rx_config_handler
    # Per-test-suite setup
    static void SetUpTestSuite()
    {
-      pclMyJsonDb = new JsonReader();
-      pclMyJsonDb->LoadFile(*TEST_DB_PATH);
-
-      pclMyRxConfigHandler = new RxConfigHandler(pclMyJsonDb);
+      my_json_db = ne.JsonReader()
+      my_json_db.load_file(*TEST_DB_PATH)
+      my_rx_config_handler = ne.RxConfigHandler(my_json_db)
    }
 
    # Per-test-suite teardown
    static void TearDownTestSuite()
    {
-      if(pclMyJsonDb)
+      if(my_json_db)
       {
-         delete pclMyJsonDb;
-         pclMyJsonDb = nullptr;
+         delete my_json_db
+         my_json_db = nullptr
       }
 
-      if(pclMyRxConfigHandler)
+      if(my_rx_config_handler)
       {
-         pclMyRxConfigHandler->ShutdownLogger();
-         delete pclMyRxConfigHandler;
-         pclMyRxConfigHandler = nullptr;
+         my_rx_config_handler.shutdown_logger()
+         delete my_rx_config_handler
+         my_rx_config_handler = nullptr
       }
    }
 
    # Per-test setup
    void SetUp()
    {
-      pclMyRxConfigHandler->Flush();
+      my_rx_config_handler.flush()
    }
 
    # Per-test teardown
    void TearDown()
    {
-      pclMyRxConfigHandler->Flush();
+      my_rx_config_handler.flush()
    }
 
-   bool CompareMessageData(MessageDataStruct* pstTestMessageData_, MessageDataStruct* pstExpectedMessageData_)
+   bool CompareMessageData(MessageDataStruct* test_message_data_, MessageDataStruct* expected_message_data_)
    {
-      bool bResult = true;
-      if (pstTestMessageData_->uiMessageHeaderLength != pstExpectedMessageData_->uiMessageHeaderLength)
+      bool result = true
+      if (test_message_data_.ui_message_header_length != expected_message_data_.ui_message_header_length)
       {
-         cout << "MessageData.uiMessageHeaderLength (expected " << static_cast<uint32_t>(pstExpectedMessageData_->uiMessageHeaderLength) << ", got " << static_cast<uint32_t>(pstTestMessageData_->uiMessageHeaderLength) << ")\n";
-         bResult = false;
+         cout << "MessageData.message_header_length (expected " << static_cast<uint32_t>(expected_message_data_.ui_message_header_length) << ", got " << static_cast<uint32_t>(test_message_data_.ui_message_header_length) << ")\n"
+         result = false
       }
-      if (pstTestMessageData_->uiMessageBodyLength != pstExpectedMessageData_->uiMessageBodyLength)
+      if (test_message_data_.ui_message_body_length != expected_message_data_.ui_message_body_length)
       {
-         cout << "MessageData.uiMessageBodyLength (expected " << static_cast<uint32_t>(pstExpectedMessageData_->uiMessageBodyLength) << ", got " << static_cast<uint32_t>(pstTestMessageData_->uiMessageBodyLength) << ")\n";
-         bResult = false;
+         cout << "MessageData.message_body_length (expected " << static_cast<uint32_t>(expected_message_data_.ui_message_body_length) << ", got " << static_cast<uint32_t>(test_message_data_.ui_message_body_length) << ")\n"
+         result = false
       }
-      if (pstTestMessageData_->uiMessageLength != pstExpectedMessageData_->uiMessageLength)
+      if (test_message_data_.ui_message_length != expected_message_data_.ui_message_length)
       {
-         cout << "MessageData.uiMessageLength (expected " << static_cast<uint32_t>(pstExpectedMessageData_->uiMessageLength) << ", got " << static_cast<uint32_t>(pstTestMessageData_->uiMessageLength) << ")\n";
-         bResult = false;
+         cout << "MessageData.message_length (expected " << static_cast<uint32_t>(expected_message_data_.ui_message_length) << ", got " << static_cast<uint32_t>(test_message_data_.ui_message_length) << ")\n"
+         result = false
       }
-      if (0 != memcmp(pstTestMessageData_->pucMessageHeader, pstExpectedMessageData_->pucMessageHeader, pstTestMessageData_->uiMessageHeaderLength))
+      if (0 != memcmp(test_message_data_.puc_message_header, expected_message_data_.puc_message_header, test_message_data_.ui_message_header_length))
       {
-         cout << "MessageData.pucMessageHeader contents do not match\n";
-         bResult = false;
+         cout << "MessageData.message_header contents do not match\n"
+         result = false
       }
-      if (0 != memcmp(pstTestMessageData_->pucMessageBody, pstExpectedMessageData_->pucMessageBody, pstTestMessageData_->uiMessageBodyLength))
+      if (0 != memcmp(test_message_data_.puc_message_body, expected_message_data_.puc_message_body, test_message_data_.ui_message_body_length))
       {
-         cout << "MessageData.pucMessageBody contents do not match\n";
-         bResult = false;
+         cout << "MessageData.message_body contents do not match\n"
+         result = false
       }
-      if (0 != memcmp(pstTestMessageData_->pucMessage, pstExpectedMessageData_->pucMessage, pstTestMessageData_->uiMessageLength))
+      if (0 != memcmp(test_message_data_.puc_message, expected_message_data_.puc_message, test_message_data_.ui_message_length))
       {
-         cout << "MessageData.pucMessage contents do not match\n";
-         bResult = false;
+         cout << "MessageData.message contents do not match\n"
+         result = false
       }
-      return bResult;
+      return result
    }
 
 public:
 
-   void WriteBytesToHandler(unsigned char* pucBytes_, uint32_t uiNumBytes_)
+   void WriteBytesToHandler(unsigned char* bytes_, uint32_t num_bytes_)
    {
-      ASSERT_EQ(pclMyRxConfigHandler->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
+      ASSERT_EQ(my_rx_config_handler.write(bytes_, num_bytes_), num_bytes_)
    }
 
-   bool TestSameFormatCompare(ENCODEFORMAT eFormat_, MessageDataStruct* pstExpectedRxConfigMessageData_, MessageDataStruct* pstExpectedEmbeddedMessageData_)
+   bool TestSameFormatCompare(ENCODEFORMAT format_, MessageDataStruct* expected_rx_config_message_data_, MessageDataStruct* expected_embedded_message_data_)
    {
-      MetaDataStruct stTestRxConfigMetaData;
-      MetaDataStruct stTestEmbeddedMetaData;
-      MessageDataStruct stTestRxConfigMessageData;
-      MessageDataStruct stTestEmbeddedMessageData;
-
+      MetaDataStruct test_rx_config_meta_data
+      MetaDataStruct test_embedded_meta_data
+      MessageDataStruct test_rx_config_message_data
+      MessageDataStruct test_embedded_message_data
       # CompareMessageData
-      const STATUS eStatus = pclMyRxConfigHandler->Convert(stTestRxConfigMessageData, stTestRxConfigMetaData, stTestEmbeddedMessageData, stTestEmbeddedMetaData, eFormat_);
-      if(eStatus != STATUS::SUCCESS)
+      const STATUS status = my_rx_config_handler.convert(test_rx_config_message_data, test_rx_config_meta_data, test_embedded_message_data, test_embedded_meta_data, format_)
+      if(status != STATUS.SUCCESS)
       {
-         printf("Convert failed with code %d\n", static_cast<uint32_t>(eStatus));
-         return false;
+         printf("Convert failed with code %d\n", static_cast<uint32_t>(status))
+         return false
       }
 
-      if(!CompareMessageData(&stTestRxConfigMessageData, pstExpectedRxConfigMessageData_) ||
-         !CompareMessageData(&stTestEmbeddedMessageData, pstExpectedEmbeddedMessageData_))
+      if(!CompareMessageData(&test_rx_config_message_data, expected_rx_config_message_data_) ||
+         !CompareMessageData(&test_embedded_message_data, expected_embedded_message_data_))
       {
-         return false;
+         return false
       }
 
-      return true;
+      return true
    }
-};
-JsonReader* RxConfigTest::pclMyJsonDb = nullptr;
-RxConfigHandler* RxConfigTest::pclMyRxConfigHandler = nullptr;
-
+}
+JsonReader* RxConfigTest.my_json_db = nullptr
+RxConfigHandler* RxConfigTest.my_rx_config_handler = nullptr
 # -------------------------------------------------------------------------------------------------------
 # Logger Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-TEST_F(RxConfigTest, LOGGER)
+def test_LOGGER():
 {
-   spdlog::level::level_enum eLevel = spdlog::level::off;
-
-   ASSERT_NE(spdlog::get("rxconfig_handler"), nullptr);
-   std::shared_ptr<spdlog::logger> rxconfig_handler = pclMyRxConfigHandler->GetLogger();
-   pclMyRxConfigHandler->SetLoggerLevel(eLevel);
-   ASSERT_EQ(rxconfig_handler->level(), eLevel);
+   spdlog.level.level_enum level = spdlog.level.off
+   assert spdlog.get("rxconfig_handler") != nullptr
+   std.shared_ptr<spdlog.logger> rxconfig_handler = my_rx_config_handler.get_logger()
+   my_rx_config_handler.set_logger_level(level)
+   assert rxconfig_handler.level() == level
 }
 
 # -------------------------------------------------------------------------------------------------------
 # Round-trip unit tests.
 # -------------------------------------------------------------------------------------------------------
-TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ASCII)
+def test_RXCONFIG_ROUNDTRIP_ASCII():
 {
-   unsigned char aucLog[] = "#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*ca0f5c51*71be1427\r\n";
-   MessageDataStruct stExpectedRxConfigMessageData;
-   stExpectedRxConfigMessageData.pucMessage = &aucLog[0];
-   stExpectedRxConfigMessageData.uiMessageLength = 192;
-   stExpectedRxConfigMessageData.pucMessageHeader = &aucLog[0];
-   stExpectedRxConfigMessageData.uiMessageHeaderLength = 72;
-   stExpectedRxConfigMessageData.pucMessageBody = &aucLog[72];
-   stExpectedRxConfigMessageData.uiMessageBodyLength = 120;
-
-   MessageDataStruct stExpectedEmbeddedMessageData;
-   stExpectedEmbeddedMessageData.pucMessage = &aucLog[72];
-   stExpectedEmbeddedMessageData.uiMessageLength = 109;
-   stExpectedEmbeddedMessageData.pucMessageHeader = &aucLog[72];
-   stExpectedEmbeddedMessageData.uiMessageHeaderLength = 77;
-   stExpectedEmbeddedMessageData.pucMessageBody = &aucLog[149];
-   stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
-
-   WriteBytesToHandler(aucLog, sizeof(aucLog));
-   ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+   unsigned char log[] = "#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*ca0f5c51*71be1427\r\n"
+   MessageDataStruct expected_rx_config_message_data
+   expected_rx_config_message_data.message = &log[0]
+   expected_rx_config_message_data.message_length = 192
+   expected_rx_config_message_data.message_header = &log[0]
+   expected_rx_config_message_data.message_header_length = 72
+   expected_rx_config_message_data.message_body = &log[72]
+   expected_rx_config_message_data.message_body_length = 120
+   MessageDataStruct expected_embedded_message_data
+   expected_embedded_message_data.message = &log[72]
+   expected_embedded_message_data.message_length = 109
+   expected_embedded_message_data.message_header = &log[72]
+   expected_embedded_message_data.message_header_length = 77
+   expected_embedded_message_data.message_body = &log[149]
+   expected_embedded_message_data.message_body_length = 32
+   WriteBytesToHandler(log, sizeof(log))
+   assert TestSameFormatCompare(ENCODEFORMAT.ASCII, &expected_rx_config_message_data, &expected_embedded_message_data)
 }
 
-TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ABBREV)
+def test_RXCONFIG_ROUNDTRIP_ABBREV():
 {
    # NOTE: This RXCONFIG message is NOT what an OEM7 receiver would produce.  The space after the embedded header is added intentionally by RxConfigHandler to make it decodeable.
-   unsigned char aucLog[] = "<RXCONFIG COM2 78 33.0 UNKNOWN 0 12.468 024c0000 f702 32768\r\n<     PDPFILTER COM2 78 33.0 UNKNOWN 0 12.468 024c0000 dab4 32768 \r\n<     DISABLE\r\nMore bytes...";
-
-   MessageDataStruct stExpectedRxConfigMessageData;
-   stExpectedRxConfigMessageData.pucMessage = &aucLog[0];
-   stExpectedRxConfigMessageData.uiMessageLength = 144;
-   stExpectedRxConfigMessageData.pucMessageHeader = &aucLog[0];
-   stExpectedRxConfigMessageData.uiMessageHeaderLength = 61;
-   stExpectedRxConfigMessageData.pucMessageBody = &aucLog[61];
-   stExpectedRxConfigMessageData.uiMessageBodyLength = 83;
-
-   MessageDataStruct stExpectedEmbeddedMessageData;
-   stExpectedEmbeddedMessageData.pucMessage = &aucLog[61];
-   stExpectedEmbeddedMessageData.uiMessageLength = 83;
-   stExpectedEmbeddedMessageData.pucMessageHeader = &aucLog[61];
-   stExpectedEmbeddedMessageData.uiMessageHeaderLength = 68;
-   stExpectedEmbeddedMessageData.pucMessageBody = &aucLog[129];
-   stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
-
-   WriteBytesToHandler(aucLog, sizeof(aucLog));
-   ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::ABBREV_ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+   unsigned char log[] = "<RXCONFIG COM2 78 33.0 UNKNOWN 0 12.468 024c0000 f702 32768\r\n<     PDPFILTER COM2 78 33.0 UNKNOWN 0 12.468 024c0000 dab4 32768 \r\n<     DISABLE\r\more bytes..."
+   MessageDataStruct expected_rx_config_message_data
+   expected_rx_config_message_data.message = &log[0]
+   expected_rx_config_message_data.message_length = 144
+   expected_rx_config_message_data.message_header = &log[0]
+   expected_rx_config_message_data.message_header_length = 61
+   expected_rx_config_message_data.message_body = &log[61]
+   expected_rx_config_message_data.message_body_length = 83
+   MessageDataStruct expected_embedded_message_data
+   expected_embedded_message_data.message = &log[61]
+   expected_embedded_message_data.message_length = 83
+   expected_embedded_message_data.message_header = &log[61]
+   expected_embedded_message_data.message_header_length = 68
+   expected_embedded_message_data.message_body = &log[129]
+   expected_embedded_message_data.message_body_length = 15
+   WriteBytesToHandler(log, sizeof(log))
+   assert TestSameFormatCompare(ENCODEFORMAT.ABBREV_ASCII, &expected_rx_config_message_data, &expected_embedded_message_data)
 }
 
-TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_BINARY)
+def test_RXCONFIG_ROUNDTRIP_BINARY():
 {
    # RXCONFIG
-   unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x80, 0x00, 0x00, 0x20, 0x30, 0x00, 0x00, 0x00, 0x65, 0xB4, 0x7C, 0x08, 0x3C, 0x78, 0x48, 0x09, 0x00, 0x00, 0x01, 0x02, 0x02, 0xF7, 0x78, 0x3F, 0xAA, 0x44, 0x12, 0x1C, 0x03, 0x00, 0x00, 0x20, 0x10, 0x00, 0x00, 0x00, 0x65, 0xB4, 0x7C, 0x08, 0x3C, 0x78, 0x48, 0x09, 0x00, 0x00, 0x01, 0x02, 0x02, 0xF7, 0x78, 0x3F, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x67, 0x74, 0xB2, 0xEC, 0x0E, 0xD1, 0xFB, 0x06 };
-   MessageDataStruct stExpectedRxConfigMessageData;
-   stExpectedRxConfigMessageData.pucMessage = &aucLog[0];
-   stExpectedRxConfigMessageData.uiMessageLength = 80;
-   stExpectedRxConfigMessageData.pucMessageHeader = &aucLog[0];
-   stExpectedRxConfigMessageData.uiMessageHeaderLength = OEM4_BINARY_HEADER_LENGTH;
-   stExpectedRxConfigMessageData.pucMessageBody = &aucLog[OEM4_BINARY_HEADER_LENGTH];
-   stExpectedRxConfigMessageData.uiMessageBodyLength = 52;
-
-   MessageDataStruct stExpectedEmbeddedMessageData;
-   stExpectedEmbeddedMessageData.pucMessage = &aucLog[OEM4_BINARY_HEADER_LENGTH];
-   stExpectedEmbeddedMessageData.uiMessageLength = 48;
-   stExpectedEmbeddedMessageData.pucMessageHeader = &aucLog[OEM4_BINARY_HEADER_LENGTH];
-   stExpectedEmbeddedMessageData.uiMessageHeaderLength = OEM4_BINARY_HEADER_LENGTH;
-   stExpectedEmbeddedMessageData.pucMessageBody = &aucLog[OEM4_BINARY_HEADER_LENGTH*2];
-   stExpectedEmbeddedMessageData.uiMessageBodyLength = 20;
-
-   WriteBytesToHandler(aucLog, sizeof(aucLog));
-   ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+   unsigned char log[] = { 0xAA, 0x44, 0x12, 0x1C, 0x80, 0x00, 0x00, 0x20, 0x30, 0x00, 0x00, 0x00, 0x65, 0xB4, 0x7C, 0x08, 0x3C, 0x78, 0x48, 0x09, 0x00, 0x00, 0x01, 0x02, 0x02, 0xF7, 0x78, 0x3F, 0xAA, 0x44, 0x12, 0x1C, 0x03, 0x00, 0x00, 0x20, 0x10, 0x00, 0x00, 0x00, 0x65, 0xB4, 0x7C, 0x08, 0x3C, 0x78, 0x48, 0x09, 0x00, 0x00, 0x01, 0x02, 0x02, 0xF7, 0x78, 0x3F, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x67, 0x74, 0xB2, 0xEC, 0x0E, 0xD1, 0xFB, 0x06 }
+   MessageDataStruct expected_rx_config_message_data
+   expected_rx_config_message_data.message = &log[0]
+   expected_rx_config_message_data.message_length = 80
+   expected_rx_config_message_data.message_header = &log[0]
+   expected_rx_config_message_data.message_header_length = OEM4_BINARY_HEADER_LENGTH
+   expected_rx_config_message_data.message_body = &log[OEM4_BINARY_HEADER_LENGTH]
+   expected_rx_config_message_data.message_body_length = 52
+   MessageDataStruct expected_embedded_message_data
+   expected_embedded_message_data.message = &log[OEM4_BINARY_HEADER_LENGTH]
+   expected_embedded_message_data.message_length = 48
+   expected_embedded_message_data.message_header = &log[OEM4_BINARY_HEADER_LENGTH]
+   expected_embedded_message_data.message_header_length = OEM4_BINARY_HEADER_LENGTH
+   expected_embedded_message_data.message_body = &log[OEM4_BINARY_HEADER_LENGTH*2]
+   expected_embedded_message_data.message_body_length = 20
+   WriteBytesToHandler(log, sizeof(log))
+   assert TestSameFormatCompare(ENCODEFORMAT.BINARY, &expected_rx_config_message_data, &expected_embedded_message_data)
 }
 
 
 # -------------------------------------------------------------------------------------------------------
 # Conversion to JSON unit tests.
 # -------------------------------------------------------------------------------------------------------
-TEST_F(RxConfigTest, RXCONFIG_CONVERT_ASCII_TO_JSON)
+def test_RXCONFIG_CONVERT_ASCII_TO_JSON():
 {
-   unsigned char aucLog[] = "#RXCONFIGA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;#ADJUST1PPSA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;OFF*4c2dbb6d*1600a42a\r\n";
-   unsigned char aucJsonLog[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"mode": "OFF"}}})";
-   MessageDataStruct stExpectedRxConfigMessageData;
-   stExpectedRxConfigMessageData.pucMessage = &aucJsonLog[0];
-   stExpectedRxConfigMessageData.uiMessageLength = 531;
-   stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[10];
-   stExpectedRxConfigMessageData.uiMessageHeaderLength = 229;
-   stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[247];
-   stExpectedRxConfigMessageData.uiMessageBodyLength = 283;
-
-   MessageDataStruct stExpectedEmbeddedMessageData;
-   stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[247];
-   stExpectedEmbeddedMessageData.uiMessageLength = 283;
-   stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[266];
-   stExpectedEmbeddedMessageData.uiMessageHeaderLength = 231;
-   stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[514];
-   stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
-
-   WriteBytesToHandler(aucLog, sizeof(aucLog));
-   ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+   unsigned char log[] = "#RXCONFIGA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;#ADJUST1PPSA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;OFF*4c2dbb6d*1600a42a\r\n"
+   unsigned char json_log[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"mode": "OFF"}}})"
+   MessageDataStruct expected_rx_config_message_data
+   expected_rx_config_message_data.message = &json_log[0]
+   expected_rx_config_message_data.message_length = 531
+   expected_rx_config_message_data.message_header = &json_log[10]
+   expected_rx_config_message_data.message_header_length = 229
+   expected_rx_config_message_data.message_body = &json_log[247]
+   expected_rx_config_message_data.message_body_length = 283
+   MessageDataStruct expected_embedded_message_data
+   expected_embedded_message_data.message = &json_log[247]
+   expected_embedded_message_data.message_length = 283
+   expected_embedded_message_data.message_header = &json_log[266]
+   expected_embedded_message_data.message_header_length = 231
+   expected_embedded_message_data.message_body = &json_log[514]
+   expected_embedded_message_data.message_body_length = 15
+   WriteBytesToHandler(log, sizeof(log))
+   assert TestSameFormatCompare(ENCODEFORMAT.JSON, &expected_rx_config_message_data, &expected_embedded_message_data)
 }
 
-TEST_F(RxConfigTest, RXCONFIG_CONVERT_ABBREV_TO_JSON)
+def test_RXCONFIG_CONVERT_ABBREV_TO_JSON():
 {
-   unsigned char aucLog[] = "<RXCONFIG COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002\r\n<     SBASECUTOFF COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002 \r\n<     -5.0\r\n[PISSCOM1]";
-   unsigned char aucJsonLog[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SBASECUTOFF","id": 1000,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"elevation_cutoff_angle": -5.0}}})";
-   MessageDataStruct stExpectedRxConfigMessageData;
-   stExpectedRxConfigMessageData.pucMessage = &aucJsonLog[0];
-   stExpectedRxConfigMessageData.uiMessageLength = 550;
-   stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[10];
-   stExpectedRxConfigMessageData.uiMessageHeaderLength = 229;
-   stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[247];
-   stExpectedRxConfigMessageData.uiMessageBodyLength = 302;
-
-   MessageDataStruct stExpectedEmbeddedMessageData;
-   stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[247];
-   stExpectedEmbeddedMessageData.uiMessageLength = 302;
-   stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[266];
-   stExpectedEmbeddedMessageData.uiMessageHeaderLength = 233;
-   stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[516];
-   stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
-
-   WriteBytesToHandler(aucLog, sizeof(aucLog));
-   ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+   unsigned char log[] = "<RXCONFIG COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002\r\n<     SBASECUTOFF COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002 \r\n<     -5.0\r\n[PISSCOM1]"
+   unsigned char json_log[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SBASECUTOFF","id": 1000,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"elevation_cutoff_angle": -5.0}}})"
+   MessageDataStruct expected_rx_config_message_data
+   expected_rx_config_message_data.message = &json_log[0]
+   expected_rx_config_message_data.message_length = 550
+   expected_rx_config_message_data.message_header = &json_log[10]
+   expected_rx_config_message_data.message_header_length = 229
+   expected_rx_config_message_data.message_body = &json_log[247]
+   expected_rx_config_message_data.message_body_length = 302
+   MessageDataStruct expected_embedded_message_data
+   expected_embedded_message_data.message = &json_log[247]
+   expected_embedded_message_data.message_length = 302
+   expected_embedded_message_data.message_header = &json_log[266]
+   expected_embedded_message_data.message_header_length = 233
+   expected_embedded_message_data.message_body = &json_log[516]
+   expected_embedded_message_data.message_body_length = 32
+   WriteBytesToHandler(log, sizeof(log))
+   assert TestSameFormatCompare(ENCODEFORMAT.JSON, &expected_rx_config_message_data, &expected_embedded_message_data)
 }
 
-TEST_F(RxConfigTest, RXCONFIG_CONVERT_BINARY_TO_JSON)
+def test_RXCONFIG_CONVERT_BINARY_TO_JSON():
 {
-   unsigned char aucLog[] = {0xAA, 0x44, 0x12, 0x1C, 0x80, 0x00, 0x00, 0x40, 0x3C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0xAA, 0x44, 0x12, 0x1C, 0xDE, 0x04, 0x00, 0x40, 0x1C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0x02, 0x00, 0x00, 0x00, 0x00, 0x08, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF4, 0xD7, 0x46, 0x65, 0x5D, 0x3D, 0xED, 0xF6};
-   unsigned char aucJsonLog[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SERIALCONFIG","id": 1246,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"port": "COM2","baud_rate": 460800,"parity": "N","data_bits": 8,"stop_bits": 1,"hand_shaking": "N","breaks": "ON"}}})";
-   MessageDataStruct stExpectedRxConfigMessageData;
-   stExpectedRxConfigMessageData.pucMessage = &aucJsonLog[0];
-   stExpectedRxConfigMessageData.uiMessageLength = 656;
-   stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[10];
-   stExpectedRxConfigMessageData.uiMessageHeaderLength = 240;
-   stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[258];
-   stExpectedRxConfigMessageData.uiMessageBodyLength = 397;
-
-   MessageDataStruct stExpectedEmbeddedMessageData;
-   stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[258];
-   stExpectedEmbeddedMessageData.uiMessageLength = 397;
-   stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[277];
-   stExpectedEmbeddedMessageData.uiMessageHeaderLength = 245;
-   stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[539];
-   stExpectedEmbeddedMessageData.uiMessageBodyLength = 115;
-
-   WriteBytesToHandler(aucLog, sizeof(aucLog));
-   ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+   unsigned char log[] = {0xAA, 0x44, 0x12, 0x1C, 0x80, 0x00, 0x00, 0x40, 0x3C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0xAA, 0x44, 0x12, 0x1C, 0xDE, 0x04, 0x00, 0x40, 0x1C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0x02, 0x00, 0x00, 0x00, 0x00, 0x08, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF4, 0xD7, 0x46, 0x65, 0x5D, 0x3D, 0xED, 0xF6}
+   unsigned char json_log[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SERIALCONFIG","id": 1246,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"port": "COM2","baud_rate": 460800,"parity": "N","data_bits": 8,"stop_bits": 1,"hand_shaking": "N","breaks": "ON"}}})"
+   MessageDataStruct expected_rx_config_message_data
+   expected_rx_config_message_data.message = &json_log[0]
+   expected_rx_config_message_data.message_length = 656
+   expected_rx_config_message_data.message_header = &json_log[10]
+   expected_rx_config_message_data.message_header_length = 240
+   expected_rx_config_message_data.message_body = &json_log[258]
+   expected_rx_config_message_data.message_body_length = 397
+   MessageDataStruct expected_embedded_message_data
+   expected_embedded_message_data.message = &json_log[258]
+   expected_embedded_message_data.message_length = 397
+   expected_embedded_message_data.message_header = &json_log[277]
+   expected_embedded_message_data.message_header_length = 245
+   expected_embedded_message_data.message_body = &json_log[539]
+   expected_embedded_message_data.message_body_length = 115
+   WriteBytesToHandler(log, sizeof(log))
+   assert TestSameFormatCompare(ENCODEFORMAT.JSON, &expected_rx_config_message_data, &expected_embedded_message_data)
 }

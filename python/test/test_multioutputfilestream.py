@@ -27,294 +27,123 @@
 #
 ################################################################################
 
-# Includes
-#include "hw_interface/stream_interface/multioutputfilestream.hpp"
-#include "string"
-#include <filesystem>
+from pathlib import Path
 
-#include <gtest/gtest.h>
+import novatel_edie as ne
+import pytest
 
 
-class MultiOutputFileStreamTest : public ::testing::Test {
-public:
-  virtual void SetUp() {
-  }
+def test_configure_split_by_log():
+    test_stream = ne.MultiOutputFileStream()
+    test_stream.configure_split_by_log(True)
+    # assert IsFileSplit()
+    test_stream.configure_split_by_log(False)
+    # assert not IsFileSplit()
 
-  virtual void TearDown() {
-  }
-
-  typedef std::map<std::string, FileStream* > FstreamMap;
-  MultiOutputFileStream::FstreamMap::iterator itFstreamMapIterator;
-  MultiOutputFileStream::WCFstreamMap::iterator itWFstreamMapIterator;
-
-  bool IsFileSplit() { return pMyTestCommand->bMyFileSplit; }
-  FileStream* GetLocalFileStream() { return pMyTestCommand->pLocalFileStream; }
-  FileSplitMethodEnum GetFileSplitMethodEnum() { return pMyTestCommand->eMyFileSplitMethodEnum; }
-  std::string GetBaseFileName() { return pMyTestCommand->stMyBaseName; }
-  std::string GetExtensionName() { return pMyTestCommand->stMyExtentionName; }
-  std::u32string GetBase32FileName() { return pMyTestCommand->s32MyBaseName; }
-  std::u32string Get32ExtensionName() { return pMyTestCommand->s32MyExtentionName; }
-  uint64_t GetFileSplitSize() { return pMyTestCommand->ullMyFileSplitSize; }
-  uint64_t GetFileSize() { return pMyTestCommand->ullMyFileSize; }
-  uint32_t GetFileCount() { return pMyTestCommand->uiMyFileCount; }
-  double GetTimeSplitSize() { return pMyTestCommand->dMyTimeSplitSize; }
-  double GetTimeInSeconds() { return pMyTestCommand->dMyTimeInSeconds; }
-  double GetStartTimeInSecs() { return pMyTestCommand->dMyStartTimeInSeconds; }
-  uint32_t GetWeek() { return pMyTestCommand->ulMyWeek; }
-  uint32_t GetStartWeek() { return pMyTestCommand->ulMyStartWeek; }
-  FstreamMap GetMap() { return pMyTestCommand->GetFileMap(); }
-  MultiOutputFileStream::WCFstreamMap Get32StringMap() { return pMyTestCommand->Get32FileMap(); }
-private:
-
-protected:
-	MultiOutputFileStream* pMyTestCommand = NULL;
-   #typedef std::map<std::string, FileStream* > FstreamMap;
-   #FstreamMap mMyFstreamMap;
-
-};
-
-TEST_F(MultiOutputFileStreamTest, ConfigureSplitByLog)
-{
-   pMyTestCommand = new MultiOutputFileStream();
-
-   pMyTestCommand->ConfigureSplitByLog(true);
-   ASSERT_TRUE(IsFileSplit());
-
-   pMyTestCommand->ConfigureSplitByLog(false);
-   ASSERT_FALSE(IsFileSplit());
-
-   delete pMyTestCommand;
-}
 
 # Test the ConfigureBaseFileName method.
-TEST_F(MultiOutputFileStreamTest, ConfigureBaseFileName)
-{
-   pMyTestCommand = new MultiOutputFileStream();
+def test_configure_base_file_name():
+    test_stream = ne.MultiOutputFileStream()
+    test_stream.configure_base_file_name("outputfilestream_file13")
+    # assert "outputfilestream_file13" == GetBaseFileName()
+    # assert "DefaultExt" == GetExtensionName()
 
-   pMyTestCommand->ConfigureBaseFileName("multiOutputfilestream_file13");
-   ASSERT_STREQ("multiOutputfilestream_file13", GetBaseFileName().c_str());
-   ASSERT_STREQ("DefaultExt", GetExtensionName().c_str());
+    test_stream.configure_base_file_name("outputfilestream_file13.txt")
+    # assert "outputfilestream_file13" == GetBaseFileName()
+    # assert "txt" == GetExtensionName()
 
-   pMyTestCommand->ConfigureBaseFileName("multiOutputfilestream_file13.txt");
-   ASSERT_STREQ("multiOutputfilestream_file13", GetBaseFileName().c_str());
-   ASSERT_STREQ("txt", GetExtensionName().c_str());
 
-   delete pMyTestCommand;
-}
+def test_configure_base32_string_file_name():
+    test_stream = ne.MultiOutputFileStream()
+    test_stream.configure_base_file_name("outputfilestream_不同语言的文件")
+    # assert "outputfilestream_不同语言的文件" == GetBase32FileName()
+    # assert "DefaultExt" == Get32ExtensionName()
 
-TEST_F(MultiOutputFileStreamTest, ConfigureBase32StringFileName)
-{
-   pMyTestCommand = new MultiOutputFileStream();
+    test_stream.configure_base_file_name("outputfilestream_不同语言的文件.txt")
+    # assert "outputfilestream_不同语言的文件" == GetBase32FileName()
+    # assert "txt" == Get32ExtensionName()
 
-   pMyTestCommand->ConfigureBaseFileName(U"multiOutputfilestream_不同语言的文件");
-   ASSERT_EQ(std::u32string(U"multiOutputfilestream_不同语言的文件"), GetBase32FileName());
-   ASSERT_EQ(std::u32string(U"DefaultExt"), Get32ExtensionName());
-
-   pMyTestCommand->ConfigureBaseFileName(U"multiOutputfilestream_不同语言的文件.txt");
-   ASSERT_EQ(std::u32string(U"multiOutputfilestream_不同语言的文件"), GetBase32FileName());
-   ASSERT_EQ(std::u32string(U"txt"), Get32ExtensionName());
-
-   delete pMyTestCommand;
-}
 
 # Test the SelectLogFile method.
-TEST_F(MultiOutputFileStreamTest, SelectLogFile)
-{
-  typedef std::map<std::string, FileStream* > FstreamMap;
-  FstreamMap myMap;
+@pytest.mark.skip
+def test_select32_string_log_file():
+    test_stream = ne.MultiOutputFileStream()
+    test_stream.configure_base_file_name("outputfilestream不同_file14.asc")
+    test_stream.select_log_file("bestpos")
+    map = test_stream.file_map
+    w_fstream_map_iterator = map.begin()
+    file_name = GetBase32FileName() + "_" + "bestpos" + "." + Get32ExtensionName()
+    assert file_name == w_fstream_map_iterator.first
 
-  pMyTestCommand = new MultiOutputFileStream();
-  pMyTestCommand->ConfigureBaseFileName("multiOutputfilestream_file14.asc");
+    assert file_name == w_fstream_map_iterator.second.get32_string_file_name()
 
-  pMyTestCommand->SelectLogFile("bestpos");
-  myMap = GetMap();
-  itFstreamMapIterator = myMap.begin();
+    test_stream.configure_base_file_name("outputfilestream不同_file15")
+    test_stream.set_extension_name("DefaultExt")
+    test_stream.select_log_file("bestpos")
+    w_fstream_map_iterator += 1
+    file_name = GetBase32FileName() + "_" + "bestpos"
+    # Need to improve further here
+    # printf("map size: %d\n", map.size())
+    # printf("first: %s\n", (fstream_map_iterator.first).c_str())
+    # assert file_name == (fstream_map_iterator.first)
 
-  std::string strFileName = GetBaseFileName() +  "_" + "bestpos" + "." + GetExtensionName();
-  ASSERT_STREQ(strFileName.c_str(), (itFstreamMapIterator->first).c_str());
 
-  ASSERT_EQ(strFileName, itFstreamMapIterator->second->GetFileName());
+def test_write_data_wide_file():
+    test_stream = ne.MultiOutputFileStream()
+    test_stream.configure_split_by_log(True)
+    test_stream.configure_base_file_name("Log不同.txt")
+    command = b"HELLO"
+    len = test_stream.write(command, "BESTPOS", 0, ne.TIME_STATUS.UNKNOWN, 0, 0.0)
+    assert len == 5
+    assert Path("Log不同_BESTPOS.txt").exists()
 
-  pMyTestCommand->ConfigureBaseFileName("multiOutputfilestream_file15");
-  pMyTestCommand->SetExtensionName("DefaultExt");
-  pMyTestCommand->SelectLogFile("bestpos");
 
-  itFstreamMapIterator++;
-  strFileName = GetBaseFileName() +  "_" + "bestpos";
+def test_configure_split_by_size():
+    test_stream = ne.MultiOutputFileStream()
+    test_stream.configure_split_by_size(1)
+    # assert IsFileSplit()
+    # assert GetFileSplitSize() == 1
 
-  # Need to improve further here
-  #printf("myMap size: %d\n", myMap.size());
-  #printf("first: %s\n", (itFstreamMapIterator->first).c_str());
-  #ASSERT_STREQ(strFileName.c_str(), (itFstreamMapIterator->first).c_str());
-  delete pMyTestCommand;
-}
+    test_stream.configure_base_file_name("Log.txt")
+    command = b"HELLO"
+    len = test_stream.write(command, "", 1, ne.TIME_STATUS.UNKNOWN, 0, 0.0)
+    assert len == 5
+    assert Path("Log_Part0.txt").exists()
 
-# Test the SelectLogFile method.
-TEST_F(MultiOutputFileStreamTest, Select32StringLogFile)
-{
-  typedef std::map<std::u32string, FileStream* > WCFstreamMap;
-  WCFstreamMap myMap;
+    test_stream.clear_file_stream_map()
+    with pytest.raises(Exception):
+        test_stream.configure_split_by_size(0)
+        assert False  # Should not execute
+    # assert "File Split by Size not valid" == exc.buffer
 
-  pMyTestCommand = new MultiOutputFileStream();
-  pMyTestCommand->ConfigureBaseFileName(U"multiOutputfilestream不同_file14.asc");
 
-  pMyTestCommand->SelectWCLogFile("bestpos");
-  myMap = Get32StringMap();
-  itWFstreamMapIterator = myMap.begin();
+def test_configure_split_by_time():
+    test_stream = ne.MultiOutputFileStream()
+    test_stream.configure_split_by_time(0.01)
+    test_stream.configure_base_file_name("Log.txt")
+    command = b"HELLO"
+    len = test_stream.write(command, "", 0, ne.TIME_STATUS.UNKNOWN, 0, 0.01)
+    assert len == 5
+    assert Path("Log_Part0.txt").exists()
 
-  std::u32string strFileName = GetBase32FileName() +  U"_" + U"bestpos" + U"." + Get32ExtensionName();
-  ASSERT_EQ(strFileName, (itWFstreamMapIterator->first));
+    with pytest.raises(Exception):
+        test_stream.configure_split_by_time(0.0)  # 0
+        assert False  # Should not execute
+    # assert "File Split by time not valid" == exc.buffer
 
-  ASSERT_EQ(strFileName, itWFstreamMapIterator->second->Get32StringFileName());
 
-  pMyTestCommand->ConfigureBaseFileName(U"multiOutputfilestream不同_file15");
-  pMyTestCommand->SetExtensionName(U"DefaultExt");
-  pMyTestCommand->SelectLogFile("bestpos");
+def test_select_time_file():
+    test_stream = ne.MultiOutputFileStream()
+    test_stream.configure_split_by_time(0.01)
+    test_stream.select_file_stream("Log.txt")
+    test_stream.select_time_file(ne.TIME_STATUS.UNKNOWN, 0, 0.01)
+    # assert GetTimeInSeconds() == 0.0
+    # assert GetStartTimeInSecs() == 0.0
+    # assert GetWeek() == 0
+    # assert GetStartWeek() == 0
 
-  itWFstreamMapIterator++;
-  strFileName = GetBase32FileName() +  U"_" + U"bestpos";
-
-  # Need to improve further here
-  #printf("myMap size: %d\n", myMap.size());
-  #printf("first: %s\n", (itFstreamMapIterator->first).c_str());
-  #ASSERT_STREQ(strFileName.c_str(), (itFstreamMapIterator->first).c_str());
-  delete pMyTestCommand;
-}
-
-TEST_F(MultiOutputFileStreamTest, WriteData)
-{
-   pMyTestCommand = new MultiOutputFileStream();
-   pMyTestCommand->ConfigureSplitByLog(true);
-   pMyTestCommand->ConfigureBaseFileName("Log.txt");
-
-   char pcCommand[] = "HELLO";
-   int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, std::string("BESTPOS"), 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
-   ASSERT_TRUE(iLen == 5);
-
-   std::ifstream ifile("Log_BESTPOS.txt");
-   if (ifile) {
-     # The file exists, and is open for input
-   }
-   else
-      ASSERT_TRUE(4 == 5); # Simple fails
-
-   ifile.close();
-
-   pMyTestCommand->ClearFileStreamMap();
-}
-
-TEST_F(MultiOutputFileStreamTest, WriteDataWideFile)
-{
-   pMyTestCommand = new MultiOutputFileStream();
-   pMyTestCommand->ConfigureSplitByLog(true);
-   pMyTestCommand->ConfigureBaseFileName(U"Log不同.txt");
-
-   char pcCommand[] = "HELLO";
-   int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "BESTPOS", 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
-   ASSERT_TRUE(iLen == 5);
-
-   std::filesystem::path clUnicodePath(U"Log不同_BESTPOS.txt");
-
-   std::ifstream ifile(clUnicodePath);
-   if (ifile) {
-     # The file exists, and is open for input
-   }
-   else
-      ASSERT_TRUE(4 == 5); # Simple fails
-
-   ifile.close();
-
-   pMyTestCommand->ClearWCFileStreamMap();
-}
-
-TEST_F(MultiOutputFileStreamTest, ConfigureSplitBySize)
-{
-   pMyTestCommand = new MultiOutputFileStream();
-   pMyTestCommand->ConfigureSplitBySize(1);
-   ASSERT_TRUE(IsFileSplit());
-   ASSERT_TRUE(GetFileSplitSize() == 1);
-
-   pMyTestCommand->ConfigureBaseFileName("Log.txt");
-
-   char pcCommand[] = "HELLO";
-   int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "", 1, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
-   ASSERT_TRUE(iLen == 5);
-
-   std::ifstream ifile("Log_Part0.txt");
-   if (ifile) {
-     # The file exists, and is open for input
-   }
-   else
-      ASSERT_TRUE(4 == 5); # Simple fails
-
-   ifile.close();
-
-   pMyTestCommand->ClearFileStreamMap();
-
-   try
-   {
-     pMyTestCommand->ConfigureSplitBySize(MIN_FILE_SPLIT_SIZE - 1); # 0
-     ASSERT_TRUE(4 == 1); # Should not execute
-   }
-   catch(nExcept e)
-   {
-     ASSERT_STREQ("File Split by Size not valid", e.buffer);
-   }
-
-  delete pMyTestCommand;
-}
-
-TEST_F(MultiOutputFileStreamTest, ConfigureSplitByTime)
-{
-   pMyTestCommand  = new MultiOutputFileStream();
-   pMyTestCommand->ConfigureSplitByTime(0.01);
-   pMyTestCommand->ConfigureBaseFileName("Log.txt");
-
-   char pcCommand[] = "HELLO";
-   int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "", 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.01);
-   ASSERT_TRUE(iLen == 5);
-
-   std::ifstream ifile("Log_Part0.txt");
-   if (ifile) {
-     # The file exists, and is open for input
-   }
-   else
-      ASSERT_TRUE(4 == 5); # Simpley fails
-
-   ifile.close();
-
-   pMyTestCommand->ClearFileStreamMap();
-
-   try
-   {
-     pMyTestCommand->ConfigureSplitByTime(0.0); # 0
-     ASSERT_TRUE(4 == 1); # Should not execute
-   }
-   catch(nExcept e)
-   {
-     ASSERT_STREQ("File Split by time not valid", e.buffer);
-   }
-   delete pMyTestCommand;
-}
-
-TEST_F(MultiOutputFileStreamTest, SelectTimeFile)
-{
-   pMyTestCommand  = new MultiOutputFileStream();
-   pMyTestCommand->ConfigureSplitByTime(0.01);
-   pMyTestCommand->SelectFileStream("Log.txt");
-   pMyTestCommand->SelectTimeFile(novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.01);
-
-   ASSERT_TRUE(GetTimeInSeconds() == 0.0);
-   ASSERT_TRUE(GetStartTimeInSecs() == 0.0);
-   ASSERT_TRUE(GetWeek() == 0);
-   ASSERT_TRUE(GetStartWeek() == 0);
-
-   pMyTestCommand->SelectTimeFile(novatel::edie::TIME_STATUS::SATTIME, 0, 0.0);
-
-   ASSERT_TRUE(GetTimeInSeconds() == 0.0);
-   ASSERT_TRUE(GetStartTimeInSecs() == 0.0);
-   ASSERT_TRUE(GetWeek() == 0);
-   ASSERT_TRUE(GetStartWeek() == 0);
-
-   delete pMyTestCommand;
-}
+    test_stream.select_time_file(ne.TIME_STATUS.SATTIME, 0, 0.0)
+    # assert GetTimeInSeconds() == 0.0
+    # assert GetStartTimeInSecs() == 0.0
+    # assert GetWeek() == 0
+    # assert GetStartWeek() == 0

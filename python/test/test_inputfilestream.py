@@ -22,159 +22,81 @@
 #
 ################################################################################
 
-# Includes
-#include "hw_interface/stream_interface/inputfilestream.hpp"
-#include <string>
-#include <filesystem>
-#include <gtest/gtest.h>
-#include "paths.hpp"
+import io
+from pathlib import Path
 
-#ifndef RESOURCE_DIR
-    #define RESOURCE_DIR
-#endif
+import novatel_edie as ne
 
-class InputFileStreamTest : public ::testing::Test {
-public:
-   virtual void SetUp() {
-   }
 
-   virtual void TearDown() {
-   }
+def test_read_data(hw_interface_test_resources):
+    test_stream = ne.InputFileStream(str(hw_interface_test_resources / "streaminterface_testread.asc"))
+    data, status = test_stream.read(20)
+    assert data == b"This is a test file."
 
-private:
 
-protected:
-};
+def test_read_data_wide_char_path(hw_interface_test_resources):
+    test_stream = ne.InputFileStream(str(hw_interface_test_resources / "inputfilestream不同语言的文件.gps"))
+    data, status = test_stream.read(69)
+    assert data == b"#RANGEA,COM1,0,77.5,FINESTEERING,2195,512277.000,02000020,9691,16696;"
 
-TEST_F(InputFileStreamTest, ReadData)
-{
-   ReadDataStructure stReadDataStructure;
-   InputFileStream* pMyTestCommand = nullptr;
-   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
-   stReadDataStructure.uiDataSize = 20;
-   stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
-   stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
-   pMyTestCommand->ReadData(stReadDataStructure);
-   ASSERT_STREQ("This is a test file.", stReadDataStructure.cData);
-   delete[] stReadDataStructure.cData;
-   delete pMyTestCommand;
-}
-
-TEST_F(InputFileStreamTest, ReadDataWideCharPath)
-{
-   ReadDataStructure stReadDataStructure;
-   InputFileStream* pMyTestCommand = nullptr;
-   pMyTestCommand = new InputFileStream(std::u32string(((std::filesystem::path(*TEST_RESOURCE_PATH) / U"inputfilestream不同语言的文件.gps").generic_u32string())));
-   stReadDataStructure.uiDataSize = 69;
-   stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
-   stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
-   pMyTestCommand->ReadData(stReadDataStructure);
-   std::cout<<"Made it past READ. Input Stream Test, Read Data WC"<<std::endl;
-   ASSERT_STREQ("#RANGEA,COM1,0,77.5,FINESTEERING,2195,512277.000,02000020,9691,16696;", stReadDataStructure.cData);
-   delete[] stReadDataStructure.cData;
-   std::cout<<"Made it past 1st delete. Input Stream Test, Read Data WC"<<std::endl;
-   delete pMyTestCommand;
-   std::cout<<"Made it past 2nd delete. Input Stream Test, Read Data WC"<<std::endl;
-}
 
 # ReadLine
-TEST_F(InputFileStreamTest, ReadLine)
-{
-   ReadDataStructure stReadDataStructure;
-   StreamReadStatus stReadStatus;
+def test_read_line(hw_interface_test_resources):
+    test_stream = ne.InputFileStream(str(hw_interface_test_resources / "streaminterface_testread.asc"))
+    line, read_status = test_stream.readline()
+    assert line == b"This is a test file. it will\r"
+    assert len(line) == read_status.current_read
+    assert not read_status.eos
 
-   InputFileStream* pMyTestCommand = nullptr;
-   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
-   std::string linestring;
-   stReadStatus = pMyTestCommand->ReadLine(linestring);
-   ASSERT_STREQ("This is a test file. it will\r", linestring.c_str());
-   ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
-   ASSERT_FALSE(stReadStatus.bEOS);
+    line, read_status = test_stream.readline()
+    assert line == b"be used to perform unit test cases\r"
+    assert len(line) == read_status.current_read
+    assert not read_status.eos
 
-   stReadStatus = pMyTestCommand->ReadLine(linestring);
-   ASSERT_STREQ("be used to perform unit test cases\r", linestring.c_str());
-   ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
-   ASSERT_FALSE(stReadStatus.bEOS);
+    line, read_status = test_stream.readline()
+    assert line == b"for file stream functionalities.\r"
+    assert len(line) == read_status.current_read
+    assert not read_status.eos
 
-   stReadStatus = pMyTestCommand->ReadLine(linestring);
-   ASSERT_STREQ("for file stream functionalities.\r", linestring.c_str());
-   ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
-   ASSERT_FALSE(stReadStatus.bEOS);
+    line, read_status = test_stream.readline()
+    assert len(line) == 0
+    assert len(line) == read_status.current_read
+    assert read_status.eos
 
-   stReadStatus = pMyTestCommand->ReadLine(linestring);
-   ASSERT_TRUE(linestring.size() == 0);
-   ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
-   ASSERT_TRUE(stReadStatus.bEOS);
-
-   delete pMyTestCommand;
-}
 
 # Test Reset Method
-TEST_F(InputFileStreamTest, Reset)
-{
-   ReadDataStructure stReadDataStructure;
-   InputFileStream* pMyTestCommand = NULL;
-   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
-   stReadDataStructure.uiDataSize = 20;
-   stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
-   stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
-   pMyTestCommand->ReadData(stReadDataStructure);
-   ASSERT_STREQ("This is a test file.", stReadDataStructure.cData);
+def test_reset(hw_interface_test_resources):
+    test_stream = ne.InputFileStream(str(hw_interface_test_resources / "streaminterface_testread.asc"))
+    data, status = test_stream.read(20)
+    assert data == b"This is a test file."
 
-   memset(&stReadDataStructure.cData[0], 0, stReadDataStructure.uiDataSize);
-   pMyTestCommand->Reset();
-   stReadDataStructure.uiDataSize = 5;
-   stReadDataStructure.cData[5] = 0;
-   pMyTestCommand->ReadData(stReadDataStructure);
-   ASSERT_STREQ("This ", stReadDataStructure.cData);
+    test_stream.reset()
+    data, status = test_stream.read(5)
+    assert data == b"This "
 
-   memset(&stReadDataStructure.cData[0], 0, stReadDataStructure.uiDataSize);
-   pMyTestCommand->Reset(2, std::ios::beg);
-   stReadDataStructure.uiDataSize = 5;
-   stReadDataStructure.cData[5] = 0;
-   pMyTestCommand->ReadData(stReadDataStructure);
-   ASSERT_STREQ("is is", stReadDataStructure.cData);
+    test_stream.reset(2, io.SEEK_SET)
+    data, status = test_stream.read(5)
+    assert data == b"is is"
 
-   delete[] stReadDataStructure.cData;
-   delete pMyTestCommand;
-}
 
 # Test File Extension
-TEST_F(InputFileStreamTest, GetFileExtension)
-{
-   InputFileStream* pMyTestCommand = nullptr;
+def test_get_file_extension(hw_interface_test_resources):
+    test_stream = ne.InputFileStream(str(hw_interface_test_resources / "streaminterface_testread.asc"))
+    assert Path(test_stream.file_name).suffix == ".asc"
 
-   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
-   ASSERT_TRUE("asc" == pMyTestCommand->GetFileExtension());
-   delete pMyTestCommand;
-}
 
-TEST_F(InputFileStreamTest, GetCurrentFileStats)
-{
-   ReadDataStructure stReadDataStructure;
-   InputFileStream* pMyTestCommand = nullptr;
-   pMyTestCommand = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "streaminterface_testread.asc").string().c_str());
-   stReadDataStructure.uiDataSize = 20;
-   stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
-   stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
-   pMyTestCommand->ReadData(stReadDataStructure);
-   ASSERT_STREQ("This is a test file.", stReadDataStructure.cData);
+def test_get_current_file_stats(hw_interface_test_resources):
+    test_stream = ne.InputFileStream(str(hw_interface_test_resources / "streaminterface_testread.asc"))
+    data, status = test_stream.read(20)
+    assert data == b"This is a test file."
 
-   memset(&stReadDataStructure.cData[0], 0, stReadDataStructure.uiDataSize);
-   pMyTestCommand->Reset();
-   stReadDataStructure.uiDataSize = 5;
-   stReadDataStructure.cData[5] = 0;
-   pMyTestCommand->ReadData(stReadDataStructure);
-   ASSERT_STREQ("This ", stReadDataStructure.cData);
+    test_stream.reset()
+    data, status = test_stream.read(5)
+    assert data == b"This "
 
-   ASSERT_TRUE(5 == pMyTestCommand->GetCurrentFilePosition());
-   ASSERT_TRUE(0 == pMyTestCommand->GetCurrentFileOffset());
+    assert 5 == test_stream.current_position
+    assert 0 == test_stream.current_offset
 
-   pMyTestCommand->Reset(7);
-   ASSERT_TRUE(7 == pMyTestCommand->GetCurrentFilePosition());
-   ASSERT_TRUE(7 == pMyTestCommand->GetCurrentFileOffset());
-
-   delete[] stReadDataStructure.cData;
-   delete pMyTestCommand;
-}
-
+    test_stream.reset(7)
+    assert 7 == test_stream.current_position
+    assert 7 == test_stream.current_offset

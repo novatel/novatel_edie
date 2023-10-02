@@ -36,348 +36,332 @@
 #include "decoders/novatel/framer.hpp"
 #include <gtest/gtest.h>
 
-class ProprietaryFramerTest : public ::testing::Test
+class ProprietaryFramerTest : public .testing.Test
 {
 
 protected:
-   static Framer* pclMyFramer;
-   static InputFileStream* pclMyIFS;
-   static unsigned char* pucMyTestFrameBuffer;
-
+   static Framer* my_framer
+   static InputFileStream* myIFS
+   static unsigned char* my_test_frame_buffer
    # Per-test-suite setup
    static void SetUpTestSuite()
    {
-      pclMyFramer = new Framer();
-      pclMyFramer->SetReportUnknownBytes(true);
-      pclMyFramer->SetPayloadOnly(false);
-      pucMyTestFrameBuffer = new unsigned char[131071]; # 128kB
+      my_framer = ne.Framer()
+      my_framer.set_report_unknown_bytes(true)
+      my_framer.set_payload_only(false)
+      my_test_frame_buffer = ne.unsigned char[131071]; # 128kB
    }
 
    # Per-test-suite teardown
    static void TearDownTestSuite()
    {
-      if (pclMyFramer)
+      if (my_framer)
       {
-         pclMyFramer->ShutdownLogger();
-         delete pclMyFramer;
-         pclMyFramer = nullptr;
+         my_framer.shutdown_logger()
+         delete my_framer
+         my_framer = nullptr
       }
 
-      if (pclMyIFS)
+      if (myIFS)
       {
-         delete pclMyIFS;
-         pclMyIFS = nullptr;
+         delete myIFS
+         myIFS = nullptr
       }
 
-      if (pucMyTestFrameBuffer)
+      if (my_test_frame_buffer)
       {
-         delete[] pucMyTestFrameBuffer;
-         pucMyTestFrameBuffer = nullptr;
+         delete[] my_test_frame_buffer
+         my_test_frame_buffer = nullptr
       }
    }
 
    # Per-test setup
    void SetUp()
    {
-      FlushFramer();
+      FlushFramer()
    }
 
    # Per-test teardown
    void TearDown()
    {
-      FlushFramer();
+      FlushFramer()
    }
 
 public:
-   void WriteFileStreamToFramer(std::string sFilename_)
+   void WriteFileStreamToFramer(std.string filename_)
    {
-      pclMyIFS = new InputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / sFilename_).string().c_str());
-
-      StreamReadStatus stReadStatus;
-      ReadDataStructure stReadData;
-      stReadData.cData = new char[MAX_ASCII_MESSAGE_LENGTH];
-      stReadData.uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
-      uint32_t uiBytesWritten = 0;
-
-      while (!stReadStatus.bEOS)
+      myIFS = ne.InputFileStream((Path(*TEST_RESOURCE_PATH) / filename_).string().c_str())
+      StreamReadStatus read_status
+      ReadDataStructure read_data
+      read_data.data = ne.char[MAX_ASCII_MESSAGE_LENGTH]
+      read_data.data_size = MAX_ASCII_MESSAGE_LENGTH
+      uint32_t bytes_written = 0
+      while (!read_status.eOS)
       {
-         stReadStatus = pclMyIFS->ReadData(stReadData);
-         uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
-         ASSERT_EQ(uiBytesWritten, stReadStatus.uiCurrentStreamRead);
+         read_status = myIFS.read_data(read_data)
+         bytes_written = my_framer.write(reinterpret_cast<unsigned char*>(read_data.data), read_status.current_stream_read)
+         assert bytes_written == read_status.current_stream_read
       }
 
-      delete[] stReadData.cData;
-      stReadData.cData = nullptr;
-
-      delete pclMyIFS;
-      pclMyIFS = nullptr;
+      delete[] read_data.data
+      read_data.data = nullptr
+      delete myIFS
+      myIFS = nullptr
    }
 
-   void WriteBytesToFramer(unsigned char* pucBytes_, uint32_t uiNumBytes_)
+   void WriteBytesToFramer(unsigned char* bytes_, uint32_t num_bytes_)
    {
-      ASSERT_EQ(pclMyFramer->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
+      ASSERT_EQ(my_framer.write(bytes_, num_bytes_), num_bytes_)
    }
 
-   bool CompareMetaData(MetaDataStruct* pstTestMD_, MetaDataStruct* pstExpectedMetaData_)
+   bool CompareMetaData(MetaDataStruct* testMD_, MetaDataStruct* expected_meta_data_)
    {
-      bool bResult = true;
-      if (pstTestMD_->eFormat != pstExpectedMetaData_->eFormat)
+      bool result = true
+      if (testMD_.e_format != expected_meta_data_.e_format)
       {
-         cout << "MetaData.eFormat (expected " << static_cast<uint32_t>(pstExpectedMetaData_->eFormat) << ", got " << static_cast<uint32_t>(pstTestMD_->eFormat) << ")\n";
-         bResult = false;
+         cout << "MetaData.format (expected " << static_cast<uint32_t>(expected_meta_data_.e_format) << ", got " << static_cast<uint32_t>(testMD_.e_format) << ")\n"
+         result = false
       }
-      if (pstTestMD_->eMeasurementSource != pstExpectedMetaData_->eMeasurementSource)
+      if (testMD_.e_measurement_source != expected_meta_data_.e_measurement_source)
       {
-         cout << "MetaData.eMeasurementSource (expected " << static_cast<uint32_t>(pstExpectedMetaData_->eMeasurementSource) << ", got " << static_cast<uint32_t>(pstTestMD_->eMeasurementSource) << ")\n";
-         bResult = false;
+         cout << "MetaData.measurement_source (expected " << static_cast<uint32_t>(expected_meta_data_.e_measurement_source) << ", got " << static_cast<uint32_t>(testMD_.e_measurement_source) << ")\n"
+         result = false
       }
-      if (pstTestMD_->eTimeStatus != pstExpectedMetaData_->eTimeStatus)
+      if (testMD_.e_time_status != expected_meta_data_.e_time_status)
       {
-         cout << "MetaData.eTimeStatus (expected " << static_cast<uint32_t>(pstExpectedMetaData_->eTimeStatus) << ", got " << static_cast<uint32_t>(pstTestMD_->eTimeStatus) << ")\n";
-         bResult = false;
+         cout << "MetaData.time_status (expected " << static_cast<uint32_t>(expected_meta_data_.e_time_status) << ", got " << static_cast<uint32_t>(testMD_.e_time_status) << ")\n"
+         result = false
       }
-      if (pstTestMD_->bResponse != pstExpectedMetaData_->bResponse)
+      if (testMD_.b_response != expected_meta_data_.b_response)
       {
-         cout << "MetaData.bResponse (expected " << static_cast<uint32_t>(pstExpectedMetaData_->bResponse) << ", got " << static_cast<uint32_t>(pstTestMD_->bResponse) << ")\n";
-         bResult = false;
+         cout << "MetaData.response (expected " << static_cast<uint32_t>(expected_meta_data_.b_response) << ", got " << static_cast<uint32_t>(testMD_.b_response) << ")\n"
+         result = false
       }
-      if (pstTestMD_->usWeek != pstExpectedMetaData_->usWeek)
+      if (testMD_.us_week != expected_meta_data_.us_week)
       {
-         cout << "MetaData.usWeek (expected " << pstExpectedMetaData_->usWeek << ", got " << pstTestMD_->usWeek << ")\n";
-         bResult = false;
+         cout << "MetaData.week (expected " << expected_meta_data_.us_week << ", got " << testMD_.us_week << ")\n"
+         result = false
       }
-      if (pstTestMD_->dMilliseconds != pstExpectedMetaData_->dMilliseconds)
+      if (testMD_.d_milliseconds != expected_meta_data_.d_milliseconds)
       {
-         cout << "MetaData.dMilliseconds (expected " << pstExpectedMetaData_->dMilliseconds << ", got " << pstTestMD_->dMilliseconds << ")\n";
-         bResult = false;
+         cout << "MetaData.milliseconds (expected " << expected_meta_data_.d_milliseconds << ", got " << testMD_.d_milliseconds << ")\n"
+         result = false
       }
-      if (pstTestMD_->uiBinaryMsgLength != pstExpectedMetaData_->uiBinaryMsgLength)
+      if (testMD_.ui_binary_msg_length != expected_meta_data_.ui_binary_msg_length)
       {
-         cout << "MetaData.uiBinaryMsgLength (expected " << pstExpectedMetaData_->uiBinaryMsgLength << ", got " << pstTestMD_->uiBinaryMsgLength << ")\n";
-         bResult = false;
+         cout << "MetaData.binary_msg_length (expected " << expected_meta_data_.ui_binary_msg_length << ", got " << testMD_.ui_binary_msg_length << ")\n"
+         result = false
       }
-      if (pstTestMD_->uiLength != pstExpectedMetaData_->uiLength)
+      if (testMD_.ui_length != expected_meta_data_.ui_length)
       {
-         cout << "MetaData.uiLength (expected " << pstExpectedMetaData_->uiLength << ", got " << pstTestMD_->uiLength << ")\n";
-         bResult = false;
+         cout << "MetaData.length (expected " << expected_meta_data_.ui_length << ", got " << testMD_.ui_length << ")\n"
+         result = false
       }
-      if (pstTestMD_->uiHeaderLength != pstExpectedMetaData_->uiHeaderLength)
+      if (testMD_.ui_header_length != expected_meta_data_.ui_header_length)
       {
-         cout << "MetaData.uiHeaderLength (expected " << pstExpectedMetaData_->uiHeaderLength << ", got " << pstTestMD_->uiHeaderLength << ")\n";
-         bResult = false;
+         cout << "MetaData.header_length (expected " << expected_meta_data_.ui_header_length << ", got " << testMD_.ui_header_length << ")\n"
+         result = false
       }
-      if (pstTestMD_->usMessageID != pstExpectedMetaData_->usMessageID)
+      if (testMD_.us_message_i_d != expected_meta_data_.us_message_i_d)
       {
-         cout << "MetaData.usMessageID (expected " << pstExpectedMetaData_->usMessageID << ", got " << pstTestMD_->usMessageID << ")\n";
-         bResult = false;
+         cout << "MetaData.messageID (expected " << expected_meta_data_.us_message_i_d << ", got " << testMD_.us_message_i_d << ")\n"
+         result = false
       }
-      if (pstTestMD_->uiMessageCRC != pstExpectedMetaData_->uiMessageCRC)
+      if (testMD_.ui_message_c_r_c != expected_meta_data_.ui_message_c_r_c)
       {
-         cout << "MetaData.uiMessageCRC (expected " << pstExpectedMetaData_->uiMessageCRC << ", got " << pstTestMD_->uiMessageCRC << ")\n";
-         bResult = false;
+         cout << "MetaData.messageCRC (expected " << expected_meta_data_.ui_message_c_r_c << ", got " << testMD_.ui_message_c_r_c << ")\n"
+         result = false
       }
-      if (pstTestMD_->MessageName() != pstExpectedMetaData_->MessageName())
+      if (testMD_.message_name() != expected_meta_data_.message_name())
       {
-         cout << "MetaData.acMessageName (expected " << pstExpectedMetaData_->MessageName() << ", got " << pstTestMD_->MessageName() << ")\n";
-         bResult = false;
+         cout << "MetaData.message_name (expected " << expected_meta_data_.message_name() << ", got " << testMD_.message_name() << ")\n"
+         result = false
       }
-      return bResult;
+      return result
    }
 
    void FlushFramer()
    {
-      uint32_t uiBytes = 0;
+      uint32_t bytes = 0
       do
       {
-         uiBytes = pclMyFramer->Flush(pucMyTestFrameBuffer, MAX_ASCII_MESSAGE_LENGTH);
-      } while (uiBytes > 0);
+         bytes = my_framer.flush(my_test_frame_buffer, MAX_ASCII_MESSAGE_LENGTH)
+      } while (bytes > 0)
    }
-};
-Framer* ProprietaryFramerTest::pclMyFramer = nullptr;
-InputFileStream* ProprietaryFramerTest::pclMyIFS = nullptr;
-unsigned char* ProprietaryFramerTest::pucMyTestFrameBuffer = nullptr;
-
+}
+Framer* ProprietaryFramerTest.my_framer = nullptr
+InputFileStream* ProprietaryFramerTest.myIFS = nullptr
+unsigned char* ProprietaryFramerTest.my_test_frame_buffer = nullptr
 # -------------------------------------------------------------------------------------------------------
 # Proprietary Binary Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_COMPLETE)
+def test_PROPRIETARY_BINARY_COMPLETE():
 {
    # "GARBAGE_DATA<binary bestpos log>"
-   uint8_t aucData[] = { 0x47, 0x41, 0x52, 0x42, 0x41, 0x47, 0x45, 0x5F, 0x44, 0x41, 0x54, 0x41, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC };
-   WriteBytesToFramer(aucData, sizeof(aucData));
+   uint8_t data[] = { 0x47, 0x41, 0x52, 0x42, 0x41, 0x47, 0x45, 0x5F, 0x44, 0x41, 0x54, 0x41, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC }
+   WriteBytesToFramer(data, sizeof(data))
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.length = 12
+   expected_meta_data.format = HEADERFORMAT.UNKNOWN
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.UNKNOWN
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.uiLength = 12;
-   stExpectedMetaData.eFormat = HEADERFORMAT::UNKNOWN;
-   ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
-
-   stExpectedMetaData.uiLength = 76;
-   stExpectedMetaData.eFormat = HEADERFORMAT::PROPRIETARY_BINARY;
-   ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   expected_meta_data.length = 76
+   expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.SUCCESS
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 }
 
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INCOMPLETE)
+def test_PROPRIETARY_BINARY_INCOMPLETE():
 {
    # "<incomplete binary bestpos log>"
-   uint8_t aucData[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A };
-   WriteBytesToFramer(aucData, sizeof(aucData));
-
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.uiLength = 59;
-   stExpectedMetaData.eFormat = HEADERFORMAT::PROPRIETARY_BINARY;
-   ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   uint8_t data[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A }
+   WriteBytesToFramer(data, sizeof(data))
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.length = 59
+   expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.INCOMPLETE
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 }
 
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_SYNC_ERROR)
+def test_PROPRIETARY_BINARY_SYNC_ERROR():
 {
-   WriteFileStreamToFramer("proprietary_binary_sync_error.BIN");
-
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.uiLength = MAX_BINARY_MESSAGE_LENGTH;
-   stExpectedMetaData.eFormat = HEADERFORMAT::UNKNOWN;
-   ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   WriteFileStreamToFramer("proprietary_binary_sync_error.BIN")
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.length = MAX_BINARY_MESSAGE_LENGTH
+   expected_meta_data.format = HEADERFORMAT.UNKNOWN
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.UNKNOWN
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 }
 
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BAD_CRC)
+def test_PROPRIETARY_BINARY_BAD_CRC():
 {
    # "<encrypted binary bestpos log>"
-   uint8_t aucData[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xFF };
-   WriteBytesToFramer(aucData, sizeof(aucData));
-
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.uiLength = 30; # Unknown bytes up to 0x24 ('$') should be returned (NMEA sync was found mid-log)
-   stExpectedMetaData.eFormat = HEADERFORMAT::UNKNOWN;
-   ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   uint8_t data[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xFF }
+   WriteBytesToFramer(data, sizeof(data))
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.length = 30; # Unknown bytes up to 0x24 ('$') should be returned (NMEA sync was found mid-log)
+   expected_meta_data.format = HEADERFORMAT.UNKNOWN
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.UNKNOWN
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 }
 
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_RUN_ON_CRC)
+def test_PROPRIETARY_BINARY_RUN_ON_CRC():
 {
    # "<encrypted binary bestpos log>FF"
-   uint8_t aucData[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC, 0xFF };
-   WriteBytesToFramer(aucData, sizeof(aucData));
-
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.uiLength = 76;
-   stExpectedMetaData.eFormat = HEADERFORMAT::PROPRIETARY_BINARY;
-   ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   uint8_t data[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC, 0xFF }
+   WriteBytesToFramer(data, sizeof(data))
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.length = 76
+   expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.SUCCESS
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 }
 
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INADEQUATE_BUFFER)
+def test_PROPRIETARY_BINARY_INADEQUATE_BUFFER():
 {
    # "<encrypted binary bestpos log>"
-   uint8_t aucData[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC };
-   WriteBytesToFramer(aucData, sizeof(aucData));
+   uint8_t data[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC }
+   WriteBytesToFramer(data, sizeof(data))
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.length = 76
+   expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+   assert my_framer.get_frame(my_test_frame_buffer, 38, test_meta_data) == STATUS.BUFFER_FULL
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.uiLength = 76;
-   stExpectedMetaData.eFormat = HEADERFORMAT::PROPRIETARY_BINARY;
-   ASSERT_EQ(STATUS::BUFFER_FULL, pclMyFramer->GetFrame(pucMyTestFrameBuffer, 38, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
-
-   ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer, 76, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   assert my_framer.get_frame(my_test_frame_buffer, 76, test_meta_data) == STATUS.SUCCESS
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 }
 
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BYTE_BY_BYTE)
+def test_PROPRIETARY_BINARY_BYTE_BY_BYTE():
 {
    # "<binary bestpos log>"
-   uint8_t aucData[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC };
-   uint32_t uiLogSize = sizeof(aucData);
-   uint32_t uiRemainingBytes = uiLogSize;
-
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.eFormat = HEADERFORMAT::UNKNOWN;
-
+   uint8_t data[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC }
+   uint32_t log_size = sizeof(data)
+   uint32_t remaining_bytes = log_size
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.format = HEADERFORMAT.UNKNOWN
    while (true)
    {
-      WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
-      uiRemainingBytes--;
-      stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
-
-      if (stExpectedMetaData.uiLength == OEM4_BINARY_SYNC_LENGTH - 1)
+      WriteBytesToFramer(&data[log_size - remaining_bytes], 1)
+      remaining_bytes--
+      expected_meta_data.length = log_size - remaining_bytes
+      if (expected_meta_data.length == OEM4_BINARY_SYNC_LENGTH - 1)
       {
-         stExpectedMetaData.eFormat = HEADERFORMAT::PROPRIETARY_BINARY;
+         expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
       }
 
-      if (uiRemainingBytes > 0)
+      if (remaining_bytes > 0)
       {
-         ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-         ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+         assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.INCOMPLETE
+         assert CompareMetaData(&test_meta_data, &expected_meta_data)
       }
       else
       {
-         break;
+         break
       }
    }
-   stExpectedMetaData.uiLength = uiLogSize;
-   ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   expected_meta_data.length = log_size
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.SUCCESS
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 }
 
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_SEGMENTED)
+def test_PROPRIETARY_BINARY_SEGMENTED():
 {
    # "<binary bestpos log>"
-   uint8_t aucData[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC };
-   uint32_t uiLogSize = sizeof(aucData);
-   uint32_t uiBytesWritten = 0;
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.eFormat = HEADERFORMAT::PROPRIETARY_BINARY;
+   uint8_t data[] = { 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC }
+   uint32_t log_size = sizeof(data)
+   uint32_t bytes_written = 0
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+   WriteBytesToFramer(&data[bytes_written], OEM4_BINARY_SYNC_LENGTH)
+   bytes_written += OEM4_BINARY_SYNC_LENGTH
+   expected_meta_data.length = bytes_written
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.INCOMPLETE
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 
-   WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_BINARY_SYNC_LENGTH);
-   uiBytesWritten += OEM4_BINARY_SYNC_LENGTH;
-   stExpectedMetaData.uiLength = uiBytesWritten;
-   ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   WriteBytesToFramer(&data[bytes_written], (OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH))
+   bytes_written += (OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH)
+   expected_meta_data.length = bytes_written
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.INCOMPLETE
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 
-   WriteBytesToFramer(&aucData[uiBytesWritten], (OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH));
-   uiBytesWritten += (OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH);
-   stExpectedMetaData.uiLength = uiBytesWritten;
-   ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   WriteBytesToFramer(&data[bytes_written], 44)
+   bytes_written += 44
+   expected_meta_data.length = bytes_written
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.INCOMPLETE
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 
-   WriteBytesToFramer(&aucData[uiBytesWritten], 44);
-   uiBytesWritten += 44;
-   stExpectedMetaData.uiLength = uiBytesWritten;
-   ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
-
-   WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_BINARY_CRC_LENGTH);
-   uiBytesWritten += OEM4_BINARY_CRC_LENGTH;
-   stExpectedMetaData.uiLength = uiBytesWritten;
-   ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
-   ASSERT_EQ(uiLogSize, uiBytesWritten);
+   WriteBytesToFramer(&data[bytes_written], OEM4_BINARY_CRC_LENGTH)
+   bytes_written += OEM4_BINARY_CRC_LENGTH
+   expected_meta_data.length = bytes_written
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.SUCCESS
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
+   assert log_size == bytes_written
 }
 
-TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_TRICK)
+def test_PROPRIETARY_BINARY_TRICK():
 {
    # "<binary syncs><binary sync + half header><binary sync byte 1><binary bestpos log>"
-   uint8_t aucData[] = { 0xAA, 0x45, 0x12, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0xAA, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC };
-   uint32_t uiLogSize = sizeof(aucData);
-   MetaDataStruct stExpectedMetaData, stTestMetaData;
-   stExpectedMetaData.eFormat = HEADERFORMAT::UNKNOWN;
+   uint8_t data[] = { 0xAA, 0x45, 0x12, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0xAA, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC }
+   uint32_t log_size = sizeof(data)
+   MetaDataStruct expected_meta_data, test_meta_data
+   expected_meta_data.format = HEADERFORMAT.UNKNOWN
+   WriteBytesToFramer(data, log_size)
+   expected_meta_data.length = 3
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.UNKNOWN
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 
-   WriteBytesToFramer(aucData, uiLogSize);
-   stExpectedMetaData.uiLength = 3;
-   ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   expected_meta_data.length = 15
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.UNKNOWN
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 
-   stExpectedMetaData.uiLength = 15;
-   ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   expected_meta_data.length = 1
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.UNKNOWN
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 
-   stExpectedMetaData.uiLength = 1;
-   ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
-
-   stExpectedMetaData.uiLength = 76;
-   stExpectedMetaData.eFormat = HEADERFORMAT::PROPRIETARY_BINARY;
-   ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer, MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-   ASSERT_TRUE(CompareMetaData(&stTestMetaData, &stExpectedMetaData));
+   expected_meta_data.length = 76
+   expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+   assert my_framer.get_frame(my_test_frame_buffer, MAX_BINARY_MESSAGE_LENGTH, test_meta_data) == STATUS.SUCCESS
+   assert CompareMetaData(&test_meta_data, &expected_meta_data)
 }

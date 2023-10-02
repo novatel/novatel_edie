@@ -88,9 +88,9 @@ NB_MODULE(stream_interface_bindings, m)
         .def("select_size_file", &MultiOutputFileStream::SelectWCSizeFile, "size"_a)
         .def("select_time_file", &MultiOutputFileStream::SelectWCTimeFile, "status"_a, "week"_a, "milliseconds"_a)
         .def(
-            "write_data", [](MultiOutputFileStream& self, nb::bytes& data) { return self.WriteData(data.c_str(), data.size()); }, "data"_a)
+            "write", [](MultiOutputFileStream& self, nb::bytes& data) { return self.WriteData(data.c_str(), data.size()); }, "data"_a)
         .def(
-            "write_data",
+            "write",
             [](MultiOutputFileStream& self, nb::bytes& data, std::string msg_name, uint32_t size, novatel::edie::TIME_STATUS status, uint16_t week,
                double milliseconds) { return self.WriteData(data.c_str(), data.size(), msg_name, size, status, week, milliseconds); },
             "data"_a, "msg_name"_a, "size"_a, "status"_a, "week"_a, "milliseconds"_a)
@@ -136,7 +136,6 @@ NB_MODULE(stream_interface_bindings, m)
                 self.Reset(offset, seek_dir);
             },
             "offset"_a = 0, "whence"_a = 0)
-        .def_prop_ro("file_extension", &InputFileStream::GetFileExtension)
         .def_prop_ro("file_name", &InputFileStream::GetFileName)
         .def_prop_ro("current_position", &InputFileStream::GetCurrentFilePosition)
         .def("set_current_offset", &InputFileStream::SetCurrentFileOffset)

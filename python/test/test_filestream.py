@@ -22,168 +22,94 @@
 #
 ################################################################################
 #
-#  DESCRIPTION: File Stream Unit Test.
+#  DESCRIPTION: FileStream Unit Test.
 #
 ################################################################################
 
-# Includes
-#include "hw_interface/stream_interface/filestream.hpp"
-#include "common/nexcept.h"
-#include "paths.hpp"
+import novatel_edie as ne
+import pytest
 
-#include <string>
-#include <filesystem>
-#include <gtest/gtest.h>
 
-#ifndef RESOURCE_DIR
-    #define RESOURCE_DIR
-#endif
+def test_constructors():
+    test_stream = ne.FileStream("filestream_file1.asc")
+    assert test_stream.file_name == "filestream_file1.asc"
+    with pytest.raises(Exception):
+        test_stream = ne.FileStream(None)
 
-class FileStreamTest : public ::testing::Test {
-public:
-  virtual void SetUp() {
-  }
 
-  virtual void TearDown() {
-  }
+def test_constructor_wide_char():
+    test_stream = ne.FileStream("filestream不同语言的文件.gps")
+    assert test_stream.file_name == "filestream不同语言的文件.gps"
 
-private:
 
-protected:
-};
+def test_wide_char_open_file(hw_interface_test_resources):
+    # try:
+    test_stream = ne.FileStream(str(hw_interface_test_resources / "filestream不同语言的文件.gps"))
+    test_stream.open(ne.FILEMODES.OUTPUT)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-TEST_F(FileStreamTest, Constructors)
-{
-   FileStream* pMyTestCommand = nullptr;
-   FileStream* pMyTestCommand1 = nullptr;
+    test_stream.open(ne.FILEMODES.APPEND)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-   pMyTestCommand = new FileStream("filestream_file1.asc");
-   std::string testString = std::string("filestream_file1.asc");
-   ASSERT_EQ(testString ,pMyTestCommand->GetFileName());
+    test_stream.open(ne.FILEMODES.INPUT)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-   try
-   {
-      pMyTestCommand1 = new FileStream(nullptr);
-      delete pMyTestCommand;
-      delete pMyTestCommand1;
-   }
-   catch(nExcept ne)
-   {
-      ASSERT_STREQ(ne.buffer, "file name is not valid");
-      ASSERT_TRUE(pMyTestCommand1 == nullptr);
-      delete pMyTestCommand;
-      delete pMyTestCommand1;
-   }
-   catch (...)
-   {
-      ASSERT_TRUE(pMyTestCommand1 == nullptr);
-      delete pMyTestCommand;
-      delete pMyTestCommand1;
-   }
-}
+    test_stream.open(ne.FILEMODES.INSERT)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-TEST_F(FileStreamTest, ConstructorWideChar)
-{
-   FileStream* pMyTestCommand = nullptr;
+    test_stream.open(ne.FILEMODES.TRUNCATE)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-   pMyTestCommand = new FileStream(std::u32string(U"filestream不同语言的文件.gps"));
-   const std::u32string test32String = U"filestream不同语言的文件.gps";
+    # catch (except ne)
+    # {
+    #    assert std.string(ne.buffer).find("file  cannot open") != std.string.npos
+    # }
+    # catch (...)
+    # {
+    #    delete test_stream
+    # }
 
-   #const char32_t* test = pMyTestCommand->GetWCFileName();
-   #C++17 implicitly converts char32_t type values into int type values. This line will likely break in C++20
-   ASSERT_EQ(test32String ,pMyTestCommand->Get32StringFileName());
-   delete pMyTestCommand;
-}
+def test_open_file(hw_interface_test_resources):
+    # try:
+    test_stream = ne.FileStream(str(hw_interface_test_resources / "ne.FileStream_file2.asc"))
 
-TEST_F(FileStreamTest, WideCharOpenFile)
-{
-   FileStream* pMyTestCommand = nullptr;
-   try {
-      pMyTestCommand = new FileStream(std::u32string((std::filesystem::path(*TEST_RESOURCE_PATH) / U"filestream不同语言的文件.gps").generic_u32string()));
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::OUTPUT);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
+    test_stream.open(ne.FILEMODES.OUTPUT)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::APPEND);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
+    test_stream.open(ne.FILEMODES.APPEND)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::INPUT);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
+    test_stream.open(ne.FILEMODES.INPUT)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::INSERT);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
+    test_stream.open(ne.FILEMODES.INSERT)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::TRUNCATE);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
+    test_stream.open(ne.FILEMODES.TRUNCATE)
+    assert not test_stream.my_file_stream.fail()
+    test_stream.close()
 
-      delete pMyTestCommand;
-   }
-   catch (nExcept ne)
-   {
-      ASSERT_NE(std::string(ne.buffer).find("file  cannot open"), std::string::npos);
-   }
-   catch (...)
-   {
-      delete pMyTestCommand;
-   }
-}
 
-TEST_F(FileStreamTest, OpenFile)
-{
-   FileStream* pMyTestCommand = nullptr;
-   try {
-      pMyTestCommand = new FileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "filestream_file2.asc").string().c_str());
+    #    delete test_stream
+    # }
+    # catch (except ne)
+    # {
+    #    assert std.string(ne.buffer).find("file  cannot open") != std.string.npos
+    # }
+    # catch (...)
+    # {
+    #    delete test_stream
+    # }
 
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::OUTPUT);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
-
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::APPEND);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
-
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::INPUT);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
-
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::INSERT);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
-
-      pMyTestCommand->OpenFile(FileStream::FILEMODES::TRUNCATE);
-      ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
-      pMyTestCommand->CloseFile();
-
-      delete pMyTestCommand;
-   }
-   catch (nExcept ne)
-   {
-      ASSERT_NE(std::string(ne.buffer).find("file  cannot open"), std::string::npos);
-   }
-   catch (...)
-   {
-      delete pMyTestCommand;
-   }
-}
-
-TEST_F(FileStreamTest, Exception)
-{
-   FileStream* pMyTestCommand = nullptr;
-   try
-   {
-      pMyTestCommand = new FileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "abcd.xyz").string().c_str());
-
-      pMyTestCommand->CloseFile();
-      ASSERT_TRUE(1 == 0); # Should not reach this line
-   }
-   catch(...)
-   {
-      ASSERT_TRUE(1 == 1); # User can catch exception here.
-   }
-
-   delete  pMyTestCommand;
-}
+def test_exception(hw_interface_test_resources):
+    with pytest.raises(Exception):
+        test_stream = ne.FileStream(str(hw_interface_test_resources / "abcd.xyz"))

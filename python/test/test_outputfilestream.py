@@ -22,42 +22,16 @@
 #
 ################################################################################
 
-# Includes
-#include "hw_interface/stream_interface/outputfilestream.hpp"
-#include "paths.hpp"
-#include <string>
-#include <filesystem>
-#include <gtest/gtest.h>
+import novatel_edie as ne
 
-class OutputFileStreamTest : public ::testing::Test {
-public:
-  virtual void SetUp() {
-  }
-
-  virtual void TearDown() {
-  }
-
-private:
-
-protected:
-};
 
 # Constructor1
-TEST_F(OutputFileStreamTest, Constructor1)
-{
-   OutputFileStream* pMyTestCommand = NULL;
-   pMyTestCommand = new OutputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "outputfilestream_file1.asc").string().c_str());
-   ASSERT_TRUE(pMyTestCommand->pOutFileStream != NULL);
-   delete pMyTestCommand;
-}
+def test_constructor1(hw_interface_test_resources):
+    ofs = ne.OutputFileStream(str(hw_interface_test_resources / "outputfilestream_file1.asc"))
+    assert ofs.file_stream is not None
+
 
 # Constructor Wide Char
-TEST_F(OutputFileStreamTest, ConstructorWideChar)
-{
-   std::cout<<"In Output Stream Test, Constructor WC"<<std::endl;
-   OutputFileStream* pMyTestCommand = NULL;
-   pMyTestCommand = new OutputFileStream(std::u32string((std::filesystem::path(*TEST_RESOURCE_PATH) / U"不同语言的文件.gps").generic_u32string()));
-   ASSERT_TRUE(pMyTestCommand->pOutFileStream != NULL);
-   delete pMyTestCommand;
-   std::cout<<"Made it past ASSERT and Delete. Output Stream Test, Constructor WC"<<std::endl;
-}
+def test_constructor_wide_char(hw_interface_test_resources):
+    ofs = ne.OutputFileStream(str(hw_interface_test_resources / "不同语言的文件.gps"))
+    assert ofs.file_stream is not None
