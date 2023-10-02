@@ -16,10 +16,10 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_prop_ro("logger", &oem::MessageDecoder::GetLogger)
         .def(
             "decode",
-            [](oem::MessageDecoder& decoder, nb::bytes header, oem::MetaDataStruct& metadata) {
+            [](oem::MessageDecoder& decoder, nb::bytes message, oem::MetaDataStruct& metadata) {
                 IntermediateMessage intermediate_message;
-                STATUS status = decoder.Decode((unsigned char*)header.c_str(), intermediate_message, metadata);
-                return nb::make_tuple(status, intermediate_message, metadata);
+                STATUS status = decoder.Decode((unsigned char*)message.c_str(), intermediate_message, metadata);
+                return nb::make_tuple(status, intermediate_message);
             },
             "header"_a, "metadata"_a);
 }

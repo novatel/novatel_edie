@@ -21,15 +21,7 @@ void init_novatel_common(nb::module_& m)
         .value("SHORT_ABB_ASCII", novatel::edie::HEADER_FORMAT::SHORT_ABB_ASCII)
         .value("ALL", novatel::edie::HEADER_FORMAT::ALL);
 
-    nb::class_<novatel::edie::MessageDataStruct>(m, "MessageDataStruct")
-        .def(nb::init<>())
-        .def_prop_ro("message_header",
-                     [](novatel::edie::MessageDataStruct& self) { return nb::bytes((char*)self.pucMessageHeader, self.uiMessageHeaderLength); })
-        .def_prop_ro("message_body",
-                     [](novatel::edie::MessageDataStruct& self) { return nb::bytes((char*)self.pucMessageBody, self.uiMessageBodyLength); })
-        .def_prop_ro("message", [](novatel::edie::MessageDataStruct& self) { return nb::bytes((char*)self.pucMessage, self.uiMessageLength); });
-
-    nb::class_<oem::MetaDataStruct>(m, "MetaDataStruct")
+    nb::class_<oem::MetaDataStruct>(m, "MetaData")
         .def(nb::init<>())
         .def(nb::init<novatel::edie::HEADER_FORMAT, uint32_t>(), "format"_a, "length"_a)
         .def_rw("format", &oem::MetaDataStruct::eFormat)

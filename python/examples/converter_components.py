@@ -34,7 +34,7 @@ import sys
 import timeit
 
 import novatel_edie as ne
-from novatel_edie import Logger, LogLevel
+from novatel_edie import Logger, LogLevel, STATUS
 
 
 def _configure_logging(logger):
@@ -77,9 +77,6 @@ def main():
     t1 = timeit.default_timer()
     logger.info(f"Done in {(t1 - t0) * 1e3:.0f} ms")
 
-    # Setup timers
-    loop = timeit.default_timer()
-
     # Setup the EDIE components
     framer = ne.Framer()
     framer.set_report_unknown_bytes(True)
@@ -106,59 +103,55 @@ def main():
 
     read_status = ne.StreamReadStatus()
     while not read_status.eos:
-        read_data, read_status = ifs.read()
+        read_data, read_status = ifs.read(ne.MAX_ASCII_MESSAGE_LENGTH)
         framer.write(read_data)
         # Clearing INCOMPLETE status when internal buffer needs more bytes.
-        framer_status = ne.STATUS.INCOMPLETE_MORE_DATA
+        framer_status = STATUS.INCOMPLETE_MORE_DATA
 
-        while framer_status != ne.STATUS.BUFFER_EMPTY and framer_status != ne.STATUS.INCOMPLETE:
-            _, frame_buffer, metadata = framer.get_frame()
+        while framer_status != STATUS.BUFFER_EMPTY and framer_status != STATUS.INCOMPLETE:
+            framer_status, frame, metadata = framer.get_frame()
+            if framer_status == STATUS.UNKNOWN:
+                unknown_bytes_ofs.write(frame)
+            elif framer_status != STATUS.SUCCESS:
+                logger.warn(f"Framer returned with status code {int(framer_status)}: {framer_status.__doc__}")
+                continue
+            if metadata.response:
+                unknown_bytes_ofs.write(frame)
+                continue
 
-            if framer_status == ne.STATUS.SUCCESS:
-                if metadata.response:
-                    unknown_bytes_ofs.write(frame_buffer, metadata.length)
-                    continue
+            logger.info(f"Framed: {frame}")
 
-                logger.info(f"Framed: {frame_buffer}")
+            # Decode the header.  Get meta data here and populate the Intermediate header.
+            status, header = header_decoder.decode(frame, metadata)
+            if status != STATUS.SUCCESS:
+                unknown_bytes_ofs.write(frame)
+                logger.warn(f"HeaderDecoder returned with status code {int(status)}: {status.__doc__}")
+                continue
 
-                # Decode the header.  Get meta data here and populate the Intermediate header.
-                decoder_status, intermediate_header, metadata = header_decoder.decode(frame_buffer, metadata)
+            # Filter the log, pass over this log if we don't want it.
+            if not filter.do_filtering(metadata):
+                continue
 
-                if decoder_status == ne.STATUS.SUCCESS:
-                    # Filter the log, pass over this log if we don't want it.
-                    if not filter.do_filtering(metadata):
-                        continue
+            raw_message = frame[metadata.header_length:]
+            # Decode the Log, pass the meta data and populate the intermediate log.
+            status, message = message_decoder.decode(raw_message, metadata)
+            if status != STATUS.SUCCESS:
+                unknown_bytes_ofs.write(raw_message)
+                logger.warn(f"MessageDecoder returned with status code {int(status)}: {status.__doc__}")
+                continue
 
-                    frame_buffer += metadata.header_length
-                    # Decode the Log, pass the meta data and populate the intermediate log.
-                    decoder_status, intermediate_message, metadata = message_decoder.decode(frame_buffer, metadata)
+            status, encoded_message = encoder.encode(header, message, metadata, encode_format)
+            if status != STATUS.SUCCESS:
+                unknown_bytes_ofs.write(raw_message)
+                logger.warn(f"Encoder returned with status code {int(status)}: {status.__doc__}")
+                continue
 
-                    if decoder_status == ne.STATUS.SUCCESS:
-                        encoder_status, encoded_message_buffer, message_data = encoder.encode(
-                            header, message, metadata, encode_format
-                        )
-
-                        if encoder_status == ne.STATUS.SUCCESS:
-                            converted_logs_ofs.WriteData(message_data)
-                            message_data.message[message_data.messagelength] = "\0"
-                            logger.info(f"Encoded: ({len(message_data.message)}) {encoded_message_buffer}")
-                        else:
-                            unknown_bytes_ofs.write(frame_buffer, metadata.length)
-                            logger.warn(f"Encoder returned with status code {int(encoder_status)}")
-                    else:
-                        unknown_bytes_ofs.write(frame_buffer, metadata.length)
-                        logger.warn(f"MessageDecoder returned with status code {int(decoder_status)}")
-                else:
-                    unknown_bytes_ofs.write(frame_buffer, metadata.length)
-                    logger.warn(f"HeaderDecoder returned with status code {int(decoder_status)}")
-            elif framer_status == ne.STATUS.UNKNOWN:
-                unknown_bytes_ofs.write(frame_buffer, metadata.length)
-            else:
-                logger.warn(f"Framer returned with status code {int(framer_status)}")
+            converted_logs_ofs.write(encoded_message.message)
+            logger.info(f"Encoded: ({len(encoded_message.message)}) {encoded_message.message}")
 
     # Clean up
-    frame_buffer = framer.flush(True)
-    unknown_bytes_ofs.write(frame_buffer)
+    unparsed_bytes = framer.flush(True)
+    unknown_bytes_ofs.write(unparsed_bytes)
 
     Logger.shutdown()
 
