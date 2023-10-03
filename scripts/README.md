@@ -1,5 +1,5 @@
 <div align="center">
-    <img alt="edie_logo" src=./resources/novatel-edie-logo-body.png width="40%">
+    <img alt="edie_logo" src=../resources/novatel-edie-logo-body.png width="40%">
 </div>
 
 # NovAtel EDIE Scripts
