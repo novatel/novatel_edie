@@ -83,8 +83,8 @@ def test_select32_string_log_file():
     w_fstream_map_iterator += 1
     file_name = GetBase32FileName() + "_" + "bestpos"
     # Need to improve further here
-    # printf("map size: %d\n", map.size())
-    # printf("first: %s\n", (fstream_map_iterator.first).c_str())
+    # print("map size: %d\n" % (map.size()))
+    # print("first: %s\n" % ((fstream_map_iterator.first).c_str()))
     # assert file_name == (fstream_map_iterator.first)
 
 

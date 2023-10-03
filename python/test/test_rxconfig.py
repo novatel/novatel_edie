@@ -73,13 +73,13 @@ protected:
       if test_message_data_.ui_message_length != expected_message_data_.ui_message_length:
          print(f"MessageData.message_length (expected {int(expected_message_data_.ui_message_length)}, got {int(test_message_data_.ui_message_length)})")
          result = False
-      if 0 != memcmp(test_message_data_.puc_message_header, expected_message_data_.puc_message_header, test_message_data_.ui_message_header_length):
+      if test_message_data_.puc_message_header != expected_message_data_.puc_message_header:
          print("MessageData.message_header contents do not match")
          result = False
-      if 0 != memcmp(test_message_data_.puc_message_body, expected_message_data_.puc_message_body, test_message_data_.ui_message_body_length):
+      if test_message_data_.puc_message_body != expected_message_data_.puc_message_body:
          print("MessageData.message_body contents do not match")
          result = False
-      if 0 != memcmp(test_message_data_.puc_message, expected_message_data_.puc_message, test_message_data_.ui_message_length):
+      if test_message_data_.puc_message != expected_message_data_.puc_message:
          print("MessageData.message contents do not match")
          result = False
       return result
@@ -97,7 +97,7 @@ public:
       # CompareMessageData
       const STATUS status = my_rx_config_handler.convert(test_rx_config_message_data, test_rx_config_meta_data, test_embedded_message_data, test_embedded_meta_data, format_)
       if(status != STATUS.SUCCESS):
-         printf("Convert failed with code %d\n", int(status))
+         print("Convert failed with code %d\n" % (int(status)))
          return False
 
       if(not CompareMessageData(&test_rx_config_message_data, expected_rx_config_message_data_) ||
@@ -185,7 +185,7 @@ def test_RXCONFIG_ROUNDTRIP_BINARY():
 # -------------------------------------------------------------------------------------------------------
 def test_RXCONFIG_CONVERT_ASCII_TO_JSON():
    unsigned char log[] = "#RXCONFIGA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;#ADJUST1PPSA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;OFF*4c2dbb6d*1600a42a\r\n"
-   unsigned char json_log[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"mode": "OFF"}}})"
+   unsigned char json_log[] = """{"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"mode": "OFF"}}}"""
    MessageDataStruct expected_rx_config_message_data
    expected_rx_config_message_data.message = &json_log[0]
    expected_rx_config_message_data.message_length = 531
@@ -205,7 +205,7 @@ def test_RXCONFIG_CONVERT_ASCII_TO_JSON():
 
 def test_RXCONFIG_CONVERT_ABBREV_TO_JSON():
    unsigned char log[] = "<RXCONFIG COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002\r\n<     SBASECUTOFF COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002 \r\n<     -5.0\r\n[PISSCOM1]"
-   unsigned char json_log[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SBASECUTOFF","id": 1000,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"elevation_cutoff_angle": -5.0}}})"
+   unsigned char json_log[] = """{"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SBASECUTOFF","id": 1000,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"elevation_cutoff_angle": -5.0}}}"""
    MessageDataStruct expected_rx_config_message_data
    expected_rx_config_message_data.message = &json_log[0]
    expected_rx_config_message_data.message_length = 550
@@ -225,7 +225,7 @@ def test_RXCONFIG_CONVERT_ABBREV_TO_JSON():
 
 def test_RXCONFIG_CONVERT_BINARY_TO_JSON():
    unsigned char log[]  = [0xAA, 0x44, 0x12, 0x1C, 0x80, 0x00, 0x00, 0x40, 0x3C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0xAA, 0x44, 0x12, 0x1C, 0xDE, 0x04, 0x00, 0x40, 0x1C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0x02, 0x00, 0x00, 0x00, 0x00, 0x08, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF4, 0xD7, 0x46, 0x65, 0x5D, 0x3D, 0xED, 0xF6]
-   unsigned char json_log[] = R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SERIALCONFIG","id": 1246,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"port": "COM2","baud_rate": 460800,"parity": "N","data_bits": 8,"stop_bits": 1,"hand_shaking": "N","breaks": "ON"}}})"
+   unsigned char json_log[] = """{"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SERIALCONFIG","id": 1246,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"port": "COM2","baud_rate": 460800,"parity": "N","data_bits": 8,"stop_bits": 1,"hand_shaking": "N","breaks": "ON"}}}"""
    MessageDataStruct expected_rx_config_message_data
    expected_rx_config_message_data.message = &json_log[0]
    expected_rx_config_message_data.message_length = 656

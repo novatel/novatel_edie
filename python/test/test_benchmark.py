@@ -54,7 +54,7 @@ try:
     my_message_decoder = ne.MessageDecoder(my_json_db)
     my_encoder = ne.Encoder(my_json_db)
 catch (JsonReaderFailure e):
-printf("%s\n", e.what())
+print("%s\n" % (e.what()))
 if (my_json_db)
     {
         my_json_db = nullptr
@@ -120,7 +120,7 @@ def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS():
             break
         count++
     std.chrono.duration<double> elapsed_seconds = std.chrono.system_clock.now() - start
-    printf("TIME ELAPSED: %lf seconds.\lPS: %lf\n", elapsed_seconds.count(), (static_cast<float>(count) / elapsed_seconds.count()))
+    print("TIME ELAPSED: %lf seconds.\lPS: %lf\n" % (elapsed_seconds.count(), (static_cast<float>(count) / elapsed_seconds.count())))
     assert not failed_once
 
 def test_BENCHMARK_ASCII_TO_ASCII_BESTPOS():
@@ -151,7 +151,7 @@ def test_BENCHMARK_ASCII_TO_ASCII_BESTPOS():
             break
         count++
     std.chrono.duration<double> elapsed_seconds = std.chrono.system_clock.now() - start
-    printf("TIME ELAPSED: %lf seconds.\lPS: %lf\n", elapsed_seconds.count(), (static_cast<float>(count) / elapsed_seconds.count()))
+    print("TIME ELAPSED: %lf seconds.\lPS: %lf\n" % (elapsed_seconds.count(), (static_cast<float>(count) / elapsed_seconds.count())))
     assert not failed_once
 
 def test_BENCHMARK_ASCII_TO_BINARY_BESTPOS():
@@ -182,7 +182,7 @@ def test_BENCHMARK_ASCII_TO_BINARY_BESTPOS():
             break
         count++
     std.chrono.duration<double> elapsed_seconds = std.chrono.system_clock.now() - start
-    printf("TIME ELAPSED: %lf seconds.\lPS: %lf\n", elapsed_seconds.count(), (static_cast<float>(count) / elapsed_seconds.count()))
+    print("TIME ELAPSED: %lf seconds.\lPS: %lf\n" % (elapsed_seconds.count(), (static_cast<float>(count) / elapsed_seconds.count())))
     assert not failed_once
 
 def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS():
@@ -213,7 +213,7 @@ def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS():
             break
         count++
     std.chrono.duration<double> elapsed_seconds = std.chrono.system_clock.now() - start
-    printf("TIME ELAPSED: %lf seconds.\lPS: %lf\n", elapsed_seconds.count(), (static_cast<float>(count) / elapsed_seconds.count()))
+    print("TIME ELAPSED: %lf seconds.\lPS: %lf\n" % (elapsed_seconds.count(), (static_cast<float>(count) / elapsed_seconds.count())))
     assert not failed_once
 
 def test_BENCHMARK_ASCII_TO_FLAT_BINARY_BESTPOS():
