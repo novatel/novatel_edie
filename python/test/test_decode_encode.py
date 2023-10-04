@@ -198,14 +198,14 @@ def DecodeEncode(format_, meta_data_, message_data_):
 
 
 def TestDecodeEncode(format_, message_buffer_):
-    return DecodeEncode(format_, message_buffer_, encode_buffer, MAX_ASCII_MESSAGE_LENGTH, test_meta_data, test_message_data)
+    return DecodeEncode(format_, message_buffer_, test_meta_data, test_message_data)
 
 
 def TestSameFormatCompare(format_, expected_message_data_, expected_meta_data_, test_meta_data_):
     test_message_data = ne.MessageDataStruct()
     test_meta_data.length = expected_message_data_.ui_message_length;  # This would have been set by the framer, so we just need to trust the expected value.
 
-    ret_code = DecodeEncode(format_, expected_message_data_.puc_message, encode_buffer, MAX_ASCII_MESSAGE_LENGTH, test_meta_data, test_message_data)
+    ret_code = DecodeEncode(format_, expected_message_data_.puc_message, test_meta_data, test_message_data)
     if ret_code != SUCCESS:
         return ret_code
     if format_ == ENCODEFORMAT.JSON:
@@ -230,7 +230,7 @@ def TestSameFormatCompare(format_, expected_message_data_, expected_meta_data_, 
 
 
 def TestConversion(format_, message_buffer_, expected_message_data_, expected_meta_data_, test_meta_data_):
-    ret_code = DecodeEncode(format_, message_buffer_, encode_buffer, MAX_ASCII_MESSAGE_LENGTH, test_meta_data, test_message_data)
+    ret_code = DecodeEncode(format_, message_buffer_, test_meta_data, test_message_data)
     if ret_code != SUCCESS:
         return ret_code
 
