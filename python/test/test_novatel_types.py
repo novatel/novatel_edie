@@ -275,13 +275,13 @@ def test_ASCII_DOUBLE_VALID():
    constexpr double inf = std.numeric_limits<double>.infinity()
 
    assert decoder_== STATUS.SUCCESS
-   ASSERT_DOUBLE_EQ(std.get<double>(intermediate_format_[0].field_value), 51.11636937989)
-   ASSERT_DOUBLE_EQ(std.get<double>(intermediate_format_[1].field_value), -114.03825348307)
-   ASSERT_DOUBLE_EQ(std.get<double>(intermediate_format_[2].field_value), 0)
-   ASSERT_DOUBLE_EQ(std.get<double>(intermediate_format_[3].field_value), 1.7e+308)
-   ASSERT_DOUBLE_EQ(std.get<double>(intermediate_format_[4].field_value), -1.7e+308)
-   ASSERT_DOUBLE_EQ(std.get<double>(intermediate_format_[5].field_value), inf)
-   ASSERT_DOUBLE_EQ(std.get<double>(intermediate_format_[6].field_value), -inf)
+   assert std.get<double>(intermediate_format_[0].field_value) == approx(51.11636937989, rel=1e-15)
+   assert std.get<double>(intermediate_format_[1].field_value) == approx(-114.03825348307, rel=1e-15)
+   assert std.get<double>(intermediate_format_[2].field_value) == approx(0, rel=1e-15)
+   assert std.get<double>(intermediate_format_[3].field_value) == approx(1.7e+308, rel=1e-15)
+   assert std.get<double>(intermediate_format_[4].field_value) == approx(-1.7e+308, rel=1e-15)
+   assert std.get<double>(intermediate_format_[5].field_value) == approx(inf, rel=1e-15)
+   assert std.get<double>(intermediate_format_[6].field_value) == approx(-inf, rel=1e-15)
 
 def test_ASCII_DOUBLE_INVALID():
    create_base_field("Lat", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 9, DATA_TYPE_NAME.DOUBLE)
@@ -380,10 +380,10 @@ def test_ASCII_SCIENTIFIC_NOTATION_DOUBLE_VALID():
    decoder_= my_decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
    assert decoder_== ne.STATUS.SUCCESS
-   ASSERT_DOUBLE_EQ(std::get<double>(intermediate_format_[0].field_value), -1)
-   ASSERT_DOUBLE_EQ(std::get<double>(intermediate_format_[1].field_value), 0)
-   ASSERT_DOUBLE_EQ(std::get<double>(intermediate_format_[2].field_value), 2.2250738585072014e-308)
-   ASSERT_DOUBLE_EQ(std::get<double>(intermediate_format_[3].field_value), 1.7976931348623158e+308)
+   assert std::get<double>(intermediate_format_[0].field_value) == approx(-1, rel=1e-15)
+   assert std::get<double>(intermediate_format_[1].field_value) == approx(0, rel=1e-15)
+   assert std::get<double>(intermediate_format_[2].field_value) == approx(2.2250738585072014e-308, rel=1e-15)
+   assert std::get<double>(intermediate_format_[3].field_value) == approx(1.7976931348623158e+308, rel=1e-15)
 
 def test_ASCII_ULONG_VALID():
    create_base_field("rx_chars", ne.FIELD_TYPE.SIMPLE, CONVERSION_STRING::u, 1, DATA_TYPE_NAME::ULONG)
@@ -645,10 +645,10 @@ def test_BINARY_DOUBLE_VALID():
    decoder_= my_decoder_tester.test_decode_binary(MsgDefFields_, input, intermediate_format_)
 
    assert decoder_== ne.STATUS.SUCCESS
-   ASSERT_DOUBLE_EQ(std::get<double>(intermediate_format_[0].field_value), 51.11636937989)
-   ASSERT_DOUBLE_EQ(std::get<double>(intermediate_format_[1].field_value), -114.03825348307)
-   ASSERT_DOUBLE_EQ(std::get<double>(intermediate_format_[2].field_value), 0)
-   ASSERT_DOUBLE_EQ(std::get<double>(intermediate_format_[3].field_value), float("inf"))
+   assert std::get<double>(intermediate_format_[0].field_value) == approx(51.11636937989, rel=1e-15)
+   assert std::get<double>(intermediate_format_[1].field_value) == approx(-114.03825348307, rel=1e-15)
+   assert std::get<double>(intermediate_format_[2].field_value) == approx(0, rel=1e-15)
+   assert std::get<double>(intermediate_format_[3].field_value) == approx(float("inf"), rel=1e-15)
 
 def test_BINARY_SIMPLE_TYPE_INVALID():
    create_base_field("", ne.FIELD_TYPE.SIMPLE, CONVERSION_STRING::UNKNOWN, 1, DATA_TYPE_NAME::UNKNOWN)

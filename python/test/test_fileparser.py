@@ -94,7 +94,7 @@ def test_PARSE_FILE_WITH_FILTER(fp, json_db_path, decoders_test_resources):
         if status == STATUS.SUCCESS:
             assert meta_data.length == expected_meta_data_length[success]
             assert meta_data.milliseconds == approx(expected_milliseconds[success])
-            assert message_data.message_length == expected_message_length[success]
+            assert len(message_data.message) == expected_message_length[success]
             success += 1
     assert fp.get_percent_read() == 100
     assert success == 2

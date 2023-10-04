@@ -26,7 +26,7 @@ def rx_config_handler(json_db):
 OEM4_BINARY_HEADER_LENGTH = 28
 
 
-def CompareMessageData(test_message_data, expected_message_data):
+def compare_message_data(test_message_data, expected_message_data):
     result = True
     if test_message_data.message != expected_message_data[0]:
         print("MessageData.message contents do not match")
@@ -50,8 +50,8 @@ def TestSameFormatCompare(rx_config_handler, format_, expected_rx_config_message
     if status != STATUS.SUCCESS:
         print(f"Convert failed with code {status}")
         return False
-    if (not CompareMessageData(test_rx_config_message_data, expected_rx_config_message_data) or
-            not CompareMessageData(test_embedded_message_data, expected_embedded_message_data)):
+    if (not compare_message_data(test_rx_config_message_data, expected_rx_config_message_data) or
+            not compare_message_data(test_embedded_message_data, expected_embedded_message_data)):
         return False
     return True
 
