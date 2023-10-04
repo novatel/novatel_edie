@@ -1,5 +1,7 @@
 #include "novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp"
 
+#include <cstring>
+
 #include "bindings_core.h"
 
 namespace nb = nanobind;
@@ -15,9 +17,13 @@ void init_novatel_range_decompressor(nb::module_& m)
         .def("reset", &oem::RangeDecompressor::Reset)
         .def(
             "decompress",
-            [](oem::RangeDecompressor& self, nb::bytes data, oem::MetaDataStruct& metadata, ENCODE_FORMAT encode_format) {
-                STATUS status = self.Decompress((unsigned char*)data.c_str(), data.size(), metadata, encode_format);
-                return status;
+            [](oem::RangeDecompressor& self, nb::bytes data, oem::MetaDataStruct& metadata, ENCODE_FORMAT encode_format) -> nb::object {
+                if (data.size() > MESSAGE_SIZE_MAX) return nb::make_tuple(STATUS::BUFFER_FULL, nb::none());
+                char buffer[MESSAGE_SIZE_MAX];
+                uint32_t buf_size = MESSAGE_SIZE_MAX;
+                memcpy(buffer, data.c_str(), data.size());
+                STATUS status = self.Decompress((unsigned char*)buffer, buf_size, metadata, encode_format);
+                return nb::make_tuple(status, nb::bytes(buffer, metadata.uiLength));
             },
             "data"_a, "metadata"_a, "encode_format"_a = ENCODE_FORMAT::UNSPECIFIED);
 }

@@ -111,9 +111,9 @@ RxConfigHandler* RxConfigTest.my_rx_config_handler = nullptr
 # Logger Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_LOGGER():
-   spdlog.level.level_enum level = ne.LogLevel.OFF
+   level = ne.LogLevel.OFF
    assert spdlog.get("rxconfig_handler") != nullptr
-   std.shared_ptr<spdlog.logger> rxconfig_handler = my_rx_config_handler.get_logger()
+   rxconfig_handler = my_rx_config_handler.get_logger()
    my_rx_config_handler.logger.set_level(level)
    assert rxconfig_handler.level() == level
 
