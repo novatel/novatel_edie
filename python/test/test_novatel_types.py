@@ -29,7 +29,7 @@
 ################################################################################
 
 import novatel_edie as ne
-from novatel_edie import STATUS, FIELD_TYPE, CONVERSION_STRING, DATA_TYPE_NAME
+from novatel_edie import STATUS, FIELD_TYPE, CONVERSION_STRING, DATA_TYPE
 import pytest
 from pytest import approx
 
@@ -127,15 +127,15 @@ def test_FIELD_CONTAINER_ERROR_ON_COPY(decoder_tester):
       FieldContainer fc2(fc)
 
 def test_ASCII_CHAR_BYTE_VALID(decoder_tester):
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
    intermediate_format_ = [None] * 9
 
    input = "-129,-128,-127,-1,0,1,127,128,129"
@@ -153,15 +153,15 @@ def test_ASCII_CHAR_BYTE_VALID(decoder_tester):
    assert int(intermediate_format_[8].field_value) == -127
 
 def test_ASCI_UCHAR_BYTE_VALID(decoder_tester):
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE_NAME.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB, 1, DATA_TYPE.UCHAR)
    intermediate_format_ = [None] * 9
 
    input = "-256,-255,-254,-1,0,1,254,255,256"
@@ -179,7 +179,7 @@ def test_ASCI_UCHAR_BYTE_VALID(decoder_tester):
    assert int(intermediate_format_[8].field_value) == 0
 
 def test_ASCII_UCHAR_BYTE_INVALID(decoder_tester):
-   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE_NAME.CHAR)
+   create_base_field("INT_1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B, 1, DATA_TYPE.CHAR)
    intermediate_format_ = [None]
 
    input = "0.1"
@@ -188,9 +188,9 @@ def test_ASCII_UCHAR_BYTE_INVALID(decoder_tester):
    assert int(intermediate_format_[0].field_value) == 0
 
 def test_ASCII_CHAR_VALID(decoder_tester):
-   create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 1, DATA_TYPE_NAME.CHAR)
+   create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 1, DATA_TYPE.CHAR)
+   create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 1, DATA_TYPE.CHAR)
+   create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 1, DATA_TYPE.CHAR)
    intermediate_format_ = [None, None, None]
 
    input = "#,A,;"
@@ -202,7 +202,7 @@ def test_ASCII_CHAR_VALID(decoder_tester):
    assert int(intermediate_format_[2].field_value) == ';'
 
 def test_ASCII_CHAR_INVALID(decoder_tester):
-   create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 2, DATA_TYPE_NAME.CHAR)
+   create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 2, DATA_TYPE.CHAR)
    intermediate_format_ = [None]
 
    input = ""
@@ -210,9 +210,9 @@ def test_ASCII_CHAR_INVALID(decoder_tester):
       decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
 def test_ASCII_UCHAR_VALID(decoder_tester):
-   create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 1, DATA_TYPE_NAME.UCHAR)
+   create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 1, DATA_TYPE.UCHAR)
+   create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 1, DATA_TYPE.UCHAR)
+   create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 1, DATA_TYPE.UCHAR)
    intermediate_format_ = [None, None, None]
 
    input = "#,A,;"
@@ -224,7 +224,7 @@ def test_ASCII_UCHAR_VALID(decoder_tester):
    assert int(intermediate_format_[2].field_value) == ';'
 
 def test_ASCII_UCHAR_INVALID(decoder_tester):
-   create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 2, DATA_TYPE_NAME.UCHAR)
+   create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 2, DATA_TYPE.UCHAR)
    intermediate_format_ = [None]
 
    input = ""
@@ -233,12 +233,12 @@ def test_ASCII_UCHAR_INVALID(decoder_tester):
       decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
 def test_ASCII_INT_VALID(decoder_tester):
-   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE_NAME.UCHAR)
-   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE_NAME.UCHAR)
+   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE.UCHAR)
+   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE.UCHAR)
+   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE.UCHAR)
+   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE.UCHAR)
+   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE.UCHAR)
+   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 2, DATA_TYPE.UCHAR)
    intermediate_format_ = [None] * 6
 
    input = "-32769,-32768,-32767,32767,32768,32769"
@@ -253,7 +253,7 @@ def test_ASCII_INT_VALID(decoder_tester):
    assert int(intermediate_format_[5].field_value) == -32767
 
 def test_ASCII_INT_INVALID(decoder_tester):
-   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 3, DATA_TYPE_NAME.UCHAR)
+   create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 3, DATA_TYPE.UCHAR)
    intermediate_format_ = [None]
 
    input = ""
@@ -262,9 +262,9 @@ def test_ASCII_INT_INVALID(decoder_tester):
       decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
 def test_ASCII_FLOAT_VALID(decoder_tester):
-   create_base_field("Und", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 4, DATA_TYPE_NAME.FLOAT)
-   create_base_field("LatStd", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 4, DATA_TYPE_NAME.FLOAT)
-   create_base_field("LongStd", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 4, DATA_TYPE_NAME.FLOAT)
+   create_base_field("Und", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 4, DATA_TYPE.FLOAT)
+   create_base_field("LatStd", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 4, DATA_TYPE.FLOAT)
+   create_base_field("LongStd", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 4, DATA_TYPE.FLOAT)
    intermediate_format_ = [None, None, None]
 
    input = "51.11636937989,-114.03825348307,0"
@@ -276,7 +276,7 @@ def test_ASCII_FLOAT_VALID(decoder_tester):
    assert std.get<float>(intermediate_format_[2].field_value) == approx(                0, rel=1e-6)
 
 def test_ASCII_FLOAT_INVALID(decoder_tester):
-   create_base_field("Und", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 5, DATA_TYPE_NAME.FLOAT)
+   create_base_field("Und", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 5, DATA_TYPE.FLOAT)
    intermediate_format_ = [None]
 
    input = ""
@@ -285,13 +285,13 @@ def test_ASCII_FLOAT_INVALID(decoder_tester):
       decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
 def test_ASCII_DOUBLE_VALID(decoder_tester):
-   create_base_field("Lat", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("Long", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("Ht", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("longitude", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("longitude", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("longitude", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("longitude", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE_NAME.DOUBLE)
+   create_base_field("Lat", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE.DOUBLE)
+   create_base_field("Long", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE.DOUBLE)
+   create_base_field("Ht", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE.DOUBLE)
+   create_base_field("longitude", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE.DOUBLE)
+   create_base_field("longitude", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE.DOUBLE)
+   create_base_field("longitude", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE.DOUBLE)
+   create_base_field("longitude", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf, 8, DATA_TYPE.DOUBLE)
    intermediate_format_ = [None] * 7
 
    input = "51.11636937989,-114.03825348307,0,1.7e+308,-1.7e+308,1.7e+309,-1.7e+309"
@@ -308,7 +308,7 @@ def test_ASCII_DOUBLE_VALID(decoder_tester):
    assert std.get<double>(intermediate_format_[6].field_value) == approx(-inf, rel=1e-15)
 
 def test_ASCII_DOUBLE_INVALID(decoder_tester):
-   create_base_field("Lat", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 9, DATA_TYPE_NAME.DOUBLE)
+   create_base_field("Lat", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 9, DATA_TYPE.DOUBLE)
    intermediate_format_ = [None]
 
    input = ""
@@ -317,8 +317,8 @@ def test_ASCII_DOUBLE_INVALID(decoder_tester):
       decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
 def test_ASCII_BOOL_VALID(decoder_tester):
-   create_base_field("B_True", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 4, DATA_TYPE_NAME.BOOL)
-   create_base_field("B_False", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 4, DATA_TYPE_NAME.BOOL)
+   create_base_field("B_True", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 4, DATA_TYPE.BOOL)
+   create_base_field("B_False", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 4, DATA_TYPE.BOOL)
    intermediate_format_ = [None, None]
 
    input = "TRUE,FALSE"
@@ -329,7 +329,7 @@ def test_ASCII_BOOL_VALID(decoder_tester):
    assert not std.get<bool>(intermediate_format_[1].field_value)
 
 def test_ASCII_BOOL_INVALID(decoder_tester):
-   create_base_field("B_True", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 4, DATA_TYPE_NAME.BOOL)
+   create_base_field("B_True", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 4, DATA_TYPE.BOOL)
    intermediate_format_ = [None]
 
    input = "True"
@@ -338,10 +338,10 @@ def test_ASCII_BOOL_INVALID(decoder_tester):
       decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
 def test_ASCII_UINT_VALID(decoder_tester):
-   create_base_field("toe", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 4, DATA_TYPE_NAME.UINT)
-   create_base_field("toe", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 4, DATA_TYPE_NAME.UINT)
-   create_base_field("toe", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 4, DATA_TYPE_NAME.UINT)
-   create_base_field("toe", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 4, DATA_TYPE_NAME.UINT)
+   create_base_field("toe", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 4, DATA_TYPE.UINT)
+   create_base_field("toe", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 4, DATA_TYPE.UINT)
+   create_base_field("toe", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 4, DATA_TYPE.UINT)
+   create_base_field("toe", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 4, DATA_TYPE.UINT)
    intermediate_format_ = [None] * 4
 
    input = "-1,0,4294967294,4294967295"
@@ -354,10 +354,10 @@ def test_ASCII_UINT_VALID(decoder_tester):
    assert std.get<uint32_t>(intermediate_format_[3].field_value) == 4294967295
 
 def test_ASCII_GPSTIME_MSEC_VALID(decoder_tester):
-   create_base_field("Sec1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.T, 4, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("Sec2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.T, 4, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("Sec3", FIELD_TYPE.SIMPLE, CONVERSION_STRING.T, 4, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.T, 4, DATA_TYPE_NAME.DOUBLE)
+   create_base_field("Sec1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.T, 4, DATA_TYPE.DOUBLE)
+   create_base_field("Sec2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.T, 4, DATA_TYPE.DOUBLE)
+   create_base_field("Sec3", FIELD_TYPE.SIMPLE, CONVERSION_STRING.T, 4, DATA_TYPE.DOUBLE)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.T, 4, DATA_TYPE.DOUBLE)
    intermediate_format_ = [None] * 4
 
    input = "-1.000,0.000,604800.000,4294967295.000"
@@ -372,10 +372,10 @@ def test_ASCII_GPSTIME_MSEC_VALID(decoder_tester):
    assert std.get<uint32_t>(intermediate_format_[3].field_value) == 4294966296
 
 def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_VALID(decoder_tester):
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 4, DATA_TYPE_NAME.FLOAT)
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.e, 4, DATA_TYPE_NAME.FLOAT)
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 4, DATA_TYPE_NAME.FLOAT)
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.e, 4, DATA_TYPE_NAME.FLOAT)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 4, DATA_TYPE.FLOAT)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.e, 4, DATA_TYPE.FLOAT)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 4, DATA_TYPE.FLOAT)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.e, 4, DATA_TYPE.FLOAT)
    intermediate_format_ = [None] * 4
 
    input = "-1.0,0.0,1.175494351e-38,3.402823466e+38"
@@ -388,7 +388,7 @@ def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_VALID(decoder_tester):
    assert std.get<float>(intermediate_format_[3].field_value) == approx(3.402823466e+38, rel=1e-6)
 
 def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_INVALID(decoder_tester):
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 5, DATA_TYPE_NAME.FLOAT)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 5, DATA_TYPE.FLOAT)
    intermediate_format_ = [None] * 1
 
    input = "-1.0"
@@ -397,10 +397,10 @@ def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_INVALID(decoder_tester):
       decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
 def test_ASCII_SCIENTIFIC_NOTATION_DOUBLE_VALID(decoder_tester):
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.e, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.e, 8, DATA_TYPE_NAME.DOUBLE)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 8, DATA_TYPE.DOUBLE)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.e, 8, DATA_TYPE.DOUBLE)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 8, DATA_TYPE.DOUBLE)
+   create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.e, 8, DATA_TYPE.DOUBLE)
    intermediate_format_ = [None] * 4
 
    input = "-1.0,0.0,2.2250738585072014e-308,1.7976931348623158e+308"
@@ -413,18 +413,18 @@ def test_ASCII_SCIENTIFIC_NOTATION_DOUBLE_VALID(decoder_tester):
    assert std.get<double>(intermediate_format_[3].field_value) == approx(1.7976931348623158e+308, rel=1e-15)
 
 def test_ASCII_ULONG_VALID(decoder_tester):
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 1, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 1, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 1, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lu, 2, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lu, 2, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lu, 2, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hu, 4, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hu, 4, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hu, 4, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.llu, 8, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.llu, 8, DATA_TYPE_NAME.ULONG)
-   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.llu, 8, DATA_TYPE_NAME.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 1, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 1, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u, 1, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lu, 2, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lu, 2, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lu, 2, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hu, 4, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hu, 4, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hu, 4, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.llu, 8, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.llu, 8, DATA_TYPE.ULONG)
+   create_base_field("rx_chars", FIELD_TYPE.SIMPLE, CONVERSION_STRING.llu, 8, DATA_TYPE.ULONG)
    intermediate_format_ = [None] * 12
 
    input = "-1,0,255,-1,0,65535,-1,0,4294967295,-1,0,18446744073709551615"
@@ -459,7 +459,7 @@ def test_ASCII_ENUM_VALID(decoder_tester):
    assert std.get<int32_t>(intermediate_format_[2].field_value) == 200
 
 def test_ASCII_STRING_VALID(decoder_tester):
-   create_base_field("MESSAGE", FIELD_TYPE.STRING, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UNKNOWN)
+   create_base_field("MESSAGE", FIELD_TYPE.STRING, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UNKNOWN)
    intermediate_format_ = [None]
 
    input = "#RAWEPHEMA,COM1,100"
@@ -469,7 +469,7 @@ def test_ASCII_STRING_VALID(decoder_tester):
    assert std.get<std.string>(intermediate_format_[0].field_value) == "RAWEPHEMA,COM1,100"
 
 def test_ASCII_EMPTY_STRING_VALID(decoder_tester):
-   create_base_field("MESSAGE", FIELD_TYPE.STRING, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UNKNOWN)
+   create_base_field("MESSAGE", FIELD_TYPE.STRING, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UNKNOWN)
    intermediate_format_ = [None]
 
    input = "\"\""
@@ -479,7 +479,7 @@ def test_ASCII_EMPTY_STRING_VALID(decoder_tester):
    assert std.get<std.string>(intermediate_format_[0].field_value) == ""
 
 def test_ASCII_TYPE_INVALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.UNKNOWN, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UNKNOWN)
+   create_base_field("", FIELD_TYPE.UNKNOWN, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UNKNOWN)
    intermediate_format_ = [None]
 
    input = ""
@@ -488,8 +488,8 @@ def test_ASCII_TYPE_INVALID(decoder_tester):
       decoder_tester.test_decode_ascii(MsgDefFields_, input, intermediate_format_)
 
 def test_BINARY_BOOL_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.BOOL)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.BOOL)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.BOOL)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.BOOL)
    intermediate_format_ = [None, None]
 
    input = [True, False]
@@ -500,9 +500,9 @@ def test_BINARY_BOOL_VALID(decoder_tester):
    assert not std.get<bool>(intermediate_format_[1].field_value)
 
 def test_BINARY_HEXBYTE_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.HEXBYTE)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.HEXBYTE)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.HEXBYTE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.HEXBYTE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.HEXBYTE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.HEXBYTE)
    intermediate_format_ = [None, None, None]
 
    input = bytes([ 0x00, 0x01, 0xFF ])
@@ -514,11 +514,11 @@ def test_BINARY_HEXBYTE_VALID(decoder_tester):
    assert std.get<uint8_t>(intermediate_format_[2].field_value) == UCHAR_MAX
 
 def test_BINARY_uint8_t_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UCHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UCHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UCHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UCHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UCHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UCHAR)
    intermediate_format_ = [None] * 5
 
    input = bytes([ 0x23, 0x41, 0x3B, 0x00, 0xFF ])
@@ -532,10 +532,10 @@ def test_BINARY_uint8_t_VALID(decoder_tester):
    assert std.get<uint8_t>(intermediate_format_[4].field_value) == UCHAR_MAX
 
 def test_BINARY_USHORT_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE_NAME.USHORT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE_NAME.USHORT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE_NAME.USHORT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE_NAME.USHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE.USHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE.USHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE.USHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE.USHORT)
    intermediate_format_ = [None] * 4
 
    input = bytes([ 0x00, 0x00, 0x01, 0x00, 0x10, 0x00, 0xFF, 0xFF ])
@@ -547,10 +547,10 @@ def test_BINARY_USHORT_VALID(decoder_tester):
    assert std.get<uint16_t>(intermediate_format_[2].field_value) == 16
    assert std.get<uint16_t>(intermediate_format_[3].field_value) == USHRT_MAX
 def test_BINARY_SHORT_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE_NAME.SHORT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE_NAME.SHORT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE_NAME.SHORT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE_NAME.SHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE.SHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE.SHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE.SHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 2, DATA_TYPE.SHORT)
    intermediate_format_ = [None] * 4
 
    input = bytes([ 0x00, 0x80, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x7F ])
@@ -562,10 +562,10 @@ def test_BINARY_SHORT_VALID(decoder_tester):
    assert std.get<int16_t>(intermediate_format_[2].field_value) == -0
    assert std.get<int16_t>(intermediate_format_[3].field_value) == SHRT_MAX
 def test_BINARY_INT_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.INT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.INT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.INT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.INT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.INT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.INT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.INT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.INT)
    intermediate_format_ = [None] * 4
 
    input = bytes([
@@ -583,10 +583,10 @@ def test_BINARY_INT_VALID(decoder_tester):
    assert std.get<int32_t>(intermediate_format_[3].field_value) == INT_MAX
 
 def test_BINARY_UINT_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.UINT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.UINT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.UINT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.UINT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.UINT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.UINT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.UINT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.UINT)
    intermediate_format_ = [None] * 4
 
    input = bytes([
@@ -604,10 +604,10 @@ def test_BINARY_UINT_VALID(decoder_tester):
    assert std.get<uint32_t>(intermediate_format_[3].field_value) == UINT_MAX
 
 def test_BINARY_ULONG_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.ULONG)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.ULONG)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.ULONG)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.ULONG)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.ULONG)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.ULONG)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.ULONG)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.ULONG)
    intermediate_format_ = [None] * 4
 
    input = bytes([
@@ -625,10 +625,10 @@ def test_BINARY_ULONG_VALID(decoder_tester):
    assert std.get<uint32_t>(intermediate_format_[3].field_value) == UINT_MAX
 
 def test_BINARY_CHAR_BYTE_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.CHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.CHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.CHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.CHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.CHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.CHAR)
    intermediate_format_ = [None] * 4
 
    input = bytes([ 0x80, 0xFF, 0x00, 0x7F ])
@@ -641,8 +641,8 @@ def test_BINARY_CHAR_BYTE_VALID(decoder_tester):
    assert std.get<int8_t>(intermediate_format_[3].field_value) == CHAR_MAX
 
 def test_BINARY_FLOAT_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.FLOAT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE_NAME.FLOAT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.FLOAT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 4, DATA_TYPE.FLOAT)
    intermediate_format_ = [None] * 2
 
    input = bytes([ 0x9A, 0x99, 0x99, 0x3F, 0xCD, 0xCC, 0xBC, 0xC0 ])
@@ -653,10 +653,10 @@ def test_BINARY_FLOAT_VALID(decoder_tester):
    assert std.get<float>(intermediate_format_[1].field_value) == approx(-5.9, rel=1e-6)
 
 def test_BINARY_DOUBLE_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 8, DATA_TYPE_NAME.DOUBLE)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 8, DATA_TYPE_NAME.DOUBLE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 8, DATA_TYPE.DOUBLE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 8, DATA_TYPE.DOUBLE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 8, DATA_TYPE.DOUBLE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 8, DATA_TYPE.DOUBLE)
    intermediate_format_ = [None] * 4
 
    input = bytes([
@@ -674,7 +674,7 @@ def test_BINARY_DOUBLE_VALID(decoder_tester):
    assert std.get<double>(intermediate_format_[3].field_value) == approx(float("inf"), rel=1e-15)
 
 def test_BINARY_SIMPLE_TYPE_INVALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UNKNOWN)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UNKNOWN)
    intermediate_format_ = []
 
    input = None
@@ -683,27 +683,27 @@ def test_BINARY_SIMPLE_TYPE_INVALID(decoder_tester):
       decoder_tester.test_decode_binary(MsgDefFields_, input, intermediate_format_)
 
 def test_BINARY_TYPE_INVALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.UNKNOWN, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE_NAME.UNKNOWN)
+   create_base_field("", FIELD_TYPE.UNKNOWN, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UNKNOWN)
    intermediate_format_ = []
 
    with pytest.raises(Exception):
       decoder_tester.test_decode_binary(MsgDefFields_, input, intermediate_format_)
 
 def test_SIMPLE_FIELD_WIDTH_VALID(decoder_tester):
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d,   4, DATA_TYPE_NAME.BOOL)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.XB,  1, DATA_TYPE_NAME.HEXBYTE)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB,  1, DATA_TYPE_NAME.UCHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B,   1, DATA_TYPE_NAME.CHAR)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hu,  2, DATA_TYPE_NAME.USHORT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hd,  2, DATA_TYPE_NAME.SHORT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u,   4, DATA_TYPE_NAME.UINT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lu,  4, DATA_TYPE_NAME.ULONG)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d,   4, DATA_TYPE_NAME.INT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.ld,  4, DATA_TYPE_NAME.LONG)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.llu, 8, DATA_TYPE_NAME.ULONGLONG)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lld, 8, DATA_TYPE_NAME.LONGLONG)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f,   4, DATA_TYPE_NAME.FLOAT)
-   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf,  8, DATA_TYPE_NAME.DOUBLE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d,   4, DATA_TYPE.BOOL)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.XB,  1, DATA_TYPE.HEXBYTE)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.UB,  1, DATA_TYPE.UCHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.B,   1, DATA_TYPE.CHAR)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hu,  2, DATA_TYPE.USHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.hd,  2, DATA_TYPE.SHORT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.u,   4, DATA_TYPE.UINT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lu,  4, DATA_TYPE.ULONG)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d,   4, DATA_TYPE.INT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.ld,  4, DATA_TYPE.LONG)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.llu, 8, DATA_TYPE.ULONGLONG)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lld, 8, DATA_TYPE.LONGLONG)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f,   4, DATA_TYPE.FLOAT)
+   create_base_field("", FIELD_TYPE.SIMPLE, CONVERSION_STRING.lf,  8, DATA_TYPE.DOUBLE)
 
    intermediate_format = ne.IntermediateMessage()
    intermediate_format.reserve(MsgDefFields_.size())
