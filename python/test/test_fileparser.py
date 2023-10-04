@@ -28,131 +28,79 @@
 # Encoder and Filter.
 ################################################################################
 
-from pathlib import Path
-
 import novatel_edie as ne
-from novatel_edie import HEADERFORMAT, STATUS
 import pytest
+from novatel_edie import STATUS, ENCODEFORMAT
+from pytest import approx
+
 
 # -------------------------------------------------------------------------------------------------------
-# FileParser Unit Tests
+# Unit Tests
 # -------------------------------------------------------------------------------------------------------
-class FileParserTest : public .testing.Test
 
-protected:
-   static FileParser* fp;
+@pytest.fixture(scope="function")
+def fp(json_db):
+    return ne.FileParser(json_db)
 
-   # Per-test-suite setup
-   static void SetUpTestSuite():
-      try:
-         fp = ne.FileParser(*TEST_DB_PATH);
-      catch (JsonReaderFailure e):
-         printf("%s\n", e.what());
 
-         if (fp)
-         {
-            fp = nullptr;
-         }
+def test_FILEPARSER_INSTANTIATION(fp, json_db_path):
+    fp1 = ne.FileParser()
+    fp2 = ne.FileParser(json_db_path)
 
-   # Per-test-suite teardown
-   static void TearDownTestSuite():
-      if fp:
-         fp.shutdown_logger();
-         fp = nullptr;;
-FileParser* FileParserTest.fp = nullptr;
+    db = ne.JsonReader()
+    db.load_file(json_db_path)
+    fp4 = ne.FileParser(db)
 
-def test_LOGGER():
-   level = spdlog.level.off;
 
-   # FileParser logger
-   assert spdlog.get("novatel_fileparser") != nullptr
-   std.shared_ptr<spdlog.logger> novatel_fileparser = fp.get_logger();
-   fp.set_logger_level(level);
-   assert novatel_fileparser.level() == level
+def test_RANGE_CMP(fp):
+    fp.set_decompress_range_cmp(True)
+    assert fp.get_decompress_range_cmp()
+    fp.set_decompress_range_cmp(False)
+    assert not fp.get_decompress_range_cmp()
 
-   # Parser logger
-   assert spdlog.get("novatel_parser") != nullptr
-   ASSERT_NO_THROW(fp.enable_framer_decoder_logging(level, "novatel_parser.log"));
 
-def test_FILEPARSER_INSTANTIATION():
-   ASSERT_NO_THROW(FileParser fp1 = FileParser());
-   ASSERT_NO_THROW(FileParser fp2 = FileParser(*TEST_DB_PATH));
+def test_UNKNOWN_BYTES(fp):
+    fp.set_return_unknown_bytes(True)
+    assert fp.get_return_unknown_bytes()
+    fp.set_return_unknown_bytes(False)
+    assert not fp.get_return_unknown_bytes()
 
-   std.string tEST_DB_PATH = *TEST_DB_PATH;
-   const std.u32string tEST_DB_PATH(tEST_DB_PATH.begin(), tEST_DB_PATH.end());
-   ASSERT_NO_THROW(FileParser fp3 = FileParser(tEST_DB_PATH));
 
-   JsonReader* db = ne.JsonReader();
-   db.load_file(*TEST_DB_PATH);
-   ASSERT_NO_THROW(FileParser fp4 = FileParser(db));
+def test_PARSE_FILE_WITH_FILTER(fp, json_db_path, decoders_test_resources):
+    # Reset the with the database because a previous test assigns it to the nullptr
+    fp = ne.ne.FileParser(json_db_path)
+    filter = ne.Filter()
+    filter.logger.set_level(ne.LogLevel.DEBUG)
+    fp.set_filter(filter)
+    assert fp.get_filter() == filter
 
-def test_LOAD_JSON_DB_STRING():
-   JsonReader my_json_db;
-   my_json_db.LoadFile<std.string>(*TEST_DB_PATH);
-   ASSERT_NO_THROW(fp.load_json_db(my_json_db));
-   ASSERT_NO_THROW(fp.load_json_db(nullptr));
+    test_gps_file = decoders_test_resources / "BESTUTMBIN.GPS"
+    input_file_stream = ne.InputFileStream(str(test_gps_file))
+    assert fp.set_stream(input_file_stream)
 
-def test_LOAD_JSON_DB_U32STRING():
-   JsonReader my_json_db;
-   std.wstring_convert<std.codecvt_utf8<char32_t>, char32_t> converter;
-   std.u32string u32str = converter.from_bytes(*TEST_DB_PATH);
-   my_json_db.LoadFile<std.u32string>(u32str);
-   ASSERT_NO_THROW(fp.load_json_db(my_json_db));
-   ASSERT_NO_THROW(fp.load_json_db(nullptr));
+    meta_data = ne.MetaData()
 
-def test_LOAD_JSON_DB_CHAR_ARRAY():
-   JsonReader my_json_db;
-   my_json_db.LoadFile<char*>(const_cast<char*>(TEST_DB_PATH.c_str()));
-   ASSERT_NO_THROW(fp.load_json_db(my_json_db));
-   ASSERT_NO_THROW(fp.load_json_db(nullptr));
+    success = 0
+    expected_meta_data_length = [213, 195]
+    expected_milliseconds = [270605000, 172189053]
+    expected_message_length = [213, 195]
 
-def test_RANGE_CMP():
-   fp.set_decompress_range_cmp(True);
-   assert fp.get_decompress_range_cmp()
-   fp.set_decompress_range_cmp(False);
-   assert not fp.get_decompress_range_cmp()
+    status = STATUS.UNKNOWN
+    fp.set_encode_format(ENCODEFORMAT.ASCII)
+    assert fp.get_encode_format() == ENCODEFORMAT.ASCII
 
-def test_UNKNOWN_BYTES():
-   fp.set_return_unknown_bytes(True);
-   assert fp.get_return_unknown_bytes()
-   fp.set_return_unknown_bytes(False);
-   assert not fp.get_return_unknown_bytes()
+    while status != STATUS.STREAM_EMPTY:
+        status = fp.read(message_data, meta_data)
+        if status == STATUS.SUCCESS:
+            assert meta_data.length == expected_meta_data_length[success]
+            assert meta_data.milliseconds == approx(expected_milliseconds[success])
+            assert message_data.message_length == expected_message_length[success]
+            success += 1
+    assert fp.get_percent_read() == 100
+    assert success == 2
 
-def test_PARSE_FILE_WITH_FILTER():
-   # Reset the FileParser with the database because a previous test assigns it to the nullptr
-   fp = ne.FileParser(*TEST_DB_PATH);
-   Filter* filter = ne.Filter();
-   filter.set_logger_level(spdlog.level.debug);
-   fp.set_filter(filter);
-   assert fp.get_filter() == filter
 
-   Path test_gps_file = Path(*TEST_RESOURCE_PATH) / "BESTUTMBIN.GPS";
-   InputFileStream input_file_stream = InputFileStream(test_gps_file.string().c_str());
-   assert fp.set_stream(input_file_stream)
-
-   MetaData meta_data;
-   MessageDataStruct message_data;
-
-   int success = 0;
-   uint32_t expected_meta_data_length[2]  = [ 213, 195 ];
-   double expected_milliseconds[2]  = [ 270605000, 172189053 ];
-   uint32_t expected_message_length[2]  = [ 213, 195 ];
-
-   STATUS status = STATUS.UNKNOWN;
-   fp.set_encode_format(ENCODEFORMAT.ASCII);
-   assert fp.get_encode_format() == ENCODEFORMAT.ASCII
-
-   while status != STATUS.STREAM_EMPTY:
-      status = fp.read(message_data, meta_data);
-      if status == STATUS.SUCCESS:
-         assert meta_data.length == expected_meta_data_length[success]
-         ASSERT_DOUBLE_EQ(meta_data.milliseconds, expected_milliseconds[success]);
-         assert message_data.message_length == expected_message_length[success]
-         success++;
-   assert fp.get_percent_read() == 100U
-   assert success == 2
-
-def test_RESET():
-   fp = ne.FileParser();
-   ASSERT_NO_THROW(fp.get_internal_buffer(););
-   assert fp.reset()
+def test_RESET(fp):
+    fp = ne.FileParser()
+    fp.get_internal_buffer()
+    assert fp.reset()

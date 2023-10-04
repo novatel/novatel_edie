@@ -80,7 +80,7 @@ protected:
    # Per-test-suite setup
    static void SetUpTestSuite():
       my_json_db = ne.JsonReader()
-      my_json_db.load_file(*TEST_DB_PATH)
+      my_json_db.load_file(json_db_path)
       my_range_decompressor = ne.RangeDecompressorTester(my_json_db)
 
    # Per-test-suite teardown
@@ -104,7 +104,7 @@ def test_LOGGER():
    spdlog.level.level_enum level = spdlog.level.off
    assert spdlog.get("range_decompressor") != nullptr
    std.shared_ptr<spdlog.logger> range_decompressor = my_range_decompressor.get_logger()
-   my_range_decompressor.set_logger_level(level)
+   my_range_decompressor.logger.set_level(level)
    assert range_decompressor.level() == level
 
 # -------------------------------------------------------------------------------------------------------

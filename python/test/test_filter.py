@@ -47,7 +47,7 @@ protected:
    static void SetUpTestSuite():
       try:
          my_json_db = ne.JsonReader();
-         my_json_db.load_file(*TEST_DB_PATH);
+         my_json_db.load_file(json_db_path);
          my_header_decoder = ne.HeaderDecoder(my_json_db);
          my_filter = ne.Filter();
       catch (JsonReaderFailure e):
@@ -102,7 +102,7 @@ def test_LOGGER():
 
    assert spdlog.get("novatel_filter") != nullptr
    std.shared_ptr<spdlog.logger> novatel_filter = my_filter.get_logger();
-   my_filter.set_logger_level(level);
+   my_filter.logger.set_level(level);
    assert novatel_filter.level() == level
 
 def test_NONE():

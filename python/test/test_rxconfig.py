@@ -42,7 +42,7 @@ protected:
    # Per-test-suite setup
    static void SetUpTestSuite():
       my_json_db = ne.JsonReader()
-      my_json_db.load_file(*TEST_DB_PATH)
+      my_json_db.load_file(json_db_path)
       my_rx_config_handler = ne.RxConfigHandler(my_json_db)
 
    # Per-test-suite teardown
@@ -114,7 +114,7 @@ def test_LOGGER():
    spdlog.level.level_enum level = spdlog.level.off
    assert spdlog.get("rxconfig_handler") != nullptr
    std.shared_ptr<spdlog.logger> rxconfig_handler = my_rx_config_handler.get_logger()
-   my_rx_config_handler.set_logger_level(level)
+   my_rx_config_handler.logger.set_level(level)
    assert rxconfig_handler.level() == level
 
 # -------------------------------------------------------------------------------------------------------
