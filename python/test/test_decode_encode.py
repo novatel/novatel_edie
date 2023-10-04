@@ -180,18 +180,18 @@ MESSAGEDATA_COMPARISON_ERROR = 8
 def DecodeEncode(format_, meta_data_, message_data_):
     decoder_status = my_header_decoder.decode(temp_ptr, header, meta_data_)
     if STATUS.SUCCESS != decoder_status:
-        print(f"HeaderDecoder error {int(decoder_status):d}\n")
+        print(f"HeaderDecoder error {int(decoder_status):d}")
         return HEADER_DECODER_ERROR
 
     temp_ptr += meta_data_.header_length
     decoder_status = my_message_decoder.decode(temp_ptr, message, meta_data_)
     if STATUS.SUCCESS != decoder_status:
-        print(f"MessageDecoder error {int(decoder_status):d}\n")
+        print(f"MessageDecoder error {int(decoder_status):d}")
         return MESSAGE_DECODER_ERROR
 
     encoder_status = my_encoder.encode(encode_buffer_, encode_buffer_size_, header, message, message_data_, meta_data_, format_)
     if STATUS.SUCCESS != encoder_status:
-        print(f"Encoder error {int(decoder_status):d}\n")
+        print(f"Encoder error {int(decoder_status):d}")
         return ENCODER_ERROR
 
     return SUCCESS
@@ -211,11 +211,11 @@ def TestSameFormatCompare(format_, expected_message_data_, expected_meta_data_, 
     if format_ == ENCODEFORMAT.JSON:
         test_meta_data.header_length = expected_message_data_.ui_message_header_length
     if test_meta_data.header_length != test_message_data.message_header_length:
-        print(f"MetaData.header_length is not the same as MessageData.message_header_length ({test_meta_data.header_length:d} != {test_message_data.message_header_length:d})\n")
+        print(f"MetaData.header_length is not the same as MessageData.message_header_length ({test_meta_data.header_length:d} != {test_message_data.message_header_length:d})")
         return HEADER_LENGTH_ERROR
 
     if test_meta_data.length != test_message_data.message_length:
-        print(f"MetaData.length is not the same as MessageData.message_length ({test_meta_data.length:d} != {test_message_data.message_length:d})\n")
+        print(f"MetaData.length is not the same as MessageData.message_length ({test_meta_data.length:d} != {test_message_data.message_length:d})")
         return LENGTH_ERROR
 
     if test_meta_data_:
@@ -223,7 +223,7 @@ def TestSameFormatCompare(format_, expected_message_data_, expected_meta_data_, 
             return METADATA_COMPARISON_ERROR
 
     if not CompareMessageData(test_message_data, expected_message_data_):
-        print("MessageData doesn't match ExpectedMessageData\n")
+        print("MessageData doesn't match ExpectedMessageData")
         return MESSAGEDATA_COMPARISON_ERROR
 
     return SUCCESS
@@ -235,11 +235,11 @@ def TestConversion(format_, message_buffer_, expected_message_data_, expected_me
         return ret_code
 
     if expected_message_data_.ui_message_header_length != test_message_data.message_header_length:
-        print(f"MessageData.header_length error (expected {expected_message_data_.ui_message_header_length:d}, got {test_message_data.message_header_length:d})\n")
+        print(f"MessageData.header_length error (expected {expected_message_data_.ui_message_header_length:d}, got {test_message_data.message_header_length:d})")
         return HEADER_LENGTH_ERROR
 
     if expected_message_data_.ui_message_length != test_message_data.message_length:
-        print(f"MessageData.message_length error (expected {expected_message_data_.ui_message_length:d}, got {test_message_data.message_length:d})\n")
+        print(f"MessageData.message_length error (expected {expected_message_data_.ui_message_length:d}, got {test_message_data.message_length:d})")
         return LENGTH_ERROR
 
     if test_meta_data_:

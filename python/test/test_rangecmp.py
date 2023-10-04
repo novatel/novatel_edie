@@ -101,7 +101,7 @@ JsonReader* RangeCmpTest.my_json_db = nullptr
 # Logger Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_LOGGER():
-   spdlog.level.level_enum level = spdlog.level.off
+   spdlog.level.level_enum level = ne.LogLevel.OFF
    assert spdlog.get("range_decompressor") != nullptr
    std.shared_ptr<spdlog.logger> range_decompressor = my_range_decompressor.get_logger()
    my_range_decompressor.logger.set_level(level)

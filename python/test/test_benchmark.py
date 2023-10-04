@@ -88,7 +88,7 @@ def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS():
             failed_once = True
             break
     elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}\n")
+    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
     assert not failed_once
 
 
@@ -113,7 +113,7 @@ def test_BENCHMARK_ASCII_TO_ASCII_BESTPOS():
             failed_once = True
             break
     elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}\n")
+    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
     assert not failed_once
 
 
@@ -138,7 +138,7 @@ def test_BENCHMARK_ASCII_TO_BINARY_BESTPOS():
             failed_once = True
             break
     elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}\n")
+    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
     assert not failed_once
 
 
@@ -169,7 +169,7 @@ def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS():
             failed_once = True
             break
     elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}\n")
+    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
     assert not failed_once
 
 
@@ -196,7 +196,7 @@ def test_BENCHMARK_ASCII_TO_FLAT_BINARY_BESTPOS():
             failed_once = True
             break
     elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}\n")
+    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
     assert not failed_once
 
 
@@ -229,5 +229,5 @@ def test_BENCHMARK_BINARY_TO_FLAT_BINARY_BESTPOS():
             failed_once = True
             break
     elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}\n")
+    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
     assert not failed_once
