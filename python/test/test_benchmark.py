@@ -31,8 +31,8 @@
 import timeit
 
 import novatel_edie as ne
-import pytest
 from novatel_edie import STATUS, ENCODEFORMAT
+import pytest
 
 # -------------------------------------------------------------------------------------------------------
 # Decode/Encode Benchmark Unit Tests
@@ -41,27 +41,42 @@ from novatel_edie import STATUS, ENCODEFORMAT
 max_count = 1000
 
 
-@pytest.fixture(scope="module")
-def json_db():
-    return ne.load_message_database()
+class Benchmarker:
+    def __init__(self, json_db):
+        self.header_decoder = ne.HeaderDecoder(json_db)
+        self.message_decoder = ne.MessageDecoder(json_db)
+        self.encoder = ne.Encoder(json_db)
+
+    def run(self, log, encode_format):
+        meta_data = ne.MetaData()
+        failed_once = False
+        count = 0
+        start = timeit.default_timer()
+        for count in range(max_count):
+            status, header = self.header_decoder.decode(log, meta_data)
+            if status != STATUS.SUCCESS:
+                failed_once = True
+                break
+            body = log[meta_data.header_length:]
+            status, message = self.message_decoder.decode(body, meta_data)
+            if status != STATUS.SUCCESS:
+                failed_once = True
+                break
+            status, message_data = self.encoder.encode(header, message, meta_data, encode_format)
+            if status != STATUS.SUCCESS:
+                failed_once = True
+                break
+        elapsed_seconds = timeit.default_timer() - start
+        print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
+        assert not failed_once
 
 
 @pytest.fixture(scope="function")
-def header_decoder(json_db):
-    return ne.HeaderDecoder(json_db)
+def benchmarker(json_db):
+    return Benchmarker(json_db)
 
 
-@pytest.fixture(scope="function")
-def message_decoder(json_db):
-    return ne.MessageDecoder(json_db)
-
-
-@pytest.fixture(scope="function")
-def encoder(json_db):
-    return ne.Encoder(json_db)
-
-
-def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS():
+def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS(benchmarker):
     log = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x9B, 0xB4, 0x74, 0x08, 0xB8, 0x34,
          0x13, 0x14, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
@@ -69,80 +84,20 @@ def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS():
          0x4F, 0xF1, 0xD5, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x53, 0xDF, 0xFF, 0x3E,
          0x31, 0x89, 0x03, 0x3F, 0xA3, 0xBF, 0x89, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x1A, 0x18, 0x18, 0x00, 0x00, 0x00, 0x11, 0x01, 0x9F, 0x1F, 0x1A, 0xC9])
-    meta_data = ne.MetaData()
-    failed_once = False
-    count = 0
-    start = timeit.default_timer()
-    for count in range(max_count):
-        log_ptr = log
-        if STATUS.SUCCESS != header_decoder.decode(log_ptr, header, meta_data):
-            failed_once = True
-            break
-
-        log_ptr += meta_data.header_length
-        if STATUS.SUCCESS != message_decoder.decode(log_ptr, message, meta_data):
-            failed_once = True
-            break
-
-        if STATUS.SUCCESS != encoder.encode(header, message, message_data, meta_data, ENCODEFORMAT.BINARY):
-            failed_once = True
-            break
-    elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
-    assert not failed_once
+    benchmarker.run(log, ENCODEFORMAT.BINARY)
 
 
-def test_BENCHMARK_ASCII_TO_ASCII_BESTPOS():
+def test_BENCHMARK_ASCII_TO_ASCII_BESTPOS(benchmarker):
     log = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
-    meta_data = ne.MetaData()
-    failed_once = False
-    count = 0
-    start = timeit.default_timer()
-    for count in range(max_count):
-        log_ptr = log
-        if STATUS.SUCCESS != header_decoder.decode(log_ptr, header, meta_data):
-            failed_once = True
-            break
-
-        log_ptr += meta_data.header_length
-        if STATUS.SUCCESS != message_decoder.decode(log_ptr, message, meta_data):
-            failed_once = True
-            break
-
-        if STATUS.SUCCESS != encoder.encode(header, message, message_data, meta_data, ENCODEFORMAT.ASCII):
-            failed_once = True
-            break
-    elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
-    assert not failed_once
+    benchmarker.run(log, ENCODEFORMAT.ASCII)
 
 
-def test_BENCHMARK_ASCII_TO_BINARY_BESTPOS():
+def test_BENCHMARK_ASCII_TO_BINARY_BESTPOS(benchmarker):
     log = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
-    meta_data = ne.MetaData()
-    failed_once = False
-    count = 0
-    start = timeit.default_timer()
-    for count in range(max_count):
-        log_ptr = log
-        if STATUS.SUCCESS != header_decoder.decode(log_ptr, header, meta_data):
-            failed_once = True
-            break
-
-        log_ptr += meta_data.header_length
-        if STATUS.SUCCESS != message_decoder.decode(log_ptr, message, meta_data):
-            failed_once = True
-            break
-
-        if STATUS.SUCCESS != encoder.encode(header, message, message_data, meta_data, ENCODEFORMAT.BINARY):
-            failed_once = True
-            break
-    elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
-    assert not failed_once
+    benchmarker.run(log, ENCODEFORMAT.BINARY)
 
 
-def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS():
+def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS(benchmarker):
     log = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x9B, 0xB4, 0x74, 0x08, 0xB8, 0x34,
          0x13, 0x14, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
@@ -150,57 +105,15 @@ def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS():
          0x4F, 0xF1, 0xD5, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x53, 0xDF, 0xFF, 0x3E,
          0x31, 0x89, 0x03, 0x3F, 0xA3, 0xBF, 0x89, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x1A, 0x18, 0x18, 0x00, 0x00, 0x00, 0x11, 0x01, 0x9F, 0x1F, 0x1A, 0xC9])
-    meta_data = ne.MetaData()
-    failed_once = False
-    count = 0
-    start = timeit.default_timer()
-    for count in range(max_count):
-        log_ptr = log
-        if STATUS.SUCCESS != header_decoder.decode(log_ptr, header, meta_data):
-            failed_once = True
-            break
-
-        log_ptr += meta_data.header_length
-        if STATUS.SUCCESS != message_decoder.decode(log_ptr, message, meta_data):
-            failed_once = True
-            break
-
-        if STATUS.SUCCESS != encoder.encode(header, message, message_data, meta_data, ENCODEFORMAT.ASCII):
-            failed_once = True
-            break
-    elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
-    assert not failed_once
+    benchmarker.run(log, ENCODEFORMAT.ASCII)
 
 
-def test_BENCHMARK_ASCII_TO_FLAT_BINARY_BESTPOS():
+def test_BENCHMARK_ASCII_TO_FLAT_BINARY_BESTPOS(benchmarker):
     log = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
-    meta_data = ne.MetaData()
-
-    failed_once = False
-    count = 0
-
-    start = timeit.default_timer()
-    for count in range(max_count):
-        log_ptr = log
-        if STATUS.SUCCESS != header_decoder.decode(log_ptr, header, meta_data):
-            failed_once = True
-            break
-
-        log_ptr += meta_data.header_length
-        if STATUS.SUCCESS != message_decoder.decode(log_ptr, message, meta_data):
-            failed_once = True
-            break
-
-        if STATUS.SUCCESS != encoder.encode(header, message, message_data, meta_data, ENCODEFORMAT.FLATTENED_BINARY):
-            failed_once = True
-            break
-    elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
-    assert not failed_once
+    benchmarker.run(log, ENCODEFORMAT.FLATTENED_BINARY)
 
 
-def test_BENCHMARK_BINARY_TO_FLAT_BINARY_BESTPOS():
+def test_BENCHMARK_BINARY_TO_FLAT_BINARY_BESTPOS(benchmarker):
     log = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x9B, 0xB4, 0x74, 0x08, 0xB8, 0x34,
          0x13, 0x14, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
@@ -208,26 +121,4 @@ def test_BENCHMARK_BINARY_TO_FLAT_BINARY_BESTPOS():
          0x4F, 0xF1, 0xD5, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x53, 0xDF, 0xFF, 0x3E,
          0x31, 0x89, 0x03, 0x3F, 0xA3, 0xBF, 0x89, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x1A, 0x18, 0x18, 0x00, 0x00, 0x00, 0x11, 0x01, 0x9F, 0x1F, 0x1A, 0xC9])
-    meta_data = ne.MetaData()
-
-    failed_once = False
-    count = 0
-
-    start = timeit.default_timer()
-    for count in range(max_count):
-        log_ptr = log
-        if STATUS.SUCCESS != header_decoder.decode(log_ptr, header, meta_data):
-            failed_once = True
-            break
-
-        log_ptr += meta_data.header_length
-        if STATUS.SUCCESS != message_decoder.decode(log_ptr, message, meta_data):
-            failed_once = True
-            break
-
-        if STATUS.SUCCESS != encoder.encode(header, message, message_data, meta_data, ENCODEFORMAT.FLATTENED_BINARY):
-            failed_once = True
-            break
-    elapsed_seconds = timeit.default_timer() - start
-    print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
-    assert not failed_once
+    benchmarker.run(log, ENCODEFORMAT.FLATTENED_BINARY)

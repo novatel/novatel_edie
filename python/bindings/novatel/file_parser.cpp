@@ -1,5 +1,6 @@
-#include "bindings_core.h"
 #include "novatel_edie/decoders/oem/file_parser.hpp"
+
+#include "bindings_core.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
