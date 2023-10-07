@@ -53,13 +53,22 @@ void init_common_json_reader(nb::module_& m)
         .def(nb::init<>())
         .def_rw("value", &EnumDataType::value)
         .def_rw("name", &EnumDataType::name)
-        .def_rw("description", &EnumDataType::description);
+        .def_rw("description", &EnumDataType::description)
+        .def("__repr__", [](const EnumDataType& enum_data_type) {
+            if (enum_data_type.description.empty())
+                return nb::str("EnumDataType(name={!r}, value={!r})").format(enum_data_type.name, enum_data_type.value);
+            return nb::str("EnumDataType(name={!r}, value={!r}, description={!r})")
+                .format(enum_data_type.name, enum_data_type.value, enum_data_type.description);
+        });
 
     nb::class_<EnumDefinition>(m, "EnumDefinition", "Enum Definition representing contents of UI DB")
         .def(nb::init<>())
         .def_rw("id", &EnumDefinition::_id)
         .def_rw("name", &EnumDefinition::name)
-        .def_rw("enumerators", &EnumDefinition::enumerators);
+        .def_rw("enumerators", &EnumDefinition::enumerators)
+        .def("__repr__", [](const EnumDefinition& enum_def) {
+            return nb::str("EnumDefinition(id={!r}, name={!r}, enumerators={!r})").format(enum_def._id, enum_def.name, enum_def.enumerators);
+        });
 
     nb::class_<BaseDataType>(m, "BaseDataType", "Struct containing basic elements of data type fields in the UI DB")
         .def(nb::init<>())
@@ -85,15 +94,8 @@ void init_common_json_reader(nb::module_& m)
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
         .def("parse_conversion", &BaseField::ParseConversion, "str_stripped_conversion_string"_a, "before_point"_a, "after_point"_a)
         .def("__repr__", [](const BaseField& field) {
-            std::stringstream ss;
-            ss << "BaseField(" << field.name << ", ";
-            ss << nb::str(nb::cast(field.type)).c_str() << ", ";
-            ss << field.description << ", ";
-            ss << field.conversion << ", ";
-            ss << nb::str(nb::cast(field.sConversionStripped)).c_str() << ", ";
-            ss << field.conversionBeforePoint << ", ";
-            ss << field.conversionAfterPoint << ")";
-            return ss.str();
+            return nb::str("BaseField(name={!r}, type={}, description={!r}, conversion={!r})")
+                .format(field.name, nb::cast(field.type), field.description == "[Brief Description]" ? "" : field.description, field.conversion);
         });
 
     nb::class_<EnumField, BaseField>(m, "EnumField", "Struct containing elements of enum fields in the UI DB")
@@ -101,19 +103,34 @@ void init_common_json_reader(nb::module_& m)
         .def_rw("enum_id", &EnumField::enumId)
         .def_rw("enum_def", &EnumField::enumDef)
         .def_rw("length", &EnumField::length)
-        .def("clone", &EnumField::Clone);
+        .def("clone", &EnumField::Clone)
+        .def("__repr__", [](const EnumField& field) {
+            return nb::str("EnumField(name={!r}, type={}, description={!r}, conversion={!r}, enum_id={!r}, enum_def={!r}, length={!r})")
+                .format(field.name, nb::cast(field.type), field.description == "[Brief Description]" ? "" : field.description, field.conversion,
+                        field.enumId, field.enumDef, field.length);
+        });
 
     nb::class_<ArrayField, BaseField>(m, "ArrayField", "Struct containing elements of array fields in the UI DB")
         .def(nb::init<>())
         .def_rw("array_length", &ArrayField::arrayLength)
-        .def("clone", &ArrayField::Clone);
+        .def("clone", &ArrayField::Clone)
+        .def("__repr__", [](const ArrayField& field) {
+            return nb::str("ArrayField(name={!r}, type={}, description={!r}, conversion={!r}, array_length={!r})")
+                .format(field.name, nb::cast(field.type), field.description == "[Brief Description]" ? "" : field.description, field.conversion,
+                        field.arrayLength);
+        });
 
     nb::class_<FieldArrayField, BaseField>(m, "FieldArrayField", "Struct containing elements of field array fields in the UI DB")
         .def(nb::init<>())
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_rw("field_size", &FieldArrayField::fieldSize)
         .def_rw("fields", &FieldArrayField::fields)
-        .def("clone", &FieldArrayField::Clone);
+        .def("clone", &FieldArrayField::Clone)
+        .def("__repr__", [](const FieldArrayField& field) {
+            return nb::str("FieldArrayField(name={!r}, type={}, description={!r}, conversion={!r}, array_length={!r}, field_size={!r}, fields={!r})")
+                .format(field.name, nb::cast(field.type), field.description == "[Brief Description]" ? "" : field.description, field.conversion,
+                        field.arrayLength, field.fieldSize, field.fields);
+        });
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")
         .def(nb::init<>())
@@ -122,7 +139,11 @@ void init_common_json_reader(nb::module_& m)
         .def_rw("name", &MessageDefinition::name)
         .def_rw("description", &MessageDefinition::description)
         .def_rw("fields", &MessageDefinition::fields)
-        .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc);
+        .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)
+        .def("__repr__", [](const MessageDefinition& msg_def) {
+            return nb::str("MessageDefinition(id={!r}, log_id={!r}, name={!r}, description={!r}, fields={!r}, latest_message_crc={!r})")
+                .format(msg_def._id, msg_def.logID, msg_def.name, msg_def.description, msg_def.fields, msg_def.latestMessageCrc);
+        });
 
     nb::class_<JsonReader>(m, "JsonReader")
         .def(nb::init<>())
