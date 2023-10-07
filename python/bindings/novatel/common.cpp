@@ -19,7 +19,8 @@ void init_novatel_common(nb::module_& m)
         .value("NMEA", novatel::edie::HEADER_FORMAT::NMEA)
         .value("JSON", novatel::edie::HEADER_FORMAT::JSON)
         .value("SHORT_ABB_ASCII", novatel::edie::HEADER_FORMAT::SHORT_ABB_ASCII)
-        .value("ALL", novatel::edie::HEADER_FORMAT::ALL);
+        .value("ALL", novatel::edie::HEADER_FORMAT::ALL)
+        .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
     nb::class_<oem::MetaDataStruct>(m, "MetaData")
         .def(nb::init<>())

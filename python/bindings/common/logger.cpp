@@ -15,7 +15,8 @@ void init_common_logger(nb::module_& m)
         .value("WARN", spd::level::warn)
         .value("ERR", spd::level::err)
         .value("CRITICAL", spd::level::critical)
-        .value("OFF", spd::level::off);
+        .value("OFF", spd::level::off)
+        .def("__str__", [](nb::handle self) { return nb::str("LogLevel.") + getattr(self, "__name__"); });
 
     nb::enum_<spdlog::pattern_time_type>(m, "LogPatternTimeType")
         .value("LOCAL", spdlog::pattern_time_type::local)

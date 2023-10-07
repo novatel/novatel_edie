@@ -27,7 +27,8 @@ void init_common_json_reader(nb::module_& m)
         .value("DOUBLE", DATA_TYPE::DOUBLE)
         .value("HEXBYTE", DATA_TYPE::HEXBYTE)
         .value("SATELLITEID", DATA_TYPE::SATELLITEID)
-        .value("UNKNOWN", DATA_TYPE::UNKNOWN);
+        .value("UNKNOWN", DATA_TYPE::UNKNOWN)
+        .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
     m.attr("str_to_DATA_TYPE") = DataTypeEnumLookup;
 
@@ -43,7 +44,8 @@ void init_common_json_reader(nb::module_& m)
         .value("RESPONSE_STR", FIELD_TYPE::RESPONSE_STR)
         .value("RXCONFIG_HEADER", FIELD_TYPE::RXCONFIG_HEADER)
         .value("RXCONFIG_BODY", FIELD_TYPE::RXCONFIG_BODY)
-        .value("UNKNOWN", FIELD_TYPE::UNKNOWN);
+        .value("UNKNOWN", FIELD_TYPE::UNKNOWN)
+        .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
     m.attr("str_to_FIELD_TYPE") = FieldTypeEnumLookup;
 
@@ -93,7 +95,6 @@ void init_common_json_reader(nb::module_& m)
             ss << field.conversionAfterPoint << ")";
             return ss.str();
         });
-    ;
 
     nb::class_<EnumField, BaseField>(m, "EnumField", "Struct containing elements of enum fields in the UI DB")
         .def(nb::init<>())
