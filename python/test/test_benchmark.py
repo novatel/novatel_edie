@@ -55,15 +55,19 @@ class Benchmarker:
         for count in range(max_count):
             status, header = self.header_decoder.decode(log, meta_data)
             if status != STATUS.SUCCESS:
+                print("Failed to decode header: ", status)
                 failed_once = True
                 break
             body = log[meta_data.header_length:]
             status, message = self.message_decoder.decode(body, meta_data)
             if status != STATUS.SUCCESS:
+                print("Failed to decode message: ", status)
                 failed_once = True
                 break
+            print(header, message, meta_data, encode_format)
             status, message_data = self.encoder.encode(header, message, meta_data, encode_format)
             if status != STATUS.SUCCESS:
+                print("Failed to encode message: ", status)
                 failed_once = True
                 break
         elapsed_seconds = timeit.default_timer() - start
@@ -88,12 +92,12 @@ def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS(benchmarker):
 
 
 def test_BENCHMARK_ASCII_TO_ASCII_BESTPOS(benchmarker):
-    log = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
+    log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
     benchmarker.run(log, ENCODEFORMAT.ASCII)
 
 
 def test_BENCHMARK_ASCII_TO_BINARY_BESTPOS(benchmarker):
-    log = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
+    log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
     benchmarker.run(log, ENCODEFORMAT.BINARY)
 
 
@@ -109,7 +113,7 @@ def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS(benchmarker):
 
 
 def test_BENCHMARK_ASCII_TO_FLAT_BINARY_BESTPOS(benchmarker):
-    log = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
+    log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
     benchmarker.run(log, ENCODEFORMAT.FLATTENED_BINARY)
 
 

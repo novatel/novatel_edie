@@ -403,18 +403,18 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     //
     //size_t sz = 0;
     //
-    //ASSERT_EQ(std::get<bool>(vIntermediateFormat.at(sz++).field_value), true);
-    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).field_value), 99);
-    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).field_value), 227);
-    //ASSERT_EQ(std::get<int8_t>(vIntermediateFormat.at(sz++).field_value), 56);
-    //ASSERT_EQ(std::get<uint16_t>(vIntermediateFormat.at(sz++).field_value), 2734);
-    //ASSERT_EQ(std::get<int16_t>(vIntermediateFormat.at(sz++).field_value), -3842);
-    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).field_value), 38283U);
-    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).field_value), 54244U);
-    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).field_value), -4359);
-    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).field_value), 5293);
-    //ASSERT_EQ(std::get<uint64_t>(vIntermediateFormat.at(sz++).field_value), 79338432ULL);
-    //ASSERT_EQ(std::get<int64_t>(vIntermediateFormat.at(sz++).field_value), -289834LL);
-    //ASSERT_NEAR(std::get<float>(vIntermediateFormat.at(sz++).field_value), 2.54, 0.001);
-    //ASSERT_NEAR(std::get<double>(vIntermediateFormat.at(sz++).field_value), 5.44061788e+03, 0.000001);
+    //ASSERT_EQ(std::get<bool>(vIntermediateFormat.at(sz++).fieldValue), true);
+    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).fieldValue), 99);
+    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).fieldValue), 227);
+    //ASSERT_EQ(std::get<int8_t>(vIntermediateFormat.at(sz++).fieldValue), 56);
+    //ASSERT_EQ(std::get<uint16_t>(vIntermediateFormat.at(sz++).fieldValue), 2734);
+    //ASSERT_EQ(std::get<int16_t>(vIntermediateFormat.at(sz++).fieldValue), -3842);
+    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).fieldValue), 38283U);
+    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).fieldValue), 54244U);
+    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).fieldValue), -4359);
+    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).fieldValue), 5293);
+    //ASSERT_EQ(std::get<uint64_t>(vIntermediateFormat.at(sz++).fieldValue), 79338432ULL);
+    //ASSERT_EQ(std::get<int64_t>(vIntermediateFormat.at(sz++).fieldValue), -289834LL);
+    //ASSERT_NEAR(std::get<float>(vIntermediateFormat.at(sz++).fieldValue), 2.54, 0.001);
+    //ASSERT_NEAR(std::get<double>(vIntermediateFormat.at(sz++).fieldValue), 5.44061788e+03, 0.000001);
 }
