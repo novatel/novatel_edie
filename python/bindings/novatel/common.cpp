@@ -43,7 +43,16 @@ void init_novatel_common(nb::module_& m)
                 if (message_name.length() > oem::OEM4_ASCII_MESSAGE_NAME_MAX) throw std::runtime_error("Message name is too long");
                 memcpy(self.acMessageName, message_name.c_str(), message_name.length());
                 self.acMessageName[message_name.length()] = '\0';
-            });
+            })
+        .def("__repr__", [](nb::handle self) {
+            auto& metadata = nb::cast<oem::MetaDataStruct&>(self);
+            return nb::str("MetaData(message_name={!r}, format={!r}, measurement_source={!r}, time_status={!r}, response={!r}, "
+                           "week={!r}, milliseconds={!r}, binary_msg_length={!r}, length={!r}, header_length={!r}, message_id={!r}, "
+                           "message_crc={!r})")
+                .format(metadata.acMessageName, metadata.eFormat, metadata.eMeasurementSource, metadata.eTimeStatus, metadata.bResponse,
+                        metadata.usWeek, metadata.dMilliseconds, metadata.uiBinaryMsgLength, metadata.uiLength, metadata.uiHeaderLength,
+                        metadata.usMessageId, metadata.uiMessageCrc);
+        });
 
     nb::class_<oem::IntermediateHeader>(m, "IntermediateHeader")
         .def(nb::init<>())
@@ -58,5 +67,14 @@ void init_novatel_common(nb::module_& m)
         .def_rw("milliseconds", &oem::IntermediateHeader::dMilliseconds)
         .def_rw("receiver_status", &oem::IntermediateHeader::uiReceiverStatus)
         .def_rw("message_definition_crc", &oem::IntermediateHeader::uiMessageDefinitionCrc)
-        .def_rw("receiver_sw_version", &oem::IntermediateHeader::usReceiverSwVersion);
+        .def_rw("receiver_sw_version", &oem::IntermediateHeader::usReceiverSwVersion)
+        .def("__repr__", [](nb::handle self) {
+            auto& header = nb::cast<oem::IntermediateHeader&>(self);
+            return nb::str("IntermediateHeader(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
+                           "idle_time={!r}, time_status={!r}, week={!r}, milliseconds={!r}, receiver_status={!r}, "
+                           "message_definition_crc={!r}, receiver_sw_version={!r})")
+                .format(header.usMessageId, header.ucMessageType, header.uiPortAddress, header.usLength, header.usSequence, header.ucIdleTime,
+                        header.uiTimeStatus, header.usWeek, header.dMilliseconds, header.uiReceiverStatus, header.uiMessageDefinitionCrc,
+                        header.usReceiverSwVersion);
+        });
 }

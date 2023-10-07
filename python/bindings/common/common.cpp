@@ -10,8 +10,8 @@ using namespace novatel::edie;
 
 novatel::edie::DecoderException::DecoderException(STATUS status_) : status(status_)
 {
-    auto status_py = nb::cast(status);
-    std::string name = nb::cast<std::string>(repr(status_py).attr("rsplit")(".", 1)[1]);
+    nb::handle status_py = nb::cast(status);
+    std::string name = nb::str(status_py).c_str();
     msg = name + ": " + nb::cast<std::string>(status_py.doc());
 }
 
