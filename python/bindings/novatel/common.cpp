@@ -54,7 +54,7 @@ void init_novatel_common(nb::module_& m)
                         metadata.usMessageId, metadata.uiMessageCrc);
         });
 
-    nb::class_<oem::IntermediateHeader>(m, "IntermediateHeader")
+    nb::class_<oem::IntermediateHeader>(m, "Header")
         .def(nb::init<>())
         .def_rw("message_id", &oem::IntermediateHeader::usMessageId)
         .def_rw("message_type", &oem::IntermediateHeader::ucMessageType)
@@ -70,7 +70,7 @@ void init_novatel_common(nb::module_& m)
         .def_rw("receiver_sw_version", &oem::IntermediateHeader::usReceiverSwVersion)
         .def("__repr__", [](nb::handle self) {
             auto& header = nb::cast<oem::IntermediateHeader&>(self);
-            return nb::str("IntermediateHeader(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
+            return nb::str("Header(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
                            "idle_time={!r}, time_status={!r}, week={!r}, milliseconds={!r}, receiver_status={!r}, "
                            "message_definition_crc={!r}, receiver_sw_version={!r})")
                 .format(header.usMessageId, header.ucMessageType, header.uiPortAddress, header.usLength, header.usSequence, header.ucIdleTime,
