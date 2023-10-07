@@ -20,10 +20,11 @@ void init_novatel_encoder(nb::module_& m)
             "encode",
             [](oem::Encoder& encoder, oem::IntermediateHeader& header, IntermediateMessage& message, oem::MetaDataStruct& metadata,
                ENCODE_FORMAT format) {
-                char buffer[MESSAGE_SIZE_MAX];
+                unsigned char buffer[MESSAGE_SIZE_MAX];
+                unsigned char* buf_ptr = (unsigned char*)&buffer;
                 uint32_t buf_size = MESSAGE_SIZE_MAX;
                 novatel::edie::MessageDataStruct message_data;
-                STATUS status = encoder.Encode((unsigned char**)&buffer, buf_size, header, message, message_data, metadata, format);
+                STATUS status = encoder.Encode(&buf_ptr, buf_size, header, message, message_data, metadata, format);
                 return nb::make_tuple(status, oem::PyMessageData(message_data));
             },
             "header"_a, "message"_a, "metadata"_a, "encode_format"_a);
