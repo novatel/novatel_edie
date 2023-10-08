@@ -41,6 +41,7 @@ struct FieldContainer;
 
 #define NOVATEL_TYPES bool, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, std::string
 #define CONTAINER_TYPES NOVATEL_TYPES, std::vector<FieldContainer>
+using FieldValueVariant = std::variant<CONTAINER_TYPES>;
 
 //-----------------------------------------------------------------------
 //! \struct FieldContainer
@@ -48,7 +49,7 @@ struct FieldContainer;
 //-----------------------------------------------------------------------
 struct FieldContainer
 {
-    std::variant<CONTAINER_TYPES> fieldValue;
+    FieldValueVariant fieldValue;
     const BaseField* fieldDef{};
 
     template <class T> FieldContainer(T tFieldValue_, const BaseField* pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_) {}
