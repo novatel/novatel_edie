@@ -23,8 +23,6 @@ import pytest
 def rx_config_handler(json_db):
     return ne.RxConfigHandler(json_db)
 
-OEM4_BINARY_HEADER_LENGTH = 28
-
 
 def compare_message_data(test_message_data, expected_message_data):
     result = True
@@ -87,8 +85,8 @@ def test_RXCONFIG_ROUNDTRIP_ABBREV(rx_config_handler):
 def test_RXCONFIG_ROUNDTRIP_BINARY(rx_config_handler):
    # RXCONFIG
     log = bytes([0xAA, 0x44, 0x12, 0x1C, 0x80, 0x00, 0x00, 0x20, 0x30, 0x00, 0x00, 0x00, 0x65, 0xB4, 0x7C, 0x08, 0x3C, 0x78, 0x48, 0x09, 0x00, 0x00, 0x01, 0x02, 0x02, 0xF7, 0x78, 0x3F, 0xAA, 0x44, 0x12, 0x1C, 0x03, 0x00, 0x00, 0x20, 0x10, 0x00, 0x00, 0x00, 0x65, 0xB4, 0x7C, 0x08, 0x3C, 0x78, 0x48, 0x09, 0x00, 0x00, 0x01, 0x02, 0x02, 0xF7, 0x78, 0x3F, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x67, 0x74, 0xB2, 0xEC, 0x0E, 0xD1, 0xFB, 0x06])
-    expected_rx_config_message_data = (log[:80], log[:OEM4_BINARY_HEADER_LENGTH], log[OEM4_BINARY_HEADER_LENGTH:][:52])
-    expected_embedded_message_data = (log[OEM4_BINARY_HEADER_LENGTH:][:48], log[OEM4_BINARY_HEADER_LENGTH:][:OEM4_BINARY_HEADER_LENGTH], log[OEM4_BINARY_HEADER_LENGTH*2:][:20])
+    expected_rx_config_message_data = (log[:80], log[:ne.OEM4_BINARY_HEADER_LENGTH], log[ne.OEM4_BINARY_HEADER_LENGTH:][:52])
+    expected_embedded_message_data = (log[ne.OEM4_BINARY_HEADER_LENGTH:][:48], log[ne.OEM4_BINARY_HEADER_LENGTH:][:ne.OEM4_BINARY_HEADER_LENGTH], log[ne.OEM4_BINARY_HEADER_LENGTH*2:][:20])
     write_bytes_to_handler(rx_config_handler, log)
     assert TestSameFormatCompare(rx_config_handler, ENCODEFORMAT.BINARY, expected_rx_config_message_data, expected_embedded_message_data)
 

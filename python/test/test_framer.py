@@ -37,20 +37,6 @@ from novatel_edie import HEADERFORMAT, STATUS
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 TEST_RESOURCE_PATH = PROJECT_ROOT / "src" / "decoders" / "novatel" / "test" / "resources"
 
-NMEA_SYNC_LENGTH = 1
-NMEA_CRC_LENGTH = 2
-OEM4_ASCII_SYNC_LENGTH = 1
-OEM4_ASCII_CRC_LENGTH = 8
-OEM4_ASCII_MESSAGE_NAME_MAX = 40
-OEM4_SHORT_ASCII_SYNC_LENGTH = 1
-OEM4_ABBREV_ASCII_INDENTATION_LENGTH = 5
-OEM4_ERROR_PREFIX_LENGTH = 6
-OEM4_BINARY_SYNC_LENGTH = 3
-OEM4_BINARY_HEADER_LENGTH = 28
-OEM4_BINARY_CRC_LENGTH = 4
-OEM4_SHORT_BINARY_SYNC_LENGTH = 3
-OEM4_SHORT_BINARY_HEADER_LENGTH = 12
-
 
 @pytest.fixture(scope="function")
 def framer():
@@ -206,7 +192,7 @@ def test_ASCII_BYTE_BY_BYTE(framer):
         expected_meta_data.length = log_size - remaining_bytes
         # We have to process the CRC all at the same time, so we can't test byte-by-byte
         # within it
-        if remaining_bytes >= OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
+        if remaining_bytes >= ne.OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
             status, frame = framer.get_frame(test_meta_data)
             assert status == STATUS.INCOMPLETE
             assert compare_metadata(test_meta_data, expected_meta_data)
@@ -225,8 +211,8 @@ def test_ASCII_SEGMENTED(framer):
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADERFORMAT.ASCII
     test_meta_data = ne.MetaData()
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_ASCII_SYNC_LENGTH])
-    bytes_written += OEM4_ASCII_SYNC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_ASCII_SYNC_LENGTH])
+    bytes_written += ne.OEM4_ASCII_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
@@ -253,8 +239,8 @@ def test_ASCII_SEGMENTED(framer):
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_ASCII_CRC_LENGTH + 2])
-    bytes_written += OEM4_ASCII_CRC_LENGTH + 2
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_ASCII_CRC_LENGTH + 2])
+    bytes_written += ne.OEM4_ASCII_CRC_LENGTH + 2
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.SUCCESS
@@ -474,7 +460,7 @@ def test_BINARY_BYTE_BY_BYTE(framer):
         write_bytes_to_framer(framer, data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
-        if expected_meta_data.length == OEM4_BINARY_SYNC_LENGTH:
+        if expected_meta_data.length == ne.OEM4_BINARY_SYNC_LENGTH:
             expected_meta_data.format = HEADERFORMAT.BINARY
 
         if remaining_bytes > 0:
@@ -502,15 +488,15 @@ def test_BINARY_SEGMENTED(framer):
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADERFORMAT.BINARY
     test_meta_data = ne.MetaData()
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_BINARY_SYNC_LENGTH])
-    bytes_written += OEM4_BINARY_SYNC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
+    bytes_written += ne.OEM4_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:(OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH)])
-    bytes_written += (OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH)
+    write_bytes_to_framer(framer, data[bytes_written:][:(ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH)])
+    bytes_written += (ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH)
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
@@ -523,8 +509,8 @@ def test_BINARY_SEGMENTED(framer):
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_BINARY_CRC_LENGTH])
-    bytes_written += OEM4_BINARY_CRC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
+    bytes_written += ne.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.SUCCESS
@@ -660,7 +646,7 @@ def test_SHORT_ASCII_BYTE_BY_BYTE(framer):
         expected_meta_data.length = log_size - remaining_bytes
         # We have to process the CRC all at the same time, so we can't test byte-by-byte
         # within it
-        if remaining_bytes >= OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
+        if remaining_bytes >= ne.OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
             status, frame = framer.get_frame(test_meta_data)
             assert status == STATUS.INCOMPLETE
             assert compare_metadata(test_meta_data, expected_meta_data)
@@ -679,8 +665,8 @@ def test_SHORT_ASCII_SEGMENTED(framer):
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADERFORMAT.SHORT_ASCII
     test_meta_data = ne.MetaData()
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_SHORT_ASCII_SYNC_LENGTH])
-    bytes_written += OEM4_SHORT_ASCII_SYNC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_SHORT_ASCII_SYNC_LENGTH])
+    bytes_written += ne.OEM4_SHORT_ASCII_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
@@ -707,8 +693,8 @@ def test_SHORT_ASCII_SEGMENTED(framer):
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_ASCII_CRC_LENGTH + 2])
-    bytes_written += OEM4_ASCII_CRC_LENGTH + 2
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_ASCII_CRC_LENGTH + 2])
+    bytes_written += ne.OEM4_ASCII_CRC_LENGTH + 2
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.SUCCESS
@@ -862,7 +848,7 @@ def test_SHORT_BINARY_BYTE_BY_BYTE(framer):
         write_bytes_to_framer(framer, data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
-        if expected_meta_data.length == OEM4_SHORT_BINARY_SYNC_LENGTH:
+        if expected_meta_data.length == ne.OEM4_SHORT_BINARY_SYNC_LENGTH:
             expected_meta_data.format = HEADERFORMAT.SHORT_BINARY
 
         if remaining_bytes > 0:
@@ -888,16 +874,16 @@ def test_SHORT_BINARY_SEGMENTED(framer):
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADERFORMAT.SHORT_BINARY
     test_meta_data = ne.MetaData()
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_SHORT_BINARY_SYNC_LENGTH])
-    bytes_written += OEM4_SHORT_BINARY_SYNC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_SHORT_BINARY_SYNC_LENGTH])
+    bytes_written += ne.OEM4_SHORT_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     write_bytes_to_framer(framer,
-                          data[bytes_written:][:OEM4_SHORT_BINARY_HEADER_LENGTH - OEM4_SHORT_BINARY_SYNC_LENGTH])
-    bytes_written += OEM4_SHORT_BINARY_HEADER_LENGTH - OEM4_SHORT_BINARY_SYNC_LENGTH
+                          data[bytes_written:][:ne.OEM4_SHORT_BINARY_HEADER_LENGTH - ne.OEM4_SHORT_BINARY_SYNC_LENGTH])
+    bytes_written += ne.OEM4_SHORT_BINARY_HEADER_LENGTH - ne.OEM4_SHORT_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
@@ -910,8 +896,8 @@ def test_SHORT_BINARY_SEGMENTED(framer):
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_BINARY_CRC_LENGTH])
-    bytes_written += OEM4_BINARY_CRC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
+    bytes_written += ne.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.SUCCESS
@@ -1071,8 +1057,8 @@ def test_NMEA_SEGMENTED(framer):
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADERFORMAT.NMEA
     test_meta_data = ne.MetaData()
-    write_bytes_to_framer(framer, data[bytes_written:][:NMEA_SYNC_LENGTH])
-    bytes_written += NMEA_SYNC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.NMEA_SYNC_LENGTH])
+    bytes_written += ne.NMEA_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
@@ -1092,8 +1078,8 @@ def test_NMEA_SEGMENTED(framer):
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:NMEA_CRC_LENGTH])
-    bytes_written += NMEA_CRC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.NMEA_CRC_LENGTH])
+    bytes_written += ne.NMEA_CRC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE

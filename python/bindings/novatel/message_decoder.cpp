@@ -21,11 +21,34 @@ nb::object convert_field(const FieldContainer& field)
         if (sub_message.empty()) { return nb::list(); }
         else if (sub_message[0].fieldDef->type == field.fieldDef->type && sub_message[0].fieldDef->name == field.fieldDef->name)
         {
-            std::vector<nb::object> sub_values;
-            for (const auto& sub_field : sub_message) { sub_values.push_back(convert_field(sub_field)); }
-            return nb::cast(sub_values);
+            if (field.fieldDef->sConversionStripped == "%s")
+            {
+                std::string str;
+                str.reserve(sub_message.size());
+                for (const auto& sub_field : sub_message)
+                {
+                    auto c = std::get<uint8_t>(sub_field.fieldValue);
+                    if (c == 0) break;
+                    str.push_back(c);
+                }
+                return nb::cast(str);
+            }
+            else
+            {
+                std::vector<nb::object> sub_values;
+                for (const auto& sub_field : sub_message) sub_values.push_back(convert_field(sub_field));
+                return nb::cast(sub_values);
+            }
         }
         else { return nb::cast(PyIntermediateMessage(sub_message)); }
+    }
+    else if (field.fieldDef->sConversionStripped == "%id")
+    {
+        const uint32_t temp_id = std::get<uint32_t>(field.fieldValue);
+        SatelliteId sat_id;
+        sat_id.usPrnOrSlot = temp_id & 0x0000FFFF;
+        sat_id.sFrequencyChannel = (temp_id & 0xFFFF0000) >> 16;
+        return nb::cast(sat_id);
     }
     else
     {
@@ -35,17 +58,30 @@ nb::object convert_field(const FieldContainer& field)
 
 PyIntermediateMessage::PyIntermediateMessage(IntermediateMessage message_) : message(std::move(message_))
 {
-    for (const auto& field : message)
-    {
-        nb::str name(field.fieldDef->name.c_str(), field.fieldDef->name.size());
-        fields[name] = field.fieldDef;
-        values[name] = convert_field(field);
-    }
+    for (const auto& field : message) values[nb::cast(field.fieldDef->name)] = convert_field(field);
 }
 
-nb::object PyIntermediateMessage::get(nb::str field_name) { return values[std::move(field_name)]; }
+nb::object PyIntermediateMessage::getattr(nb::str field_name) const
+{
+    if (!contains(field_name)) throw nb::attribute_error(field_name.c_str());
+    return values[std::move(field_name)];
+}
 
-std::string PyIntermediateMessage::repr()
+nb::object PyIntermediateMessage::getitem(nb::str field_name) const { return values[std::move(field_name)]; }
+
+bool PyIntermediateMessage::contains(nb::str field_name) const { return values.contains(std::move(field_name)); }
+
+nb::object PyIntermediateMessage::fields() const
+{
+    if (!cached_fields_.is_valid())
+    {
+        cached_fields_ = nb::dict();
+        for (const auto& field : message) cached_fields_[nb::cast(field.fieldDef->name)] = field.fieldDef;
+    }
+    return cached_fields_;
+}
+
+std::string PyIntermediateMessage::repr() const
 {
     std::stringstream repr;
     repr << "Message(";
@@ -79,9 +115,10 @@ void init_novatel_message_decoder(nb::module_& m)
 {
     nb::class_<PyIntermediateMessage>(m, "Message")
         .def_ro("values", &PyIntermediateMessage::values)
-        .def_ro("fields", &PyIntermediateMessage::fields)
-        .def("__getattr__", &PyIntermediateMessage::get, "field_name"_a)
-        .def("__getitem__", &PyIntermediateMessage::get, "field_name"_a)
+        .def_prop_ro("fields", &PyIntermediateMessage::fields)
+        .def("__getattr__", &PyIntermediateMessage::getattr, "field_name"_a)
+        .def("__getitem__", &PyIntermediateMessage::getitem, "field_name"_a)
+        .def("__contains__", &PyIntermediateMessage::contains, "field_name"_a)
         .def("__repr__", &PyIntermediateMessage::repr)
         .def("__str__", &PyIntermediateMessage::repr);
 

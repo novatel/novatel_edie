@@ -99,7 +99,10 @@ void init_common_common(nb::module_& m)
     nb::class_<SatelliteId>(m, "SatelliteId")
         .def(nb::init<>())
         .def_rw("prn_or_slot", &SatelliteId::usPrnOrSlot)
-        .def_rw("frequency_channel", &SatelliteId::sFrequencyChannel);
+        .def_rw("frequency_channel", &SatelliteId::sFrequencyChannel)
+        .def("__repr__", [](SatelliteId id) {
+            return nb::str("SatelliteId(prn_or_slot={!r}, frequency_channel={!r})").format(id.usPrnOrSlot, id.sFrequencyChannel);
+        });
 
     m.attr("MESSAGE_SIZE_MAX") = MESSAGE_SIZE_MAX;
     m.attr("MAX_ASCII_MESSAGE_LENGTH") = MAX_ASCII_MESSAGE_LENGTH;

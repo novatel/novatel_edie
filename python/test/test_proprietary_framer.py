@@ -36,10 +36,6 @@ from novatel_edie import HEADERFORMAT, STATUS
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 TEST_RESOURCE_PATH = PROJECT_ROOT / "src" / "decoders" / "novatel" / "test" / "resources"
 
-OEM4_BINARY_SYNC_LENGTH = 3
-OEM4_BINARY_HEADER_LENGTH = 28
-OEM4_BINARY_CRC_LENGTH = 4
-
 
 @pytest.fixture(scope="function")
 def framer():
@@ -226,7 +222,7 @@ def test_PROPRIETARY_BINARY_BYTE_BY_BYTE(framer):
         write_bytes_to_framer(framer, data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
-        if expected_meta_data.length == OEM4_BINARY_SYNC_LENGTH - 1:
+        if expected_meta_data.length == ne.OEM4_BINARY_SYNC_LENGTH - 1:
             expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
 
         if remaining_bytes > 0:
@@ -253,15 +249,15 @@ def test_PROPRIETARY_BINARY_SEGMENTED(framer):
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
     test_meta_data = ne.MetaData()
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_BINARY_SYNC_LENGTH])
-    bytes_written += OEM4_BINARY_SYNC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
+    bytes_written += ne.OEM4_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH])
-    bytes_written += OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH])
+    bytes_written += ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
@@ -274,8 +270,8 @@ def test_PROPRIETARY_BINARY_SEGMENTED(framer):
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:OEM4_BINARY_CRC_LENGTH])
-    bytes_written += OEM4_BINARY_CRC_LENGTH
+    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
+    bytes_written += ne.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = framer.get_frame(test_meta_data)
     assert status == STATUS.SUCCESS
