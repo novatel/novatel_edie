@@ -14,10 +14,10 @@ void init_novatel_commander(nb::module_& m)
         .def_prop_ro("logger", &oem::Commander::GetLogger)
         .def(
             "encode",
-            [](oem::Commander& commander, std::string command, ENCODE_FORMAT format) {
+            [](oem::Commander& commander, nb::bytes command, ENCODE_FORMAT format) {
                 char buffer[MESSAGE_SIZE_MAX];
                 uint32_t buf_size = MESSAGE_SIZE_MAX;
-                STATUS status = commander.Encode(command.c_str(), command.length(), buffer, buf_size, format);
+                STATUS status = commander.Encode(command.c_str(), nb::len(command), buffer, buf_size, format);
                 return nb::make_tuple(status, nb::bytes(buffer, buf_size));
             },
             "abbrev_ascii_command"_a, "encode_format"_a);

@@ -29,16 +29,12 @@
 ################################################################################
 
 import novatel_edie as ne
-from novatel_edie import HEADERFORMAT, STATUS, ENCODEFORMAT
+from novatel_edie import STATUS, ENCODEFORMAT
 import pytest
 
 # -------------------------------------------------------------------------------------------------------
 # Command Encoding Unit Tests
 # -------------------------------------------------------------------------------------------------------
-
-@pytest.fixture(scope="module")
-def json_db():
-    return ne.load_message_database()
 
 @pytest.fixture(scope="function")
 def commander(json_db):
@@ -49,37 +45,37 @@ def commander(json_db):
 # ASCII Command Encoding Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_COMMAND_ENCODE_ASCII_CONFIGCODE(commander):
-    expected_command = "#CONFIGCODEA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,dbc9,0;ERASE_TABLE,\"WJ4HDW\",\"GM5Z99\",\"T2M7DP\",\"KG2T8T\",\"KF7GKR\",\"TABLECLEAR\"*69419dec\r\n"
-    command_to_encode = "CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\""
+    expected_command = b"#CONFIGCODEA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,dbc9,0;ERASE_TABLE,\"WJ4HDW\",\"GM5Z99\",\"T2M7DP\",\"KG2T8T\",\"KF7GKR\",\"TABLECLEAR\"*69419dec\r\n"
+    command_to_encode = b"CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\""
     status, encoded_command = commander.encode(command_to_encode, ENCODEFORMAT.ASCII)
     assert status == STATUS.SUCCESS
-    assert encoded_command.decode() == expected_command
+    assert encoded_command == expected_command
 
 def test_COMMAND_ENCODE_ASCII_INSTHRESHOLDS(commander):
-    expected_command = "#INSTHRESHOLDSA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,48a5,0;LOW,0.000000000,0.000000000,0.000000000*3989c2ac\r\n"
-    command_to_encode = "INSTHRESHOLDS LOW 0.0 0.0 0.0"
+    expected_command = b"#INSTHRESHOLDSA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,48a5,0;LOW,0.000000000,0.000000000,0.000000000*3989c2ac\r\n"
+    command_to_encode = b"INSTHRESHOLDS LOW 0.0 0.0 0.0"
     status, encoded_command = commander.encode(command_to_encode, ENCODEFORMAT.ASCII)
     assert status == STATUS.SUCCESS
-    assert encoded_command.decode() == expected_command
+    assert encoded_command == expected_command
 
 # -------------------------------------------------------------------------------------------------------
 # Binary Command Encoding Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_COMMAND_ENCODE_BINARY_CONFIGCODE(commander):
     expected_command = bytes([0xAA, 0x44, 0x12, 0x1C, 0x11, 0x04, 0x00, 0xC0, 0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC9, 0xDB, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x57, 0x4A, 0x34, 0x48, 0x44, 0x57, 0x00, 0x00, 0x47, 0x4D, 0x35, 0x5A, 0x39, 0x39, 0x00, 0x00, 0x54, 0x32, 0x4D, 0x37, 0x44, 0x50, 0x00, 0x00, 0x4B, 0x47, 0x32, 0x54, 0x38, 0x54, 0x00, 0x00, 0x4B, 0x46, 0x37, 0x47, 0x4B, 0x52, 0x00, 0x00, 0x54, 0x41, 0x42, 0x4C, 0x45, 0x43, 0x4C, 0x45, 0x41, 0x52, 0x00, 0x00, 0x06, 0xF3, 0x54, 0x45])
-    command_to_encode = "CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\""
+    command_to_encode = b"CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\""
     status, encoded_command = commander.encode(command_to_encode, ENCODEFORMAT.BINARY)
     assert status == STATUS.SUCCESS
     assert encoded_command == expected_command
 
 def test_COMMAND_ENCODE_BINARY_LOG_PARTIAL(commander):
-    command_to_encode = "LOG THISPORT BESTPOSA ONCE"
+    command_to_encode = b"LOG THISPORT BESTPOSA ONCE"
     status, encoded_command = commander.encode(command_to_encode, ENCODEFORMAT.BINARY)
     assert status == STATUS.MALFORMED_INPUT
 
 def test_COMMAND_ENCODE_BINARY_UALCONTROL(commander):
     expected_command = bytes([0xAA, 0x44, 0x12, 0x1C, 0x5B, 0x06, 0x00, 0xC0, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA3, 0x49, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F, 0xFF, 0xF8, 0x3A, 0xA7])
-    command_to_encode = "UALCONTROL ENABLE 2.0 1.0"
+    command_to_encode = b"UALCONTROL ENABLE 2.0 1.0"
     status, encoded_command = commander.encode(command_to_encode, ENCODEFORMAT.BINARY)
     assert status == STATUS.SUCCESS
     assert encoded_command == expected_command
