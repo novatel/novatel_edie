@@ -1,6 +1,7 @@
 #include "novatel_edie/decoders/oem/parser.hpp"
 
 #include "bindings_core.hpp"
+#include "py_message_data.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -23,10 +24,10 @@ void init_novatel_parser(nb::module_& m)
         .def("write", [](oem::Parser& self, nb::bytes data) { return self.Write((unsigned char*)data.c_str(), data.size()); })
         .def("read",
              [](oem::Parser& self) {
-                 novatel::edie::MessageDataStruct stMessageData;
-                 oem::MetaDataStruct stMetaData;
-                 STATUS status = self.Read(stMessageData, stMetaData);
-                 return std::make_tuple(status, stMessageData, stMetaData);
+                 novatel::edie::MessageDataStruct message_data;
+                 oem::MetaDataStruct meta_data;
+                 STATUS status = self.Read(message_data, meta_data);
+                 return std::make_tuple(status, oem::PyMessageData(std::move(message_data)), std::move(meta_data));
              })
         .def(
             "flush",

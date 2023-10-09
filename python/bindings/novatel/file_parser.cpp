@@ -1,6 +1,7 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 
 #include "bindings_core.hpp"
+#include "py_message_data.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -9,8 +10,14 @@ using namespace novatel::edie;
 void init_novatel_file_parser(nb::module_& m)
 {
     nb::class_<oem::FileParser>(m, "FileParser")
+        .def(nb::init<>())
         .def(nb::init<std::u32string>(), "json_db_path"_a)
-        .def(nb::init<JsonReader*>(), "json_db"_a)
+        // These both constructor bindings segfault for some reason
+        //      .def(nb::init<JsonReader*>(), "json_db"_a)
+        //      .def("__init__", [](oem::FileParser* t, nb::handle_t<JsonReader> json_db) {
+        //         auto* parser = new(t) oem::FileParser();
+        //         parser->LoadJsonDb(&nb::cast<JsonReader&>(json_db));
+        //      }, "json_db"_a)
         .def("load_json_db", &oem::FileParser::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::FileParser::GetLogger)
         .def("enable_framer_decoder_logging", &oem::FileParser::EnableFramerDecoderLogging, "level"_a = spdlog::level::debug,
@@ -25,10 +32,10 @@ void init_novatel_file_parser(nb::module_& m)
         .def("set_stream", &oem::FileParser::SetStream, "input_stream"_a)
         .def("read",
              [](oem::FileParser& self) {
-                 novatel::edie::MessageDataStruct stMessageData;
-                 oem::MetaDataStruct stMetaData;
-                 STATUS status = self.Read(stMessageData, stMetaData);
-                 return std::make_tuple(status, stMessageData, stMetaData);
+                 novatel::edie::MessageDataStruct message_data;
+                 oem::MetaDataStruct meta_data;
+                 STATUS status = self.Read(message_data, meta_data);
+                 return std::make_tuple(status, oem::PyMessageData(std::move(message_data)), std::move(meta_data));
              })
         .def("reset", &oem::FileParser::Reset)
         .def(
