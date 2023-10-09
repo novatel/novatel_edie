@@ -81,13 +81,13 @@ class TestHelper:
         body = message_input[meta_data.header_length:]
         status, message = self.message_decoder.decode(body, meta_data)
         assert status == STATUS.SUCCESS
-    
+
         status, message_data = self.encoder.encode(header, message, meta_data, encode_format)
         assert status == STATUS.SUCCESS
 
         if return_message:
             return Result.SUCCESS, message_data, message
-    
+
         return Result.SUCCESS, message_data
     
     def TestDecodeEncode(self, format_, encoded_message):
@@ -104,19 +104,19 @@ class TestHelper:
         if test_meta_data.header_length != len(test_message_data.header):
             print(f"MetaData.header_length is not the same as MessageData.header_length ({test_meta_data.header_length} != {len(test_message_data.header)})")
             return Result.HEADER_LENGTH_ERROR
-    
+
         if test_meta_data.length != len(test_message_data.message):
             print(f"MetaData.length is not the same as MessageData.message_length ({test_meta_data.length} != {len(test_message_data.message)})")
             return Result.LENGTH_ERROR
-    
+
         if expected_meta_data is not None:
             if not compare_metadata(test_meta_data, expected_meta_data):
                 return Result.METADATA_COMPARISON_ERROR
-    
+
         if not compare_message_data(test_message_data, expected_message_data):
             print("MessageData doesn't match ExpectedMessageData")
             return Result.MESSAGEDATA_COMPARISON_ERROR
-    
+
         return Result.SUCCESS
     
 
@@ -587,22 +587,9 @@ def test_FLAT_BINARY_LOG_DECODE_PORTSTATSB(helper):
     assert compare_binary_headers(test_log_header, log_header)
 
     # Check the populated parts of the log
-    assert 23 == portstats.port_statistics_arraylength
-    for i in range(portstats.port_statistics_arraylength):
-        assert portstats_port_fields[i] == int(portstats.port_statistics[i].port)
-
-    # Check the padded, unused parts of the log.
-    for i in range(portstats.port_statistics_arraylength):
-        assert portstats.port_statistics[i].port == 0
-        assert portstats.port_statistics[i].rx_chars == 0
-        assert portstats.port_statistics[i].tx_chars == 0
-        assert portstats.port_statistics[i].good_rx_chars == 0
-        assert portstats.port_statistics[i].dropped_chars == 0
-        assert portstats.port_statistics[i].interrupts == 0
-        assert portstats.port_statistics[i].breaks == 0
-        assert portstats.port_statistics[i].parity_errors == 0
-        assert portstats.port_statistics[i].framing_errors == 0
-        assert portstats.port_statistics[i].over_runs == 0
+    assert len(portstats.port_statistics) == 23
+    for port_statistics, expected_port in zip(portstats.port_statistics, portstats_port_fields):
+        assert port_statistics.port == expected_port
 
 
 def test_FLAT_BINARY_LOG_DECODE_PSRDOPB(helper):
@@ -619,13 +606,9 @@ def test_FLAT_BINARY_LOG_DECODE_PSRDOPB(helper):
     assert compare_binary_headers(test_log_header, log_header)
 
     # Check the populated parts of the log
-    assert 35 == psrdop.sats_arraylength
-    for i in range(psrdop.sats_arraylength):
-        assert psrdop_sat_fields[i] == psrdop.sats[i]
-
-    # Check the padded, unused parts of the log.
-    for i in range(psrdop.sats_arraylength):
-        assert psrdop.sats[i] == 0
+    assert len(psrdop.sats) == 35
+    for sat, expected in zip(psrdop.sats, psrdop_sat_fields):
+        assert sat == expected
 
 
 def test_FLAT_BINARY_LOG_DECODE_VALIDMODELSB(helper):
@@ -640,16 +623,9 @@ def test_FLAT_BINARY_LOG_DECODE_VALIDMODELSB(helper):
     assert compare_binary_headers(test_log_header, log_header)
 
     # Check the populated parts of the log
-    assert 1 == validmodels.models_arraylength
-    for i in range(validmodels.models_arraylength):
-        assert "FFNRNNCBN" == validmodels.models[i].model
-
-    # Check the padded, unused parts of the log.
-    for i in range(validmodels.models_arraylength):
-        assert validmodels.models[i].model[0] == '\0'
-        assert validmodels.models[i].expiry_year == 0
-        assert validmodels.models[i].expiry_month == 0
-        assert validmodels.models[i].expiry_day == 0
+    assert len(validmodels.models) == 1
+    for models in validmodels.models:
+        assert models.model == "FFNRNNCBN"
 
 
 def test_FLAT_BINARY_LOG_DECODE_VERSION(helper):
@@ -682,47 +658,48 @@ def test_FLAT_BINARY_LOG_DECODE_VERSION(helper):
     assert log_header.receiver_sw_version == 32768
 
     # Check the populated parts of the log
-    assert version.versions_arraylength == 4
+    versions = version.versions
+    assert len(versions) == 4
 
     # Check GPSCARD fields
-    assert version.versions[0].component_type == 1
-    assert version.versions[0].model_name == "FFNRNNCBN"
-    assert version.versions[0].psn == "BMGX15360035V"
-    assert version.versions[0].hardware_version == "OEM729-0.00H"
-    assert version.versions[0].software_version == "OM7MG0810DN0000"
-    assert version.versions[0].boot_version == "OM7BR0000ABG001"
-    assert version.versions[0].compile_date == "2022/Jun/17"
-    assert version.versions[0].compile_time == "08:24:06"
+    assert versions[0].component_type == 1
+    assert versions[0].model_name == "FFNRNNCBN"
+    assert versions[0].psn == "BMGX15360035V"
+    assert versions[0].hardware_version == "OEM729-0.00H"
+    assert versions[0].software_version == "OM7MG0810DN0000"
+    assert versions[0].boot_version == "OM7BR0000ABG001"
+    assert versions[0].compile_date == "2022/Jun/17"
+    assert versions[0].compile_time == "08:24:06"
 
     # Check OEM7FPGA fields
-    assert version.versions[1].component_type == 21
-    assert version.versions[1].model_name == ""
-    assert version.versions[1].psn == ""
-    assert version.versions[1].hardware_version == ""
-    assert version.versions[1].software_version == "OMV070001RN0000"
-    assert version.versions[1].boot_version == ""
-    assert version.versions[1].compile_date == ""
-    assert version.versions[1].compile_time == ""
+    assert versions[1].component_type == 21
+    assert versions[1].model_name == ""
+    assert versions[1].psn == ""
+    assert versions[1].hardware_version == ""
+    assert versions[1].software_version == "OMV070001RN0000"
+    assert versions[1].boot_version == ""
+    assert versions[1].compile_date == ""
+    assert versions[1].compile_time == ""
 
     # Check DB_LUA_SCRIPTS fields
-    assert version.versions[2].component_type == 981073930
-    assert version.versions[2].model_name == "SCRIPTS"
-    assert version.versions[2].psn == "Block1"
-    assert version.versions[2].hardware_version == ""
-    assert version.versions[2].software_version == "Package1_1.0"
-    assert version.versions[2].boot_version == ""
-    assert version.versions[2].compile_date == "2017/Oct/27"
-    assert version.versions[2].compile_time == "16:02:54"
+    assert versions[2].component_type == 981073930
+    assert versions[2].model_name == "SCRIPTS"
+    assert versions[2].psn == "Block1"
+    assert versions[2].hardware_version == ""
+    assert versions[2].software_version == "Package1_1.0"
+    assert versions[2].boot_version == ""
+    assert versions[2].compile_date == "2017/Oct/27"
+    assert versions[2].compile_time == "16:02:54"
 
     # Check DB_WWWISO fields
-    assert version.versions[3].component_type == 981073928
-    assert version.versions[3].model_name == "WWWISO"
-    assert version.versions[3].psn == "0"
-    assert version.versions[3].hardware_version == ""
-    assert version.versions[3].software_version == "WMC010202RN0002"
-    assert version.versions[3].boot_version == ""
-    assert version.versions[3].compile_date == "2017/Dec/15"
-    assert version.versions[3].compile_time == "9:08:56"
+    assert versions[3].component_type == 981073928
+    assert versions[3].model_name == "WWWISO"
+    assert versions[3].psn == "0"
+    assert versions[3].hardware_version == ""
+    assert versions[3].software_version == "WMC010202RN0002"
+    assert versions[3].boot_version == ""
+    assert versions[3].compile_date == "2017/Dec/15"
+    assert versions[3].compile_time == "9:08:56"
 
 
 def test_FLAT_BINARY_LOG_DECODE_VERSIONA(helper):
@@ -750,39 +727,40 @@ def test_FLAT_BINARY_LOG_DECODE_VERSIONA(helper):
     assert log_header.receiver_sw_version == 16248
 
     # Check the populated parts of the log
-    assert version.versions_arraylength == 8
+    versions = version.versions
+    assert len(versions) == 8
 
     # Check GPSCARD fields
-    assert version.versions[0].component_type == 1
-    assert version.versions[0].model_name == "FFNBYNTMNP1"
-    assert version.versions[0].psn == "BMHR15470120X"
-    assert version.versions[0].hardware_version == "OEM719N-0.00C"
-    assert version.versions[0].software_version == "OM7CR0707RN0000"
-    assert version.versions[0].boot_version == "OM7BR0000RBG000"
-    assert version.versions[0].compile_date == "2020/Apr/09"
-    assert version.versions[0].compile_time == "13:40:45"
+    assert versions[0].component_type == 1
+    assert versions[0].model_name == "FFNBYNTMNP1"
+    assert versions[0].psn == "BMHR15470120X"
+    assert versions[0].hardware_version == "OEM719N-0.00C"
+    assert versions[0].software_version == "OM7CR0707RN0000"
+    assert versions[0].boot_version == "OM7BR0000RBG000"
+    assert versions[0].compile_date == "2020/Apr/09"
+    assert versions[0].compile_time == "13:40:45"
 
     # Check OEM7FPGA fields
-    assert version.versions[1].component_type == 21
-    assert version.versions[1].model_name == ""
-    assert version.versions[1].psn == ""
-    assert version.versions[1].hardware_version == ""
-    assert version.versions[1].software_version == "OMV070001RN0000"
-    assert version.versions[1].boot_version == ""
-    assert version.versions[1].compile_date == ""
-    assert version.versions[1].compile_time == ""
+    assert versions[1].component_type == 21
+    assert versions[1].model_name == ""
+    assert versions[1].psn == ""
+    assert versions[1].hardware_version == ""
+    assert versions[1].software_version == "OMV070001RN0000"
+    assert versions[1].boot_version == ""
+    assert versions[1].compile_date == ""
+    assert versions[1].compile_time == ""
 
     # If the last component is correct, we can assume the middle ones are as well.
 
     # Check RADIO fields
-    assert version.versions[7].component_type == 18
-    assert version.versions[7].model_name == "M3-R4"
-    assert version.versions[7].psn == "1843000570"
-    assert version.versions[7].hardware_version == "SPL0020d12"
-    assert version.versions[7].software_version == "V07.34.2.5.1.11"
-    assert version.versions[7].boot_version == ""
-    assert version.versions[7].compile_date == ""
-    assert version.versions[7].compile_time == ""
+    assert versions[7].component_type == 18
+    assert versions[7].model_name == "M3-R4"
+    assert versions[7].psn == "1843000570"
+    assert versions[7].hardware_version == "SPL0020d12"
+    assert versions[7].software_version == "V07.34.2.5.1.11"
+    assert versions[7].boot_version == ""
+    assert versions[7].compile_date == ""
+    assert versions[7].compile_time == ""
 
 
 def test_FLAT_BINARY_LOG_DECODE_VERSIONB(helper):
@@ -799,20 +777,9 @@ def test_FLAT_BINARY_LOG_DECODE_VERSIONB(helper):
     assert compare_binary_headers(test_log_header, log_header)
 
     # Check the populated parts of the log
-    assert version.versions_arraylength == 5
-    for i in range(version.versions_arraylength):
-        assert version_type_fields[i] == int(version.versions[i].component_type)
-
-    # Check the padded, unused parts of the log.
-    for i in range(version.versions_arraylength):
-        assert version.versions[i].component_type == 0
-        assert version.versions[i].model_name[0] == '\0'
-        assert version.versions[i].psn[0] == '\0'
-        assert version.versions[i].hardware_version[0] == '\0'
-        assert version.versions[i].software_version[0] == '\0'
-        assert version.versions[i].boot_version[0] == '\0'
-        assert version.versions[i].compile_date[0] == '\0'
-        assert version.versions[i].compile_time[0] == '\0'
+    assert len(version.versions) == 5
+    for versions, expected_type in zip(version.versions, version_type_fields):
+        assert versions.component_type == expected_type
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -1055,14 +1022,13 @@ def ASSERT_SHORT_HEADER_EQ(short_header_, header_):
 
 
 def ASSERT_BESTSATS_EQ(message1, message2):
-    assert message1.satellite_entries_arraylength == message2.satellite_entries_arraylength
-
-    for i in range(message1.satellite_entries_arraylength):
-        assert message1.satellite_entries[i].system_type == message2.satellite_entries[i].system_type
-        assert message1.satellite_entries[i].id.prn_or_slot == message2.satellite_entries[i].id.prn_or_slot
-        assert message1.satellite_entries[i].id.frequency_channel == message2.satellite_entries[i].id.frequency_channel
-        assert message1.satellite_entries[i].status == message2.satellite_entries[i].status
-        assert message1.satellite_entries[i].status_mask == message2.satellite_entries[i].status_mask
+    assert len(message1.satellite_entries) == len(message2.satellite_entries)
+    for satellite_entries1, satellite_entries2 in zip(message1.satellite_entries, message2.satellite_entries):
+        assert satellite_entries1.system_type == satellite_entries2.system_type
+        assert satellite_entries1.id.prn_or_slot == satellite_entries2.id.prn_or_slot
+        assert satellite_entries1.id.frequency_channel == satellite_entries2.id.frequency_channel
+        assert satellite_entries1.status == satellite_entries2.status
+        assert satellite_entries1.status_mask == satellite_entries2.status_mask
 
 
 def ASSERT_BESTPOS_EQ(message1, message2):
@@ -1090,25 +1056,21 @@ def ASSERT_BESTPOS_EQ(message1, message2):
 
 
 def ASSERT_LOGLIST_EQ(message1, message2):
-    assert message1.log_list_arraylength == message2.log_list_arraylength
-
-    for i in range(message1.log_list_arraylength):
-        assert message1.log_list[i].log_port_address == message2.log_list[i].log_port_address
-        assert message1.log_list[i].message_id == message2.log_list[i].message_id
-        assert message1.log_list[i].trigger == message2.log_list[i].trigger
-        assert message1.log_list[i].on_time == approx(message2.log_list[i].on_time, abs=1e-3)
-        assert message1.log_list[i].offset == message2.log_list[i].offset
-        assert message1.log_list[i].hold == message2.log_list[i].hold
+    assert len(message1.log_list) == len(message2.log_list)
+    for log_list1, log_list2 in zip(message1.log_list, message2.log_list):
+        assert log_list1.log_port_address == log_list2.log_port_address
+        assert log_list1.message_id == log_list2.message_id
+        assert log_list1.trigger == log_list2.trigger
+        assert log_list1.on_time == approx(log_list2.on_time, abs=1e-3)
+        assert log_list1.offset == log_list2.offset
+        assert log_list1.hold == log_list2.hold
 
 
 def ASSERT_RAWGPSSUBFRAME_EQ(message1, message2):
     assert message1.frame_decoder_number == message2.frame_decoder_number
     assert message1.satellite_id == message2.satellite_id
     assert message1.sub_frame_id == message2.sub_frame_id
-
-    for i in range(len(message2.raw_sub_frame_data)):
-        assert message1.raw_sub_frame_data[i] == message2.raw_sub_frame_data[i]
-
+    assert message1.raw_sub_frame_data == message2.raw_sub_frame_data
     assert message1.signal_channel_number == message2.signal_channel_number
 
 
@@ -1116,19 +1078,18 @@ def ASSERT_TRACKSTAT_EQ(message1, message2):
     assert message1.position_status == message2.position_status
     assert message1.position_type == message2.position_type
     assert message1.tracking_elevation_cutoff == message2.tracking_elevation_cutoff
-    assert message1.chan_status_arraylength == message2.chan_status_arraylength
-
-    for i in range(message1.chan_status_arraylength):
-        assert message1.chan_status[i].prn == message2.chan_status[i].prn
-        assert message1.chan_status[i].freq == message2.chan_status[i].freq
-        assert message1.chan_status[i].channel_status == message2.chan_status[i].channel_status
-        assert message1.chan_status[i].psr == approx(message2.chan_status[i].psr, abs=1e-3)
-        assert message1.chan_status[i].doppler == approx(message2.chan_status[i].doppler, abs=1e-3)
-        assert message1.chan_status[i].C_No == approx(message2.chan_status[i].C_No, abs=1e-3)
-        assert message1.chan_status[i].lock_time == approx(message2.chan_status[i].lock_time, abs=1e-3)
-        assert message1.chan_status[i].psr_residual == approx(message2.chan_status[i].psr_residual, abs=1e-3)
-        assert message1.chan_status[i].psr_range_reject == message2.chan_status[i].psr_range_reject
-        assert message1.chan_status[i].psr_filter_weighting == approx(message2.chan_status[i].psr_filter_weighting, abs=1e-3)
+    assert len(message1.chan_status) == len(message2.chan_status)
+    for chan_status1, chan_status2 in zip(message1.chan_status, message2.chan_status):
+        assert chan_status1.prn == chan_status2.prn
+        assert chan_status1.freq == chan_status2.freq
+        assert chan_status1.channel_status == chan_status2.channel_status
+        assert chan_status1.psr == approx(chan_status2.psr, abs=1e-3)
+        assert chan_status1.doppler == approx(chan_status2.doppler, abs=1e-3)
+        assert chan_status1.C_No == approx(chan_status2.C_No, abs=1e-3)
+        assert chan_status1.lock_time == approx(chan_status2.lock_time, abs=1e-3)
+        assert chan_status1.psr_residual == approx(chan_status2.psr_residual, abs=1e-3)
+        assert chan_status1.psr_range_reject == chan_status2.psr_range_reject
+        assert chan_status1.psr_filter_weighting == approx(chan_status2.psr_filter_weighting, abs=1e-3)
 
 
 # -------------------------------------------------------------------------------------------------------

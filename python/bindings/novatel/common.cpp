@@ -122,10 +122,11 @@ void init_novatel_common(nb::module_& m)
         .def(nb::init<>())
         .def("__init__",
              [](oem::Oem4BinaryHeader* t, nb::bytes header_data) {
-                 if (nb::len(header_data) != sizeof(oem::Oem4BinaryHeader))
+                 if (nb::len(header_data) < sizeof(oem::Oem4BinaryHeader))
                  {
-                     throw nb::value_error(
-                         nb::str("Invalid header data length: {} instead of {}").format(nb::len(header_data), sizeof(oem::Oem4BinaryHeader)).c_str());
+                     throw nb::value_error(nb::str("Invalid header data length: {} instead of {} bytes")
+                                               .format(nb::len(header_data), sizeof(oem::Oem4BinaryHeader))
+                                               .c_str());
                  }
                  auto* header = new (t) oem::Oem4BinaryHeader();
                  memcpy(header, header_data.c_str(), sizeof(oem::Oem4BinaryHeader));
