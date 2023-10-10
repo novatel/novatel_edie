@@ -31,7 +31,6 @@
 
 import os
 import sys
-import timeit
 
 import novatel_edie as ne
 from novatel_edie import Logger, LogLevel, STATUS
@@ -50,7 +49,7 @@ def main():
     # Get command line arguments
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encode_format_str = "ASCII"
+    encode_format = ne.ENCODEFORMAT.ASCII
     if "-V" in sys.argv:
         exit(0)
     if len(sys.argv) < 3:
@@ -58,48 +57,38 @@ def main():
         logger.error("Example: converter <path to input file> <output format>")
         exit(1)
     if len(sys.argv) == 3:
-        encode_format_str = sys.argv[2]
+        encode_format = ne.string_to_encode_format(sys.argv[2])
 
     in_filename = sys.argv[1]
     if not os.path.exists(in_filename):
         logger.error(f'File "{in_filename}" does not exist')
         exit(1)
 
-    encode_format = ne.string_to_encode_format(encode_format_str)
     if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
         logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
         exit(1)
-
-    # Load the database
-    logger.info("Loading Database... ")
-    t0 = timeit.default_timer()
-    json_db = ne.load_message_database()
-    t1 = timeit.default_timer()
-    logger.info(f"Done in {(t1 - t0) * 1e3:.0f} ms")
 
     # Setup the EDIE components
     framer = ne.Framer()
     framer.set_report_unknown_bytes(True)
     framer.set_payload_only(False)
     framer.set_frame_json(False)
-    _configure_logging(framer.logger)
 
-    header_decoder = ne.HeaderDecoder(json_db)
-    _configure_logging(header_decoder.logger)
-
-    message_decoder = ne.MessageDecoder(json_db)
-    _configure_logging(message_decoder.logger)
-
-    encoder = ne.Encoder(json_db)
-    _configure_logging(encoder.logger)
-
+    header_decoder = ne.HeaderDecoder()
+    message_decoder = ne.MessageDecoder()
+    encoder = ne.Encoder()
     filter = ne.Filter()
+
+    _configure_logging(framer.logger)
+    _configure_logging(header_decoder.logger)
+    _configure_logging(message_decoder.logger)
+    _configure_logging(encoder.logger)
     _configure_logging(filter.logger)
 
-    # Setup filestreams
+    # Setup file streams
     ifs = ne.InputFileStream(in_filename)
-    converted_logs_ofs = ne.OutputFileStream(f"{in_filename}.{encode_format}")
-    unknown_bytes_ofs = ne.OutputFileStream(f"{in_filename}.UNKNOWN")
+    converted_logs_stream = ne.OutputFileStream(f"{in_filename}.{encode_format}")
+    unknown_bytes_stream = ne.OutputFileStream(f"{in_filename}.UNKNOWN")
 
     read_status = ne.StreamReadStatus()
     while not read_status.eos:
@@ -111,12 +100,12 @@ def main():
         while framer_status != STATUS.BUFFER_EMPTY and framer_status != STATUS.INCOMPLETE:
             framer_status, frame, metadata = framer.get_frame()
             if framer_status == STATUS.UNKNOWN:
-                unknown_bytes_ofs.write(frame)
+                unknown_bytes_stream.write(frame)
             elif framer_status != STATUS.SUCCESS:
                 logger.warn(f"Framer returned with status code {int(framer_status)}: {framer_status.__doc__}")
                 continue
             if metadata.response:
-                unknown_bytes_ofs.write(frame)
+                unknown_bytes_stream.write(frame)
                 continue
 
             logger.info(f"Framed: {frame}")
@@ -124,7 +113,7 @@ def main():
             # Decode the header.  Get meta data here and populate the Intermediate header.
             status, header = header_decoder.decode(frame, metadata)
             if status != STATUS.SUCCESS:
-                unknown_bytes_ofs.write(frame)
+                unknown_bytes_stream.write(frame)
                 logger.warn(f"HeaderDecoder returned with status code {int(status)}: {status.__doc__}")
                 continue
 
@@ -136,22 +125,22 @@ def main():
             # Decode the Log, pass the meta data and populate the intermediate log.
             status, message = message_decoder.decode(raw_message, metadata)
             if status != STATUS.SUCCESS:
-                unknown_bytes_ofs.write(raw_message)
+                unknown_bytes_stream.write(raw_message)
                 logger.warn(f"MessageDecoder returned with status code {int(status)}: {status.__doc__}")
                 continue
 
             status, encoded_message = encoder.encode(header, message, metadata, encode_format)
             if status != STATUS.SUCCESS:
-                unknown_bytes_ofs.write(raw_message)
+                unknown_bytes_stream.write(raw_message)
                 logger.warn(f"Encoder returned with status code {int(status)}: {status.__doc__}")
                 continue
 
-            converted_logs_ofs.write(encoded_message.message)
+            converted_logs_stream.write(encoded_message.message)
             logger.info(f"Encoded: ({len(encoded_message.message)}) {encoded_message.message}")
 
     # Clean up
-    unparsed_bytes = framer.flush(True)
-    unknown_bytes_ofs.write(unparsed_bytes)
+    unparsed_bytes = framer.flush()
+    unknown_bytes_stream.write(unparsed_bytes)
 
     Logger.shutdown()
 

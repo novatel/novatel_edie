@@ -47,44 +47,32 @@ def main():
         logger.info(f"Decoder library information:\n{ne.pretty_version}")
         exit(0)
 
-    encode_format = "ASCII"
+    encode_format = ne.ENCODEFORMAT.ASCII
 
-    if len(sys.argv) - 1 < 3:
-        logger.info("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.\n")
-        logger.info("Example: converter <path to Json DB> <path to input file> <output format>\n")
-        return -1
-    if len(sys.argv) - 1 == 4:
-        encode_format = sys.argv[3]
+    if len(sys.argv) < 3:
+        logger.info("ERROR: Need to specify an input file and an output format.\n")
+        logger.info("Example: converter <path to input file> <output format>\n")
+        exit(-1)
+    if len(sys.argv) == 4:
+        encode_format = ne.string_to_encode_format(sys.argv[2])
 
     if not os.path.exists(sys.argv[1]):
         logger.error(f'File "{sys.argv[1]}" does not exist')
         exit(1)
-    if not os.path.exists(sys.argv[2]):
-        logger.error(f'File "{sys.argv[2]}" does not exist')
-        exit(1)
 
-    json_db = sys.argv[1]
-    infilename = sys.argv[2]
+    infilename = sys.argv[1]
 
-    encode_format_str = sys.argv[1]
-    encode_format = ne.string_to_encode_format(encode_format_str)
     if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
         logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
         return -1
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    jsondb = ne.JsonReader()
-    logger.info("Loading Database... ")
-    start = timeit.default_timer()
-    jsondb.LoadFile(jsondb)
-    logger.info(f"DONE ({timeit.default_timer() - start:.0f} ms)")
-
     framer = ne.Framer()
-    header_decoder = ne.HeaderDecoder(json_db)
-    message_decoder = ne.MessageDecoder(json_db)
-    rangedecompressor = ne.RangeDecompressor(json_db)
-    encoder = ne.Encoder(json_db)
+    header_decoder = ne.HeaderDecoder()
+    message_decoder = ne.MessageDecoder()
+    rangedecompressor = ne.RangeDecompressor()
+    encoder = ne.Encoder()
 
     framer.logger.set_level(LogLevel.DEBUG)
     header_decoder.logger.set_level(LogLevel.DEBUG)
@@ -108,13 +96,11 @@ def main():
     message = ne.IntermediateMessage()
 
     metadata = ne.MetaDataStruct()
-    mesage_data = ne.MessageDataStruct()
+    message_data = ne.MessageDataStruct()
 
     start = timeit.default_timer()
     completedmessages = 0
     while True:
-        readbuffer = framebuffer
-
         # Get frame, null-terminate.
         status = framer.GetFrame(readbuffer, metadata)
         if status == ne.STATUS.SUCCESS:
@@ -129,7 +115,7 @@ def main():
                         readbuffer[metadata.length] = "\0"
                         logger.info(f"Decompressed: ({metadata.length}) {readbuffer}")
                     else:
-                        logger.error(f"Could only write {byteswritten}/{mesage_data.messagelength} bytes.")
+                        logger.error(f"Could only write {byteswritten}/{message_data.messagelength} bytes.")
                 elif status == ne.STATUS.UNSUPPORTED:
                     if status == ne.STATUS.SUCCESS:
                         header.messageid = metadata.messageid
@@ -139,13 +125,13 @@ def main():
                             encodedmessagebuffer, status = encoder.Encode(
                                 header,
                                 message,
-                                mesage_data,
+                                message_data,
                                 metadata,
                                 encode_format,
                             )
                             if status == ne.STATUS.SUCCESS:
-                                mesage_data.message[mesage_data.messagelength] = "\0"
-                                logger.info(f"Encoded: ({mesage_data.messagelength}) {mesage_data.message}")
+                                message_data.message[message_data.messagelength] = "\0"
+                                logger.info(f"Encoded: ({message_data.messagelength}) {message_data.message}")
         elif (status == ne.STATUS.BUFFER_EMPTY) or (status == ne.STATUS.INCOMPLETE):
             # Read from file, write to framer.
             readstatus = ifs.ReadData(readdata)

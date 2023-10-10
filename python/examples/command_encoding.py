@@ -30,7 +30,6 @@
 ########################################################################
 
 import sys
-import timeit
 from pathlib import Path
 
 import novatel_edie as ne
@@ -48,23 +47,16 @@ def main():
         logger.error('Example: command_encoding ASCII "RTKTIMEOUT 30"\n')
         exit(1)
 
-    encode_format_str = sys.argv[1]
-    encode_format = ne.string_to_encode_format(encode_format_str)
+    encode_format = ne.string_to_encode_format(sys.argv[1])
     if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
         logger.error("Unsupported output format. Choose from:\n\tASCII\n\tBINARY")
         exit(1)
 
-    logger.info("Loading Database... ")
-    t0 = timeit.default_timer()
-    json_db = ne.load_message_database()
-    t1 = timeit.default_timer()
-    logger.info(f"Done in {(t1 - t0) * 1e3:.0f} ms")
-
-    command = sys.argv[2]
-    logger.info(f'Converting "{command}" to {encode_format_str}')
-    commander = ne.Commander(json_db)
-    encoded_command = commander.encode(command, encode_format)
-    out_file = Path(f"COMMAND.{encode_format_str}")
+    command = sys.argv[2].encode()
+    logger.info(f'Converting "{command}" to {encode_format}')
+    commander = ne.Commander()
+    status, encoded_command = commander.encode(command, encode_format)
+    out_file = Path(f"COMMAND.{encode_format}")
     out_file.write_bytes(encoded_command)
 
 

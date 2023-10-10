@@ -47,33 +47,26 @@ def main():
     # Get command line arguments
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encode_format = "ASCII"
-    if (len(sys.argv) - 1 == 2) and (sys.argv[1] == "-V"):
+    encode_format = ne.ENCODEFORMAT.ASCII
+    if "-V" in sys.argv:
         exit(0)
-    if len(sys.argv) - 1 < 3:
-        logger.error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.")
-        logger.error("Example: converter <path to Json DB> <path to input file> <output format>")
+    if len(sys.argv) < 3:
+        logger.error("ERROR: Need to specify an input file and an output format.")
+        logger.error("Example: converter <path to input file> <output format>")
         exit(1)
-    if len(sys.argv) - 1 == 4 or len(sys.argv) - 1 == 5:
-        encode_format = sys.argv[3]
+    if len(sys.argv) == 4 or len(sys.argv) == 5:
+        encode_format = ne.string_to_encode_format(sys.argv[2])
 
     appendmsg = ""
     if len(sys.argv) - 1 == 5:
         appendmsg = sys.argv[4]
 
     # Check command line arguments
-    jsondb = sys.argv[1]
-    if not os.path.exists(jsondb):
-        logger.error(f'File "{jsondb}" does not exist')
-        exit(1)
-
     infilename = sys.argv[2]
     if not os.path.exists(infilename):
         logger.error(f'File "{infilename}" does not exist')
         exit(1)
 
-    encode_format_str = sys.argv[1]
-    encode_format = ne.string_to_encode_format(encode_format_str)
     if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
         logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
         exit(1)
@@ -87,7 +80,7 @@ def main():
 
     logger.info("Appending Message...")
     start = timeit.default_timer()
-    jsondb.append_messages(appendmsg)
+    json_db.append_messages(appendmsg)
     logger.info(f"Done in {timeit.default_timer() - start:.0f}ms")
 
     # Setup timers
@@ -121,11 +114,11 @@ def main():
         parser.Write(readdata)
 
         while True:
-            status = parser.Read(mesage_data, metadata)
+            status = parser.Read(message_data, metadata)
 
             if status == ne.STATUS.SUCCESS:
-                convertedlogsofs.WriteData(mesage_data)
-                logger.info(f"Encoded: ({mesage_data.messagelength}) {mesage_data.message}")
+                convertedlogsofs.WriteData(message_data)
+                logger.info(f"Encoded: ({message_data.messagelength}) {message_data.message}")
                 completemessages += 1
 
             if timeit.default_timer() - loop > 1:
