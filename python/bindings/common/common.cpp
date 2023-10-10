@@ -8,11 +8,11 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-novatel::edie::DecoderException::DecoderException(STATUS status_) : status(status_)
+novatel::edie::DecoderException::DecoderException(nb::handle_t<STATUS> status, std::string message) : msg(std::move(message))
 {
-    nb::handle status_py = nb::cast(status);
-    std::string name = nb::str(status_py).c_str();
-    msg = name + ": " + nb::cast<std::string>(status_py.doc());
+    std::string name = nb::str(status).c_str();
+    if (!msg.empty()) msg += ": ";
+    msg += name + ": " + nb::cast<std::string>(status.doc());
 }
 
 const char* novatel::edie::DecoderException::what() const noexcept { return msg.c_str(); }
@@ -38,6 +38,12 @@ void init_common_common(nb::module_& m)
         .value("UNSUPPORTED", STATUS::UNSUPPORTED, "An attempted operation is unsupported by this component.")
         .value("MALFORMED_INPUT", STATUS::MALFORMED_INPUT, "The input is recognizable, but has unexpected formatting.")
         .value("DECOMPRESSION_FAILURE", STATUS::DECOMPRESSION_FAILURE, "The RANGECMPx log could not be decompressed.")
+        .def(
+            "raise_on_error",
+            [](nb::handle_t<STATUS> status, nb::str message) {
+                if (nb::cast<STATUS>(status) != STATUS::SUCCESS) throw DecoderException(status, nb::cast<std::string>(message));
+            },
+            "message"_a = "")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
     nb::enum_<ENCODE_FORMAT>(m, "ENCODE_FORMAT")

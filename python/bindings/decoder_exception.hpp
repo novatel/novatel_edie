@@ -3,17 +3,19 @@
 #include <exception>
 
 #include "novatel_edie/decoders/common/common.hpp"
+#include "nanobind/nanobind.h"
+
+namespace nb = nanobind;
 
 namespace novatel::edie {
 class DecoderException : public std::exception
 {
   public:
-    DecoderException(STATUS status);
+    DecoderException(nb::handle_t<STATUS> status, std::string message = "");
 
     const char* what() const noexcept override;
 
   private:
-    STATUS status;
     std::string msg;
 };
 } // namespace novatel::edie

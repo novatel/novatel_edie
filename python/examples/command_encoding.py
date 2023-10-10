@@ -52,10 +52,11 @@ def main():
         logger.error("Unsupported output format. Choose from:\n\tASCII\n\tBINARY")
         exit(1)
 
-    command = sys.argv[2].encode()
+    command = sys.argv[2]
     logger.info(f'Converting "{command}" to {encode_format}')
     commander = ne.Commander()
-    status, encoded_command = commander.encode(command, encode_format)
+    status, encoded_command = commander.encode(command.encode(), encode_format)
+    status.raise_on_error()
     out_file = Path(f"COMMAND.{encode_format}")
     out_file.write_bytes(encoded_command)
 

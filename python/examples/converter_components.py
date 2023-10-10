@@ -31,6 +31,7 @@
 
 import os
 import sys
+from traceback import format_exc
 
 import novatel_edie as ne
 from novatel_edie import Logger, LogLevel, STATUS
@@ -98,45 +99,39 @@ def main():
         framer_status = STATUS.INCOMPLETE_MORE_DATA
 
         while framer_status != STATUS.BUFFER_EMPTY and framer_status != STATUS.INCOMPLETE:
-            framer_status, frame, metadata = framer.get_frame()
-            if framer_status == STATUS.UNKNOWN:
-                unknown_bytes_stream.write(frame)
-            elif framer_status != STATUS.SUCCESS:
-                logger.warn(f"Framer returned with status code {int(framer_status)}: {framer_status.__doc__}")
-                continue
-            if metadata.response:
-                unknown_bytes_stream.write(frame)
-                continue
+            try:
+                framer_status, frame, metadata = framer.get_frame()
+                if framer_status == STATUS.UNKNOWN:
+                    unknown_bytes_stream.write(frame)
+                elif framer_status != STATUS.SUCCESS:
+                    logger.warn(f"Framer returned with status code {int(framer_status)}: {framer_status.__doc__}")
+                    continue
+                if metadata.response:
+                    unknown_bytes_stream.write(frame)
+                    continue
 
-            logger.info(f"Framed: {frame}")
+                logger.info(f"Framed: {frame}")
 
-            # Decode the header.  Get meta data here and populate the Intermediate header.
-            status, header = header_decoder.decode(frame, metadata)
-            if status != STATUS.SUCCESS:
-                unknown_bytes_stream.write(frame)
-                logger.warn(f"HeaderDecoder returned with status code {int(status)}: {status.__doc__}")
-                continue
+                # Decode the header.  Get meta data here and populate the Intermediate header.
+                status, header = header_decoder.decode(frame, metadata)
+                status.raise_on_error("HeaderDecoder.decode() failed.")
 
-            # Filter the log, pass over this log if we don't want it.
-            if not filter.do_filtering(metadata):
-                continue
+                # Filter the log, pass over this log if we don't want it.
+                if not filter.do_filtering(metadata):
+                    continue
 
-            raw_message = frame[metadata.header_length:]
-            # Decode the Log, pass the meta data and populate the intermediate log.
-            status, message = message_decoder.decode(raw_message, metadata)
-            if status != STATUS.SUCCESS:
-                unknown_bytes_stream.write(raw_message)
-                logger.warn(f"MessageDecoder returned with status code {int(status)}: {status.__doc__}")
-                continue
+                # Decode the Log, pass the meta data and populate the intermediate log.
+                body = frame[metadata.header_length:]
+                status, message = message_decoder.decode(body, metadata)
+                status.raise_on_error("MessageDecoder.decode() failed.")
 
-            status, encoded_message = encoder.encode(header, message, metadata, encode_format)
-            if status != STATUS.SUCCESS:
-                unknown_bytes_stream.write(raw_message)
-                logger.warn(f"Encoder returned with status code {int(status)}: {status.__doc__}")
-                continue
+                status, encoded_message = encoder.encode(header, message, metadata, encode_format)
+                status.raise_on_error("Encoder.encode() failed.")
 
-            converted_logs_stream.write(encoded_message.message)
-            logger.info(f"Encoded: ({len(encoded_message.message)}) {encoded_message.message}")
+                converted_logs_stream.write(encoded_message.message)
+                logger.info(f"Encoded: ({len(encoded_message.message)}) {encoded_message.message}")
+            except ne.DecoderException:
+                logger.warn(f"Decoder exception: {format_exc()}")
 
     # Clean up
     unparsed_bytes = framer.flush()
