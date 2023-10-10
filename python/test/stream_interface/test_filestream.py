@@ -47,8 +47,8 @@ def test_wide_char_open_file(hw_interface_test_resources, mode):
     test_stream.close()
 
 
-def test_exception(hw_interface_test_resources):
+def test_exception(stream_interface_test_resources):
     with pytest.raises(OSError) as excinfo:
-        test_stream = ne.FileStream(str(hw_interface_test_resources / "abcd.xyz"))
+        test_stream = ne.FileStream(str(stream_interface_test_resources / "abcd.xyz"))
         test_stream.close()
     assert "close file failed" in str(excinfo.value)

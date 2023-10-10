@@ -26,12 +26,12 @@ import novatel_edie as ne
 
 
 # Constructor1
-def test_constructor1(hw_interface_test_resources):
-    ofs = ne.OutputFileStream(str(hw_interface_test_resources / "outputfilestream_file1.asc"))
+def test_constructor1(stream_interface_test_resources):
+    ofs = ne.OutputFileStream(str(stream_interface_test_resources / "outputfilestream_file1.asc"))
     assert ofs.file_stream is not None
 
 
 # Constructor Wide Char
-def test_constructor_wide_char(hw_interface_test_resources):
-    ofs = ne.OutputFileStream(str(hw_interface_test_resources / "不同语言的文件.gps"))
+def test_constructor_wide_char(stream_interface_test_resources):
+    ofs = ne.OutputFileStream(str(stream_interface_test_resources / "不同语言的文件.gps"))
     assert ofs.file_stream is not None

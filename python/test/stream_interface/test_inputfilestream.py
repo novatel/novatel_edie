@@ -80,8 +80,8 @@ def test_reset(hw_interface_test_resources):
 
 
 # Test File Extension
-def test_get_file_extension(hw_interface_test_resources):
-    test_stream = ne.InputFileStream(str(hw_interface_test_resources / "streaminterface_testread.asc"))
+def test_get_file_extension(stream_interface_test_resources):
+    test_stream = ne.InputFileStream(str(stream_interface_test_resources / "streaminterface_testread.asc"))
     assert Path(test_stream.file_name).suffix == ".asc"
 
 
