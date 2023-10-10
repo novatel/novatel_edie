@@ -1,10 +1,39 @@
 #include "novatel_edie/decoders/oem/common.hpp"
 
 #include "bindings_core.hpp"
+#include "json_db_singleton.hpp"
+#include "novatel_edie/common/nexcept.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
+
+namespace {
+std::string default_json_db_path()
+{
+    nb::object ir = nb::module_::import_("importlib_resources");
+    nb::object path_ctx = ir.attr("as_file")(ir.attr("files")("novatel_edie").attr("joinpath")("messages_public.json"));
+    auto py_path = path_ctx.attr("__enter__")();
+    if (!nb::cast<bool>(py_path.attr("is_file")()))
+        throw NExcept((std::string("Could not find the default JSON DB file at ") + nb::str(py_path).c_str()).c_str());
+    auto path = nb::cast<std::string>(nb::str(py_path));
+    path_ctx.attr("__exit__")(nb::none(), nb::none(), nb::none());
+    return path;
+}
+} // namespace
+
+JsonReader* JsonDbSingleton::get()
+{
+    static std::unique_ptr<JsonReader> json_db = nullptr;
+    if (!json_db)
+    {
+        // Using a temp variable to avoid an inconsistent state if LoadFile throws
+        auto db = std::make_unique<JsonReader>();
+        db->LoadFile(default_json_db_path());
+        json_db = std::move(db);
+    }
+    return json_db.get();
+}
 
 void init_novatel_common(nb::module_& m)
 {

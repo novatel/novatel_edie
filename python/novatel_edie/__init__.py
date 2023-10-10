@@ -1,4 +1,4 @@
-import importlib.resources
+import importlib_resources
 
 from .decoders_bindings import *
 from .stream_interface_bindings import *
@@ -6,7 +6,7 @@ from .stream_interface_bindings import *
 
 def default_json_db_path():
     """Returns a context manager that yields the path to the default JSON database."""
-    return importlib.resources.path("novatel_edie", "messages_public.json")
+    return importlib_resources.as_file(importlib_resources.files("novatel_edie").joinpath("messages_public.json"))
 
 
 def load_message_database(path=None):

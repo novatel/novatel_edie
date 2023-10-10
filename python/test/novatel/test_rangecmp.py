@@ -32,8 +32,8 @@ from novatel_edie import STATUS
 import pytest
 
 @pytest.fixture(scope="function")
-def range_decompressor(json_db):
-    return ne.RangeDecompressor(json_db)
+def range_decompressor():
+    return ne.RangeDecompressor()
 
 RANGE_MSG_ID     = 43
 RANGECMP_MSG_ID  = 140

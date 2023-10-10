@@ -37,8 +37,8 @@ import pytest
 # -------------------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="function")
-def commander(json_db):
-    return ne.Commander(json_db)
+def commander():
+    return ne.Commander()
 
 
 # -------------------------------------------------------------------------------------------------------

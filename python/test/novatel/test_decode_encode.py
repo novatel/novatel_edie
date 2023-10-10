@@ -31,7 +31,7 @@ import enum
 
 import novatel_edie as ne
 import pytest
-from novatel_edie import HEADERFORMAT, STATUS, ENCODEFORMAT
+from novatel_edie import STATUS, ENCODEFORMAT
 from pytest import approx
 from collections import namedtuple
 
@@ -52,16 +52,11 @@ class Result(enum.IntEnum):
 ExpectedMessageData = namedtuple("ExpectedMessageData", ["message", "header", "body"])
 
 
-@pytest.fixture(scope="module")
-def json_db():
-    return ne.load_message_database()
-
-
 class TestHelper:
-    def __init__(self, json_db):
-        self.header_decoder = ne.HeaderDecoder(json_db)
-        self.message_decoder = ne.MessageDecoder(json_db)
-        self.encoder = ne.Encoder(json_db)
+    def __init__(self):
+        self.header_decoder = ne.HeaderDecoder()
+        self.message_decoder = ne.MessageDecoder()
+        self.encoder = ne.Encoder()
 
     def DecodeEncode(self, encode_format: ne.ENCODEFORMAT, message_input: bytes, meta_data: ne.MetaData=None, return_message=False) -> (int, ne.MessageData):
         if meta_data is None:
@@ -139,8 +134,8 @@ class TestHelper:
 
 
 @pytest.fixture(scope="function")
-def helper(json_db):
-    return TestHelper(json_db)
+def helper():
+    return TestHelper()
 
 
 def compare_binary_headers(from_binary_header: "ne.OEM4BinaryHeader", from_ascii_header: "ne.OEM4BinaryHeader"):
@@ -275,7 +270,7 @@ def test_ASCII_LOG_ROUNDTRIP_GLOALMANAC(helper):
     assert helper.TestSameFormatCompare(ENCODEFORMAT.ASCII, expected_message_data) == Result.SUCCESS
 
 
-def test_ASCII_LOG_ROUNDTRIP_GLOEPHEM(helper, json_db):
+def test_ASCII_LOG_ROUNDTRIP_GLOEPHEM(helper):
     log = b"#GLOEPHEMERISA,COM1,11,67.0,SATTIME,2168,160218.000,02000820,8d29,32768;51,0,1,80,2168,161118000,10782,573,0,0,95,0,-2.3917966796875000e+07,4.8163881835937500e+06,7.4258510742187500e+06,-1.0062713623046875e+03,1.8321990966796875e+02,-3.3695755004882813e+03,1.86264514923095700e-06,-9.31322574615478510e-07,-0.00000000000000000,-6.69313594698905940e-05,5.587935448e-09,0.00000000000000000,84600,3,2,0,13*ad20fc5f\r\n"
     ret_code, message_data, glo_ephpemeris = helper.DecodeEncode(ENCODEFORMAT.FLATTENED_BINARY, log, return_message=True)
     assert ret_code == Result.SUCCESS

@@ -20,8 +20,8 @@ import pytest
 
 
 @pytest.fixture(scope="function")
-def rx_config_handler(json_db):
-    return ne.RxConfigHandler(json_db)
+def rx_config_handler():
+    return ne.RxConfigHandler()
 
 
 def compare_message_data(test_message_data, expected_message_data):

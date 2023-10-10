@@ -39,11 +39,11 @@ import pytest
 # -------------------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="function")
-def header_decoder(json_db):
-    return ne.HeaderDecoder(json_db)
+def header_decoder():
+    return ne.HeaderDecoder()
 
 @pytest.fixture(scope="function")
-def filter(json_db):
+def filter():
     return ne.Filter()
 
 def TestFilter(filter, header_decoder, message):

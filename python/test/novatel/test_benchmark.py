@@ -42,10 +42,10 @@ max_count = 1000
 
 
 class Benchmarker:
-    def __init__(self, json_db):
-        self.header_decoder = ne.HeaderDecoder(json_db)
-        self.message_decoder = ne.MessageDecoder(json_db)
-        self.encoder = ne.Encoder(json_db)
+    def __init__(self):
+        self.header_decoder = ne.HeaderDecoder()
+        self.message_decoder = ne.MessageDecoder()
+        self.encoder = ne.Encoder()
 
     def run(self, log, encode_format):
         meta_data = ne.MetaData()
@@ -75,8 +75,8 @@ class Benchmarker:
 
 
 @pytest.fixture(scope="function")
-def benchmarker(json_db):
-    return Benchmarker(json_db)
+def benchmarker():
+    return Benchmarker()
 
 
 def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS(benchmarker):

@@ -1,6 +1,7 @@
 #include "novatel_edie/decoders/oem/parser.hpp"
 
 #include "bindings_core.hpp"
+#include "json_db_singleton.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -12,6 +13,7 @@ void init_novatel_parser(nb::module_& m)
     nb::class_<oem::Parser>(m, "Parser")
         .def(nb::init<std::u32string>(), "json_db_path"_a)
         .def(nb::init<JsonReader*>(), "json_db"_a)
+        .def("__init__", [](oem::Parser* t) { new (t) oem::Parser(JsonDbSingleton::get()); })
         .def("load_json_db", &oem::Parser::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::Parser::GetLogger)
         .def("enable_framer_decoder_logging", &oem::Parser::EnableFramerDecoderLogging, "level"_a = spdlog::level::debug, "filename"_a = "edie.log")

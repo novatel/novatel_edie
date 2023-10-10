@@ -1,6 +1,7 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 
 #include "bindings_core.hpp"
+#include "json_db_singleton.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -10,7 +11,6 @@ using namespace novatel::edie;
 void init_novatel_file_parser(nb::module_& m)
 {
     nb::class_<oem::FileParser>(m, "FileParser")
-        .def(nb::init<>())
         .def(nb::init<std::u32string>(), "json_db_path"_a)
         // These both constructor bindings segfault for some reason
         //      .def(nb::init<JsonReader*>(), "json_db"_a)
@@ -19,6 +19,7 @@ void init_novatel_file_parser(nb::module_& m)
         //         parser->LoadJsonDb(&nb::cast<JsonReader&>(json_db));
         //      }, "json_db"_a)
         .def("load_json_db", &oem::FileParser::LoadJsonDb, "json_db_path"_a)
+        .def("__init__", [](oem::FileParser* t) { new (t) oem::FileParser(JsonDbSingleton::get()); })
         .def_prop_ro("logger", &oem::FileParser::GetLogger)
         .def("enable_framer_decoder_logging", &oem::FileParser::EnableFramerDecoderLogging, "level"_a = spdlog::level::debug,
              "filename"_a = "edie.log")

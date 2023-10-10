@@ -81,12 +81,9 @@ ULLONG_MAX = 18446744073709551615
 
 
 class TestHelper:
-
     def __init__(self):
-        json_db = ne.JsonReader()
-        json_db.parse_json(min_json_db)
-        self.message_decoder = ne.MessageDecoder(json_db)
-        self.encoder = ne.Encoder(json_db)
+        self.message_decoder = ne.MessageDecoder()
+        self.encoder = ne.Encoder()
         self.msg_def_fields = []
 
     def create_base_field(self, name, field_type, conversion_stripped, length, DATA_TYPE):
