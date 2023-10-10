@@ -66,17 +66,17 @@ min_json_db = """
 }
 """
 
-UCHAR_MAX = 255
-CHAR_MIN = -127
-CHAR_MAX = 128
-SHRT_MIN = -32767
-SHRT_MAX = 32767
-USHRT_MAX = 65535
-LONG_MIN = -2147483647
-LONG_MAX = 2147483647
-ULONG_MAX = 4294967295
-LLONG_MIN = -9223372036854775807
-LLONG_MAX = 9223372036854775807
+CHAR_MIN   = -128
+CHAR_MAX   = 127
+UCHAR_MAX  = 255
+SHRT_MIN   = -32768
+SHRT_MAX   = 32767
+USHRT_MAX  = 65535
+INT_MIN    = -2147483648
+INT_MAX    = 2147483647
+UINT_MAX   = 4294967295
+LLONG_MIN  = -9223372036854775808
+LLONG_MAX  = 9223372036854775807
 ULLONG_MAX = 18446744073709551615
 
 
@@ -561,10 +561,10 @@ def test_BINARY_INT_VALID(helper):
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
     assert status == STATUS.SUCCESS
-    assert intermediate_format.field0 == LONG_MIN
+    assert intermediate_format.field0 == INT_MIN
     assert intermediate_format.field1 == -65536
     assert intermediate_format.field2 == 0
-    assert intermediate_format.field3 == LONG_MAX
+    assert intermediate_format.field3 == INT_MAX
 
 
 def test_BINARY_UINT_VALID(helper):
@@ -585,7 +585,7 @@ def test_BINARY_UINT_VALID(helper):
     assert intermediate_format.field0 == 2147483648
     assert intermediate_format.field1 == 65535
     assert intermediate_format.field2 == 0
-    assert intermediate_format.field3 == ULONG_MAX
+    assert intermediate_format.field3 == UINT_MAX
 
 
 def test_BINARY_ULONG_VALID(helper):
@@ -606,7 +606,7 @@ def test_BINARY_ULONG_VALID(helper):
     assert intermediate_format.field0 == 2147483648
     assert intermediate_format.field1 == 65535
     assert intermediate_format.field2 == 0
-    assert intermediate_format.field3 == ULONG_MAX
+    assert intermediate_format.field3 == UINT_MAX
 
 
 def test_BINARY_CHAR_BYTE_VALID(helper):
