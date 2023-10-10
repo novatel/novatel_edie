@@ -43,6 +43,17 @@ def _configure_logging(logger):
     Logger.add_rotating_file_logger(logger)
 
 
+def read_as_frames(ifs, framer):
+    read_status = ne.StreamReadStatus()
+    while not read_status.eos:
+        read_data, read_status = ifs.read(ne.MAX_ASCII_MESSAGE_LENGTH)
+        framer.write(read_data)
+        status = STATUS.INCOMPLETE_MORE_DATA
+        while status != STATUS.BUFFER_EMPTY and status != STATUS.INCOMPLETE:
+            status, frame, metadata = framer.get_frame()
+            yield status, frame, metadata
+
+
 def main():
     logger = Logger().register_logger("converter")
     _configure_logging(logger)
@@ -91,47 +102,36 @@ def main():
     converted_logs_stream = ne.OutputFileStream(f"{in_filename}.{encode_format}")
     unknown_bytes_stream = ne.OutputFileStream(f"{in_filename}.UNKNOWN")
 
-    read_status = ne.StreamReadStatus()
-    while not read_status.eos:
-        read_data, read_status = ifs.read(ne.MAX_ASCII_MESSAGE_LENGTH)
-        framer.write(read_data)
-        # Clearing INCOMPLETE status when internal buffer needs more bytes.
-        framer_status = STATUS.INCOMPLETE_MORE_DATA
+    for framer_status, frame, metadata in read_as_frames(ifs, framer):
+        try:
+            if framer_status == STATUS.UNKNOWN:
+                unknown_bytes_stream.write(frame)
+            framer_status.raise_on_error("Framer.get_frame() failed.")
+            if metadata.response:
+                unknown_bytes_stream.write(frame)
+                continue
+            logger.info(f"Framed: {frame}")
 
-        while framer_status != STATUS.BUFFER_EMPTY and framer_status != STATUS.INCOMPLETE:
-            try:
-                framer_status, frame, metadata = framer.get_frame()
-                if framer_status == STATUS.UNKNOWN:
-                    unknown_bytes_stream.write(frame)
-                elif framer_status != STATUS.SUCCESS:
-                    logger.warn(f"Framer returned with status code {int(framer_status)}: {framer_status.__doc__}")
-                    continue
-                if metadata.response:
-                    unknown_bytes_stream.write(frame)
-                    continue
+            # Decode the header.  Get meta data here and populate the Intermediate header.
+            status, header = header_decoder.decode(frame, metadata)
+            status.raise_on_error("HeaderDecoder.decode() failed.")
 
-                logger.info(f"Framed: {frame}")
+            # Filter the log, pass over this log if we don't want it.
+            if not filter.do_filtering(metadata):
+                continue
 
-                # Decode the header.  Get meta data here and populate the Intermediate header.
-                status, header = header_decoder.decode(frame, metadata)
-                status.raise_on_error("HeaderDecoder.decode() failed.")
+            # Decode the Log, pass the meta data and populate the intermediate log.
+            body = frame[metadata.header_length:]
+            status, message = message_decoder.decode(body, metadata)
+            status.raise_on_error("MessageDecoder.decode() failed.")
 
-                # Filter the log, pass over this log if we don't want it.
-                if not filter.do_filtering(metadata):
-                    continue
+            status, encoded_message = encoder.encode(header, message, metadata, encode_format)
+            status.raise_on_error("Encoder.encode() failed.")
 
-                # Decode the Log, pass the meta data and populate the intermediate log.
-                body = frame[metadata.header_length:]
-                status, message = message_decoder.decode(body, metadata)
-                status.raise_on_error("MessageDecoder.decode() failed.")
-
-                status, encoded_message = encoder.encode(header, message, metadata, encode_format)
-                status.raise_on_error("Encoder.encode() failed.")
-
-                converted_logs_stream.write(encoded_message.message)
-                logger.info(f"Encoded: ({len(encoded_message.message)}) {encoded_message.message}")
-            except ne.DecoderException:
-                logger.warn(f"Decoder exception: {format_exc()}")
+            converted_logs_stream.write(encoded_message.message)
+            logger.info(f"Encoded: ({len(encoded_message.message)}) {encoded_message.message}")
+        except ne.DecoderException:
+            logger.warn(format_exc())
 
     # Clean up
     unparsed_bytes = framer.flush()
