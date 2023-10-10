@@ -32,7 +32,8 @@ def decoders_test_resources(project_root):
 
 @pytest.fixture(scope="session")
 def json_db_path():
-    return str(ne.JSON_DB_PATH)
+    with ne.default_json_db_path() as json_db_path:
+        return str(json_db_path)
 
 
 @pytest.fixture(scope="session")
