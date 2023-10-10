@@ -39,3 +39,37 @@ def json_db_path():
 @pytest.fixture(scope="session")
 def json_db():
     return ne.load_message_database()
+
+
+@pytest.fixture(scope="session")
+def min_json_db():
+    json = """
+    {
+      "enums": [
+        {
+          "name": "Responses",
+          "_id": "0",
+          "enumerators": []
+        },
+        {
+          "name": "Commands",
+          "_id": "0",
+          "enumerators": []
+        },
+        {
+          "name": "PortAddress",
+          "_id": "0",
+          "enumerators": []
+        },
+        {
+          "name": "GPSTimeStatus",
+          "_id": "0",
+          "enumerators": []
+        }
+      ],
+      "messages": []
+    }
+    """
+    db = ne.JsonReader()
+    db.parse_json(json)
+    return db

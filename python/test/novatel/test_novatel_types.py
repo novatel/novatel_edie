@@ -37,35 +37,6 @@ from pytest import approx
 # Novatel Types Unit Tests
 # -------------------------------------------------------------------------------------------------------
 
-
-min_json_db = """
-{
-  "enums": [
-    {
-      "name": "Responses",
-      "_id": "0",
-      "enumerators": []
-    },
-    {
-      "name": "Commands",
-      "_id": "0",
-      "enumerators": []
-    },
-    {
-      "name": "PortAddress",
-      "_id": "0",
-      "enumerators": []
-    },
-    {
-      "name": "GPSTimeStatus",
-      "_id": "0",
-      "enumerators": []
-    }
-  ],
-  "messages": []
-}
-"""
-
 CHAR_MIN   = -128
 CHAR_MAX   = 127
 UCHAR_MAX  = 255
@@ -81,9 +52,9 @@ ULLONG_MAX = 18446744073709551615
 
 
 class TestHelper:
-    def __init__(self):
-        self.message_decoder = ne.MessageDecoder()
-        self.encoder = ne.Encoder()
+    def __init__(self, db):
+        self.message_decoder = ne.MessageDecoder(db)
+        self.encoder = ne.Encoder(db)
         self.msg_def_fields = []
 
     def create_base_field(self, name, field_type, conversion_stripped, length, DATA_TYPE):
@@ -116,8 +87,8 @@ class TestHelper:
 
 
 @pytest.fixture(scope="function")
-def helper():
-    return TestHelper()
+def helper(min_json_db):
+    return TestHelper(min_json_db)
 
 
 def test_FIELD_CONTAINER_ERROR_ON_COPY(helper):
@@ -694,6 +665,8 @@ def test_SIMPLE_FIELD_WIDTH_VALID(helper):
     # assert encoder_tester.test_encode_binary_body(intermediate_format, MAX_ASCII_MESSAGE_LENGTH)
 
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    print(intermediate_format.values)
+    print(intermediate_format.fields)
 
     assert intermediate_format.field0 == True  # bool
     assert intermediate_format.field1 == 99  # uint8_t
