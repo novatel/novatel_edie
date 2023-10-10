@@ -148,7 +148,9 @@ void init_novatel_message_decoder(nb::module_& m)
             "_decode_ascii",
             [](oem::MessageDecoder& decoder, const std::vector<BaseField*>& msg_def_fields, nb::bytes message_body) {
                 IntermediateMessage message;
-                const char* data_ptr = message_body.c_str();
+                // Copy to ensure that the byte string is zero-delimited
+                std::string body_str(message_body.c_str(), message_body.size());
+                const char* data_ptr = body_str.c_str();
                 STATUS status = static_cast<MessageDecoderWrapper*>(&decoder)->DecodeAscii_(msg_def_fields, (char**)&data_ptr, message);
                 return nb::make_tuple(status, PyIntermediateMessage(std::move(message)));
             },

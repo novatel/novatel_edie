@@ -202,8 +202,8 @@ def test_ASCII_CHAR_VALID(helper):
 def test_ASCII_CHAR_INVALID(helper):
     helper.create_base_field("CHAR", FIELD_TYPE.SIMPLE, CONVERSION_STRING.c, 2, DATA_TYPE.CHAR)
     input = b""
-    with pytest.raises(Exception):
-        helper.test_decode_ascii(helper.msg_def_fields, input)
+    status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    assert status == STATUS.MALFORMED_INPUT
 
 
 def test_ASCII_UCHAR_VALID(helper):
@@ -223,8 +223,8 @@ def test_ASCII_UCHAR_VALID(helper):
 def test_ASCII_UCHAR_INVALID(helper):
     helper.create_base_field("uint8_t", FIELD_TYPE.SIMPLE, CONVERSION_STRING.uc, 2, DATA_TYPE.UCHAR)
     input = b""
-    with pytest.raises(Exception):
-        helper.test_decode_ascii(helper.msg_def_fields, input)
+    status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    assert status == STATUS.MALFORMED_INPUT
 
 
 def test_ASCII_INT_VALID(helper):
@@ -250,8 +250,8 @@ def test_ASCII_INT_VALID(helper):
 def test_ASCII_INT_INVALID(helper):
     helper.create_base_field("INT_2", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 3, DATA_TYPE.UCHAR)
     input = b""
-    with pytest.raises(Exception):
-        helper.test_decode_ascii(helper.msg_def_fields, input)
+    status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    assert status == STATUS.MALFORMED_INPUT
 
 
 def test_ASCII_FLOAT_VALID(helper):
@@ -271,8 +271,8 @@ def test_ASCII_FLOAT_VALID(helper):
 def test_ASCII_FLOAT_INVALID(helper):
     helper.create_base_field("Und", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 5, DATA_TYPE.FLOAT)
     input = b""
-    with pytest.raises(Exception):
-        helper.test_decode_ascii(helper.msg_def_fields, input)
+    status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    assert status == STATUS.MALFORMED_INPUT
 
 
 def test_ASCII_DOUBLE_VALID(helper):
@@ -301,8 +301,8 @@ def test_ASCII_DOUBLE_VALID(helper):
 def test_ASCII_DOUBLE_INVALID(helper):
     helper.create_base_field("Lat", FIELD_TYPE.SIMPLE, CONVERSION_STRING.f, 9, DATA_TYPE.DOUBLE)
     input = b""
-    with pytest.raises(Exception):
-        helper.test_decode_ascii(helper.msg_def_fields, input)
+    status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    assert status == STATUS.MALFORMED_INPUT
 
 
 def test_ASCII_BOOL_VALID(helper):
@@ -312,7 +312,7 @@ def test_ASCII_BOOL_VALID(helper):
     input = b"TRUE,FALSE"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert bool(intermediate_format.B_True)
     assert not bool(intermediate_format.B_False)
 
@@ -320,7 +320,7 @@ def test_ASCII_BOOL_VALID(helper):
 def test_ASCII_BOOL_INVALID(helper):
     helper.create_base_field("B_True", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 4, DATA_TYPE.BOOL)
     input = b"True"
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         helper.test_decode_ascii(helper.msg_def_fields, input)
 
 
@@ -333,7 +333,7 @@ def test_ASCII_UINT_VALID(helper):
     input = b"-1,0,4294967294,4294967295"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.toe1 == 4294967295
     assert intermediate_format.toe2 == 0
     assert intermediate_format.toe3 == 4294967294
@@ -349,7 +349,7 @@ def test_ASCII_GPSTIME_MSEC_VALID(helper):
     input = b"-1.000,0.000,604800.000,4294967295.000"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     # If GPSTIME exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong
     # But the limit should be 604,800 (seconds) as that's the number of seconds in a GPS reference week
     assert intermediate_format.Sec1 == 4294966296  # 4,294,967,295 + 1 - 1,000 = 4,294,966,296
@@ -367,7 +367,7 @@ def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_VALID(helper):
     input = b"-1.0,0.0,1.175494351e-38,3.402823466e+38"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.Sec1 == approx(-1, rel=1e-6)
     assert intermediate_format.Sec2 == approx(0, rel=1e-6)
     assert intermediate_format.Sec3 == approx(1.175494351e-38, rel=1e-6)
@@ -377,7 +377,7 @@ def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_VALID(helper):
 def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_INVALID(helper):
     helper.create_base_field("Sec4", FIELD_TYPE.SIMPLE, CONVERSION_STRING.g, 5, DATA_TYPE.FLOAT)
     input = b"-1.0"
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         helper.test_decode_ascii(helper.msg_def_fields, input)
 
 
@@ -390,7 +390,7 @@ def test_ASCII_SCIENTIFIC_NOTATION_DOUBLE_VALID(helper):
     input = b"-1.0,0.0,2.2250738585072014e-308,1.7976931348623158e+308"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.Sec1 == approx(-1, rel=1e-15)
     assert intermediate_format.Sec2 == approx(0, rel=1e-15)
     assert intermediate_format.Sec3 == approx(2.2250738585072014e-308, rel=1e-15)
@@ -414,7 +414,7 @@ def test_ASCII_ULONG_VALID(helper):
     input = b"-1,0,255,-1,0,65535,-1,0,4294967295,-1,0,18446744073709551615"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.rx_chars1 == 255
     assert intermediate_format.rx_chars2 == 0
     assert intermediate_format.rx_chars3 == 255
@@ -437,7 +437,7 @@ def test_ASCII_ENUM_VALID(helper):
     input = b"UNKNOWN,APPROXIMATE,SATTIME"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.UNKNOWN == 20
     assert intermediate_format.APPROXIMATE == 60
     assert intermediate_format.SATTIME == 200
@@ -449,7 +449,7 @@ def test_ASCII_STRING_VALID(helper):
     input = b"#RAWEPHEMA,COM1,100"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.MESSAGE == "RAWEPHEMA,COM1,100"
 
 
@@ -459,17 +459,15 @@ def test_ASCII_EMPTY_STRING_VALID(helper):
     input = b"\"\""
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.MESSAGE == ""
 
 
 def test_ASCII_TYPE_INVALID(helper):
     helper.create_base_field("", FIELD_TYPE.UNKNOWN, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UNKNOWN)
-
     input = b""
-
-    with pytest.raises(Exception):
-        helper.test_decode_ascii(helper.msg_def_fields, input)
+    status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    assert status == STATUS.MALFORMED_INPUT
 
 
 def test_BINARY_BOOL_VALID(helper):
@@ -479,7 +477,7 @@ def test_BINARY_BOOL_VALID(helper):
     input = bytes([1, 0])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert bool(intermediate_format.field1)
     assert not bool(intermediate_format.field2)
 
@@ -492,7 +490,7 @@ def test_BINARY_HEXBYTE_VALID(helper):
     input = bytes([0x00, 0x01, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == 0
     assert intermediate_format.field1 == 1
     assert intermediate_format.field2 == UCHAR_MAX
@@ -508,7 +506,7 @@ def test_BINARY_uint8_t_VALID(helper):
     input = bytes([0x23, 0x41, 0x3B, 0x00, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == ord('#')
     assert intermediate_format.field1 == ord('A')
     assert intermediate_format.field2 == ord(';')
@@ -525,7 +523,7 @@ def test_BINARY_USHORT_VALID(helper):
     input = bytes([0x00, 0x00, 0x01, 0x00, 0x10, 0x00, 0xFF, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == 0
     assert intermediate_format.field1 == 1
     assert intermediate_format.field2 == 16
@@ -541,7 +539,7 @@ def test_BINARY_SHORT_VALID(helper):
     input = bytes([0x00, 0x80, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x7F])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == SHRT_MIN
     assert intermediate_format.field1 == -1
     assert intermediate_format.field2 == -0
@@ -562,7 +560,7 @@ def test_BINARY_INT_VALID(helper):
     ])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == LONG_MIN
     assert intermediate_format.field1 == -65536
     assert intermediate_format.field2 == 0
@@ -583,7 +581,7 @@ def test_BINARY_UINT_VALID(helper):
     ])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == 2147483648
     assert intermediate_format.field1 == 65535
     assert intermediate_format.field2 == 0
@@ -604,7 +602,7 @@ def test_BINARY_ULONG_VALID(helper):
     ])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == 2147483648
     assert intermediate_format.field1 == 65535
     assert intermediate_format.field2 == 0
@@ -620,7 +618,7 @@ def test_BINARY_CHAR_BYTE_VALID(helper):
     input = bytes([0x80, 0xFF, 0x00, 0x7F])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == CHAR_MIN
     assert intermediate_format.field1 == -1
     assert intermediate_format.field2 == 0
@@ -634,7 +632,7 @@ def test_BINARY_FLOAT_VALID(helper):
     input = bytes([0x9A, 0x99, 0x99, 0x3F, 0xCD, 0xCC, 0xBC, 0xC0])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == approx(1.2, rel=1e-6)
     assert intermediate_format.field1 == approx(-5.9, rel=1e-6)
 
@@ -653,7 +651,7 @@ def test_BINARY_DOUBLE_VALID(helper):
     ])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
 
-    assert status == ne.STATUS.SUCCESS
+    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == approx(51.11636937989, rel=1e-15)
     assert intermediate_format.field1 == approx(-114.03825348307, rel=1e-15)
     assert intermediate_format.field2 == approx(0, rel=1e-15)
@@ -669,6 +667,7 @@ def test_BINARY_SIMPLE_TYPE_INVALID(helper):
 
 def test_BINARY_TYPE_INVALID(helper):
     helper.create_base_field("", FIELD_TYPE.UNKNOWN, CONVERSION_STRING.UNKNOWN, 1, DATA_TYPE.UNKNOWN)
+    input = None
     with pytest.raises(Exception):
         helper.test_decode_binary(helper.msg_def_fields, input)
 
