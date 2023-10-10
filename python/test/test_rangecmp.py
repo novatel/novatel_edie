@@ -28,7 +28,7 @@
 ################################################################################
 
 import novatel_edie as ne
-from novatel_edie import HEADERFORMAT, STATUS
+from novatel_edie import STATUS
 import pytest
 
 @pytest.fixture(scope="function")
@@ -40,11 +40,6 @@ RANGECMP_MSG_ID  = 140
 RANGECMP2_MSG_ID = 1273
 RANGECMP3_MSG_ID = 1734
 RANGECMP4_MSG_ID = 2050
-
-
-# Access protected member of RangeDecompressor
-def GetBitfield(bytes_, bitfield_size_):
-    return GetBitfieldFromBuffer(bytes_, bitfield_size_)
 
 # -------------------------------------------------------------------------------------------------------
 # Logger Framer Unit Tests

@@ -29,6 +29,7 @@ nanobind_add_module(decoders_bindings STABLE_ABI NB_STATIC LTO
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/common.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/json_reader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/nexcept.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/commander.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/common.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/encoder.cpp

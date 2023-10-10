@@ -73,7 +73,8 @@ NB_MODULE(stream_interface_bindings, m)
         .def_prop_ro("length", &FileStream::GetFileLength)
         .def_prop_ro("file_name", &FileStream::Get32StringFileName)
         .def_prop_ro("current_size", &FileStream::GetCurrentFileSize)
-        .def_prop_ro("my_file_stream", &FileStream::GetMyFileStream)
+        //      .def_prop_ro("my_file_stream", &FileStream::GetMyFileStream)
+        .def_prop_ro("stream_failed", [](FileStream& self) { return self.GetMyFileStream()->fail(); })
         .def("set_current_offset", &FileStream::SetCurrentFileOffset)
         .def_prop_ro("current_offset", &FileStream::GetCurrentFileOffset);
 
