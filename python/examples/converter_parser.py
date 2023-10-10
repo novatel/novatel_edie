@@ -58,7 +58,7 @@ def main():
     # Load the database
     logger.info("Loading Database... ")
     t0 = timeit.default_timer()
-    json_db = ne.load_message_database()
+    json_db = ne.get_default_database()
     t1 = timeit.default_timer()
     logger.info(f"Done in {(t1 - t0) * 1e3:.0f} ms")
 
