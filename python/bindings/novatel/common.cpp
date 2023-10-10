@@ -137,14 +137,19 @@ void init_novatel_common(nb::module_& m)
         .def_rw("receiver_status", &oem::IntermediateHeader::uiReceiverStatus)
         .def_rw("message_definition_crc", &oem::IntermediateHeader::uiMessageDefinitionCrc)
         .def_rw("receiver_sw_version", &oem::IntermediateHeader::usReceiverSwVersion)
+        .def(
+            "get_msg_def", [](oem::IntermediateHeader& self) { return JsonDbSingleton::get()->GetMsgDef(self.usMessageId); },
+            "Gets the message definition for the header's message ID from the default database")
         .def("__repr__", [](nb::handle self) {
             auto& header = nb::cast<oem::IntermediateHeader&>(self);
-            return nb::str("Header(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
-                           "idle_time={!r}, time_status={!r}, week={!r}, milliseconds={!r}, receiver_status={!r}, "
+            auto* msg_def = JsonDbSingleton::get()->GetMsgDef(header.usMessageId);
+            const std::string& msg_name = msg_def ? msg_def->name : "Unknown";
+            return nb::str("Header(message_id=<{}: {}>, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
+                           "idle_time={!r}, time_status={}, week={!r}, milliseconds={!r}, receiver_status={!r}, "
                            "message_definition_crc={!r}, receiver_sw_version={!r})")
-                .format(header.usMessageId, header.ucMessageType, header.uiPortAddress, header.usLength, header.usSequence, header.ucIdleTime,
-                        header.uiTimeStatus, header.usWeek, header.dMilliseconds, header.uiReceiverStatus, header.uiMessageDefinitionCrc,
-                        header.usReceiverSwVersion);
+                .format(msg_name, header.usMessageId, header.ucMessageType, header.uiPortAddress, header.usLength, header.usSequence,
+                        header.ucIdleTime, TIME_STATUS(header.uiTimeStatus), header.usWeek, header.dMilliseconds, header.uiReceiverStatus,
+                        header.uiMessageDefinitionCrc, header.usReceiverSwVersion);
         });
 
     nb::class_<oem::Oem4BinaryHeader>(m, "Oem4BinaryHeader")
@@ -179,11 +184,11 @@ void init_novatel_common(nb::module_& m)
         .def("__bytes__", [](oem::Oem4BinaryHeader& self) { return nb::bytes((char*)&self, sizeof(oem::Oem4BinaryHeader)); })
         .def("__repr__", [](oem::Oem4BinaryHeader& self) {
             return nb::str("Oem4BinaryHeader(sync1={!r}, sync2={!r}, sync3={!r}, header_length={!r}, msg_number={!r}, "
-                           "msg_type={!r}, port={!r}, length={!r}, sequence_number={!r}, idle_time={!r}, time_status={!r}, "
+                           "msg_type={!r}, port={!r}, length={!r}, sequence_number={!r}, idle_time={!r}, time_status={}, "
                            "week_no={!r}, week_milliseconds={!r}, status={!r}, msg_def_crc={!r}, receiver_sw_version={!r})")
                 .format(self.ucSync1, self.ucSync2, self.ucSync3, self.ucHeaderLength, self.usMsgNumber, self.ucMsgType, self.ucPort, self.usLength,
-                        self.usSequenceNumber, self.ucIdleTime, self.ucTimeStatus, self.usWeekNo, self.uiWeekMSec, self.uiStatus, self.usMsgDefCrc,
-                        self.usReceiverSwVersion);
+                        self.usSequenceNumber, self.ucIdleTime, TIME_STATUS(self.ucTimeStatus), self.usWeekNo, self.uiWeekMSec, self.uiStatus,
+                        self.usMsgDefCrc, self.usReceiverSwVersion);
         });
 
     nb::class_<oem::Oem4BinaryShortHeader>(m, "Oem4BinaryShortHeader")

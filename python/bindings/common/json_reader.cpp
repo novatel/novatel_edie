@@ -146,8 +146,8 @@ void init_common_json_reader(nb::module_& m)
         .def_rw("fields", &MessageDefinition::fields)
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)
         .def("__repr__", [](const MessageDefinition& msg_def) {
-            return nb::str("MessageDefinition(id={!r}, log_id={!r}, name={!r}, description={!r}, fields={!r}, latest_message_crc={!r})")
-                .format(msg_def._id, msg_def.logID, msg_def.name, msg_def.description, msg_def.fields, msg_def.latestMessageCrc);
+            return nb::str("MessageDefinition(name={!r}, id={!r}, log_id={!r}, description={!r}, fields={!r}, latest_message_crc={!r})")
+                .format(msg_def.name, msg_def._id, msg_def.logID, msg_def.description, msg_def.fields, msg_def.latestMessageCrc);
         });
 
     nb::class_<JsonReader>(m, "JsonReader")
