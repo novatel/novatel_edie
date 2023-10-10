@@ -56,13 +56,14 @@ def TestFilter(filter, header_decoder, message):
       return False
    return filter.do_filtering(meta_data)
 
-@pytest.mark.xfail
 def test_LOGGER():
+   name = "novatel_filter"
    level = ne.LogLevel.OFF
-   assert spdlog.get("novatel_filter")
-   novatel_filter = filter.logger
-   filter.logger.set_level(level)
-   assert novatel_filter.level() == level
+   logger = ne.Filter().logger
+   logger.set_level(level)
+   assert logger.name == name
+   assert logger.level == level
+   assert ne.Logger.get(name) is not None
 
 def test_NONE(filter, header_decoder):
    log = "#BESTPOSA,COM1,0,8.0,FINESTEERING,2180,313698.000,024000a0,cdba,32768;SOL_COMPUTED,SINGLE,51.15045046450,-114.03068725072,1097.2706,-17.0000,WGS84,1.3811,1.1629,3.1178,\"\",0.000,0.000,24,22,22,0,00,02,11,11*c64c3d4a\r\n"

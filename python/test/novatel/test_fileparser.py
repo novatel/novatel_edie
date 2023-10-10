@@ -45,6 +45,20 @@ def fp(json_db):
     return parser
 
 
+def test_LOGGER():
+    assert ne.Logger.get("novatel_fileparser") is None
+    assert ne.Logger.get("novatel_parser") is None
+    # FileParser logger
+    level = ne.LogLevel.OFF
+    file_parser = ne.FileParser()
+    logger = file_parser.logger
+    logger.set_level(level)
+    assert logger.name == "novatel_fileparser"
+    assert logger.level == level
+    # Parser logger
+    file_parser.enable_framer_decoder_logging(level, "novatel_parser.log")
+
+
 def test_FILEPARSER_INSTANTIATION(json_db_path):
     fp1 = ne.FileParser()
     fp2 = ne.FileParser(json_db_path)

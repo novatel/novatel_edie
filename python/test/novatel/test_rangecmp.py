@@ -44,13 +44,14 @@ RANGECMP4_MSG_ID = 2050
 # -------------------------------------------------------------------------------------------------------
 # Logger Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-@pytest.mark.xfail
-def test_LOGGER(range_decompressor):
+def test_LOGGER():
+    name = "range_decompressor"
     level = ne.LogLevel.OFF
-    assert spdlog.get("range_decompressor")
-    range_decompressor = range_decompressor.get_logger()
-    range_decompressor.logger.set_level(level)
-    assert range_decompressor.level() == level
+    logger = ne.RangeDecompressor().logger
+    logger.set_level(level)
+    assert logger.name == name
+    assert logger.level == level
+    assert ne.Logger.get(name) is not None
 
 # -------------------------------------------------------------------------------------------------------
 # Channel Tracking Status structure unit tests

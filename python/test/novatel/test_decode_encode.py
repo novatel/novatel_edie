@@ -244,6 +244,23 @@ def compare_message_data(test_md: ne.MessageData, expected_md: ExpectedMessageDa
 
 
 # -------------------------------------------------------------------------------------------------------
+# Logger Decode/Encode Unit Tests
+# -------------------------------------------------------------------------------------------------------
+@pytest.mark.parametrize(("ne_class", "logger_name"), [
+    (ne.HeaderDecoder, "novatel_header_decoder"),
+    (ne.MessageDecoder, "novatel_message_decoder"),
+    (ne.Encoder, "novatel_encoder"),
+])
+def test_LOGGER(ne_class, logger_name):
+    level = ne.LogLevel.OFF
+    logger = ne_class().logger
+    logger.set_level(level)
+    assert logger.name == logger_name
+    assert logger.level == level
+    assert ne.Logger.get(logger_name) is not None
+
+
+# -------------------------------------------------------------------------------------------------------
 # ASCII Log Decode/Encode Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_ASCII_LOG_ROUNDTRIP_BESTPOS(helper):

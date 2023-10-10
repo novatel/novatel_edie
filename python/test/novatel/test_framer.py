@@ -60,8 +60,7 @@ def compare_metadata(test_md, expected_md):
         print(f"MetaData.format (expected {expected_md.format}, got {test_md.format})")
         result = False
     if test_md.measurement_source != expected_md.measurement_source:
-        print(
-            f"MetaData.measurement_source (expected {int(expected_md.measurement_source)}, got {int(test_md.measurement_source)})")
+        print(f"MetaData.measurement_source (expected {int(expected_md.measurement_source)}, got {int(test_md.measurement_source)})")
         result = False
     if test_md.time_status != expected_md.time_status:
         print(f"MetaData.time_status (expected {int(expected_md.time_status)}, got {int(test_md.time_status)})")
@@ -94,6 +93,19 @@ def compare_metadata(test_md, expected_md):
         print(f"MetaData.message_name (expected {expected_md.message_name}, got {test_md.message_name})")
         result = False
     return result
+
+
+# -------------------------------------------------------------------------------------------------------
+# Logger Framer Unit Tests
+#  -------------------------------------------------------------------------------------------------------
+def test_LOGGER():
+    name = "novatel_framer"
+    level = ne.LogLevel.OFF
+    logger = ne.Framer().logger
+    logger.set_level(level)
+    assert logger.name == name
+    assert logger.level == level
+    assert ne.Logger.get(name) is not None
 
 
 # -------------------------------------------------------------------------------------------------------

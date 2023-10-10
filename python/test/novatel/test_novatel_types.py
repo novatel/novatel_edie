@@ -91,6 +91,16 @@ def helper(min_json_db):
     return TestHelper(min_json_db)
 
 
+def test_LOGGER():
+    name = "novatel_message_decoder"
+    level = ne.LogLevel.OFF
+    logger = ne.MessageDecoder().logger
+    logger.set_level(level)
+    assert logger.name == name
+    assert logger.level == level
+    assert ne.Logger.get(name) is not None
+
+
 def test_FIELD_CONTAINER_ERROR_ON_COPY(helper):
     fc = ne.FieldContainer(3, ne.BaseField())
     with pytest.raises(Exception):

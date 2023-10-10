@@ -56,13 +56,14 @@ def TestSameFormatCompare(rx_config_handler, format_, expected_rx_config_message
 # -------------------------------------------------------------------------------------------------------
 # Logger Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-@pytest.mark.xfail
 def test_LOGGER():
+    name = "rxconfig_handler"
     level = ne.LogLevel.OFF
-    assert spdlog.get("rxconfig_handler")
-    rxconfig_handler = rx_config_handler.get_logger()
-    rx_config_handler.logger.set_level(level)
-    assert rxconfig_handler.level() == level
+    logger = ne.RxConfigHandler().logger
+    logger.set_level(level)
+    assert logger.name == name
+    assert logger.level == level
+    assert ne.Logger.get(name) is not None
 
 # -------------------------------------------------------------------------------------------------------
 # Round-trip unit tests.
