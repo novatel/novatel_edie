@@ -11,7 +11,7 @@ using namespace novatel::edie;
 novatel::edie::DecoderException::DecoderException(nb::handle_t<STATUS> status, std::string message) : msg(std::move(message))
 {
     std::string name = nb::str(status).c_str();
-    if (!msg.empty()) msg += ": ";
+    if (!msg.empty()) msg += " - ";
     msg += name + ": " + nb::cast<std::string>(status.doc());
 }
 

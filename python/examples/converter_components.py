@@ -30,7 +30,6 @@
 ########################################################################
 import argparse
 import os
-from traceback import format_exc
 
 import novatel_edie as ne
 from novatel_edie import Logger, LogLevel, STATUS
@@ -48,7 +47,7 @@ def read_as_frames(ifs, framer):
         read_data, read_status = ifs.read(ne.MAX_ASCII_MESSAGE_LENGTH)
         framer.write(read_data)
         status = STATUS.INCOMPLETE_MORE_DATA
-        while status != STATUS.BUFFER_EMPTY and status != STATUS.INCOMPLETE:
+        while status not in [STATUS.BUFFER_EMPTY, STATUS.INCOMPLETE]:
             status, frame, metadata = framer.get_frame()
             yield status, frame, metadata
 
@@ -100,7 +99,8 @@ def main():
         try:
             if framer_status == STATUS.UNKNOWN:
                 unknown_bytes_stream.write(frame)
-            framer_status.raise_on_error("Framer.get_frame() failed.")
+            if framer_status not in [STATUS.SUCCESS, STATUS.BUFFER_EMPTY, STATUS.INCOMPLETE]:
+                framer_status.raise_on_error("Framer.get_frame() failed")
             if metadata.response:
                 unknown_bytes_stream.write(frame)
                 continue
@@ -108,7 +108,7 @@ def main():
 
             # Decode the header.  Get meta data here and populate the Intermediate header.
             status, header = header_decoder.decode(frame, metadata)
-            status.raise_on_error("HeaderDecoder.decode() failed.")
+            status.raise_on_error("HeaderDecoder.decode() failed")
 
             # Filter the log, pass over this log if we don't want it.
             if not filter.do_filtering(metadata):
@@ -117,15 +117,15 @@ def main():
             # Decode the Log, pass the meta data and populate the intermediate log.
             body = frame[metadata.header_length:]
             status, message = message_decoder.decode(body, metadata)
-            status.raise_on_error("MessageDecoder.decode() failed.")
+            status.raise_on_error("MessageDecoder.decode() failed")
 
             status, encoded_message = encoder.encode(header, message, metadata, encode_format)
-            status.raise_on_error("Encoder.encode() failed.")
+            status.raise_on_error("Encoder.encode() failed")
 
             converted_logs_stream.write(encoded_message.message)
             logger.info(f"Encoded: ({len(encoded_message.message)}) {encoded_message.message}")
-        except ne.DecoderException:
-            logger.warn(format_exc())
+        except ne.DecoderException as e:
+            logger.warn(str(e))
 
     # Clean up
     unparsed_bytes = framer.flush()
