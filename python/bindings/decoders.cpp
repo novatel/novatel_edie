@@ -18,7 +18,7 @@ void init_novatel_parser(nb::module_&);
 void init_novatel_range_decompressor(nb::module_&);
 void init_novatel_rxconfig_handler(nb::module_&);
 
-NB_MODULE(decoders_bindings, m)
+NB_MODULE(decoders, m)
 {
     init_common_common(m);
     init_common_logger(m);

@@ -1,7 +1,7 @@
 import importlib_resources
 
-from .decoders_bindings import *
-from .stream_interface_bindings import *
+from .decoders import *
+from .stream_interface import *
 
 
 def default_json_db_path():
