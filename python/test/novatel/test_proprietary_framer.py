@@ -27,33 +27,30 @@
 # \brief Unit tests for proprietary NovAtel logs.
 ################################################################################
 
-from pathlib import Path
-
 import novatel_edie as ne
 import pytest
 from novatel_edie import HEADERFORMAT, STATUS
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent
-TEST_RESOURCE_PATH = PROJECT_ROOT / "src" / "decoders" / "novatel" / "test" / "resources"
+
+class Helper:
+    def __init__(self, test_resources_path):
+        self.test_resources = test_resources_path
+        self.framer = ne.Framer()
+        self.framer.set_report_unknown_bytes(True)
+        self.framer.set_payload_only(False)
+
+    def write_file_to_framer(self, filename):
+        data = (self.test_resources / filename).read_bytes()
+        bytes_written = self.framer.write(data)
+        assert bytes_written == len(data)
+
+    def write_bytes_to_framer(self, data):
+        assert self.framer.write(data) == len(data)
 
 
 @pytest.fixture(scope="function")
-def framer():
-    framer = ne.Framer()
-    framer.set_report_unknown_bytes(True)
-    framer.set_payload_only(False)
-    return framer
-
-
-def write_file_to_framer(framer, filename):
-    data = (TEST_RESOURCE_PATH / filename).read_bytes()
-    bytes_written = framer.write(data)
-    assert bytes_written == len(data)
-
-
-def write_bytes_to_framer(framer, bytes_):
-    print(len(bytes_), bytes_)
-    assert framer.write(bytes_) == len(bytes_)
+def helper(decoders_test_resources):
+    return Helper(decoders_test_resources)
 
 
 def compare_metadata(test_md, expected_md):
@@ -62,7 +59,8 @@ def compare_metadata(test_md, expected_md):
         print(f"MetaData.format (expected {expected_md.format}, got {test_md.format})")
         result = False
     if test_md.measurement_source != expected_md.measurement_source:
-        print(f"MetaData.measurement_source (expected {int(expected_md.measurement_source)}, got {int(test_md.measurement_source)})")
+        print(
+            f"MetaData.measurement_source (expected {int(expected_md.measurement_source)}, got {int(test_md.measurement_source)})")
         result = False
     if test_md.time_status != expected_md.time_status:
         print(f"MetaData.time_status (expected {int(expected_md.time_status)}, got {int(test_md.time_status)})")
@@ -100,7 +98,7 @@ def compare_metadata(test_md, expected_md):
 # -------------------------------------------------------------------------------------------------------
 # Proprietary Binary Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_PROPRIETARY_BINARY_COMPLETE(framer):
+def test_PROPRIETARY_BINARY_COMPLETE(helper):
     # "GARBAGE_DATA<binary bestpos log>"
     data = bytes(
         [0x47, 0x41, 0x52, 0x42, 0x41, 0x47, 0x45, 0x5F, 0x44, 0x41, 0x54, 0x41, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09,
@@ -108,48 +106,48 @@ def test_PROPRIETARY_BINARY_COMPLETE(framer):
          0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC,
          0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35,
          0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC])
-    write_bytes_to_framer(framer, data)
+    helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 12
     expected_meta_data.format = HEADERFORMAT.UNKNOWN
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     expected_meta_data.length = 76
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.SUCCESS
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_INCOMPLETE(framer):
+def test_PROPRIETARY_BINARY_INCOMPLETE(helper):
     # "<incomplete binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
          0xC7, 0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8,
          0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59,
          0xE3, 0xF5, 0x87, 0x8F, 0x8A])
-    write_bytes_to_framer(framer, data)
+    helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 59
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_SYNC_ERROR(framer):
-    write_file_to_framer(framer, "proprietary_binary_sync_error.BIN")
+def test_PROPRIETARY_BINARY_SYNC_ERROR(helper):
+    helper.write_file_to_framer("proprietary_binary_sync_error.BIN")
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = ne.MAX_BINARY_MESSAGE_LENGTH
     expected_meta_data.format = HEADERFORMAT.UNKNOWN
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_BAD_CRC(framer):
+def test_PROPRIETARY_BINARY_BAD_CRC(helper):
     # "<encrypted binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -157,16 +155,16 @@ def test_PROPRIETARY_BINARY_BAD_CRC(framer):
          0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59,
          0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27,
          0x6F, 0x8E, 0x0B, 0xFF])
-    write_bytes_to_framer(framer, data)
+    helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 30  # Unknown bytes up to 0x24 ('$') should be returned (NMEA sync was found mid-log)
     expected_meta_data.format = HEADERFORMAT.UNKNOWN
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_RUN_ON_CRC(framer):
+def test_PROPRIETARY_BINARY_RUN_ON_CRC(helper):
     # "<encrypted binary bestpos log>FF"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -174,16 +172,16 @@ def test_PROPRIETARY_BINARY_RUN_ON_CRC(framer):
          0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59,
          0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27,
          0x6F, 0x8E, 0x0B, 0xCC, 0xFF])
-    write_bytes_to_framer(framer, data)
+    helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 76
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.SUCCESS
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_INADEQUATE_BUFFER(framer):
+def test_PROPRIETARY_BINARY_INADEQUATE_BUFFER(helper):
     # "<encrypted binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -191,21 +189,21 @@ def test_PROPRIETARY_BINARY_INADEQUATE_BUFFER(framer):
          0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59,
          0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27,
          0x6F, 0x8E, 0x0B, 0xCC])
-    write_bytes_to_framer(framer, data)
+    helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 76
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
     test_meta_data = ne.MetaData()
-    status, frame = framer.get_frame(test_meta_data, buffer_size=38)
+    status, frame = helper.framer.get_frame(test_meta_data, buffer_size=38)
     assert status == STATUS.BUFFER_FULL
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    status, frame = framer.get_frame(test_meta_data, buffer_size=76)
+    status, frame = helper.framer.get_frame(test_meta_data, buffer_size=76)
     assert status == STATUS.SUCCESS
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_BYTE_BY_BYTE(framer):
+def test_PROPRIETARY_BINARY_BYTE_BY_BYTE(helper):
     # "<binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -219,25 +217,25 @@ def test_PROPRIETARY_BINARY_BYTE_BY_BYTE(framer):
     expected_meta_data.format = HEADERFORMAT.UNKNOWN
     test_meta_data = ne.MetaData()
     while True:
-        write_bytes_to_framer(framer, data[log_size - remaining_bytes:][:1])
+        helper.write_bytes_to_framer(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
         if expected_meta_data.length == ne.OEM4_BINARY_SYNC_LENGTH - 1:
             expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
 
         if remaining_bytes > 0:
-            status, frame = framer.get_frame(test_meta_data)
+            status, frame = helper.framer.get_frame(test_meta_data)
             assert status == STATUS.INCOMPLETE
             assert compare_metadata(test_meta_data, expected_meta_data)
         else:
             break
     expected_meta_data.length = log_size
-    status, frame = framer.get_frame(test_meta_data)
+    status, frame = helper.framer.get_frame(test_meta_data)
     assert status == STATUS.SUCCESS
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_SEGMENTED(framer):
+def test_PROPRIETARY_BINARY_SEGMENTED(helper):
     # "<binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -249,37 +247,37 @@ def test_PROPRIETARY_BINARY_SEGMENTED(framer):
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
     test_meta_data = ne.MetaData()
-    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
+    helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
     bytes_written += ne.OEM4_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
-    status, frame = framer.get_frame(test_meta_data)
+    status, frame = helper.framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH])
+    helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH])
     bytes_written += ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
-    status, frame = framer.get_frame(test_meta_data)
+    status, frame = helper.framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:44])
+    helper.write_bytes_to_framer(data[bytes_written:][:44])
     bytes_written += 44
     expected_meta_data.length = bytes_written
-    status, frame = framer.get_frame(test_meta_data)
+    status, frame = helper.framer.get_frame(test_meta_data)
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
 
-    write_bytes_to_framer(framer, data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
+    helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
     bytes_written += ne.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
-    status, frame = framer.get_frame(test_meta_data)
+    status, frame = helper.framer.get_frame(test_meta_data)
     assert status == STATUS.SUCCESS
     assert compare_metadata(test_meta_data, expected_meta_data)
     assert bytes_written == len(data)
 
 
-def test_PROPRIETARY_BINARY_TRICK(framer):
+def test_PROPRIETARY_BINARY_TRICK(helper):
     # "<binary syncs><binary sync + half header><binary sync byte 1><binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82,
@@ -290,24 +288,24 @@ def test_PROPRIETARY_BINARY_TRICK(framer):
          0x27, 0x6F, 0x8E, 0x0B, 0xCC])
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADERFORMAT.UNKNOWN
-    write_bytes_to_framer(framer, data)
+    helper.write_bytes_to_framer(data)
     expected_meta_data.length = 3
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     expected_meta_data.length = 15
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     expected_meta_data.length = 1
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     expected_meta_data.length = 76
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
-    status, frame, test_meta_data = framer.get_frame()
+    status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.SUCCESS
     assert compare_metadata(test_meta_data, expected_meta_data)
