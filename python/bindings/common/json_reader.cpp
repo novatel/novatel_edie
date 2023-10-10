@@ -94,8 +94,11 @@ void init_common_json_reader(nb::module_& m)
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
         .def("parse_conversion", &BaseField::ParseConversion, "str_stripped_conversion_string"_a, "before_point"_a, "after_point"_a)
         .def("__repr__", [](const BaseField& field) {
-            return nb::str("BaseField(name={!r}, type={}, description={!r}, conversion={!r})")
-                .format(field.name, nb::cast(field.type), field.description == "[Brief Description]" ? "" : field.description, field.conversion);
+            const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
+            if (desc.empty() && field.conversion.empty())
+                return nb::str("BaseField(name={!r}, type={}, data_type={})").format(field.name, nb::cast(field.type), field.dataType.name);
+            return nb::str("BaseField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r})")
+                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion);
         });
 
     nb::class_<EnumField, BaseField>(m, "EnumField", "Struct containing elements of enum fields in the UI DB")
@@ -105,9 +108,9 @@ void init_common_json_reader(nb::module_& m)
         .def_rw("length", &EnumField::length)
         .def("clone", &EnumField::Clone)
         .def("__repr__", [](const EnumField& field) {
-            return nb::str("EnumField(name={!r}, type={}, description={!r}, conversion={!r}, enum_id={!r}, enum_def={!r}, length={!r})")
-                .format(field.name, nb::cast(field.type), field.description == "[Brief Description]" ? "" : field.description, field.conversion,
-                        field.enumId, field.enumDef, field.length);
+            const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
+            return nb::str("EnumField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, enum_id={!r}, length={!r})")
+                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.enumId, field.length);
         });
 
     nb::class_<ArrayField, BaseField>(m, "ArrayField", "Struct containing elements of array fields in the UI DB")
@@ -115,9 +118,9 @@ void init_common_json_reader(nb::module_& m)
         .def_rw("array_length", &ArrayField::arrayLength)
         .def("clone", &ArrayField::Clone)
         .def("__repr__", [](const ArrayField& field) {
-            return nb::str("ArrayField(name={!r}, type={}, description={!r}, conversion={!r}, array_length={!r})")
-                .format(field.name, nb::cast(field.type), field.description == "[Brief Description]" ? "" : field.description, field.conversion,
-                        field.arrayLength);
+            const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
+            return nb::str("ArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r})")
+                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.arrayLength);
         });
 
     nb::class_<FieldArrayField, BaseField>(m, "FieldArrayField", "Struct containing elements of field array fields in the UI DB")
@@ -127,9 +130,11 @@ void init_common_json_reader(nb::module_& m)
         .def_rw("fields", &FieldArrayField::fields)
         .def("clone", &FieldArrayField::Clone)
         .def("__repr__", [](const FieldArrayField& field) {
-            return nb::str("FieldArrayField(name={!r}, type={}, description={!r}, conversion={!r}, array_length={!r}, field_size={!r}, fields={!r})")
-                .format(field.name, nb::cast(field.type), field.description == "[Brief Description]" ? "" : field.description, field.conversion,
-                        field.arrayLength, field.fieldSize, field.fields);
+            const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
+            return nb::str("FieldArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r}, field_size={!r}, "
+                           "fields={!r})")
+                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.arrayLength, field.fieldSize,
+                        field.fields);
         });
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")
