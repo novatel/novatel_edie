@@ -29,7 +29,7 @@
 # encoding from Abbreviated ASCII to ASCII/BINARY.
 ########################################################################
 
-import sys
+import argparse
 from pathlib import Path
 
 import novatel_edie as ne
@@ -42,20 +42,20 @@ def main():
     Logger.add_console_logging(logger)
     Logger.add_rotating_file_logger(logger)
 
-    if len(sys.argv) < 3:
-        logger.error("Format: command_encoding <output format> <abbreviated ascii command>\n")
-        logger.error('Example: command_encoding ASCII "RTKTIMEOUT 30"\n')
-        exit(1)
+    parser = argparse.ArgumentParser(description="Encode a command from Abbreviated ASCII to ASCII/BINARY.")
+    parser.add_argument("output_format", choices=["ASCII", "BINARY"], help="Output format")
+    parser.add_argument("command", help="Abbreviated ASCII command")
+    parser.add_argument("-V", "--version", action="store_true")
+    args = parser.parse_args()
+    encode_format = ne.string_to_encode_format(args.output_format)
 
-    encode_format = ne.string_to_encode_format(sys.argv[1])
-    if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
-        logger.error("Unsupported output format. Choose from:\n\tASCII\n\tBINARY")
-        exit(1)
+    if args.version:
+        logger.info(ne.pretty_version)
+        exit(0)
 
-    command = sys.argv[2]
-    logger.info(f'Converting "{command}" to {encode_format}')
+    logger.info(f'Converting "{args.command}" to {encode_format}')
     commander = ne.Commander()
-    status, encoded_command = commander.encode(command.encode(), encode_format)
+    status, encoded_command = commander.encode(args.command.encode(), encode_format)
     status.raise_on_error()
     out_file = Path(f"COMMAND.{encode_format}")
     out_file.write_bytes(encoded_command)

@@ -28,9 +28,8 @@
 # \brief Demonstrate how to use the C++ source for converting OEM
 # messages using the low-level components.
 ########################################################################
-
+import argparse
 import os
-import sys
 from traceback import format_exc
 
 import novatel_edie as ne
@@ -58,26 +57,21 @@ def main():
     logger = Logger().register_logger("converter")
     _configure_logging(logger)
 
-    # Get command line arguments
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encode_format = ne.ENCODEFORMAT.ASCII
-    if "-V" in sys.argv:
+    parser = argparse.ArgumentParser(description="Convert OEM log files using low-level components.")
+    parser.add_argument("input_file", help="Input file")
+    parser.add_argument("output_format", nargs="?", choices=["ASCII", "BINARY", "FLATTENED_BINARY"],
+                        help="Output format", default="ASCII")
+    parser.add_argument("-V", "--version", action="store_true")
+    args = parser.parse_args()
+    encode_format = ne.string_to_encode_format(args.output_format)
+
+    if args.version:
         exit(0)
-    if len(sys.argv) < 3:
-        logger.error("ERROR: Need to specify an input file and an output format.")
-        logger.error("Example: converter <path to input file> <output format>")
-        exit(1)
-    if len(sys.argv) == 3:
-        encode_format = ne.string_to_encode_format(sys.argv[2])
 
-    in_filename = sys.argv[1]
-    if not os.path.exists(in_filename):
-        logger.error(f'File "{in_filename}" does not exist')
-        exit(1)
-
-    if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
-        logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
+    if not os.path.exists(args.input_file):
+        logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
 
     # Setup the EDIE components
@@ -98,9 +92,9 @@ def main():
     _configure_logging(filter.logger)
 
     # Setup file streams
-    ifs = ne.InputFileStream(in_filename)
-    converted_logs_stream = ne.OutputFileStream(f"{in_filename}.{encode_format}")
-    unknown_bytes_stream = ne.OutputFileStream(f"{in_filename}.UNKNOWN")
+    ifs = ne.InputFileStream(args.input_file)
+    converted_logs_stream = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
+    unknown_bytes_stream = ne.OutputFileStream(f"{args.input_file}.UNKNOWN")
 
     for framer_status, frame, metadata in read_as_frames(ifs, framer):
         try:

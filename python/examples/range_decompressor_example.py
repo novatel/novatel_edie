@@ -28,9 +28,8 @@
 #    and decompress rangecmp logs.
 #
 ############################################################################
-
+import argparse
 import os
-import sys
 import timeit
 
 import novatel_edie as ne
@@ -43,30 +42,22 @@ def main():
     Logger.add_console_logging(logger)
     Logger.add_rotating_file_logger(logger)
 
-    if "-V" in sys.argv:
-        logger.info(f"Decoder library information:\n{ne.pretty_version}")
+    logger.info(f"Decoder library information:\n{ne.pretty_version}")
+
+    parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
+    parser.add_argument("input_file", help="Input file")
+    parser.add_argument("output_format", nargs="?", choices=["ASCII", "BINARY", "FLATTENED_BINARY"],
+                        help="Output format", default="ASCII")
+    parser.add_argument("-V", "--version", action="store_true")
+    args = parser.parse_args()
+    encode_format = ne.string_to_encode_format(args.output_format)
+
+    if args.version:
         exit(0)
 
-    encode_format = ne.ENCODEFORMAT.ASCII
-
-    if len(sys.argv) < 3:
-        logger.info("ERROR: Need to specify an input file and an output format.\n")
-        logger.info("Example: converter <path to input file> <output format>\n")
-        exit(-1)
-    if len(sys.argv) == 4:
-        encode_format = ne.string_to_encode_format(sys.argv[2])
-
-    if not os.path.exists(sys.argv[1]):
-        logger.error(f'File "{sys.argv[1]}" does not exist')
+    if not os.path.exists(args.input_file):
+        logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
-
-    infilename = sys.argv[1]
-
-    if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
-        logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
-        return -1
-
-    logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
     framer = ne.Framer()
     header_decoder = ne.HeaderDecoder()
@@ -89,8 +80,8 @@ def main():
     framer.SetPayloadOnly(False)
     framer.SetReportUnknownBytes(True)
 
-    ifs = ne.InputFileStream(infilename)
-    ofs = ne.OutputFileStream(f"{infilename}.DECOMPRESSED.{encode_format}")
+    ifs = ne.InputFileStream(args.input_file)
+    ofs = ne.OutputFileStream(f"{args.input_file}.DECOMPRESSED.{encode_format}")
 
     header = ne.IntermediateHeader()
     message = ne.IntermediateMessage()

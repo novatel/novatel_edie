@@ -28,10 +28,8 @@
 # \brief Demonstrate how to use the C++ source for converting OEM
 # messages using the FileParser.
 ########################################################################
-
-
+import argparse
 import os
-import sys
 import timeit
 
 import novatel_edie as ne
@@ -44,26 +42,21 @@ def main():
     Logger.add_console_logging(logger)
     Logger.add_rotating_file_logger(logger)
 
-    # Get command line arguments
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encode_format = ne.ENCODEFORMAT.ASCII
-    if "-V" in sys.argv:
+    parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
+    parser.add_argument("input_file", help="Input file")
+    parser.add_argument("output_format", nargs="?", choices=["ASCII", "BINARY", "FLATTENED_BINARY"],
+                        help="Output format", default="ASCII")
+    parser.add_argument("-V", "--version", action="store_true")
+    args = parser.parse_args()
+    encode_format = ne.string_to_encode_format(args.output_format)
+
+    if args.version:
         exit(0)
-    if len(sys.argv) < 3:
-        logger.error("ERROR: Need to specify an input file and an output format.")
-        logger.error("Example: converter <path to input file> <output format>")
-        exit(1)
-    if len(sys.argv) == 3:
-        encode_format = ne.string_to_encode_format(sys.argv[2])
 
-    infilename = sys.argv[1]
-    if not os.path.exists(infilename):
-        logger.error(f'File "{infilename}" does not exist')
-        exit(1)
-
-    if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
-        logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
+    if not os.path.exists(args.input_file):
+        logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
 
     fileparser = ne.FileParser()

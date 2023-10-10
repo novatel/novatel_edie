@@ -28,10 +28,7 @@
 # \brief Demonstrate how to use the C++ source for converting OEM
 # messages using the Parser.
 ########################################################################
-
-
-import os
-import sys
+import argparse
 import timeit
 
 import novatel_edie as ne
@@ -44,29 +41,34 @@ def main():
     Logger.add_console_logging(logger)
     Logger.add_rotating_file_logger(logger)
 
-    # Get command line arguments
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encode_format = ne.ENCODEFORMAT.ASCII
-    if "-V" in sys.argv:
+    parser = argparse.ArgumentParser(description="Convert OEM log files using Parser.")
+    parser.add_argument("input_file", help="Input file")
+    parser.add_argument("output_format", nargs="?", choices=["ASCII", "BINARY", "FLATTENED_BINARY"],
+                        help="Output format", default="ASCII")
+    parser.add_argument("append_msg_types", nargs="?", help="Additional message definitions to append to the database")
+    parser.add_argument("-V", "--version", action="store_true")
+    args = parser.parse_args()
+    encode_format = ne.string_to_encode_format(args.output_format)
+
+    if args.version:
         exit(0)
-    if len(sys.argv) < 3:
-        logger.error("ERROR: Need to specify an input file and an output format.")
-        logger.error("Example: converter <path to input file> <output format>")
-        exit(1)
-    if len(sys.argv) == 3:
-        encode_format = ne.string_to_encode_format(sys.argv[2])
 
-    infilename = sys.argv[1]
-    if not os.path.exists(infilename):
-        logger.error(f'File "{infilename}" does not exist')
-        exit(1)
+    # Load the database
+    logger.info("Loading Database... ")
+    t0 = timeit.default_timer()
+    json_db = ne.load_message_database()
+    t1 = timeit.default_timer()
+    logger.info(f"Done in {(t1 - t0) * 1e3:.0f} ms")
 
-    if encode_format == ne.ENCODE_FORMAT.UNSPECIFIED:
-        logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
-        exit(1)
+    if args.append_msg_types:
+        logger.info("Appending Message...")
+        start = timeit.default_timer()
+        json_db.append_messages(args.append_msg_types)
+        logger.info(f"Done in {timeit.default_timer() - start:.0f}ms")
 
-    parser = ne.Parser()
+    parser = ne.Parser(json_db)
     parser.SetEncodeFormat(encode_format)
     parser.logger.set_level(LogLevel.DEBUG)
     Logger.add_console_logging(parser.logger)
@@ -79,19 +81,15 @@ def main():
 
     parser.SetFilter(filter)
 
-    # Initialize FS structures and buffers
-    readstatus = ne.StreamReadStatus()
-    readdata = ne.ReadDataStructure()
-
     # Setup filestreams
-    ifs = ne.InputFileStream(infilename)
-    convertedlogsofs = ne.OutputFileStream(f"{infilename}.{encode_format}")
-    ne.OutputFileStream(f"{infilename}.UNKNOWN")
+    ifs = ne.InputFileStream(args.input_file)
+    convertedlogsofs = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
 
     completemessages = 0
     counter = 0
     start = timeit.default_timer()
     loop = timeit.default_timer()
+    readstatus = ne.StreamReadStatus()
     while not readstatus.eos:
         readdata.data = ifsreadbuffer
         readstatus = ifs.ReadData(readdata)
@@ -102,7 +100,6 @@ def main():
 
             if status == ne.STATUS.SUCCESS:
                 convertedlogsofs.WriteData(message_data)
-                message_data.message[message_data.messagelength] = "\0"
                 logger.info(f"Encoded: ({message_data.messagelength}) {message_data.message}")
                 completemessages += 1
 
@@ -110,9 +107,11 @@ def main():
                 counter += 1
                 logger.info(f"{completemessages / counter} logs/s")
                 loop = timeit.default_timer()
+
             if status == ne.STATUS.BUFFER_EMPTY:
                 break
-    logger.info(f"Converted {completemessages} logs in {timeit.default_timer() - start:.3f}s from {infilename}")
+
+    logger.info(f"Converted {completemessages} logs in {timeit.default_timer() - start:.3f}s from {args.input_file}")
 
     Logger.shutdown()
 
