@@ -117,7 +117,7 @@ def test_PROPRIETARY_BINARY_COMPLETE(helper):
     expected_meta_data.length = 76
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -177,7 +177,7 @@ def test_PROPRIETARY_BINARY_RUN_ON_CRC(helper):
     expected_meta_data.length = 76
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -199,7 +199,7 @@ def test_PROPRIETARY_BINARY_INADEQUATE_BUFFER(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     status, frame = helper.framer.get_frame(test_meta_data, buffer_size=76)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -231,7 +231,7 @@ def test_PROPRIETARY_BINARY_BYTE_BY_BYTE(helper):
             break
     expected_meta_data.length = log_size
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -272,7 +272,7 @@ def test_PROPRIETARY_BINARY_SEGMENTED(helper):
     bytes_written += ne.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
     assert bytes_written == len(data)
 
@@ -307,5 +307,5 @@ def test_PROPRIETARY_BINARY_TRICK(helper):
     expected_meta_data.length = 76
     expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)

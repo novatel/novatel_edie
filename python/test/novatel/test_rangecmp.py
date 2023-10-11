@@ -181,7 +181,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA_1(range_decompressor):
     meta_data.message_id = RANGECMP_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
 
@@ -193,7 +193,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA_2(range_decompressor):
     meta_data.message_id = RANGECMP_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
 
@@ -205,7 +205,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA_3(range_decompressor):
     meta_data.message_id = RANGECMP_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     print("DECOMPRESS_RANGECMPA4_DIFF_2", compressed_data)
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
@@ -221,7 +221,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA2_1(range_decompressor):
     meta_data.message_id = RANGECMP2_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
 
@@ -233,7 +233,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA2_2(range_decompressor):
     meta_data.message_id = RANGECMP2_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
 
@@ -245,7 +245,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA2_3(range_decompressor):
     meta_data.message_id = RANGECMP2_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
 
@@ -260,7 +260,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA4_1(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
 
@@ -272,7 +272,7 @@ def test_DECOMPRESS_RANGECMPA4_2(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
 
@@ -284,7 +284,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA4_3(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(compressed_data)
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
     assert test_result == decompressed_data
 
@@ -298,7 +298,7 @@ def test_DECOMPRESS_RANGECMPA4_DIFF_1(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(reference_compressed_data)
     status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert len(reference_decompressed_data) == meta_data.length
     assert test_result == reference_decompressed_data
 
@@ -307,7 +307,7 @@ def test_DECOMPRESS_RANGECMPA4_DIFF_1(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(differential_compressed_data)
     status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert len(differential_decompressed_data) == meta_data.length
     assert test_result == differential_decompressed_data
 
@@ -322,7 +322,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA4_DIFF_2(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(reference_compressed_data)
     status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert len(reference_decompressed_data) == meta_data.length
     assert test_result == reference_decompressed_data
 
@@ -331,7 +331,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA4_DIFF_2(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(differential_compressed_data)
     status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert len(differential_decompressed_data) == meta_data.length
     assert test_result == differential_decompressed_data
 
@@ -346,7 +346,7 @@ def test_DISABLED_DECOMPRESS_RANGECMPA4_DIFF_3(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(reference_compressed_data)
     status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert len(reference_decompressed_data) == meta_data.length
     assert test_result == reference_decompressed_data
 
@@ -355,6 +355,6 @@ def test_DISABLED_DECOMPRESS_RANGECMPA4_DIFF_3(range_decompressor):
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(differential_compressed_data)
     status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert len(differential_decompressed_data) == meta_data.length
     assert test_result == differential_decompressed_data

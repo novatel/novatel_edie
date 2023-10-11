@@ -120,8 +120,8 @@ def test_ASCII_CHAR_BYTE_VALID(helper):
 
     input = b"-129,-128,-127,-1,0,1,127,128,129"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.INT_1 == 127
     assert intermediate_format.INT_2 == -128
     assert intermediate_format.INT_3 == -127
@@ -146,8 +146,8 @@ def test_ASCI_UCHAR_BYTE_VALID(helper):
 
     input = b"-256,-255,-254,-1,0,1,254,255,256"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.INT_1 == 0
     assert intermediate_format.INT_2 == 1
     assert intermediate_format.INT_3 == 2
@@ -173,8 +173,8 @@ def test_ASCII_CHAR_VALID(helper):
 
     input = b"#,A,;"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.CHAR_1 == ord('#')
     assert intermediate_format.CHAR_2 == ord('A')
     assert intermediate_format.CHAR_3 == ord(';')
@@ -194,8 +194,8 @@ def test_ASCII_UCHAR_VALID(helper):
 
     input = b"#,A,;"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.uint8_1 == ord('#')
     assert intermediate_format.uint8_2 == ord('A')
     assert intermediate_format.uint8_3 == ord(';')
@@ -218,8 +218,8 @@ def test_ASCII_INT_VALID(helper):
 
     input = b"-32769,-32768,-32767,32767,32768,32769"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.INT_1 == 32767
     assert intermediate_format.INT_2 == -32768
     assert intermediate_format.INT_3 == -32767
@@ -242,8 +242,8 @@ def test_ASCII_FLOAT_VALID(helper):
 
     input = b"51.11636937989,-114.03825348307,0"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.Und == approx(51.11636937989, rel=1e-6)
     assert intermediate_format.LatStd == approx(-114.03825348307, rel=1e-6)
     assert intermediate_format.LongStd == approx(0, rel=1e-6)
@@ -268,8 +268,8 @@ def test_ASCII_DOUBLE_VALID(helper):
     input = b"51.11636937989,-114.03825348307,0,1.7e+308,-1.7e+308,1.7e+309,-1.7e+309"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
     inf = float("inf")
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.Lat == approx(51.11636937989, rel=1e-15)
     assert intermediate_format.Long == approx(-114.03825348307, rel=1e-15)
     assert intermediate_format.Ht == approx(0, rel=1e-15)
@@ -292,8 +292,8 @@ def test_ASCII_BOOL_VALID(helper):
 
     input = b"TRUE,FALSE"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert bool(intermediate_format.B_True)
     assert not bool(intermediate_format.B_False)
 
@@ -313,8 +313,8 @@ def test_ASCII_UINT_VALID(helper):
 
     input = b"-1,0,4294967294,4294967295"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.toe1 == 4294967295
     assert intermediate_format.toe2 == 0
     assert intermediate_format.toe3 == 4294967294
@@ -329,8 +329,8 @@ def test_ASCII_GPSTIME_MSEC_VALID(helper):
 
     input = b"-1.000,0.000,604800.000,4294967295.000"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     # If GPSTIME exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong
     # But the limit should be 604,800 (seconds) as that's the number of seconds in a GPS reference week
     assert intermediate_format.Sec1 == 4294966296  # 4,294,967,295 + 1 - 1,000 = 4,294,966,296
@@ -347,8 +347,8 @@ def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_VALID(helper):
 
     input = b"-1.0,0.0,1.175494351e-38,3.402823466e+38"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.Sec1 == approx(-1, rel=1e-6)
     assert intermediate_format.Sec2 == approx(0, rel=1e-6)
     assert intermediate_format.Sec3 == approx(1.175494351e-38, rel=1e-6)
@@ -370,8 +370,8 @@ def test_ASCII_SCIENTIFIC_NOTATION_DOUBLE_VALID(helper):
 
     input = b"-1.0,0.0,2.2250738585072014e-308,1.7976931348623158e+308"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.Sec1 == approx(-1, rel=1e-15)
     assert intermediate_format.Sec2 == approx(0, rel=1e-15)
     assert intermediate_format.Sec3 == approx(2.2250738585072014e-308, rel=1e-15)
@@ -394,8 +394,8 @@ def test_ASCII_ULONG_VALID(helper):
 
     input = b"-1,0,255,-1,0,65535,-1,0,4294967295,-1,0,18446744073709551615"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.rx_chars1 == 255
     assert intermediate_format.rx_chars2 == 0
     assert intermediate_format.rx_chars3 == 255
@@ -417,8 +417,8 @@ def test_ASCII_ENUM_VALID(helper):
 
     input = b"UNKNOWN,APPROXIMATE,SATTIME"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.UNKNOWN == 20
     assert intermediate_format.APPROXIMATE == 60
     assert intermediate_format.SATTIME == 200
@@ -429,8 +429,8 @@ def test_ASCII_STRING_VALID(helper):
 
     input = b"#RAWEPHEMA,COM1,100"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.MESSAGE == "RAWEPHEMA,COM1,100"
 
 
@@ -439,8 +439,8 @@ def test_ASCII_EMPTY_STRING_VALID(helper):
 
     input = b"\"\""
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.MESSAGE == ""
 
 
@@ -457,8 +457,8 @@ def test_BINARY_BOOL_VALID(helper):
 
     input = bytes([1, 0])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert bool(intermediate_format.field1)
     assert not bool(intermediate_format.field2)
 
@@ -470,8 +470,8 @@ def test_BINARY_HEXBYTE_VALID(helper):
 
     input = bytes([0x00, 0x01, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == 0
     assert intermediate_format.field1 == 1
     assert intermediate_format.field2 == UCHAR_MAX
@@ -486,8 +486,8 @@ def test_BINARY_uint8_t_VALID(helper):
 
     input = bytes([0x23, 0x41, 0x3B, 0x00, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == ord('#')
     assert intermediate_format.field1 == ord('A')
     assert intermediate_format.field2 == ord(';')
@@ -503,8 +503,8 @@ def test_BINARY_USHORT_VALID(helper):
 
     input = bytes([0x00, 0x00, 0x01, 0x00, 0x10, 0x00, 0xFF, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == 0
     assert intermediate_format.field1 == 1
     assert intermediate_format.field2 == 16
@@ -519,8 +519,8 @@ def test_BINARY_SHORT_VALID(helper):
 
     input = bytes([0x00, 0x80, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x7F])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == SHRT_MIN
     assert intermediate_format.field1 == -1
     assert intermediate_format.field2 == -0
@@ -540,8 +540,8 @@ def test_BINARY_INT_VALID(helper):
         0xFF, 0xFF, 0xFF, 0x7F
     ])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == INT_MIN
     assert intermediate_format.field1 == -65536
     assert intermediate_format.field2 == 0
@@ -561,8 +561,8 @@ def test_BINARY_UINT_VALID(helper):
         0xFF, 0xFF, 0xFF, 0xFF
     ])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == 2147483648
     assert intermediate_format.field1 == 65535
     assert intermediate_format.field2 == 0
@@ -582,8 +582,8 @@ def test_BINARY_ULONG_VALID(helper):
         0xFF, 0xFF, 0xFF, 0xFF
     ])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == 2147483648
     assert intermediate_format.field1 == 65535
     assert intermediate_format.field2 == 0
@@ -598,8 +598,8 @@ def test_BINARY_CHAR_BYTE_VALID(helper):
 
     input = bytes([0x80, 0xFF, 0x00, 0x7F])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == CHAR_MIN
     assert intermediate_format.field1 == -1
     assert intermediate_format.field2 == 0
@@ -612,8 +612,8 @@ def test_BINARY_FLOAT_VALID(helper):
 
     input = bytes([0x9A, 0x99, 0x99, 0x3F, 0xCD, 0xCC, 0xBC, 0xC0])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == approx(1.2, rel=1e-6)
     assert intermediate_format.field1 == approx(-5.9, rel=1e-6)
 
@@ -631,8 +631,8 @@ def test_BINARY_DOUBLE_VALID(helper):
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x7F
     ])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
+    status.raise_on_error()
 
-    assert status == STATUS.SUCCESS
     assert intermediate_format.field0 == approx(51.11636937989, rel=1e-15)
     assert intermediate_format.field1 == approx(-114.03825348307, rel=1e-15)
     assert intermediate_format.field2 == approx(0, rel=1e-15)
@@ -671,7 +671,7 @@ def test_SIMPLE_FIELD_WIDTH_VALID(helper):
 
     input = b"TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     # assert encoder_tester.test_encode_binary_body(intermediate_format, MAX_ASCII_MESSAGE_LENGTH)
 
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)

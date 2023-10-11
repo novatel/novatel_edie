@@ -125,7 +125,7 @@ def test_ASCII_COMPLETE(helper):
     expected_meta_data.length = 217
     expected_meta_data.format = HEADERFORMAT.ASCII
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -184,7 +184,7 @@ def test_ASCII_INADEQUATE_BUFFER(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     status, frame = helper.framer.get_frame(test_meta_data, buffer_size=217)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -210,7 +210,7 @@ def test_ASCII_BYTE_BY_BYTE(helper):
             break
     expected_meta_data.length = log_size
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -252,7 +252,7 @@ def test_ASCII_SEGMENTED(helper):
     bytes_written += ne.OEM4_ASCII_CRC_LENGTH + 2
     expected_meta_data.length = bytes_written
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     assert bytes_written == len(data)
@@ -276,7 +276,7 @@ def test_ASCII_TRICK(helper):
     expected_meta_data.length = 217
     expected_meta_data.format = HEADERFORMAT.ASCII
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -332,7 +332,7 @@ def test_ABBREV_ASCII_SEGMENTED(helper):
     expected_frame_data.length = bytes_written
     expected_frame_data.format = HEADERFORMAT.ABB_ASCII
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_frame_data)
     assert log_size == bytes_written
 
@@ -361,7 +361,7 @@ def test_BINARY_COMPLETE(helper):
     expected_meta_data.length = 104
     expected_meta_data.format = HEADERFORMAT.BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -424,7 +424,7 @@ def test_BINARY_RUN_ON_CRC(helper):
     expected_meta_data.length = 104
     expected_meta_data.format = HEADERFORMAT.BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -447,7 +447,7 @@ def test_BINARY_INADEQUATE_BUFFER(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     status, frame = helper.framer.get_frame(test_meta_data, buffer_size=104)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -480,7 +480,7 @@ def test_BINARY_BYTE_BY_BYTE(helper):
             break
     expected_meta_data.length = log_size
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -522,7 +522,7 @@ def test_BINARY_SEGMENTED(helper):
     bytes_written += ne.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
     assert bytes_written == len(data)
 
@@ -558,7 +558,7 @@ def test_BINARY_TRICK(helper):
     expected_meta_data.length = 104
     expected_meta_data.format = HEADERFORMAT.BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -578,7 +578,7 @@ def test_SHORT_ASCII_COMPLETE(helper):
     expected_meta_data.length = 120
     expected_meta_data.format = HEADERFORMAT.SHORT_ASCII
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -638,7 +638,7 @@ def test_SHORT_ASCII_INADEQUATE_BUFFER(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     status, frame = helper.framer.get_frame(test_meta_data, buffer_size=120)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -664,7 +664,7 @@ def test_SHORT_ASCII_BYTE_BY_BYTE(helper):
             break
     expected_meta_data.length = log_size
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -706,7 +706,7 @@ def test_SHORT_ASCII_SEGMENTED(helper):
     bytes_written += ne.OEM4_ASCII_CRC_LENGTH + 2
     expected_meta_data.length = bytes_written
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     assert bytes_written == len(data)
@@ -736,7 +736,7 @@ def test_SHORT_ASCII_TRICK(helper):
     expected_meta_data.length = 120
     expected_meta_data.format = HEADERFORMAT.SHORT_ASCII
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -761,7 +761,7 @@ def test_SHORT_BINARY_COMPLETE(helper):
     expected_meta_data.length = 56
     expected_meta_data.format = HEADERFORMAT.SHORT_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -817,7 +817,7 @@ def test_SHORT_BINARY_RUN_ON_CRC(helper):
     expected_meta_data.length = 56
     expected_meta_data.format = HEADERFORMAT.SHORT_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -837,7 +837,7 @@ def test_SHORT_BINARY_INADEQUATE_BUFFER(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     status, frame, test_meta_data = helper.framer.get_frame(buffer_size=56)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -868,7 +868,7 @@ def test_SHORT_BINARY_BYTE_BY_BYTE(helper):
             break
     expected_meta_data.length = log_size
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -908,7 +908,7 @@ def test_SHORT_BINARY_SEGMENTED(helper):
     bytes_written += ne.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
     assert bytes_written == len(data)
 
@@ -948,7 +948,7 @@ def test_SHORT_BINARY_TRICK(helper):
     expected_meta_data.length = 56
     expected_meta_data.format = HEADERFORMAT.SHORT_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     expected_meta_data.length = 116
@@ -974,7 +974,7 @@ def test_NMEA_COMPLETE(helper):
     expected_meta_data.length = 82
     expected_meta_data.format = HEADERFORMAT.NMEA
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1032,7 +1032,7 @@ def test_NMEA_INADEQUATE_BUFFER(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     status, frame, test_meta_data = helper.framer.get_frame(buffer_size=82)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1055,7 +1055,7 @@ def test_NMEA_BYTE_BY_BYTE(helper):
             break
     expected_meta_data.length = log_size
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1097,7 +1097,7 @@ def test_NMEA_SEGMENTED(helper):
     bytes_written += 2
     expected_meta_data.length = bytes_written
     status, frame = helper.framer.get_frame(test_meta_data)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     assert bytes_written == len(data)
@@ -1126,7 +1126,7 @@ def test_NMEA_TRICK(helper):
     expected_meta_data.length = 82
     expected_meta_data.format = HEADERFORMAT.NMEA
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1141,7 +1141,7 @@ def test_ABBREV_ASCII_COMPLETE(helper):
     expected_meta_data.length = 215
     expected_meta_data.format = HEADERFORMAT.ABB_ASCII
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1179,7 +1179,7 @@ def test_ABBREV_ASCII_INADEQUATE_BUFFER(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     status, frame, test_meta_data = helper.framer.get_frame(buffer_size=215)
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1193,13 +1193,13 @@ def test_ABBREV_ASCII_NO_PROMPT(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data.length = 157
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     helper.write_bytes_to_framer(data)
     expected_meta_data.length = 157
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1213,7 +1213,7 @@ def test_ABBREV_ASCII_MULTILINE(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data.length = 217
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1225,7 +1225,7 @@ def test_ABBREV_ASCII_RESPONSE(helper):
     expected_meta_data.response = True
     expected_meta_data.length = 42
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1253,7 +1253,7 @@ def test_ABBREV_ASCII_EMPTY_ARRAY(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data.length = 80
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
@@ -1268,7 +1268,7 @@ def test_JSON_COMPLETE(helper):
     expected_meta_data.length = 3464
     expected_meta_data.format = HEADERFORMAT.JSON
     status, frame, test_meta_data = helper.framer.get_frame()
-    assert status == STATUS.SUCCESS
+    status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     helper.framer.set_frame_json(False)
