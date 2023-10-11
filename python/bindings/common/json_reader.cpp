@@ -139,15 +139,21 @@ void init_common_json_reader(nb::module_& m)
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")
         .def(nb::init<>())
-        .def_rw("_id", &MessageDefinition::_id)
+        .def_rw("id", &MessageDefinition::_id)
         .def_rw("log_id", &MessageDefinition::logID)
         .def_rw("name", &MessageDefinition::name)
         .def_rw("description", &MessageDefinition::description)
-        .def_rw("fields", &MessageDefinition::fields, nb::rv_policy::reference_internal)
+        .def_prop_ro("fields",
+                     [](MessageDefinition& self) {
+                         nb::dict py_map;
+                         for (const auto& [id, value] : self.fields) py_map[nb::cast(id)] = nb::cast(value, nb::rv_policy::automatic_reference);
+                         return py_map;
+                     })
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)
-        .def("__repr__", [](const MessageDefinition& msg_def) {
+        .def("__repr__", [](nb::handle_t<MessageDefinition> self) {
+            auto& msg_def = nb::cast<MessageDefinition&>(self);
             return nb::str("MessageDefinition(name={!r}, id={!r}, log_id={!r}, description={!r}, fields={!r}, latest_message_crc={!r})")
-                .format(msg_def.name, msg_def._id, msg_def.logID, msg_def.description, msg_def.fields, msg_def.latestMessageCrc);
+                .format(msg_def.name, msg_def._id, msg_def.logID, msg_def.description, self.attr("fields"), msg_def.latestMessageCrc);
         });
 
     nb::class_<JsonReader>(m, "JsonReader")
