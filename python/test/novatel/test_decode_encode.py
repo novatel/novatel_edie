@@ -668,7 +668,6 @@ def test_FLAT_BINARY_LOG_DECODE_VERSION(helper):
     assert len(versions) == 4
 
     # Check GPSCARD fields
-    print(version.fields)
     assert versions[0].component_type == 1
     assert versions[0].model_name == "FFNRNNCBN"
     assert versions[0].psn == "BMGX15360035V"
@@ -1027,8 +1026,6 @@ def ASSERT_SHORT_HEADER_EQ(short_header_, header_):
 
 
 def ASSERT_BESTSATS_EQ(message1, message2):
-    print(message1.values)
-    print(message1.fields)
     assert len(message1.satellite_entries) == len(message2.satellite_entries)
     for satellite_entries1, satellite_entries2 in zip(message1.satellite_entries, message2.satellite_entries):
         assert satellite_entries1.system_type == satellite_entries2.system_type
