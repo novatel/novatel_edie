@@ -32,14 +32,14 @@ import argparse
 import timeit
 
 import novatel_edie as ne
-from novatel_edie import Logger, LogLevel
+from novatel_edie import Logging, LogLevel
 
 
 def main():
-    logger = Logger().register_logger("converter")
+    logger = Logging().register_logger("converter")
     logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(logger)
-    Logger.add_rotating_file_logger(logger)
+    Logging.add_console_logging(logger)
+    Logging.add_rotating_file_logger(logger)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
@@ -71,13 +71,13 @@ def main():
     parser = ne.Parser(json_db)
     parser.SetEncodeFormat(encode_format)
     parser.logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(parser.logger)
-    Logger.add_rotating_file_logger(parser.logger)
+    Logging.add_console_logging(parser.logger)
+    Logging.add_rotating_file_logger(parser.logger)
 
     filter = ne.Filter()
     filter.logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(filter.logger)
-    Logger.add_rotating_file_logger(filter.logger)
+    Logging.add_console_logging(filter.logger)
+    Logging.add_rotating_file_logger(filter.logger)
 
     parser.SetFilter(filter)
 
@@ -113,7 +113,7 @@ def main():
 
     logger.info(f"Converted {completemessages} logs in {timeit.default_timer() - start:.3f}s from {args.input_file}")
 
-    Logger.shutdown()
+    Logging.shutdown()
 
 
 if __name__ == "__main__":

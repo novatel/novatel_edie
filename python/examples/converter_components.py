@@ -32,13 +32,13 @@ import argparse
 import os
 
 import novatel_edie as ne
-from novatel_edie import Logger, LogLevel, STATUS
+from novatel_edie import Logging, LogLevel, STATUS
 
 
 def _configure_logging(logger):
     logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(logger)
-    Logger.add_rotating_file_logger(logger)
+    Logging.add_console_logging(logger)
+    Logging.add_rotating_file_logger(logger)
 
 
 def read_as_frames(ifs, framer):
@@ -53,7 +53,7 @@ def read_as_frames(ifs, framer):
 
 
 def main():
-    logger = Logger().register_logger("converter")
+    logger = Logging().register_logger("converter")
     _configure_logging(logger)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
@@ -131,7 +131,7 @@ def main():
     unparsed_bytes = framer.flush()
     unknown_bytes_stream.write(unparsed_bytes)
 
-    Logger.shutdown()
+    Logging.shutdown()
 
 
 if __name__ == "__main__":

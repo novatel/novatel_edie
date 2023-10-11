@@ -42,7 +42,7 @@ RANGECMP3_MSG_ID = 1734
 RANGECMP4_MSG_ID = 2050
 
 # -------------------------------------------------------------------------------------------------------
-# Logger Framer Unit Tests
+# Logging Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_LOGGER():
     name = "range_decompressor"
@@ -51,7 +51,7 @@ def test_LOGGER():
     logger.set_level(level)
     assert logger.name == name
     assert logger.level == level
-    assert ne.Logger.get(name) is not None
+    assert ne.Logging.get(name) is not None
 
 # -------------------------------------------------------------------------------------------------------
 # Channel Tracking Status structure unit tests

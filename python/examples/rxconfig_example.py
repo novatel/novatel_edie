@@ -32,16 +32,16 @@ import argparse
 import os
 
 import novatel_edie as ne
-from novatel_edie import Logger, LogLevel, ENCODEFORMAT
+from novatel_edie import Logging, LogLevel, ENCODEFORMAT
 
 
 def main():
-    # This example uses the default logger config, but you can also pass a config file to the Logger() ctor
+    # This example uses the default logger config, but you can also pass a config file to the Logging() ctor
     # An example config file: doc\example_logger_config.toml
-    logger = Logger().register_logger("rxconfig_converter")
+    logger = Logging().register_logger("rxconfig_converter")
     logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(logger)
-    Logger.add_rotating_file_logger(logger)
+    Logging.add_console_logging(logger)
+    Logging.add_rotating_file_logger(logger)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
@@ -115,7 +115,7 @@ def main():
         if readstatus.eos:
             break
 
-    Logger.shutdown()
+    Logging.shutdown()
 
 
 if __name__ == "__main__":

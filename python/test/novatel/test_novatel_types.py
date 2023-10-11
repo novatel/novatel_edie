@@ -98,7 +98,7 @@ def test_LOGGER():
     logger.set_level(level)
     assert logger.name == name
     assert logger.level == level
-    assert ne.Logger.get(name) is not None
+    assert ne.Logging.get(name) is not None
 
 
 def test_FIELD_CONTAINER_ERROR_ON_COPY(helper):

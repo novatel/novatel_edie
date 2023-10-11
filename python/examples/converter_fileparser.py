@@ -33,14 +33,14 @@ import os
 import timeit
 
 import novatel_edie as ne
-from novatel_edie import Logger, LogLevel
+from novatel_edie import Logging, LogLevel
 
 
 def main():
-    logger = Logger().register_logger("converter")
+    logger = Logging().register_logger("converter")
     logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(logger)
-    Logger.add_rotating_file_logger(logger)
+    Logging.add_console_logging(logger)
+    Logging.add_rotating_file_logger(logger)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
@@ -62,12 +62,12 @@ def main():
     fileparser = ne.FileParser()
     fileparser.logger.set_level(LogLevel.DEBUG)
     logger.add_console_logging(fileparser.logger)
-    Logger.add_rotating_file_logger(fileparser.logger)
+    Logging.add_rotating_file_logger(fileparser.logger)
 
     filter = ne.Filter()
     filter.logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(filter.logger)
-    Logger.add_rotating_file_logger(filter.logger)
+    Logging.add_console_logging(filter.logger)
+    Logging.add_rotating_file_logger(filter.logger)
 
     # Initialize structures and error codes
     status = ne.STATUS.UNKNOWN
@@ -109,7 +109,7 @@ def main():
             loop = timeit.default_timer()
     logger.info(f"Converted {complete_messages} logs in {timeit.default_timer() - start:.3f}s from {infilename}")
 
-    Logger.shutdown()
+    Logging.shutdown()
 
 
 if __name__ == "__main__":

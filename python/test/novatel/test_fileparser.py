@@ -46,8 +46,8 @@ def fp(json_db):
 
 
 def test_LOGGER():
-    assert ne.Logger.get("novatel_fileparser") is None
-    assert ne.Logger.get("novatel_parser") is None
+    assert ne.Logging.get("novatel_fileparser") is None
+    assert ne.Logging.get("novatel_parser") is None
     # FileParser logger
     level = ne.LogLevel.OFF
     file_parser = ne.FileParser()

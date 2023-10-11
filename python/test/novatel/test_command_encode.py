@@ -41,11 +41,11 @@ def commander():
     return ne.Commander()
 
 # -------------------------------------------------------------------------------------------------------
-# Logger Command Encoding Unit Tests
+# Logging Command Encoding Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_LOGGER():
     name = "novatel_commander"
-    assert ne.Logger.get(name) is None
+    assert ne.Logging.get(name) is None
     level = ne.LogLevel.OFF
     logger = ne.Commander().logger
     logger.set_level(level)

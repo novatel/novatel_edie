@@ -96,7 +96,7 @@ def compare_metadata(test_md, expected_md):
 
 
 # -------------------------------------------------------------------------------------------------------
-# Logger Framer Unit Tests
+# Logging Framer Unit Tests
 #  -------------------------------------------------------------------------------------------------------
 def test_LOGGER():
     name = "novatel_framer"
@@ -105,7 +105,7 @@ def test_LOGGER():
     logger.set_level(level)
     assert logger.name == name
     assert logger.level == level
-    assert ne.Logger.get(name) is not None
+    assert ne.Logging.get(name) is not None
 
 
 # -------------------------------------------------------------------------------------------------------

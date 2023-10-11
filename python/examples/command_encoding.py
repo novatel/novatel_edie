@@ -33,14 +33,14 @@ import argparse
 from pathlib import Path
 
 import novatel_edie as ne
-from novatel_edie import Logger, LogLevel
+from novatel_edie import Logging, LogLevel
 
 
 def main():
-    logger = Logger().register_logger("CommandEncoder")
+    logger = Logging().register_logger("CommandEncoder")
     logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(logger)
-    Logger.add_rotating_file_logger(logger)
+    Logging.add_console_logging(logger)
+    Logging.add_rotating_file_logger(logger)
 
     parser = argparse.ArgumentParser(description="Encode a command from Abbreviated ASCII to ASCII/BINARY.")
     parser.add_argument("output_format", choices=["ASCII", "BINARY"], help="Output format")

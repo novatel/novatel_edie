@@ -244,7 +244,7 @@ def compare_message_data(test_md: ne.MessageData, expected_md: ExpectedMessageDa
 
 
 # -------------------------------------------------------------------------------------------------------
-# Logger Decode/Encode Unit Tests
+# Logging Decode/Encode Unit Tests
 # -------------------------------------------------------------------------------------------------------
 @pytest.mark.parametrize(("ne_class", "logger_name"), [
     (ne.HeaderDecoder, "novatel_header_decoder"),
@@ -257,7 +257,7 @@ def test_LOGGER(ne_class, logger_name):
     logger.set_level(level)
     assert logger.name == logger_name
     assert logger.level == level
-    assert ne.Logger.get(logger_name) is not None
+    assert ne.Logging.get(logger_name) is not None
 
 
 # -------------------------------------------------------------------------------------------------------

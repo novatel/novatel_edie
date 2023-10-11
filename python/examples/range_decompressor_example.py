@@ -33,14 +33,14 @@ import os
 import timeit
 
 import novatel_edie as ne
-from novatel_edie import Logger, LogLevel
+from novatel_edie import Logging, LogLevel
 
 
 def main():
-    logger = Logger().register_logger("range_decompressor")
+    logger = Logging().register_logger("range_decompressor")
     logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(logger)
-    Logger.add_rotating_file_logger(logger)
+    Logging.add_console_logging(logger)
+    Logging.add_rotating_file_logger(logger)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
@@ -69,12 +69,12 @@ def main():
     header_decoder.logger.set_level(LogLevel.DEBUG)
     message_decoder.logger.set_level(LogLevel.DEBUG)
     encoder.logger.set_level(LogLevel.DEBUG)
-    Logger.add_console_logging(framer.logger)
-    Logger.add_console_logging(header_decoder.logger)
-    Logger.add_console_logging(message_decoder.logger)
-    Logger.add_rotating_file_logger(framer.logger)
-    Logger.add_rotating_file_logger(header_decoder.logger)
-    Logger.add_rotating_file_logger(message_decoder.logger)
+    Logging.add_console_logging(framer.logger)
+    Logging.add_console_logging(header_decoder.logger)
+    Logging.add_console_logging(message_decoder.logger)
+    Logging.add_rotating_file_logger(framer.logger)
+    Logging.add_rotating_file_logger(header_decoder.logger)
+    Logging.add_rotating_file_logger(message_decoder.logger)
 
     framer.SetFrameJson(False)
     framer.SetPayloadOnly(False)
@@ -137,7 +137,7 @@ def main():
         f"Decoded {completedmessages} messages in {elapsed_seconds}s. ({completedmessages / elapsed_seconds:.1f} msg/s)"
     )
 
-    Logger.shutdown()
+    Logging.shutdown()
 
 
 if __name__ == "__main__":
