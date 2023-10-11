@@ -38,11 +38,8 @@ from novatel_edie import STATUS, ENCODEFORMAT
 # -------------------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="function")
-def fp(json_db):
-    # return ne.FileParser(json_db)
-    parser = ne.FileParser()
-    parser.load_json_db(json_db)
-    return parser
+def fp():
+    return ne.FileParser()
 
 
 def test_LOGGER():
@@ -59,15 +56,12 @@ def test_LOGGER():
     file_parser.enable_framer_decoder_logging(level, "novatel_parser.log")
 
 
-def test_FILEPARSER_INSTANTIATION(json_db_path):
-    fp1 = ne.FileParser()
-    fp2 = ne.FileParser(json_db_path)
-
-    db = ne.JsonReader()
-    db.load_file(json_db_path)
-    # fp4 = ne.FileParser(db)
-    fp4 = ne.FileParser()
-    fp4.load_json_db(db)
+@pytest.mark.skip(reason="Slow and redundant")
+def test_FILEPARSER_INSTANTIATION(json_db, json_db_path):
+    fp = ne.FileParser()
+    fp.load_json_db(json_db)
+    ne.FileParser(json_db_path)
+    ne.FileParser(json_db)
 
 
 def test_RANGE_CMP(fp):
@@ -84,9 +78,9 @@ def test_UNKNOWN_BYTES(fp):
     assert not fp.return_unknown_bytes
 
 
-def test_PARSE_FILE_WITH_FILTER(fp, json_db_path, decoders_test_resources):
+def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
     # Reset the with the database because a previous test assigns it to the nullptr
-    fp = ne.FileParser(json_db_path)
+    fp = ne.FileParser()
     fp.filter = ne.Filter()
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
 

@@ -11,13 +11,13 @@ using namespace novatel::edie;
 void init_novatel_file_parser(nb::module_& m)
 {
     nb::class_<oem::FileParser>(m, "FileParser")
-        .def(nb::init<std::u32string>(), "json_db_path"_a)
-        // These both constructor bindings segfault for some reason
-        //      .def(nb::init<JsonReader*>(), "json_db"_a)
-        //      .def("__init__", [](oem::FileParser* t, nb::handle_t<JsonReader> json_db) {
-        //         auto* parser = new(t) oem::FileParser();
-        //         parser->LoadJsonDb(&nb::cast<JsonReader&>(json_db));
-        //      }, "json_db"_a)
+        .def(
+            "__init__",
+            [](oem::FileParser* t, nb::handle_t<nb::str> json_db_path) { new (t) oem::FileParser(nb::cast<std::u32string>(json_db_path)); },
+            "json_db"_a)
+        .def(
+            "__init__", [](oem::FileParser* t, nb::handle_t<JsonReader> json_db) { new (t) oem::FileParser(&nb::cast<JsonReader&>(json_db)); },
+            "json_db"_a)
         .def("load_json_db", &oem::FileParser::LoadJsonDb, "json_db_path"_a)
         .def("__init__", [](oem::FileParser* t) { new (t) oem::FileParser(JsonDbSingleton::get()); })
         .def_prop_ro("logger", &oem::FileParser::GetLogger)
