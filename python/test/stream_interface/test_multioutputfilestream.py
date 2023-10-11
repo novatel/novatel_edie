@@ -45,47 +45,43 @@ def test_configure_split_by_log():
 def test_configure_base_file_name():
     test_stream = ne.MultiOutputFileStream()
     test_stream.configure_base_file_name("outputfilestream_file13")
-    # assert "outputfilestream_file13" == GetBaseFileName()
-    # assert "DefaultExt" == GetExtensionName()
+    assert "outputfilestream_file13" == test_stream._base_name
+    assert "DefaultExt" == test_stream._extension_name
 
     test_stream.configure_base_file_name("outputfilestream_file13.txt")
-    # assert "outputfilestream_file13" == GetBaseFileName()
-    # assert "txt" == GetExtensionName()
+    assert "outputfilestream_file13" == test_stream._base_name
+    assert "txt" == test_stream._extension_name
 
 
 def test_configure_base32_string_file_name():
     test_stream = ne.MultiOutputFileStream()
     test_stream.configure_base_file_name("outputfilestream_不同语言的文件")
-    # assert "outputfilestream_不同语言的文件" == GetBase32FileName()
-    # assert "DefaultExt" == Get32ExtensionName()
+    assert "outputfilestream_不同语言的文件" == test_stream._base_name
+    assert "DefaultExt" == test_stream._extension_name
 
     test_stream.configure_base_file_name("outputfilestream_不同语言的文件.txt")
-    # assert "outputfilestream_不同语言的文件" == GetBase32FileName()
-    # assert "txt" == Get32ExtensionName()
+    assert "outputfilestream_不同语言的文件" == test_stream._base_name
+    assert "txt" == test_stream._extension_name
 
 
 # Test the SelectLogFile method.
-@pytest.mark.skip
 def test_select32_string_log_file():
     test_stream = ne.MultiOutputFileStream()
     test_stream.configure_base_file_name("outputfilestream不同_file14.asc")
     test_stream.select_log_file("bestpos")
-    map = test_stream.file_map
-    w_fstream_map_iterator = map.begin()
-    file_name = GetBase32FileName() + "_" + "bestpos" + "." + Get32ExtensionName()
-    assert file_name == w_fstream_map_iterator.first
-
-    assert file_name == w_fstream_map_iterator.second.get32_string_file_name()
+    file_map = list(test_stream.file_map.items())
+    file_name = f"{test_stream._base_name}_bestpos.{test_stream._extension_name}"
+    assert file_name == file_map[0][0]
+    assert file_name == file_map[0][1].file_name
 
     test_stream.configure_base_file_name("outputfilestream不同_file15")
     test_stream.set_extension_name("DefaultExt")
     test_stream.select_log_file("bestpos")
-    w_fstream_map_iterator += 1
-    file_name = GetBase32FileName() + "_" + "bestpos"
-    # Need to improve further here
-    # print("map size: %d\n" % (map.size()))
-    # print("first: %s\n" % ((fstream_map_iterator.first).c_str()))
-    # assert file_name == (fstream_map_iterator.first)
+    file_name = f"{test_stream._base_name}_bestpos"
+    file_map = list(test_stream.file_map.items())
+    assert len(file_map) == 2
+    assert file_name == file_map[1][0]
+    assert file_name == file_map[1][1].file_name
 
 
 def test_write_data_wide_file():
@@ -111,10 +107,9 @@ def test_configure_split_by_size():
     assert Path("Log_Part0.txt").exists()
 
     test_stream.clear_file_stream_map()
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as excinfo:
         test_stream.configure_split_by_size(0)
-        assert False  # Should not execute
-    # assert "File Split by Size not valid" == exc.buffer
+    assert str(excinfo.value) == "File Split by Size not valid"
 
 
 def test_configure_split_by_time():
@@ -126,10 +121,9 @@ def test_configure_split_by_time():
     assert len == 5
     assert Path("Log_Part0.txt").exists()
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as excinfo:
         test_stream.configure_split_by_time(0.0)  # 0
-        assert False  # Should not execute
-    # assert "File Split by time not valid" == exc.buffer
+    assert str(excinfo.value) == "File Split by time not valid"
 
 
 def test_select_time_file():

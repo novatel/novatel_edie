@@ -13,6 +13,14 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
+// For unit tests
+class MultiOutputFileStreamTest : public MultiOutputFileStream
+{
+  public:
+    std::u32string GetBase32FileName() { return s32MyBaseName; }
+    std::u32string Get32ExtensionName() { return s32MyExtensionName; }
+};
+
 NB_MODULE(stream_interface, m)
 {
     // # stream_interface/common.hpp
@@ -73,7 +81,7 @@ NB_MODULE(stream_interface, m)
         .def_prop_ro("length", &FileStream::GetFileLength)
         .def_prop_ro("file_name", &FileStream::Get32StringFileName)
         .def_prop_ro("current_size", &FileStream::GetCurrentFileSize)
-        //      .def_prop_ro("my_file_stream", &FileStream::GetMyFileStream)
+        //      .def_prop_ro("file_stream", &FileStream::GetMyFileStream)
         .def_prop_ro("stream_failed", [](FileStream& self) { return self.GetMyFileStream()->fail(); })
         .def("set_current_offset", &FileStream::SetCurrentFileOffset)
         .def_prop_ro("current_offset", &FileStream::GetCurrentFileOffset);
@@ -98,8 +106,17 @@ NB_MODULE(stream_interface, m)
         .def("configure_split_by_log", &MultiOutputFileStream::ConfigureSplitByLog, "status"_a)
         .def("configure_split_by_size", &MultiOutputFileStream::ConfigureSplitBySize, "size"_a)
         .def("configure_split_by_time", &MultiOutputFileStream::ConfigureSplitByTime, "time"_a)
-        .def_prop_ro("file_map", &MultiOutputFileStream::Get32FileMap, nb::rv_policy::reference_internal)
-        .def("set_extension_name", nb::overload_cast<const std::u32string&>(&MultiOutputFileStream::SetExtensionName), "ext"_a);
+        .def_prop_ro("file_map",
+                     [](MultiOutputFileStream& self) {
+                         nb::dict py_map;
+                         for (const auto& [key, value] : self.Get32FileMap()) py_map[nb::cast(key)] = nb::cast(value, nb::rv_policy::reference);
+                         return py_map;
+                     })
+        .def("set_extension_name", nb::overload_cast<const std::u32string&>(&MultiOutputFileStream::SetExtensionName), "ext"_a)
+        // For unit tests only
+        .def_prop_ro("_base_name", [](MultiOutputFileStream& self) { return static_cast<MultiOutputFileStreamTest*>(&self)->GetBase32FileName(); })
+        .def_prop_ro("_extension_name",
+                     [](MultiOutputFileStream& self) { return static_cast<MultiOutputFileStreamTest*>(&self)->Get32ExtensionName(); });
 
     // # stream_interface/inputfilestream.hpp
 
