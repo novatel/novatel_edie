@@ -22,7 +22,7 @@ void init_novatel_parser(nb::module_& m)
         .def_prop_rw("decompress_range_cmp", &oem::Parser::GetDecompressRangeCmp, &oem::Parser::SetDecompressRangeCmp)
         .def_prop_rw("return_unknown_bytes", &oem::Parser::GetReturnUnknownBytes, &oem::Parser::SetReturnUnknownBytes)
         .def_prop_rw("encode_format", &oem::Parser::GetEncodeFormat, &oem::Parser::SetEncodeFormat)
-        .def_prop_rw("filter", &oem::Parser::GetFilter, &oem::Parser::SetFilter)
+        .def_prop_rw("filter", &oem::Parser::GetFilter, &oem::Parser::SetFilter, nb::rv_policy::reference_internal)
         .def("write", [](oem::Parser& self, nb::bytes data) { return self.Write((unsigned char*)data.c_str(), data.size()); })
         .def("read",
              [](oem::Parser& self) {

@@ -27,7 +27,7 @@ NB_MODULE(stream_interface, m)
     nb::class_<ReadDataStructure>(m, "ReadDataStructure")
         .def(nb::init<>())
         .def_ro("size", &ReadDataStructure::uiDataSize)
-        .def_ro("data", &ReadDataStructure::cData);
+        .def_ro("data", &ReadDataStructure::cData, nb::rv_policy::reference_internal);
 
     nb::class_<StreamReadStatus>(m, "StreamReadStatus")
         .def(nb::init<>())
@@ -98,7 +98,7 @@ NB_MODULE(stream_interface, m)
         .def("configure_split_by_log", &MultiOutputFileStream::ConfigureSplitByLog, "status"_a)
         .def("configure_split_by_size", &MultiOutputFileStream::ConfigureSplitBySize, "size"_a)
         .def("configure_split_by_time", &MultiOutputFileStream::ConfigureSplitByTime, "time"_a)
-        .def_prop_ro("file_map", &MultiOutputFileStream::Get32FileMap)
+        .def_prop_ro("file_map", &MultiOutputFileStream::Get32FileMap, nb::rv_policy::reference_internal)
         .def("set_extension_name", nb::overload_cast<const std::u32string&>(&MultiOutputFileStream::SetExtensionName), "ext"_a);
 
     // # stream_interface/inputfilestream.hpp
