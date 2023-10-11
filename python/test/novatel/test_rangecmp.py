@@ -28,7 +28,6 @@
 ################################################################################
 
 import novatel_edie as ne
-from novatel_edie import STATUS
 import pytest
 
 @pytest.fixture(scope="function")
@@ -56,25 +55,23 @@ def test_LOGGER():
 # -------------------------------------------------------------------------------------------------------
 # Channel Tracking Status structure unit tests
 # -------------------------------------------------------------------------------------------------------
-@pytest.mark.skip
-def test_CHANNEL_TRACKING_STATUS_WORD_1(range_decompressor):
-    cTS = 0x1810BC04
-    assert cTS == ChannelTrackingStatusStruct(cTS).GetAsWord()
+def test_CHANNEL_TRACKING_STATUS_WORD_1():
+    cts = 0x1810BC04
+    # Equivalent to
+    # assert cts == ChannelTrackingStatusStruct(cts).GetAsWord()
+    assert cts == ne.RangeDecompressor._reencode_ChannelTrackingStatusWord(cts)
 
-@pytest.mark.skip
-def test_CHANNEL_TRACKING_STATUS_WORD_2(range_decompressor):
-    cTS = 0x69129D54
-    assert cTS == ChannelTrackingStatusStruct(cTS).GetAsWord()
+def test_CHANNEL_TRACKING_STATUS_WORD_2():
+    cts = 0x69129D54
+    assert cts == ne.RangeDecompressor._reencode_ChannelTrackingStatusWord(cts)
 
-@pytest.mark.skip
-def test_CHANNEL_TRACKING_STATUS_WORD_3(range_decompressor):
-    cTS = 0xFBF7FFFF
-    assert cTS == ChannelTrackingStatusStruct(cTS).GetAsWord()
+def test_CHANNEL_TRACKING_STATUS_WORD_3():
+    cts = 0xFBF7FFFF
+    assert cts == ne.RangeDecompressor._reencode_ChannelTrackingStatusWord(cts)
 
 # -------------------------------------------------------------------------------------------------------
 # Bitfield unit tests
 # -------------------------------------------------------------------------------------------------------
-@pytest.mark.skip
 def test_BITFIELD_1(range_decompressor):
     # Binary bit values:   1101 1111 0111 0110 1000 1000
     # Endianness:          -----------------------------
@@ -82,15 +79,18 @@ def test_BITFIELD_1(range_decompressor):
     # Expected bitfield 1: XXXX XXXX X111 0110 1101 1111 (0x76DF)
     # Expected bitfield 2: XXXX X000 0... .... .... .... (0x0)
     # Expected bitfield 3: 1000 1... .... .... .... .... (0x11)
+    # _get_bitfield() will advance the start of this array
     data = bytes([0xDF, 0x76, 0x88])
 
-    range_decompressor.set_bitoffset(0)
-    range_decompressor.set_bytes_remaining(len(data))
-    assert range_decompressor.get_bitfield(data, 15) == 0x76DF
-    assert range_decompressor.get_bitfield(data, 4) == 0x0
-    assert range_decompressor.get_bitfield(data, 5) == 0x11
+    range_decompressor._set_bitoffset(0)
+    range_decompressor._set_bytes_remaining(len(data))
+    bitfield, data = range_decompressor._get_bitfield(data, 15)
+    assert bitfield == 0x76DF
+    bitfield, data = range_decompressor._get_bitfield(data, 4)
+    assert bitfield == 0x0
+    bitfield, data = range_decompressor._get_bitfield(data, 5)
+    assert bitfield == 0x11
 
-@pytest.mark.skip
 def test_BITFIELD_2(range_decompressor):
     # Swap byte order:     0110 0001 0001 1111 1101 1000 0111 1100 1010 0000 1011 0000
     # Endianness:          -----------------------------------------------------------
@@ -98,20 +98,20 @@ def test_BITFIELD_2(range_decompressor):
     # Expected bitfield:   XXXX XXX^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ .... (0xA07CD81F6)
     data = bytes([0x61, 0x1F, 0xD8, 0x7C, 0xA0, 0xB0])
 
-    range_decompressor.set_bitoffset(4)
-    range_decompressor.set_bytes_remaining(len(data))
-    assert range_decompressor.get_bitfield(data, 37) == 0xA07CD81F6
+    range_decompressor._set_bitoffset(4)
+    range_decompressor._set_bytes_remaining(len(data))
+    bitfield, data = range_decompressor._get_bitfield(data, 37)
+    assert bitfield == 0xA07CD81F6
 
-@pytest.mark.skip
 def test_BITFIELD_3(range_decompressor):
     # 9 data, 72 bits.  We should not be able to ask for more than 64 bits from this function.
     data = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
 
-    range_decompressor.set_bitoffset(0)
-    range_decompressor.set_bytes_remaining(len(data))
-    assert range_decompressor.get_bitfield(data, 65) == 0x0
+    range_decompressor._set_bitoffset(0)
+    range_decompressor._set_bytes_remaining(len(data))
+    bitfield, data = range_decompressor._get_bitfield(data, 65)
+    assert bitfield == 0x0
 
-@pytest.mark.skip
 def test_BITFIELD_4(range_decompressor):
     # Binary bit values:    1010 1010 1010 1010
     # Endianness:           -------------------
@@ -134,41 +134,57 @@ def test_BITFIELD_4(range_decompressor):
     # Expected bitfield 16: 1XXX XXXX XXXX XXXX (0x1)
     data = bytes([0xAA, 0xAA])
 
-    range_decompressor.set_bitoffset(0)
-    range_decompressor.set_bytes_remaining(len(data))
-    assert range_decompressor.get_bitfield(data, 1) == 0x0
-    assert range_decompressor.get_bytes_remaining() == 2
-    assert range_decompressor.get_bitfield(data, 1) == 0x1
-    assert range_decompressor.get_bytes_remaining() == 2
-    assert range_decompressor.get_bitfield(data, 1) == 0x0
-    assert range_decompressor.get_bytes_remaining() == 2
-    assert range_decompressor.get_bitfield(data, 1) == 0x1
-    assert range_decompressor.get_bytes_remaining() == 2
-    assert range_decompressor.get_bitfield(data, 1) == 0x0
-    assert range_decompressor.get_bytes_remaining() == 2
-    assert range_decompressor.get_bitfield(data, 1) == 0x1
-    assert range_decompressor.get_bytes_remaining() == 2
-    assert range_decompressor.get_bitfield(data, 1) == 0x0
-    assert range_decompressor.get_bytes_remaining() == 2
-    assert range_decompressor.get_bitfield(data, 1) == 0x1
-    assert range_decompressor.get_bytes_remaining() == 1
+    range_decompressor._set_bitoffset(0)
+    range_decompressor._set_bytes_remaining(len(data))
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x0
+    assert range_decompressor._get_bytes_remaining() == 2
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x1
+    assert range_decompressor._get_bytes_remaining() == 2
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x0
+    assert range_decompressor._get_bytes_remaining() == 2
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x1
+    assert range_decompressor._get_bytes_remaining() == 2
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x0
+    assert range_decompressor._get_bytes_remaining() == 2
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x1
+    assert range_decompressor._get_bytes_remaining() == 2
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x0
+    assert range_decompressor._get_bytes_remaining() == 2
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x1
+    assert range_decompressor._get_bytes_remaining() == 1
 
-    assert range_decompressor.get_bitfield(data, 1) == 0x0
-    assert range_decompressor.get_bytes_remaining() == 1
-    assert range_decompressor.get_bitfield(data, 1) == 0x1
-    assert range_decompressor.get_bytes_remaining() == 1
-    assert range_decompressor.get_bitfield(data, 1) == 0x0
-    assert range_decompressor.get_bytes_remaining() == 1
-    assert range_decompressor.get_bitfield(data, 1) == 0x1
-    assert range_decompressor.get_bytes_remaining() == 1
-    assert range_decompressor.get_bitfield(data, 1) == 0x0
-    assert range_decompressor.get_bytes_remaining() == 1
-    assert range_decompressor.get_bitfield(data, 1) == 0x1
-    assert range_decompressor.get_bytes_remaining() == 1
-    assert range_decompressor.get_bitfield(data, 1) == 0x0
-    assert range_decompressor.get_bytes_remaining() == 1
-    assert range_decompressor.get_bitfield(data, 1) == 0x1
-    assert range_decompressor.get_bytes_remaining() == 0
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x0
+    assert range_decompressor._get_bytes_remaining() == 1
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x1
+    assert range_decompressor._get_bytes_remaining() == 1
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x0
+    assert range_decompressor._get_bytes_remaining() == 1
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x1
+    assert range_decompressor._get_bytes_remaining() == 1
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x0
+    assert range_decompressor._get_bytes_remaining() == 1
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x1
+    assert range_decompressor._get_bytes_remaining() == 1
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x0
+    assert range_decompressor._get_bytes_remaining() == 1
+    bitfield, data = range_decompressor._get_bitfield(data, 1)
+    assert bitfield == 0x1
+    assert range_decompressor._get_bytes_remaining() == 0
 
 # -------------------------------------------------------------------------------------------------------
 # RANGECMP decompression unit tests

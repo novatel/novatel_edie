@@ -9,6 +9,19 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
+// For unit tests
+class RangeDecompressorTester : public oem::RangeDecompressor
+{
+  public:
+    void SetBitoffset(uint32_t uiBitOffset_) { uiMyBitOffset = uiBitOffset_; }
+
+    void SetBytesRemaining(uint32_t uiByteCount_) { uiMyBytesRemaining = uiByteCount_; }
+
+    uint32_t GetBytesRemaining() { return uiMyBytesRemaining; }
+
+    uint64_t GetBitfield(uint8_t** ppucBytes_, uint32_t uiBitfieldSize_) { return GetBitfieldFromBuffer(ppucBytes_, uiBitfieldSize_); }
+};
+
 void init_novatel_range_decompressor(nb::module_& m)
 {
     nb::class_<oem::RangeDecompressor>(m, "RangeDecompressor")
@@ -28,5 +41,27 @@ void init_novatel_range_decompressor(nb::module_& m)
                 STATUS status = self.Decompress((unsigned char*)buffer, buf_size, metadata, encode_format);
                 return nb::make_tuple(status, nb::bytes(buffer, metadata.uiLength));
             },
-            "data"_a, "metadata"_a, "encode_format"_a = ENCODE_FORMAT::UNSPECIFIED);
+            "data"_a, "metadata"_a, "encode_format"_a = ENCODE_FORMAT::UNSPECIFIED)
+        // For unit tests
+        .def_static("_reencode_ChannelTrackingStatusWord", [](uint32_t uiCTS) { return oem::ChannelTrackingStatusStruct(uiCTS).GetAsWord(); })
+        .def(
+            "_set_bitoffset",
+            [](oem::RangeDecompressor& self, uint32_t uiBitOffset_) { static_cast<RangeDecompressorTester*>(&self)->SetBitoffset(uiBitOffset_); },
+            "bit_offset"_a)
+        .def(
+            "_set_bytes_remaining",
+            [](oem::RangeDecompressor& self, uint32_t uiByteCount_) {
+                static_cast<RangeDecompressorTester*>(&self)->SetBytesRemaining(uiByteCount_);
+            },
+            "byte_count"_a)
+        .def("_get_bytes_remaining", [](oem::RangeDecompressor& self) { return static_cast<RangeDecompressorTester*>(&self)->GetBytesRemaining(); })
+        .def(
+            "_get_bitfield",
+            [](oem::RangeDecompressor& self, nb::bytes data, uint32_t bitfield_size) {
+                uint8_t* data_ptr = (uint8_t*)data.c_str();
+                uint64_t result = static_cast<RangeDecompressorTester*>(&self)->GetBitfield(&data_ptr, bitfield_size);
+                int delta = data_ptr - (uint8_t*)data.c_str();
+                return nb::make_tuple(result, data[nb::slice(delta, (int)data.size())]);
+            },
+            "data"_a, "bitfield_size"_a);
 }

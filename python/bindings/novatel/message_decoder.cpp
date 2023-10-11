@@ -107,16 +107,18 @@ std::string PyIntermediateMessage::repr() const
     return repr.str();
 }
 
-class MessageDecoderWrapper : public oem::MessageDecoder
+// For unit tests
+class DecoderTester : public oem::MessageDecoder
 {
   public:
-    [[nodiscard]] STATUS DecodeBinary_(const std::vector<BaseField*> MsgDefFields_, unsigned char** ppucLogBuf_,
-                                       IntermediateMessage& vIntermediateFormat_, uint32_t uiMessageLength_)
+    [[nodiscard]] STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsigned char** ppucLogBuf_,
+                                          IntermediateMessage& vIntermediateFormat_, uint32_t uiMessageLength_)
     {
         return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, uiMessageLength_);
     }
 
-    [[nodiscard]] STATUS DecodeAscii_(const std::vector<BaseField*> MsgDefFields_, char** ppcLogBuf_, IntermediateMessage& vIntermediateFormat_)
+    [[nodiscard]] STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, char** ppcLogBuf_,
+                                         IntermediateMessage& vIntermediateFormat_)
     {
         return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
     }
@@ -161,7 +163,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 // Copy to ensure that the byte string is zero-delimited
                 std::string body_str(message_body.c_str(), message_body.size());
                 const char* data_ptr = body_str.c_str();
-                STATUS status = static_cast<MessageDecoderWrapper*>(&decoder)->DecodeAscii_(msg_def_fields, (char**)&data_ptr, message);
+                STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, (char**)&data_ptr, message);
                 return nb::make_tuple(status, PyIntermediateMessage(std::move(message)));
             },
             "msg_def_fields"_a, "message_body"_a)
@@ -171,7 +173,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 IntermediateMessage message;
                 const char* data_ptr = message_body.c_str();
                 STATUS status =
-                    static_cast<MessageDecoderWrapper*>(&decoder)->DecodeBinary_(msg_def_fields, (unsigned char**)&data_ptr, message, message_length);
+                    static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(msg_def_fields, (unsigned char**)&data_ptr, message, message_length);
                 return nb::make_tuple(status, PyIntermediateMessage(std::move(message)));
             },
             "msg_def_fields"_a, "message_body"_a, "message_length"_a);
