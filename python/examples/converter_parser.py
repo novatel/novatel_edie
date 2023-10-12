@@ -24,8 +24,8 @@
 ########################################################################
 #                            DESCRIPTION
 #
-# \file converter_parser.cpp
-# \brief Demonstrate how to use the C++ source for converting OEM
+# \file converter_parser.py
+# \brief Demonstrate how to use the Python API for converting OEM
 # messages using the Parser.
 ########################################################################
 import argparse
@@ -35,17 +35,22 @@ import novatel_edie as ne
 from novatel_edie import Logging, LogLevel
 
 
-def main():
-    logger = Logging().register_logger("converter")
+def _configure_logging(logger):
     logger.set_level(LogLevel.DEBUG)
     Logging.add_console_logging(logger)
     Logging.add_rotating_file_logger(logger)
+
+
+def main():
+    logger = Logging().register_logger("converter")
+    _configure_logging(logger)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
     parser = argparse.ArgumentParser(description="Convert OEM log files using Parser.")
     parser.add_argument("input_file", help="Input file")
-    parser.add_argument("output_format", nargs="?", choices=["ASCII", "BINARY", "FLATTENED_BINARY"],
+    parser.add_argument("output_format", nargs="?",
+                        choices=["ASCII", "ABBREV_ASCII", "BINARY", "FLATTENED_BINARY", "JSON"],
                         help="Output format", default="ASCII")
     parser.add_argument("append_msg_types", nargs="?", help="Additional message definitions to append to the database")
     parser.add_argument("-V", "--version", action="store_true")
@@ -69,50 +74,43 @@ def main():
         logger.info(f"Done in {timeit.default_timer() - start:.0f}ms")
 
     parser = ne.Parser(json_db)
-    parser.SetEncodeFormat(encode_format)
-    parser.logger.set_level(LogLevel.DEBUG)
-    Logging.add_console_logging(parser.logger)
-    Logging.add_rotating_file_logger(parser.logger)
+    parser.filter = ne.Filter()
+    parser.encode_format = encode_format
+    _configure_logging(parser.logger)
+    _configure_logging(parser.filter.logger)
 
-    filter = ne.Filter()
-    filter.logger.set_level(LogLevel.DEBUG)
-    Logging.add_console_logging(filter.logger)
-    Logging.add_rotating_file_logger(filter.logger)
+    # Set up file streams
+    input_stream = ne.InputFileStream(args.input_file)
+    converted_logs_stream = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
 
-    parser.SetFilter(filter)
-
-    # Setup filestreams
-    ifs = ne.InputFileStream(args.input_file)
-    convertedlogsofs = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
-
-    completemessages = 0
+    meta = ne.MetaData()
+    complete_messages = 0
     counter = 0
     start = timeit.default_timer()
     loop = timeit.default_timer()
-    readstatus = ne.StreamReadStatus()
-    while not readstatus.eos:
-        readdata.data = ifsreadbuffer
-        readstatus = ifs.ReadData(readdata)
-        parser.Write(readdata)
+    read_status = ne.StreamReadStatus()
+    while not read_status.eos:
+        read_status, read_data = input_stream.read(ne.MESSAGE_SIZE_MAX)
+        parser.write(read_data)
 
-        while True:
-            status = parser.Read(message_data, metadata)
+        status = None
+        while status != ne.STATUS.BUFFER_EMPTY:
+            status, message_data = parser.Read(meta)
+            if status != ne.STATUS.SUCCESS:
+                logger.error(f"Failed to read a message: {status}: {status.__doc__}")
+                continue
 
-            if status == ne.STATUS.SUCCESS:
-                convertedlogsofs.WriteData(message_data)
-                logger.info(f"Encoded: ({message_data.messagelength}) {message_data.message}")
-                completemessages += 1
+            converted_logs_stream.write(message_data.message)
+            logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
+            complete_messages += 1
 
             if timeit.default_timer() - loop > 1:
                 counter += 1
-                logger.info(f"{completemessages / counter} logs/s")
+                logger.info(f"{complete_messages / counter} logs/s")
                 loop = timeit.default_timer()
 
-            if status == ne.STATUS.BUFFER_EMPTY:
-                break
-
-    logger.info(f"Converted {completemessages} logs in {timeit.default_timer() - start:.3f}s from {args.input_file}")
-
+    elapsed_seconds = timeit.default_timer() - start
+    logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
     Logging.shutdown()
 
 

@@ -49,7 +49,7 @@ NB_MODULE(stream_interface, m)
     nb::class_<StreamReadStatus>(m, "StreamReadStatus")
         .def(nb::init<>())
         .def_ro("percent_read", &StreamReadStatus::uiPercentStreamRead)
-        .def_ro("current_read", &StreamReadStatus::uiCurrentStreamRead)
+        .def_ro("last_count", &StreamReadStatus::uiCurrentStreamRead)
         .def_ro("length", &StreamReadStatus::ullStreamLength)
         .def_ro("eos", &StreamReadStatus::bEOS);
 
@@ -73,14 +73,14 @@ NB_MODULE(stream_interface, m)
             [](FileStream& self, size_t size) {
                 std::vector<char> buffer(size);
                 StreamReadStatus status = self.ReadFile(buffer.data(), size);
-                return nb::make_tuple(nb::bytes(buffer.data(), status.uiCurrentStreamRead), status);
+                return nb::make_tuple(status, nb::bytes(buffer.data(), status.uiCurrentStreamRead));
             },
             "n"_a)
         .def("readline",
              [](FileStream& self) {
                  std::string line;
                  StreamReadStatus status = self.ReadLine(line);
-                 return nb::make_tuple(nb::bytes(line.c_str(), line.size()), status);
+                 return nb::make_tuple(status, nb::bytes(line.c_str(), line.size()));
              })
         .def(
             "write", [](FileStream& self, nb::bytes& data) { return self.WriteFile(data.c_str(), data.size()); }, "data"_a)
@@ -110,7 +110,7 @@ NB_MODULE(stream_interface, m)
         .def(
             "write",
             [](MultiOutputFileStream& self, nb::bytes& data, std::string msg_name, uint32_t size, novatel::edie::TIME_STATUS status, uint16_t week,
-               double milliseconds) { return self.WriteData(data.c_str(), data.size(), msg_name, size, status, week, milliseconds); },
+               double milliseconds) { return self.WriteData(data.c_str(), data.size(), std::move(msg_name), size, status, week, milliseconds); },
             "data"_a, "msg_name"_a, "size"_a, "status"_a, "week"_a, "milliseconds"_a)
         .def("configure_split_by_log", &MultiOutputFileStream::ConfigureSplitByLog, "status"_a)
         .def("configure_split_by_size", &MultiOutputFileStream::ConfigureSplitBySize, "size"_a)
@@ -145,14 +145,14 @@ NB_MODULE(stream_interface, m)
                 read_data.cData = buffer.data();
                 read_data.uiDataSize = size;
                 StreamReadStatus status = self.ReadData(read_data);
-                return nb::make_tuple(nb::bytes(buffer.data(), status.uiCurrentStreamRead), status);
+                return nb::make_tuple(status, nb::bytes(buffer.data(), status.uiCurrentStreamRead));
             },
             "n"_a)
         .def("readline",
              [](InputFileStream& self) {
                  std::string line;
                  StreamReadStatus status = self.ReadLine(line);
-                 return nb::make_tuple(nb::bytes(line.c_str(), line.size()), status);
+                 return nb::make_tuple(status, nb::bytes(line.c_str(), line.size()));
              })
         .def(
             "reset",

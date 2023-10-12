@@ -24,8 +24,8 @@
 ############################################################################
 #                            DESCRIPTION
 #
-# \file rxconfig_example.cpp
-# \brief Demonstrate how to use the C++ source for converting RXCONFIG
+# \file rxconfig_example.py
+# \brief Demonstrate how to use the Python API for converting RXCONFIG
 # messages.
 ########################################################################
 import argparse
@@ -35,85 +35,75 @@ import novatel_edie as ne
 from novatel_edie import Logging, LogLevel, ENCODEFORMAT
 
 
-def main():
-    # This example uses the default logger config, but you can also pass a config file to the Logging() ctor
-    # An example config file: doc\example_logger_config.toml
-    logger = Logging().register_logger("rxconfig_converter")
+def _configure_logging(logger):
     logger.set_level(LogLevel.DEBUG)
     Logging.add_console_logging(logger)
     Logging.add_rotating_file_logger(logger)
 
+
+def main():
+    # This example uses the default logger config, but you can also pass a config file to the Logging() ctor
+    # An example config file: doc\example_logger_config.toml
+    logger = Logging().register_logger("rxconfig_converter")
+    _configure_logging(logger)
+
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
+    parser = argparse.ArgumentParser(description="Convert OEM RXCONFIG messages.")
     parser.add_argument("input_file", help="Input file")
-    parser.add_argument("output_format", nargs="?", help="Output format",
-                        default=ENCODEFORMAT.ASCII, type=ne.string_to_encode_format,
-                        choices=[ENCODEFORMAT.ASCII, ENCODEFORMAT.BINARY, ENCODEFORMAT.FLATTENED_BINARY])
+    parser.add_argument("output_format", nargs="?",
+                        choices=["ASCII", "ABBREV_ASCII", "BINARY", "FLATTENED_BINARY", "JSON"],
+                        help="Output format", default="ASCII")
     parser.add_argument("-V", "--version", action="store_true")
     args = parser.parse_args()
+    encode_format = ne.string_to_encode_format(args.output_format)
 
     if args.version:
         exit(0)
-
-    args.output_format = ne.string_to_encode_format(args.output_format)
-    if args.output_format == ne.ENCODEFORMAT.UNSPECIFIED:
-        logger.error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY")
-        exit(1)
 
     if not os.path.exists(args.input_file):
         logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
 
     # Setup file streams
-    ifs = ne.InputFileStream(args.input_file)
-    convertedrxconfigofs = ne.OutputFileStream(f"{args.input_file}.{args.output_format}")
-    strippedrxconfigofs = ne.OutputFileStream(f"{args.input_file}.STRIPPED.{args.output_format}")
+    input_stream = ne.InputFileStream(args.input_file)
+    converted_rxconfig_ofs = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
+    stripped_rxconfig_ofs = ne.OutputFileStream(f"{args.input_file}.STRIPPED.{encode_format}")
 
-    metadata = ne.MetaDataStruct()
-    embeddedmetadata = ne.MetaDataStruct()
-    message_data = ne.MessageDataStruct()
-    embeddedmesage_data = ne.MessageDataStruct()
+    rx_config_handler = ne.RxConfigHandler()
 
-    rxconfighandler = ne.RxConfigHandler()
+    read_status = ne.StreamReadStatus()
+    while not read_status.eos:
+        read_status, read_data = input_stream.read(ne.MESSAGE_SIZE_MAX)
+        rx_config_handler.write(read_data)
 
-    while True:
-        readdata.data = ifsreadbuffer
-        readstatus = ifs.ReadData(readdata)
-        rxconfighandler.Write(readdata)
-
-        while True:
-            status = rxconfighandler.Convert(
-                message_data, metadata, embeddedmesage_data, embeddedmetadata, args.output_format
-            )
-            if status == ne.STATUS.SUCCESS:
-                message_data.message[message_data.messagelength] = "\0"
-                logger.info(f"Encoded: ({message_data.messagelength}) {message_data.message}")
-                convertedrxconfigofs.WriteData(message_data)
-
-                # Make the embedded message valid by flipping the CRC.
-                if args.output_format == ne.ENCODE_FORMAT.ASCII:
-                    # Flip the CRC at the end of the embedded message and add a CRLF so it becomes a valid command.
-                    crcbegin = embeddedmesage_data[-ne.OEM4_ASCII_CRC_LENGTH:]
-                    flippedcrc = strtoul(crcbegin, NULL, 16) ^ 0xFFFFFFFF
-                    snprintf(crcbegin, ne.OEM4_ASCII_CRC_LENGTH + 1, "%08x", flippedcrc)
-                    strippedrxconfigofs.WriteData(embeddedmesage_data)
-                    strippedrxconfigofs.WriteData(b"\r\n")
-                elif args.output_format == ne.ENCODE_FORMAT.BINARY:
-                    # Flip the CRC at the end of the embedded message so it becomes a valid command.
-                    crcbegin = embeddedmesage_data[-ne.OEM4_BINARY_CRC_LENGTH:]
-                    crcbegin ^= 0xFFFFFFFF
-                    strippedrxconfigofs.WriteData(embeddedmesage_data)
-                elif args.output_format == ne.ENCODE_FORMAT.JSON:
-                    # Write in a comma and CRLF to make the files parse-able by JSON readers.
-                    convertedrxconfigofs.WriteData(b",\r\n")
-                    strippedrxconfigofs.WriteData(b",\r\n")
-
-            if status == ne.STATUS.BUFFER_EMPTY:
+        status = None
+        while status != ne.STATUS.BUFFER_EMPTY:
+            status, message, metadata, embedded_message, embedded_metadata = rx_config_handler.convert(encode_format)
+            if status not in [ne.STATUS.SUCCESS, ne.STATUS.BUFFER_EMPTY]:
+                logger.error(f"Error converting RXCONFIG message: {status}")
+                continue
+            if len(message.message) == 0:
                 break
+            logger.info(f"Encoded: ({len(message.message)}) {message.message}")
+            converted_rxconfig_ofs.write(message.message)
 
-        if readstatus.eos:
-            break
+            # Make the embedded message valid by flipping the CRC.
+            if encode_format == ne.ENCODE_FORMAT.ASCII:
+                # Flip the CRC at the end of the embedded message and add a CRLF so it becomes a valid command.
+                msg = embedded_message.message
+                msg = msg[:-ne.OEM4_ASCII_CRC_LENGTH] + msg[-ne.OEM4_ASCII_CRC_LENGTH:][::-1]
+                stripped_rxconfig_ofs.write(msg)
+                stripped_rxconfig_ofs.write(b"\r\n")
+            elif encode_format == ne.ENCODE_FORMAT.BINARY:
+                # Flip the CRC at the end of the embedded message so it becomes a valid command.
+                for i in range(ne.OEM4_BINARY_CRC_LENGTH):
+                    embedded_message.message[-ne.OEM4_BINARY_CRC_LENGTH + i] ^= 0xFF
+                stripped_rxconfig_ofs.write(embedded_message)
+            elif encode_format == ne.ENCODE_FORMAT.JSON:
+                # Write in a comma and CRLF to make the files parse-able by JSON readers.
+                converted_rxconfig_ofs.write(b",\r\n")
+                stripped_rxconfig_ofs.write(b",\r\n")
 
     Logging.shutdown()
 

@@ -24,8 +24,8 @@
 ########################################################################
 #                            DESCRIPTION
 #
-# \file converter_fileparser.cpp
-# \brief Demonstrate how to use the C++ source for converting OEM
+# \file converter_fileparser.py
+# \brief Demonstrate how to use the Python API for converting OEM
 # messages using the FileParser.
 ########################################################################
 import argparse
@@ -36,17 +36,22 @@ import novatel_edie as ne
 from novatel_edie import Logging, LogLevel
 
 
-def main():
-    logger = Logging().register_logger("converter")
+def _configure_logging(logger):
     logger.set_level(LogLevel.DEBUG)
     Logging.add_console_logging(logger)
     Logging.add_rotating_file_logger(logger)
+
+
+def main():
+    logger = Logging().register_logger("converter")
+    _configure_logging(logger)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
     parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
     parser.add_argument("input_file", help="Input file")
-    parser.add_argument("output_format", nargs="?", choices=["ASCII", "BINARY", "FLATTENED_BINARY"],
+    parser.add_argument("output_format", nargs="?",
+                        choices=["ASCII", "ABBREV_ASCII", "BINARY", "FLATTENED_BINARY", "JSON"],
                         help="Output format", default="ASCII")
     parser.add_argument("-V", "--version", action="store_true")
     args = parser.parse_args()
@@ -59,56 +64,42 @@ def main():
         logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
 
-    fileparser = ne.FileParser()
-    fileparser.logger.set_level(LogLevel.DEBUG)
-    logger.add_console_logging(fileparser.logger)
-    Logging.add_rotating_file_logger(fileparser.logger)
+    file_parser = ne.FileParser()
+    file_parser.filter = ne.Filter()
+    file_parser.encode_format = encode_format
+    _configure_logging(file_parser.logger)
+    _configure_logging(file_parser.filter.logger)
 
-    filter = ne.Filter()
-    filter.logger.set_level(LogLevel.DEBUG)
-    Logging.add_console_logging(filter.logger)
-    Logging.add_rotating_file_logger(filter.logger)
+    # Set up file streams
+    input_stream = ne.InputFileStream(args.input_file)
+    converted_logs_stream = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
 
-    # Initialize structures and error codes
-    status = ne.STATUS.UNKNOWN
-
-    metadata = ne.MetaData()
-
-    fileparser.filter = filter
-    fileparser.encode_format = encode_format
-
-    # Setup filestreams
-    ifs = ne.InputFileStream(infilename)
-    convertedlogsofs = ne.OutputFileStream(f"{infilename}.{encode_format}")
-    ne.OutputFileStream(f"{infilename}.UNKNOWN")
-
-    if not fileparser.SetStream(ifs):
+    if not file_parser.set_stream(input_stream):
         logger.error("Input stream could not be set.  The stream is either unavailable or exhausted.")
         exit(-1)
 
+    meta = ne.MetaData()
     complete_messages = 0
     counter = 0
     start = timeit.default_timer()
     loop = timeit.default_timer()
-
+    status = ne.STATUS.UNKNOWN
     while status != ne.STATUS.STREAM_EMPTY:
-        try:
-            status = fileparser.Read(message_data, metadata)
-            if status == ne.STATUS.SUCCESS:
-                convertedlogsofs.WriteData(message_data)
-                message_data.message[message_data.messagelength] = "\0"
-                logger.info(f"Encoded: ({message_data.messagelength}) {message_data.message}")
-                complete_messages += 1
-        except Exception as e:
-            logger.error(f"Exception thrown:  {__DATE__}, {__TIME__} \n{e}\n")
-            exit(-1)
+        status, message_data = file_parser.read(meta)
+        if status != ne.STATUS.SUCCESS:
+            logger.error(f"Failed to read a message: {status}: {status.__doc__}")
+            continue
+        converted_logs_stream.write(message_data.message)
+        logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
+        complete_messages += 1
 
         if timeit.default_timer() - loop > 1:
             counter += 1
-            logger.info(f"{fileparser.GetPercentRead()}% {complete_messages / counter} logs/s")
+            logger.info(f"{file_parser.percent_read}% {complete_messages / counter} logs/s")
             loop = timeit.default_timer()
-    logger.info(f"Converted {complete_messages} logs in {timeit.default_timer() - start:.3f}s from {infilename}")
 
+    elapsed_seconds = timeit.default_timer() - start
+    logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
     Logging.shutdown()
 
 

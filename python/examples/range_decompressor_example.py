@@ -36,17 +36,22 @@ import novatel_edie as ne
 from novatel_edie import Logging, LogLevel
 
 
-def main():
-    logger = Logging().register_logger("range_decompressor")
+def _configure_logging(logger):
     logger.set_level(LogLevel.DEBUG)
     Logging.add_console_logging(logger)
     Logging.add_rotating_file_logger(logger)
 
+
+def main():
+    logger = Logging().register_logger("range_decompressor")
+    _configure_logging(logger)
+
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
+    parser = argparse.ArgumentParser(description="Filter and decompress RANGECMP OEM logs.")
     parser.add_argument("input_file", help="Input file")
-    parser.add_argument("output_format", nargs="?", choices=["ASCII", "BINARY", "FLATTENED_BINARY"],
+    parser.add_argument("output_format", nargs="?",
+                        choices=["ASCII", "ABBREV_ASCII", "BINARY", "FLATTENED_BINARY", "JSON"],
                         help="Output format", default="ASCII")
     parser.add_argument("-V", "--version", action="store_true")
     args = parser.parse_args()
@@ -60,83 +65,72 @@ def main():
         exit(1)
 
     framer = ne.Framer()
+    framer.set_frame_json(False)
+    framer.set_payload_only(False)
+    framer.set_report_unknown_bytes(True)
+
     header_decoder = ne.HeaderDecoder()
     message_decoder = ne.MessageDecoder()
-    rangedecompressor = ne.RangeDecompressor()
+    range_decompressor = ne.RangeDecompressor()
     encoder = ne.Encoder()
 
-    framer.logger.set_level(LogLevel.DEBUG)
-    header_decoder.logger.set_level(LogLevel.DEBUG)
-    message_decoder.logger.set_level(LogLevel.DEBUG)
-    encoder.logger.set_level(LogLevel.DEBUG)
-    Logging.add_console_logging(framer.logger)
-    Logging.add_console_logging(header_decoder.logger)
-    Logging.add_console_logging(message_decoder.logger)
-    Logging.add_rotating_file_logger(framer.logger)
-    Logging.add_rotating_file_logger(header_decoder.logger)
-    Logging.add_rotating_file_logger(message_decoder.logger)
+    _configure_logging(framer.logger)
+    _configure_logging(header_decoder.logger)
+    _configure_logging(message_decoder.logger)
+    _configure_logging(encoder.logger)
 
-    framer.SetFrameJson(False)
-    framer.SetPayloadOnly(False)
-    framer.SetReportUnknownBytes(True)
+    input_stream = ne.InputFileStream(args.input_file)
+    output_stream = ne.OutputFileStream(f"{args.input_file}.DECOMPRESSED.{encode_format}")
 
-    ifs = ne.InputFileStream(args.input_file)
-    ofs = ne.OutputFileStream(f"{args.input_file}.DECOMPRESSED.{encode_format}")
-
-    header = ne.IntermediateHeader()
-    message = ne.IntermediateMessage()
-
-    metadata = ne.MetaDataStruct()
-    message_data = ne.MessageDataStruct()
-
+    meta = ne.MetaData()
     start = timeit.default_timer()
-    completedmessages = 0
+    completed_messages = 0
     while True:
         # Get frame, null-terminate.
-        status = framer.GetFrame(readbuffer, metadata)
-        if status == ne.STATUS.SUCCESS:
-            # Decode the header.  Get meta data here and populate the Intermediate header.
-            status = header_decoder.Decode(readbuffer, header, metadata)
-            if status == ne.STATUS.SUCCESS:
-                status = rangedecompressor.Decompress(readbuffer, metadata, encode_format)
-                if status == ne.STATUS.SUCCESS:
-                    completedmessages += 1
-                    byteswritten = ofs.WriteData(readbuffer, metadata.length)
-                    if metadata.length == byteswritten:
-                        readbuffer[metadata.length] = "\0"
-                        logger.info(f"Decompressed: ({metadata.length}) {readbuffer}")
-                    else:
-                        logger.error(f"Could only write {byteswritten}/{message_data.messagelength} bytes.")
-                elif status == ne.STATUS.UNSUPPORTED:
-                    if status == ne.STATUS.SUCCESS:
-                        header.messageid = metadata.messageid
-                        status = message_decoder.Decode((readbuffer + metadata.headerlength), message, metadata)
-                        if status == ne.STATUS.SUCCESS:
-                            # Encode our message now that we have everything we need.
-                            encodedmessagebuffer, status = encoder.Encode(
-                                header,
-                                message,
-                                message_data,
-                                metadata,
-                                encode_format,
-                            )
-                            if status == ne.STATUS.SUCCESS:
-                                message_data.message[message_data.messagelength] = "\0"
-                                logger.info(f"Encoded: ({message_data.messagelength}) {message_data.message}")
-        elif (status == ne.STATUS.BUFFER_EMPTY) or (status == ne.STATUS.INCOMPLETE):
+        status, read_bytes = framer.get_frame(meta)
+        if status in [ne.STATUS.BUFFER_EMPTY, ne.STATUS.INCOMPLETE]:
             # Read from file, write to framer.
-            readstatus = ifs.ReadData(readdata)
-            if readstatus.currentstreamread == 0:
+            read_status, read_bytes = input_stream.read(ne.MESSAGE_SIZE_MAX)
+            if len(read_bytes) == 0:
                 logger.info("Stream finished")
                 break
+            framer.write(read_bytes)
+        if status != ne.STATUS.SUCCESS:
+            logger.error(f"Failed to get a frame: {status}: {status.__doc__}")
+            continue
 
-            framer.Write(readdata)
+        # Decode the header.  Get meta data here and populate the Intermediate header.
+        status, header = header_decoder.decode(read_bytes, meta)
+        if status != ne.STATUS.SUCCESS:
+            logger.error(f"Failed to decode a header: {status}: {status.__doc__}")
+            continue
+
+        status, message_data = range_decompressor.decompress(read_bytes, meta, encode_format)
+        if status != ne.STATUS.SUCCESS:
+            logger.error(f"Failed to decompress a message: {status}: {status.__doc__}")
+            continue
+
+        if status == ne.STATUS.UNSUPPORTED:
+            header.message_id = meta.message_id
+            body = read_bytes[meta.headerlength:]
+            status, message = message_decoder.decode(body, meta)
+            if status == ne.STATUS.SUCCESS:
+                # Encode our message now that we have everything we need.
+                status, encoded_message = encoder.encode(header, message, message_data, meta, encode_format)
+                if status == ne.STATUS.SUCCESS:
+                    logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
+        else:
+            completed_messages += 1
+            written_bytes = output_stream.write(message_data)
+            if len(message_data) == written_bytes:
+                logger.info(f"Decompressed: ({len(message_data)}) {message_data}")
+            else:
+                logger.error(f"Could only write {written_bytes}/{len(message_data)} bytes.")
 
     elapsed_seconds = timeit.default_timer() - start
     logger.info(
-        f"Decoded {completedmessages} messages in {elapsed_seconds}s. ({completedmessages / elapsed_seconds:.1f} msg/s)"
+        f"Decoded {completed_messages} messages in {elapsed_seconds}s. ({completed_messages / elapsed_seconds:.1f} msg/s)"
     )
-
     Logging.shutdown()
 
 

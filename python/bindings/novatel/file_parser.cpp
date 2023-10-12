@@ -36,8 +36,16 @@ void init_novatel_file_parser(nb::module_& m)
                  novatel::edie::MessageDataStruct message_data;
                  oem::MetaDataStruct meta_data;
                  STATUS status = self.Read(message_data, meta_data);
-                 return std::make_tuple(status, oem::PyMessageData(std::move(message_data)), std::move(meta_data));
+                 return std::make_tuple(status, oem::PyMessageData(message_data), meta_data);
              })
+        .def(
+            "read",
+            [](oem::FileParser& self, nb::handle_t<oem::MetaDataStruct> py_metadata) {
+                novatel::edie::MessageDataStruct message_data;
+                STATUS status = self.Read(message_data, nb::cast<oem::MetaDataStruct&>(py_metadata));
+                return std::make_tuple(status, oem::PyMessageData(message_data));
+            },
+            "metadata"_a)
         .def("reset", &oem::FileParser::Reset)
         .def(
             "flush",
