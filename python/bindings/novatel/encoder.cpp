@@ -22,12 +22,26 @@ void init_novatel_encoder(nb::module_& m)
             "encode",
             [](oem::Encoder& encoder, oem::IntermediateHeader& header, PyIntermediateMessage& py_message, oem::MetaDataStruct& metadata,
                ENCODE_FORMAT format) {
-                unsigned char buffer[MESSAGE_SIZE_MAX];
-                unsigned char* buf_ptr = (unsigned char*)&buffer;
-                uint32_t buf_size = MESSAGE_SIZE_MAX;
                 novatel::edie::MessageDataStruct message_data;
-                STATUS status = encoder.Encode(&buf_ptr, buf_size, header, py_message.message, message_data, metadata, format);
-                return nb::make_tuple(status, oem::PyMessageData(message_data));
+                if (format == ENCODE_FORMAT::JSON)
+                {
+                    // Allocate more space for JSON messages.
+                    // A TRACKSTAT message can use about 47k bytes when encoded as JSON.
+                    // FIXME: this is still not safe and there is no effective buffer overflow checking implemented in Encoder.
+                    unsigned char buffer[MESSAGE_SIZE_MAX * 3];
+                    unsigned char* buf_ptr = (unsigned char*)&buffer;
+                    uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
+                    STATUS status = encoder.Encode(&buf_ptr, buf_size, header, py_message.message, message_data, metadata, format);
+                    return nb::make_tuple(status, oem::PyMessageData(message_data));
+                }
+                else
+                {
+                    unsigned char buffer[MESSAGE_SIZE_MAX];
+                    unsigned char* buf_ptr = (unsigned char*)&buffer;
+                    uint32_t buf_size = MESSAGE_SIZE_MAX;
+                    STATUS status = encoder.Encode(&buf_ptr, buf_size, header, py_message.message, message_data, metadata, format);
+                    return nb::make_tuple(status, oem::PyMessageData(message_data));
+                }
             },
             "header"_a, "message"_a, "metadata"_a, "encode_format"_a);
 }
