@@ -305,7 +305,7 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
         return 0;
     }
 
-    // If the user is asking for more bits than are avalable in the buffer, don't do anything.
+    // If the user is asking for more bits than are available in the buffer, don't do anything.
     uint32_t uiRemainderBits = uiBitsInBitfield_ % BITS_PER_BYTE;
     uint32_t uiBytesRequired = uiBitsInBitfield_ / BITS_PER_BYTE + (uiRemainderBits ? 1 : 0);
     if (uiBytesRequired > uiMyBytesRemaining)
@@ -314,8 +314,7 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
         return 0;
     }
 
-    // If the requested number of bits does not run into the next byte, let the remaining bits cound
-    // as a remaining byte.
+    // If the requested number of bits does not run into the next byte, let the remaining bits count as a remaining byte.
     uiMyBytesRemaining -= uiBytesRequired - (((uiRemainderBits + uiMyBitOffset) < BITS_PER_BYTE) ? 1 : 0);
 
     uint64_t ulBitfield = 0;
@@ -333,7 +332,7 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
         {
             uiMyBitOffset = 0;
             uiByteOffset++;
-            ucCurrentByte = *(*ppucDataBuffer_ + uiByteOffset);
+            if (uiBitsConsumed + 1 < uiBitsInBitfield_) ucCurrentByte = *(*ppucDataBuffer_ + uiByteOffset);
         }
     }
 
