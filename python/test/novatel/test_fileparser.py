@@ -100,8 +100,7 @@ def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
         status, message_data, meta_data = fp.read()
         if status == STATUS.SUCCESS:
             assert meta_data.length == expected_meta_data_length[success]
-            # FIXME: fp.read() segfaults after a few iterations if message_data is accessed
-            # assert meta_data.milliseconds == approx(expected_milliseconds[success])
+            assert meta_data.milliseconds == pytest.approx(expected_milliseconds[success])
             assert len(message_data.message) == expected_message_length[success]
             success += 1
     assert fp.percent_read == 100

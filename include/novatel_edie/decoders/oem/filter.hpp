@@ -246,6 +246,10 @@ class Filter
     //! \param[in] stMetaData_  The MetaDataStruct to filter.
     //----------------------------------------------------------------------------
     bool DoFiltering(const MetaDataStruct& stMetaData_);
+
+  public:
+    using Ptr = std::shared_ptr<Filter>;
+    using ConstPtr = std::shared_ptr<const Filter>;
 };
 
 } // namespace novatel::edie::oem

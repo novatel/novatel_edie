@@ -51,7 +51,7 @@ FileParser::FileParser(const std::u32string& sDbPath_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(JsonReader* pclJsonDb_)
+FileParser::FileParser(JsonReader::Ptr pclJsonDb_)
     : clMyParser(Parser(pclJsonDb_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiParserInternalBufferSize])
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
@@ -65,7 +65,7 @@ FileParser::FileParser(JsonReader* pclJsonDb_)
 FileParser::~FileParser() { delete[] pcMyStreamReadBuffer; }
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::LoadJsonDb(JsonReader* pclJsonDb_)
+void FileParser::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
 {
     if (pclJsonDb_ != nullptr) { clMyParser.LoadJsonDb(pclJsonDb_); }
     else { pclMyLogger->debug("JSON DB is a NULL pointer."); }
@@ -111,10 +111,10 @@ void FileParser::SetEncodeFormat(ENCODE_FORMAT eFormat_) { clMyParser.SetEncodeF
 ENCODE_FORMAT FileParser::GetEncodeFormat() const { return clMyParser.GetEncodeFormat(); }
 
 // -------------------------------------------------------------------------------------------------------
-Filter* FileParser::GetFilter() const { return clMyParser.GetFilter(); }
+const Filter::Ptr& FileParser::GetFilter() const { return clMyParser.GetFilter(); }
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::SetFilter(Filter* pclFilter_) { return clMyParser.SetFilter(pclFilter_); }
+void FileParser::SetFilter(const Filter::Ptr& pclFilter_) { return clMyParser.SetFilter(pclFilter_); }
 
 // -------------------------------------------------------------------------------------------------------
 uint32_t FileParser::GetPercentRead() const { return stMyStreamReadStatus.uiPercentStreamRead; }

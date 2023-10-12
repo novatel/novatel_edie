@@ -44,7 +44,7 @@ NB_MODULE(stream_interface, m)
     nb::class_<ReadDataStructure>(m, "ReadDataStructure")
         .def(nb::init<>())
         .def_ro("size", &ReadDataStructure::uiDataSize)
-        .def_ro("data", &ReadDataStructure::cData, nb::rv_policy::reference_internal);
+        .def_ro("data", &ReadDataStructure::cData);
 
     nb::class_<StreamReadStatus>(m, "StreamReadStatus")
         .def(nb::init<>())

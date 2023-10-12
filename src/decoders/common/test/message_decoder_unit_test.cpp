@@ -26,6 +26,8 @@
 
 #include <gtest/gtest.h>
 
+#include <utility>
+
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
 using namespace novatel::edie;
@@ -36,19 +38,19 @@ class MessageDecoderTypesTest : public ::testing::Test
     class DecoderTester : public MessageDecoderBase
     {
       public:
-        DecoderTester(JsonReader* pclJsonDb_) : MessageDecoderBase(pclJsonDb_) {}
+        DecoderTester(JsonReader::Ptr pclJsonDb_) : MessageDecoderBase(std::move(pclJsonDb_)) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char** ppcLogBuf_,
+        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_,
                                std::vector<FieldContainer>& vIntermediateFormat_)
         {
             return DecodeAscii<false>(MsgDefFields_, const_cast<char**>(ppcLogBuf_), vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsigned char** ppucLogBuf_,
+        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, unsigned char** ppucLogBuf_,
                                 std::vector<FieldContainer>& vIntermediateFormat_)
         {
             uint16_t MsgDefFieldsSize = 0;
-            for (BaseField* field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
+            for (const auto& field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
             return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
         }
 
@@ -70,9 +72,9 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
-                MessageDecoderBase::DecodeAsciiField(&stMessageDataType, const_cast<char**>(&tempStr), vstrTestInput[sz].length(),
+                MessageDecoderBase::DecodeAsciiField(stMessageDataType, const_cast<char**>(&tempStr), vstrTestInput[sz].length(),
                                                      vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
@@ -89,10 +91,10 @@ class MessageDecoderTypesTest : public ::testing::Test
             std::vector<FieldContainer> vIntermediateFormat;
             vIntermediateFormat.reserve(1);
 
-            const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
+            const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
             const char* tempStr = strTestInput.c_str();
             ASSERT_THROW(
-                MessageDecoderBase::DecodeAsciiField(&stMessageDataType, const_cast<char**>(&tempStr), strTestInput.length(), vIntermediateFormat),
+                MessageDecoderBase::DecodeAsciiField(stMessageDataType, const_cast<char**>(&tempStr), strTestInput.length(), vIntermediateFormat),
                 std::runtime_error);
         }
 
@@ -111,10 +113,10 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 // there should be a better way to do this
                 uint8_t* pucTestInput = vvucTestInput[sz].data();
-                MessageDecoderBase::DecodeBinaryField(&stMessageDataType, &pucTestInput, vIntermediateFormat_);
+                MessageDecoderBase::DecodeBinaryField(stMessageDataType, &pucTestInput, vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {
@@ -127,9 +129,9 @@ class MessageDecoderTypesTest : public ::testing::Test
     };
 
   public:
-    std::unique_ptr<JsonReader> pclMyJsonDb;
+    JsonReader::Ptr pclMyJsonDb;
     std::unique_ptr<DecoderTester> pclMyDecoderTester;
-    std::vector<BaseField*> MsgDefFields;
+    std::vector<BaseField::Ptr> MsgDefFields;
     std::string sMinJsonDb;
 
     MessageDecoderTypesTest()
@@ -165,16 +167,13 @@ class MessageDecoderTypesTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = std::make_unique<JsonReader>();
+            pclMyJsonDb = std::make_shared<JsonReader>();
             pclMyJsonDb->ParseJson(sMinJsonDb);
-            pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb.get());
+            pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb);
         }
         catch (JsonReaderFailure& e)
         {
-            std::cout << e.what() << '\n';
-
-            for (auto* it : MsgDefFields) { delete it; }
-
+            std::cout << e.what() << std::endl;
             MsgDefFields.clear();
         }
     }
@@ -182,21 +181,18 @@ class MessageDecoderTypesTest : public ::testing::Test
     void TearDown() override
     {
         Logger::Shutdown();
-
-        for (auto* it : MsgDefFields) { delete it; }
-
         MsgDefFields.clear();
     }
 
     void CreateEnumField(std::string name, std::string description, int32_t value)
     {
-        auto* stField = new EnumField();
-        auto* enumDef = new EnumDefinition();
-        auto* enumDT = new EnumDataType();
-        enumDT->name = name;
-        enumDT->description = description;
-        enumDT->value = value;
-        enumDef->enumerators.push_back(*enumDT);
+        auto stField = std::make_shared<EnumField>();
+        auto enumDef = std::make_shared<EnumDefinition>();
+        EnumDataType enumDT;
+        enumDT.name = std::move(name);
+        enumDT.description = std::move(description);
+        enumDT.value = value;
+        enumDef->enumerators.push_back(enumDT);
         stField->enumDef = enumDef;
         stField->type = FIELD_TYPE::ENUM;
         MsgDefFields.emplace_back(stField);
@@ -218,8 +214,8 @@ TEST_F(MessageDecoderTypesTest, LOGGER)
 
 TEST_F(MessageDecoderTypesTest, FIELD_CONTAINER_ERROR_ON_COPY)
 {
-    FieldContainer fc(3, new BaseField());
-    ASSERT_THROW(FieldContainer{fc}, std::runtime_error);
+    FieldContainer fc(3, std::make_shared<BaseField>());
+    ASSERT_THROW(FieldContainer fc2(std::move(fc));, std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)

@@ -75,7 +75,7 @@ class Encoder : public EncoderBase
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Encoder(JsonReader* pclJsonDb_ = nullptr);
+    Encoder(JsonReader::Ptr pclJsonDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message from the provided intermediate structures.

@@ -5,7 +5,7 @@
 class JsonDbSingleton
 {
   public:
-    static novatel::edie::JsonReader* get();
+    static novatel::edie::JsonReader::Ptr& get();
 
   private:
     JsonDbSingleton() = default;

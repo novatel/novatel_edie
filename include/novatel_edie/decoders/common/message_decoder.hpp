@@ -28,6 +28,7 @@
 #define MESSAGE_DECODER_HPP
 
 #include <string>
+#include <utility>
 #include <variant>
 
 #include "novatel_edie/common/logger.hpp"
@@ -50,14 +51,16 @@ using FieldValueVariant = std::variant<CONTAINER_TYPES>;
 struct FieldContainer
 {
     FieldValueVariant fieldValue;
-    const BaseField* fieldDef{};
+    BaseField::ConstPtr fieldDef{};
 
-    template <class T> FieldContainer(T tFieldValue_, const BaseField* pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_) {}
+    template <class T> FieldContainer(T tFieldValue_, BaseField::ConstPtr pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_) {}
 
-    FieldContainer([[maybe_unused]] const FieldContainer& obj_)
-    {
-        throw std::runtime_error("FieldContainer: I'm being copied. Implement a proper copy constructor.");
-    }
+    FieldContainer([[maybe_unused]] const FieldContainer& obj_) {}
+
+    // [[deprecated("Avoid copying of FieldContainer objects")]]
+    // FieldContainer([[maybe_unused]] const FieldContainer& obj) = default;
+    // [[deprecated("Avoid copying of FieldContainer objects")]]
+    // FieldContainer& operator=([[maybe_unused]] const FieldContainer& obj) = default;
 };
 
 //============================================================================
@@ -71,14 +74,14 @@ class MessageDecoderBase
 
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("message_decoder")};
 
-    JsonReader* pclMyMsgDb{nullptr};
+    JsonReader::Ptr pclMyMsgDb{nullptr};
 
-    EnumDefinition* vMyResponseDefinitions{nullptr};
-    EnumDefinition* vMyCommandDefinitions{nullptr};
-    EnumDefinition* vMyPortAddressDefinitions{nullptr};
-    EnumDefinition* vMyGpsTimeStatusDefinitions{nullptr};
+    EnumDefinition::Ptr vMyResponseDefinitions{nullptr};
+    EnumDefinition::Ptr vMyCommandDefinitions{nullptr};
+    EnumDefinition::Ptr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::Ptr vMyGpsTimeStatusDefinitions{nullptr};
 
-    MessageDefinition stMyRespDef;
+    MessageDefinition::Ptr stMyRespDef{nullptr};
 
     // Enum util functions
     void InitEnumDefinitions();
@@ -86,50 +89,74 @@ class MessageDecoderBase
     void CreateResponseMsgDefinitions();
 
   protected:
-    std::unordered_map<
-        uint32_t, std::function<void(std::vector<FieldContainer>&, const BaseField*, char**, [[maybe_unused]] size_t, [[maybe_unused]] JsonReader*)>>
+    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, char**, [[maybe_unused]] size_t,
+                                                    [[maybe_unused]] JsonReader&)>>
         asciiFieldMap;
-    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, const BaseField*, json, [[maybe_unused]] JsonReader*)>>
+    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, json, [[maybe_unused]] JsonReader&)>>
         jsonFieldMap;
 
-    [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, unsigned char** ppucLogBuf_,
+    [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefFields_, unsigned char** ppucLogBuf_,
                                       std::vector<FieldContainer>& vIntermediateFormat_, uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
-    [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField*>& vMsgDefFields_, char** ppcLogBuf_,
+    [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, char** ppcLogBuf_,
                                      std::vector<FieldContainer>& vIntermediateFormat_) const;
-    [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField*>& vMsgDefFields_, json clJsonFields_,
+    [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, json clJsonFields_,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
-    static void DecodeBinaryField(const BaseField* pstMessageDataType_, unsigned char** ppucLogBuf_,
+    static void DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, unsigned char** ppucLogBuf_,
                                   std::vector<FieldContainer>& vIntermediateFormat_);
-    void DecodeAsciiField(const BaseField* pstMessageDataType_, char** ppcToken_, size_t tokenLength_,
+    void DecodeAsciiField(BaseField::ConstPtr pstMessageDataType_, char** ppcToken_, size_t tokenLength_,
                           std::vector<FieldContainer>& vIntermediateFormat_) const;
-    void DecodeJsonField(const BaseField* pstMessageDataType_, const json& clJsonField_, std::vector<FieldContainer>& vIntermediateFormat_) const;
+    void DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, const json& clJsonField_, std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(std::vector<FieldContainer>&, const BaseField*, char**, size_t, JsonReader*)> SimpleAsciiMapEntry()
+    static std::function<void(std::vector<FieldContainer>&, novatel::edie::BaseField::ConstPtr, char**, size_t, JsonReader&)> SimpleAsciiMapEntry()
     {
-        return [](std::vector<FieldContainer>& vIntermediate_, const BaseField* pstField_, char** ppcToken_,
-                  [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] JsonReader* pclMsgDb_) {
-            if constexpr (std::is_same_v<T, int8_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, int16_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, int32_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, int64_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoll(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, uint8_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, uint16_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, uint32_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, uint64_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoull(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, float>) { vIntermediate_.emplace_back(strtof(*ppcToken_, nullptr), pstField_); }
-            if constexpr (std::is_same_v<T, double>) { vIntermediate_.emplace_back(strtod(*ppcToken_, nullptr), pstField_); }
+        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstField_, char** ppcToken_,
+                  [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] JsonReader& pclMsgDb_) {
+            if constexpr (std::is_same_v<T, int8_t>)
+            {
+                vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), std::move(pstField_));
+            }
+            if constexpr (std::is_same_v<T, int16_t>)
+            {
+                vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), std::move(pstField_));
+            }
+            if constexpr (std::is_same_v<T, int32_t>)
+            {
+                vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), std::move(pstField_));
+            }
+            if constexpr (std::is_same_v<T, int64_t>)
+            {
+                vIntermediate_.emplace_back(static_cast<T>(strtoll(*ppcToken_, nullptr, R)), std::move(pstField_));
+            }
+            if constexpr (std::is_same_v<T, uint8_t>)
+            {
+                vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), std::move(pstField_));
+            }
+            if constexpr (std::is_same_v<T, uint16_t>)
+            {
+                vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), std::move(pstField_));
+            }
+            if constexpr (std::is_same_v<T, uint32_t>)
+            {
+                vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), std::move(pstField_));
+            }
+            if constexpr (std::is_same_v<T, uint64_t>)
+            {
+                vIntermediate_.emplace_back(static_cast<T>(strtoull(*ppcToken_, nullptr, R)), std::move(pstField_));
+            }
+            if constexpr (std::is_same_v<T, float>) { vIntermediate_.emplace_back(strtof(*ppcToken_, nullptr), std::move(pstField_)); }
+            if constexpr (std::is_same_v<T, double>) { vIntermediate_.emplace_back(strtod(*ppcToken_, nullptr), std::move(pstField_)); }
         };
     }
 
     // -------------------------------------------------------------------------------------------------------
-    template <typename T> static std::function<void(std::vector<FieldContainer>&, const BaseField*, json, JsonReader*)> SimpleJsonMapEntry()
+    template <typename T> static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, json, JsonReader&)> SimpleJsonMapEntry()
     {
-        return [](std::vector<FieldContainer>& vIntermediate_, const BaseField* pstMessageDataType_, json clJsonField_,
-                  [[maybe_unused]] JsonReader* pclMsgDb_) { vIntermediate_.emplace_back(clJsonField_.get<T>(), pstMessageDataType_); };
+        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstMessageDataType_, json clJsonField_,
+                  [[maybe_unused]] JsonReader& pclMsgDb_) { vIntermediate_.emplace_back(clJsonField_.get<T>(), pstMessageDataType_); };
     }
 
   public:
@@ -138,14 +165,14 @@ class MessageDecoderBase
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    MessageDecoderBase(JsonReader* pclJsonDb_ = nullptr);
+    MessageDecoderBase(JsonReader::Ptr pclJsonDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief Load a JsonReader object.
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

@@ -10,7 +10,7 @@ using namespace novatel::edie;
 void init_novatel_commander(nb::module_& m)
 {
     nb::class_<oem::Commander>(m, "Commander")
-        .def(nb::init<JsonReader*>(), "json_db"_a)
+        .def(nb::init<JsonReader::Ptr&>(), "json_db"_a)
         .def("__init__", [](oem::Commander* t) { new (t) oem::Commander(JsonDbSingleton::get()); })
         .def("open", &oem::Commander::LoadJsonDb, "json_db"_a)
         .def_prop_ro("logger", &oem::Commander::GetLogger)

@@ -1,7 +1,8 @@
+#include "novatel_edie/decoders/common/json_reader.hpp"
+
 #include <nanobind/stl/unordered_map.h>
 
 #include "bindings_core.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -104,7 +105,7 @@ void init_common_json_reader(nb::module_& m)
     nb::class_<EnumField, BaseField>(m, "EnumField", "Struct containing elements of enum fields in the UI DB")
         .def(nb::init<>())
         .def_rw("enum_id", &EnumField::enumId)
-        .def_rw("enum_def", &EnumField::enumDef, nb::rv_policy::reference_internal)
+        .def_rw("enum_def", &EnumField::enumDef)
         .def_rw("length", &EnumField::length)
         .def("clone", &EnumField::Clone)
         .def("__repr__", [](const EnumField& field) {
@@ -146,7 +147,7 @@ void init_common_json_reader(nb::module_& m)
         .def_prop_ro("fields",
                      [](MessageDefinition& self) {
                          nb::dict py_map;
-                         for (const auto& [id, value] : self.fields) py_map[nb::cast(id)] = nb::cast(value, nb::rv_policy::automatic_reference);
+                         for (const auto& [id, value] : self.fields) py_map[nb::cast(id)] = nb::cast(value);
                          return py_map;
                      })
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)

@@ -58,14 +58,14 @@ class RxConfigHandler
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
 
-    std::shared_ptr<spdlog::logger> pclMyLogger;
-    JsonReader* pclMyMsgDb{};
-    EnumDefinition* vMyCommandDefinitions{};
-    EnumDefinition* vMyPortAddressDefinitions{};
-    EnumDefinition* vMyGpsTimeStatusDefinitions{};
+    std::shared_ptr<spdlog::logger> pclMyLogger{nullptr};
+    JsonReader::Ptr pclMyMsgDb{nullptr};
+    EnumDefinition::Ptr vMyCommandDefinitions{nullptr};
+    EnumDefinition::Ptr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::Ptr vMyGpsTimeStatusDefinitions{nullptr};
 
-    std::unique_ptr<unsigned char[]> pcMyFrameBuffer;
-    std::unique_ptr<unsigned char[]> pcMyEncodeBuffer;
+    std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
+    std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
 
     // Inline buffer functions
     [[nodiscard]] static bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, ...)
@@ -95,14 +95,14 @@ class RxConfigHandler
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    RxConfigHandler(JsonReader* pclJsonDb_ = nullptr);
+    RxConfigHandler(JsonReader::Ptr pclJsonDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief Load a JsonReader object.
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

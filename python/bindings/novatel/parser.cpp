@@ -12,7 +12,7 @@ void init_novatel_parser(nb::module_& m)
 {
     nb::class_<oem::Parser>(m, "Parser")
         .def(nb::init<std::u32string>(), "json_db_path"_a)
-        .def(nb::init<JsonReader*>(), "json_db"_a)
+        .def(nb::init<JsonReader::Ptr&>(), "json_db"_a)
         .def("__init__", [](oem::Parser* t) { new (t) oem::Parser(JsonDbSingleton::get()); })
         .def("load_json_db", &oem::Parser::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::Parser::GetLogger)
@@ -22,7 +22,7 @@ void init_novatel_parser(nb::module_& m)
         .def_prop_rw("decompress_range_cmp", &oem::Parser::GetDecompressRangeCmp, &oem::Parser::SetDecompressRangeCmp)
         .def_prop_rw("return_unknown_bytes", &oem::Parser::GetReturnUnknownBytes, &oem::Parser::SetReturnUnknownBytes)
         .def_prop_rw("encode_format", &oem::Parser::GetEncodeFormat, &oem::Parser::SetEncodeFormat)
-        .def_prop_rw("filter", &oem::Parser::GetFilter, &oem::Parser::SetFilter, nb::rv_policy::reference_internal)
+        .def_prop_rw("filter", &oem::Parser::GetFilter, &oem::Parser::SetFilter)
         .def("write", [](oem::Parser& self, nb::bytes data) { return self.Write((unsigned char*)data.c_str(), data.size()); })
         .def("read",
              [](oem::Parser& self) {

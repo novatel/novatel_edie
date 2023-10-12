@@ -85,25 +85,25 @@ int main(int argc, char* argv[])
     }
 
     // Load the database
-    JsonReader clJsonDb;
+    auto clJsonDb = std::make_shared<JsonReader>();
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(pathJsonDb.string());
+    clJsonDb->LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     // Set up timers
     auto tLoop = std::chrono::high_resolution_clock::now();
 
-    FileParser clFileParser(&clJsonDb);
+    FileParser clFileParser(clJsonDb);
     clFileParser.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clFileParser.GetLogger());
     Logger::AddRotatingFileLogger(clFileParser.GetLogger());
 
-    Filter clFilter;
-    clFilter.SetLoggerLevel(spdlog::level::debug);
-    Logger::AddConsoleLogging(clFilter.GetLogger());
-    Logger::AddRotatingFileLogger(clFilter.GetLogger());
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    Logger::AddConsoleLogging(clFilter->GetLogger());
+    Logger::AddRotatingFileLogger(clFilter->GetLogger());
 
     // Initialize structures and error codes
     auto eStatus = STATUS::UNKNOWN;
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
-    clFileParser.SetFilter(&clFilter);
+    clFileParser.SetFilter(clFilter);
     clFileParser.SetEncodeFormat(eEncodeFormat);
 
     // Initialize FS structures and buffers

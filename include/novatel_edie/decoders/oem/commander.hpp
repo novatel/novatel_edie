@@ -46,12 +46,12 @@ class Commander
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_commander")};
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
-    JsonReader* pclMyMsgDb{nullptr};
+    JsonReader::Ptr pclMyMsgDb{nullptr};
 
-    EnumDefinition* vMyResponseDefinitions{nullptr};
-    EnumDefinition* vMyCommandDefinitions{nullptr};
-    EnumDefinition* vMyPortAddressDefinitions{nullptr};
-    EnumDefinition* vMyGpsTimeStatusDefinitions{nullptr};
+    EnumDefinition::Ptr vMyResponseDefinitions{nullptr};
+    EnumDefinition::Ptr vMyCommandDefinitions{nullptr};
+    EnumDefinition::Ptr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::Ptr vMyGpsTimeStatusDefinitions{nullptr};
 
     MessageDefinition stMyRespDef;
 
@@ -65,14 +65,14 @@ class Commander
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Commander(JsonReader* pclJsonDb_ = nullptr);
+    Commander(JsonReader::Ptr pclJsonDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief Load a JsonReader object.
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

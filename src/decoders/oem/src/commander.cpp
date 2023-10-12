@@ -30,7 +30,7 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-Commander::Commander(JsonReader* pclJsonDb_) : clMyMessageDecoder(pclJsonDb_), clMyEncoder(pclJsonDb_)
+Commander::Commander(JsonReader::Ptr pclJsonDb_) : clMyMessageDecoder(pclJsonDb_), clMyEncoder(pclJsonDb_)
 {
     pclMyLogger->debug("Commander initializing...");
     if (pclJsonDb_ != nullptr) { LoadJsonDb(pclJsonDb_); }
@@ -38,7 +38,7 @@ Commander::Commander(JsonReader* pclJsonDb_) : clMyMessageDecoder(pclJsonDb_), c
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Commander::LoadJsonDb(JsonReader* pclJsonDb_)
+void Commander::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
 {
     pclMyMsgDb = pclJsonDb_;
     InitEnumDefinitions();
@@ -116,8 +116,8 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
-    const MessageDefinition* pclMessageDef = pclMyMsgDb->GetMsgDef(strCmdName);
-    if (pclMessageDef == nullptr) { return STATUS::NO_DEFINITION; }
+    MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(strCmdName);
+    if (!pclMessageDef) { return STATUS::NO_DEFINITION; }
 
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;
@@ -170,8 +170,8 @@ STATUS Commander::Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMe
     std::copy(strCmdParams.begin(), strCmdParams.end(), acCmdParams);
     acCmdParams[strCmdParams.size()] = '\0';
 
-    const MessageDefinition* pclMessageDef = clJsonDb_.GetMsgDef(strCmdName);
-    if (pclMessageDef == nullptr) { return STATUS::NO_DEFINITION; }
+    MessageDefinition::ConstPtr pclMessageDef = clJsonDb_.GetMsgDef(strCmdName);
+    if (!pclMessageDef) { return STATUS::NO_DEFINITION; }
 
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;

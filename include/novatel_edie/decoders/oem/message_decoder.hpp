@@ -46,7 +46,7 @@ class MessageDecoder : public MessageDecoderBase
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    MessageDecoder(JsonReader* pclJsonDb_ = nullptr);
+    MessageDecoder(JsonReader::Ptr pclJsonDb_ = nullptr);
 };
 
 } // namespace novatel::edie::oem

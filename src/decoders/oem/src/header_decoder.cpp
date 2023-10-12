@@ -32,7 +32,7 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-HeaderDecoder::HeaderDecoder(JsonReader* pclJsonDb_)
+HeaderDecoder::HeaderDecoder(JsonReader::Ptr pclJsonDb_)
 {
     pclMyLogger->debug("HeaderDecoder initializing...");
 
@@ -41,7 +41,7 @@ HeaderDecoder::HeaderDecoder(JsonReader* pclJsonDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-void HeaderDecoder::LoadJsonDb(JsonReader* pclJsonDb_)
+void HeaderDecoder::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
 {
     pclMyMsgDb = pclJsonDb_;
 

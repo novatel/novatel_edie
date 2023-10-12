@@ -91,17 +91,17 @@ int main(int argc, char* argv[])
 
     pclLogger->info("Decoder library information:\n{}", caPrettyPrint);
 
-    JsonReader clJsonDb;
+    auto clJsonDb = std::make_shared<JsonReader>();
     pclLogger->info("Loading Database... ");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(pathJsonDb.string());
+    clJsonDb->LoadFile(pathJsonDb.string());
     pclLogger->info("DONE ({}ms)", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     Framer clFramer;
-    HeaderDecoder clHeaderDecoder(&clJsonDb);
-    MessageDecoder clMessageDecoder(&clJsonDb);
-    RangeDecompressor clRangeDecompressor(&clJsonDb);
-    Encoder clEncoder(&clJsonDb);
+    HeaderDecoder clHeaderDecoder(clJsonDb);
+    MessageDecoder clMessageDecoder(clJsonDb);
+    RangeDecompressor clRangeDecompressor(clJsonDb);
+    Encoder clEncoder(clJsonDb);
 
     clFramer.SetLoggerLevel(spdlog::level::debug);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);

@@ -38,7 +38,7 @@ class RangeCmpTest : public ::testing::Test
     class RangeDecompressorTester : public RangeDecompressor
     {
       public:
-        RangeDecompressorTester(JsonReader* pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
+        RangeDecompressorTester(JsonReader::Ptr pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
 
         // Access protected member of RangeDecompressor
         void SetBitOffset(uint32_t uiBitOffset_) { uiMyBitOffset = uiBitOffset_; }
@@ -63,14 +63,14 @@ class RangeCmpTest : public ::testing::Test
 
   protected:
     static std::unique_ptr<RangeDecompressorTester> pclMyRangeDecompressor;
-    static std::unique_ptr<JsonReader> pclMyJsonDb;
+    static JsonReader::Ptr pclMyJsonDb;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyJsonDb = std::make_unique<JsonReader>();
+        pclMyJsonDb = std::make_shared<JsonReader>();
         pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-        pclMyRangeDecompressor = std::make_unique<RangeDecompressorTester>(pclMyJsonDb.get());
+        pclMyRangeDecompressor = std::make_unique<RangeDecompressorTester>(pclMyJsonDb);
     }
 
     // Per-test-suite teardown
@@ -80,7 +80,7 @@ class RangeCmpTest : public ::testing::Test
 };
 
 std::unique_ptr<RangeCmpTest::RangeDecompressorTester> RangeCmpTest::pclMyRangeDecompressor = nullptr;
-std::unique_ptr<JsonReader> RangeCmpTest::pclMyJsonDb = nullptr;
+JsonReader::Ptr RangeCmpTest::pclMyJsonDb = nullptr;
 
 // TODO: we disable clang-format because of the long strings
 // clang-format off

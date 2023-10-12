@@ -30,7 +30,7 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-RxConfigHandler::RxConfigHandler(JsonReader* pclJsonDB_)
+RxConfigHandler::RxConfigHandler(JsonReader::Ptr pclJsonDB_)
     : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_),
       pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)),
       pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize))
@@ -45,7 +45,7 @@ RxConfigHandler::RxConfigHandler(JsonReader* pclJsonDB_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-void RxConfigHandler::LoadJsonDb(JsonReader* pclJsonDB_)
+void RxConfigHandler::LoadJsonDb(JsonReader::Ptr pclJsonDB_)
 {
     pclMyMsgDb = pclJsonDB_;
     clMyHeaderDecoder.LoadJsonDb(pclJsonDB_);

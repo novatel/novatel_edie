@@ -33,13 +33,14 @@ using namespace novatel::edie::oem;
 Parser::Parser(const std::string& sDbPath_)
     : pcMyEncodeBuffer(new unsigned char[uiParserInternalBufferSize]), pcMyFrameBuffer(new unsigned char[uiParserInternalBufferSize])
 {
-    clMyJsonReader.LoadFile(sDbPath_);
+    pclMyJsonReader = std::make_shared<JsonReader>();
+    pclMyJsonReader->LoadFile(sDbPath_);
 
-    clMyHeaderDecoder.LoadJsonDb(&clMyJsonReader);
-    clMyMessageDecoder.LoadJsonDb(&clMyJsonReader);
-    clMyEncoder.LoadJsonDb(&clMyJsonReader);
-    clMyRangeDecompressor.LoadJsonDb(&clMyJsonReader);
-    clMyRxConfigHandler.LoadJsonDb(&clMyJsonReader);
+    clMyHeaderDecoder.LoadJsonDb(pclMyJsonReader);
+    clMyMessageDecoder.LoadJsonDb(pclMyJsonReader);
+    clMyEncoder.LoadJsonDb(pclMyJsonReader);
+    clMyRangeDecompressor.LoadJsonDb(pclMyJsonReader);
+    clMyRxConfigHandler.LoadJsonDb(pclMyJsonReader);
 
     clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
     clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
@@ -59,13 +60,14 @@ Parser::Parser(const std::string& sDbPath_)
 Parser::Parser(const std::u32string& sDbPath_)
     : pcMyEncodeBuffer(new unsigned char[uiParserInternalBufferSize]), pcMyFrameBuffer(new unsigned char[uiParserInternalBufferSize])
 {
-    clMyJsonReader.LoadFile(sDbPath_);
+    pclMyJsonReader = std::make_shared<JsonReader>();
+    pclMyJsonReader->LoadFile(sDbPath_);
 
-    clMyHeaderDecoder.LoadJsonDb(&clMyJsonReader);
-    clMyMessageDecoder.LoadJsonDb(&clMyJsonReader);
-    clMyEncoder.LoadJsonDb(&clMyJsonReader);
-    clMyRangeDecompressor.LoadJsonDb(&clMyJsonReader);
-    clMyRxConfigHandler.LoadJsonDb(&clMyJsonReader);
+    clMyHeaderDecoder.LoadJsonDb(pclMyJsonReader);
+    clMyMessageDecoder.LoadJsonDb(pclMyJsonReader);
+    clMyEncoder.LoadJsonDb(pclMyJsonReader);
+    clMyRangeDecompressor.LoadJsonDb(pclMyJsonReader);
+    clMyRxConfigHandler.LoadJsonDb(pclMyJsonReader);
 
     clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
     clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
@@ -82,13 +84,13 @@ Parser::Parser(const std::u32string& sDbPath_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-Parser::Parser(JsonReader* pclJsonDb_)
+Parser::Parser(JsonReader::Ptr pclJsonDb_)
     : pcMyEncodeBuffer(new unsigned char[uiParserInternalBufferSize]), pcMyFrameBuffer(new unsigned char[uiParserInternalBufferSize])
 {
     if (pclJsonDb_ != nullptr)
     {
         LoadJsonDb(pclJsonDb_);
-        clMyJsonReader = *pclJsonDb_;
+        pclMyJsonReader = pclJsonDb_;
     }
     pclMyLogger->debug("Parser initialized");
 }
@@ -101,7 +103,7 @@ Parser::~Parser()
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Parser::LoadJsonDb(JsonReader* pclJsonDb_)
+void Parser::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
 {
     if (pclJsonDb_ != nullptr)
     {
@@ -122,7 +124,7 @@ void Parser::LoadJsonDb(JsonReader* pclJsonDb_)
         clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
         clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
 
-        clMyJsonReader = *pclJsonDb_;
+        pclMyJsonReader = pclJsonDb_;
     }
     else { pclMyLogger->debug("JSON DB is a nullptr."); }
 }
@@ -158,10 +160,10 @@ void Parser::SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResp
 bool Parser::GetIgnoreAbbreviatedAsciiResponses() const { return bMyIgnoreAbbreviatedAsciiResponse; }
 
 // -------------------------------------------------------------------------------------------------------
-void Parser::SetFilter(Filter* pclFilter_) { pclMyUserFilter = pclFilter_; }
+void Parser::SetFilter(const Filter::Ptr& pclFilter_) { pclMyUserFilter = pclFilter_; }
 
 // -------------------------------------------------------------------------------------------------------
-Filter* Parser::GetFilter() const { return pclMyUserFilter; }
+const Filter::Ptr& Parser::GetFilter() const { return pclMyUserFilter; }
 
 // -------------------------------------------------------------------------------------------------------
 void Parser::SetDecompressRangeCmp(bool bDecompressRangeCmp_) { bMyDecompressRangeCmp = bDecompressRangeCmp_; }

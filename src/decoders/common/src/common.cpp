@@ -108,6 +108,21 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, const std::string&
     return 0;
 }
 
+std::string GetEnumString(const std::shared_ptr<const EnumDefinition>& stEnumDef_, uint32_t uiEnum_)
+{
+    return GetEnumString(stEnumDef_.get(), uiEnum_);
+}
+
+int32_t GetEnumValue(const std::shared_ptr<const EnumDefinition>& stEnumDef_, std::string strEnum_)
+{
+    return GetEnumValue(stEnumDef_.get(), std::move(strEnum_));
+}
+
+int32_t GetResponseId(const std::shared_ptr<const EnumDefinition>& stRespDef_, std::string strResp_)
+{
+    return GetResponseId(stRespDef_.get(), std::move(strResp_));
+}
+
 //-----------------------------------------------------------------------
 int32_t ToDigit(const char c_) { return c_ - '0'; }
 

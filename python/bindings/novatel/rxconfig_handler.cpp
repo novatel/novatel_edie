@@ -11,7 +11,7 @@ using namespace novatel::edie;
 void init_novatel_rxconfig_handler(nb::module_& m)
 {
     nb::class_<oem::RxConfigHandler>(m, "RxConfigHandler")
-        .def(nb::init<JsonReader*>(), "json_db"_a)
+        .def(nb::init<JsonReader::Ptr&>(), "json_db"_a)
         .def("__init__", [](oem::RxConfigHandler* t) { new (t) oem::RxConfigHandler(JsonDbSingleton::get()); })
         .def("load_json_db", &oem::RxConfigHandler::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::RxConfigHandler::GetLogger)
