@@ -36,9 +36,9 @@ import pytest
 def test_configure_split_by_log():
     test_stream = ne.MultiOutputFileStream()
     test_stream.configure_split_by_log(True)
-    # assert IsFileSplit()
+    assert test_stream._is_file_split
     test_stream.configure_split_by_log(False)
-    # assert not IsFileSplit()
+    assert not test_stream._is_file_split
 
 
 # Test the ConfigureBaseFileName method.
@@ -97,8 +97,8 @@ def test_write_data_wide_file():
 def test_configure_split_by_size():
     test_stream = ne.MultiOutputFileStream()
     test_stream.configure_split_by_size(1)
-    # assert IsFileSplit()
-    # assert GetFileSplitSize() == 1
+    assert test_stream._is_file_split
+    assert test_stream._file_split_size == 1
 
     test_stream.configure_base_file_name("Log.txt")
     command = b"HELLO"
@@ -131,13 +131,13 @@ def test_select_time_file():
     test_stream.configure_split_by_time(0.01)
     test_stream.select_file_stream("Log.txt")
     test_stream.select_time_file(ne.TIME_STATUS.UNKNOWN, 0, 0.01)
-    # assert GetTimeInSeconds() == 0.0
-    # assert GetStartTimeInSecs() == 0.0
-    # assert GetWeek() == 0
-    # assert GetStartWeek() == 0
+    assert test_stream._time_in_seconds == 0.0
+    assert test_stream._start_time_in_seconds == 0.0
+    assert test_stream._week == 0
+    assert test_stream._start_week == 0
 
     test_stream.select_time_file(ne.TIME_STATUS.SATTIME, 0, 0.0)
-    # assert GetTimeInSeconds() == 0.0
-    # assert GetStartTimeInSecs() == 0.0
-    # assert GetWeek() == 0
-    # assert GetStartWeek() == 0
+    assert test_stream._time_in_seconds == 0.0
+    assert test_stream._start_time_in_seconds == 0.0
+    assert test_stream._week == 0
+    assert test_stream._start_week == 0

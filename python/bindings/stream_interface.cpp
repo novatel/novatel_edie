@@ -17,8 +17,17 @@ using namespace nb::literals;
 class MultiOutputFileStreamTest : public MultiOutputFileStream
 {
   public:
-    std::u32string GetBase32FileName() { return s32MyBaseName; }
-    std::u32string Get32ExtensionName() { return s32MyExtensionName; }
+    static std::u32string GetBase32FileName(const MultiOutputFileStream& fs) { return cast(fs).s32MyBaseName; }
+    static std::u32string Get32ExtensionName(const MultiOutputFileStream& fs) { return cast(fs).s32MyExtensionName; }
+    static bool IsFileSplit(const MultiOutputFileStream& fs) { return cast(fs).bMyFileSplit; }
+    static uint64_t GetFileSplitSize(const MultiOutputFileStream& fs) { return cast(fs).ullMyFileSplitSize; }
+    static double GetTimeInSeconds(const MultiOutputFileStream& fs) { return cast(fs).dMyTimeInSeconds; }
+    static double GetStartTimeInSecs(const MultiOutputFileStream& fs) { return cast(fs).dMyStartTimeInSeconds; }
+    static uint32_t GetWeek(const MultiOutputFileStream& fs) { return cast(fs).ulMyWeek; }
+    static uint32_t GetStartWeek(const MultiOutputFileStream& fs) { return cast(fs).ulMyStartWeek; }
+
+  private:
+    static const MultiOutputFileStreamTest& cast(const MultiOutputFileStream& fs) { return *static_cast<const MultiOutputFileStreamTest*>(&fs); }
 };
 
 NB_MODULE(stream_interface, m)
@@ -114,9 +123,14 @@ NB_MODULE(stream_interface, m)
                      })
         .def("set_extension_name", nb::overload_cast<const std::u32string&>(&MultiOutputFileStream::SetExtensionName), "ext"_a)
         // For unit tests only
-        .def_prop_ro("_base_name", [](MultiOutputFileStream& self) { return static_cast<MultiOutputFileStreamTest*>(&self)->GetBase32FileName(); })
-        .def_prop_ro("_extension_name",
-                     [](MultiOutputFileStream& self) { return static_cast<MultiOutputFileStreamTest*>(&self)->Get32ExtensionName(); });
+        .def_prop_ro("_base_name", &MultiOutputFileStreamTest::GetBase32FileName)
+        .def_prop_ro("_extension_name", &MultiOutputFileStreamTest::Get32ExtensionName)
+        .def_prop_ro("_is_file_split", &MultiOutputFileStreamTest::IsFileSplit)
+        .def_prop_ro("_file_split_size", &MultiOutputFileStreamTest::GetFileSplitSize)
+        .def_prop_ro("_time_in_seconds", &MultiOutputFileStreamTest::GetTimeInSeconds)
+        .def_prop_ro("_start_time_in_seconds", &MultiOutputFileStreamTest::GetStartTimeInSecs)
+        .def_prop_ro("_week", &MultiOutputFileStreamTest::GetWeek)
+        .def_prop_ro("_start_week", &MultiOutputFileStreamTest::GetStartWeek);
 
     // # stream_interface/inputfilestream.hpp
 
