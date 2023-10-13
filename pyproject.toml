@@ -35,7 +35,7 @@ build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 cmake.minimum-version = "3.24"
-cmake.targets = ["hw_interface_bindings", "decoders_bindings"]
+cmake.targets = ["python_bindings"]
 install.components = ["python"]
 wheel.license-files = ["LICENSE"]
 build-dir = "build/{wheel_tag}"
