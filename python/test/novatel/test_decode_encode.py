@@ -52,7 +52,7 @@ class Result(enum.IntEnum):
 ExpectedMessageData = namedtuple("ExpectedMessageData", ["message", "header", "body"])
 
 
-class TestHelper:
+class Helper:
     def __init__(self):
         self.header_decoder = ne.HeaderDecoder()
         self.message_decoder = ne.MessageDecoder()
@@ -135,7 +135,7 @@ class TestHelper:
 
 @pytest.fixture(scope="function")
 def helper():
-    return TestHelper()
+    return Helper()
 
 
 def compare_binary_headers(from_binary_header: "ne.OEM4BinaryHeader", from_ascii_header: "ne.OEM4BinaryHeader"):

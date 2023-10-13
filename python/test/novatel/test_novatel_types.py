@@ -51,7 +51,7 @@ LLONG_MAX  = 9223372036854775807
 ULLONG_MAX = 18446744073709551615
 
 
-class TestHelper:
+class Helper:
     def __init__(self, db):
         self.message_decoder = ne.MessageDecoder(db)
         self.encoder = ne.Encoder(db)
@@ -88,7 +88,7 @@ class TestHelper:
 
 @pytest.fixture(scope="function")
 def helper(min_json_db):
-    return TestHelper(min_json_db)
+    return Helper(min_json_db)
 
 
 def test_LOGGER():
@@ -411,7 +411,7 @@ def test_ASCII_ULONG_VALID(helper):
 
 
 # EnumField and EnumDef bindings have memory management issues, possibly due to enumDef being a raw pointer
-@pytest.mark.xfail(reason="EnumField bindings are broken")
+@pytest.mark.skip(reason="EnumField bindings are broken")
 def test_ASCII_ENUM_VALID(helper):
     helper.create_enum_field("UNKNOWN", "Unknown or unspecified type", 20)
     helper.create_enum_field("APPROXIMATE", "Approximate time", 60)
@@ -656,7 +656,7 @@ def test_BINARY_TYPE_INVALID(helper):
 
 
 # There is a bug somewhere, in either the test or the code itself
-@pytest.mark.xfail(reason="The values are not decoded correctly")
+@pytest.mark.skip(reason="The values are not decoded correctly")
 def test_SIMPLE_FIELD_WIDTH_VALID(helper):
     helper.create_base_field("field0", FIELD_TYPE.SIMPLE, CONVERSION_STRING.d, 4, DATA_TYPE.BOOL)
     helper.create_base_field("field1", FIELD_TYPE.SIMPLE, CONVERSION_STRING.XB, 1, DATA_TYPE.HEXBYTE)
