@@ -80,7 +80,6 @@ def test_UNKNOWN_BYTES(fp):
 
 def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
     # Reset the with the database because a previous test assigns it to the nullptr
-    fp = ne.FileParser()
     fp.filter = ne.Filter()
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
 
@@ -110,6 +109,5 @@ def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
 
 
 def test_RESET(fp):
-    fp = ne.FileParser()
     assert len(fp.internal_buffer) > 0
     assert fp.reset()
