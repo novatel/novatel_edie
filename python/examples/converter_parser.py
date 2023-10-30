@@ -95,7 +95,7 @@ def main():
 
         status = None
         while status != ne.STATUS.BUFFER_EMPTY:
-            status, message_data = parser.Read(meta)
+            status, message_data = parser.read(meta)
             if status != ne.STATUS.SUCCESS:
                 logger.error(f"Failed to read a message: {status}: {status.__doc__}")
                 continue
