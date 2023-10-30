@@ -29,6 +29,7 @@
 # messages using the FileParser.
 ########################################################################
 import argparse
+import atexit
 import os
 import timeit
 
@@ -45,6 +46,7 @@ def _configure_logging(logger):
 def main():
     logger = Logging().register_logger("converter")
     _configure_logging(logger)
+    atexit.register(Logging.shutdown)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
@@ -100,7 +102,6 @@ def main():
 
     elapsed_seconds = timeit.default_timer() - start
     logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
-    Logging.shutdown()
 
 
 if __name__ == "__main__":

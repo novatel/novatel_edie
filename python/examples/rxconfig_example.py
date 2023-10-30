@@ -29,6 +29,7 @@
 # messages.
 ########################################################################
 import argparse
+import atexit
 import os
 
 import novatel_edie as ne
@@ -46,6 +47,7 @@ def main():
     # An example config file: doc\example_logger_config.toml
     logger = Logging().register_logger("rxconfig_converter")
     _configure_logging(logger)
+    atexit.register(Logging.shutdown)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
@@ -102,8 +104,6 @@ def main():
                 # Write in a comma and CRLF to make the files parse-able by JSON readers.
                 converted_rxconfig_ofs.write(b",\r\n")
                 stripped_rxconfig_ofs.write(b",\r\n")
-
-    Logging.shutdown()
 
 
 if __name__ == "__main__":

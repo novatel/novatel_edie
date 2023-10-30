@@ -29,6 +29,7 @@
 #
 ############################################################################
 import argparse
+import atexit
 import os
 import timeit
 
@@ -45,6 +46,7 @@ def _configure_logging(logger):
 def main():
     logger = Logging().register_logger("range_decompressor")
     _configure_logging(logger)
+    atexit.register(Logging.shutdown)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
@@ -131,7 +133,6 @@ def main():
     logger.info(
         f"Decoded {completed_messages} messages in {elapsed_seconds}s. ({completed_messages / elapsed_seconds:.1f} msg/s)"
     )
-    Logging.shutdown()
 
 
 if __name__ == "__main__":

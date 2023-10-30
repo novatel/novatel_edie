@@ -30,6 +30,7 @@
 ########################################################################
 
 import argparse
+import atexit
 from pathlib import Path
 
 import novatel_edie as ne
@@ -41,6 +42,7 @@ def main():
     logger.set_level(LogLevel.DEBUG)
     Logging.add_console_logging(logger)
     Logging.add_rotating_file_logger(logger)
+    atexit.register(Logging.shutdown)
 
     parser = argparse.ArgumentParser(description="Encode a command from Abbreviated ASCII to ASCII/BINARY.")
     parser.add_argument("output_format", choices=["ASCII", "BINARY"], help="Output format")

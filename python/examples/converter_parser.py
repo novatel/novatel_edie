@@ -29,6 +29,7 @@
 # messages using the Parser.
 ########################################################################
 import argparse
+import atexit
 import timeit
 
 import novatel_edie as ne
@@ -44,6 +45,7 @@ def _configure_logging(logger):
 def main():
     logger = Logging().register_logger("converter")
     _configure_logging(logger)
+    atexit.register(Logging.shutdown)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 

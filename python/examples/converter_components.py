@@ -29,6 +29,7 @@
 # messages using the low-level components.
 ########################################################################
 import argparse
+import atexit
 import os
 
 import novatel_edie as ne
@@ -40,6 +41,7 @@ def _configure_logging():
     root_logger.set_level(LogLevel.INFO)
     Logging.add_console_logging(root_logger)
     Logging.add_rotating_file_logger(root_logger)
+    atexit.register(Logging.shutdown)
 
 
 def read_as_frames(input_file, framer):
@@ -131,8 +133,6 @@ def main():
     # Clean up
     unparsed_bytes = framer.flush()
     unknown_bytes_stream.write(unparsed_bytes)
-
-    Logging.shutdown()
 
 
 if __name__ == "__main__":
