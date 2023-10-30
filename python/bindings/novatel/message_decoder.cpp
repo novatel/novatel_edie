@@ -92,6 +92,29 @@ nb::object PyIntermediateMessage::fields() const
     return cached_fields_;
 }
 
+nb::object PyIntermediateMessage::to_dict() const
+{
+    nb::dict dict;
+    for (const auto& item : values)
+    {
+        if (nb::isinstance<PyIntermediateMessage>(item.second)) { dict[item.first] = nb::cast<PyIntermediateMessage>(item.second).to_dict(); }
+        else if (nb::isinstance<std::vector<nb::object>>(item.second))
+        {
+            nb::list list;
+            for (const auto& sub_item : nb::cast<std::vector<nb::object>>(item.second))
+            {
+                if (nb::isinstance<PyIntermediateMessage>(sub_item))
+                    list.append(nb::cast<PyIntermediateMessage>(sub_item).to_dict());
+                else
+                    list.append(sub_item);
+            }
+            dict[item.first] = list;
+        }
+        else { dict[item.first] = item.second; }
+    }
+    return dict;
+}
+
 std::string PyIntermediateMessage::repr() const
 {
     std::stringstream repr;
@@ -127,8 +150,9 @@ class DecoderTester : public oem::MessageDecoder
 void init_novatel_message_decoder(nb::module_& m)
 {
     nb::class_<PyIntermediateMessage>(m, "Message")
-        .def_ro("values", &PyIntermediateMessage::values)
-        .def_prop_ro("fields", &PyIntermediateMessage::fields)
+        .def_ro("_values", &PyIntermediateMessage::values)
+        .def_prop_ro("_fields", &PyIntermediateMessage::fields)
+        .def("to_dict", &PyIntermediateMessage::to_dict, "Convert the message and its sub-messages into a dict")
         .def("__getattr__", &PyIntermediateMessage::getattr, "field_name"_a)
         .def("__getitem__", &PyIntermediateMessage::getitem, "field_name"_a)
         .def("__contains__", &PyIntermediateMessage::contains, "field_name"_a)

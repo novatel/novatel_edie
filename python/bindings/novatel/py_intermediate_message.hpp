@@ -14,6 +14,7 @@ struct PyIntermediateMessage
     nb::object getitem(nb::str field_name) const;
     bool contains(nb::str field_name) const;
     nb::object fields() const;
+    nb::object to_dict() const;
     std::string repr() const;
 
     IntermediateMessage message;
