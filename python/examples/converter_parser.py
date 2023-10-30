@@ -80,7 +80,7 @@ def main():
     _configure_logging(parser.filter.logger)
 
     # Set up file streams
-    input_stream = ne.InputFileStream(args.input_file)
+    input_stream = open(args.input_file, "rb")
     converted_logs_stream = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
 
     meta = ne.MetaData()
@@ -88,9 +88,7 @@ def main():
     counter = 0
     start = timeit.default_timer()
     loop = timeit.default_timer()
-    read_status = ne.StreamReadStatus()
-    while not read_status.eos:
-        read_status, read_data = input_stream.read(ne.MESSAGE_SIZE_MAX)
+    while read_data := input_stream.read(ne.MESSAGE_SIZE_MAX):
         parser.write(read_data)
 
         status = None

@@ -79,7 +79,7 @@ def main():
     _configure_logging(message_decoder.logger)
     _configure_logging(encoder.logger)
 
-    input_stream = ne.InputFileStream(args.input_file)
+    input_stream = open(args.input_file, "rb")
     output_stream = ne.OutputFileStream(f"{args.input_file}.DECOMPRESSED.{encode_format}")
 
     meta = ne.MetaData()
@@ -90,7 +90,7 @@ def main():
         status, read_bytes = framer.get_frame(meta)
         if status in [ne.STATUS.BUFFER_EMPTY, ne.STATUS.INCOMPLETE]:
             # Read from file, write to framer.
-            read_status, read_bytes = input_stream.read(ne.MESSAGE_SIZE_MAX)
+            read_bytes = input_stream.read(ne.MESSAGE_SIZE_MAX)
             if len(read_bytes) == 0:
                 logger.info("Stream finished")
                 break

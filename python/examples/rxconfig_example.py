@@ -66,15 +66,13 @@ def main():
         exit(1)
 
     # Setup file streams
-    input_stream = ne.InputFileStream(args.input_file)
+    input_stream = open(args.input_file, "rb")
     converted_rxconfig_ofs = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
     stripped_rxconfig_ofs = ne.OutputFileStream(f"{args.input_file}.STRIPPED.{encode_format}")
 
     rx_config_handler = ne.RxConfigHandler()
 
-    read_status = ne.StreamReadStatus()
-    while not read_status.eos:
-        read_status, read_data = input_stream.read(ne.MESSAGE_SIZE_MAX)
+    while read_data := input_stream.read(ne.MESSAGE_SIZE_MAX):
         rx_config_handler.write(read_data)
 
         status = None

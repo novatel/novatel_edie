@@ -41,10 +41,8 @@ def _configure_logging(logger):
     Logging.add_rotating_file_logger(logger)
 
 
-def read_as_frames(ifs, framer):
-    read_status = ne.StreamReadStatus()
-    while not read_status.eos:
-        read_status, read_data = ifs.read(ne.MAX_ASCII_MESSAGE_LENGTH)
+def read_as_frames(input_stream, framer):
+    while read_data := input_stream.read(ne.MAX_ASCII_MESSAGE_LENGTH):
         framer.write(read_data)
         status = STATUS.INCOMPLETE_MORE_DATA
         while status not in [STATUS.BUFFER_EMPTY, STATUS.INCOMPLETE]:
@@ -92,7 +90,7 @@ def main():
     _configure_logging(filter.logger)
 
     # Set up file streams
-    input_stream = ne.InputFileStream(args.input_file)
+    input_stream = open(args.input_file, "rb")
     converted_logs_stream = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
     unknown_bytes_stream = ne.OutputFileStream(f"{args.input_file}.UNKNOWN")
 
