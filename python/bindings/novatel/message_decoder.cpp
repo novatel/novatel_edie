@@ -120,6 +120,8 @@ nb::object PyIntermediateMessage::getitem(nb::str field_name) const { return val
 
 bool PyIntermediateMessage::contains(nb::str field_name) const { return values().contains(std::move(field_name)); }
 
+size_t PyIntermediateMessage::len() const { return message.size(); }
+
 std::string PyIntermediateMessage::repr() const
 {
     std::stringstream repr;
@@ -161,6 +163,7 @@ void init_novatel_message_decoder(nb::module_& m)
         .def("__getattr__", &PyIntermediateMessage::getattr, "field_name"_a)
         .def("__getitem__", &PyIntermediateMessage::getitem, "field_name"_a)
         .def("__contains__", &PyIntermediateMessage::contains, "field_name"_a)
+        .def("__len__", &PyIntermediateMessage::len)
         .def("__repr__", &PyIntermediateMessage::repr)
         .def("__str__", &PyIntermediateMessage::repr);
 
