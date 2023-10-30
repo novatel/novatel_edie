@@ -35,32 +35,41 @@ import novatel_edie as ne
 from novatel_edie import Logging, LogLevel, STATUS
 
 
-def _configure_logging(logger):
-    logger.set_level(LogLevel.DEBUG)
-    Logging.add_console_logging(logger)
-    Logging.add_rotating_file_logger(logger)
+def _configure_logging():
+    root_logger = Logging().get("root")
+    root_logger.set_level(LogLevel.INFO)
+    Logging.add_console_logging(root_logger)
+    Logging.add_rotating_file_logger(root_logger)
 
 
-def read_as_frames(input_stream, framer):
-    while read_data := input_stream.read(ne.MAX_ASCII_MESSAGE_LENGTH):
-        framer.write(read_data)
-        status = STATUS.INCOMPLETE_MORE_DATA
-        while status not in [STATUS.BUFFER_EMPTY, STATUS.INCOMPLETE]:
-            status, frame, metadata = framer.get_frame()
-            yield status, frame, metadata
+def read_as_frames(input_file, framer):
+    with open(input_file, "rb") as input_stream:
+        while read_data := input_stream.read(ne.MAX_ASCII_MESSAGE_LENGTH):
+            framer.write(read_data)
+            while True:
+                status, frame, metadata = framer.get_frame()
+                if status in [STATUS.BUFFER_EMPTY, STATUS.INCOMPLETE]:
+                    break
+                yield status, frame, metadata
 
 
 def main():
+    _configure_logging()
     logger = Logging().register_logger("converter")
-    _configure_logging(logger)
 
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    parser = argparse.ArgumentParser(description="Convert OEM log files using low-level components.")
+    parser = argparse.ArgumentParser(
+        description="Convert OEM log files using low-level components."
+    )
     parser.add_argument("input_file", help="Input file")
-    parser.add_argument("output_format", nargs="?",
-                        choices=["ASCII", "ABBREV_ASCII", "BINARY", "FLATTENED_BINARY", "JSON"],
-                        help="Output format", default="ASCII")
+    parser.add_argument(
+        "output_format",
+        nargs="?",
+        choices=["ASCII", "ABBREV_ASCII", "BINARY", "FLATTENED_BINARY", "JSON"],
+        help="Output format",
+        default="ASCII",
+    )
     parser.add_argument("-V", "--version", action="store_true")
     args = parser.parse_args()
     encode_format = ne.string_to_encode_format(args.output_format)
@@ -83,22 +92,15 @@ def main():
     encoder = ne.Encoder()
     filter = ne.Filter()
 
-    _configure_logging(framer.logger)
-    _configure_logging(header_decoder.logger)
-    _configure_logging(message_decoder.logger)
-    _configure_logging(encoder.logger)
-    _configure_logging(filter.logger)
-
     # Set up file streams
-    input_stream = open(args.input_file, "rb")
     converted_logs_stream = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
     unknown_bytes_stream = ne.OutputFileStream(f"{args.input_file}.UNKNOWN")
 
-    for framer_status, frame, meta in read_as_frames(input_stream, framer):
+    for framer_status, frame, meta in read_as_frames(args.input_file, framer):
         try:
             if framer_status == STATUS.UNKNOWN:
                 unknown_bytes_stream.write(frame)
-            if framer_status not in [STATUS.SUCCESS, STATUS.BUFFER_EMPTY, STATUS.INCOMPLETE]:
+            else:
                 framer_status.raise_on_error("Framer.get_frame() failed")
             if meta.response:
                 unknown_bytes_stream.write(frame)
@@ -114,7 +116,7 @@ def main():
                 continue
 
             # Decode the Log, pass the meta data and populate the intermediate log.
-            body = frame[meta.header_length:]
+            body = frame[meta.header_length :]
             status, message = message_decoder.decode(body, meta)
             status.raise_on_error("MessageDecoder.decode() failed")
 
