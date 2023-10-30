@@ -30,13 +30,14 @@
 ########################################################################
 import argparse
 import atexit
+from binascii import hexlify
 import os
 
 import novatel_edie as ne
 from novatel_edie import Logging, LogLevel, STATUS
 
 
-def _configure_logging():
+def configure_logging():
     root_logger = Logging().get("root")
     root_logger.set_level(LogLevel.INFO)
     Logging.add_console_logging(root_logger)
@@ -60,9 +61,14 @@ def read_frames(input_file, framer):
                 yield status, frame, meta
     unknown_bytes_stream.write(framer.flush())
 
+def format_frame(frame, frame_format):
+    if frame_format in [ne.HEADERFORMAT.BINARY, ne.HEADERFORMAT.SHORT_BINARY, ne.HEADERFORMAT.PROPRIETARY_BINARY,
+                        ne.ENCODEFORMAT.BINARY, ne.ENCODEFORMAT.FLATTENED_BINARY]:
+        return hexlify(frame, sep=" ").decode("ascii").upper()
+    return frame
 
 def main():
-    _configure_logging()
+    configure_logging()
     logger = Logging().register_logger("converter")
 
     parser = argparse.ArgumentParser(description="Convert OEM log files using low-level components.")
@@ -101,7 +107,7 @@ def main():
     for framer_status, frame, meta in read_frames(args.input_file, framer):
         try:
             framer_status.raise_on_error("Framer.get_frame() failed")
-            logger.info(f"Framed: {frame}")
+            logger.info(f"Framed ({len(frame)}): {format_frame(frame, meta.format)}")
 
             # Decode the header.
             status, header = header_decoder.decode(frame, meta)
@@ -121,7 +127,7 @@ def main():
             status.raise_on_error("Encoder.encode() failed")
 
             converted_logs_stream.write(encoded_message.message)
-            logger.info(f"Encoded: ({len(encoded_message.message)}) {encoded_message.message}")
+            logger.info(f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
         except ne.DecoderException as e:
             logger.warn(str(e))
 
