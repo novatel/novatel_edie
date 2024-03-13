@@ -36,8 +36,8 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 //============================================================================
@@ -46,69 +46,65 @@
 //============================================================================
 class nExcept
 {
-public:
-   char buffer[256]{ '\0' }; //!< Character buffer of 256 bytes to hold exception message
+  public:
+    char buffer[256]{'\0'}; //!< Character buffer of 256 bytes to hold exception message
 
-   //----------------------------------------------------------------------------
-   //! \brief A constructor for the nExcept class.
-   //----------------------------------------------------------------------------
-   nExcept() = default;
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the nExcept class.
+    //----------------------------------------------------------------------------
+    nExcept() = default;
 
-   //----------------------------------------------------------------------------
-   //! \brief Exception Class constructor.
-   //
-   //! \param[in] clNew Another nExcept Class object.
-   //----------------------------------------------------------------------------
-   nExcept (const nExcept &clNew)
-   {
-      strncpy(buffer, clNew.buffer, 256);
-   }
+    //----------------------------------------------------------------------------
+    //! \brief Exception Class constructor.
+    //
+    //! \param[in] clNew Another nExcept Class object.
+    //----------------------------------------------------------------------------
+    nExcept(const nExcept& clNew) { strncpy(buffer, clNew.buffer, 256); }
 
-   //----------------------------------------------------------------------------
-   //! \brief Exception class with variable number of arguments which included.
-   //
-   //! \param[in] szFormat String formatting.
-   //----------------------------------------------------------------------------
-   nExcept(const char* szFormat, ...)
-   {
-      va_list arg_ptr;
+    //----------------------------------------------------------------------------
+    //! \brief Exception class with variable number of arguments which included.
+    //
+    //! \param[in] szFormat String formatting.
+    //----------------------------------------------------------------------------
+    nExcept(const char* szFormat, ...)
+    {
+        va_list arg_ptr;
 
-      va_start(arg_ptr, szFormat);
-      vsprintf(buffer,szFormat, arg_ptr);
-      perror(buffer);
-      va_end(arg_ptr);
-   }
+        va_start(arg_ptr, szFormat);
+        vsprintf(buffer, szFormat, arg_ptr);
+        perror(buffer);
+        va_end(arg_ptr);
+    }
 
-   //----------------------------------------------------------------------------
-   //! \brief Assignment operator for nExcept.
-   //----------------------------------------------------------------------------
-   nExcept &operator= (const nExcept &clNew)
-   {
-      strncpy(buffer, clNew.buffer, 256);
+    //----------------------------------------------------------------------------
+    //! \brief Assignment operator for nExcept.
+    //----------------------------------------------------------------------------
+    nExcept& operator=(const nExcept& clNew)
+    {
+        strncpy(buffer, clNew.buffer, 256);
 
-      return *this;
-   }
+        return *this;
+    }
 
-   //----------------------------------------------------------------------------
-   //! \brief Method to print exception with vatiable arguments which included.
-   //
-   //! \param[in] szFormat String formatting.
-   //----------------------------------------------------------------------------
-   void Printf( const char* szFormat, ...)
-   {
-      va_list arg_ptr;
+    //----------------------------------------------------------------------------
+    //! \brief Method to print exception with vatiable arguments which included.
+    //
+    //! \param[in] szFormat String formatting.
+    //----------------------------------------------------------------------------
+    void Printf(const char* szFormat, ...)
+    {
+        va_list arg_ptr;
 
-      va_start(arg_ptr, szFormat);
-      vsprintf(buffer,szFormat, arg_ptr);
-      perror(buffer);
-      va_end(arg_ptr);
-   }
+        va_start(arg_ptr, szFormat);
+        vsprintf(buffer, szFormat, arg_ptr);
+        perror(buffer);
+        va_end(arg_ptr);
+    }
 
-   //----------------------------------------------------------------------------
-   //! \brief Destructor for the nExcept class.
-   //----------------------------------------------------------------------------
-   ~nExcept() = default;
+    //----------------------------------------------------------------------------
+    //! \brief Destructor for the nExcept class.
+    //----------------------------------------------------------------------------
+    ~nExcept() = default;
 };
 
 #endif
-

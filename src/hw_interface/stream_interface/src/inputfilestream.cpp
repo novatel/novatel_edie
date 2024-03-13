@@ -24,106 +24,81 @@
 
 // Includes
 #include "inputfilestream.hpp"
+
 #include <codecvt>
 
 // code
 // ---------------------------------------------------------
 InputFileStream::InputFileStream(const std::u32string s32FileName_)
 {
-   pInFileStream = new FileStream(s32FileName_);
-   pInFileStream->OpenFile(FileStream::FILEMODES::INPUT);
-   pInFileStream->GetFileSize();
-   bEnableWideCharSupport = true;
+    pInFileStream = new FileStream(s32FileName_);
+    pInFileStream->OpenFile(FileStream::FILEMODES::INPUT);
+    pInFileStream->GetFileSize();
+    bEnableWideCharSupport = true;
 }
 
 // ---------------------------------------------------------
-InputFileStream::InputFileStream(const char* pName)
-   :stFileName(pName)
+InputFileStream::InputFileStream(const char* pName) : stFileName(pName)
 {
-   pInFileStream = new FileStream(pName);
-   pInFileStream->OpenFile(FileStream::FILEMODES::INPUT);
-   pInFileStream->GetFileSize();
+    pInFileStream = new FileStream(pName);
+    pInFileStream->OpenFile(FileStream::FILEMODES::INPUT);
+    pInFileStream->GetFileSize();
 
-   bEnableWideCharSupport = false;
-
+    bEnableWideCharSupport = false;
 }
 
 // ---------------------------------------------------------
-InputFileStream::~InputFileStream()
+InputFileStream::~InputFileStream() { delete pInFileStream; }
+
+// ---------------------------------------------------------
+StreamReadStatus InputFileStream::ReadData(ReadDataStructure& pReadDataStructure)
 {
-   delete pInFileStream;
+    StreamReadStatus stFileReadStatus;
+    stFileReadStatus = pInFileStream->ReadFile(pReadDataStructure.cData, pReadDataStructure.uiDataSize);
+    return stFileReadStatus;
 }
 
 // ---------------------------------------------------------
-StreamReadStatus InputFileStream::ReadData(ReadDataStructure& pReadDataStructure )
-{
-   StreamReadStatus stFileReadStatus;
-   stFileReadStatus = pInFileStream->ReadFile(pReadDataStructure.cData , pReadDataStructure.uiDataSize);
-   return stFileReadStatus;
-}
+StreamReadStatus InputFileStream::ReadLine(std::string& szLine) { return pInFileStream->ReadLine(szLine); }
 
 // ---------------------------------------------------------
-StreamReadStatus InputFileStream::ReadLine(std::string& szLine)
-{
-   return pInFileStream->ReadLine(szLine);
-}
+void InputFileStream::Reset(std::streamoff offset, std::ios_base::seekdir dir) { pInFileStream->SetFilePosition(offset, dir); }
 
 // ---------------------------------------------------------
-void InputFileStream::Reset(std::streamoff offset, std::ios_base::seekdir dir)
-{
-   pInFileStream->SetFilePosition(offset, dir);
-}
-
+uint64_t InputFileStream::GetCurrentFilePosition() { return pInFileStream->GetCurrentFileSize(); }
 // ---------------------------------------------------------
-uint64_t  InputFileStream:: GetCurrentFilePosition()
-{
-   return pInFileStream->GetCurrentFileSize();
-}
-// ---------------------------------------------------------
-void InputFileStream::SetCurrentFileOffset(uint64_t  ullCurrentFileOffset)
-{
-   pInFileStream->SetCurrentFileOffset(ullCurrentFileOffset);
-}
+void InputFileStream::SetCurrentFileOffset(uint64_t ullCurrentFileOffset) { pInFileStream->SetCurrentFileOffset(ullCurrentFileOffset); }
 
-uint64_t  InputFileStream::GetCurrentFileOffset(void) const
-{
-   return pInFileStream->GetCurrentFileOffset();
-}
+uint64_t InputFileStream::GetCurrentFileOffset(void) const { return pInFileStream->GetCurrentFileOffset(); }
 
 // ---------------------------------------------------------
 std::string InputFileStream::FileExtension()
 {
-   size_t BaseNameLength = stFileName.find_last_of(".");
-   if (BaseNameLength != std::string::npos)
-   {
-      return stFileName.substr(BaseNameLength + 1);
-   }
-   return NULL;
+    size_t BaseNameLength = stFileName.find_last_of(".");
+    if (BaseNameLength != std::string::npos) { return stFileName.substr(BaseNameLength + 1); }
+    return NULL;
 }
 
 // ---------------------------------------------------------
 std::string InputFileStream::WCFileExtension()
 {
-   size_t BaseNameLength = stwFileName.find_last_of(L".");
-   if (BaseNameLength != std::string::npos)
-   {
-      std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-      return converter.to_bytes(stwFileName.substr(BaseNameLength + 1));
-   }
-   return NULL;
+    size_t BaseNameLength = stwFileName.find_last_of(L".");
+    if (BaseNameLength != std::string::npos)
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        return converter.to_bytes(stwFileName.substr(BaseNameLength + 1));
+    }
+    return NULL;
 }
 
 // ---------------------------------------------------------
 std::string InputFileStream::GetFileExtension()
 {
-   if (bEnableWideCharSupport)
-      return WCFileExtension();
-   else
-      return FileExtension();
+    if (bEnableWideCharSupport)
+        return WCFileExtension();
+    else
+        return FileExtension();
 }
 
 // ---------------------------------------------------------
-std::string InputFileStream::GetFileName()
-{
-   return stFileName;
-}
+std::string InputFileStream::GetFileName() { return stFileName; }

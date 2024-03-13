@@ -1,0 +1,14 @@
+BasedOnStyle: Microsoft
+Language: Cpp
+ColumnLimit: 150
+DerivePointerAlignment: false
+PointerAlignment: Left
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AllowShortLambdasOnASingleLine: true
+AllowShortBlocksOnASingleLine: true
+BraceWrapping:
+  AfterNamespace: false

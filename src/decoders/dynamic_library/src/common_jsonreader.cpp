@@ -33,23 +33,57 @@
 //-----------------------------------------------------------------------
 #include "common_jsonreader.hpp"
 
-JsonReader* common_jsonreader_init(char* pcJsonDBFilepath_)
+JsonReader* common_jsonreader_init()
 {
-   if (pcJsonDBFilepath_)
-   {
-      JsonReader* pclJsonDb = new JsonReader();
-      pclJsonDb->LoadFile(pcJsonDBFilepath_);
-      return pclJsonDb;
-   }
-
-   return nullptr;
+    JsonReader* pclJsonDb = new JsonReader();
+    return pclJsonDb;
 }
 
-void common_jsonreader_delete(JsonReader* pclJsonDb_)
+bool common_jsonreader_load_file(JsonReader* pclJsonDb_, const char* pcJsonDBFilepath_)
 {
-   if (pclJsonDb_)
-   {
-      delete pclJsonDb_;
-      pclJsonDb_ = nullptr;
-   }
+    if (!pclJsonDb_) { return false; }
+
+    try
+    {
+        pclJsonDb_->LoadFile(pcJsonDBFilepath_);
+    }
+    catch (...)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool common_jsonreader_parse_json(JsonReader* pclJsonDb_, const char* pcJsonData_)
+{
+    if (!pclJsonDb_) { return false; }
+
+    try
+    {
+        pclJsonDb_->ParseJson(pcJsonData_);
+    }
+    catch (...)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool common_jsonreader_delete(JsonReader* pclJsonDb_)
+{
+    if (!pclJsonDb_) { return false; }
+
+    try
+    {
+        delete pclJsonDb_;
+        pclJsonDb_ = nullptr;
+    }
+    catch (...)
+    {
+        return false;
+    }
+
+    return true;
 }

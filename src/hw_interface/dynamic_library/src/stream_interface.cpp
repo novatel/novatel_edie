@@ -30,29 +30,29 @@
 
 InputFileStream* ifs_init(char* pcInputFilePath_)
 {
-   InputFileStream* pclIFS = new InputFileStream(pcInputFilePath_);
-   return pclIFS;
+    InputFileStream* pclIFS = new InputFileStream(pcInputFilePath_);
+    return pclIFS;
 }
 
 void ifs_del(InputStreamInterface* pclIFS_)
 {
-   if (pclIFS_)
-   {
-      delete pclIFS_;
-      pclIFS_ = NULL;
-   }
+    if (pclIFS_)
+    {
+        delete pclIFS_;
+        pclIFS_ = NULL;
+    }
 }
 
 void ifs_read(InputFileStream* pclIFS_, StreamReadStatus* pstReadStatus_, char* pcReadBuf_, int iBufSize_)
 {
-   StreamReadStatus stReadStatus;
-   ReadDataStructure stReadData;
-   stReadData.cData = pcReadBuf_;
-   stReadData.uiDataSize = iBufSize_;
-   stReadStatus = pclIFS_->ReadData(stReadData);
+    StreamReadStatus stReadStatus;
+    ReadDataStructure stReadData;
+    stReadData.cData = pcReadBuf_;
+    stReadData.uiDataSize = iBufSize_;
+    stReadStatus = pclIFS_->ReadData(stReadData);
 
-   pstReadStatus_->bEOS = stReadStatus.bEOS;
-   pstReadStatus_->uiCurrentStreamRead = stReadStatus.uiCurrentStreamRead;
-   pstReadStatus_->uiPercentStreamRead = stReadStatus.uiPercentStreamRead;
-   pstReadStatus_->ullStreamLength = stReadStatus.ullStreamLength;
+    pstReadStatus_->bEOS = stReadStatus.bEOS;
+    pstReadStatus_->uiCurrentStreamRead = stReadStatus.uiCurrentStreamRead;
+    pstReadStatus_->uiPercentStreamRead = stReadStatus.uiPercentStreamRead;
+    pstReadStatus_->ullStreamLength = stReadStatus.ullStreamLength;
 }

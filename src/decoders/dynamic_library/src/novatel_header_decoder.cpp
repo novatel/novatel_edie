@@ -38,46 +38,35 @@ using namespace novatel::edie::oem;
 
 bool novatel_header_decoder_set_logger_level(HeaderDecoder* pclHeaderDecoder_, uint32_t uiLogLevel_)
 {
-   return pclHeaderDecoder_
-      && uiLogLevel_ >= spdlog::level::level_enum::trace
-      && uiLogLevel_ <  spdlog::level::level_enum::n_levels
-      ? pclHeaderDecoder_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)), true
-      : false;
+    return pclHeaderDecoder_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
+           ? pclHeaderDecoder_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
+           true : false;
 }
 
 void novatel_header_decoder_shutdown_logger(HeaderDecoder* pclHeaderDecoder_)
 {
-   if (pclHeaderDecoder_)
-   {
-      pclHeaderDecoder_->ShutdownLogger();
-   }
+    if (pclHeaderDecoder_) { pclHeaderDecoder_->ShutdownLogger(); }
 }
 
-HeaderDecoder* novatel_header_decoder_init(JsonReader* pclJsonDb_)
-{
-   return pclJsonDb_ ? new HeaderDecoder(pclJsonDb_) : nullptr;
-}
+HeaderDecoder* novatel_header_decoder_init(JsonReader* pclJsonDb_) { return new HeaderDecoder(pclJsonDb_); }
 
 void novatel_header_decoder_delete(HeaderDecoder* pclHeaderDecoder_)
 {
-   if (pclHeaderDecoder_)
-   {
-      delete pclHeaderDecoder_;
-      pclHeaderDecoder_ = nullptr;
-   }
+    if (pclHeaderDecoder_)
+    {
+        delete pclHeaderDecoder_;
+        pclHeaderDecoder_ = nullptr;
+    }
 }
 
 void novatel_header_decoder_load_json(HeaderDecoder* pclHeaderDecoder_, JsonReader* pclJsonDb_)
 {
-   if (pclHeaderDecoder_ && pclJsonDb_)
-   {
-      pclHeaderDecoder_->LoadJsonDb(pclJsonDb_);
-   }
+    if (pclHeaderDecoder_ && pclJsonDb_) { pclHeaderDecoder_->LoadJsonDb(pclJsonDb_); }
 }
 
-STATUS novatel_header_decoder_decode(HeaderDecoder* pclHeaderDecoder_, unsigned char* pucLogBuf_, IntermediateHeader* pstIntermediateHeader_, MetaDataStruct* pstMetaData_)
+STATUS novatel_header_decoder_decode(HeaderDecoder* pclHeaderDecoder_, unsigned char* pucLogBuf_, IntermediateHeader* pstInterHeader_,
+                                     MetaDataStruct* pstMetaData_)
 {
-   return pclHeaderDecoder_ && pucLogBuf_ && pstIntermediateHeader_ && pstMetaData_
-      ? pclHeaderDecoder_->Decode(pucLogBuf_, *pstIntermediateHeader_, *pstMetaData_)
-      : STATUS::NULL_PROVIDED;
+    return pclHeaderDecoder_ && pucLogBuf_ && pstInterHeader_ && pstMetaData_ ? pclHeaderDecoder_->Decode(pucLogBuf_, *pstInterHeader_, *pstMetaData_)
+                                                                              : STATUS::NULL_PROVIDED;
 }

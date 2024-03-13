@@ -37,79 +37,79 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "outputstreaminterface.hpp"
 #include "memorystream.hpp"
+#include "outputstreaminterface.hpp"
 
 /*! \class OutputMemoryStream
  *  \brief A derived class from parent class OutputStreamInterface.
  *  \sa OutputStreamInterface
  *
  *  More detailed FileStream class description.
-*/
+ */
 class OutputMemoryStream : public OutputStreamInterface
 {
-public:
-  /*! A Constructor.
-   * \brief Default Constructor. Will create MemoryStream object.
-   * \sa MemoryStream
-   * \remark Created circullar buffer inside it to write data into it.
-   */
-   OutputMemoryStream();
-  /*! A Constructor.
-   * \brief Created MemoryStream object with desired length of buffer.
-   * \sa MemoryStream
-   * \param [in] uiBufferSize Desired buffer size
-   * \remark Created circullar buffer with length provided to write data into it.
-   * Default size is 1024 bytes.
-   */
-   OutputMemoryStream(uint32_t uiBufferSize);
+  public:
+    /*! A Constructor.
+     * \brief Default Constructor. Will create MemoryStream object.
+     * \sa MemoryStream
+     * \remark Created circullar buffer inside it to write data into it.
+     */
+    OutputMemoryStream();
+    /*! A Constructor.
+     * \brief Created MemoryStream object with desired length of buffer.
+     * \sa MemoryStream
+     * \param [in] uiBufferSize Desired buffer size
+     * \remark Created circullar buffer with length provided to write data into it.
+     * Default size is 1024 bytes.
+     */
+    OutputMemoryStream(uint32_t uiBufferSize);
 
-  /*! A Constructor.
-   * \brief Created MemoryStream object with desired length of buffer and append provided data to it.
-   * \sa MemoryStream
-   * \param [in] pucBuffer   Buffer to be append to circullar buffer
-   * \param [in] uiBufferSize Desired length of buffer to be append circullar buffer
-   */
-   OutputMemoryStream(uint8_t* pucBuffer, uint32_t uiBufferSize);
+    /*! A Constructor.
+     * \brief Created MemoryStream object with desired length of buffer and append provided data to
+     * it. \sa MemoryStream \param [in] pucBuffer   Buffer to be append to circullar buffer \param
+     * [in] uiBufferSize Desired length of buffer to be append circullar buffer
+     */
+    OutputMemoryStream(uint8_t* pucBuffer, uint32_t uiBufferSize);
 
-   /*! A virtual destructor
-    * \brief Deletes Creaged MemoryStream Obejct to which data has been written.
-    */
-   virtual ~OutputMemoryStream();
+    /*! A virtual destructor
+     * \brief Deletes Creaged MemoryStream Obejct to which data has been written.
+     */
+    virtual ~OutputMemoryStream();
 
-   /*! \fn uint32_t WriteData(char* pcData_, uint32_t uiDataLength_)
-    *  \brief Write data to the buffer
-    *  \param [in] cData Buffer pointer.
-    *  \param [in] uiSize size of the buffer.
-    *  \return Number of bytes written to output buffer.
-    */
-   uint32_t WriteData(char* pcData_, uint32_t uiDataLength_);
+    /*! \fn uint32_t WriteData(char* pcData_, uint32_t uiDataLength_)
+     *  \brief Write data to the buffer
+     *  \param [in] cData Buffer pointer.
+     *  \param [in] uiSize size of the buffer.
+     *  \return Number of bytes written to output buffer.
+     */
+    uint32_t WriteData(char* pcData_, uint32_t uiDataLength_);
 
-   /*! \fn MemoryStream* GetMemoryStream()
-    * \sa MemoryStream
-    *  \return MemoryStream Obejct which had buffer.
-    */
-   MemoryStream* GetMemoryStream() {return pMyOutMemoryStream;}
+    /*! \fn MemoryStream* GetMemoryStream()
+     * \sa MemoryStream
+     *  \return MemoryStream Obejct which had buffer.
+     */
+    MemoryStream* GetMemoryStream() { return pMyOutMemoryStream; }
 
-private:
-	/*! Private Copy Constructor
-	 *
-	 *  A copy constructor is a member function which initializes an object using another object of the same class.
-	 */
-   OutputMemoryStream(const OutputMemoryStream& clTemp);
+  private:
+    /*! Private Copy Constructor
+     *
+     *  A copy constructor is a member function which initializes an object using another object of
+     * the same class.
+     */
+    OutputMemoryStream(const OutputMemoryStream& clTemp);
 
-	/*! Private assignment operator
-	 *
-	 *  The copy assignment operator is called whenever selected by overload resolution,
-	 *  e.g. when an object appears on the left side of an assignment expression.
-	 */
-   const OutputMemoryStream& operator= (const OutputMemoryStream& clTemp);
+    /*! Private assignment operator
+     *
+     *  The copy assignment operator is called whenever selected by overload resolution,
+     *  e.g. when an object appears on the left side of an assignment expression.
+     */
+    const OutputMemoryStream& operator=(const OutputMemoryStream& clTemp);
 
-   /*! var pMyOutMemoryStream
-    * \brief MemoryStream Object pointer
-    * \sa MemoryStream
-    */
-   MemoryStream* pMyOutMemoryStream;
+    /*! var pMyOutMemoryStream
+     * \brief MemoryStream Object pointer
+     * \sa MemoryStream
+     */
+    MemoryStream* pMyOutMemoryStream;
 };
 
 #endif

@@ -36,109 +36,73 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-Parser* novatel_parser_init(JsonReader* pclJsonDb_)
-{
-   return pclJsonDb_ ? new Parser(pclJsonDb_) : nullptr;
-}
+Parser* novatel_parser_init(JsonReader* pclJsonDb_) { return new Parser(pclJsonDb_); }
 
 void novatel_parser_delete(Parser* pclParser_)
 {
-   if (pclParser_)
-   {
-      delete pclParser_;
-      pclParser_ = nullptr;
-   }
+    if (pclParser_)
+    {
+        delete pclParser_;
+        pclParser_ = nullptr;
+    }
 }
 
 void novatel_parser_load_json_db(Parser* pclParser_, JsonReader* pclJsonDb_)
 {
-   if (pclParser_ && pclJsonDb_)
-   {
-      pclParser_->LoadJsonDb(pclJsonDb_);
-   }
+    if (pclParser_ && pclJsonDb_) { pclParser_->LoadJsonDb(pclJsonDb_); }
 }
 
 void novatel_parser_set_ignore_abbrev_ascii_responses(novatel::edie::oem::Parser* pclParser_, bool bIgnoreAbbrevASCIIResponsesCmp_)
 {
-   if (pclParser_)
-   {
-      pclParser_->SetIgnoreAbbreviatedAsciiResponses(bIgnoreAbbrevASCIIResponsesCmp_);
-   }
+    if (pclParser_) { pclParser_->SetIgnoreAbbreviatedAsciiResponses(bIgnoreAbbrevASCIIResponsesCmp_); }
 }
 
 bool novatel_parser_get_ignore_abbrev_ascii_responses(novatel::edie::oem::Parser* pclParser_)
 {
-   return pclParser_ ? pclParser_->GetIgnoreAbbreviatedAsciiResponses() : false;
+    return pclParser_ ? pclParser_->GetIgnoreAbbreviatedAsciiResponses() : false;
 }
 
 void novatel_parser_set_decompress_rangecmp(Parser* pclParser_, bool bDecompressRangeCmp_)
 {
-   if (pclParser_)
-   {
-      pclParser_->SetDecompressRangeCmp(bDecompressRangeCmp_);
-   }
+    if (pclParser_) { pclParser_->SetDecompressRangeCmp(bDecompressRangeCmp_); }
 }
 
-bool novatel_parser_get_decompress_rangecmp(Parser* pclParser_)
-{
-   return pclParser_ ? pclParser_->GetDecompressRangeCmp() : false;
-}
+bool novatel_parser_get_decompress_rangecmp(Parser* pclParser_) { return pclParser_ ? pclParser_->GetDecompressRangeCmp() : false; }
 
 void novatel_parser_set_return_unknownbytes(Parser* pclParser_, bool bReturnUnknownBytes_)
 {
-   if (pclParser_)
-   {
-      pclParser_->SetReturnUnknownBytes(bReturnUnknownBytes_);
-   }
+    if (pclParser_) { pclParser_->SetReturnUnknownBytes(bReturnUnknownBytes_); }
 }
 
-bool novatel_parser_get_return_unknownbytes(Parser* pclParser_)
-{
-   return pclParser_ ? pclParser_->GetReturnUnknownBytes() : false;
-}
+bool novatel_parser_get_return_unknownbytes(Parser* pclParser_) { return pclParser_ ? pclParser_->GetReturnUnknownBytes() : false; }
 
 void novatel_parser_set_encodeformat(Parser* pclParser_, ENCODEFORMAT eEncodeFormat_)
 {
-   if (pclParser_)
-   {
-      pclParser_->SetEncodeFormat(eEncodeFormat_);
-   }
+    if (pclParser_) { pclParser_->SetEncodeFormat(eEncodeFormat_); }
 }
 
-ENCODEFORMAT novatel_parser_get_encodeformat(Parser* pclParser_)
-{
-   return pclParser_ ? pclParser_->GetEncodeFormat() : ENCODEFORMAT::UNSPECIFIED;
-}
+ENCODEFORMAT novatel_parser_get_encodeformat(Parser* pclParser_) { return pclParser_ ? pclParser_->GetEncodeFormat() : ENCODEFORMAT::UNSPECIFIED; }
 
-Filter* novatel_parser_get_filter(Parser* pclParser_)
-{
-   return pclParser_ ? pclParser_->GetFilter() : nullptr;
-}
+Filter* novatel_parser_get_filter(Parser* pclParser_) { return pclParser_ ? pclParser_->GetFilter() : nullptr; }
 
 void novatel_parser_set_filter(Parser* pclParser_, Filter* pclFilter_)
 {
-   if (pclParser_ && pclFilter_)
-   {
-      pclParser_->SetFilter(pclFilter_);
-   }
+    if (pclParser_ && pclFilter_) { pclParser_->SetFilter(pclFilter_); }
 }
 
-unsigned char* novatel_parser_get_buffer(Parser* pclParser_)
-{
-   return pclParser_ ? pclParser_->GetInternalBuffer() : nullptr;
-}
+unsigned char* novatel_parser_get_buffer(Parser* pclParser_) { return pclParser_ ? pclParser_->GetInternalBuffer() : nullptr; }
 
 uint32_t novatel_parser_write(Parser* pclParser_, unsigned char* pucBytes_, uint32_t uiByteCount_)
 {
-   return pclParser_ && pucBytes_ ? pclParser_->Write(pucBytes_, uiByteCount_) : UINT_MAX;
+    return pclParser_ && pucBytes_ ? pclParser_->Write(pucBytes_, uiByteCount_) : UINT_MAX;
 }
 
 STATUS novatel_parser_read(Parser* pclParser_, MessageDataStruct* pstMessageData_, MetaDataStruct* pstMetaData_)
 {
-   return pclParser_ && pstMessageData_ && pstMetaData_ ? pclParser_->Read(*pstMessageData_, *pstMetaData_) : STATUS::NULL_PROVIDED;
+    return pclParser_ && pstMessageData_ && pstMetaData_ ? pclParser_->Read(*pstMessageData_, *pstMetaData_) : STATUS::NULL_PROVIDED;
 }
 
 uint32_t novatel_parser_flush(Parser* pclParser_, unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
-   return pclParser_ && pucBuffer_ ? pclParser_->Flush(pucBuffer_, uiBufferSize_) : UINT_MAX;
+    return pclParser_ && pucBuffer_ ? pclParser_->Flush(pucBuffer_, uiBufferSize_) : UINT_MAX;
 }

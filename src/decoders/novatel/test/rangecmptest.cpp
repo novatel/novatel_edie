@@ -30,92 +30,64 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "paths.hpp"
-#include "decoders/novatel/api/rangecmp/range_decompressor.hpp"
-
 #include <gtest/gtest.h>
+
+#include "decoders/novatel/api/rangecmp/range_decompressor.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-
-class RangeCmpTest : public ::testing::Test {
-
-   class RangeDecompressorTester : public RangeDecompressor
-   {
+class RangeCmpTest : public ::testing::Test
+{
+    class RangeDecompressorTester : public RangeDecompressor
+    {
       public:
-         RangeDecompressorTester(JsonReader* pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
+        RangeDecompressorTester(JsonReader* pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
 
-         // Access protected member of RangeDecompressor
-         void SetBitoffset(uint32_t uiBitOffset_)
-         {
-            uiMyBitOffset = uiBitOffset_;
-         }
+        // Access protected member of RangeDecompressor
+        void SetBitoffset(uint32_t uiBitOffset_) { uiMyBitOffset = uiBitOffset_; }
 
-         // Access protected member of RangeDecompressor
-         void SetBytesRemaining(uint32_t uiByteCount_)
-         {
-            uiMyBytesRemaining = uiByteCount_;
-         }
+        // Access protected member of RangeDecompressor
+        void SetBytesRemaining(uint32_t uiByteCount_) { uiMyBytesRemaining = uiByteCount_; }
 
-         // Access protected member of RangeDecompressor
-         uint32_t GetBytesRemaining()
-         {
-            return uiMyBytesRemaining;
-         }
+        // Access protected member of RangeDecompressor
+        uint32_t GetBytesRemaining() { return uiMyBytesRemaining; }
 
-         // Access protected member of RangeDecompressor
-         uint64_t GetBitfield(uint8_t** ppucBytes_, uint32_t uiBitfieldSize_)
-         {
-            return GetBitfieldFromBuffer(ppucBytes_, uiBitfieldSize_);
-         }
+        // Access protected member of RangeDecompressor
+        uint64_t GetBitfield(uint8_t** ppucBytes_, uint32_t uiBitfieldSize_) { return GetBitfieldFromBuffer(ppucBytes_, uiBitfieldSize_); }
 
-         void ResetLocktimes()
-         {
+        void ResetLocktimes()
+        {
             ammmMyRangeCmp2Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
             ammmMyRangeCmp2Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
             ammmMyRangeCmp4Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
             ammmMyRangeCmp4Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-         }
-   };
+        }
+    };
 
-protected:
-   static RangeDecompressorTester* pclMyRangeDecompressor;
-   static JsonReader* pclMyJsonDb;
+  protected:
+    static std::unique_ptr<RangeDecompressorTester> pclMyRangeDecompressor;
+    static std::unique_ptr<JsonReader> pclMyJsonDb;
 
-   // Per-test-suite setup
-   static void SetUpTestSuite()
-   {
-      pclMyJsonDb = new JsonReader();
-      pclMyJsonDb->LoadFile(*TEST_DB_PATH);
-      pclMyRangeDecompressor = new RangeDecompressorTester(pclMyJsonDb);
-   }
+    // Per-test-suite setup
+    static void SetUpTestSuite()
+    {
+        pclMyJsonDb = std::make_unique<JsonReader>();
+        pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
+        pclMyRangeDecompressor = std::make_unique<RangeDecompressorTester>(pclMyJsonDb.get());
+    }
 
-   // Per-test-suite teardown
-   static void TearDownTestSuite()
-   {
-      if (pclMyRangeDecompressor)
-      {
-         pclMyRangeDecompressor->ShutdownLogger();
-         delete pclMyRangeDecompressor;
-         pclMyRangeDecompressor = nullptr;
-      }
+    // Per-test-suite teardown
+    static void TearDownTestSuite() { pclMyRangeDecompressor->ShutdownLogger(); }
 
-      if (pclMyJsonDb)
-      {
-         delete pclMyJsonDb;
-         pclMyJsonDb = nullptr;
-      }
-   }
-
-   void SetUp()
-   {
-      pclMyRangeDecompressor->ResetLocktimes();
-   }
-
+    void SetUp() { pclMyRangeDecompressor->ResetLocktimes(); }
 };
-RangeCmpTest::RangeDecompressorTester* RangeCmpTest::pclMyRangeDecompressor = nullptr;
-JsonReader* RangeCmpTest::pclMyJsonDb = nullptr;
+
+std::unique_ptr<RangeCmpTest::RangeDecompressorTester> RangeCmpTest::pclMyRangeDecompressor = nullptr;
+std::unique_ptr<JsonReader> RangeCmpTest::pclMyJsonDb = nullptr;
+
+// TODO: we disable clang-format because of the long strings
+// clang-format off
 
 // -------------------------------------------------------------------------------------------------------
 // Logger Framer Unit Tests

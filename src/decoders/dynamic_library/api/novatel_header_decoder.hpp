@@ -36,27 +36,30 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "decoders_export.h"
+#include <string.h>
+
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"
-
-#include <string.h>
+#include "decoders_export.h"
 
 extern "C"
 {
-   // Logger
-   DECODERS_EXPORT bool novatel_header_decoder_set_logger_level(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, uint32_t iLogLevel_);
-   DECODERS_EXPORT void novatel_header_decoder_shutdown_logger(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_);
+    // Logger
+    DECODERS_EXPORT bool novatel_header_decoder_set_logger_level(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, uint32_t iLogLevel_);
+    DECODERS_EXPORT void novatel_header_decoder_shutdown_logger(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_);
 
-   // Construct/Destruct
-   DECODERS_EXPORT novatel::edie::oem::HeaderDecoder* novatel_header_decoder_init(JsonReader* pclJsonDb_);
-   DECODERS_EXPORT void novatel_header_decoder_delete(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_);
+    // Construct/Destruct
+    DECODERS_EXPORT novatel::edie::oem::HeaderDecoder* novatel_header_decoder_init(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void novatel_header_decoder_delete(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_);
 
-   // Config
-   DECODERS_EXPORT void novatel_header_decoder_load_json(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, JsonReader* pclJsonDb_);
+    // Config
+    DECODERS_EXPORT void novatel_header_decoder_load_json(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, JsonReader* pclJsonDb_);
 
-   // R/W
-   DECODERS_EXPORT [[nodiscard]] novatel::edie::STATUS novatel_header_decoder_decode(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, unsigned char* pucLogBuf_, novatel::edie::oem::IntermediateHeader* pstIntermediateHeader_, novatel::edie::oem::MetaDataStruct* pstMetaData_);
+    // R/W
+    DECODERS_EXPORT novatel::edie::STATUS novatel_header_decoder_decode(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_,
+                                                                        unsigned char* pucLogBuf_,
+                                                                        novatel::edie::oem::IntermediateHeader* pstInterHeader_,
+                                                                        novatel::edie::oem::MetaDataStruct* pstMetaData_);
 }
 
 #endif // DYNAMIC_LIBRARY_NOVATEL_HEADER_DECODER_HPP

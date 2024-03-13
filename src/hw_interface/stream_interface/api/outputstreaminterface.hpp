@@ -36,114 +36,114 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "decoders/common/api/common.hpp"
 #include <string>
+
+#include "decoders/common/api/common.hpp"
 
 //-----------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------
 class MemoryStream;
 
-
 /*! \class OutputStreamInterface
  *  \brief An Interface Class used by application to write dat to the output.
  *
  *  \details Output stream is an interface for writing data to file and port handles.
- *  Output Stream has three derived classes to support file and port access, OutputFileStream, OutputPortStream and MultiOutputFileStream.
- *  The ideal usage of Output Stream is to support Encoder to write the converted data to given stream object.
-*/
+ *  Output Stream has three derived classes to support file and port access, OutputFileStream,
+ * OutputPortStream and MultiOutputFileStream. The ideal usage of Output Stream is to support
+ * Encoder to write the converted data to given stream object.
+ */
 class OutputStreamInterface
 {
-public:
-   /** A virtual member.
-    *
-    *  \fn uint32_t WriteData(char* pcData_, uint32_t uiDataLength_)
-    *  \brief Write data to the buffer
-    *  \param [in] cData Buffer pointer.
-    *  \param [in] uiSize size of the buffer.
-    *  \return Number of bytes written to output file.
-    *  \remark Set Split type and write data to output files. If split type was not set,
-    *  Then writing can be done to only one file.
-    */
-   virtual uint32_t WriteData(char* pcData_, uint32_t uiDataLength_) = 0;
+  public:
+    /** A virtual member.
+     *
+     *  \fn uint32_t WriteData(char* pcData_, uint32_t uiDataLength_)
+     *  \brief Write data to the buffer
+     *  \param [in] cData Buffer pointer.
+     *  \param [in] uiSize size of the buffer.
+     *  \return Number of bytes written to output file.
+     *  \remark Set Split type and write data to output files. If split type was not set,
+     *  Then writing can be done to only one file.
+     */
+    virtual uint32_t WriteData(char* pcData_, uint32_t uiDataLength_) = 0;
 
-   /*! a virtual destructor. */
-   virtual ~OutputStreamInterface(){};
-
-   /** A virtual member.
-    *  \sa SelectFileStream
-    *  \brief Sets the output file in which to be decoded ouput will be written.
-    *  \param [in] stFileName - Name of the File to be created.
-    *  \sa FileStream
-    *  \remark FileStream Object will be created and added to map.
-    *  If already created, The file with name stFileName will be set for writing.
-    */
-   virtual void SelectFileStream(std::string){};
-
-   /** A virtual member.
-    *  \sa ConfigureSplitByLog
-    *  \brief Enalbe/Diable Splitting of logs into different output files.
-    *  \param [in] bStatus
-    *  \remark Enable/Disable log Splitting. If enable, split type will be set to SPLIT_LOG
-    *  If disabled split type will be set to SPLIT_NONE
-    */
-   virtual void ConfigureSplitByLog(bool){};
-
-   /** A virtual member.
-    *  \sa ConfigureBaseFileName
-    *  \brief Gets base file name and extension of it.
-    *  \param [in] stFileName - Name of the File.
-    *  \remark Sets Base file name (before '.' in file name)
-    *          Sets Extension of the file.
-    */
-   virtual void ConfigureBaseFileName(std::string){};
-
-   /** A virtual member.
-    *  \sa ConfigureSplitBySize
-    *  \brief Split file into different output file with defined size.
-    *  \param [in] ullFileSplitSize
-    *  \remark Output files with ullFileSplitSize size will be created while writing to the output.
-    */
-   virtual void ConfigureSplitBySize(uint64_t){};
+    /*! a virtual destructor. */
+    virtual ~OutputStreamInterface(){};
 
     /** A virtual member.
-    *  \sa ConfigureSplitByTime
-    *  \brief Sets the interval of time the file to be splitted.
-    *  \param [in] dFileSplitTime
-    *  \remark Diffrent output files will be created with the logs,
-    *  in which will be captured in the tiem interval provided.
-    */
+     *  \sa SelectFileStream
+     *  \brief Sets the output file in which to be decoded ouput will be written.
+     *  \param [in] stFileName - Name of the File to be created.
+     *  \sa FileStream
+     *  \remark FileStream Object will be created and added to map.
+     *  If already created, The file with name stFileName will be set for writing.
+     */
+    virtual void SelectFileStream(std::string){};
+
+    /** A virtual member.
+     *  \sa ConfigureSplitByLog
+     *  \brief Enalbe/Diable Splitting of logs into different output files.
+     *  \param [in] bStatus
+     *  \remark Enable/Disable log Splitting. If enable, split type will be set to SPLIT_LOG
+     *  If disabled split type will be set to SPLIT_NONE
+     */
+    virtual void ConfigureSplitByLog(bool){};
+
+    /** A virtual member.
+     *  \sa ConfigureBaseFileName
+     *  \brief Gets base file name and extension of it.
+     *  \param [in] stFileName - Name of the File.
+     *  \remark Sets Base file name (before '.' in file name)
+     *          Sets Extension of the file.
+     */
+    virtual void ConfigureBaseFileName(std::string){};
+
+    /** A virtual member.
+     *  \sa ConfigureSplitBySize
+     *  \brief Split file into different output file with defined size.
+     *  \param [in] ullFileSplitSize
+     *  \remark Output files with ullFileSplitSize size will be created while writing to the output.
+     */
+    virtual void ConfigureSplitBySize(uint64_t){};
+
+    /** A virtual member.
+     *  \sa ConfigureSplitByTime
+     *  \brief Sets the interval of time the file to be splitted.
+     *  \param [in] dFileSplitTime
+     *  \remark Diffrent output files will be created with the logs,
+     *  in which will be captured in the tiem interval provided.
+     */
     virtual void ConfigureSplitByTime(double){};
 
     /** A virtual member.
-      * \sa MemoryStream
-      * \return MemoryStream Obejct which had buffer.
-      */
-   virtual MemoryStream* GetMemoryStream(){return nullptr;};
+     * \sa MemoryStream
+     * \return MemoryStream Obejct which had buffer.
+     */
+    virtual MemoryStream* GetMemoryStream() { return nullptr; };
 
-   //#ifdef WIDE_CHAR_SUPPORT
-   /** A virtual member.
-    *  \sa SelectFileStream
-    *  \brief Sets the output file in which to be decoded ouput will be written.
-    *  \param [in] stFileName - Wide character Name of the File to be created.
-    *  \sa FileStream
-    *  \remark FileStream Object will be created and added to map.
-    *  If already created, The file with name stFileName will be set for writing.
-    */
-   virtual void SelectFileStream(std::u32string){};
+    //#ifdef WIDE_CHAR_SUPPORT
+    /** A virtual member.
+     *  \sa SelectFileStream
+     *  \brief Sets the output file in which to be decoded ouput will be written.
+     *  \param [in] stFileName - Wide character Name of the File to be created.
+     *  \sa FileStream
+     *  \remark FileStream Object will be created and added to map.
+     *  If already created, The file with name stFileName will be set for writing.
+     */
+    virtual void SelectFileStream(std::u32string){};
 
-   /** A virtual member
-    *  \sa ConfigureBaseFileName
-    *  \brief Gets wide character base file name and extension of it.
-    *  \param [in] stFileName - Name of the File with wide characters.
-    *  \remark Sets Base file name (before '.' in file name)
-    *          Sets Extension of the file.
-    */
-      virtual void ConfigureBaseFileName(std::u32string){};
-   //#endif
+    /** A virtual member
+     *  \sa ConfigureBaseFileName
+     *  \brief Gets wide character base file name and extension of it.
+     *  \param [in] stFileName - Name of the File with wide characters.
+     *  \remark Sets Base file name (before '.' in file name)
+     *          Sets Extension of the file.
+     */
+    virtual void ConfigureBaseFileName(std::u32string){};
+    //#endif
 
-private:
+  private:
 };
 
 #endif
-

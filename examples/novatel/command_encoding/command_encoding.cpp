@@ -33,7 +33,9 @@
 //-----------------------------------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <chrono>
+
 #include "src/decoders/novatel/api/commander.hpp"
 #include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
 #include "src/version.h"
@@ -41,23 +43,28 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-inline bool file_exists(const std::string &name)
+inline bool file_exists(const std::string& name)
 {
-   struct stat buffer;
-   return (stat(name.c_str(), &buffer) == 0);
+    struct stat buffer;
+    return (stat(name.c_str(), &buffer) == 0);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    auto logger = Logger().RegisterLogger("CommandEncoder");
+    // This example uses the default logger config, but you can also pass a config file to InitLogger()
+    // Example config file: logger\example_logger_config.toml
+    Logger::InitLogger();
+    std::shared_ptr<spdlog::logger> logger = Logger::RegisterLogger("command_encoder");
     logger->set_level(spdlog::level::debug);
     Logger::AddConsoleLogging(logger);
     Logger::AddRotatingFileLogger(logger);
 
     if (argc < 3)
     {
-        logger->error("Format: command_encoding.exe <path to Json DB> <output format> <abbreviated ascii command>\n");
-        logger->error("Example: command_encoding.exe database/messages_public.json ASCII \"RTKTIMEOUT 30\"\n");
+        logger->error("Format: command_encoding.exe <path to Json DB> <output format> <abbreviated ascii "
+                      "command>\n");
+        logger->error("Example: command_encoding.exe database/messages_public.json ASCII \"RTKTIMEOUT "
+                      "30\"\n");
         return 1;
     }
 
@@ -91,8 +98,9 @@ int main(int argc, char *argv[])
     uint32_t uiEncodeBufferLength = MAX_ASCII_MESSAGE_LENGTH;
 
     logger->info("Coverting \"{}\" to {}", argv[3], strEncodeFormat);
-    STATUS eCommanderStatus = clCommander.Encode(argv[3], static_cast<uint32_t>(strlen(argv[3])), pcEncodedMessageBuffer, uiEncodeBufferLength, eEncodeFormat);
-    if(eCommanderStatus != STATUS::SUCCESS)
+    STATUS eCommanderStatus =
+        clCommander.Encode(argv[3], static_cast<uint32_t>(strlen(argv[3])), pcEncodedMessageBuffer, uiEncodeBufferLength, eEncodeFormat);
+    if (eCommanderStatus != STATUS::SUCCESS)
     {
         logger->info("Failed to formulate a command ({})", static_cast<uint32_t>(eCommanderStatus));
         return -1;

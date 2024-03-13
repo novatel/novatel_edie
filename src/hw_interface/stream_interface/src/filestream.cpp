@@ -29,91 +29,79 @@
 
 // Includes
 #include "filestream.hpp"
-#include "decoders/common/api/nexcept.h"
+
 #include <sys/stat.h>
+
 #include <string>
+
+#include "decoders/common/api/nexcept.h"
 
 using namespace std;
 
 // ---------------------------------------------------------
 FileStream::FileStream(const std::u32string s32FileName_)
 {
-   if (s32FileName_.length() == 0)
-   {
-      throw nExcept("file name is not valid");
-   }
+    if (s32FileName_.length() == 0) { throw nExcept("file name is not valid"); }
 
-   clFilePath = std::filesystem::path(s32FileName_);
+    clFilePath = std::filesystem::path(s32FileName_);
 
-   ullMyFileLength = 0;
-   ullMyCurrentFileSize = 0;
-   ullMyCurrentFileOffset = 0;
+    ullMyFileLength = 0;
+    ullMyCurrentFileSize = 0;
+    ullMyCurrentFileOffset = 0;
 }
 
 // ---------------------------------------------------------
 FileStream::FileStream(const char* pcFileName_)
 {
+    if (pcFileName_ == nullptr) { throw nExcept("file name is not valid"); }
 
-   if (pcFileName_ == nullptr)
-   {
-      throw nExcept("file name is not valid");
-   }
+    clFilePath = std::filesystem::path(pcFileName_);
 
-   clFilePath = std::filesystem::path(pcFileName_);
-
-   ullMyFileLength = 0;
-   ullMyCurrentFileSize = 0;
-   ullMyCurrentFileOffset = 0;
-
+    ullMyFileLength = 0;
+    ullMyCurrentFileSize = 0;
+    ullMyCurrentFileOffset = 0;
 }
 
 // ---------------------------------------------------------
-FileStream::~FileStream()
-{}
+FileStream::~FileStream() {}
 
 // ---------------------------------------------------------
 // Open the file in different modes.
 void FileStream::OpenFile(FILEMODES eMode)
 {
-   switch(eMode)
-   {
-   case FILEMODES::APPEND:
-      MyStream.open(clFilePath, ios::out | ios::app | ios::binary);
-      if(MyStream.fail())
-         throw nExcept("file does not exist");
-      break;
+    switch (eMode)
+    {
+    case FILEMODES::APPEND:
+        MyStream.open(clFilePath, ios::out | ios::app | ios::binary);
+        if (MyStream.fail()) throw nExcept("file does not exist");
+        break;
 
-   case FILEMODES::INSERT:
-      MyStream.open(clFilePath, ios::out | ios::ate | ios::binary);
-      if (MyStream.fail())
-         throw nExcept("file does not exist");
+    case FILEMODES::INSERT:
+        MyStream.open(clFilePath, ios::out | ios::ate | ios::binary);
+        if (MyStream.fail()) throw nExcept("file does not exist");
 
-      break;
+        break;
 
-   case FILEMODES::INPUT:
-      MyStream.open(clFilePath, ios::in | ios::binary);
-      if(MyStream.fail())
-         throw nExcept("file does not exist");
+    case FILEMODES::INPUT:
+        MyStream.open(clFilePath, ios::in | ios::binary);
+        if (MyStream.fail()) throw nExcept("file does not exist");
 
-      break;
+        break;
 
-   case FILEMODES::OUTPUT:
-      MyStream.open(clFilePath, ios::out| ios::binary);
-      if(MyStream.fail())
-         throw nExcept("file does not exist");
+    case FILEMODES::OUTPUT:
+        MyStream.open(clFilePath, ios::out | ios::binary);
+        if (MyStream.fail()) throw nExcept("file does not exist");
 
-      break;
+        break;
 
-   case FILEMODES::TRUNCATE:
-      MyStream.open(clFilePath, ios::in | ios::out | ios::trunc | ios::binary);
-      if(MyStream.fail())
-         throw nExcept("file does not exist");
+    case FILEMODES::TRUNCATE:
+        MyStream.open(clFilePath, ios::in | ios::out | ios::trunc | ios::binary);
+        if (MyStream.fail()) throw nExcept("file does not exist");
 
-      break;
+        break;
 
-   default:
-      throw nExcept("file does not exist");
-   }
+    default: throw nExcept("file does not exist");
+    }
 }
 
 // ---------------------------------------------------------
@@ -122,17 +110,15 @@ void FileStream::OpenFile(FILEMODES eMode)
 // if somebody wants to check the close status.
 void FileStream::CloseFile()
 {
-      MyStream.close();
-      if(MyStream.fail())
-         throw nExcept("\"%s\" close file failed", clFilePath.u32string().c_str());
+    MyStream.close();
+    if (MyStream.fail()) throw nExcept("\"%s\" close file failed", clFilePath.u32string().c_str());
 }
 
 // ---------------------------------------------------------
 void FileStream::FlushFile()
 {
-   MyStream.flush();
-   if(MyStream.fail())
-   throw nExcept("\"%s\" flush file failed", clFilePath.string().c_str());
+    MyStream.flush();
+    if (MyStream.fail()) throw nExcept("\"%s\" flush file failed", clFilePath.string().c_str());
 }
 
 // ---------------------------------------------------------
@@ -141,48 +127,45 @@ void FileStream::FlushFile()
 // StreamReadStatus structure.
 StreamReadStatus FileStream::ReadFile(char* cData, uint32_t uiSize)
 {
-   StreamReadStatus stFileReadStatus;
+    StreamReadStatus stFileReadStatus;
 
-   MyStream.read(cData, uiSize);
-   if (MyStream.bad())
-   {
-      throw nExcept("\"%s\" file  read failed", clFilePath.generic_u32string().c_str());
-   }
+    MyStream.read(cData, uiSize);
+    if (MyStream.bad()) { throw nExcept("\"%s\" file  read failed", clFilePath.generic_u32string().c_str()); }
 
-   // This size will be used to calculate file read percentage
-   ullMyCurrentFileSize = ullMyCurrentFileSize + MyStream.gcount();
+    // This size will be used to calculate file read percentage
+    ullMyCurrentFileSize = ullMyCurrentFileSize + MyStream.gcount();
 
-   stFileReadStatus.uiCurrentStreamRead = static_cast<uint32_t>(MyStream.gcount());                  // Current read byte count
-   stFileReadStatus.uiPercentStreamRead = CalculatePercentage(ullMyCurrentFileSize);   // Total read percentage
-   stFileReadStatus.ullStreamLength = ullMyFileLength;                            // Total File Length (in Bytes)
-   stFileReadStatus.bEOS = false;
+    stFileReadStatus.uiCurrentStreamRead = static_cast<uint32_t>(MyStream.gcount());  // Current read byte count
+    stFileReadStatus.uiPercentStreamRead = CalculatePercentage(ullMyCurrentFileSize); // Total read percentage
+    stFileReadStatus.ullStreamLength = ullMyFileLength;                               // Total File Length (in Bytes)
+    stFileReadStatus.bEOS = false;
 
-   if (MyStream.eof())
-   {
-      stFileReadStatus.bEOS = true;                                                 // Reached End Of File
-   }
-   return stFileReadStatus;
+    if (MyStream.eof())
+    {
+        stFileReadStatus.bEOS = true; // Reached End Of File
+    }
+    return stFileReadStatus;
 }
 
 StreamReadStatus FileStream::ReadLine(std::string& szLine)
 {
-   StreamReadStatus stFileReadStatus;
+    StreamReadStatus stFileReadStatus;
 
-   if (std::getline(MyStream, szLine).eof())
-   {
-      stFileReadStatus.bEOS = true;
-      return stFileReadStatus;
-   }
+    if (std::getline(MyStream, szLine).eof())
+    {
+        stFileReadStatus.bEOS = true;
+        return stFileReadStatus;
+    }
 
-   // This size will be used to calculate file read percentage
-   ullMyCurrentFileSize = ullMyCurrentFileSize + szLine.length();
+    // This size will be used to calculate file read percentage
+    ullMyCurrentFileSize = ullMyCurrentFileSize + szLine.length();
 
-   stFileReadStatus.uiCurrentStreamRead = static_cast<uint32_t>(szLine.length()); // Current read byte count
-   stFileReadStatus.uiPercentStreamRead = CalculatePercentage(ullMyCurrentFileSize); // Total read percentage
-   stFileReadStatus.ullStreamLength = ullMyFileLength; // Total File Length (in Bytes)
-   stFileReadStatus.bEOS = false;
+    stFileReadStatus.uiCurrentStreamRead = static_cast<uint32_t>(szLine.length());    // Current read byte count
+    stFileReadStatus.uiPercentStreamRead = CalculatePercentage(ullMyCurrentFileSize); // Total read percentage
+    stFileReadStatus.ullStreamLength = ullMyFileLength;                               // Total File Length (in Bytes)
+    stFileReadStatus.bEOS = false;
 
-   return stFileReadStatus;
+    return stFileReadStatus;
 }
 
 // ---------------------------------------------------------
@@ -190,59 +173,51 @@ StreamReadStatus FileStream::ReadLine(std::string& szLine)
 // fstream
 uint32_t FileStream::WriteFile(char* cData, uint32_t uiSize)
 {
-   MyStream.write(cData, uiSize);
-   if (MyStream.bad())
-   {
-      throw nExcept("\"%s\" file  write failed", clFilePath.generic_u32string().c_str());
-   }
-   FlushFile();
-   return uiSize;
+    MyStream.write(cData, uiSize);
+    if (MyStream.bad()) { throw nExcept("\"%s\" file  write failed", clFilePath.generic_u32string().c_str()); }
+    FlushFile();
+    return uiSize;
 }
 
 // ---------------------------------------------------------
 void FileStream::CalculateFileSize()
 {
-   uintmax_t filesize = std::filesystem::file_size(clFilePath);
-   if (filesize > 0)
-      ullMyFileLength = filesize;
+    uintmax_t filesize = std::filesystem::file_size(clFilePath);
+    if (filesize > 0) ullMyFileLength = filesize;
 }
-
 
 // ---------------------------------------------------------
 // Calculates the File size and update it in MyFileLength.
 void FileStream::GetFileSize()
 {
 #if _DEBUG
-   MyStream.ignore( std::numeric_limits<uint64_t >::max() );
-   ullMyFileLength = MyStream.gcount();
-   MyStream.clear();
-   MyStream.seekg(0, MyStream.beg);
+    MyStream.ignore(std::numeric_limits<uint64_t>::max());
+    ullMyFileLength = MyStream.gcount();
+    MyStream.clear();
+    MyStream.seekg(0, MyStream.beg);
 #endif
-   CalculateFileSize();
+    CalculateFileSize();
 }
 
 // ---------------------------------------------------------
 // Calculates the percentage of current file read.
-uint32_t FileStream::CalculatePercentage(uint64_t  ullCurrentFileRead)
+uint32_t FileStream::CalculatePercentage(uint64_t ullCurrentFileRead)
 {
-   if(ullMyFileLength == 0L)
-      return 100;
-   else
-      return static_cast<uint32_t>(ullCurrentFileRead * 100 / ullMyFileLength);
+    if (ullMyFileLength == 0L)
+        return 100;
+    else
+        return static_cast<uint32_t>(ullCurrentFileRead * 100 / ullMyFileLength);
 }
 
 // ---------------------------------------------------------
 // Set File Position.
 void FileStream::SetFilePosition(std::streamoff offset, std::ios_base::seekdir dir)
 {
-   MyStream.clear();
-   MyStream.seekg(offset, dir);
-   ullMyCurrentFileSize = MyStream.tellg();
-   ullMyCurrentFileOffset = ullMyCurrentFileSize;
+    MyStream.clear();
+    MyStream.seekg(offset, dir);
+    ullMyCurrentFileSize = MyStream.tellg();
+    ullMyCurrentFileOffset = ullMyCurrentFileSize;
 }
 
 // ---------------------------------------------------------
-void FileStream::SetCurrentFileOffset(uint64_t  ullCurrentFileOffset)
-{
-   ullMyCurrentFileOffset += ullCurrentFileOffset;
-}
+void FileStream::SetCurrentFileOffset(uint64_t ullCurrentFileOffset) { ullMyCurrentFileOffset += ullCurrentFileOffset; }

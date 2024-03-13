@@ -36,261 +36,175 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::string sDbPath_) :
-   clMyParser(Parser(sDbPath_)),
-   pcMyStreamReadBuffer(new unsigned char[Parser::uiPARSER_INTERNAL_BUFFER_SIZE])
+FileParser::FileParser(const std::string sDbPath_)
+    : clMyParser(Parser(sDbPath_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiPARSER_INTERNAL_BUFFER_SIZE])
 {
-   pclMyLogger = Logger().RegisterLogger("novatel_fileparser");
-
-   stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-   stMyReadData.uiDataSize = Parser::uiPARSER_INTERNAL_BUFFER_SIZE;
-   pclMyInputStream = nullptr;
-   pclMyLogger->debug("FileParser initialized");
+    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
+    stMyReadData.uiDataSize = Parser::uiPARSER_INTERNAL_BUFFER_SIZE;
+    pclMyInputStream = nullptr;
+    pclMyLogger->debug("FileParser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::u32string sDbPath_) :
-   clMyParser(Parser(sDbPath_)),
-   pcMyStreamReadBuffer(new unsigned char[Parser::uiPARSER_INTERNAL_BUFFER_SIZE])
+FileParser::FileParser(const std::u32string sDbPath_)
+    : clMyParser(Parser(sDbPath_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiPARSER_INTERNAL_BUFFER_SIZE])
 {
-   pclMyLogger = Logger().RegisterLogger("novatel_fileparser");
+    pclMyLogger = Logger::RegisterLogger("novatel_fileparser");
 
-   stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-   stMyReadData.uiDataSize = Parser::uiPARSER_INTERNAL_BUFFER_SIZE;
-   pclMyInputStream = nullptr;
-   pclMyLogger->debug("FileParser initialized");
+    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
+    stMyReadData.uiDataSize = Parser::uiPARSER_INTERNAL_BUFFER_SIZE;
+    pclMyInputStream = nullptr;
+    pclMyLogger->debug("FileParser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(JsonReader* pclJsonDb_):
-   clMyParser(Parser(pclJsonDb_)),
-   pcMyStreamReadBuffer(new unsigned char[Parser::uiPARSER_INTERNAL_BUFFER_SIZE])
+FileParser::FileParser(JsonReader* pclJsonDb_)
+    : clMyParser(Parser(pclJsonDb_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiPARSER_INTERNAL_BUFFER_SIZE])
 {
-   pclMyLogger = Logger().RegisterLogger("novatel_fileparser");
+    pclMyLogger = Logger::RegisterLogger("novatel_fileparser");
 
-   stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-   stMyReadData.uiDataSize = Parser::uiPARSER_INTERNAL_BUFFER_SIZE;
-   pclMyInputStream = nullptr;
-   pclMyLogger->debug("FileParser initialized");
+    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
+    stMyReadData.uiDataSize = Parser::uiPARSER_INTERNAL_BUFFER_SIZE;
+    pclMyInputStream = nullptr;
+    pclMyLogger->debug("FileParser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
 FileParser::~FileParser()
 {
-   if (pcMyStreamReadBuffer)
-   {
-      delete[] pcMyStreamReadBuffer;
-   }
+    if (pcMyStreamReadBuffer) { delete[] pcMyStreamReadBuffer; }
 }
 
 // -------------------------------------------------------------------------------------------------------
-void
-FileParser::LoadJsonDb(JsonReader* pclJsonDb_)
+void FileParser::LoadJsonDb(JsonReader* pclJsonDb_)
 {
-   if (pclJsonDb_ != nullptr)
-   {
-      clMyParser.LoadJsonDb(pclJsonDb_);
-   }
-   else
-   {
-      pclMyLogger->debug("JSON DB is a NULL pointer.");
-   }
+    if (pclJsonDb_ != nullptr) { clMyParser.LoadJsonDb(pclJsonDb_); }
+    else { pclMyLogger->debug("JSON DB is a NULL pointer."); }
 }
 
 // -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger>
-FileParser::GetLogger()
+std::shared_ptr<spdlog::logger> FileParser::GetLogger() { return pclMyLogger; }
+
+// -------------------------------------------------------------------------------------------------------
+void FileParser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, std::string sFileName_)
 {
-   return pclMyLogger;
+    clMyParser.EnableFramerDecoderLogging(eLevel_, sFileName_);
 }
 
 // -------------------------------------------------------------------------------------------------------
-void
-FileParser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, std::string sFileName_)
+void FileParser::SetLoggerLevel(spdlog::level::level_enum eLevel_) { pclMyLogger->set_level(eLevel_); }
+
+// -------------------------------------------------------------------------------------------------------
+void FileParser::ShutdownLogger() { Logger::Shutdown(); }
+
+// -------------------------------------------------------------------------------------------------------
+void FileParser::SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreivatedAsciiResponses_)
 {
-   clMyParser.EnableFramerDecoderLogging(eLevel_, sFileName_);
+    clMyParser.SetIgnoreAbbreviatedAsciiResponses(bIgnoreAbbreivatedAsciiResponses_);
 }
 
 // -------------------------------------------------------------------------------------------------------
-void
-FileParser::SetLoggerLevel(spdlog::level::level_enum eLevel_)
-{
-   pclMyLogger->set_level(eLevel_);
-}
+bool FileParser::GetIgnoreAbbreviatedAsciiResponses() { return clMyParser.GetIgnoreAbbreviatedAsciiResponses(); }
 
 // -------------------------------------------------------------------------------------------------------
-void
-FileParser::ShutdownLogger()
-{
-   Logger::Shutdown();
-}
+void FileParser::SetDecompressRangeCmp(bool bDecompressRangeCmp_) { clMyParser.SetDecompressRangeCmp(bDecompressRangeCmp_); }
 
 // -------------------------------------------------------------------------------------------------------
-void
-FileParser::SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreivatedAsciiResponses_)
-{
-   clMyParser.SetIgnoreAbbreviatedAsciiResponses(bIgnoreAbbreivatedAsciiResponses_);
-}
+bool FileParser::GetDecompressRangeCmp() { return clMyParser.GetDecompressRangeCmp(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool
-FileParser::GetIgnoreAbbreviatedAsciiResponses()
-{
-   return clMyParser.GetIgnoreAbbreviatedAsciiResponses();
-}
+void FileParser::SetReturnUnknownBytes(bool bReturnUnknownBytes_) { clMyParser.SetReturnUnknownBytes(bReturnUnknownBytes_); }
 
 // -------------------------------------------------------------------------------------------------------
-void
-FileParser::SetDecompressRangeCmp(bool bDecompressRangeCmp_)
-{
-   clMyParser.SetDecompressRangeCmp(bDecompressRangeCmp_);
-}
+bool FileParser::GetReturnUnknownBytes() { return clMyParser.GetReturnUnknownBytes(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool
-FileParser::GetDecompressRangeCmp()
-{
-   return clMyParser.GetDecompressRangeCmp();
-}
-
-// -------------------------------------------------------------------------------------------------------
-void
-FileParser::SetReturnUnknownBytes(bool bReturnUnknownBytes_)
-{
-   clMyParser.SetReturnUnknownBytes(bReturnUnknownBytes_);
-}
-
-// -------------------------------------------------------------------------------------------------------
-bool
-FileParser::GetReturnUnknownBytes()
-{
-   return clMyParser.GetReturnUnknownBytes();
-}
-
-// -------------------------------------------------------------------------------------------------------
-void
-FileParser::SetEncodeFormat(ENCODEFORMAT eFormat_)
-{
-   clMyParser.SetEncodeFormat(eFormat_);
-}
+void FileParser::SetEncodeFormat(ENCODEFORMAT eFormat_) { clMyParser.SetEncodeFormat(eFormat_); }
 
 // -------------------------------------------------------------------------------------------------------
 ENCODEFORMAT
-FileParser::GetEncodeFormat()
-{
-   return clMyParser.GetEncodeFormat();
-}
+FileParser::GetEncodeFormat() { return clMyParser.GetEncodeFormat(); }
 
 // -------------------------------------------------------------------------------------------------------
-Filter* FileParser::GetFilter()
-{
-   return clMyParser.GetFilter();
-}
+Filter* FileParser::GetFilter() { return clMyParser.GetFilter(); }
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::SetFilter(Filter* pclFilter_)
-{
-   return clMyParser.SetFilter(pclFilter_);
-}
+void FileParser::SetFilter(Filter* pclFilter_) { return clMyParser.SetFilter(pclFilter_); }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t
-FileParser::GetPercentRead()
-{
-   return stMyStreamReadStatus.uiPercentStreamRead;
-}
+uint32_t FileParser::GetPercentRead() { return stMyStreamReadStatus.uiPercentStreamRead; }
 
 // -------------------------------------------------------------------------------------------------------
-unsigned char* FileParser::GetInternalBuffer()
-{
-   return clMyParser.GetInternalBuffer();
-}
+unsigned char* FileParser::GetInternalBuffer() { return clMyParser.GetInternalBuffer(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool
-FileParser::SetStream(InputFileStream* pclInputStream_)
+bool FileParser::SetStream(InputFileStream* pclInputStream_)
 {
-   if (!pclInputStream_)
-   {
-      return false;
-   }
-   // TODO: This call is not implemented and returns false in the interface.
-   // Is the stream available?
-   // if (!pclInputStream_->IsStreamAvailable())
-   // {
-   //    return false;
-   // }
+    if (!pclInputStream_) { return false; }
+    // TODO: This call is not implemented and returns false in the interface.
+    // Is the stream available?
+    // if (!pclInputStream_->IsStreamAvailable())
+    // {
+    //    return false;
+    // }
 
-   // Are there any bytes left to read in the stream?
-   uint32_t uiReadSizeSave = stMyReadData.uiDataSize;
-   stMyReadData.uiDataSize = 0;
-   stMyStreamReadStatus = pclInputStream_->ReadData(stMyReadData);
-   if (stMyStreamReadStatus.bEOS || stMyStreamReadStatus.uiPercentStreamRead >= 100)
-   {
-      return false;
-   }
-   stMyReadData.uiDataSize = uiReadSizeSave;
+    // Are there any bytes left to read in the stream?
+    uint32_t uiReadSizeSave = stMyReadData.uiDataSize;
+    stMyReadData.uiDataSize = 0;
+    stMyStreamReadStatus = pclInputStream_->ReadData(stMyReadData);
+    if (stMyStreamReadStatus.bEOS || stMyStreamReadStatus.uiPercentStreamRead >= 100) { return false; }
+    stMyReadData.uiDataSize = uiReadSizeSave;
 
-   pclMyInputStream = pclInputStream_;
+    pclMyInputStream = pclInputStream_;
 
-   Reset();
+    Reset();
 
-   return true;
+    return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::ReadStream()
 {
-   stMyReadData.uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
-   stMyStreamReadStatus = pclMyInputStream->ReadData(stMyReadData);
-   return stMyStreamReadStatus.uiCurrentStreamRead > 0
-      && clMyParser.Write(reinterpret_cast<unsigned char*>(stMyReadData.cData), stMyStreamReadStatus.uiCurrentStreamRead) == stMyStreamReadStatus.uiCurrentStreamRead;
+    stMyReadData.uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
+    stMyStreamReadStatus = pclMyInputStream->ReadData(stMyReadData);
+    return stMyStreamReadStatus.uiCurrentStreamRead > 0 &&
+           clMyParser.Write(reinterpret_cast<unsigned char*>(stMyReadData.cData), stMyStreamReadStatus.uiCurrentStreamRead) ==
+               stMyStreamReadStatus.uiCurrentStreamRead;
 }
 
 // -------------------------------------------------------------------------------------------------------
-[[nodiscard]] STATUS
-FileParser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_)
+[[nodiscard]] STATUS FileParser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_)
 {
-   STATUS eStatus = STATUS::UNKNOWN;
-   while (true)
-   {
-      eStatus = clMyParser.Read(stMessageData_, stMetaData_);
+    STATUS eStatus = STATUS::UNKNOWN;
+    while (true)
+    {
+        eStatus = clMyParser.Read(stMessageData_, stMetaData_);
 
-      if (eStatus == STATUS::SUCCESS || eStatus == STATUS::UNKNOWN)
-      {
-         break;
-      }
-      if (eStatus == STATUS::BUFFER_EMPTY)
-      {
-         if (!ReadStream())
-         {
-            return clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
-         }
-      }
-      else
-      {
-         pclMyLogger->info("Encountered an error: {}\n", static_cast<int32_t>(eStatus));
-         break;
-      }
-   }
+        if (eStatus == STATUS::SUCCESS || eStatus == STATUS::UNKNOWN) { break; }
+        if (eStatus == STATUS::BUFFER_EMPTY)
+        {
+            if (!ReadStream())
+            {
+                return clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
+            }
+        }
+        else
+        {
+            pclMyLogger->info("Encountered an error: {}\n", static_cast<int32_t>(eStatus));
+            break;
+        }
+    }
 
-   return eStatus;
+    return eStatus;
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::Reset()
 {
-   Flush();
-   if (pclMyInputStream != nullptr)
-   {
-      pclMyInputStream->Reset(0, std::ios::beg);
-   }
-   return true;
+    Flush();
+    if (pclMyInputStream != nullptr) { pclMyInputStream->Reset(0, std::ios::beg); }
+    return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t
-FileParser::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
-{
-   return clMyParser.Flush(pucBuffer_, uiBufferSize_);
-}
+uint32_t FileParser::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_) { return clMyParser.Flush(pucBuffer_, uiBufferSize_); }

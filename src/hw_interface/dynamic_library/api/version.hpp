@@ -28,6 +28,7 @@
 
 #include "hwinterface_export.h"
 
-extern "C" {
-   HWINTERFACE_EXPORT const char* get_version();
+extern "C"
+{
+    HWINTERFACE_EXPORT const char* get_version();
 }

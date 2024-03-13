@@ -29,37 +29,24 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <vector>
-#include <filesystem>
+#include <stdexcept>
 #include <string>
-#include <iostream>
 
+#include "logger/logger.hpp"
 #include "gtest/gtest.h"
-#include "paths.hpp"
 
-const std::string* TEST_DB_PATH;
-const std::string* TEST_RESOURCE_PATH;
-
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    ::testing::InitGoogleTest(&argc, argv);
+    testing::InitGoogleTest(&argc, argv);
+    Logger::InitLogger();
 
-    if (argc != 3)
-    {
-       throw::std::runtime_error("2 arguments required.\nUsage: <db path> <resource path>");
-    }
+    if (argc != 2) throw std::invalid_argument("1 argument required.\nUsage: <project root>");
 
-    const std::vector<std::string> args(argv + 1, argv + argc);
+    std::string strDatabaseVar = "TEST_DATABASE_PATH=" + std::string(argv[1]) + "/database/messages_public.json";
+    std::string strResourceVar = "TEST_RESOURCE_PATH=" + std::string(argv[1]) + "/src/decoders/novatel/test/resources/";
 
-    if (!std::filesystem::exists(args[0])){
-       throw::std::runtime_error("\"" + args[0] + "\" does not exist");
-    }
-    if (!std::filesystem::is_directory(args[1])){
-       throw::std::runtime_error("\"" + args[1] + "\" does not exist");
-    }
-
-    TEST_DB_PATH = &args[0];
-    TEST_RESOURCE_PATH = &args[1];
+    if (putenv(const_cast<char*>(strDatabaseVar.c_str())) != 0) throw std::runtime_error("Failed to set db path.");
+    if (putenv(const_cast<char*>(strResourceVar.c_str())) != 0) throw std::runtime_error("Failed to set resource path.");
 
     return RUN_ALL_TESTS();
 }

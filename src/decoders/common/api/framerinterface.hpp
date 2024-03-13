@@ -38,6 +38,7 @@
 // Includes
 //-----------------------------------------------------------------------
 #include <memory>
+
 #include "circularbuffer.hpp"
 #include "logger/logger.hpp"
 
@@ -48,118 +49,95 @@
 //============================================================================
 class FramerInterface
 {
-protected:
-   std::shared_ptr<spdlog::logger> pclMyLogger;
-   CircularBuffer clMyCircularDataBuffer;
+  protected:
+    std::shared_ptr<spdlog::logger> pclMyLogger;
+    CircularBuffer clMyCircularDataBuffer;
 
-   uint32_t uiMyCalculatedCRC32{ 0U };
+    uint32_t uiMyCalculatedCRC32{0U};
 
-   uint32_t uiMyByteCount{ 0U };
-   uint32_t uiMyExpectedPayloadLength{ 0U };
-   uint32_t uiMyExpectedMessageLength{ 0U };
+    uint32_t uiMyByteCount{0U};
+    uint32_t uiMyExpectedPayloadLength{0U};
+    uint32_t uiMyExpectedMessageLength{0U};
 
-   bool bMyReportUnknownBytes{ true };
+    bool bMyReportUnknownBytes{true};
 
-   virtual void HandleUnknownBytes(unsigned char* pucBuffer_, uint32_t uiUnknownBytes_) = 0;
+    virtual void HandleUnknownBytes(unsigned char* pucBuffer_, uint32_t uiUnknownBytes_) = 0;
 
-public:
+  public:
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the FramerInterface class.
+    //
+    //! \param[in] strLoggerName_ String to name the internal logger.
+    //----------------------------------------------------------------------------
+    FramerInterface(const std::string& strLoggerName_) : pclMyLogger(Logger::RegisterLogger(strLoggerName_))
+    {
+        clMyCircularDataBuffer.Clear();
+        pclMyLogger->debug("Framer initialized");
+    }
 
-   //----------------------------------------------------------------------------
-   //! \brief A constructor for the FramerInterface class.
-   //
-   //! \param[in] strLoggerName_ String to name the internal logger.
-   //----------------------------------------------------------------------------
-   FramerInterface(const std::string& strLoggerName_) :
-      pclMyLogger(Logger().RegisterLogger(strLoggerName_))
-   {
-      clMyCircularDataBuffer.Clear();
-      pclMyLogger->debug("Framer initialized");
-   }
+    //----------------------------------------------------------------------------
+    //! \brief Get the internal logger.
+    //
+    //! \return Shared pointer to the internal logger object.
+    //----------------------------------------------------------------------------
+    std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
-   //----------------------------------------------------------------------------
-   //! \brief Get the internal logger.
-   //
-   //! \return Shared pointer to the internal logger object.
-   //----------------------------------------------------------------------------
-   std::shared_ptr<spdlog::logger>
-   GetLogger() const
-   {
-      return pclMyLogger;
-   }
+    //----------------------------------------------------------------------------
+    //! \brief Get the internal logger.
+    //
+    //! \param[in] eLevel_ Shared pointer to the internal logger object.
+    //----------------------------------------------------------------------------
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
-   //----------------------------------------------------------------------------
-   //! \brief Get the internal logger.
-   //
-   //! \param[in] eLevel_ Shared pointer to the internal logger object.
-   //----------------------------------------------------------------------------
-   void
-   SetLoggerLevel(spdlog::level::level_enum eLevel_) const
-   {
-      pclMyLogger->set_level(eLevel_);
-   }
+    //----------------------------------------------------------------------------
+    //! \brief Shutdown the internal logger.
+    //----------------------------------------------------------------------------
+    static void ShutdownLogger() { Logger::Shutdown(); }
 
-   //----------------------------------------------------------------------------
-   //! \brief Shutdown the internal logger.
-   //----------------------------------------------------------------------------
-   static void
-   ShutdownLogger()
-   {
-      Logger::Shutdown();
-   }
+    //----------------------------------------------------------------------------
+    //! \brief Configure the framer to return unknown bytes in the provided
+    //! buffer.
+    //
+    //! \param[in] bReportUnknownBytes_ Set to true to return unknown bytes.
+    //----------------------------------------------------------------------------
+    virtual void SetReportUnknownBytes(bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
-   //----------------------------------------------------------------------------
-   //! \brief Configure the framer to return unknown bytes in the provided
-   //! buffer.
-   //
-   //! \param[in] bReportUnknownBytes_ Set to true to return unknown bytes.
-   //----------------------------------------------------------------------------
-   virtual void
-   SetReportUnknownBytes(bool bReportUnknownBytes_)
-   {
-      bMyReportUnknownBytes = bReportUnknownBytes_;
-   }
+    //----------------------------------------------------------------------------
+    //! \brief Get the number of bytes available in the internal circular buffer.
+    //
+    //! \return The number of bytes available in the internal circular buffer.
+    //----------------------------------------------------------------------------
+    virtual uint32_t GetBytesAvailableInBuffer() const { return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength(); }
 
-   //----------------------------------------------------------------------------
-   //! \brief Get the number of bytes available in the internal circular buffer.
-   //
-   //! \return The number of bytes available in the internal circular buffer.
-   //----------------------------------------------------------------------------
-   virtual uint32_t
-   GetBytesAvailableInBuffer() const
-   {
-      return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength();
-   }
+    //----------------------------------------------------------------------------
+    //! \brief Write new bytes to the internal circular buffer.
+    //
+    //! \param[in] pucDataBuffer_ The data buffer containing the bytes to be
+    //! written into the framer buffer.
+    //! \param[in] uiDataBytes_ The number of bytes contained in pucDataBuffer_.
+    //
+    //! \return The number of bytes written to the internal circular buffer.
+    //----------------------------------------------------------------------------
+    virtual uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
+    {
+        return clMyCircularDataBuffer.Append(pucDataBuffer_, uiDataBytes_);
+    }
 
-   //----------------------------------------------------------------------------
-   //! \brief Write new bytes to the internal circular buffer.
-   //
-   //! \param[in] pucDataBuffer_ The data buffer containing the bytes to be
-   //! written into the framer buffer.
-   //! \param[in] uiDataBytes_ The number of bytes contained in pucDataBuffer_.
-   //
-   //! \return The number of bytes written to the internal circular buffer.
-   //----------------------------------------------------------------------------
-   virtual uint32_t Write(unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
-   {
-      return clMyCircularDataBuffer.Append(pucDataBuffer_, uiDataBytes_);
-   }
+    //----------------------------------------------------------------------------
+    //! \brief Flush bytes from the internal circular buffer.
+    //
+    //! \param[in] pucBuffer_ The buffer to contain the flushed bytes.
+    //! \param[in] uiBufferSize_ The size of the provided buffer.
+    //
+    //! \return The number of bytes flushed from the internal circular buffer.
+    //----------------------------------------------------------------------------
+    virtual uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+    {
+        const uint32_t uiBytesToFlush = std::min(clMyCircularDataBuffer.GetLength(), uiBufferSize_);
 
-   //----------------------------------------------------------------------------
-   //! \brief Flush bytes from the internal circular buffer.
-   //
-   //! \param[in] pucBuffer_ The buffer to contain the flushed bytes.
-   //! \param[in] uiBufferSize_ The size of the provided buffer.
-   //
-   //! \return The number of bytes flushed from the internal circular buffer.
-   //----------------------------------------------------------------------------
-   virtual uint32_t
-   Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
-   {
-      const uint32_t uiBytesToFlush = std::min(clMyCircularDataBuffer.GetLength(), uiBufferSize_);
-
-      HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
-      return uiBytesToFlush;
-   }
+        HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
+        return uiBytesToFlush;
+    }
 };
 
 #endif // FRAMERINTERFACE_HPP

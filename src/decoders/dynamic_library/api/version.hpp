@@ -38,9 +38,10 @@
 //-----------------------------------------------------------------------
 #include "decoders_export.h"
 
-extern "C" {
-   DECODERS_EXPORT const char* version();
-   DECODERS_EXPORT const char* pretty_version();
+extern "C"
+{
+    DECODERS_EXPORT const char* version();
+    DECODERS_EXPORT const char* pretty_version();
 }
 
 #endif

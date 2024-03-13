@@ -28,7 +28,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "version.hpp"
 
-const char* get_version()
-{
-   return "0.1.0";
-}
+#ifdef HWINTERFACE_EXPORTS
+const char* get_version() { return "0.1.0"; }
+#endif

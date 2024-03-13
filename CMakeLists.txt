@@ -1,33 +1,44 @@
 cmake_minimum_required(VERSION 3.14)
-project(EDIE VERSION 1.0.0)
+project(edie-public VERSION 3.1.0)
+
+enable_testing()
 
 option(COVERAGE "Coverage" OFF)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 include_directories(".")
-include_directories("lib") # spdlog's include structure is relative to its root folder
+include_directories("lib") # spdlog`s include structure is relative to its root folder
 
 include(FetchContent)
-
-add_compile_definitions(STRICT)
 
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # Check platforms
-if (CMAKE_HOST_WIN32)
+if(CMAKE_HOST_WIN32)
    set(WINDOWS 1)
-   message ("CMAKE Host: Windows")
+   cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
+   set(DISTRIB_NAME ${OS_NAME})
+   message("CMAKE Host: Windows")
+   message("CMAKE DISTRIB_NAME: ${DISTRIB_NAME}")
 elseif(CMAKE_HOST_UNIX)
    set(LINUX 1)
-   message ("CMAKE Host: Linux")
+   cmake_host_system_information(RESULT DISTRIB_NAME QUERY DISTRIB_NAME)
+   cmake_host_system_information(RESULT DISTRIB_VERSION_ID QUERY DISTRIB_VERSION_ID)
+   set(DISTRIB_NAME "${DISTRIB_NAME}-${DISTRIB_VERSION_ID}")
+   message("CMAKE Host: Linux")
+   message("CMAKE DISTRIB_NAME: ${DISTRIB_NAME}")
+else()
+   set(DISTRIB_NAME "UNKNOWN")
+   message(FATAL_ERROR "Unable to identify OS. Update script to support distribution or OS")
 endif()
 
-message ("CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
-message ("CMAKE_LIB_SHARED: " ${CMAKE_LIB_SHARED})
+message("CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
+message("CMAKE_LIB_SHARED: "       ${CMAKE_LIB_SHARED})
 
 if(NOT DEFINED ARCH)
    message("ARCH is not Set, default to x64")
@@ -38,62 +49,73 @@ if(NOT DEFINED GIT_BRANCH)
    set(GIT_BRANCH "")
 endif()
 
-if(WINDOWS)
-   message ("ARCH is: " ${ARCH})
-   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-   set(CMAKE_CXX_STANDARD 17)
-   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd /Zi /utf-8")
-   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /utf-8")
-   message ("cxx Flags: " ${CMAKE_CXX_FLAGS} /W4)
-   message ("cxx Flags Debug: " ${CMAKE_CXX_FLAGS_DEBUG})
-   message ("cxx Flags Release: " ${CMAKE_CXX_FLAGS_RELEASE})
-   message ("CMAKE_GENERATOR_PLATFORM: " ${CMAKE_GENERATOR_PLATFORM})
-   message ("CMAKE_GENERATOR_TOOLSET: " ${CMAKE_GENERATOR_TOOLSET})
-endif()
+if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+    string(REGEX REPLACE "/W3"  "/W4"  CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS}")
+    string(REGEX REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}")
+    string(REGEX REPLACE "/MD"  "/MT"  CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+    string(REGEX REPLACE "/O2"  "/Ox"  CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+    
+    # Disable narrowing conversion, deprecated warnings, and constant conditional expression warnings
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8 /wd4244 /wd4996 /wd4127 /WX")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set(COMMON_GCC_CXX_FLAGS "-Wall -fPIC -Wfatal-errors -Wold-style-cast -Wextra -pedantic")
+    set(COMMON_GCC_FLAGS_DEBUG "-g")
+    set(COMMON_GCC_FLAGS_RELEASE "-O3 -DNDEBUG")
 
-if(LINUX)
-    # if 32 bit then,
-    # other way to check 32 bit if (CMAKE_CL_64) ?
-    if((ARCH STREQUAL "x86") OR (${CMAKE_SYSTEM_PROCESSOR}  STREQUAL "i686"))
+    if(LINUX)
+        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -D_LINUX_")
+    endif()
+    if(WINDOWS)
+        set(COMMON_GCC_FLAGS_DEBUG "${COMMON_GCC_FLAGS_DEBUG} -O1")
+    endif()
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -Werror -Wno-format-truncation -Wno-error=format -Wno-format -Wno-format-extra-args")
+        set(COMMON_GCC_FLAGS_RELEASE "${COMMON_GCC_FLAGS_RELEASE} -s")
+    endif()
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -pthread -Wno-unqualified-std-cast-call")
+    endif()
+
+    set(CMAKE_C_FLAGS_DEBUG     "${COMMON_GCC_FLAGS_DEBUG}")
+    set(CMAKE_C_FLAGS_RELEASE   "${COMMON_GCC_FLAGS_RELEASE}")
+    set(CMAKE_CXX_FLAGS_DEBUG   "${COMMON_GCC_CXX_FLAGS} ${COMMON_GCC_FLAGS_DEBUG}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${COMMON_GCC_CXX_FLAGS} ${COMMON_GCC_FLAGS_RELEASE}")
+
+    if(ARCH STREQUAL "x86" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "i686")
         message("ARCH is x86 & Building for 32 bit")
-        set(CMAKE_C_FLAGS_DEBUG "-m32 -g")
-        set(CMAKE_CXX_FLAGS_DEBUG "-m32 -g -fPIC -std=c++17")
-        set(CMAKE_C_FLAGS_RELEASE "-m32 -O3 -DNDEBUG -s")
-        set(CMAKE_CXX_FLAGS_RELEASE "-m32 -Wall -O3 -fPIC -D_LINUX_ -DNDEBUG -s -std=c++17")
+        set(CMAKE_C_FLAGS_DEBUG     "-m32 ${CMAKE_C_FLAGS_DEBUG}")
+        set(CMAKE_C_FLAGS_RELEASE   "-m32 ${CMAKE_C_FLAGS_RELEASE}")
+        set(CMAKE_CXX_FLAGS_DEBUG   "-m32 ${CMAKE_CXX_FLAGS_DEBUG}")
+        set(CMAKE_CXX_FLAGS_RELEASE "-m32 ${CMAKE_CXX_FLAGS_RELEASE}")
     else()
-        # set C&C++ flags for debug and release
         message("ARCH is x64 & Building for 64 bit")
-        set(CMAKE_C_FLAGS_DEBUG "-g")
-        set(CMAKE_CXX_FLAGS_DEBUG "-g -fPIC -D_LINUX_ -std=c++17")
-        set(CMAKE_C_FLAGS_RELEASE "-s -O3 -DNDEBUG")
-        set(CMAKE_CXX_FLAGS_RELEASE "-Wall -O3 -fPIC -D_LINUX_ -DNDEBUG -s -std=c++17")
     endif()
 
     if(COVERAGE)
         message("Coverage is On")
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} --coverage")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage")
     endif()
-
-   # Debug information
-   message ("CMAKE_C_FLAGS_DEBUG:    " ${CMAKE_C_FLAGS_DEBUG})
-   message ("CMAKE_CXX_FLAGS_DEBUG:  " ${CMAKE_CXX_FLAGS_DEBUG})
-   message ("CMAKE_C_FLAGS_RELEASE:  " ${CMAKE_C_FLAGS_RELEASE})
-   message ("CMAKE_CXX_FLAGS_RELEASE:" ${CMAKE_CXX_FLAGS_RELEASE})
+else()
+   message(FATAL_ERROR "Unable to identify compiler.")
 endif()
+
+message("ARCH is: "                  ${ARCH})
+message("CMAKE_CXX_FLAGS: "          ${CMAKE_CXX_FLAGS})
+message("CMAKE_CXX_FLAGS_DEBUG: "    ${CMAKE_CXX_FLAGS_DEBUG})
+message("CMAKE_CXX_FLAGS_RELEASE: "  ${CMAKE_CXX_FLAGS_RELEASE})
+message("CMAKE_GENERATOR_PLATFORM: " ${CMAKE_GENERATOR_PLATFORM})
+message("CMAKE_GENERATOR_TOOLSET: "  ${CMAKE_GENERATOR_TOOLSET})
+message("CMAKE_CXX_COMPILER_TARGET " ${CMAKE_CXX_COMPILER_TARGET})
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Fetch the GoogleTest library
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip
+   URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip
 )
 FetchContent_MakeAvailable(googletest)
-
-# build EDIE components
-add_subdirectory(src/decoders)
-add_subdirectory(src/hw_interface)
 
 # Find Git package, if not need to install manually or through .yml file
 find_package(Git)
@@ -111,25 +133,21 @@ if(GIT_EXECUTABLE)
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
 endif()
 
+# build EDIE components
+add_subdirectory(src/decoders)
+add_subdirectory(src/hw_interface)
+
 add_subdirectory(src/decoders/common/test)
 add_subdirectory(src/decoders/novatel/test)
 add_subdirectory(src/hw_interface/stream_interface/test)
 
-if(WINDOWS)
-    add_subdirectory(examples/novatel/command_encoding)
-    add_subdirectory(examples/novatel/converter_fileparser)
-    add_subdirectory(examples/novatel/converter_components)
-    add_subdirectory(examples/novatel/converter_parser)
-    add_subdirectory(examples/novatel/dynamic_fileparser)
-    add_subdirectory(examples/novatel/dynamic_components)
-    add_subdirectory(examples/novatel/dynamic_parser)
-    add_subdirectory(examples/novatel/rangecmp)
-    add_subdirectory(examples/novatel/rxconfig)
-endif()
-
-# This is an archive Static build(after combining stream, common, novatel component into libEDIE.a) in Linux
-# if we do not require it , We can comment this section.
-if(LINUX)
-    add_custom_target(${PROJECT_NAME} ALL COMMAND ${CMAKE_AR} rc libEDIE.a $<TARGET_FILE:stream_interface> $<TARGET_FILE:common> $<TARGET_FILE:novatel>)
-    install(FILES ${CMAKE_BINARY_DIR}/libEDIE.a DESTINATION lib)
-endif()
+add_subdirectory(examples/novatel/command_encoding)
+add_subdirectory(examples/novatel/converter_fileparser)
+add_subdirectory(examples/novatel/converter_components)
+add_subdirectory(examples/novatel/converter_parser)
+add_subdirectory(examples/novatel/json_parser)
+add_subdirectory(examples/novatel/rangecmp)
+add_subdirectory(examples/novatel/rxconfig)
+add_subdirectory(examples/novatel/dynamic_fileparser)
+add_subdirectory(examples/novatel/dynamic_components)
+add_subdirectory(examples/novatel/dynamic_parser)

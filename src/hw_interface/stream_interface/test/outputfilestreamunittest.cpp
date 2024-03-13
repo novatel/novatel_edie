@@ -23,41 +23,41 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 // Includes
-#include "hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "paths.hpp"
-#include <string>
-#include <filesystem>
 #include <gtest/gtest.h>
 
-class OutputFileStreamTest : public ::testing::Test {
-public:
-  virtual void SetUp() {
-  }
+#include <filesystem>
+#include <string>
 
-  virtual void TearDown() {
-  }
+#include "hw_interface/stream_interface/api/outputfilestream.hpp"
 
-private:
+class OutputFileStreamTest : public ::testing::Test
+{
+  public:
+    virtual void SetUp() {}
 
-protected:
+    virtual void TearDown() {}
+
+  private:
+  protected:
 };
 
 // Constructor1
 TEST_F(OutputFileStreamTest, Constructor1)
 {
-   OutputFileStream* pMyTestCommand = NULL;
-   pMyTestCommand = new OutputFileStream((std::filesystem::path(*TEST_RESOURCE_PATH) / "outputfilestream_file1.asc").string().c_str());
-   ASSERT_TRUE(pMyTestCommand->pOutFileStream != NULL);
-   delete pMyTestCommand;
+    OutputFileStream* pMyTestCommand = NULL;
+    pMyTestCommand = new OutputFileStream((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "outputfilestream_file1.asc").string().c_str());
+    ASSERT_TRUE(pMyTestCommand->pOutFileStream != NULL);
+    delete pMyTestCommand;
 }
 
 // Constructor Wide Char
 TEST_F(OutputFileStreamTest, ConstructorWideChar)
 {
-   std::cout<<"In Output Stream Test, Constructor WC"<<std::endl;
-   OutputFileStream* pMyTestCommand = NULL;
-   pMyTestCommand = new OutputFileStream(std::u32string((std::filesystem::path(*TEST_RESOURCE_PATH) / U"不同语言的文件.gps").generic_u32string()));
-   ASSERT_TRUE(pMyTestCommand->pOutFileStream != NULL);
-   delete pMyTestCommand;
-   std::cout<<"Made it past ASSERT and Delete. Output Stream Test, Constructor WC"<<std::endl;
+    std::cout << "In Output Stream Test, Constructor WC" << std::endl;
+    OutputFileStream* pMyTestCommand = NULL;
+    pMyTestCommand =
+        new OutputFileStream(std::u32string((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / U"不同语言的文件.gps").generic_u32string()));
+    ASSERT_TRUE(pMyTestCommand->pOutFileStream != NULL);
+    delete pMyTestCommand;
+    std::cout << "Made it past ASSERT and Delete. Output Stream Test, Constructor WC" << std::endl;
 }

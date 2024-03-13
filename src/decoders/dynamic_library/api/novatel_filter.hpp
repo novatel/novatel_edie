@@ -36,40 +36,46 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "decoders_export.h"
 #include "decoders/novatel/api/filter.hpp"
+#include "decoders_export.h"
 
-extern "C" {
-   // Logger
-   DECODERS_EXPORT bool novatel_filter_set_logger_level(novatel::edie::oem::Filter* pclFilter_, uint32_t uiLogLevel_);
-   DECODERS_EXPORT void novatel_filter_shutdown_logger(novatel::edie::oem::Filter* pclFilter_);
+extern "C"
+{
+    // Logger
+    DECODERS_EXPORT bool novatel_filter_set_logger_level(novatel::edie::oem::Filter* pclFilter_, uint32_t uiLogLevel_);
+    DECODERS_EXPORT void novatel_filter_shutdown_logger(novatel::edie::oem::Filter* pclFilter_);
 
-   // Construct/Destruct
-   DECODERS_EXPORT novatel::edie::oem::Filter* novatel_filter_init();
-   DECODERS_EXPORT void novatel_filter_delete(novatel::edie::oem::Filter* pclFilter_);
+    // Construct/Destruct
+    DECODERS_EXPORT novatel::edie::oem::Filter* novatel_filter_init();
+    DECODERS_EXPORT void novatel_filter_delete(novatel::edie::oem::Filter* pclFilter_);
 
-   // Config
-   DECODERS_EXPORT void novatel_filter_set_include_lower_time(novatel::edie::oem::Filter* pclFilter_, uint32_t uiLowerTimeWeek_, double dLowerTimeSec_);
-   DECODERS_EXPORT void novatel_filter_set_include_upper_time(novatel::edie::oem::Filter* pclFilter_, uint32_t uiUpperTime_, double dUpperTimeSec_);
-   DECODERS_EXPORT void novatel_filter_invert_time_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
+    // Config
+    DECODERS_EXPORT void novatel_filter_set_include_lower_time(novatel::edie::oem::Filter* pclFilter_, uint32_t uiLowerTimeWeek_,
+                                                               double dLowerTimeSec_);
+    DECODERS_EXPORT void novatel_filter_set_include_upper_time(novatel::edie::oem::Filter* pclFilter_, uint32_t uiUpperTime_, double dUpperTimeSec_);
+    DECODERS_EXPORT void novatel_filter_invert_time_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
 
-   DECODERS_EXPORT void novatel_filter_set_include_decimation(novatel::edie::oem::Filter* pclFilter_, double dPeriodSec_);
-   DECODERS_EXPORT void novatel_filter_invert_decimation_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
+    DECODERS_EXPORT void novatel_filter_set_include_decimation(novatel::edie::oem::Filter* pclFilter_, double dPeriodSec_);
+    DECODERS_EXPORT void novatel_filter_invert_decimation_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
 
-   DECODERS_EXPORT void novatel_filter_include_time_status(novatel::edie::oem::Filter* pclFilter_, novatel::edie::TIME_STATUS eTimeStatus_);
-   DECODERS_EXPORT void novatel_filter_invert_time_status_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
+    DECODERS_EXPORT void novatel_filter_include_time_status(novatel::edie::oem::Filter* pclFilter_, novatel::edie::TIME_STATUS eTimeStatus_);
+    DECODERS_EXPORT void novatel_filter_invert_time_status_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
 
-   DECODERS_EXPORT void novatel_filter_include_message_id(novatel::edie::oem::Filter* pclFilter_, uint32_t uiId_, novatel::edie::oem::HEADERFORMAT eFormat_= novatel::edie::oem::HEADERFORMAT::ALL, novatel::edie::MEASUREMENT_SOURCE eSource_ = novatel::edie::MEASUREMENT_SOURCE::PRIMARY);
-   DECODERS_EXPORT void novatel_filter_invert_message_id_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
+    DECODERS_EXPORT void novatel_filter_include_message_id(novatel::edie::oem::Filter* pclFilter_, uint32_t uiId_,
+                                                           novatel::edie::HEADERFORMAT eFormat_ = novatel::edie::HEADERFORMAT::ALL,
+                                                           novatel::edie::MEASUREMENT_SOURCE eSource_ = novatel::edie::MEASUREMENT_SOURCE::PRIMARY);
+    DECODERS_EXPORT void novatel_filter_invert_message_id_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
 
-   DECODERS_EXPORT void novatel_filter_include_message_name(novatel::edie::oem::Filter* pclFilter_, uint8_t* pucMessageName_, novatel::edie::oem::HEADERFORMAT eFormat_= novatel::edie::oem::HEADERFORMAT::ALL, novatel::edie::MEASUREMENT_SOURCE eSource_ = novatel::edie::MEASUREMENT_SOURCE::PRIMARY);
-   DECODERS_EXPORT void novatel_filter_invert_message_name_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
+    DECODERS_EXPORT void novatel_filter_include_message_name(novatel::edie::oem::Filter* pclFilter_, uint8_t* pucMessageName_,
+                                                             novatel::edie::HEADERFORMAT eFormat_ = novatel::edie::HEADERFORMAT::ALL,
+                                                             novatel::edie::MEASUREMENT_SOURCE eSource_ = novatel::edie::MEASUREMENT_SOURCE::PRIMARY);
+    DECODERS_EXPORT void novatel_filter_invert_message_name_filter(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
 
-   DECODERS_EXPORT void novatel_filter_include_nmea_messages(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
+    DECODERS_EXPORT void novatel_filter_include_nmea_messages(novatel::edie::oem::Filter* pclFilter_, bool bInvert_);
 
-   // novatel::edie::oem::Filter
-   DECODERS_EXPORT bool novatel_filter_do_filtering(novatel::edie::oem::Filter* pclFilter_, novatel::edie::oem::MetaDataStruct* pstMetaData_);
-   DECODERS_EXPORT void novatel_filter_clear_filters(novatel::edie::oem::Filter* pclFilter_);
+    // novatel::edie::oem::Filter
+    DECODERS_EXPORT bool novatel_filter_do_filtering(novatel::edie::oem::Filter* pclFilter_, novatel::edie::oem::MetaDataStruct* pstMetaData_);
+    DECODERS_EXPORT void novatel_filter_clear_filters(novatel::edie::oem::Filter* pclFilter_);
 }
 
-#endif //DYNAMIC_LIBRARY_NOVATEL_FILTER_HPP
+#endif // DYNAMIC_LIBRARY_NOVATEL_FILTER_HPP

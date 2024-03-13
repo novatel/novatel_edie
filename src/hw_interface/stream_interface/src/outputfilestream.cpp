@@ -25,30 +25,26 @@
 // Includes
 #include "outputfilestream.hpp"
 
-
 // ---------------------------------------------------------
 OutputFileStream::OutputFileStream(const std::u32string s32FileName)
 {
-   pOutFileStream = new FileStream(s32FileName);
-   pOutFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
+    pOutFileStream = new FileStream(s32FileName);
+    pOutFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
 }
 
 // ---------------------------------------------------------
 OutputFileStream::OutputFileStream(const char* pcFileName)
 {
-   pOutFileStream = new FileStream(pcFileName);
-   pOutFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
+    pOutFileStream = new FileStream(pcFileName);
+    pOutFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
 }
 
 // ---------------------------------------------------------
 OutputFileStream::~OutputFileStream()
 {
-   pOutFileStream->CloseFile();
-   delete pOutFileStream;
+    pOutFileStream->CloseFile();
+    delete pOutFileStream;
 }
 
 // ---------------------------------------------------------
-uint32_t OutputFileStream::WriteData(char* cData, uint32_t uiSize)
-{
-   return pOutFileStream->WriteFile(cData, uiSize);
-}
+uint32_t OutputFileStream::WriteData(char* cData, uint32_t uiSize) { return pOutFileStream->WriteFile(cData, uiSize); }

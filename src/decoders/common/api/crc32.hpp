@@ -36,24 +36,22 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
-constexpr auto uiCRCTable = []
-{
-   std::array<uint32_t, 256> uiPreCalcCRCTable{};
+constexpr auto uiCRCTable = [] {
+    std::array<uint32_t, 256> uiPreCalcCRCTable{};
 
-   for (uint32_t i = 0; i < 256; ++i)
-   {
-      uint32_t crc = i;
+    for (uint32_t i = 0; i < 256; ++i)
+    {
+        uint32_t crc = i;
 
-      for (uint32_t j = 0; j < 8; ++j)
-         crc = (crc & 1) ? (crc >> 1) ^ 0xEDB88320L : crc >> 1;
+        for (uint32_t j = 0; j < 8; ++j) crc = (crc & 1) ? (crc >> 1) ^ 0xEDB88320L : crc >> 1;
 
-      uiPreCalcCRCTable[i] = crc;
-   }
+        uiPreCalcCRCTable[i] = crc;
+    }
 
-   return uiPreCalcCRCTable;
+    return uiPreCalcCRCTable;
 }();
 
 // --------------------------------------------------------------------------
@@ -61,8 +59,8 @@ constexpr auto uiCRCTable = []
 // --------------------------------------------------------------------------
 constexpr uint32_t CalculateCharacterCRC32(uint32_t uiCRC, unsigned char ucChar)
 {
-   uint32_t uiIndex = (static_cast<int32_t>(uiCRC) ^ ucChar) & 0xff;
-   return ((uiCRC >> 8) & 0x00FFFFFFL) ^ (uiCRCTable[uiIndex]);
+    const uint32_t uiIndex = (uiCRC ^ ucChar) & 0xff;
+    return ((uiCRC >> 8) & 0x00FFFFFFL) ^ (uiCRCTable[uiIndex]);
 }
 
 // --------------------------------------------------------------------------
@@ -70,11 +68,8 @@ constexpr uint32_t CalculateCharacterCRC32(uint32_t uiCRC, unsigned char ucChar)
 // --------------------------------------------------------------------------
 constexpr uint32_t CalculateBlockCRC32(uint32_t uiCount, uint32_t uiCRC, const unsigned char* ucBuffer)
 {
-   while (uiCount-- != 0)
-   {
-      uiCRC = CalculateCharacterCRC32(uiCRC, *ucBuffer++);
-   }
-   return (uiCRC);
+    while (uiCount-- != 0) { uiCRC = CalculateCharacterCRC32(uiCRC, *ucBuffer++); }
+    return (uiCRC);
 }
 
 #endif // CRC32_HPP

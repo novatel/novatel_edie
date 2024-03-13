@@ -38,140 +38,93 @@ using namespace novatel::edie::oem;
 
 bool novatel_filter_set_logger_level(Filter* pclFilter_, uint32_t uiLogLevel_)
 {
-   return pclFilter_
-      && uiLogLevel_ >= spdlog::level::level_enum::trace
-      && uiLogLevel_ <  spdlog::level::level_enum::n_levels
-      ? pclFilter_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)), true
-      : false;
+    return pclFilter_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
+           ? pclFilter_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
+           true : false;
 }
 
 void novatel_filter_shutdown_logger(Filter* pclFilter_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->ShutdownLogger();
-   }
+    if (pclFilter_) { pclFilter_->ShutdownLogger(); }
 }
 
-Filter* novatel_filter_init()
-{
-   return new Filter();
-}
+Filter* novatel_filter_init() { return new Filter(); }
 
 void novatel_filter_delete(Filter* pclFilter_)
 {
-   if (pclFilter_)
-   {
-      delete pclFilter_;
-      pclFilter_ = nullptr;
-   }
+    if (pclFilter_)
+    {
+        delete pclFilter_;
+        pclFilter_ = nullptr;
+    }
 }
 
 void novatel_filter_set_include_lower_time(Filter* pclFilter_, uint32_t uiLowerTimeWeek_, double dLowerTimeSec_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->SetIncludeLowerTimeBound(uiLowerTimeWeek_, dLowerTimeSec_);
-   }
+    if (pclFilter_) { pclFilter_->SetIncludeLowerTimeBound(uiLowerTimeWeek_, dLowerTimeSec_); }
 }
 
 void novatel_filter_set_include_upper_time(Filter* pclFilter_, uint32_t uiUpperTime_, double dUpperTimeSec_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->SetIncludeUpperTimeBound(uiUpperTime_, dUpperTimeSec_);
-   }
+    if (pclFilter_) { pclFilter_->SetIncludeUpperTimeBound(uiUpperTime_, dUpperTimeSec_); }
 }
 
 void novatel_filter_invert_time_filter(Filter* pclFilter_, bool bInvert_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->InvertTimeFilter(bInvert_);
-   }
+    if (pclFilter_) { pclFilter_->InvertTimeFilter(bInvert_); }
 }
 
 void novatel_filter_set_include_decimation(Filter* pclFilter_, double dPeriodSec_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->SetIncludeDecimation(dPeriodSec_);
-   }
+    if (pclFilter_) { pclFilter_->SetIncludeDecimation(dPeriodSec_); }
 }
 
 void novatel_filter_invert_decimation_filter(Filter* pclFilter_, bool bInvert_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->InvertDecimationFilter(bInvert_);
-   }
+    if (pclFilter_) { pclFilter_->InvertDecimationFilter(bInvert_); }
 }
 
 void novatel_filter_include_time_status(Filter* pclFilter_, TIME_STATUS eTimeStatus_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->IncludeTimeStatus(eTimeStatus_);
-   }
+    if (pclFilter_) { pclFilter_->IncludeTimeStatus(eTimeStatus_); }
 }
 
 void novatel_filter_invert_time_status_filter(Filter* pclFilter_, bool bInvert_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->InvertTimeStatusFilter(bInvert_);
-   }
+    if (pclFilter_) { pclFilter_->InvertTimeStatusFilter(bInvert_); }
 }
 
 void novatel_filter_include_message_id(Filter* pclFilter_, uint32_t uiId_, HEADERFORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->IncludeMessageId(uiId_, eFormat_, eSource_);
-   }
+    if (pclFilter_) { pclFilter_->IncludeMessageId(uiId_, eFormat_, eSource_); }
 }
 
 void novatel_filter_invert_message_id_filter(Filter* pclFilter_, bool bInvert_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->InvertMessageIdFilter(bInvert_);
-   }
+    if (pclFilter_) { pclFilter_->InvertMessageIdFilter(bInvert_); }
 }
 
 void novatel_filter_include_message_name(Filter* pclFilter_, uint8_t* pucMessageName_, HEADERFORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
-   if (pclFilter_ && pucMessageName_)
-   {
-      pclFilter_->IncludeMessageName(std::string(reinterpret_cast<char*>(pucMessageName_)), eFormat_, eSource_);
-   }
+    if (pclFilter_ && pucMessageName_) { pclFilter_->IncludeMessageName(std::string(reinterpret_cast<char*>(pucMessageName_)), eFormat_, eSource_); }
 }
 
 void novatel_filter_invert_message_name_filter(Filter* pclFilter_, bool bInvert_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->InvertMessageNameFilter(bInvert_);
-   }
+    if (pclFilter_) { pclFilter_->InvertMessageNameFilter(bInvert_); }
 }
 
 void novatel_filter_include_nmea_messages(Filter* pclFilter_, bool bInvert_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->IncludeNMEAMessages(bInvert_);
-   }
+    if (pclFilter_) { pclFilter_->IncludeNMEAMessages(bInvert_); }
 }
 
 bool novatel_filter_do_filtering(Filter* pclFilter_, MetaDataStruct* pstMetaData_)
 {
-   return pclFilter_ && pstMetaData_ ? pclFilter_->DoFiltering(*pstMetaData_) : false;
+    return pclFilter_ && pstMetaData_ ? pclFilter_->DoFiltering(*pstMetaData_) : false;
 }
 
 void novatel_filter_clear_filters(Filter* pclFilter_)
 {
-   if (pclFilter_)
-   {
-      pclFilter_->ClearFilters();
-   }
+    if (pclFilter_) { pclFilter_->ClearFilters(); }
 }

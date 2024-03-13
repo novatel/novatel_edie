@@ -35,515 +35,250 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-const char* RxConfigHandler::szAbbrevASCIIEmbeddedHeaderPrefix = "<     ";
-
 // -------------------------------------------------------------------------------------------------------
-RxConfigHandler::RxConfigHandler(JsonReader* pclJsonDB_) :
-   clMyHeaderDecoder(pclJsonDB_),
-   clMyMessageDecoder(pclJsonDB_),
-   clMyEncoder(pclJsonDB_),
-   pcMyFrameBuffer(new unsigned char[uiINTERNAL_BUFFER_SIZE]),
-   pcMyEncodeBuffer(new unsigned char[uiINTERNAL_BUFFER_SIZE])
+RxConfigHandler::RxConfigHandler(JsonReader* pclJsonDB_)
+    : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_),
+      pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiINTERNAL_BUFFER_SIZE)),
+      pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiINTERNAL_BUFFER_SIZE))
 {
-   pclMyLogger = Logger().RegisterLogger("rxconfig_handler");
+    pclMyLogger = Logger::RegisterLogger("rxconfig_handler");
 
-   pclMyLogger->debug("RxConfigHandler initializing...");
+    pclMyLogger->debug("RxConfigHandler initializing...");
 
-   if (pclJsonDB_ != NULL)
-   {
-      LoadJsonDb(pclJsonDB_);
-   }
+    if (pclJsonDB_ != nullptr) { LoadJsonDb(pclJsonDB_); }
 
-   pclMyLogger->debug("RxConfigHandler initialized");
+    pclMyLogger->debug("RxConfigHandler initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-RxConfigHandler::~RxConfigHandler()
+void RxConfigHandler::LoadJsonDb(JsonReader* pclJsonDB_)
 {
-   if(pcMyFrameBuffer)
-   {
-      delete[] pcMyFrameBuffer;
-   }
+    pclMyMsgDB = pclJsonDB_;
+    clMyHeaderDecoder.LoadJsonDb(pclJsonDB_);
+    clMyMessageDecoder.LoadJsonDb(pclJsonDB_);
+    clMyEncoder.LoadJsonDb(pclJsonDB_);
 
-   if(pcMyEncodeBuffer)
-   {
-      delete[] pcMyEncodeBuffer;
-   }
+    vMyCommandDefns = pclMyMsgDB->GetEnumDefName("Commands");
+    vMyPortAddrDefns = pclMyMsgDB->GetEnumDefName("PortAddress");
+    vMyGPSTimeStatusDefns = pclMyMsgDB->GetEnumDefName("GPSTimeStatus");
 }
 
 // -------------------------------------------------------------------------------------------------------
-void
-RxConfigHandler::LoadJsonDb(JsonReader* pclJsonDB_)
-{
-   pclMyMsgDB = pclJsonDB_;
-   clMyHeaderDecoder.LoadJsonDb(pclJsonDB_);
-   clMyMessageDecoder.LoadJsonDb(pclJsonDB_);
-   clMyEncoder.LoadJsonDb(pclJsonDB_);
-
-   vMyCommandDefns = pclMyMsgDB->GetEnumDef("Commands");
-   vMyPortAddrDefns = pclMyMsgDB->GetEnumDef("PortAddress");
-   vMyGPSTimeStatusDefns = pclMyMsgDB->GetEnumDef("GPSTimeStatus");
-   CreateRXConfigMsgDefn();
-}
+void RxConfigHandler::SetLoggerLevel(spdlog::level::level_enum eLevel_) { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void
-RxConfigHandler::SetLoggerLevel(spdlog::level::level_enum eLevel_)
-{
-   pclMyLogger->set_level(eLevel_);
-}
+void RxConfigHandler::ShutdownLogger() { Logger::Shutdown(); }
 
 // -------------------------------------------------------------------------------------------------------
-void
-RxConfigHandler::ShutdownLogger()
-{
-   Logger::Shutdown();
-}
-
-// -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger>
-RxConfigHandler::GetLogger()
-{
-   return pclMyLogger;
-}
+std::shared_ptr<spdlog::logger> RxConfigHandler::GetLogger() { return pclMyLogger; }
 
 //-----------------------------------------------------------------------
-bool
-RxConfigHandler::IsRXConfigTypeMsg(uint16_t usMessageID_)
-{
-   return (usMessageID_ == usRXConfigMsgID || usMessageID_ == usRXConfigUserMsgID);
-}
+bool RxConfigHandler::IsRXConfigTypeMsg(uint16_t usMessageID_) { return (usMessageID_ == usRXConfigMsgID || usMessageID_ == usRXConfigUserMsgID); }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t
-RxConfigHandler::MsgNameToMsgId(std::string sMsgName_)
-{
-      uint32_t uiSiblingID = 0;
-      uint32_t uiMsgFormat = 0;
-      uint32_t uiResponse  = 0; // 0 = original, 1 = response
-
-      // Injest the sibling information, i.e. the _1 from LOGNAMEA_1
-      if ((sMsgName_.find_last_of('_') != std::string::npos) &&
-         (sMsgName_.find_last_of('_') == sMsgName_.size() - 2))
-      {
-         uiSiblingID = static_cast<uint32_t>(ToDigit(sMsgName_.back()));
-         sMsgName_.resize(sMsgName_.size()-2);
-      }
-
-      // If this is an abbrev msg (no format information), we will be able to find the MsgDef
-      const MessageDefinition* pclMessageDef = pclMyMsgDB->GetMsgDef(sMsgName_);
-      if(pclMessageDef)
-      {
-         uiResponse = static_cast<uint32_t>(false);
-         uiMsgFormat = static_cast<uint32_t>(MESSAGEFORMAT::ABBREV);
-
-         uint32_t uiMessageID = CreateMsgID(pclMessageDef->logID, uiSiblingID, uiMsgFormat, uiResponse);
-         return uiMessageID;
-      }
-
-      std::string sTemp(sMsgName_);
-      if(sTemp.back() == 'R') // Ascii Response
-      {
-         uiResponse = static_cast<uint32_t>(true);
-         uiMsgFormat = static_cast<uint32_t>(MESSAGEFORMAT::ASCII);
-         sTemp.pop_back();
-      }
-      else if(sTemp.back() == 'A') // Ascii
-      {
-         uiResponse = static_cast<uint32_t>(false);
-         uiMsgFormat = static_cast<uint32_t>(MESSAGEFORMAT::ASCII);
-         sTemp.pop_back();
-      }
-      else if(sTemp.back() == 'B') // Binary
-      {
-         uiResponse = static_cast<uint32_t>(false);
-         uiMsgFormat = static_cast<uint32_t>(MESSAGEFORMAT::BINARY);
-         sTemp.pop_back();
-      }
-
-      pclMessageDef = pclMyMsgDB->GetMsgDef(sTemp);
-      if(pclMessageDef)
-      {
-         uint32_t uiMessageID = CreateMsgID(pclMessageDef ? pclMessageDef->logID : GetEnumValue(vMyCommandDefns, sTemp), uiSiblingID, uiMsgFormat, uiResponse);
-         return uiMessageID;
-      }
-
-      return 0;
-}
-
-// -------------------------------------------------------------------------------------------------------
-std::string
-RxConfigHandler::MsgIdToMsgName(const uint32_t uiMessageID_)
-{
-   uint16_t usLogID = 0;
-   uint32_t uiSiblingID = 0;
-   uint32_t uiMessageFormat = 0;
-   uint32_t uiResponse = 0;
-
-   UnpackMsgID(uiMessageID_, usLogID, uiSiblingID, uiMessageFormat, uiResponse);
-
-   std::string strMessageName;
-   const MessageDefinition* pstMessageDefinition = pclMyMsgDB->GetMsgDef(usLogID);
-
-   if(pstMessageDefinition)
-   {
-      strMessageName = pstMessageDefinition->name;
-   }
-   else
-   {
-      strMessageName = GetEnumString(vMyCommandDefns, usLogID);
-   }
-
-   std::string strMessageFormatSuffix = uiResponse ? "R"
-      : uiMessageFormat == static_cast<uint32_t>(MESSAGEFORMAT::BINARY) ? "B"
-      : uiMessageFormat == static_cast<uint32_t>(MESSAGEFORMAT::ASCII)  ? "A"
-      : ""; // default to abbreviated ascii format
-
-   if(uiSiblingID)
-      strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingID));
-   return strMessageName.append(strMessageFormatSuffix);
-}
-
-// -------------------------------------------------------------------------------------------------------
-void
-RxConfigHandler::CreateRXConfigMsgDefn()
-{
-   // Embedded Header
-   SimpleDataType stEmbeddedHeaderDataType = SimpleDataType();
-   stEmbeddedHeaderDataType.description = "Embedded Header";
-   stEmbeddedHeaderDataType.length = sizeof(IntermediateHeader);
-   stEmbeddedHeaderDataType.name = DATA_TYPE_NAME::EMBEDDED_HEADER;
-
-   BaseField stEmbeddedHeader = BaseField();
-   stEmbeddedHeader.name = "embedded_header";
-   stEmbeddedHeader.type = FIELD_TYPE::RXCONFIG_HEADER;
-   stEmbeddedHeader.dataType = stEmbeddedHeaderDataType;
-
-   // Embedded body
-   SimpleDataType stEmbeddedBodyDataType = SimpleDataType();
-   stEmbeddedBodyDataType.description = "Embedded Body";
-   stEmbeddedBodyDataType.name = DATA_TYPE_NAME::EMBEDDED_BODY;
-   stEmbeddedBodyDataType.length = 1;
-
-   BaseField stEmbeddedBody = BaseField();
-   stEmbeddedBody.name = "embedded_body";
-   stEmbeddedBody.type = FIELD_TYPE::RXCONFIG_BODY;
-   stEmbeddedBody.dataType = stEmbeddedBodyDataType;
-
-   // Message Definition
-   stMyRXConfigMsgDef = MessageDefinition();
-   stMyRXConfigMsgDef.name = std::string("rxconfig");
-   stMyRXConfigMsgDef.fields[0];
-   stMyRXConfigMsgDef.fields[0].push_back(stEmbeddedHeader.clone());
-   stMyRXConfigMsgDef.fields[0].push_back(stEmbeddedBody.clone());
-}
-
-// -------------------------------------------------------------------------------------------------------
-uint32_t
-RxConfigHandler::Write(unsigned char* pucData_, uint32_t uiDataSize_)
-{
-   return clMyFramer.Write(pucData_, uiDataSize_);
-}
+uint32_t RxConfigHandler::Write(unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-RxConfigHandler::Convert(
-   MessageDataStruct& stRxConfigMessageData_, MetaDataStruct& stRxConfigMetaData_,
-   MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
-   ENCODEFORMAT eEncodeFormat_)
+RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStruct& stRxConfigMetaData_, MessageDataStruct& stEmbeddedMessageData_,
+                         MetaDataStruct& stEmbeddedMetaData_, ENCODEFORMAT eEncodeFormat_)
 {
-   STATUS eStatus = STATUS::SUCCESS;
-   IntermediateHeader stRxConfigHeader;
-   IntermediateHeader stEmbeddedHeader;
-   IntermediateMessage stRxConfigMessage;
-   IntermediateMessage stEmbeddedMessage;
-   pucMyFrameBufferPointer = pcMyFrameBuffer;
-   unsigned char* pucTempMessagePointer = pucMyFrameBufferPointer;
+    IntermediateHeader stRxConfigHeader;
+    IntermediateHeader stEmbeddedHeader;
+    IntermediateMessage stEmbeddedMessage;
 
-   // Get an RXCONFIG log.
-   eStatus = clMyFramer.GetFrame(pucMyFrameBufferPointer, uiINTERNAL_BUFFER_SIZE, stRxConfigMetaData_);
-   if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE)
-   {
-      return STATUS::BUFFER_EMPTY;
-   }
-   if(eStatus != STATUS::SUCCESS)
-   {
-      return eStatus;
-   }
+    unsigned char* pucTempMessagePointer = pcMyFrameBuffer.get();
 
-   // Decode the RXCONFIG log.
-   eStatus = clMyHeaderDecoder.Decode(pucMyFrameBufferPointer, stRxConfigHeader, stRxConfigMetaData_);
-   if(eStatus != STATUS::SUCCESS)
-   {
-      return eStatus;
-   }
-   pucTempMessagePointer += stRxConfigMetaData_.uiHeaderLength;
+    // Get an RXCONFIG log.
+    STATUS eStatus = clMyFramer.GetFrame(pcMyFrameBuffer.get(), uiINTERNAL_BUFFER_SIZE, stRxConfigMetaData_);
+    if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
+    if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-   // If we have something that isn't RXCONFIG, get rid of it.
-   if(!IsRXConfigTypeMsg(stRxConfigMetaData_.usMessageID))
-   {
-      return STATUS::UNKNOWN;
-   }
+    // Decode the RXCONFIG log.
+    eStatus = clMyHeaderDecoder.Decode(pcMyFrameBuffer.get(), stRxConfigHeader, stRxConfigMetaData_);
+    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    pucTempMessagePointer += stRxConfigMetaData_.uiHeaderLength;
 
-   // Decode the RXCONFIG message body, which is a regular OEM header and body.
-   novatel::edie::oem::MsgFieldsVector vRxConfigMessageFields = stMyRXConfigMsgDef.fields.at(0);
-   stRxConfigMessage.reserve(vRxConfigMessageFields.size());
-   for(auto& field : vRxConfigMessageFields)
-   {
-      if(field->type == FIELD_TYPE::RXCONFIG_HEADER)
-      {
-         if(stRxConfigMetaData_.eFormat == HEADERFORMAT::ABB_ASCII)
-         {
-            // Abbreviated ASCII RXCONFIG logs have indentations on the embedded header.  The HeaderDecoder
-            // does not expect this and the spaces must be removed.  Remove "<     ", then put '<' back at
-            // the beginning so the header is treated correctly.
-            ConsumeAbbrevFormatting(0, reinterpret_cast<char**>(&pucTempMessagePointer));
-            pucTempMessagePointer -= OEM4_ASCII_SYNC_LENGTH;
-            *pucTempMessagePointer = OEM4_ABBREV_ASCII_SYNC;
-         }
+    // If we have something that isn't RXCONFIG, get rid of it.
+    if (!IsRXConfigTypeMsg(stRxConfigMetaData_.usMessageID)) { return STATUS::UNKNOWN; }
 
-         eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stEmbeddedHeader, stEmbeddedMetaData_);
-         if(eStatus == STATUS::NO_DEFINITION)
-         {
-            return STATUS::NO_DEFINITION_EMBEDDED;
-         }
-         if(eStatus != STATUS::SUCCESS)
-         {
-            return eStatus;
-         }
+    if (stRxConfigMetaData_.eFormat == HEADERFORMAT::ABB_ASCII)
+    {
+        // Abbreviated ASCII RXCONFIG logs have indentations on the embedded header.  The
+        // HeaderDecoder does not expect this and the spaces must be removed.  Remove "<     ", then
+        // put '<' back at the beginning so the header is treated correctly.
+        ConsumeAbbrevFormatting(0, reinterpret_cast<char**>(&pucTempMessagePointer));
+        pucTempMessagePointer -= OEM4_ASCII_SYNC_LENGTH;
+        *pucTempMessagePointer = OEM4_ABBREV_ASCII_SYNC;
+    }
 
-         stRxConfigMessage.emplace_back(stEmbeddedHeader, field);
-      }
-      else if(field->type == FIELD_TYPE::RXCONFIG_BODY)
-      {
-         // Put an IntermediateMessage struct into the RXCONFIG IntermediateMessage, then
-         // pass it to the message decoder as a destination for the embedded message.
-         stRxConfigMessage.emplace_back(IntermediateMessage(), field);
-         eStatus = clMyMessageDecoder.Decode((pucTempMessagePointer + stEmbeddedMetaData_.uiHeaderLength), std::get<IntermediateMessage>(stRxConfigMessage.back().field_value), stEmbeddedMetaData_);
-         if(eStatus == STATUS::NO_DEFINITION)
-         {
-            return STATUS::NO_DEFINITION_EMBEDDED;
-         }
-         if(eStatus != STATUS::SUCCESS)
-         {
-            return eStatus;
-         }
-      }
-      else
-      {
-         return STATUS::FAILURE;
-      }
-   }
+    eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stEmbeddedHeader, stEmbeddedMetaData_);
+    if (eStatus == STATUS::NO_DEFINITION) { return STATUS::NO_DEFINITION_EMBEDDED; }
+    if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-   // Encode the RXCONFIG log.
-   pucMyEncodeBufferPointer = pcMyEncodeBuffer;
-   unsigned char* pucTempEncodeBuffer = pucMyEncodeBufferPointer;
-   uiMyBufferBytesRemaining = uiINTERNAL_BUFFER_SIZE;
+    // Put an IntermediateMessage struct into the RXCONFIG IntermediateMessage, then
+    // pass it to the message decoder as a destination for the embedded message.
+    eStatus = clMyMessageDecoder.Decode((pucTempMessagePointer + stEmbeddedMetaData_.uiHeaderLength), stEmbeddedMessage, stEmbeddedMetaData_);
+    if (eStatus == STATUS::NO_DEFINITION) { return STATUS::NO_DEFINITION_EMBEDDED; }
+    if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-   if(eEncodeFormat_ == ENCODEFORMAT::JSON)
-   {
-      if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), R"({"header":)"))
-      {
-         return STATUS::BUFFER_FULL;
-      }
-   }
+    // Encode the RXCONFIG log.
+    unsigned char* pucTempEncodeBuffer = pcMyEncodeBuffer.get();
+    uint32_t uiMyBufferBytesRemaining = uiINTERNAL_BUFFER_SIZE;
 
-   eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stRxConfigHeader, stRxConfigMessageData_, stRxConfigMetaData_, eEncodeFormat_);
-   if(eStatus == STATUS::NO_DEFINITION)
-   {
-      return STATUS::NO_DEFINITION_EMBEDDED;
-   }
-   if(eStatus != STATUS::SUCCESS)
-   {
-      return eStatus;
-   }
+    if (eEncodeFormat_ == ENCODEFORMAT::JSON &&
+        !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"({"header":)"))
+    {
+        return STATUS::BUFFER_FULL;
+    }
 
-   pucTempEncodeBuffer += stRxConfigMessageData_.uiMessageHeaderLength;
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stRxConfigHeader, stRxConfigMessageData_, stRxConfigMetaData_,
+                                       eEncodeFormat_);
+    if (eStatus == STATUS::NO_DEFINITION) { return STATUS::NO_DEFINITION_EMBEDDED; }
+    if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-   if(eEncodeFormat_ == ENCODEFORMAT::JSON)
-   {
-      if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), R"(,"body":)"))
-      {
-         return STATUS::BUFFER_FULL;
-      }
-   }
+    pucTempEncodeBuffer += stRxConfigMessageData_.uiMessageHeaderLength;
 
-   stEmbeddedMessageData_.pucMessage = pucTempEncodeBuffer;
-   stRxConfigMessageData_.pucMessageBody = pucTempEncodeBuffer;
+    if (eEncodeFormat_ == ENCODEFORMAT::JSON &&
+        !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(,"body":)"))
+    {
+        return STATUS::BUFFER_FULL;
+    }
 
-   // This is just dummy args that we must pass to the encoder.  They will not be used.
-   uint32_t uiCRC = 0;
-   for (FieldContainer& field : stRxConfigMessage)
-   {
-      if (field.field_def->type == FIELD_TYPE::RXCONFIG_HEADER)
-      {
-         switch(eEncodeFormat_)
-         {
-            case ENCODEFORMAT::JSON:
-               if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), R"({"embedded_header":)"))
-               {
-                  return STATUS::BUFFER_FULL;
-               }
-               break;
+    stEmbeddedMessageData_.pucMessage = pucTempEncodeBuffer;
+    stRxConfigMessageData_.pucMessageBody = pucTempEncodeBuffer;
 
-            case ENCODEFORMAT::ABBREV_ASCII:
-               if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), szAbbrevASCIIEmbeddedHeaderPrefix))
-               {
-                  return STATUS::BUFFER_FULL;
-               }
-               break;
+    // This is just dummy args that we must pass to the encoder.  They will not be used.
+    uint32_t uiCRC = 0;
 
-            default:
-               break;
-         }
-
-         eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, std::get<IntermediateHeader>(field.field_value), stEmbeddedMessageData_, stEmbeddedMetaData_, eEncodeFormat_, true);
-         if(eStatus != STATUS::SUCCESS)
-         {
-            return eStatus;
-         }
-
-         pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageHeaderLength;
-         uiMyBufferBytesRemaining -= stEmbeddedMessageData_.uiMessageHeaderLength;
-
-         switch(eEncodeFormat_)
-         {
-            case ENCODEFORMAT::JSON:
-               if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), R"(,"embedded_body":)"))
-               {
-                  return STATUS::BUFFER_FULL;
-               }
-               break;
-
-            case ENCODEFORMAT::ABBREV_ASCII:
-               // The header is going to be pointing to the wrong location, so reverse it back to before the "<     " characters.
-               stEmbeddedMessageData_.pucMessageHeader -= strlen(szAbbrevASCIIEmbeddedHeaderPrefix);
-               stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(strlen(szAbbrevASCIIEmbeddedHeaderPrefix));
-               // A normal abbreviated ASCII log would remove the final ' ' delimiter, however since this is part of a message
-               // body, we should encode it to follow the standard of trailing spaces in the message body.  EncodeHeader()
-               // would have removed this, so add it back in the message MessageHeaderLength count.
-               stEmbeddedMessageData_.uiMessageHeaderLength++;
-
-               if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), "\r\n"))
-               {
-                  return STATUS::BUFFER_FULL;
-               }
-
-               stEmbeddedMessageData_.uiMessageHeaderLength++;
-               break;
-
-            default:
-               break;
-         }
-      }
-      else if (field.field_def->type == FIELD_TYPE::RXCONFIG_BODY)
-      {
-         eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, std::get<IntermediateMessage>(field.field_value), stEmbeddedMessageData_, stEmbeddedMetaData_, eEncodeFormat_);
-         if(eStatus != STATUS::SUCCESS)
-         {
-            return eStatus;
-         }
-
-         uiMyBufferBytesRemaining -= stEmbeddedMessageData_.uiMessageBodyLength;
-         pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageBodyLength;
-
-         // The last CRC would have been written correctly.  Pull it out, flip it, put it back in.
-         // This will be done differently depending on how we encoded the message.
-         switch(eEncodeFormat_)
-         {
-            case ENCODEFORMAT::ASCII:
-               // Move back over CRLF.
-               pucTempEncodeBuffer -= 2;
-               uiMyBufferBytesRemaining += 2;
-               stEmbeddedMessageData_.uiMessageBodyLength -= 2;
-               // Move back over the CRC.
-               pucTempEncodeBuffer -= OEM4_ASCII_CRC_LENGTH;
-               uiMyBufferBytesRemaining += OEM4_ASCII_CRC_LENGTH;
-               // Grab the CRC from the encode buffer and invert it.
-               uiCRC = strtoul(reinterpret_cast<char*>(pucTempEncodeBuffer), NULL, 16);
-               uiCRC = uiCRC ^ 0xFFFFFFFF;
-               if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), "%08x", uiCRC))
-               {
-                  return STATUS::BUFFER_FULL;
-               }
-               break;
-
-            case ENCODEFORMAT::BINARY:
-               // Move back over the CRC.
-               pucTempEncodeBuffer -= OEM4_BINARY_CRC_LENGTH;
-               uiMyBufferBytesRemaining += OEM4_BINARY_CRC_LENGTH;
-               // Grab the CRC from the encode buffer and invert it.
-               uiCRC = *(reinterpret_cast<uint32_t*>(pucTempEncodeBuffer));
-               uiCRC = uiCRC ^ 0xFFFFFFFF;
-               if(!CopyToBuffer(&pucTempEncodeBuffer, &uiCRC, sizeof(uint32_t)))
-               {
-                  return STATUS::BUFFER_FULL;
-               }
-               break;
-
-            case ENCODEFORMAT::JSON:
-               if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), R"(})"))
-               {
-                  return STATUS::BUFFER_FULL;
-               }
-               break;
-
-            default:
-               break;
-         }
-      }
-      else
-      {
-         return STATUS::FAILURE;
-      }
-   }
-
-   stEmbeddedMessageData_.uiMessageLength = static_cast<uint32_t>(pucTempEncodeBuffer - stRxConfigMessageData_.pucMessageBody);
-
-   // Put the final CRC at the end.
-   switch(eEncodeFormat_)
-   {
-      case ENCODEFORMAT::ASCII:
-         uiCRC = CalculateBlockCRC32(static_cast<uint32_t>(pucTempEncodeBuffer - (pucMyEncodeBufferPointer+1)), 0, pucMyEncodeBufferPointer+1);
-         if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), "*%08x\r\n", uiCRC))
-         {
+    switch (eEncodeFormat_)
+    {
+    case ENCODEFORMAT::JSON:
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"({"embedded_header":)"))
+        {
             return STATUS::BUFFER_FULL;
-         }
-         break;
+        }
+        break;
 
-      case ENCODEFORMAT::BINARY:
-         uiCRC = CalculateBlockCRC32(static_cast<uint32_t>(pucTempEncodeBuffer - pucMyEncodeBufferPointer), 0, pucMyEncodeBufferPointer);
-         if(!CopyToBuffer(&pucTempEncodeBuffer, &uiCRC, sizeof(uint32_t)))
-         {
+    case ENCODEFORMAT::ABBREV_ASCII:
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, szAbbrevASCIIEmbeddedHeaderPrefix))
+        {
             return STATUS::BUFFER_FULL;
-         }
-         break;
+        }
+        break;
 
-      default:
-         break;
-   }
+    default: break;
+    }
 
-   stRxConfigMessageData_.uiMessageBodyLength = static_cast<uint32_t>(pucTempEncodeBuffer - stRxConfigMessageData_.pucMessageBody);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stEmbeddedHeader, stEmbeddedMessageData_, stEmbeddedMetaData_,
+                                       eEncodeFormat_, true);
+    if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-   // Add the closing '}' character, but don't count it as part of the messasge body length.
-   if(eEncodeFormat_ == ENCODEFORMAT::JSON)
-   {
-      if(!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), R"(})"))
-      {
-         return STATUS::BUFFER_FULL;
-      }
-   }
+    pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageHeaderLength;
+    uiMyBufferBytesRemaining -= stEmbeddedMessageData_.uiMessageHeaderLength;
 
-   stRxConfigMessageData_.pucMessage = pucMyEncodeBufferPointer;
-   stRxConfigMessageData_.uiMessageLength = static_cast<uint32_t>(pucTempEncodeBuffer - pucMyEncodeBufferPointer);
+    switch (eEncodeFormat_)
+    {
+    case ENCODEFORMAT::JSON:
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(,"embedded_body":)"))
+        {
+            return STATUS::BUFFER_FULL;
+        }
+        break;
 
-   return STATUS::SUCCESS;
+    case ENCODEFORMAT::ABBREV_ASCII:
+        // The header is going to be pointing to the wrong location, so reverse it back to
+        // before the "<     " characters.
+        stEmbeddedMessageData_.pucMessageHeader -= strlen(szAbbrevASCIIEmbeddedHeaderPrefix);
+        stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(strlen(szAbbrevASCIIEmbeddedHeaderPrefix));
+        // A normal abbreviated ASCII log would remove the final ' ' delimiter, however since
+        // this is part of a message body, we should encode it to follow the standard of
+        // trailing spaces in the message body.  EncodeHeader() would have removed this, so add
+        // it back in the message MessageHeaderLength count.
+        stEmbeddedMessageData_.uiMessageHeaderLength++;
+
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "\r\n")) { return STATUS::BUFFER_FULL; }
+
+        stEmbeddedMessageData_.uiMessageHeaderLength++;
+        break;
+
+    default: break;
+    }
+
+    eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stEmbeddedMessage, stEmbeddedMessageData_, stEmbeddedMetaData_,
+                                     eEncodeFormat_);
+    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+
+    uiMyBufferBytesRemaining -= stEmbeddedMessageData_.uiMessageBodyLength;
+    pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageBodyLength;
+
+    // The last CRC would have been written correctly.  Pull it out, flip it, put it back in.
+    // This will be done differently depending on how we encoded the message.
+    switch (eEncodeFormat_)
+    {
+    case ENCODEFORMAT::ASCII:
+        // Move back over CRLF.
+        pucTempEncodeBuffer -= 2;
+        uiMyBufferBytesRemaining += 2;
+        stEmbeddedMessageData_.uiMessageBodyLength -= 2;
+        // Move back over the CRC.
+        pucTempEncodeBuffer -= OEM4_ASCII_CRC_LENGTH;
+        uiMyBufferBytesRemaining += OEM4_ASCII_CRC_LENGTH;
+        // Grab the CRC from the encode buffer and invert it.
+        uiCRC = strtoul(reinterpret_cast<char*>(pucTempEncodeBuffer), nullptr, 16) ^ 0xFFFFFFFF;
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "%08x", uiCRC)) { return STATUS::BUFFER_FULL; }
+        break;
+
+    case ENCODEFORMAT::BINARY:
+        // Move back over the CRC.
+        pucTempEncodeBuffer -= OEM4_BINARY_CRC_LENGTH;
+        uiMyBufferBytesRemaining += OEM4_BINARY_CRC_LENGTH;
+        // Grab the CRC from the encode buffer and invert it.
+        uiCRC = *(reinterpret_cast<uint32_t*>(pucTempEncodeBuffer)) ^ 0xFFFFFFFF;
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC, sizeof(uint32_t))) { return STATUS::BUFFER_FULL; }
+        break;
+
+    case ENCODEFORMAT::JSON:
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})")) { return STATUS::BUFFER_FULL; }
+        break;
+
+    default: break;
+    }
+
+    stEmbeddedMessageData_.uiMessageLength = static_cast<uint32_t>(pucTempEncodeBuffer - stRxConfigMessageData_.pucMessageBody);
+
+    // Put the final CRC at the end.
+    switch (eEncodeFormat_)
+    {
+    case ENCODEFORMAT::ASCII:
+        uiCRC = CalculateBlockCRC32(static_cast<uint32_t>(pucTempEncodeBuffer - (pcMyEncodeBuffer.get() + 1)), 0, pcMyEncodeBuffer.get() + 1);
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "*%08x\r\n", uiCRC))
+        {
+            return STATUS::BUFFER_FULL;
+        }
+        break;
+
+    case ENCODEFORMAT::BINARY:
+        uiCRC = CalculateBlockCRC32(static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get()), 0, pcMyEncodeBuffer.get());
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC, sizeof(uint32_t))) { return STATUS::BUFFER_FULL; }
+        break;
+
+    default: break;
+    }
+
+    stRxConfigMessageData_.uiMessageBodyLength = static_cast<uint32_t>(pucTempEncodeBuffer - stRxConfigMessageData_.pucMessageBody);
+
+    // Add the closing '}' character, but don't count it as part of the messasge body length.
+    if (eEncodeFormat_ == ENCODEFORMAT::JSON && !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})"))
+    {
+        return STATUS::BUFFER_FULL;
+    }
+
+    stRxConfigMessageData_.pucMessage = pcMyEncodeBuffer.get();
+    stRxConfigMessageData_.uiMessageLength = static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get());
+
+    return STATUS::SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t
-RxConfigHandler::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
-{
-   return clMyFramer.Flush(pucBuffer_, uiBufferSize_);
-}
-
+uint32_t RxConfigHandler::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_) { return clMyFramer.Flush(pucBuffer_, uiBufferSize_); }

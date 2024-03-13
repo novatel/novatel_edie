@@ -8,12 +8,12 @@ LIST(APPEND COMMONTEST_SOURCES ${SOURCES})
 
 add_executable(${PROJECT_NAME} ${COMMONTEST_SOURCES})
 
-add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR})
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "decoders/tests")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../api)
 
-get_directory_property( DirDefs COMPILE_DEFINITIONS )
+get_directory_property(DirDefs COMPILE_DEFINITIONS)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC common gtest)

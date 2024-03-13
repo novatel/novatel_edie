@@ -16,6 +16,8 @@ Documentation on NovAtel's data (commands, logs, messages, and responses) can be
 - [Getting Started](#getting-started)
 - [Usage](#usage)
 - [Examples](#examples)
+- [Code Style](#code-style)
+- [API Stability](#api-stability)
 - [Authors](#authors)
 - [License](#license)
 
@@ -139,9 +141,9 @@ The FileParser class provides an interface for parsing GPS files.
 
 ```cpp
 #include <iostream>
+
 #include "src/decoders/novatel/api/fileparser.hpp"
 
-using namespace std;
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -163,39 +165,33 @@ clFileParser.SetFilter(&clFilter);
 // Initialize the file stream status and buffer.
 StreamReadStatus stReadStatus;
 ReadDataStructure stReadData;
-unsigned char acIFSReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
-stReadData.cData = reinterpret_cast<char*>(acIFSReadBuffer);
-stReadData.uiDataSize = sizeof(acIFSReadBuffer);
+unsigned char aucIFSReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
+stReadData.cData = reinterpret_cast<char*>(aucIFSReadBuffer);
+stReadData.uiDataSize = sizeof(aucIFSReadBuffer);
 
 // Initialize the input and output file streams.
 std::string sInputFileName = "SAMPLE.GPS";
 InputFileStream clInputFileStream = InputFileStream(sInputFileName);
 OutputFileStream clConvertedLogs = OutputFileStream(sInputFileName.append(".").append(sEncodeFormat));
 
-if (!clFileParser.SetStream(&clInputFileStream))
-{
-   cout << "Input stream could not be set. The stream is either unavailable or exhausted." << endl;
-   exit(-1);
+if (!clFileParser.SetStream(&clInputFileStream)) {
+    std::cout << "Input stream could not be set. The stream is either unavailable or exhausted." << std::endl;
+    exit(-1);
 }
 
-while (eStatus != STATUS::STREAM_EMPTY)
-{
-   try
-   {
-      eStatus = clFileParser.Read(stMessageData, stMetaData);
+while (eStatus != STATUS::STREAM_EMPTY) {
+    try {
+        eStatus = clFileParser.Read(stMessageData, stMetaData);
 
-      if (eStatus == STATUS::SUCCESS)
-      {
-         clConvertedLogs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
-         stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
-         cout << "Encoded: (" << stMessageData.uiMessageLength << ") " << reinterpret_cast<char*>(stMessageData.pucMessage) << endl;
-      }
-   }
-   catch (std::exception& e)
-   {
-      cout << "Exception thrown: " << e.what() << endl);
+        if (eStatus == STATUS::SUCCESS) {
+            clConvertedLogs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+            stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
+            std::cout << "Encoded: (" << stMessageData.uiMessageLength << ") " << reinterpret_cast<char*>(stMessageData.pucMessage) << std::endl;
+        }
+    } catch (std::exception& e) {
+      std::cout << "Exception thrown: " << e.what() << std::endl);
       exit(-1);
-   }
+    }
 }
 ```
 
@@ -209,14 +205,13 @@ Note that all fields must be provided in the abbreviated ASCII string command in
 
 ```cpp
 #include <iostream>
+
 #include "src/decoders/novatel/api/commander.hpp"
 
-using namespace std;
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // Initialize the current status, meta data structure, and message data structure.
-STATUS eStatus = STATUS::UNKNOWN;
 MetaDataStruct stMetaData;
 MessageDataStruct stMessageData;
 
@@ -231,14 +226,21 @@ uint32_t uiEncodeBufferLength = MAX_ASCII_MESSAGE_LENGTH;
 std::string strCommand("INSTHRESHOLDS LOW 0.0 0.0 0.0");
 
 // Encode the message.
-STATUS eCommanderStatus = clCommander.Encode(strCommand.c_str(), strCommand.length(), reinterpret_cast<char*>(acEncodeBuffer), uiEncodeBufferLength, ENCODEFORMAT::ASCII);
-if (eCommanderStatus == STATUS::SUCCESS)
-{
-   // Copy the encoded command into a new string.
-   std::string strEncodedCommand(reinterpret_cast<char*>(acEncodeBuffer), uiEncodeBufferLength);
-   cout << "Encoded: " << strEncodedCommand << endl;
+STATUS eCommanderStatus = clCommander.Encode(strCommand.c_str(), strCommand.length(), acEncodeBuffer, uiEncodeBufferLength, ENCODEFORMAT::ASCII);
+if (eCommanderStatus == STATUS::SUCCESS) {
+    // Copy the encoded command into a new string.
+    std::string strEncodedCommand(acEncodeBuffer, uiEncodeBufferLength);
+    std::cout << "Encoded: " << strEncodedCommand << std::endl;
 }
 ```
+
+## Code Style
+
+We format our code using Clang-Format as it provides a well-defined set of rules and conventions that make it easier for developers to collaborate on and understand a codebase. Additionally, adhering to this styling guide helps catch potential coding errors and reduces the likelihood of introducing bugs through inconsistent formatting.
+
+## API Stability
+
+Currently, we do not guarantee API stability as development progresses. While we intend to minimize the frequency of changes that cause old things to break, please be aware that we retain the right to add, remove, or modify components.
 
 ## Authors
 

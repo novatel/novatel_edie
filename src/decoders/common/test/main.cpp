@@ -29,10 +29,22 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
+#include <stdexcept>
+#include <string>
+
+#include "logger/logger.hpp"
 #include "gtest/gtest.h"
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    ::testing::InitGoogleTest(&argc, argv);
+    testing::InitGoogleTest(&argc, argv);
+    Logger::InitLogger();
+
+    if (argc != 2) throw std::invalid_argument("1 argument required.\nUsage: <project root>");
+
+    std::string strDatabaseVar = "TEST_DATABASE_PATH=" + std::string(argv[1]) + "/database/messages_public.json";
+
+    if (putenv(const_cast<char*>(strDatabaseVar.c_str())) != 0) throw std::runtime_error("Failed to set db path.");
+
     return RUN_ALL_TESTS();
 }

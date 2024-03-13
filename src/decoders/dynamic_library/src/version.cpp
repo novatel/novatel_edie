@@ -31,14 +31,9 @@
 // Includes
 //-----------------------------------------------------------------------
 #include "version.hpp"
+
 #include "src/version.h" // this refers to the EDIE version.h
 
-const char* version()
-{
-   return get_version();
-}
+const char* version() { return get_version(); }
 
-const char* pretty_version()
-{
-   return caPrettyPrint;
-}
+const char* pretty_version() { return caPrettyPrint; }

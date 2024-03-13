@@ -36,15 +36,14 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
+#include <cassert>
+#include <logger/logger.hpp>
+#include <nlohmann/json.hpp>
+
 #include "decoders/common/api/common.hpp"
 #include "decoders/common/api/jsonreader.hpp"
+#include "decoders/common/api/message_decoder.hpp"
 #include "decoders/novatel/api/common.hpp"
-#include "decoders/novatel/api/message_decoder.hpp"
-
-#include <nlohmann/json.hpp>
-#include <logger/logger.hpp>
-
-#include <cassert>
 
 using nlohmann::json;
 
@@ -56,250 +55,235 @@ namespace novatel::edie::oem {
 //============================================================================
 class Encoder
 {
-private:
-   std::shared_ptr<spdlog::logger> pclMyLogger;
-   uint32_t uiMyAbbrevAsciiIndentationLevel;
-   JsonReader* pclMyMsgDb{ nullptr };
-   MessageDefinition stMyRespDef;
-   EnumDefinition* vMyRespDefns{ nullptr };
-   EnumDefinition* vMyCommandDefns{ nullptr };
-   EnumDefinition* vMyPortAddrDefns{ nullptr };
-   EnumDefinition* vMyGPSTimeStatusDefns{ nullptr };
+  private:
+    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_encoder")};
+    uint32_t uiMyAbbrevAsciiIndentationLevel;
+    JsonReader* pclMyMsgDb{nullptr};
+    MessageDefinition stMyRespDef;
+    EnumDefinition* vMyRespDefns{nullptr};
+    EnumDefinition* vMyCommandDefns{nullptr};
+    EnumDefinition* vMyPortAddrDefns{nullptr};
+    EnumDefinition* vMyGPSTimeStatusDefns{nullptr};
 
-   // Inline buffer functions
-   [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBufferBytesRemaining_, const char* szFormat_, ...)
-   {
-      va_list args;
-      va_start(args, szFormat_);
-      const uint32_t uiBytesBuffered = vsnprintf(*ppcBuffer_, uiBufferBytesRemaining_, szFormat_, args);
-      va_end(args);
-      if (uiBufferBytesRemaining_ < uiBytesBuffered)
-      {
-         return false;
-      }
-      *ppcBuffer_ += uiBytesBuffered;
-      uiBufferBytesRemaining_ -= uiBytesBuffered;
-      return true;
-   }
+    // Inline buffer functions
+    [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, ...)
+    {
+        va_list args;
+        va_start(args, szFormat_);
+        const uint32_t uiBytesBuffered = vsnprintf(*ppcBuffer_, uiBytesLeft_, szFormat_, args);
+        va_end(args);
+        if (uiBytesLeft_ < uiBytesBuffered) { return false; }
+        *ppcBuffer_ += uiBytesBuffered;
+        uiBytesLeft_ -= uiBytesBuffered;
+        return true;
+    }
 
-   template<typename T>
-   void MakeConversionString(const FieldContainer& fc_, char* acNewConvertString)
-   {
-      const int32_t iBeforePoint = fc_.field_def->conversionBeforePoint;
-      const int32_t iAfterPoint = fc_.field_def->conversionAfterPoint;
-      const auto floatVal = std::get<T>(fc_.field_value);
+    template <typename T> void MakeConversionString(const FieldContainer& fc_, char* acNewConvertString)
+    {
+        const int32_t iBeforePoint = fc_.field_def->conversionBeforePoint;
+        const int32_t iAfterPoint = fc_.field_def->conversionAfterPoint;
+        const auto floatVal = std::get<T>(fc_.field_value);
 
-      [[maybe_unused]] int result;
+        [[maybe_unused]] int result;
 
-      if (floatVal == 0.0)
-         result = snprintf(acNewConvertString, 7, "%%0.%df", iAfterPoint);
-      else if ((iAfterPoint == 0) && (iBeforePoint == 0))
-         result = snprintf(acNewConvertString, 7, "%%0.1f");
-      else if (fabs(floatVal) > pow(10.0, iBeforePoint))
-         result = snprintf(acNewConvertString, 7, "%%0.%de", iBeforePoint + iAfterPoint - 1);
-      else if (fabs(floatVal) < pow(10.0, -iBeforePoint))
-         result = snprintf(acNewConvertString, 7, "%%0.%de", iAfterPoint);
-      else
-         result = snprintf(acNewConvertString, 7, "%%0.%df", iAfterPoint);
+        if (fabs(floatVal) < std::numeric_limits<T>::epsilon())
+            result = snprintf(acNewConvertString, 7, "%%0.%df", iAfterPoint);
+        else if ((iAfterPoint == 0) && (iBeforePoint == 0))
+            result = snprintf(acNewConvertString, 7, "%%0.1f");
+        else if (fabs(floatVal) > pow(10.0, iBeforePoint))
+            result = snprintf(acNewConvertString, 7, "%%0.%de", iBeforePoint + iAfterPoint - 1);
+        else if (fabs(floatVal) < pow(10.0, -iBeforePoint))
+            result = snprintf(acNewConvertString, 7, "%%0.%de", iAfterPoint);
+        else
+            result = snprintf(acNewConvertString, 7, "%%0.%df", iAfterPoint);
 
-      assert(0 <= result && result < 7);
-   }
+        assert(0 <= result && result < 7);
+    }
 
-   template <typename T>
-   [[nodiscard]] bool CopyToBuffer(unsigned char** ppucBuffer_, uint32_t& uiBufferBytesRemaining_, T* ptItem_)
-   {
-      uint32_t uiItemSize_;
+    template <typename T> [[nodiscard]] bool CopyToBuffer(unsigned char** ppucBuffer_, uint32_t& uiBytesLeft_, T* ptItem_)
+    {
+        uint32_t uiItemSize_;
 
-      if constexpr (std::is_same<T, const char>())
-         uiItemSize_ = static_cast<uint32_t>(strlen(ptItem_));
-      else
-         uiItemSize_ = sizeof(*ptItem_);
+        if constexpr (std::is_same<T, const char>())
+            uiItemSize_ = static_cast<uint32_t>(strlen(ptItem_));
+        else
+            uiItemSize_ = sizeof(*ptItem_);
 
-      if (uiBufferBytesRemaining_ < uiItemSize_)
-      {
-         return false;
-      }
-      memcpy(*ppucBuffer_, ptItem_, uiItemSize_);
-      *ppucBuffer_ += uiItemSize_;
-      uiBufferBytesRemaining_ -= uiItemSize_;
-      return true;
-   }
+        if (uiBytesLeft_ < uiItemSize_) { return false; }
+        memcpy(*ppucBuffer_, ptItem_, uiItemSize_);
+        *ppucBuffer_ += uiItemSize_;
+        uiBytesLeft_ -= uiItemSize_;
+        return true;
+    }
 
-   [[nodiscard]] bool SetInBuffer(unsigned char** ppucBuffer_, uint32_t& uiBufferBytesRemaining_, int32_t iItem_, uint32_t uiItemSize_)
-   {
-      if (uiBufferBytesRemaining_ < uiItemSize_)
-      {
-         return false;
-      }
-      memset(*ppucBuffer_, iItem_, uiItemSize_);
-      *ppucBuffer_ += uiItemSize_;
-      uiBufferBytesRemaining_ -= uiItemSize_;
-      return true;
-   }
+    [[nodiscard]] bool SetInBuffer(unsigned char** ppucBuffer_, uint32_t& uiBytesLeft_, int32_t iItem_, uint32_t uiItemSize_)
+    {
+        if (uiBytesLeft_ < uiItemSize_) { return false; }
+        memset(*ppucBuffer_, iItem_, uiItemSize_);
+        *ppucBuffer_ += uiItemSize_;
+        uiBytesLeft_ -= uiItemSize_;
+        return true;
+    }
 
-   // Enum util functions
-   void InitEnumDefns();
-   void CreateResponseMsgDefns();
-   uint32_t MsgNameToMsgId(std::string sMsgName_) const;
-   std::string MsgIdToMsgName(uint32_t uiMessageID_) const;
-   std::string JsonHeaderToMsgName(const IntermediateHeader& stIntermediateHeader_) const;
+    // Enum util functions
+    void InitEnumDefns();
+    void CreateResponseMsgDefns();
+    std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
 
-   MsgFieldsVector* GetMsgDefFromCRC(const MessageDefinition* pclMessageDef_, uint32_t& uiMsgDefCRC_) const;
+  protected:
+    // Encode binary
+    [[nodiscard]] bool EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                        bool bFlatten_);
+    [[nodiscard]] bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
-protected:
-   // Encode binary
-   [[nodiscard]] bool EncodeBinaryHeader     (const IntermediateHeader& stIntermediateHeader_,   unsigned char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool EncodeBinaryShortHeader(const IntermediateHeader& stIntermediateHeader_,   unsigned char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool EncodeBinaryBody       (const IntermediateMessage& stIntermediateMessage_, unsigned char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_, bool bFlatten_);
-   [[nodiscard]] bool FieldToBinary          (const FieldContainer& fc_,                         unsigned char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
+    // Encode ascii
+    [[nodiscard]] bool EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                               bool bIsEmbeddedHeader_ = false);
+    [[nodiscard]] bool EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAsciiBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAbbrevAsciiBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool FieldToAscii(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
-   // Encode ascii
-   [[nodiscard]] bool EncodeAsciiHeader           (const IntermediateHeader& stIntermediateHeader_,         char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool EncodeAsciiShortHeader      (const IntermediateHeader& stIntermediateHeader_,         char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool EncodeAbbrevAsciiHeader     (const IntermediateHeader& stIntermediateHeader_,         char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_, bool bIsEmbeddedHeader_ = false);
-   [[nodiscard]] bool EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stIntermediateHeader_,         char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool EncodeAsciiBody             (const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool EncodeAbbrevAsciiBody       (const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool FieldToAscii                (const FieldContainer& fc_,                               char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
+    // Encode JSON
+    [[nodiscard]] bool EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeJsonBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool FieldToJson(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
-   // Encode JSON
-   [[nodiscard]] bool EncodeJsonHeader     (const IntermediateHeader& stIntermediateHeader_,         char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool EncodeJsonShortHeader(const IntermediateHeader& stIntermediateHeader_,         char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool EncodeJsonBody       (const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
-   [[nodiscard]] bool FieldToJson          (const FieldContainer& fc_,                               char** ppcOutBuf_, uint32_t& uiMyBufferBytesRemaining_);
+  public:
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the Encoder class.
+    //
+    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.  Defaults to nullptr.
+    //----------------------------------------------------------------------------
+    Encoder(JsonReader* pclJsonDb_ = nullptr);
 
-public:
-   //----------------------------------------------------------------------------
-   //! \brief A constructor for the Encoder class.
-   //
-   //! \param[in] pclJsonDb_ A pointer to a JsonReader object.  Defaults to nullptr.
-   //----------------------------------------------------------------------------
-   Encoder(JsonReader* pclJsonDb_ = nullptr);
+    //----------------------------------------------------------------------------
+    //! \brief Load a JsonReader object.
+    //
+    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
+    //----------------------------------------------------------------------------
+    void LoadJsonDb(JsonReader* pclJsonDb_);
 
-   //----------------------------------------------------------------------------
-   //! \brief Load a JsonReader object.
-   //
-   //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
-   //----------------------------------------------------------------------------
-   void
-   LoadJsonDb(JsonReader* pclJsonDb_);
+    //----------------------------------------------------------------------------
+    //! \brief Get the internal logger.
+    //
+    //! \return A shared_ptr to the spdlog::logger.
+    //----------------------------------------------------------------------------
+    std::shared_ptr<spdlog::logger> GetLogger() const;
 
-   //----------------------------------------------------------------------------
-   //! \brief Get the internal logger.
-   //
-   //! \return A shared_ptr to the spdlog::logger.
-   //----------------------------------------------------------------------------
-   std::shared_ptr<spdlog::logger>
-   GetLogger() const;
+    //----------------------------------------------------------------------------
+    //! \brief Set the level of detail produced by the internal logger.
+    //
+    //! \param[in] eLevel_  The logging level to enable.
+    //----------------------------------------------------------------------------
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_);
 
-   //----------------------------------------------------------------------------
-   //! \brief Set the level of detail produced by the internal logger.
-   //
-   //! \param[in] eLevel_  The logging level to enable.
-   //----------------------------------------------------------------------------
-   void
-   SetLoggerLevel(spdlog::level::level_enum eLevel_);
+    //----------------------------------------------------------------------------
+    //! \brief Shutdown the internal logger.
+    //----------------------------------------------------------------------------
+    static void ShutdownLogger();
 
-   //----------------------------------------------------------------------------
-   //! \brief Shutdown the internal logger.
-   //----------------------------------------------------------------------------
-   static void
-   ShutdownLogger();
+    //----------------------------------------------------------------------------
+    //! \brief Encode an OEM message from the provided intermediate structures.
+    //
+    //! \param[out] ppucEncodeBuffer_ A pointer to the buffer to return the encoded
+    //! message to.
+    //! \param[in] uiEncodeBufferSize_ The length of ppcEncodeBuffer_.
+    //! \param[in] stHeader_ A reference to the decoded header intermediate.
+    //! This must be populated by the HeaderDecoder.
+    //! \param[in] stMessage_ A reference to the decoded message intermediate.
+    //! This must be populated by the MessageDecoder.
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
+    //! populated by the encoder.
+    //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
+    //! containing relevant information about the decoded log.
+    //! This must be populated by the Framer and HeaderDecoder.
+    //! \param[in] eEncodeFormat_ The format to encode the message to.
+    //
+    //! \return An error code describing the result of encoding.
+    //!   SUCCESS: The operation was successful.
+    //!   NULL_PROVIDED: ppucEncodeBuffer_ either points to a null pointer or is
+    //! a null pointer itself.
+    //!   NO_DATABASE: No database was ever loaded into this component.
+    //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
+    //! but the buffer is already full or could not write the bytes without
+    //! over-running.
+    //!   FAILURE: stMessageData_.pucMessageHeader was not correctly set inside
+    //! this function.  This should not happen.
+    //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
+    //! encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS Encode(unsigned char** ppucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateHeader& stHeader_,
+                                IntermediateMessage& stMessage_, MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_,
+                                ENCODEFORMAT eEncodeFormat_);
 
-   //----------------------------------------------------------------------------
-   //! \brief Encode an OEM message from the provided intermediate structures.
-   //
-   //! \param[out] ppucEncodeBuffer_ A pointer to the buffer to return the encoded
-   //! message to.
-   //! \param[in] uiEncodeBufferSize_ The length of ppcEncodeBuffer_.
-   //! \param[in] stHeader_ A reference to the decoded header intermediate.
-   //! This must be populated by the HeaderDecoder.
-   //! \param[in] stMessage_ A reference to the decoded message intermediate.
-   //! This must be populated by the MessageDecoder.
-   //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
-   //! populated by the encoder.
-   //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
-   //! containing relevant information about the decoded log.
-   //! This must be populated by the Framer and HeaderDecoder.
-   //! \param[in] eEncodeFormat_ The format to encode the message to.
-   //
-   //! \return An error code describing the result of encoding.
-   //!   SUCCESS: The operation was successful.
-   //!   NULL_PROVIDED: ppucEncodeBuffer_ either points to a null pointer or is
-   //! a null pointer itself.
-   //!   NO_DATABASE: No database was ever loaded into this component.
-   //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
-   //! but the buffer is already full or could not write the bytes without
-   //! over-running.
-   //!   FAILURE: stMessageData_.pucMessageHeader was not correctly set inside
-   //! this function.  This should not happen.
-   //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
-   //! encoding.
-   //----------------------------------------------------------------------------
-   [[nodiscard]] STATUS
-   Encode(unsigned char** ppucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateHeader& stHeader_, IntermediateMessage& stMessage_, MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, ENCODEFORMAT eEncodeFormat_);
+    //----------------------------------------------------------------------------
+    //! \brief Encode an OEM message header from the provided intermediate header.
+    //
+    //! \param[out] ppucEncodeBuffer_ A pointer to the buffer to return the encoded
+    //! message to.
+    //! \param[in] uiEncodeBufferSize_ The length of ppcEncodeBuffer_.
+    //! \param[in] stHeader_ A reference to the decoded header intermediate.
+    //! This must be populated by the HeaderDecoder.
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
+    //! populated by the encoder.
+    //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
+    //! containing relevant information about the decoded log.
+    //! This must be populated by the Framer and HeaderDecoder.
+    //! \param[in] eEncodeFormat_ The format to encode the message to.
+    //! \param[in] bIsEmbeddedHeader_ This header is embedded in an RXCONFIG
+    //! message, and should be treated as such.  Is a default argument and is
+    //! defaulted as false.
+    //
+    //! \return An error code describing the result of encoding.
+    //!   SUCCESS: The operation was successful.
+    //!   NULL_PROVIDED: ppucEncodeBuffer_ either points to a null pointer or is
+    //! a null pointer itself.
+    //!   NO_DATABASE: No database was ever loaded into this component.
+    //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
+    //! but the buffer is already full or could not write the bytes without
+    //! over-running.
+    //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
+    //! encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS EncodeHeader(unsigned char** ppucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateHeader& stHeader_,
+                                      MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, ENCODEFORMAT eEncodeFormat_,
+                                      bool bIsEmbeddedHeader_ = false);
 
-   //----------------------------------------------------------------------------
-   //! \brief Encode an OEM message header from the provided intermediate header.
-   //
-   //! \param[out] ppucEncodeBuffer_ A pointer to the buffer to return the encoded
-   //! message to.
-   //! \param[in] uiEncodeBufferSize_ The length of ppcEncodeBuffer_.
-   //! \param[in] stHeader_ A reference to the decoded header intermediate.
-   //! This must be populated by the HeaderDecoder.
-   //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
-   //! populated by the encoder.
-   //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
-   //! containing relevant information about the decoded log.
-   //! This must be populated by the Framer and HeaderDecoder.
-   //! \param[in] eEncodeFormat_ The format to encode the message to.
-   //! \param[in] bIsEmbeddedHeader_ This header is embedded in an RXCONFIG
-   //! message, and should be treated as such.  Is a default argument and is
-   //! defaulted as false.
-   //
-   //! \return An error code describing the result of encoding.
-   //!   SUCCESS: The operation was successful.
-   //!   NULL_PROVIDED: ppucEncodeBuffer_ either points to a null pointer or is
-   //! a null pointer itself.
-   //!   NO_DATABASE: No database was ever loaded into this component.
-   //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
-   //! but the buffer is already full or could not write the bytes without
-   //! over-running.
-   //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
-   //! encoding.
-   //----------------------------------------------------------------------------
-   [[nodiscard]] STATUS
-   EncodeHeader(unsigned char** ppucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateHeader& stHeader_, MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, ENCODEFORMAT eEncodeFormat_, bool bIsEmbeddedHeader_ = false);
-
-   //----------------------------------------------------------------------------
-   //! \brief Encode an OEM message body from the provided intermediate message.
-   //
-   //! \param[out] ppucEncodeBuffer_ A pointer to the buffer to return the encoded
-   //! message to.
-   //! \param[in] uiEncodeBufferSize_ The length of ppcEncodeBuffer_.
-   //! \param[in] stMessage_ A reference to the decoded message intermediate.
-   //! This must be populated by the MessageDecoder.
-   //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
-   //! populated by the encoder.
-   //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
-   //! containing relevant information about the decoded log.
-   //! This must be populated by the Framer and HeaderDecoder.
-   //! \param[in] eEncodeFormat_ The format to encode the message to.
-   //
-   //! \return An error code describing the result of encoding.
-   //!   SUCCESS: The operation was successful.
-   //!   NULL_PROVIDED: ppucEncodeBuffer_ either points to a null pointer or is
-   //! a null pointer itself.
-   //!   NO_DATABASE: No database was ever loaded into this component.
-   //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
-   //! but the buffer is already full or could not write the bytes without
-   //! over-running.
-   //!   FAILURE: stMessageData_.pucMessageHeader is a null pointer.
-   //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
-   //! encoding.
-   //----------------------------------------------------------------------------
-   [[nodiscard]] STATUS
-   EncodeBody(unsigned char** ppucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateMessage& stMessage_, MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, ENCODEFORMAT eEncodeFormat_);
+    //----------------------------------------------------------------------------
+    //! \brief Encode an OEM message body from the provided intermediate message.
+    //
+    //! \param[out] ppucEncodeBuffer_ A pointer to the buffer to return the encoded
+    //! message to.
+    //! \param[in] uiEncodeBufferSize_ The length of ppcEncodeBuffer_.
+    //! \param[in] stMessage_ A reference to the decoded message intermediate.
+    //! This must be populated by the MessageDecoder.
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
+    //! populated by the encoder.
+    //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
+    //! containing relevant information about the decoded log.
+    //! This must be populated by the Framer and HeaderDecoder.
+    //! \param[in] eEncodeFormat_ The format to encode the message to.
+    //
+    //! \return An error code describing the result of encoding.
+    //!   SUCCESS: The operation was successful.
+    //!   NULL_PROVIDED: ppucEncodeBuffer_ either points to a null pointer or is
+    //! a null pointer itself.
+    //!   NO_DATABASE: No database was ever loaded into this component.
+    //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
+    //! but the buffer is already full or could not write the bytes without
+    //! over-running.
+    //!   FAILURE: stMessageData_.pucMessageHeader is a null pointer.
+    //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
+    //! encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS EncodeBody(unsigned char** ppucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateMessage& stMessage_,
+                                    MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, ENCODEFORMAT eEncodeFormat_);
 };
-}
+} // namespace novatel::edie::oem
 #endif // NOVATEL_ENCODER_HPP
