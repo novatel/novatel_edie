@@ -36,8 +36,8 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "decoders/novatel/api/message_decoder.hpp"
 #include "decoders/novatel/api/common.hpp"
+#include "decoders/novatel/api/message_decoder.hpp"
 #include "decoders_export.h"
 
 extern "C"
@@ -54,7 +54,8 @@ extern "C"
     DECODERS_EXPORT void novatel_message_decoder_load_json(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_);
 
     // R/W
-    DECODERS_EXPORT novatel::edie::STATUS novatel_message_decoder_decode(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_,
+    DECODERS_EXPORT novatel::edie::STATUS novatel_message_decoder_decode(novatel::edie::oem::MessageDecoder* pclMessageDecoder_,
+                                                                         unsigned char* pucLogBuf_,
                                                                          novatel::edie::IntermediateMessage* pstInterMessage_,
                                                                          novatel::edie::oem::MetaDataStruct* pstMetaData_);
 
