@@ -54,8 +54,7 @@ extern "C"
     DECODERS_EXPORT void novatel_message_decoder_load_json(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_);
 
     // R/W
-    DECODERS_EXPORT novatel::edie::STATUS novatel_message_decoder_decode(novatel::edie::oem::MessageDecoder* pclMessageDecoder_,
-                                                                         unsigned char* pucLogBuf_,
+    DECODERS_EXPORT novatel::edie::STATUS novatel_message_decoder_decode(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_,
                                                                          novatel::edie::IntermediateMessage* pstInterMessage_,
                                                                          novatel::edie::oem::MetaDataStruct* pstMetaData_);
 
