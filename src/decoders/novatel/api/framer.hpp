@@ -36,7 +36,7 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "decoders/common/api/framerinterface.hpp"
+#include "decoders/common/api/framer.hpp"
 #include "decoders/novatel/api/common.hpp"
 
 namespace novatel::edie::oem {
@@ -45,19 +45,15 @@ namespace novatel::edie::oem {
 //! \class Framer
 //! \brief Search bytes for patterns that could be OEM message.
 //============================================================================
-class Framer : public FramerInterface
+class Framer : public FramerBase
 {
   private:
-    // -------------------------------------------------------------------------------------------------------
-    NovAtelFrameStateEnum eMyFrameState{NovAtelFrameStateEnum::WAITING_FOR_SYNC};
-
-    bool bMyPayloadOnly{false};
-    bool bMyFrameJson{false};
+    NovAtelFrameState eMyFrameState{NovAtelFrameState::WAITING_FOR_SYNC};
 
     uint32_t uiMyJsonObjectOpenBraces{0};
     uint32_t uiMyAbbrevAsciiHeaderPosition{0};
 
-    virtual void HandleUnknownBytes(unsigned char* pucBuffer_, uint32_t uiUnknownBytes_);
+    void ResetState() override;
 
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
@@ -65,9 +61,8 @@ class Framer : public FramerInterface
     //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
     //----------------------------------------------------------------------------
     bool IsAsciiCRC(uint32_t uiDelimiterPosition_) const;
-    bool IsCRLF(uint32_t uiCircularBufferPosition_) const;
-    bool IsSpaceCRLF(uint32_t uiCircularBufferPosition_) const;
-    bool IsEmptyLine(uint32_t uiCircularBufferPosition_) const;
+    bool IsAbbrevSeparatorCRLF(uint32_t uiCircularBufferPosition_) const;
+    bool IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const;
     bool IsAbbrevAsciiResponse() const;
 
   public:
@@ -75,29 +70,6 @@ class Framer : public FramerInterface
     //! \brief A constructor for the Framer class.
     //----------------------------------------------------------------------------
     Framer();
-
-    //----------------------------------------------------------------------------
-    //! \brief A destructor for the Framer class.
-    //----------------------------------------------------------------------------
-    virtual ~Framer() = default;
-
-    //----------------------------------------------------------------------------
-    //! \brief Should the Framer look for JSON objects in provided bytes?
-    //! This setting can be extremely error prone, as there is no CRC search or
-    //! sync bytes, just direct comparisons to '{' and '}' characters.
-    //
-    //! \param[in] bFrameJson_ true if the Framer should search for JSON objects.
-    //----------------------------------------------------------------------------
-    void SetFrameJson(bool bFrameJson_);
-
-    //----------------------------------------------------------------------------
-    //! \brief Should the Framer return only the message body of OEM messages and
-    //! discard the header?
-    //
-    //! \param[in] bPayloadOnly_ true if the Framer should discard OEM message
-    //! headers.
-    //----------------------------------------------------------------------------
-    void SetPayloadOnly(bool bPayloadOnly_);
 
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
@@ -117,7 +89,6 @@ class Framer : public FramerInterface
     //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
-
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
 };
