@@ -57,10 +57,10 @@ constexpr auto uiCRCTable = [] {
 // --------------------------------------------------------------------------
 // Calculates the CRC-32 of a block of data one character for each call
 // --------------------------------------------------------------------------
-constexpr uint32_t CalculateCharacterCRC32(uint32_t uiCRC, unsigned char ucChar)
+constexpr void CalculateCharacterCRC32(uint32_t& uiCRC, unsigned char ucChar)
 {
     const uint32_t uiIndex = (uiCRC ^ ucChar) & 0xff;
-    return ((uiCRC >> 8) & 0x00FFFFFFL) ^ (uiCRCTable[uiIndex]);
+    uiCRC = ((uiCRC >> 8) & 0x00FFFFFFL) ^ (uiCRCTable[uiIndex]);
 }
 
 // --------------------------------------------------------------------------
@@ -68,7 +68,7 @@ constexpr uint32_t CalculateCharacterCRC32(uint32_t uiCRC, unsigned char ucChar)
 // --------------------------------------------------------------------------
 constexpr uint32_t CalculateBlockCRC32(uint32_t uiCount, uint32_t uiCRC, const unsigned char* ucBuffer)
 {
-    while (uiCount-- != 0) { uiCRC = CalculateCharacterCRC32(uiCRC, *ucBuffer++); }
+    while (uiCount-- != 0) { CalculateCharacterCRC32(uiCRC, *ucBuffer++); }
     return (uiCRC);
 }
 
