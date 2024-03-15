@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "decoders/common/api/crc32.hpp"
-#include "decoders/common/api/message_decoder.hpp"
+#include "decoders/novatel/api/message_decoder.hpp"
 #include "decoders/novatel/api/encoder.hpp"
 #include "decoders/novatel/api/filter.hpp"
 #include "decoders/novatel/api/framer.hpp"

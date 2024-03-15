@@ -2916,7 +2916,7 @@ protected:
 
       STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char** ppcLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
       {
-         return DecodeAscii(MsgDefFields_, const_cast<char**>(ppcLogBuf_), vIntermediateFormat_);
+         return DecodeAscii<false>(MsgDefFields_, const_cast<char**>(ppcLogBuf_), vIntermediateFormat_);
       }
 
       STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsigned char** ppucLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
@@ -3006,7 +3006,7 @@ protected:
 
       bool TestEncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
       {
-         return Encoder::EncodeBinaryBody(stInterMessage_, ppcOutBuf_, uiBytes, false);
+         return Encoder::EncodeBinaryBody<false>(stInterMessage_, ppcOutBuf_, uiBytes);
       }
    };
 
@@ -3144,7 +3144,7 @@ TEST_F(NovatelTypesTest, DISABLED_ASCII_SIMPLE_INVALID_SIZE)
 
 TEST_F(NovatelTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 {
-   MsgDefFields.emplace_back(new BaseField("INT_1", FIELD_TYPE::SIMPLE, CONVERSION_STRING::B, 1, DATA_TYPE::CHAR));
+   MsgDefFields.emplace_back(new BaseField("INT_1", FIELD_TYPE::SIMPLE, "%B", 1, DATA_TYPE::CHAR));
    std::vector<FieldContainer> vIntermediateFormat_;
    vIntermediateFormat_.reserve(1);
 
@@ -3157,7 +3157,7 @@ TEST_F(NovatelTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 
 TEST_F(NovatelTypesTest, ASCII_BOOL_INVALID_INPUT)
 {
-   MsgDefFields.emplace_back(new BaseField("B_True", FIELD_TYPE::SIMPLE, CONVERSION_STRING::d, 4, DATA_TYPE::BOOL));
+   MsgDefFields.emplace_back(new BaseField("B_True", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
    std::vector<FieldContainer> vIntermediateFormat_;
    vIntermediateFormat_.reserve(1);
 
@@ -3169,10 +3169,10 @@ TEST_F(NovatelTypesTest, ASCII_BOOL_INVALID_INPUT)
 
 TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
 {
-   MsgDefFields.emplace_back(new BaseField("Sec1", FIELD_TYPE::SIMPLE, CONVERSION_STRING::T, 4, DATA_TYPE::DOUBLE));
-   MsgDefFields.emplace_back(new BaseField("Sec2", FIELD_TYPE::SIMPLE, CONVERSION_STRING::T, 4, DATA_TYPE::DOUBLE));
-   MsgDefFields.emplace_back(new BaseField("Sec3", FIELD_TYPE::SIMPLE, CONVERSION_STRING::T, 4, DATA_TYPE::DOUBLE));
-   MsgDefFields.emplace_back(new BaseField("Sec4", FIELD_TYPE::SIMPLE, CONVERSION_STRING::T, 4, DATA_TYPE::DOUBLE));
+   MsgDefFields.emplace_back(new BaseField("Sec1", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
+   MsgDefFields.emplace_back(new BaseField("Sec2", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
+   MsgDefFields.emplace_back(new BaseField("Sec3", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
+   MsgDefFields.emplace_back(new BaseField("Sec4", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
    std::vector<FieldContainer> vIntermediateFormat_;
    vIntermediateFormat_.reserve(4);
 
@@ -3214,7 +3214,7 @@ TEST_F(NovatelTypesTest, ASCII_ENUM_VALID)
 
 TEST_F(NovatelTypesTest, ASCII_STRING_VALID)
 {
-   MsgDefFields.emplace_back(new BaseField("MESSAGE", FIELD_TYPE::STRING, CONVERSION_STRING::UNKNOWN, 1, DATA_TYPE::UNKNOWN));
+   MsgDefFields.emplace_back(new BaseField("MESSAGE", FIELD_TYPE::STRING, "", 1, DATA_TYPE::UNKNOWN));
    std::vector<FieldContainer> vIntermediateFormat;
    vIntermediateFormat.reserve(1);
 
@@ -3232,7 +3232,7 @@ TEST_F(NovatelTypesTest, ASCII_STRING_VALID)
 
 TEST_F(NovatelTypesTest, ASCII_TYPE_INVALID)
 {
-   MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, CONVERSION_STRING::UNKNOWN, 1, DATA_TYPE::UNKNOWN));
+   MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "", 1, DATA_TYPE::UNKNOWN));
    std::vector<FieldContainer> vIntermediateFormat_;
    vIntermediateFormat_.reserve(1);
 
@@ -3261,7 +3261,7 @@ TEST_F(NovatelTypesTest, BINARY_VALID)
 
 TEST_F(NovatelTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
-   MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::UNKNOWN, 1, DATA_TYPE::UNKNOWN));
+   MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "", 1, DATA_TYPE::UNKNOWN));
    std::vector<FieldContainer> vIntermediateFormat_;
 
    unsigned char* testInput = nullptr;
@@ -3271,7 +3271,7 @@ TEST_F(NovatelTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 
 TEST_F(NovatelTypesTest, BINARY_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, CONVERSION_STRING::UNKNOWN, 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
     
     unsigned char* testInput = nullptr;
@@ -3281,20 +3281,20 @@ TEST_F(NovatelTypesTest, BINARY_TYPE_INVALID)
 
 TEST_F(NovatelTypesTest, SIMPLE_FIELD_WIDTH_VALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::d,   4, DATA_TYPE::BOOL));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::XB,  1, DATA_TYPE::HEXBYTE));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::UB,  1, DATA_TYPE::UCHAR));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::B,   1, DATA_TYPE::CHAR));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::hu,  2, DATA_TYPE::USHORT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::hd,  2, DATA_TYPE::SHORT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::u,   4, DATA_TYPE::UINT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::lu,  4, DATA_TYPE::ULONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::d,   4, DATA_TYPE::INT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::ld,  4, DATA_TYPE::LONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::llu, 8, DATA_TYPE::ULONGLONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::lld, 8, DATA_TYPE::LONGLONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::f,   4, DATA_TYPE::FLOAT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, CONVERSION_STRING::lf,  8, DATA_TYPE::DOUBLE));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%d",   4, DATA_TYPE::BOOL));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%XB",  1, DATA_TYPE::HEXBYTE));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%UB",  1, DATA_TYPE::UCHAR));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%B",   1, DATA_TYPE::CHAR));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%hu",  2, DATA_TYPE::USHORT));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%hd",  2, DATA_TYPE::SHORT));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%u",   4, DATA_TYPE::UINT));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lu",  4, DATA_TYPE::ULONG));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%d",   4, DATA_TYPE::INT));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%ld",  4, DATA_TYPE::LONG));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%llu", 8, DATA_TYPE::ULONGLONG));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lld", 8, DATA_TYPE::LONGLONG));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%f",   4, DATA_TYPE::FLOAT));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lf",  8, DATA_TYPE::DOUBLE));
 
    [[maybe_unused]] IntermediateMessage vIntermediateFormat;
    vIntermediateFormat.reserve(MsgDefFields.size());

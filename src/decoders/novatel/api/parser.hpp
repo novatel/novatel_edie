@@ -39,7 +39,7 @@
 #include <exception>
 
 #include "decoders/common/api/common.hpp"
-#include "decoders/common/api/message_decoder.hpp"
+#include "decoders/novatel/api/message_decoder.hpp"
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/encoder.hpp"
 #include "decoders/novatel/api/filter.hpp"
