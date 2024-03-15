@@ -407,10 +407,9 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*> MsgDefField
         size_t tokenLength = strcspn(*ppucLogBuf_, acDelimiter3); // TODO: do we need to use acDelimiter3?
         if (ABBREVIATED && ConsumeAbbrevFormatting(tokenLength, ppucLogBuf_)) { tokenLength = strcspn(*ppucLogBuf_, acDelimiter3); }
 
-        // previously, we didnt do these malformed input checks in ascii, but I assume this was a bug
-        if (tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
+        // TODO: previously, we didnt do these malformed input checks in ascii, but I assume this was a bug
+        if (ABBREVIATED && tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
 
-        // previously, we didnt check for early end in abbreviated ascii, but I assume this was a bug
         bool bEarlyEndOfMessage = (*(*ppucLogBuf_ + tokenLength) == cDelimiter2);
 
         switch (field->type)
@@ -580,7 +579,8 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*> MsgDefField
             throw std::runtime_error("DecodeAscii(): Unknown field type");
         }
 
-        if (bEarlyEndOfMessage) { break; }
+        // TODO: previously, we didnt check for early end in abbreviated ascii, but I assume this was a bug
+        if (ABBREVIATED == false && bEarlyEndOfMessage) { break; }
     }
 
     return STATUS::SUCCESS;
