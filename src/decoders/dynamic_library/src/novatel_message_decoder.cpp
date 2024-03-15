@@ -35,21 +35,21 @@
 
 using namespace novatel::edie;
 
-bool novatel_message_decoder_set_logger_level(oem::MessageDecoder* pclMessageDecoder_, uint32_t uiLogLevel_)
+bool novatel_message_decoder_set_logger_level(MessageDecoder* pclMessageDecoder_, uint32_t uiLogLevel_)
 {
     return pclMessageDecoder_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclMessageDecoder_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
 
-void novatel_message_decoder_shutdown_logger(oem::MessageDecoder* pclMessageDecoder_)
+void novatel_message_decoder_shutdown_logger(MessageDecoder* pclMessageDecoder_)
 {
     if (pclMessageDecoder_) { pclMessageDecoder_->ShutdownLogger(); }
 }
 
-oem::MessageDecoder* novatel_message_decoder_init(JsonReader* pclJsonDb_) { return new oem::MessageDecoder(pclJsonDb_); }
+MessageDecoder* novatel_message_decoder_init(JsonReader* pclJsonDb_) { return new MessageDecoder(pclJsonDb_); }
 
-void novatel_message_decoder_delete(oem::MessageDecoder* pclMessageDecoder_)
+void novatel_message_decoder_delete(MessageDecoder* pclMessageDecoder_)
 {
     if (pclMessageDecoder_)
     {
@@ -58,12 +58,12 @@ void novatel_message_decoder_delete(oem::MessageDecoder* pclMessageDecoder_)
     }
 }
 
-void novatel_message_decoder_load_json(oem::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_)
+void novatel_message_decoder_load_json(MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_)
 {
     if (pclMessageDecoder_ && pclJsonDb_) { pclMessageDecoder_->LoadJsonDb(pclJsonDb_); }
 }
 
-STATUS novatel_message_decoder_decode(oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_, IntermediateMessage* pstInterMessage_,
+STATUS novatel_message_decoder_decode(MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_, IntermediateMessage* pstInterMessage_,
                                       oem::MetaDataStruct* pstMetaData_)
 {
     return pclMessageDecoder_ && pstInterMessage_ && pstMetaData_ ? pclMessageDecoder_->Decode(pucLogBuf_, *pstInterMessage_, *pstMetaData_)

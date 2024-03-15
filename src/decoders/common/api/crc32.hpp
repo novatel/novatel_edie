@@ -72,14 +72,4 @@ constexpr uint32_t CalculateBlockCRC32(uint32_t uiCount, uint32_t uiCRC, const u
     return (uiCRC);
 }
 
-// --------------------------------------------------------------------------
-// Calculates the CRC-32 for a string
-// --------------------------------------------------------------------------
-constexpr uint32_t CalculateBlockCRC32(const char* ucBuffer)
-{
-    uint32_t uiCRC = 0;
-    while (*ucBuffer != '\0') { uiCRC = CalculateCharacterCRC32(uiCRC, static_cast<unsigned char>(*ucBuffer++)); }
-    return (uiCRC);
-}
-
 #endif // CRC32_HPP

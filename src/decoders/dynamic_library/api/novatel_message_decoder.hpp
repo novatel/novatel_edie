@@ -36,25 +36,25 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
+#include "decoders/common/api/message_decoder.hpp"
 #include "decoders/novatel/api/common.hpp"
-#include "decoders/novatel/api/message_decoder.hpp"
 #include "decoders_export.h"
 
 extern "C"
 {
     // Logger
-    DECODERS_EXPORT bool novatel_message_decoder_set_logger_level(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, uint32_t iLogLevel_);
-    DECODERS_EXPORT void novatel_message_decoder_shutdown_logger(novatel::edie::oem::MessageDecoder* pclMessageDecoder_);
+    DECODERS_EXPORT bool novatel_message_decoder_set_logger_level(novatel::edie::MessageDecoder* pclMessageDecoder_, uint32_t iLogLevel_);
+    DECODERS_EXPORT void novatel_message_decoder_shutdown_logger(novatel::edie::MessageDecoder* pclMessageDecoder_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::MessageDecoder* novatel_message_decoder_init(JsonReader* pclJsonDb_);
-    DECODERS_EXPORT void novatel_message_decoder_delete(novatel::edie::oem::MessageDecoder* pclMessageDecoder_);
+    DECODERS_EXPORT novatel::edie::MessageDecoder* novatel_message_decoder_init(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void novatel_message_decoder_delete(novatel::edie::MessageDecoder* pclMessageDecoder_);
 
     // Config
-    DECODERS_EXPORT void novatel_message_decoder_load_json(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void novatel_message_decoder_load_json(novatel::edie::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_);
 
     // R/W
-    DECODERS_EXPORT novatel::edie::STATUS novatel_message_decoder_decode(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_,
+    DECODERS_EXPORT novatel::edie::STATUS novatel_message_decoder_decode(novatel::edie::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_,
                                                                          novatel::edie::IntermediateMessage* pstInterMessage_,
                                                                          novatel::edie::oem::MetaDataStruct* pstMetaData_);
 

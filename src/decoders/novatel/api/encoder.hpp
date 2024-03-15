@@ -41,7 +41,6 @@
 #include <nlohmann/json.hpp>
 
 #include "decoders/common/api/common.hpp"
-#include "decoders/common/api/encoder.hpp"
 #include "decoders/common/api/jsonreader.hpp"
 #include "decoders/common/api/message_decoder.hpp"
 #include "decoders/novatel/api/common.hpp"
@@ -54,22 +53,89 @@ namespace novatel::edie::oem {
 //! \class Encoder
 //! \brief Class to encode OEM messages.
 //============================================================================
-class Encoder : public EncoderBase
+class Encoder
 {
   private:
+    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_encoder")};
+    uint32_t uiMyAbbrevAsciiIndentationLevel;
+    JsonReader* pclMyMsgDb{nullptr};
+    MessageDefinition stMyRespDef;
+    EnumDefinition* vMyRespDefns{nullptr};
+    EnumDefinition* vMyCommandDefns{nullptr};
+    EnumDefinition* vMyPortAddrDefns{nullptr};
+    EnumDefinition* vMyGPSTimeStatusDefns{nullptr};
+
+    // Inline buffer functions
+    [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, ...)
+    {
+        va_list args;
+        va_start(args, szFormat_);
+        const uint32_t uiBytesBuffered = vsnprintf(*ppcBuffer_, uiBytesLeft_, szFormat_, args);
+        va_end(args);
+        if (uiBytesLeft_ < uiBytesBuffered) { return false; }
+        *ppcBuffer_ += uiBytesBuffered;
+        uiBytesLeft_ -= uiBytesBuffered;
+        return true;
+    }
+
+    template <typename T> void MakeConversionString(const FieldContainer& fc_, char* acNewConvertString)
+    {
+        const int32_t iBeforePoint = fc_.field_def->conversionBeforePoint;
+        const int32_t iAfterPoint = fc_.field_def->conversionAfterPoint;
+        const auto floatVal = std::get<T>(fc_.field_value);
+
+        [[maybe_unused]] int result;
+
+        if (fabs(floatVal) < std::numeric_limits<T>::epsilon())
+            result = snprintf(acNewConvertString, 7, "%%0.%df", iAfterPoint);
+        else if ((iAfterPoint == 0) && (iBeforePoint == 0))
+            result = snprintf(acNewConvertString, 7, "%%0.1f");
+        else if (fabs(floatVal) > pow(10.0, iBeforePoint))
+            result = snprintf(acNewConvertString, 7, "%%0.%de", iBeforePoint + iAfterPoint - 1);
+        else if (fabs(floatVal) < pow(10.0, -iBeforePoint))
+            result = snprintf(acNewConvertString, 7, "%%0.%de", iAfterPoint);
+        else
+            result = snprintf(acNewConvertString, 7, "%%0.%df", iAfterPoint);
+
+        assert(0 <= result && result < 7);
+    }
+
+    template <typename T> [[nodiscard]] bool CopyToBuffer(unsigned char** ppucBuffer_, uint32_t& uiBytesLeft_, T* ptItem_)
+    {
+        uint32_t uiItemSize_;
+
+        if constexpr (std::is_same<T, const char>())
+            uiItemSize_ = static_cast<uint32_t>(strlen(ptItem_));
+        else
+            uiItemSize_ = sizeof(*ptItem_);
+
+        if (uiBytesLeft_ < uiItemSize_) { return false; }
+        memcpy(*ppucBuffer_, ptItem_, uiItemSize_);
+        *ppucBuffer_ += uiItemSize_;
+        uiBytesLeft_ -= uiItemSize_;
+        return true;
+    }
+
+    [[nodiscard]] bool SetInBuffer(unsigned char** ppucBuffer_, uint32_t& uiBytesLeft_, int32_t iItem_, uint32_t uiItemSize_)
+    {
+        if (uiBytesLeft_ < uiItemSize_) { return false; }
+        memset(*ppucBuffer_, iItem_, uiItemSize_);
+        *ppucBuffer_ += uiItemSize_;
+        uiBytesLeft_ -= uiItemSize_;
+        return true;
+    }
+
     // Enum util functions
     void InitEnumDefns();
-    static void InitFieldMaps();
+    void CreateResponseMsgDefns();
     std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
 
   protected:
-    char separatorASCII() const override { return OEM4_ASCII_FIELD_SEPARATOR; };
-    char separatorAbbASCII() const override { return OEM4_ABBREV_ASCII_SEPARATOR; };
-    uint32_t indentationLengthAbbASCII() const override { return OEM4_ABBREV_ASCII_INDENTATION_LENGTH; };
-
     // Encode binary
     [[nodiscard]] bool EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
     [[nodiscard]] bool EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                        bool bFlatten_);
     [[nodiscard]] bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
     // Encode ascii
@@ -78,10 +144,15 @@ class Encoder : public EncoderBase
     [[nodiscard]] bool EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                bool bIsEmbeddedHeader_ = false);
     [[nodiscard]] bool EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAsciiBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAbbrevAsciiBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool FieldToAscii(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
     // Encode JSON
     [[nodiscard]] bool EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
     [[nodiscard]] bool EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeJsonBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool FieldToJson(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
   public:
     //----------------------------------------------------------------------------
@@ -90,6 +161,32 @@ class Encoder : public EncoderBase
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object.  Defaults to nullptr.
     //----------------------------------------------------------------------------
     Encoder(JsonReader* pclJsonDb_ = nullptr);
+
+    //----------------------------------------------------------------------------
+    //! \brief Load a JsonReader object.
+    //
+    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
+    //----------------------------------------------------------------------------
+    void LoadJsonDb(JsonReader* pclJsonDb_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the internal logger.
+    //
+    //! \return A shared_ptr to the spdlog::logger.
+    //----------------------------------------------------------------------------
+    std::shared_ptr<spdlog::logger> GetLogger() const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Set the level of detail produced by the internal logger.
+    //
+    //! \param[in] eLevel_  The logging level to enable.
+    //----------------------------------------------------------------------------
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Shutdown the internal logger.
+    //----------------------------------------------------------------------------
+    static void ShutdownLogger();
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message from the provided intermediate structures.

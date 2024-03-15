@@ -46,7 +46,6 @@
 #include <unordered_map>
 
 #include "common.hpp"
-#include "crc32.hpp"
 
 using nlohmann::json;
 
@@ -81,12 +80,72 @@ class JsonReaderFailure : public std::exception
 };
 
 //-----------------------------------------------------------------------
+//! \enum CONVERSION_STRING
+//! \brief Conversion string represented as an enum.
+//-----------------------------------------------------------------------
+enum class CONVERSION_STRING
+{
+    // Signed & Unsigned Integers
+    d,
+    ld,
+    hd,
+    lld,
+    u,
+    lu,
+    hu,
+    llu,
+    // Single Chars/Bytes & Hexadecimal
+    c,
+    uc,
+    Z,
+    B,
+    UB,
+    XB,
+    x,
+    X,
+    lx,
+    ucb,
+    // Floating Point & Scientific Notation
+    f,
+    lf,
+    k,
+    lk,
+    e,
+    le,
+    g,
+    lg,
+    // Strings & Bytestream
+    P,
+    s,
+    S,
+    // NovAtel types
+    id, // SATELLITEID
+    R,  // RXCONFIG
+    m,  // MessageName
+    T,  // GPSTime value (<int value>/1000.0)
+    UNKNOWN
+};
+
+//!< Mapping from String to data type enums.
+static std::unordered_map<std::string, CONVERSION_STRING> const ConversionStringEnumLookup = {
+    {"%d", CONVERSION_STRING::d},   {"%ld", CONVERSION_STRING::ld},   {"%hd", CONVERSION_STRING::hd}, {"%lld", CONVERSION_STRING::lld},
+    {"%u", CONVERSION_STRING::u},   {"%lu", CONVERSION_STRING::lu},   {"%hu", CONVERSION_STRING::hu}, {"%llu", CONVERSION_STRING::llu},
+    {"%c", CONVERSION_STRING::c},   {"%uc", CONVERSION_STRING::uc},   {"%B", CONVERSION_STRING::B},   {"%UB", CONVERSION_STRING::UB},
+    {"%XB", CONVERSION_STRING::XB}, {"%Z", CONVERSION_STRING::Z},     {"%x", CONVERSION_STRING::x},   {"%X", CONVERSION_STRING::X},
+    {"%lx", CONVERSION_STRING::lx}, {"%ucb", CONVERSION_STRING::ucb}, {"%f", CONVERSION_STRING::f},   {"%lf", CONVERSION_STRING::lf},
+    {"%k", CONVERSION_STRING::k},   {"%lk", CONVERSION_STRING::lk},   {"%e", CONVERSION_STRING::e},   {"%le", CONVERSION_STRING::le},
+    {"%g", CONVERSION_STRING::g},   {"%lg", CONVERSION_STRING::lg},   {"%P", CONVERSION_STRING::P},   {"%s", CONVERSION_STRING::s},
+    {"%S", CONVERSION_STRING::S},   {"%id", CONVERSION_STRING::id},   {"%R", CONVERSION_STRING::R},   {"%m", CONVERSION_STRING::m},
+    {"%T", CONVERSION_STRING::T}};
+
+//-----------------------------------------------------------------------
 //! \enum DATA_TYPE
 //! \brief Data type name string represented as an enum.
 //-----------------------------------------------------------------------
 enum class DATA_TYPE
 {
     BOOL,
+    HEXBYTE,
     CHAR,
     UCHAR,
     SHORT,
@@ -99,7 +158,8 @@ enum class DATA_TYPE
     ULONGLONG,
     FLOAT,
     DOUBLE,
-    HEXBYTE,
+    EMBEDDED_HEADER,
+    EMBEDDED_BODY,
     SATELLITEID,
     UNKNOWN
 };
@@ -107,54 +167,49 @@ enum class DATA_TYPE
 //!< returns the size associated with a datatype
 constexpr size_t DataTypeSize(DATA_TYPE eType)
 {
-    return eType == DATA_TYPE::BOOL          ? sizeof(int32_t)
-           : eType == DATA_TYPE::HEXBYTE     ? sizeof(uint8_t)
-           : eType == DATA_TYPE::CHAR        ? sizeof(int8_t)
-           : eType == DATA_TYPE::UCHAR       ? sizeof(uint8_t)
-           : eType == DATA_TYPE::SHORT       ? sizeof(int16_t)
-           : eType == DATA_TYPE::USHORT      ? sizeof(uint16_t)
-           : eType == DATA_TYPE::INT         ? sizeof(int32_t)
-           : eType == DATA_TYPE::UINT        ? sizeof(uint32_t)
-           : eType == DATA_TYPE::LONG        ? sizeof(int32_t)
-           : eType == DATA_TYPE::ULONG       ? sizeof(uint32_t)
-           : eType == DATA_TYPE::LONGLONG    ? sizeof(int64_t)
-           : eType == DATA_TYPE::ULONGLONG   ? sizeof(uint64_t)
-           : eType == DATA_TYPE::FLOAT       ? sizeof(float)
-           : eType == DATA_TYPE::DOUBLE      ? sizeof(double)
-           : eType == DATA_TYPE::SATELLITEID ? sizeof(uint32_t)
-                                             : 0;
+    return eType == DATA_TYPE::BOOL        ? sizeof(int32_t)
+           : eType == DATA_TYPE::HEXBYTE   ? sizeof(uint8_t)
+           : eType == DATA_TYPE::CHAR      ? sizeof(int8_t)
+           : eType == DATA_TYPE::UCHAR     ? sizeof(uint8_t)
+           : eType == DATA_TYPE::SHORT     ? sizeof(int16_t)
+           : eType == DATA_TYPE::USHORT    ? sizeof(uint16_t)
+           : eType == DATA_TYPE::INT       ? sizeof(int32_t)
+           : eType == DATA_TYPE::UINT      ? sizeof(uint32_t)
+           : eType == DATA_TYPE::LONG      ? sizeof(int32_t)
+           : eType == DATA_TYPE::ULONG     ? sizeof(uint32_t)
+           : eType == DATA_TYPE::LONGLONG  ? sizeof(int64_t)
+           : eType == DATA_TYPE::ULONGLONG ? sizeof(uint64_t)
+           : eType == DATA_TYPE::FLOAT     ? sizeof(float)
+           : eType == DATA_TYPE::DOUBLE    ? sizeof(double)
+                                           : 0;
 }
 
-// TODO: this table is misleading, as one DATA_TYPE may correspond to many different conversion strings
 //!< returns conversion string associated with a datatype
-inline std::string DataTypeConversion(DATA_TYPE eType)
+constexpr CONVERSION_STRING DataTypeConversion(DATA_TYPE eType)
 {
-    return eType == DATA_TYPE::BOOL          ? "%d"
-           : eType == DATA_TYPE::CHAR        ? "%c"
-           : eType == DATA_TYPE::UCHAR       ? "%uc"
-           : eType == DATA_TYPE::SHORT       ? "%hd"
-           : eType == DATA_TYPE::USHORT      ? "%hu"
-           : eType == DATA_TYPE::INT         ? "%d"
-           : eType == DATA_TYPE::UINT        ? "%u"
-           : eType == DATA_TYPE::LONG        ? "%ld"
-           : eType == DATA_TYPE::ULONG       ? "%lu"
-           : eType == DATA_TYPE::LONGLONG    ? "%lld"
-           : eType == DATA_TYPE::ULONGLONG   ? "%llu"
-           : eType == DATA_TYPE::FLOAT       ? "%f"
-           : eType == DATA_TYPE::DOUBLE      ? "%lf"
-           : eType == DATA_TYPE::HEXBYTE     ? "%Z" // these are not valid default conversion strings
-           : eType == DATA_TYPE::SATELLITEID ? "%id"
-                                             : "";
+    return eType == DATA_TYPE::BOOL        ? CONVERSION_STRING::d
+           : eType == DATA_TYPE::HEXBYTE   ? CONVERSION_STRING::XB
+           : eType == DATA_TYPE::CHAR      ? CONVERSION_STRING::c
+           : eType == DATA_TYPE::UCHAR     ? CONVERSION_STRING::uc
+           : eType == DATA_TYPE::SHORT     ? CONVERSION_STRING::hd
+           : eType == DATA_TYPE::USHORT    ? CONVERSION_STRING::hu
+           : eType == DATA_TYPE::INT       ? CONVERSION_STRING::d
+           : eType == DATA_TYPE::UINT      ? CONVERSION_STRING::u
+           : eType == DATA_TYPE::LONG      ? CONVERSION_STRING::ld
+           : eType == DATA_TYPE::ULONG     ? CONVERSION_STRING::lu
+           : eType == DATA_TYPE::LONGLONG  ? CONVERSION_STRING::lld
+           : eType == DATA_TYPE::ULONGLONG ? CONVERSION_STRING::llu
+           : eType == DATA_TYPE::FLOAT     ? CONVERSION_STRING::f
+           : eType == DATA_TYPE::DOUBLE    ? CONVERSION_STRING::lf
+                                           : CONVERSION_STRING::UNKNOWN;
 }
 
 //!< Mapping from String to data type enums.
 static std::unordered_map<std::string, DATA_TYPE> const DataTypeEnumLookup = {
-    {"BOOL", DATA_TYPE::BOOL},      {"HEXBYTE", DATA_TYPE::HEXBYTE},   {"CHAR", DATA_TYPE::CHAR},
-    {"UCHAR", DATA_TYPE::UCHAR},    {"SHORT", DATA_TYPE::SHORT},       {"USHORT", DATA_TYPE::USHORT},
-    {"INT", DATA_TYPE::INT},        {"UINT", DATA_TYPE::UINT},         {"LONG", DATA_TYPE::LONG},
-    {"ULONG", DATA_TYPE::ULONG},    {"LONGLONG", DATA_TYPE::LONGLONG}, {"ULONGLONG", DATA_TYPE::ULONGLONG},
-    {"FLOAT", DATA_TYPE::FLOAT},    {"DOUBLE", DATA_TYPE::DOUBLE},     {"SATELLITEID", DATA_TYPE::SATELLITEID},
-    {"UNKNOWN", DATA_TYPE::UNKNOWN}};
+    {"BOOL", DATA_TYPE::BOOL},   {"HEXBYTE", DATA_TYPE::HEXBYTE}, {"CHAR", DATA_TYPE::CHAR},         {"UCHAR", DATA_TYPE::UCHAR},
+    {"SHORT", DATA_TYPE::SHORT}, {"USHORT", DATA_TYPE::USHORT},   {"INT", DATA_TYPE::INT},           {"UINT", DATA_TYPE::UINT},
+    {"LONG", DATA_TYPE::LONG},   {"ULONG", DATA_TYPE::ULONG},     {"LONGLONG", DATA_TYPE::LONGLONG}, {"ULONGLONG", DATA_TYPE::ULONGLONG},
+    {"FLOAT", DATA_TYPE::FLOAT}, {"DOUBLE", DATA_TYPE::DOUBLE},   {"UNKNOWN", DATA_TYPE::UNKNOWN}};
 
 //-----------------------------------------------------------------------
 //! \enum FIELD_TYPE
@@ -246,18 +301,16 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
-    std::string sConversionStripped;
-    uint32_t conversionHash{0ULL};
+    CONVERSION_STRING conversionStripped{CONVERSION_STRING::UNKNOWN};
     int32_t conversionBeforePoint{0};
     int32_t conversionAfterPoint{0};
     SimpleDataType dataType;
 
     BaseField() = default;
 
-    BaseField(std::string name_, FIELD_TYPE type_, std::string sConversion_, size_t length_, DATA_TYPE eDataTypeName_)
-        : name(std::move(name_)), type(type_)
+    BaseField(std::string name_, FIELD_TYPE type_, CONVERSION_STRING conversionStripped_, size_t length_, DATA_TYPE eDataTypeName_)
+        : name(std::move(name_)), type(type_), conversionStripped(conversionStripped_)
     {
-        setConversion(sConversion_);
         dataType.length = static_cast<uint16_t>(length_);
         dataType.name = eDataTypeName_;
     }
@@ -269,14 +322,18 @@ struct BaseField
     void setConversion(const std::string& sConversion)
     {
         conversion = sConversion;
-        parseConversion(sConversionStripped, conversionBeforePoint, conversionAfterPoint);
-        conversionHash = CalculateBlockCRC32(sConversionStripped.c_str());
+        std::string strStrippedConversionString;
+        parseConversion(strStrippedConversionString, conversionBeforePoint, conversionAfterPoint);
+        const auto itrConversionStringMapping = ConversionStringEnumLookup.find(strStrippedConversionString);
+        conversionStripped =
+            itrConversionStringMapping != ConversionStringEnumLookup.end() ? itrConversionStringMapping->second : CONVERSION_STRING::UNKNOWN;
     }
 
-    void parseConversion(std::string& strStrippedConversionString_, int32_t& iBeforePoint_, int32_t& iAfterPoint_) const
+    void parseConversion(std::string& strStrippedConversionString_, int32_t& iBeforePoint_, int32_t& AfterPoint_) const
     {
+        bool bIsBeforePoint = true;
         const char* sConvertString = conversion.c_str();
-        int32_t* iSelectedPoint = &iBeforePoint_;
+        int32_t iBytesRead;
 
         while (*sConvertString)
         {
@@ -285,12 +342,28 @@ struct BaseField
             if ((0 == memcmp(sConvertString, "0x", 2)) && (0 != strcmp(sConvertString, "0x"))) { sConvertString += 2; }
 
             // If the value "10" or greater is found from the conversion string, two bytes would
-            // need to be consumed from the string to move past that value. Otherwise only one byte
+            // need to be consumed from the string to move past that value.  Otherwise only one byte
             // is necessary to consume.
-            if (*sConvertString >= '0' && *sConvertString <= '9')
+            if ((*sConvertString >= '0') && (*sConvertString <= '9'))
             {
-                sscanf(sConvertString, "%d.", iSelectedPoint);
-                sConvertString = sConvertString + (*iSelectedPoint > 9 ? 2 : 1); // Skip the numerals
+                if (bIsBeforePoint) // before point
+                {
+                    sscanf(sConvertString, "%d.", &iBeforePoint_);
+                    if (iBeforePoint_ > 9)
+                        iBytesRead = 2;
+                    else
+                        iBytesRead = 1;
+                    sConvertString = sConvertString + iBytesRead; // Skip the numerals
+                }
+                else
+                {
+                    sscanf(sConvertString, "%d", &AfterPoint_);
+                    if (AfterPoint_ > 9)
+                        iBytesRead = 2;
+                    else
+                        iBytesRead = 1;
+                    sConvertString = sConvertString + iBytesRead; // Skip the numerals
+                }
             }
 
             if (std::isalpha(*sConvertString) || *sConvertString == '%')
@@ -301,18 +374,11 @@ struct BaseField
 
             if (*sConvertString == '.')
             {
-                iSelectedPoint = &iAfterPoint_;
+                bIsBeforePoint = false; // Found the decimal
                 sConvertString++;
             }
         }
     }
-
-    bool isString() const
-    {
-        return type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCRC32("%s") || conversionHash == CalculateBlockCRC32("%S");
-    }
-
-    bool isCSV() const { return !(isString() || conversionHash == CalculateBlockCRC32("%Z") || conversionHash == CalculateBlockCRC32("%P")); }
 };
 
 //-----------------------------------------------------------------------
@@ -438,7 +504,8 @@ struct MessageDefinition
             for (const auto& fielddefs : that.fields)
             {
                 uint32_t key = fielddefs.first;
-                // Ensure a 0-length vector exists for this key in the case the message has no fields.
+                // Ensure a 0-length vector exists for this key in the case the message has no
+                // fields.
                 fields[key] = std::vector<novatel::edie::BaseField*>();
                 for (const auto& field : fielddefs.second) { fields[key].emplace_back(field->clone()); }
             }
