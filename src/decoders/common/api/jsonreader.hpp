@@ -537,8 +537,6 @@ void from_json(const json& j, EnumDefinition& ed);
 // Forward declaration of parse_fields
 uint32_t parse_fields(const json& j, std::vector<novatel::edie::BaseField*>& vFields);
 
-} // namespace novatel::edie
-
 //============================================================================
 //! \class JsonReader
 //! \brief Responsible for translating the Json representation of the
@@ -757,5 +755,7 @@ class JsonReader
                        [strEnumeration_](novatel::edie::EnumDefinition elem) { return (elem.name == strEnumeration_); });
     }
 };
+
+} // namespace novatel::edie
 
 #endif
