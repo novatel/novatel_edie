@@ -183,11 +183,11 @@ template <typename T> void JsonReader::LoadFile(T filePath)
         json_file.open(std::filesystem::path(filePath), std::ios::in);
         json jDefinitions = json::parse(json_file);
 
-        vMessageDefinitions.clear();
-        for (const auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(msg); }
+        vMsgDefs.clear();
+        for (const auto& msg : jDefinitions["messages"]) { vMsgDefs.push_back(msg); }
 
-        vEnumDefinitions.clear();
-        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
+        vEnumDefs.clear();
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefs.push_back(enm); }
 
         GenerateMappings();
     }
@@ -206,11 +206,11 @@ template <> void JsonReader::LoadFile<std::string>(std::string filePath)
         json_file.open(filePath, std::ios::in);
         json jDefinitions = json::parse(json_file);
 
-        vMessageDefinitions.clear();
-        for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(msg); }
+        vMsgDefs.clear();
+        for (auto& msg : jDefinitions["messages"]) { vMsgDefs.push_back(msg); }
 
-        vEnumDefinitions.clear();
-        for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
+        vEnumDefs.clear();
+        for (auto& enm : jDefinitions["enums"]) { vEnumDefs.push_back(enm); }
 
         GenerateMappings();
     }
@@ -232,13 +232,13 @@ template <typename T> void JsonReader::AppendMessages(T filePath_)
         for (const auto& msg : jDefinitions["messages"])
         {
             RemoveMessage(msg["logID"], false);
-            vMessageDefinitions.push_back(msg);
+            vMsgDefs.push_back(msg);
         }
 
         for (const auto& enm : jDefinitions["enums"])
         {
             RemoveEnumeration(enm["name"], false);
-            vEnumDefinitions.push_back(enm);
+            vEnumDefs.push_back(enm);
         }
 
         GenerateMappings();
@@ -259,7 +259,7 @@ template <typename T> void JsonReader::AppendEnumerations(T filePath_)
         json jDefinitions = json::parse(json_file);
 
         // The JSON object is converted to a EnumDefinition object here
-        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefs.push_back(enm); }
 
         GenerateMappings();
     }
@@ -288,10 +288,10 @@ void JsonReader::RemoveMessage(uint32_t iMsgId_, bool bGenerateMappings_)
     std::vector<MessageDefinition>::iterator iTer;
     iTer = GetMessageIt(iMsgId_);
 
-    if (iTer != vMessageDefinitions.end())
+    if (iTer != vMsgDefs.end())
     {
         RemoveMessageMapping(*iTer);
-        vMessageDefinitions.erase(iTer);
+        vMsgDefs.erase(iTer);
     }
 
     if (bGenerateMappings_) GenerateMappings();
@@ -303,10 +303,10 @@ void JsonReader::RemoveEnumeration(std::string strEnumeration_, bool bGenerateMa
     std::vector<EnumDefinition>::iterator iTer;
     iTer = GetEnumIt(strEnumeration_);
 
-    if (iTer != vEnumDefinitions.end())
+    if (iTer != vEnumDefs.end())
     {
         RemoveEnumerationMapping(*iTer);
-        vEnumDefinitions.erase(iTer);
+        vEnumDefs.erase(iTer);
     }
 
     if (bGenerateMappings_) GenerateMappings();
@@ -317,11 +317,11 @@ void JsonReader::ParseJson(const std::string& strJsonData_)
 {
     json jDefinitions = json::parse(strJsonData_);
 
-    vMessageDefinitions.clear();
-    for (const auto& msg : jDefinitions["logs"]) { vMessageDefinitions.push_back(msg); }
+    vMsgDefs.clear();
+    for (const auto& msg : jDefinitions["logs"]) { vMsgDefs.push_back(msg); }
 
-    vEnumDefinitions.clear();
-    for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
+    vEnumDefs.clear();
+    for (const auto& enm : jDefinitions["enums"]) { vEnumDefs.push_back(enm); }
 
     GenerateMappings();
 }
@@ -390,7 +390,7 @@ std::string JsonReader::MsgIdToMsgName(const uint32_t uiMessageID_) const
     UnpackMsgID(uiMessageID_, usLogID, uiSiblingID, uiMessageFormat, uiResponse);
 
     const MessageDefinition* pstMessageDefinition = GetMsgDef(usLogID);
-    std::string strMessageName = pstMessageDefinition ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions.data(), usLogID);
+    std::string strMessageName = pstMessageDefinition ? pstMessageDefinition->name : GetEnumString(vEnumDefs.data(), usLogID);
 
     std::string strMessageFormatSuffix = uiResponse                                                        ? "R"
                                          : uiMessageFormat == static_cast<uint32_t>(MESSAGEFORMAT::BINARY) ? "B"
@@ -405,16 +405,16 @@ std::string JsonReader::MsgIdToMsgName(const uint32_t uiMessageID_) const
 //-----------------------------------------------------------------------
 const MessageDefinition* JsonReader::GetMsgDef(const std::string& strMsgName_) const
 {
-    const auto it = mMessageName.find(strMsgName_);
-    return it != mMessageName.end() ? it->second : nullptr;
+    const auto it = mMsgName.find(strMsgName_);
+    return it != mMsgName.end() ? it->second : nullptr;
 }
 
 //-----------------------------------------------------------------------
 // TODO: need to look into the map and find the right crc and return the msg def for that CRC
 const MessageDefinition* JsonReader::GetMsgDef(int32_t iMsgID) const
 {
-    const auto it = mMessageID.find(iMsgID);
-    return it != mMessageID.end() ? it->second : nullptr;
+    const auto it = mMsgID.find(iMsgID);
+    return it != mMsgID.end() ? it->second : nullptr;
 }
 
 // -------------------------------------------------------------------------------------------------------

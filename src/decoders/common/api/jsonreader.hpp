@@ -543,10 +543,10 @@ uint32_t parse_fields(const json& j, std::vector<BaseField*>& vFields);
 //============================================================================
 class JsonReader
 {
-    std::vector<MessageDefinition> vMessageDefinitions;
-    std::vector<EnumDefinition> vEnumDefinitions;
-    std::unordered_map<std::string, MessageDefinition*> mMessageName;
-    std::unordered_map<int32_t, MessageDefinition*> mMessageID;
+    std::vector<MessageDefinition> vMsgDefs;
+    std::vector<EnumDefinition> vEnumDefs;
+    std::unordered_map<std::string, MessageDefinition*> mMsgName;
+    std::unordered_map<int32_t, MessageDefinition*> mMsgID;
     std::unordered_map<std::string, EnumDefinition*> mEnumName;
     std::unordered_map<std::string, EnumDefinition*> mEnumID;
 
@@ -564,8 +564,8 @@ class JsonReader
     JsonReader(const JsonReader& that)
     {
         // TODO Verify it's calling the copy constructor for the messages
-        vEnumDefinitions = that.vEnumDefinitions;
-        vMessageDefinitions = that.vMessageDefinitions;
+        vEnumDefs = that.vEnumDefs;
+        vMsgDefs = that.vMsgDefs;
         GenerateMappings();
     }
 
@@ -578,8 +578,8 @@ class JsonReader
     {
         if (this != &that)
         {
-            vEnumDefinitions = that.vEnumDefinitions;
-            vMessageDefinitions = that.vMessageDefinitions;
+            vEnumDefs = that.vEnumDefs;
+            vMsgDefs = that.vMsgDefs;
             GenerateMappings();
         }
 
@@ -686,16 +686,16 @@ class JsonReader
   private:
     void GenerateMappings()
     {
-        for (EnumDefinition& enm : vEnumDefinitions)
+        for (EnumDefinition& enm : vEnumDefs)
         {
             mEnumName[enm.name] = &enm;
             mEnumID[enm._id] = &enm;
         }
 
-        for (MessageDefinition& msg : vMessageDefinitions)
+        for (MessageDefinition& msg : vMsgDefs)
         {
-            mMessageName[msg.name] = &msg;
-            mMessageID[msg.logID] = &msg;
+            mMsgName[msg.name] = &msg;
+            mMsgID[msg.logID] = &msg;
 
             for (const auto& field : msg.fields) { MapMessageEnumFields(field.second); }
         }
@@ -716,11 +716,11 @@ class JsonReader
     void RemoveMessageMapping(MessageDefinition& msg)
     {
         // Check string against name map
-        auto itName = mMessageName.find(msg.name);
-        if (itName != mMessageName.end()) mMessageName.erase(itName);
+        auto itName = mMsgName.find(msg.name);
+        if (itName != mMsgName.end()) mMsgName.erase(itName);
 
-        auto itId = mMessageID.find(msg.logID);
-        if (itId != mMessageID.end()) mMessageID.erase(itId);
+        auto itId = mMsgID.find(msg.logID);
+        if (itId != mMsgID.end()) mMsgID.erase(itId);
     }
 
     void RemoveEnumerationMapping(EnumDefinition& enm)
@@ -735,19 +735,17 @@ class JsonReader
 
     std::vector<MessageDefinition>::iterator GetMessageIt(uint32_t iMsgId_)
     {
-        return find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(), [iMsgId_](MessageDefinition elem) { return (elem.logID == iMsgId_); });
+        return find_if(vMsgDefs.begin(), vMsgDefs.end(), [iMsgId_](MessageDefinition elem) { return (elem.logID == iMsgId_); });
     }
 
     std::vector<MessageDefinition>::iterator GetMessageIt(const std::string& strMessage_)
     {
-        return find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                       [strMessage_](MessageDefinition elem) { return (elem.name == strMessage_); });
+        return find_if(vMsgDefs.begin(), vMsgDefs.end(), [strMessage_](MessageDefinition elem) { return (elem.name == strMessage_); });
     }
 
     std::vector<EnumDefinition>::iterator GetEnumIt(const std::string& strEnumeration_)
     {
-        return find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
-                       [strEnumeration_](EnumDefinition elem) { return (elem.name == strEnumeration_); });
+        return find_if(vEnumDefs.begin(), vEnumDefs.end(), [strEnumeration_](EnumDefinition elem) { return (elem.name == strEnumeration_); });
     }
 };
 
