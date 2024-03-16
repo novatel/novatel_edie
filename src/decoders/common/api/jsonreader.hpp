@@ -262,7 +262,7 @@ struct EnumDefinition
 {
     std::string _id{};
     std::string name{};
-    std::vector<novatel::edie::EnumDataType> enumerators{};
+    std::vector<EnumDataType> enumerators{};
 
     constexpr EnumDefinition() = default;
 };
@@ -288,7 +288,7 @@ struct BaseDataType
 //-----------------------------------------------------------------------
 struct SimpleDataType : BaseDataType
 {
-    std::unordered_map<int32_t, novatel::edie::EnumDataType> enums;
+    std::unordered_map<int32_t, EnumDataType> enums;
 };
 
 //-----------------------------------------------------------------------
@@ -317,7 +317,7 @@ struct BaseField
 
     virtual ~BaseField() = default;
 
-    virtual BaseField* clone() { return new novatel::edie::BaseField(*this); }
+    virtual BaseField* clone() { return new BaseField(*this); }
 
     void setConversion(const std::string& sConversion)
     {
@@ -385,24 +385,24 @@ struct BaseField
 //! \struct EnumField
 //! \brief Struct containing elements of enum fields in the UI DB.
 //-----------------------------------------------------------------------
-struct EnumField : novatel::edie::BaseField
+struct EnumField : BaseField
 {
     std::string enumID;
-    novatel::edie::EnumDefinition* enumDef{nullptr};
+    EnumDefinition* enumDef{nullptr};
     uint32_t length{0};
 
     EnumField() = default;
 
     ~EnumField() = default;
 
-    EnumField* clone() override { return new novatel::edie::EnumField(*this); }
+    EnumField* clone() override { return new EnumField(*this); }
 };
 
 //-----------------------------------------------------------------------
 //! \struct ArrayField
 //! \brief Struct containing elements of array fields in the UI DB.
 //-----------------------------------------------------------------------
-struct ArrayField : novatel::edie::BaseField
+struct ArrayField : BaseField
 {
     uint32_t arrayLength{0};
 
@@ -410,17 +410,17 @@ struct ArrayField : novatel::edie::BaseField
 
     ~ArrayField() = default;
 
-    ArrayField* clone() override { return new novatel::edie::ArrayField(*this); }
+    ArrayField* clone() override { return new ArrayField(*this); }
 };
 
 //-----------------------------------------------------------------------
 //! \struct FieldArrayField
 //! \brief Struct containing elements of field array fields in the UI DB.
 //-----------------------------------------------------------------------
-struct FieldArrayField : novatel::edie::BaseField
+struct FieldArrayField : BaseField
 {
     uint32_t arrayLength{0}, fieldSize{0};
-    std::vector<novatel::edie::BaseField*> fields;
+    std::vector<BaseField*> fields;
 
     FieldArrayField() = default;
 
@@ -467,7 +467,7 @@ struct MessageDefinition
     uint32_t logID{0};
     std::string name;
     std::string description;
-    std::map<uint32_t, std::vector<novatel::edie::BaseField*>> fields; // map of crc keys to field defs
+    std::map<uint32_t, std::vector<BaseField*>> fields; // map of crc keys to field defs
     uint32_t latestMessageCrc{0};
 
     MessageDefinition() = default;
@@ -477,7 +477,7 @@ struct MessageDefinition
         {
             uint32_t key = fielddefs.first;
             // Ensure a 0-length vector exists for this key in the case the message has no fields.
-            fields[key] = std::vector<novatel::edie::BaseField*>();
+            fields[key] = std::vector<BaseField*>();
             for (const auto& field : fielddefs.second) { fields[key].emplace_back(field->clone()); }
         }
 
@@ -504,9 +504,8 @@ struct MessageDefinition
             for (const auto& fielddefs : that.fields)
             {
                 uint32_t key = fielddefs.first;
-                // Ensure a 0-length vector exists for this key in the case the message has no
-                // fields.
-                fields[key] = std::vector<novatel::edie::BaseField*>();
+                // Ensure a 0-length vector exists for this key in the case the message has no fields.
+                fields[key] = std::vector<BaseField*>();
                 for (const auto& field : fielddefs.second) { fields[key].emplace_back(field->clone()); }
             }
 
@@ -524,18 +523,18 @@ struct MessageDefinition
 };
 
 // Forward declaration of from_json
-void from_json(const json& j, novatel::edie::EnumDataType& f);
-void from_json(const json& j, novatel::edie::BaseDataType& f);
-void from_json(const json& j, novatel::edie::SimpleDataType& f);
-void from_json(const json& j, novatel::edie::BaseField& f);
-void from_json(const json& j, novatel::edie::EnumField& f);
-void from_json(const json& j, novatel::edie::ArrayField& fd);
-void from_json(const json& j, novatel::edie::FieldArrayField& fd);
+void from_json(const json& j, EnumDataType& f);
+void from_json(const json& j, BaseDataType& f);
+void from_json(const json& j, SimpleDataType& f);
+void from_json(const json& j, BaseField& f);
+void from_json(const json& j, EnumField& f);
+void from_json(const json& j, ArrayField& fd);
+void from_json(const json& j, FieldArrayField& fd);
 void from_json(const json& j, MessageDefinition& md);
 void from_json(const json& j, EnumDefinition& ed);
 
 // Forward declaration of parse_fields
-uint32_t parse_fields(const json& j, std::vector<novatel::edie::BaseField*>& vFields);
+uint32_t parse_fields(const json& j, std::vector<BaseField*>& vFields);
 
 //============================================================================
 //! \class JsonReader
@@ -544,12 +543,12 @@ uint32_t parse_fields(const json& j, std::vector<novatel::edie::BaseField*>& vFi
 //============================================================================
 class JsonReader
 {
-    std::vector<novatel::edie::MessageDefinition> vMessageDefinitions;
-    std::vector<novatel::edie::EnumDefinition> vEnumDefinitions;
-    std::unordered_map<std::string, novatel::edie::MessageDefinition*> mMessageName;
-    std::unordered_map<int32_t, novatel::edie::MessageDefinition*> mMessageID;
-    std::unordered_map<std::string, novatel::edie::EnumDefinition*> mEnumName;
-    std::unordered_map<std::string, novatel::edie::EnumDefinition*> mEnumID;
+    std::vector<MessageDefinition> vMessageDefinitions;
+    std::vector<EnumDefinition> vEnumDefinitions;
+    std::unordered_map<std::string, MessageDefinition*> mMessageName;
+    std::unordered_map<int32_t, MessageDefinition*> mMessageID;
+    std::unordered_map<std::string, EnumDefinition*> mEnumName;
+    std::unordered_map<std::string, EnumDefinition*> mEnumID;
 
   public:
     //----------------------------------------------------------------------------
@@ -639,14 +638,14 @@ class JsonReader
     //
     //! \param [in] strMsgName_ A string containing the message name.
     //----------------------------------------------------------------------------
-    const novatel::edie::MessageDefinition* GetMsgDef(const std::string& strMsgName_) const;
+    const MessageDefinition* GetMsgDef(const std::string& strMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message ID.
     //
     //! \param [in] iMsgID_ The message ID.
     //----------------------------------------------------------------------------
-    const novatel::edie::MessageDefinition* GetMsgDef(int32_t iMsgID_) const;
+    const MessageDefinition* GetMsgDef(int32_t iMsgID_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Convert a message name string to an message ID number
@@ -667,7 +666,7 @@ class JsonReader
     //
     //! \param [in] sEnumNameOrID_ The enum ID.
     //----------------------------------------------------------------------------
-    novatel::edie::EnumDefinition* GetEnumDefID(const std::string& sEnumID) const
+    EnumDefinition* GetEnumDefID(const std::string& sEnumID) const
     {
         auto it = mEnumID.find(sEnumID);
         return it != mEnumID.end() ? it->second : nullptr;
@@ -678,7 +677,7 @@ class JsonReader
     //
     //! \param [in] sEnumNameOrID_ The enum name.
     //----------------------------------------------------------------------------
-    novatel::edie::EnumDefinition* GetEnumDefName(const std::string& sEnumName) const
+    EnumDefinition* GetEnumDefName(const std::string& sEnumName) const
     {
         auto it = mEnumName.find(sEnumName);
         return it != mEnumName.end() ? it->second : nullptr;
@@ -687,13 +686,13 @@ class JsonReader
   private:
     void GenerateMappings()
     {
-        for (novatel::edie::EnumDefinition& enm : vEnumDefinitions)
+        for (EnumDefinition& enm : vEnumDefinitions)
         {
             mEnumName[enm.name] = &enm;
             mEnumID[enm._id] = &enm;
         }
 
-        for (novatel::edie::MessageDefinition& msg : vMessageDefinitions)
+        for (MessageDefinition& msg : vMessageDefinitions)
         {
             mMessageName[msg.name] = &msg;
             mMessageID[msg.logID] = &msg;
@@ -702,22 +701,19 @@ class JsonReader
         }
     }
 
-    void MapMessageEnumFields(const std::vector<novatel::edie::BaseField*>& vMsgDefFields_)
+    void MapMessageEnumFields(const std::vector<BaseField*>& vMsgDefFields_)
     {
         for (const auto& field : vMsgDefFields_)
         {
-            if (field->type == novatel::edie::FIELD_TYPE::ENUM)
+            if (field->type == FIELD_TYPE::ENUM)
             {
-                dynamic_cast<novatel::edie::EnumField*>(field)->enumDef = GetEnumDefID(dynamic_cast<const novatel::edie::EnumField*>(field)->enumID);
+                dynamic_cast<EnumField*>(field)->enumDef = GetEnumDefID(dynamic_cast<const EnumField*>(field)->enumID);
             }
-            else if (field->type == novatel::edie::FIELD_TYPE::FIELD_ARRAY)
-            {
-                MapMessageEnumFields(dynamic_cast<novatel::edie::FieldArrayField*>(field)->fields);
-            }
+            else if (field->type == FIELD_TYPE::FIELD_ARRAY) { MapMessageEnumFields(dynamic_cast<FieldArrayField*>(field)->fields); }
         }
     }
 
-    void RemoveMessageMapping(novatel::edie::MessageDefinition& msg)
+    void RemoveMessageMapping(MessageDefinition& msg)
     {
         // Check string against name map
         auto itName = mMessageName.find(msg.name);
@@ -727,7 +723,7 @@ class JsonReader
         if (itId != mMessageID.end()) mMessageID.erase(itId);
     }
 
-    void RemoveEnumerationMapping(novatel::edie::EnumDefinition& enm)
+    void RemoveEnumerationMapping(EnumDefinition& enm)
     {
         // Check string against name map
         auto itName = mEnumName.find(enm.name);
@@ -737,22 +733,21 @@ class JsonReader
         if (itId != mEnumID.end()) mEnumID.erase(itId);
     }
 
-    std::vector<novatel::edie::MessageDefinition>::iterator GetMessageIt(uint32_t iMsgId_)
+    std::vector<MessageDefinition>::iterator GetMessageIt(uint32_t iMsgId_)
     {
-        return find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                       [iMsgId_](novatel::edie::MessageDefinition elem) { return (elem.logID == iMsgId_); });
+        return find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(), [iMsgId_](MessageDefinition elem) { return (elem.logID == iMsgId_); });
     }
 
-    std::vector<novatel::edie::MessageDefinition>::iterator GetMessageIt(const std::string& strMessage_)
+    std::vector<MessageDefinition>::iterator GetMessageIt(const std::string& strMessage_)
     {
         return find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                       [strMessage_](novatel::edie::MessageDefinition elem) { return (elem.name == strMessage_); });
+                       [strMessage_](MessageDefinition elem) { return (elem.name == strMessage_); });
     }
 
-    std::vector<novatel::edie::EnumDefinition>::iterator GetEnumIt(const std::string& strEnumeration_)
+    std::vector<EnumDefinition>::iterator GetEnumIt(const std::string& strEnumeration_)
     {
         return find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
-                       [strEnumeration_](novatel::edie::EnumDefinition elem) { return (elem.name == strEnumeration_); });
+                       [strEnumeration_](EnumDefinition elem) { return (elem.name == strEnumeration_); });
     }
 };
 
