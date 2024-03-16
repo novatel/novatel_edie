@@ -86,9 +86,7 @@ void from_json(const json& j, novatel::edie::BaseField& f)
 void from_json(const json& j, novatel::edie::EnumField& f)
 {
     from_json(j, static_cast<BaseField&>(f));
-
     if (j.at("enumID").is_null()) throw std::runtime_error("Invalid enum ID - cannot be NULL.  JsonDB file is likely corrupted.");
-
     f.enumID = j.at("enumID");
 }
 
@@ -96,7 +94,6 @@ void from_json(const json& j, novatel::edie::EnumField& f)
 void from_json(const json& j, novatel::edie::ArrayField& fd)
 {
     from_json(j, static_cast<BaseField&>(fd));
-
     fd.arrayLength = j.at("arrayLength");
     fd.dataType = j.at("dataType");
 }
@@ -105,7 +102,6 @@ void from_json(const json& j, novatel::edie::ArrayField& fd)
 void from_json(const json& j, novatel::edie::FieldArrayField& fd)
 {
     from_json(j, static_cast<BaseField&>(fd));
-
     fd.arrayLength = j.at("arrayLength").is_null() ? 0 : static_cast<uint32_t>(j.at("arrayLength"));
     fd.fieldSize = fd.arrayLength * parse_fields(j.at("fields"), fd.fields);
 }
@@ -132,7 +128,7 @@ void from_json(const json& j, EnumDefinition& ed)
 {
     ed._id = j.at("_id");
     ed.name = j.at("name");
-    parse_enumerators(j.at("enumerators"), ed.enumerators);
+    for (const auto& enumerator : j.at("enumerators")) { ed.enumerators.push_back(enumerator); }
 }
 
 //-----------------------------------------------------------------------
@@ -179,12 +175,6 @@ uint32_t parse_fields(const json& j, std::vector<novatel::edie::BaseField*>& vFi
     return uiFieldSize;
 }
 
-//-----------------------------------------------------------------------
-void parse_enumerators(const json& j, std::vector<novatel::edie::EnumDataType>& vEnumerators)
-{
-    for (const auto& enumerator : j) { vEnumerators.push_back(enumerator); }
-}
-
 } // namespace novatel::edie
 
 //-----------------------------------------------------------------------
@@ -197,16 +187,10 @@ template <typename T> void JsonReader::LoadFile(T filePath)
         json jDefinitions = json::parse(json_file);
 
         vMessageDefinitions.clear();
-        for (const auto& msg : jDefinitions["messages"])
-        {
-            vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
-        }
+        for (const auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(msg); }
 
         vEnumDefinitions.clear();
-        for (const auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
@@ -226,17 +210,10 @@ template <> void JsonReader::LoadFile<std::string>(std::string filePath)
         json jDefinitions = json::parse(json_file);
 
         vMessageDefinitions.clear();
-
-        for (auto& msg : jDefinitions["messages"])
-        {
-            vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
-        }
+        for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(msg); }
 
         vEnumDefinitions.clear();
-        for (auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
@@ -257,20 +234,14 @@ template <typename T> void JsonReader::AppendMessages(T filePath_)
 
         for (const auto& msg : jDefinitions["messages"])
         {
-            const novatel::edie::MessageDefinition msgdef = msg;
-
-            RemoveMessage(msgdef.logID, false);
-
-            vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
+            RemoveMessage(msg["logID"], false);
+            vMessageDefinitions.push_back(msg);
         }
 
         for (const auto& enm : jDefinitions["enums"])
         {
-            const novatel::edie::EnumDefinition enmdef = enm;
-
-            RemoveEnumeration(enmdef.name, false);
-
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
+            RemoveEnumeration(enm["name"], false);
+            vEnumDefinitions.push_back(enm);
         }
 
         GenerateMappings();
@@ -290,10 +261,8 @@ template <typename T> void JsonReader::AppendEnumerations(T filePath_)
         json_file.open(std::filesystem::path(filePath_));
         json jDefinitions = json::parse(json_file);
 
-        for (const auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        // The JSON object is converted to a EnumDefinition object here
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
@@ -353,16 +322,10 @@ void JsonReader::ParseJson(const std::string& strJsonData_)
     json jDefinitions = json::parse(strJsonData_);
 
     vMessageDefinitions.clear();
-    for (const auto& msg : jDefinitions["logs"])
-    {
-        vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
-    }
+    for (const auto& msg : jDefinitions["logs"]) { vMessageDefinitions.push_back(msg); }
 
     vEnumDefinitions.clear();
-    for (const auto& enm : jDefinitions["enums"])
-    {
-        vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-    }
+    for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
     GenerateMappings();
 }
@@ -377,7 +340,8 @@ uint32_t JsonReader::MsgNameToMsgId(std::string sMsgName_) const
     // Ingest the sibling information, i.e. the _1 from LOGNAMEA_1
     if (sMsgName_.find_last_of('_') != std::string::npos && sMsgName_.find_last_of('_') == sMsgName_.size() - 2)
     {
-        uiSiblingID = static_cast<uint32_t>(ToDigit(sMsgName_.back()));
+        assert(std::isdigit(sMsgName_.back()));
+        uiSiblingID = static_cast<uint32_t>(sMsgName_.back() - '0');
         sMsgName_.resize(sMsgName_.size() - 2);
     }
 

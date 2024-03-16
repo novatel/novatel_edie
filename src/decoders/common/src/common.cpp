@@ -37,14 +37,7 @@
 using namespace novatel::edie;
 
 //-----------------------------------------------------------------------
-bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_)
-{
-    double dDiff = dVal1_ - dVal2_;
-
-    if (dDiff < 0) { dDiff *= -1.0; }
-
-    return dDiff < dEpsilon_;
-}
+bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_) { return std::fabs(dVal1_ - dVal2_) < dEpsilon_; }
 
 //-----------------------------------------------------------------------
 uint32_t CreateMsgID(uint32_t uiMessageID_, uint32_t uiSiblingID_, uint32_t uiMsgFormat_, uint32_t uiResponse_)
@@ -115,9 +108,6 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, std::string strRes
 
     return 0;
 }
-
-//-----------------------------------------------------------------------
-int32_t ToDigit(char c) { return static_cast<int32_t>(c - '0'); }
 
 //-----------------------------------------------------------------------
 bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, char** ppucMessageBuffer_)

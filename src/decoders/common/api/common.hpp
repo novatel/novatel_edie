@@ -306,7 +306,7 @@ inline MetaDataBase::~MetaDataBase() = default;
 //
 //! \return Boolean Value - Returns both values are equal or not?
 //-----------------------------------------------------------------------
-bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_ = 0.001);
+bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_ = std::numeric_limits<double>::epsilon());
 
 //-----------------------------------------------------------------------
 //! \brief Construct a full message ID from its parts.
@@ -374,15 +374,6 @@ int32_t GetEnumValue(const novatel::edie::EnumDefinition* stEnumDef_, std::strin
 //! \return The response in integer form.
 //-----------------------------------------------------------------------
 int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, std::string strResp_);
-
-//-----------------------------------------------------------------------
-//! \brief Get the char as an integer.
-//
-//! \param[in] c The char to get as an integer.
-//
-//! \return The char as an integer.
-//-----------------------------------------------------------------------
-int32_t ToDigit(char c);
 
 //-----------------------------------------------------------------------
 //! \brief Strip a abbreviated ASCII formatting from the front of the

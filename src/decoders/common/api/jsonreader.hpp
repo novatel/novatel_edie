@@ -534,9 +534,8 @@ void from_json(const json& j, novatel::edie::FieldArrayField& fd);
 void from_json(const json& j, MessageDefinition& md);
 void from_json(const json& j, EnumDefinition& ed);
 
-// Forward declaration of parse_fields and parse_enumerators
+// Forward declaration of parse_fields
 uint32_t parse_fields(const json& j, std::vector<novatel::edie::BaseField*>& vFields);
-void parse_enumerators(const json& j, std::vector<novatel::edie::EnumDataType>& vEnumerators);
 
 } // namespace novatel::edie
 
