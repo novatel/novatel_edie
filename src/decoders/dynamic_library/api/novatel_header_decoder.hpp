@@ -49,11 +49,12 @@ extern "C"
     DECODERS_EXPORT void novatel_header_decoder_shutdown_logger(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::HeaderDecoder* novatel_header_decoder_init(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::oem::HeaderDecoder* novatel_header_decoder_init(novatel::edie::JsonReader* pclJsonDb_);
     DECODERS_EXPORT void novatel_header_decoder_delete(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_);
 
     // Config
-    DECODERS_EXPORT void novatel_header_decoder_load_json(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void novatel_header_decoder_load_json(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_,
+                                                          novatel::edie::JsonReader* pclJsonDb_);
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS novatel_header_decoder_decode(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_,

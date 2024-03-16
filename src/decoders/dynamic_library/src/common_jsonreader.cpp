@@ -33,6 +33,8 @@
 //-----------------------------------------------------------------------
 #include "common_jsonreader.hpp"
 
+using namespace novatel::edie;
+
 JsonReader* common_jsonreader_init()
 {
     JsonReader* pclJsonDb = new JsonReader();

@@ -48,11 +48,11 @@ extern "C"
     DECODERS_EXPORT void novatel_encoder_shutdown_logger(novatel::edie::oem::Encoder* pclEncoder_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::Encoder* novatel_encoder_init(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::oem::Encoder* novatel_encoder_init(novatel::edie::JsonReader* pclJsonDb_);
     DECODERS_EXPORT void novatel_encoder_delete(novatel::edie::oem::Encoder* pclEncoder_);
 
     // Config
-    DECODERS_EXPORT void novatel_encoder_load_json(novatel::edie::oem::Encoder* pclEncoder_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void novatel_encoder_load_json(novatel::edie::oem::Encoder* pclEncoder_, novatel::edie::JsonReader* pclJsonDb_);
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS novatel_encoder_encode(novatel::edie::oem::Encoder* pclEncoder_, unsigned char* pucEncodeBuffer_,

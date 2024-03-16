@@ -49,7 +49,7 @@ class JsonReaderTest : public testing::Test
 // -------------------------------------------------------------------------------------------------------
 TEST_F(JsonReaderTest, JsonReaderFailure)
 {
-    JsonReader clJson;
+    novatel::edie::JsonReader clJson;
     ASSERT_THROW(clJson.LoadFile<std::string>(""), novatel::edie::JsonReaderFailure);
 }
 
@@ -57,7 +57,7 @@ TEST_F(JsonReaderTest, AppendEnumerations)
 {
     const std::string strID = "008451a05e1e7aa32c75119df950d405265e0904";
 
-    JsonReader clJson;
+    novatel::edie::JsonReader clJson;
     clJson.AppendEnumerations(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")).string());
 
     const novatel::edie::EnumDefinition* pstEnumDef = clJson.GetEnumDefID(strID);
@@ -70,9 +70,9 @@ TEST_F(JsonReaderTest, AppendEnumerations)
 
 TEST_F(JsonReaderTest, AppendMessages)
 {
-    const uint32_t uiMsgID = 690;
+    constexpr uint32_t uiMsgID = 690;
 
-    JsonReader clJson;
+    novatel::edie::JsonReader clJson;
     clJson.AppendMessages(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")).string());
 
     const novatel::edie::MessageDefinition* pstMsgDef = clJson.GetMsgDef(uiMsgID);

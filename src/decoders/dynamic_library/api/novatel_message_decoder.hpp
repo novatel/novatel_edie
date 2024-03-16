@@ -47,11 +47,11 @@ extern "C"
     DECODERS_EXPORT void novatel_message_decoder_shutdown_logger(novatel::edie::MessageDecoder* pclMessageDecoder_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::MessageDecoder* novatel_message_decoder_init(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::MessageDecoder* novatel_message_decoder_init(novatel::edie::JsonReader* pclJsonDb_);
     DECODERS_EXPORT void novatel_message_decoder_delete(novatel::edie::MessageDecoder* pclMessageDecoder_);
 
     // Config
-    DECODERS_EXPORT void novatel_message_decoder_load_json(novatel::edie::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void novatel_message_decoder_load_json(novatel::edie::MessageDecoder* pclMessageDecoder_, novatel::edie::JsonReader* pclJsonDb_);
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS novatel_message_decoder_decode(novatel::edie::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_,

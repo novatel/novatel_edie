@@ -48,11 +48,11 @@ extern "C"
     DECODERS_EXPORT void novatel_commander_shutdown_logger(novatel::edie::oem::Commander* pclCommander_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::Commander* novatel_commander_init(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::oem::Commander* novatel_commander_init(novatel::edie::JsonReader* pclJsonDb_);
     DECODERS_EXPORT void novatel_commander_delete(novatel::edie::oem::Commander* pclCommander_);
 
     // Config
-    DECODERS_EXPORT void novatel_commander_load_json(novatel::edie::oem::Commander* pclCommander_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void novatel_commander_load_json(novatel::edie::oem::Commander* pclCommander_, novatel::edie::JsonReader* pclJsonDb_);
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS novatel_commander_encode(novatel::edie::oem::Commander* pclCommander_, char* pcAbbrevAsciiCommand_,
