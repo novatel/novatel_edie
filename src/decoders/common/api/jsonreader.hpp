@@ -39,13 +39,13 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <logger/logger.hpp>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_map>
 
 #include "common.hpp"
+#include "logger.hpp"
 
 using nlohmann::json;
 

@@ -48,7 +48,6 @@
 #include "decoders/novatel/api/rangecmp/common.hpp"
 #include "decoders/novatel/api/rangecmp/range_decompressor.hpp"
 #include "decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
-#include "logger/logger.hpp"
 
 namespace novatel::edie::oem {
 

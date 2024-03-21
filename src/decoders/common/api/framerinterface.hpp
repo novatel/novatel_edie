@@ -40,7 +40,7 @@
 #include <memory>
 
 #include "circularbuffer.hpp"
-#include "logger/logger.hpp"
+#include "logger.hpp"
 
 //============================================================================
 //! \class FramerInterface

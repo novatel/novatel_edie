@@ -500,7 +500,10 @@ void RangeDecompressor::DecompressReferenceBlock(uint8_t** ppucDataPointer_, Ran
     stReferenceBlock_.ucADRBitfield = static_cast<uint8_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_ADR_STDDEV_BITS));
 
     auto llPSRBitfield = static_cast<int64_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_RBLK_PSR_BITS[bSecondary]));
-    if (bSecondary && llPSRBitfield & RC4_SSIG_RBLK_PSR_SIGNBIT_MASK) { llPSRBitfield |= RC4_SSIG_RBLK_PSR_SIGNEXT_MASK; }
+    if constexpr (bSecondary)
+    {
+        if (llPSRBitfield & RC4_SSIG_RBLK_PSR_SIGNBIT_MASK) { llPSRBitfield |= RC4_SSIG_RBLK_PSR_SIGNEXT_MASK; }
+    }
     auto iPhaseRangeBitfield = static_cast<int32_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_RBLK_PHASERANGE_BITS[bSecondary]));
     if (iPhaseRangeBitfield & RC4_RBLK_PHASERANGE_SIGNBIT_MASK) { iPhaseRangeBitfield |= RC4_RBLK_PHASERANGE_SIGNEXT_MASK; }
     auto iDopplerBitfield = static_cast<int32_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_RBLK_DOPPLER_BITS[bSecondary]));

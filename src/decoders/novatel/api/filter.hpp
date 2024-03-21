@@ -44,7 +44,6 @@
 #include "decoders/common/api/jsonreader.hpp"
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"
-#include "logger/logger.hpp"
 
 namespace novatel::edie::oem {
 

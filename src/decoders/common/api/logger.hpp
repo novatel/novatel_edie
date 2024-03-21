@@ -44,12 +44,12 @@
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
-#include "spdlog_setup/conf.h"
+#include "spdlog_setup/spdlog_setup.hpp"
 
 #include <iostream>
 #include <map>
 
-// TODO: this class is mostly to obsolete now, would be best to find a way to make the functions standalone
+// TODO: this class is mostly obsolete now, would be best to find a way to make the functions standalone
 class Logger
 {
   private:

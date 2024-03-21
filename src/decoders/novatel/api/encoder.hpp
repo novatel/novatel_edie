@@ -37,7 +37,6 @@
 // Includes
 //-----------------------------------------------------------------------
 #include <cassert>
-#include <logger/logger.hpp>
 #include <nlohmann/json.hpp>
 
 #include "decoders/common/api/common.hpp"

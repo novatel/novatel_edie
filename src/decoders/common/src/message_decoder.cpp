@@ -268,7 +268,7 @@ MessageDecoder::DecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsign
     for (auto& field : MsgDefFields_)
     {
         // Realign to type byte boundary if needed
-        uint8_t usTypeAlignment = field->dataType.length >= 4 ? 4 : field->dataType.length;
+        uint8_t usTypeAlignment = static_cast<uint8_t>(field->dataType.length >= 4 ? 4 : field->dataType.length);
         if (reinterpret_cast<uint64_t>(*ppucLogBuf_) % usTypeAlignment != 0)
         {
             *ppucLogBuf_ += usTypeAlignment - (reinterpret_cast<uint64_t>(*ppucLogBuf_) % usTypeAlignment);

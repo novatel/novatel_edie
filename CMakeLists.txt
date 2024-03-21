@@ -56,7 +56,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     string(REGEX REPLACE "/O2"  "/Ox"  CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
     
     # Disable narrowing conversion, deprecated warnings, and constant conditional expression warnings
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8 /wd4244 /wd4996 /wd4127 /WX")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8 /wd4996 /WX")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     set(COMMON_GCC_CXX_FLAGS "-Wall -fPIC -Wfatal-errors -Wold-style-cast -Wextra -pedantic")
@@ -70,11 +70,9 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang
         set(COMMON_GCC_FLAGS_DEBUG "${COMMON_GCC_FLAGS_DEBUG} -O1")
     endif()
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -Werror -Wno-format-truncation -Wno-error=format -Wno-format -Wno-format-extra-args")
-        set(COMMON_GCC_FLAGS_RELEASE "${COMMON_GCC_FLAGS_RELEASE} -s")
-    endif()
-    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -pthread -Wno-unqualified-std-cast-call")
+        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -Werror -Wno-format-truncation -Wno-error=format -Wno-format -Wno-format-extra-args -Wno-error=restrict -Wno-restrict")
+    elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -pthread")
     endif()
 
     set(CMAKE_C_FLAGS_DEBUG     "${COMMON_GCC_FLAGS_DEBUG}")
@@ -111,10 +109,7 @@ message("CMAKE_CXX_COMPILER_TARGET " ${CMAKE_CXX_COMPILER_TARGET})
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Fetch the GoogleTest library
-FetchContent_Declare(
-  googletest
-   URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip
-)
+FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip)
 FetchContent_MakeAvailable(googletest)
 
 # Find Git package, if not need to install manually or through .yml file
@@ -132,6 +127,28 @@ if(GIT_EXECUTABLE)
         -D GIT_BRANCH=${GIT_BRANCH}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
 endif()
+
+find_package(nlohmann_json REQUIRED)
+find_package(spdlog_setup REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(fmt REQUIRED)
+find_package(cpptoml REQUIRED)
+
+add_compile_definitions(SPDLOG_FMT_EXTERNAL)
+add_compile_definitions(FMT_HEADER_ONLY)
+
+include_directories(${nlohmann_json_INCLUDE_DIR})
+include_directories(${spdlog_INCLUDE_DIR})
+include_directories(${spdlog_setup_INCLUDE_DIR})
+include_directories(${fmt_INCLUDE_DIR})
+include_directories(${cpptoml_INCLUDE_DIR})
+
+set(CONAN_LIBS 
+    nlohmann_json::nlohmann_json 
+    spdlog::spdlog
+    spdlog_setup::spdlog_setup
+    fmt::fmt
+)
 
 # build EDIE components
 add_subdirectory(src/decoders)

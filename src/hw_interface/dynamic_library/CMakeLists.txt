@@ -39,3 +39,5 @@ target_include_directories(
     objdynamichwinterface PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../
     objdynamichwinterface PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
+
+target_link_libraries(objdynamichwinterface PRIVATE ${CONAN_LIBS})

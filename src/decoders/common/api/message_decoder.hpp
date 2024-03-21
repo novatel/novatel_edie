@@ -41,16 +41,16 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
-#include <logger/logger.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <string>
 #include <variant>
 
-#include "decoders/common/api/common.hpp"
-#include "decoders/common/api/crc32.hpp"
-#include "decoders/common/api/jsonreader.hpp"
-#include "decoders/common/api/message_decoder.hpp"
+#include "common.hpp"
+#include "crc32.hpp"
+#include "jsonreader.hpp"
+#include "logger.hpp"
+#include "message_decoder.hpp"
 
 namespace novatel::edie {
 

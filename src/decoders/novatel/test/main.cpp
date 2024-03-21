@@ -32,7 +32,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "logger/logger.hpp"
+#include "src/decoders/common/api/logger.hpp"
 #include "gtest/gtest.h"
 
 int main(int argc, char** argv)

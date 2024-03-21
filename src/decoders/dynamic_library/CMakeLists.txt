@@ -42,3 +42,5 @@ target_include_directories(
     objdynamicdecoder PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
     objdynamicdecoder PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
+
+target_link_libraries(objdynamicdecoder PRIVATE ${CONAN_LIBS})

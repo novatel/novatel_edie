@@ -36,6 +36,8 @@ target_include_directories(
     objnovatel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../common/api
 )
 
+target_link_libraries(objnovatel PRIVATE ${CONAN_LIBS})
+
 if(LINUX)
     file(GLOB_RECURSE MY_PUBLIC_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/api/*.h*)
     set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${MY_PUBLIC_HEADERS}")

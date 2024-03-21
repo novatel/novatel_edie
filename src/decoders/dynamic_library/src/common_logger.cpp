@@ -34,8 +34,6 @@
 
 #include <string>
 
-#include "logger/logger.hpp"
-
 void common_logger_setup() { Logger::InitLogger(); }
 
 void common_logger_setup_from_file(char* pcLoggerConfigPath_) { Logger::InitLogger(std::string(pcLoggerConfigPath_)); }
