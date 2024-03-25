@@ -81,7 +81,7 @@ class nExcept
     //----------------------------------------------------------------------------
     nExcept& operator=(const nExcept& clNew)
     {
-        strncpy(buffer, clNew.buffer, 256);
+        if (this != &clNew) { strncpy(buffer, clNew.buffer, 256); }
 
         return *this;
     }
