@@ -64,7 +64,6 @@ constexpr uint32_t HR_TO_SEC = 3600;
 
 /*! \def MBYTE_TO_BYTE
  *  \brief Number of bytes in one mega byte?.
- *
  */
 constexpr uint32_t MBYTE_TO_BYTE = 1024 * 1024;
 
