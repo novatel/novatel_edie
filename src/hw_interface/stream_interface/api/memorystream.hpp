@@ -98,13 +98,13 @@ class MemoryStream : public CircularBuffer
      */
     StreamReadStatus Read(char* pucBuffer, uint32_t uiSize);
 
-    /*! \fn uint32_t Read(void)
+    /*! \fn uint32_t Read()
      *  \brief Read the one byte from the buffer
      *
      *  \return Byte read from buffer.
      *  \remark update StreamReadStatus structure with read statistics.
      */
-    uint32_t Read(void);
+    uint32_t Read();
 
     /*! \fn uint32_t Write(uint8_t)
      *  \brief Write one byte or character to buffer and update read statistics(StreamReadStatus)

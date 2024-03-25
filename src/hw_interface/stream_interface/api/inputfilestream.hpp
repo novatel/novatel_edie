@@ -120,12 +120,12 @@ class InputFileStream : public InputStreamInterface
      */
     void SetCurrentFileOffset(uint64_t ullCurrentFileOffset) override;
 
-    /*! \fn uint64_t  GetCurrentFileOffset(void)
+    /*! \fn uint64_t  GetCurrentFileOffset()
      *  \brief Returns Cuurent file offset.
      *
      *  \return Cuurent file offset.
      */
-    uint64_t GetCurrentFileOffset(void) const override;
+    uint64_t GetCurrentFileOffset() const override;
 
   private:
     /*! Private Copy Constructor

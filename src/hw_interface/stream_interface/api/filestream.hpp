@@ -267,12 +267,12 @@ class FileStream
      */
     void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
 
-    /*! \fn uint64_t  GetCurrentFileOffset(void)
+    /*! \fn uint64_t  GetCurrentFileOffset()
      *  \brief Returns Cuurent file offset.
      *
      *  \return Cuurent file offset.
      */
-    uint64_t GetCurrentFileOffset(void) const { return ullMyCurrentFileOffset; };
+    uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; };
 
     /*! \fn std::u32string Get32StringFileName()
      *  \brief Returns u32string filename.

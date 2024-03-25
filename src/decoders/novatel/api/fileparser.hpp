@@ -144,7 +144,7 @@ class FileParser
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    bool GetIgnoreAbbreviatedAsciiResponses(void);
+    bool GetIgnoreAbbreviatedAsciiResponses();
 
     //----------------------------------------------------------------------------
     //! \brief Get the percent of the InputFileStream that has been parsed.

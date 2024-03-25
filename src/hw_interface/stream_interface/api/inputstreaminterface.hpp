@@ -77,7 +77,7 @@ class InputStreamInterface
      * \return true or false.
      * \remark If no concrete derived method, It simply returns false.
      */
-    virtual bool IsStreamAvailable(void) { return false; }
+    virtual bool IsStreamAvailable() { return false; }
 
     /** A virtual member.
      * \brief Read one line from the file.
@@ -120,7 +120,7 @@ class InputStreamInterface
 
     /** A virtual default destructor.
      */
-    virtual ~InputStreamInterface(){};
+    virtual ~InputStreamInterface() = default;
 
     /** A virtual member.
      * \brief Sets the current file offset. It could be read bytes so far.
@@ -134,7 +134,7 @@ class InputStreamInterface
      * \sa GetCurrentFileOffset().
      * \remark returns 0, if no concrete derived method for it.
      */
-    virtual uint64_t GetCurrentFileOffset(void) const { return 0; };
+    [[nodiscard]] virtual uint64_t GetCurrentFileOffset() const { return 0; };
 
     /** A virtual member.
      * \brief Returns the class object which has interfacesed or derived from circuallar buffer.

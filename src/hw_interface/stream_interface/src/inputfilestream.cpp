@@ -69,7 +69,7 @@ uint64_t InputFileStream::GetCurrentFilePosition() { return pInFileStream->GetCu
 // ---------------------------------------------------------
 void InputFileStream::SetCurrentFileOffset(uint64_t ullCurrentFileOffset) { pInFileStream->SetCurrentFileOffset(ullCurrentFileOffset); }
 
-uint64_t InputFileStream::GetCurrentFileOffset(void) const { return pInFileStream->GetCurrentFileOffset(); }
+uint64_t InputFileStream::GetCurrentFileOffset() const { return pInFileStream->GetCurrentFileOffset(); }
 
 // ---------------------------------------------------------
 std::string InputFileStream::FileExtension()

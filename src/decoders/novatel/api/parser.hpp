@@ -175,7 +175,7 @@ class Parser
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    bool GetIgnoreAbbreviatedAsciiResponses(void);
+    bool GetIgnoreAbbreviatedAsciiResponses();
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.

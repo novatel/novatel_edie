@@ -69,7 +69,7 @@ class OutputStreamInterface
     virtual uint32_t WriteData(char* pcData_, uint32_t uiDataLength_) = 0;
 
     /*! a virtual destructor. */
-    virtual ~OutputStreamInterface(){};
+    virtual ~OutputStreamInterface() = default;
 
     /** A virtual member.
      *  \sa SelectFileStream
