@@ -252,9 +252,9 @@ bool Filter::DoFiltering(MetaDataStruct& stMetaData_)
     if (stMetaData_.eFormat == HEADERFORMAT::UNKNOWN) { return false; }
     if (stMetaData_.eFormat == HEADERFORMAT::NMEA) { return bMyIncludeNMEA_; }
 
-    for (uint64_t ullIndex = 0; ullIndex < vMyFilterFunctions.size(); ullIndex++)
+    for (auto& vMyFilterFunction : vMyFilterFunctions)
     {
-        if (!(this->*vMyFilterFunctions.at(ullIndex))(stMetaData_)) { return false; }
+        if (!(this->*vMyFilterFunction)(stMetaData_)) { return false; }
     }
 
     return true;
