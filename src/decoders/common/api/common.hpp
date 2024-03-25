@@ -284,7 +284,7 @@ class MetaDataBase
     char acMessageName[uiMessageNameMax + 1]{'\0'};
 
     // Message Name helper functions
-    std::string MessageName() const { return std::string(acMessageName); }
+    std::string MessageName() const { return {acMessageName}; }
 
     void MessageName(std::string strMessageName_)
     {

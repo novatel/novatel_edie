@@ -82,7 +82,7 @@ std::string GetEnumString(const EnumDefinition* const stEnumDef_, uint32_t uiEnu
         }
     }
 
-    return std::string("UNKNOWN");
+    return "UNKNOWN";
 }
 
 //-----------------------------------------------------------------------

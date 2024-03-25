@@ -42,7 +42,7 @@ MultiOutputFileStream::~MultiOutputFileStream()
 void MultiOutputFileStream::SelectFileStream(std::u32string s32FileName_)
 {
     bEnableWideCharSupport = true;
-    WCFstreamMap::iterator itFstreamMapIterator = wmMyFstreamMap.find(s32FileName_);
+    auto itFstreamMapIterator = wmMyFstreamMap.find(s32FileName_);
     if (itFstreamMapIterator != wmMyFstreamMap.end()) { pLocalFileStream = itFstreamMapIterator->second; }
     else
     {
@@ -55,7 +55,7 @@ void MultiOutputFileStream::SelectFileStream(std::u32string s32FileName_)
 
 void MultiOutputFileStream::SelectFileStream(std::string stFileName)
 {
-    FstreamMap::iterator itFstreamMapIterator = mMyFstreamMap.find(stFileName);
+    auto itFstreamMapIterator = mMyFstreamMap.find(stFileName);
     if (itFstreamMapIterator != mMyFstreamMap.end()) { pLocalFileStream = itFstreamMapIterator->second; }
     else
     {
@@ -69,7 +69,7 @@ void MultiOutputFileStream::SelectFileStream(std::string stFileName)
 // ---------------------------------------------------------
 void MultiOutputFileStream::ClearWCFileStreamMap()
 {
-    for (WCFstreamMap::iterator itFstreamMapIterator = wmMyFstreamMap.begin(); itFstreamMapIterator != wmMyFstreamMap.end();)
+    for (auto itFstreamMapIterator = wmMyFstreamMap.begin(); itFstreamMapIterator != wmMyFstreamMap.end();)
     {
         if (itFstreamMapIterator->second) { delete itFstreamMapIterator->second; }
         itFstreamMapIterator = wmMyFstreamMap.erase(itFstreamMapIterator);
@@ -80,7 +80,7 @@ void MultiOutputFileStream::ClearWCFileStreamMap()
 // ---------------------------------------------------------
 void MultiOutputFileStream::ClearFileStreamMap()
 {
-    for (FstreamMap::iterator itFstreamMapIterator = mMyFstreamMap.begin(); itFstreamMapIterator != mMyFstreamMap.end();)
+    for (auto itFstreamMapIterator = mMyFstreamMap.begin(); itFstreamMapIterator != mMyFstreamMap.end();)
     {
         if (itFstreamMapIterator->second) { delete itFstreamMapIterator->second; }
         itFstreamMapIterator = mMyFstreamMap.erase(itFstreamMapIterator);

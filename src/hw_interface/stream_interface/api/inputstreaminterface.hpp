@@ -85,7 +85,7 @@ class InputStreamInterface
      * \return Returns Read statistics structure (StreamReadStatus)
      * \remark If no concrete derived method, It simply returns default StreamReadStatus value.
      */
-    virtual StreamReadStatus ReadLine(std::string&) { return StreamReadStatus(); };
+    virtual StreamReadStatus ReadLine(std::string&) { return {}; };
 
     /** A virtual member.
      * \brief Returns the extension of the input file to be decoded.
