@@ -1,3 +1,3 @@
-Checks: '-*, modernize-use-override, modernize-deprecated-headers, modernize-loop-convert, modernize-use-nullptr'
+Checks: '-*, modernize-use-override, modernize-deprecated-headers, modernize-loop-convert, modernize-use-nullptr, modernize-use-auto, modernize-pass-by-value'
 HeaderFilterRegex: 'src/.*|examples/.*'
 WarningsAsErrors: '*'

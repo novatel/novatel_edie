@@ -207,7 +207,7 @@ bool Filter::FilterMessageId(const MetaDataStruct& stMetaData_)
 {
     if (vMyMessageIdFilters.empty()) { return true; }
 
-    uint32_t uiMessageId = static_cast<uint32_t>(stMetaData_.usMessageID);
+    auto uiMessageId = static_cast<uint32_t>(stMetaData_.usMessageID);
     HEADERFORMAT eFormat = stMetaData_.eFormat;
     MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
 

@@ -66,8 +66,8 @@ class JsonReaderFailure : public std::exception
     char acWhatString[256];
 
   public:
-    JsonReaderFailure(const char* func_, const char* file_, int32_t line_, const std::filesystem::path& json_file_, const char* failure_)
-        : func(func_), file(file_), line(line_), clFilePath(json_file_), failure(failure_), acWhatString{}
+    JsonReaderFailure(const char* func_, const char* file_, int32_t line_, std::filesystem::path json_file_, const char* failure_)
+        : func(func_), file(file_), line(line_), clFilePath(std::move(json_file_)), failure(failure_), acWhatString{}
     {
     }
 

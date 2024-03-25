@@ -190,7 +190,7 @@ bool Encoder::EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsig
             {
                 const auto& vCurrentFieldArrayField = std::get<std::vector<FieldContainer>>(field.field_value);
 
-                uint32_t uiFieldCount = static_cast<uint32_t>(vCurrentFieldArrayField.size());
+                auto uiFieldCount = static_cast<uint32_t>(vCurrentFieldArrayField.size());
                 if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &uiFieldCount)) { return false; }
 
                 pucTempStart = *ppcOutBuf_; // Move the start placeholder to the front of the array start
@@ -221,7 +221,7 @@ bool Encoder::EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsig
                 if (field.field_def->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
                 {
                     // if the field is a variable array, print the size first
-                    const uint32_t uiVarArraySize = static_cast<uint32_t>(vFCCurrentVectorField.size());
+                    const auto uiVarArraySize = static_cast<uint32_t>(vFCCurrentVectorField.size());
                     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &uiVarArraySize)) { return false; }
                 }
 

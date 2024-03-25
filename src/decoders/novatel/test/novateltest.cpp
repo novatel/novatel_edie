@@ -3077,9 +3077,9 @@ public:
 
    void CreateEnumField(std::string name, std::string description, int32_t value)
    {
-      EnumField* stField = new EnumField();
-      EnumDefinition* enumDef = new EnumDefinition();
-      EnumDataType* enumDT = new EnumDataType();
+      auto* stField = new EnumField();
+      auto* enumDef = new EnumDefinition();
+      auto* enumDT = new EnumDataType();
       enumDT->name = name;
       enumDT->description = description;
       enumDT->value = value;
