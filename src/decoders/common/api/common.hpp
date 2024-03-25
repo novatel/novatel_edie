@@ -416,31 +416,26 @@ struct SATELLITEID
 //-----------------------------------------------------------------------
 // Common miscellaneous defines
 //-----------------------------------------------------------------------
-#define SEC_TO_MSEC (1000U)    //!< A Macro definition for number of milliseconds in a second.
-#define SECS_IN_WEEK (604800U) //!< A Macro definition for number of milliseconds in a week.
+constexpr uint32_t SEC_TO_MSEC = 1000;    //!< A Macro definition for number of milliseconds in a second.
+constexpr uint32_t SECS_IN_WEEK = 604800; //!< A Macro definition for number of milliseconds in a week.
 
 //-----------------------------------------------------------------------
 // NovAtel message length defines
 //-----------------------------------------------------------------------
-#define MESSAGE_SIZE_MAX (0x8000) //!< FW-defined maximum transmittable message length. (32kB)
-#define MAX_ASCII_MESSAGE_LENGTH                                                                                                                     \
-    (MESSAGE_SIZE_MAX) //!< Undefined message length assumes that the max log size for this format
-                       //!< is the maximum message length allowed to be transmitted by the FW.
-#define MAX_BINARY_MESSAGE_LENGTH                                                                                                                    \
-    (MESSAGE_SIZE_MAX) //!< Undefined message length assumes that the max log size for this format
-                       //!< is the maximum message length allowed to be transmitted by the FW.
-#define MAX_SHORT_ASCII_MESSAGE_LENGTH                                                                                                               \
-    (MESSAGE_SIZE_MAX) //!< Undefined message length assumes that the max log size for this format
-                       //!< is the maximum message length allowed to be transmitted by the FW.
-#define MAX_SHORT_BINARY_MESSAGE_LENGTH                                                                                                              \
-    (12 + 255 + 4) //!< Short Binary message length cannot exceed the log length max value
-                   //!< representation defined by the header.
-#define MAX_ABB_ASCII_RESPONSE_LENGTH                                                                                                                \
-    (MESSAGE_SIZE_MAX) //!< Undefined message length assumes that the max log size for this format
-                       //!< is the maximum message length allowed to be transmitted by the FW.
-#define MAX_NMEA_MESSAGE_LENGTH                                                                                                                      \
-    (256) //(82)         //!< NovAtel Docs - NMEA Standard Logs: Explicitly states that the maximum
-          // allowable is 82 chars.  Numerous internal logs break that standard, so we will use 256
-          // here as a safety measure.
+//!< FW-defined maximum transmittable message length. (32kB)
+constexpr uint32_t MESSAGE_SIZE_MAX = 0x8000;
+//!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
+constexpr uint32_t MAX_ASCII_MESSAGE_LENGTH = MESSAGE_SIZE_MAX;
+//!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
+constexpr uint32_t MAX_BINARY_MESSAGE_LENGTH = MESSAGE_SIZE_MAX;
+//!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
+constexpr uint32_t MAX_SHORT_ASCII_MESSAGE_LENGTH = MESSAGE_SIZE_MAX;
+//!< Short Binary message length cannot exceed the log length max value representation defined by the header.
+constexpr uint32_t MAX_SHORT_BINARY_MESSAGE_LENGTH = 12 + 255 + 4;
+//!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
+constexpr uint32_t MAX_ABB_ASCII_RESPONSE_LENGTH = MESSAGE_SIZE_MAX;
+//!< NovAtel Docs - NMEA Standard Logs: Explicitly states that the maximum allowable is 82 chars.  Numerous internal logs break that standard, so we
+//!< will use 256 here as a safety measure.
+constexpr uint32_t MAX_NMEA_MESSAGE_LENGTH = 256;
 
 #endif
