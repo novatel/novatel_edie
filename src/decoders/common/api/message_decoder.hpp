@@ -36,8 +36,8 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <cstdarg>
 #include <cassert>
+#include <cstdarg>
 #include <fstream>
 #include <iostream>
 #include <logger/logger.hpp>

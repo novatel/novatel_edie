@@ -31,9 +31,9 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
-#include <chrono>
 
 #include "logger/logger.hpp"
 #include "src/decoders/common/api/jsonreader.hpp"
