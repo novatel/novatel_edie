@@ -93,9 +93,9 @@ class InputStreamInterface
      * \return Returns the extension of the input file to be decoded.
      * \remark If no concrete derived method, It simply returns NULL string.
      */
-    virtual std::string GetFileExtension() { return nullptr; };
+    virtual std::string GetFileExtension() { return ""; };
 
-    virtual std::string GetFileName() { return nullptr; };
+    virtual std::string GetFileName() { return ""; };
 
     /** A virtual member.
      * \brief Waiting period on port for incoming data to be decode.
