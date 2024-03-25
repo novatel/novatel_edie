@@ -63,7 +63,7 @@ class JsonReaderFailure : public std::exception
     int32_t line;
     std::filesystem::path clFilePath;
     const char* failure;
-    char acWhatString[256];
+    char acWhatString[256] = {};
 
   public:
     JsonReaderFailure(const char* func_, const char* file_, int32_t line_, std::filesystem::path json_file_, const char* failure_)
@@ -71,7 +71,7 @@ class JsonReaderFailure : public std::exception
     {
     }
 
-    const char* what() const throw() override
+    const char* what() const noexcept override
     {
         sprintf(const_cast<char*>(acWhatString), "In file \"%s\" : %s() (Line %d)\n\t\"%s: %s.\"", file, func, line,
                 clFilePath.generic_string().c_str(), failure);

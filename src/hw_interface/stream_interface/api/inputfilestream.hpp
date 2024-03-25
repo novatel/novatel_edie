@@ -125,7 +125,7 @@ class InputFileStream : public InputStreamInterface
      *
      *  \return Cuurent file offset.
      */
-    uint64_t GetCurrentFileOffset() const override;
+    [[nodiscard]] uint64_t GetCurrentFileOffset() const override;
 
   private:
     /*! Private Copy Constructor

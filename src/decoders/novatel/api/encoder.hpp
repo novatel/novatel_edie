@@ -128,7 +128,7 @@ class Encoder
     // Enum util functions
     void InitEnumDefns();
     void CreateResponseMsgDefns();
-    std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
+    [[nodiscard]] std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
 
   protected:
     // Encode binary
@@ -174,7 +174,7 @@ class Encoder
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger() const;
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
