@@ -11,8 +11,8 @@
 #include <spdlog/details/windows_include.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <string>
 
 #if defined(_MSC_VER)

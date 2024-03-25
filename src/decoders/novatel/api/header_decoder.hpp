@@ -36,8 +36,7 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdarg.h>
-
+#include <cstdarg>
 #include <cassert>
 #include <fstream>
 #include <iostream>

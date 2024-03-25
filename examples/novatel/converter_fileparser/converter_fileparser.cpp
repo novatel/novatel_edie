@@ -31,9 +31,8 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-
+#include <cstdio>
+#include <cstdlib>
 #include <chrono>
 
 #include "src/decoders/novatel/api/fileparser.hpp"

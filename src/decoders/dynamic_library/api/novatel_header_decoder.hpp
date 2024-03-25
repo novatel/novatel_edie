@@ -36,7 +36,7 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <string.h>
+#include <cstring>
 
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"

@@ -43,9 +43,8 @@
 class FileStreamTest : public ::testing::Test
 {
   public:
-    virtual void SetUp() {}
-
-    virtual void TearDown() {}
+    void SetUp() override {}
+    void TearDown() override {}
 
   private:
   protected:

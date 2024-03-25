@@ -38,9 +38,8 @@
 class MultiOutputFileStreamTest : public ::testing::Test
 {
   public:
-    virtual void SetUp() {}
-
-    virtual void TearDown() {}
+    void SetUp() override {}
+    void TearDown() override {}
 
     typedef std::map<std::string, FileStream*> FstreamMap;
     MultiOutputFileStream::FstreamMap::iterator itFstreamMapIterator;

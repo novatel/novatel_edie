@@ -91,7 +91,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *
      *  \remark Will delete dynamically created objects in constructor
      */
-    virtual ~MultiOutputFileStream();
+    ~MultiOutputFileStream() override;
 
     /*! \fn void SelectFileStream(std::wstring stFileName)
      *  \brief Sets the output file in which to be decoded ouput will be written.
@@ -100,7 +100,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
      */
-    void SelectFileStream(std::u32string s32FileName_);
+    void SelectFileStream(std::u32string s32FileName_) override;
 
     /*! \fn void ClearWCFileStreamMap()
      *  \brief Delete all the output files assosiated Wide Character FileStream objects.
@@ -115,7 +115,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
-    void ConfigureBaseFileName(std::u32string s32FileName_);
+    void ConfigureBaseFileName(std::u32string s32FileName_) override;
 
     /*! \fn void SelectWCLogFile(std::string strMsgName_)
      *  \brief Sets the output file name  from the log name from strMsgName_.
@@ -160,7 +160,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
      */
-    uint32_t WriteData(char* pcData_, uint32_t uiDataLength_);
+    uint32_t WriteData(char* pcData_, uint32_t uiDataLength_) override;
 
     /*! \fn void SelectFileStream(std::string stFileName)
      *  \brief Sets the output file in which to be decoded ouput will be written.
@@ -169,7 +169,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
      */
-    void SelectFileStream(std::string stFileName);
+    void SelectFileStream(std::string stFileName) override;
 
     /*! \fn void ConfigureBaseFileName(std::string stFileName)
      *  \brief Gets base file name and extension of it.
@@ -177,7 +177,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
-    void ConfigureBaseFileName(std::string stFileName);
+    void ConfigureBaseFileName(std::string stFileName) override;
 
     /*! \fn void ClearFileStreamMap()
      *  \brief Delete all the output files assosiated FileStream objects.
@@ -191,7 +191,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark Enable/Disable log Splitting. If enable, split type will be set to SPLIT_LOG
      *  If disabled split type will be set to SPLIT_NONE
      */
-    void ConfigureSplitByLog(bool bStatus);
+    void ConfigureSplitByLog(bool bStatus) override;
 
     /*! \fn void SelectLogFile(std::string strMsgName_)
      *  \brief Sets the output file name  from the log name from strMsgName_.
@@ -205,7 +205,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \param [in] ullFileSplitSize
      *  \remark Output files with ullFileSplitSize size will be created while writing to the output.
      */
-    void ConfigureSplitBySize(uint64_t ullFileSplitSize);
+    void ConfigureSplitBySize(uint64_t ullFileSplitSize) override;
 
     /*! \fn void SelectSizeFile(uint32_t uiSize_)
      *  \brief Sets the output file name included with the split size
@@ -220,7 +220,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark Diffrent output files will be created with the logs,
      *  in which will be captured in the tiem interval provided.
      */
-    void ConfigureSplitByTime(double dFileSplitTime);
+    void ConfigureSplitByTime(double dFileSplitTime) override;
 
     /*! \fn void SelectTimeFile(TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
      *  \brief Sets the number of output files can be created based the time provided
