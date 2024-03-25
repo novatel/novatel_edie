@@ -49,19 +49,16 @@
 
 /*! \def MIN_TIME_SPLIT_SEC
  *  \brief Minimum split time in seconds.
- *
  */
 constexpr uint32_t MIN_TIME_SPLIT_SEC = 36;
 
 /*! \def MIN_FILE_SPLIT_SIZE
  *  \brief Minimum splitting size of file in mb.
- *
  */
 constexpr uint32_t MIN_FILE_SPLIT_SIZE = 1;
 
 /*! \def HR_TO_SEC
  *  \brief Number of seconds in a Hour.
- *
  */
 constexpr uint32_t HR_TO_SEC = 3600;
 
