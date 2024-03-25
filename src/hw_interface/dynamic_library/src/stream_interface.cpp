@@ -39,7 +39,7 @@ void ifs_del(InputStreamInterface* pclIFS_)
     if (pclIFS_)
     {
         delete pclIFS_;
-        pclIFS_ = NULL;
+        pclIFS_ = nullptr;
     }
 }
 

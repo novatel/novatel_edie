@@ -218,7 +218,7 @@ void MultiOutputFileStream::SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_
 {
     // If a file already exist, write the UNKNOWN and SATTIME log into that.
     // Dont consider these time status for calculation.
-    if (pLocalFileStream != NULL)
+    if (pLocalFileStream != nullptr)
     {
         if ((eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN) || (eStatus_ == novatel::edie::TIME_STATUS::SATTIME)) return;
     }
@@ -260,7 +260,7 @@ void MultiOutputFileStream::SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, 
 {
     // If a file already exist, write the UNKNOWN and SATTIME log into that.
     // Dont consider these time stutus for calculation.
-    if (pLocalFileStream != NULL)
+    if (pLocalFileStream != nullptr)
     {
         if (eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN || eStatus_ == novatel::edie::TIME_STATUS::SATTIME) return;
     }

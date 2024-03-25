@@ -65,7 +65,7 @@ struct ReadDataStructure
     ReadDataStructure()
     {
         uiDataSize = 0;
-        cData = NULL;
+        cData = nullptr;
     }
 };
 

@@ -93,9 +93,9 @@ class InputStreamInterface
      * \return Returns the extension of the input file to be decoded.
      * \remark If no concrete derived method, It simply returns NULL string.
      */
-    virtual std::string GetFileExtension() { return NULL; };
+    virtual std::string GetFileExtension() { return nullptr; };
 
-    virtual std::string GetFileName() { return NULL; };
+    virtual std::string GetFileName() { return nullptr; };
 
     /** A virtual member.
      * \brief Waiting period on port for incoming data to be decode.
@@ -141,7 +141,7 @@ class InputStreamInterface
      * \sa GetMemoryStream().
      * \remark MemoryStream* class Object to access circullar buffer.
      */
-    virtual MemoryStream* GetMemoryStream() { return NULL; };
+    virtual MemoryStream* GetMemoryStream() { return nullptr; };
 
   private:
 };
