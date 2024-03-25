@@ -80,7 +80,7 @@ class RangeCmpTest : public ::testing::Test
     // Per-test-suite teardown
     static void TearDownTestSuite() { pclMyRangeDecompressor->ShutdownLogger(); }
 
-    void SetUp() { pclMyRangeDecompressor->ResetLocktimes(); }
+    void SetUp() override { pclMyRangeDecompressor->ResetLocktimes(); }
 };
 
 std::unique_ptr<RangeCmpTest::RangeDecompressorTester> RangeCmpTest::pclMyRangeDecompressor = nullptr;

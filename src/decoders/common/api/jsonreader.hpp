@@ -393,7 +393,7 @@ struct EnumField : novatel::edie::BaseField
 
     EnumField() = default;
 
-    ~EnumField() = default;
+    ~EnumField() override = default;
 
     EnumField* clone() override { return new novatel::edie::EnumField(*this); }
 };
@@ -408,7 +408,7 @@ struct ArrayField : novatel::edie::BaseField
 
     ArrayField() = default;
 
-    ~ArrayField() = default;
+    ~ArrayField() override = default;
 
     ArrayField* clone() override { return new novatel::edie::ArrayField(*this); }
 };
@@ -424,7 +424,7 @@ struct FieldArrayField : novatel::edie::BaseField
 
     FieldArrayField() = default;
 
-    ~FieldArrayField()
+    ~FieldArrayField() override
     {
         for (const auto& field : fields) { delete field; }
     }

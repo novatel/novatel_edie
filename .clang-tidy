@@ -1,2 +1,3 @@
-Checks: '-*, performance-*'
-HeaderFilterRegex: 'src/.*'
+Checks: '-*, modernize-use-override'
+HeaderFilterRegex: 'src/.*|examples/.*'
+WarningsAsErrors: '*'

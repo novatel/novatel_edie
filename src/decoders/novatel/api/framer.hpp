@@ -57,7 +57,7 @@ class Framer : public FramerInterface
     uint32_t uiMyJsonObjectOpenBraces{0};
     uint32_t uiMyAbbrevAsciiHeaderPosition{0};
 
-    virtual void HandleUnknownBytes(unsigned char* pucBuffer_, uint32_t uiUnknownBytes_);
+    void HandleUnknownBytes(unsigned char* pucBuffer_, uint32_t uiUnknownBytes_) override;
 
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
