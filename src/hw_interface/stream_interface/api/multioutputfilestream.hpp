@@ -51,25 +51,25 @@
  *  \brief Minimum split time in seconds.
  *
  */
-#define MIN_TIME_SPLIT_SEC 36
+constexpr uint32_t MIN_TIME_SPLIT_SEC = 36;
 
 /*! \def MIN_FILE_SPLIT_SIZE
  *  \brief Minimum splitting size of file in mb.
  *
  */
-#define MIN_FILE_SPLIT_SIZE 1
+constexpr uint32_t MIN_FILE_SPLIT_SIZE = 1;
 
 /*! \def HR_TO_SEC
  *  \brief Number of seconds in a Hour.
  *
  */
-#define HR_TO_SEC 3600
+constexpr uint32_t HR_TO_SEC = 3600;
 
 /*! \def MBYTE_TO_BYTE
  *  \brief Number of bytes in one mega byte?.
  *
  */
-#define MBYTE_TO_BYTE 1024 * 1024
+constexpr uint32_t MBYTE_TO_BYTE = 1024 * 1024;
 
 /*! \class MultiOutputFileStream
  *  \brief A class will provide API's to writing decoded output into multiple out files.

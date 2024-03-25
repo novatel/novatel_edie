@@ -434,7 +434,7 @@ constexpr uint32_t MAX_SHORT_ASCII_MESSAGE_LENGTH = MESSAGE_SIZE_MAX;
 constexpr uint32_t MAX_SHORT_BINARY_MESSAGE_LENGTH = 12 + 255 + 4;
 //!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
 constexpr uint32_t MAX_ABB_ASCII_RESPONSE_LENGTH = MESSAGE_SIZE_MAX;
-//!< NovAtel Docs - NMEA Standard Logs: Explicitly states that the maximum allowable is 82 chars.  Numerous internal logs break that standard, so we
+//!< NovAtel Docs - NMEA Standard Logs: Explicitly states that the maximum allowable is 82 chars. Numerous internal logs break that standard, so we
 //!< will use 256 here as a safety measure.
 constexpr uint32_t MAX_NMEA_MESSAGE_LENGTH = 256;
 
