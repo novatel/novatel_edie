@@ -84,7 +84,7 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer;
 
     // Inline buffer functions
-    [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t uiBytesLeft_, const char* szFormat_, ...)
+    [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, ...)
     {
         va_list args;
         va_start(args, szFormat_);
@@ -96,7 +96,7 @@ class RxConfigHandler
         return true;
     }
 
-    template <typename T> [[nodiscard]] bool CopyToBuffer(unsigned char** ppucBuffer_, uint32_t uiBytesLeft_, T* ptItem_, uint32_t uiItemSize_)
+    template <typename T> [[nodiscard]] bool CopyToBuffer(unsigned char** ppucBuffer_, uint32_t& uiBytesLeft_, T* ptItem_, uint32_t uiItemSize_)
     {
         if (uiBytesLeft_ < uiItemSize_) { return false; }
         memcpy(*ppucBuffer_, ptItem_, uiItemSize_);
