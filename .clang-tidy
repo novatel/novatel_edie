@@ -1,4 +1,6 @@
 Checks: '-*, 
+performance-*,
+	
 clang-analyzer-*,
 	-clang-analyzer-cplusplus.NewDeleteLeaks, -clang-analyzer-optin.performance.Padding, -clang-analyzer-optin.cplusplus.UninitializedObject, -clang-analyzer-security.insecureAPI.strcpy, 
 cppcoreguidelines-*, 
