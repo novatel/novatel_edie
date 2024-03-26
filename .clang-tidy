@@ -1,6 +1,6 @@
 Checks: '-*, 
 performance-*,
-	
+	-performance-unnecessary-value-param, -performance-no-automatic-move, -performance-avoid-endl, -performance-noexcept-swap, -performance-unnecessary-copy-initialization, -performance-noexcept-move-constructor, 
 clang-analyzer-*,
 	-clang-analyzer-cplusplus.NewDeleteLeaks, -clang-analyzer-optin.performance.Padding, -clang-analyzer-optin.cplusplus.UninitializedObject, -clang-analyzer-security.insecureAPI.strcpy, 
 cppcoreguidelines-*, 
