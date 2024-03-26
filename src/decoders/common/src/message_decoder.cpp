@@ -301,7 +301,7 @@ MessageDecoder::DecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsign
             break;
         }
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            uint32_t uiArraySize = static_cast<const ArrayField*>(field)->arrayLength;
+            uint32_t uiArraySize = dynamic_cast<const ArrayField*>(field)->arrayLength;
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
 
             auto& pvFC = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().field_value);
@@ -336,7 +336,7 @@ MessageDecoder::DecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsign
             auto* puiArraySize = reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
             *ppucLogBuf_ += sizeof(int32_t);
 
-            auto* sub_field_defs = static_cast<FieldArrayField*>(field);
+            auto* sub_field_defs = dynamic_cast<FieldArrayField*>(field);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().field_value);
@@ -346,7 +346,7 @@ MessageDecoder::DecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsign
             {
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvFC = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().field_value);
-                pvFC.reserve((static_cast<const FieldArrayField*>(field))->fields.size());
+                pvFC.reserve((dynamic_cast<const FieldArrayField*>(field))->fields.size());
                 // this seems like it might be a bug, status can fail but loop will continue and
                 // overwrite the value
                 eStatus =
@@ -385,7 +385,7 @@ MessageDecoder::DecodeAscii(const std::vector<BaseField*> MsgDefFields_, char** 
             break;
         case FIELD_TYPE::ENUM: {
             std::string sEnum = std::string(*ppucLogBuf_, tokenLength);
-            const EnumField* enumField = static_cast<EnumField*>(field);
+            const EnumField* enumField = dynamic_cast<EnumField*>(field);
             // for OEM, the size should always be 4. We might want to do this switch a different
             // way
             switch (enumField->length)
@@ -436,7 +436,7 @@ MessageDecoder::DecodeAscii(const std::vector<BaseField*> MsgDefFields_, char** 
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
             uint32_t uiArraySize = 0;
-            if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = static_cast<const ArrayField*>(field)->arrayLength; }
+            if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = dynamic_cast<const ArrayField*>(field)->arrayLength; }
             if (field->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
             {
                 uiArraySize = static_cast<uint32_t>(strtoul(*ppucLogBuf_, nullptr, 10));
@@ -530,7 +530,7 @@ MessageDecoder::DecodeAscii(const std::vector<BaseField*> MsgDefFields_, char** 
             auto uiArraySize = static_cast<uint32_t>(strtoul(*ppucLogBuf_, ppucLogBuf_, 10));
             *ppucLogBuf_ += 1;
 
-            auto* sub_field_defs = static_cast<FieldArrayField*>(field);
+            auto* sub_field_defs = dynamic_cast<FieldArrayField*>(field);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().field_value);
@@ -540,7 +540,7 @@ MessageDecoder::DecodeAscii(const std::vector<BaseField*> MsgDefFields_, char** 
             {
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvsubFC = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().field_value);
-                pvsubFC.reserve((static_cast<const FieldArrayField*>(field))->fields.size());
+                pvsubFC.reserve((dynamic_cast<const FieldArrayField*>(field))->fields.size());
 
                 eStatus = DecodeAscii(sub_field_defs->fields, ppucLogBuf_, pvsubFC);
             }
@@ -580,7 +580,7 @@ MessageDecoder::DecodeAbbrevAscii(const std::vector<BaseField*> MsgDefFields_, c
                 *ppucLogBuf_ += tokenLength + 1;
                 break;
             case FIELD_TYPE::ENUM:
-                vIntermediateFormat_.emplace_back(GetEnumValue(static_cast<EnumField*>(field)->enumDef, std::string(*ppucLogBuf_, tokenLength)),
+                vIntermediateFormat_.emplace_back(GetEnumValue(dynamic_cast<EnumField*>(field)->enumDef, std::string(*ppucLogBuf_, tokenLength)),
                                                   field);
                 *ppucLogBuf_ += tokenLength + 1;
                 break;
@@ -623,12 +623,12 @@ MessageDecoder::DecodeAbbrevAscii(const std::vector<BaseField*> MsgDefFields_, c
             case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
             case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
                 uint32_t uiArraySize = 0;
-                if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = static_cast<const ArrayField*>(field)->arrayLength; }
+                if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = dynamic_cast<const ArrayField*>(field)->arrayLength; }
                 if (field->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
                 {
                     uiArraySize = static_cast<uint32_t>(strtoul(*ppucLogBuf_, nullptr, 10));
 
-                    if (uiArraySize > static_cast<const ArrayField*>(field)->arrayLength)
+                    if (uiArraySize > dynamic_cast<const ArrayField*>(field)->arrayLength)
                     {
                         std::string sError = "DecodeAbbrevAscii(): Array size too large. Malformed Input\n";
                         SPDLOG_LOGGER_CRITICAL(pclMyLogger, sError);
@@ -726,7 +726,7 @@ MessageDecoder::DecodeAbbrevAscii(const std::vector<BaseField*> MsgDefFields_, c
                 auto uiArraySize = static_cast<uint32_t>(strtoul(*ppucLogBuf_, ppucLogBuf_, 10));
                 ++*ppucLogBuf_;
 
-                auto* sub_field_defs = static_cast<FieldArrayField*>(field);
+                auto* sub_field_defs = dynamic_cast<FieldArrayField*>(field);
                 if (uiArraySize > sub_field_defs->arrayLength)
                 {
                     std::string sError = "DecodeAbbrevAscii(): Array size too large. Malformed Input\n";
@@ -742,7 +742,7 @@ MessageDecoder::DecodeAbbrevAscii(const std::vector<BaseField*> MsgDefFields_, c
                 {
                     pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                     auto& pvsubFC = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().field_value);
-                    pvsubFC.reserve((static_cast<const FieldArrayField*>(field))->fields.size());
+                    pvsubFC.reserve((dynamic_cast<const FieldArrayField*>(field))->fields.size());
 
                     eStatus = DecodeAbbrevAscii(sub_field_defs->fields, ppucLogBuf_, pvsubFC);
                     if (eStatus != STATUS::SUCCESS) break;
@@ -778,7 +778,7 @@ MessageDecoder::DecodeJson(const std::vector<BaseField*> MsgDefFields_, json clJ
         {
         case FIELD_TYPE::SIMPLE: DecodeJsonField(field, clField, vIntermediateFormat_); break;
         case FIELD_TYPE::ENUM:
-            vIntermediateFormat_.emplace_back(GetEnumValue(static_cast<EnumField*>(field)->enumDef, clField.get<std::string>()), field);
+            vIntermediateFormat_.emplace_back(GetEnumValue(dynamic_cast<EnumField*>(field)->enumDef, clField.get<std::string>()), field);
             break;
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: vIntermediateFormat_.emplace_back(clField.get<std::string>(), field); break;
@@ -820,7 +820,7 @@ MessageDecoder::DecodeJson(const std::vector<BaseField*> MsgDefFields_, json clJ
         case FIELD_TYPE::FIELD_ARRAY: {
             auto uiArraySize = static_cast<uint32_t>(clField.size());
 
-            auto* sub_field_defs = static_cast<FieldArrayField*>(field);
+            auto* sub_field_defs = dynamic_cast<FieldArrayField*>(field);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().field_value);
@@ -830,7 +830,7 @@ MessageDecoder::DecodeJson(const std::vector<BaseField*> MsgDefFields_, json clJ
             {
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvsubFC = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().field_value);
-                pvsubFC.reserve((static_cast<const FieldArrayField*>(field))->fields.size());
+                pvsubFC.reserve((dynamic_cast<const FieldArrayField*>(field))->fields.size());
 
                 eStatus = DecodeJson(sub_field_defs->fields, clField[i], pvsubFC);
             }
