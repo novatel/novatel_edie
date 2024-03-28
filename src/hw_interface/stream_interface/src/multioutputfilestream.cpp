@@ -106,7 +106,7 @@ void MultiOutputFileStream::ConfigureSplitByLog(bool bStatus)
 void MultiOutputFileStream::ConfigureBaseFileName(std::u32string s32FileName_)
 {
     bEnableWideCharSupport = true;
-    size_t BaseNameLength = s32FileName_.find_last_of(U".");
+    size_t BaseNameLength = s32FileName_.find_last_of(U'.');
     if (BaseNameLength != std::u32string::npos)
     {
         s32MyBaseName = s32FileName_.substr(0, BaseNameLength);
@@ -117,7 +117,7 @@ void MultiOutputFileStream::ConfigureBaseFileName(std::u32string s32FileName_)
 
 void MultiOutputFileStream::ConfigureBaseFileName(std::string stFileName)
 {
-    size_t BaseNameLength = stFileName.find_last_of(".");
+    size_t BaseNameLength = stFileName.find_last_of('.');
     if (BaseNameLength != std::string::npos)
     {
         stMyBaseName = stFileName.substr(0, BaseNameLength);
