@@ -63,15 +63,15 @@ class JsonReaderFailure : public std::exception
     int32_t line;
     std::filesystem::path clFilePath;
     const char* failure;
-    char acWhatString[256];
+    char acWhatString[256] = {};
 
   public:
-    JsonReaderFailure(const char* func_, const char* file_, int32_t line_, const std::filesystem::path& json_file_, const char* failure_)
-        : func(func_), file(file_), line(line_), clFilePath(json_file_), failure(failure_), acWhatString{}
+    JsonReaderFailure(const char* func_, const char* file_, int32_t line_, std::filesystem::path json_file_, const char* failure_)
+        : func(func_), file(file_), line(line_), clFilePath(std::move(json_file_)), failure(failure_), acWhatString{}
     {
     }
 
-    const char* what() const throw() override
+    const char* what() const noexcept override
     {
         sprintf(const_cast<char*>(acWhatString), "In file \"%s\" : %s() (Line %d)\n\t\"%s: %s.\"", file, func, line,
                 clFilePath.generic_string().c_str(), failure);
@@ -393,7 +393,7 @@ struct EnumField : novatel::edie::BaseField
 
     EnumField() = default;
 
-    ~EnumField() = default;
+    ~EnumField() override = default;
 
     EnumField* clone() override { return new novatel::edie::EnumField(*this); }
 };
@@ -408,7 +408,7 @@ struct ArrayField : novatel::edie::BaseField
 
     ArrayField() = default;
 
-    ~ArrayField() = default;
+    ~ArrayField() override = default;
 
     ArrayField* clone() override { return new novatel::edie::ArrayField(*this); }
 };
@@ -424,7 +424,7 @@ struct FieldArrayField : novatel::edie::BaseField
 
     FieldArrayField() = default;
 
-    ~FieldArrayField()
+    ~FieldArrayField() override
     {
         for (const auto& field : fields) { delete field; }
     }
@@ -663,7 +663,7 @@ class JsonReader
     //
     //! \param [in] uiMessageID_ The message ID number
     //----------------------------------------------------------------------------
-    std::string MsgIdToMsgName(const uint32_t uiMessageID_) const;
+    std::string MsgIdToMsgName(uint32_t uiMessageID_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB enum definition for the provided enum ID.

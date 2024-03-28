@@ -31,10 +31,9 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 
 #include "logger/logger.hpp"
 #include "src/decoders/common/api/jsonreader.hpp"
@@ -144,7 +143,7 @@ int main(int argc, char* argv[])
 
     // Setup buffers
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucFrameBuffer = acFrameBuffer;
+    [[maybe_unused]] unsigned char* pucFrameBuffer = acFrameBuffer;
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 

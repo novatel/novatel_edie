@@ -60,7 +60,7 @@ class Filter
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_filter")};
 
-    std::vector<bool (Filter::*)(const MetaDataStruct&)> vMyFilterFunctions;
+    std::vector<bool (Filter::*)(const MetaDataStruct&) const> vMyFilterFunctions;
 
     // Filtering members
     std::vector<TIME_STATUS> vMyTimeStatusFilters;
@@ -86,13 +86,13 @@ class Filter
 
     bool bMyIncludeNMEA_;
 
-    void PushUnique(bool (Filter::*filter)(const MetaDataStruct&));
+    void PushUnique(bool (Filter::*filter)(const MetaDataStruct&) const);
 
-    bool FilterTime(const MetaDataStruct& stMetaData_);
-    bool FilterTimeStatus(const MetaDataStruct& stMetaData_);
-    bool FilterMessageId(const MetaDataStruct& stMetaData_);
-    bool FilterMessage(const MetaDataStruct& stMetaData_);
-    bool FilterDecimation(const MetaDataStruct& stMetaData_);
+    bool FilterTime(const MetaDataStruct& stMetaData_) const;
+    bool FilterTimeStatus(const MetaDataStruct& stMetaData_) const;
+    bool FilterMessageId(const MetaDataStruct& stMetaData_) const;
+    bool FilterMessage(const MetaDataStruct& stMetaData_) const;
+    bool FilterDecimation(const MetaDataStruct& stMetaData_) const;
 
   public:
     //----------------------------------------------------------------------------

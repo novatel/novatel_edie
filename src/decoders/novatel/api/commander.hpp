@@ -88,7 +88,7 @@ class Commander
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger() const;
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.

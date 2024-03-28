@@ -31,8 +31,8 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <chrono>
 
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
                     // a valid command.
                     auto* pcCRCBegin =
                         reinterpret_cast<char*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) - OEM4_ASCII_CRC_LENGTH);
-                    uint32_t uiFlippedCRC = strtoul(pcCRCBegin, NULL, 16) ^ 0xFFFFFFFF;
+                    uint32_t uiFlippedCRC = strtoul(pcCRCBegin, nullptr, 16) ^ 0xFFFFFFFF;
                     snprintf(pcCRCBegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", uiFlippedCRC);
                     clStrippedRxConfigOFS.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
                     clStrippedRxConfigOFS.WriteData(const_cast<char*>("\r\n"), 2);

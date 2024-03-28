@@ -36,9 +36,9 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
 
 //============================================================================
 //! \class JsonReaderFailure
@@ -81,7 +81,7 @@ class nExcept
     //----------------------------------------------------------------------------
     nExcept& operator=(const nExcept& clNew)
     {
-        strncpy(buffer, clNew.buffer, 256);
+        if (this != &clNew) { strncpy(buffer, clNew.buffer, 256); }
 
         return *this;
     }

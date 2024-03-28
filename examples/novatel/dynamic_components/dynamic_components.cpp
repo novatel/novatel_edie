@@ -31,8 +31,8 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "src/decoders/dynamic_library/api/common_jsonreader.hpp"
 #include "src/decoders/dynamic_library/api/novatel_encoder.hpp"
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 
     // Setup buffers
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucFrameBuffer = acFrameBuffer;
+    [[maybe_unused]] unsigned char* pucFrameBuffer = acFrameBuffer;
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 

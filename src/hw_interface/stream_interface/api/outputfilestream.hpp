@@ -56,7 +56,7 @@ class OutputFileStream : public OutputStreamInterface
      *  \param [in] pcFileName Output file name with wide characters.
      *
      */
-    OutputFileStream(const std::u32string ps32FileName_);
+    OutputFileStream(std::u32string ps32FileName_);
 
     /*! A Constructor.
      *  \brief  Creates FileStream Object for writing output. And intializes MessageDataFilter
@@ -69,7 +69,7 @@ class OutputFileStream : public OutputStreamInterface
      *  \brief  Clears MessageDataFilter and FileStream objects.
      *
      */
-    virtual ~OutputFileStream();
+    ~OutputFileStream() override;
 
     /*! FileStream Class object.
      * \sa FileStream
@@ -84,7 +84,7 @@ class OutputFileStream : public OutputStreamInterface
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
      */
-    uint32_t WriteData(char* cData, uint32_t uiSize);
+    uint32_t WriteData(char* cData, uint32_t uiSize) override;
 
   private:
     /*! Private Copy Constructor

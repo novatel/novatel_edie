@@ -54,10 +54,10 @@ class RxConfigTest : public ::testing::Test
     static void TearDownTestSuite() { pclMyRxConfigHandler->ShutdownLogger(); }
 
     // Per-test setup
-    void SetUp() { pclMyRxConfigHandler->Flush(); }
+    void SetUp() override { pclMyRxConfigHandler->Flush(); }
 
     // Per-test teardown
-    void TearDown() { pclMyRxConfigHandler->Flush(); }
+    void TearDown() override { pclMyRxConfigHandler->Flush(); }
 
   public:
     void WriteBytesToHandler(unsigned char* pucBytes_, uint32_t uiNumBytes_)
@@ -173,7 +173,7 @@ TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_BINARY)
     stExpectedEmbeddedMessageData.uiMessageLength = 48;
     stExpectedEmbeddedMessageData.pucMessageHeader = &aucLog[OEM4_BINARY_HEADER_LENGTH];
     stExpectedEmbeddedMessageData.uiMessageHeaderLength = OEM4_BINARY_HEADER_LENGTH;
-    stExpectedEmbeddedMessageData.pucMessageBody = &aucLog[OEM4_BINARY_HEADER_LENGTH * 2];
+    stExpectedEmbeddedMessageData.pucMessageBody = &aucLog[static_cast<uint32_t>(OEM4_BINARY_HEADER_LENGTH * 2)];
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 20;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));

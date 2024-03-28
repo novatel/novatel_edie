@@ -69,36 +69,29 @@ uint64_t InputFileStream::GetCurrentFilePosition() { return pInFileStream->GetCu
 // ---------------------------------------------------------
 void InputFileStream::SetCurrentFileOffset(uint64_t ullCurrentFileOffset) { pInFileStream->SetCurrentFileOffset(ullCurrentFileOffset); }
 
-uint64_t InputFileStream::GetCurrentFileOffset(void) const { return pInFileStream->GetCurrentFileOffset(); }
+uint64_t InputFileStream::GetCurrentFileOffset() const { return pInFileStream->GetCurrentFileOffset(); }
 
 // ---------------------------------------------------------
 std::string InputFileStream::FileExtension()
 {
-    size_t BaseNameLength = stFileName.find_last_of(".");
-    if (BaseNameLength != std::string::npos) { return stFileName.substr(BaseNameLength + 1); }
-    return NULL;
+    size_t BaseNameLength = stFileName.find_last_of('.');
+    return BaseNameLength == std::string::npos ? "" : stFileName.substr(BaseNameLength + 1);
 }
 
 // ---------------------------------------------------------
 std::string InputFileStream::WCFileExtension()
 {
-    size_t BaseNameLength = stwFileName.find_last_of(L".");
+    size_t BaseNameLength = stwFileName.find_last_of(L'.');
     if (BaseNameLength != std::string::npos)
     {
         std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
         return converter.to_bytes(stwFileName.substr(BaseNameLength + 1));
     }
-    return NULL;
+    return "";
 }
 
 // ---------------------------------------------------------
-std::string InputFileStream::GetFileExtension()
-{
-    if (bEnableWideCharSupport)
-        return WCFileExtension();
-    else
-        return FileExtension();
-}
+std::string InputFileStream::GetFileExtension() { return bEnableWideCharSupport ? WCFileExtension() : FileExtension(); }
 
 // ---------------------------------------------------------
 std::string InputFileStream::GetFileName() { return stFileName; }

@@ -39,8 +39,8 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 #include <array>
 
@@ -987,7 +987,7 @@ struct ChannelTrackingStatusStruct
     //! Combine the channel tracking status fields into a single 4-byte value according to
     //! documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus
-    uint32_t GetAsWord() const
+    [[nodiscard]] uint32_t GetAsWord() const
     {
         uint32_t uiWord = (static_cast<uint32_t>(eTrackingState) & CTS_TRACKING_STATE_MASK) |
                           ((static_cast<uint32_t>(eCorrelatorType) << CTS_CORRELATOR_SHIFT) & CTS_CORRELATOR_MASK) |

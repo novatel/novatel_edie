@@ -66,7 +66,6 @@ FileStream::FileStream(const char* pcFileName_)
 FileStream::~FileStream() {}
 
 // ---------------------------------------------------------
-// Open the file in different modes.
 void FileStream::OpenFile(FILEMODES eMode)
 {
     switch (eMode)
@@ -105,9 +104,6 @@ void FileStream::OpenFile(FILEMODES eMode)
 }
 
 // ---------------------------------------------------------
-// This function may not be required ,because fstream closes
-// the files when out of scope. This may be helpuful
-// if somebody wants to check the close status.
 void FileStream::CloseFile()
 {
     MyStream.close();
@@ -122,9 +118,6 @@ void FileStream::FlushFile()
 }
 
 // ---------------------------------------------------------
-// Reads uiSize character of data from fstream file and stores
-// them i the array pointed by cData also fills the
-// StreamReadStatus structure.
 StreamReadStatus FileStream::ReadFile(char* cData, uint32_t uiSize)
 {
     StreamReadStatus stFileReadStatus;
@@ -147,6 +140,7 @@ StreamReadStatus FileStream::ReadFile(char* cData, uint32_t uiSize)
     return stFileReadStatus;
 }
 
+// ---------------------------------------------------------
 StreamReadStatus FileStream::ReadLine(std::string& szLine)
 {
     StreamReadStatus stFileReadStatus;
@@ -169,8 +163,6 @@ StreamReadStatus FileStream::ReadLine(std::string& szLine)
 }
 
 // ---------------------------------------------------------
-// Writes the first uiSize character poited by cData into
-// fstream
 uint32_t FileStream::WriteFile(char* cData, uint32_t uiSize)
 {
     MyStream.write(cData, uiSize);
@@ -187,7 +179,6 @@ void FileStream::CalculateFileSize()
 }
 
 // ---------------------------------------------------------
-// Calculates the File size and update it in MyFileLength.
 void FileStream::GetFileSize()
 {
 #if _DEBUG
@@ -200,17 +191,12 @@ void FileStream::GetFileSize()
 }
 
 // ---------------------------------------------------------
-// Calculates the percentage of current file read.
-uint32_t FileStream::CalculatePercentage(uint64_t ullCurrentFileRead)
+uint32_t FileStream::CalculatePercentage(uint64_t ullCurrentFileRead) const
 {
-    if (ullMyFileLength == 0L)
-        return 100;
-    else
-        return static_cast<uint32_t>(ullCurrentFileRead * 100 / ullMyFileLength);
+    return ullMyFileLength == 0L ? 100 : static_cast<uint32_t>(ullCurrentFileRead * 100 / ullMyFileLength);
 }
 
 // ---------------------------------------------------------
-// Set File Position.
 void FileStream::SetFilePosition(std::streamoff offset, std::ios_base::seekdir dir)
 {
     MyStream.clear();

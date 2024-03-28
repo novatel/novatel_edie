@@ -95,12 +95,12 @@ class InputMemoryStream : public InputStreamInterface
      */
     uint32_t Write(uint8_t* pcData_, uint32_t uiBytes_);
 
-    /*! \fn bool IsStreamAvailable(void)
+    /*! \fn bool IsStreamAvailable()
      *  \brief Checks whether the data in circullar buffer avaialble to decode or not.
      *
      *  \return true or false.
      */
-    bool IsStreamAvailable(void);
+    bool IsStreamAvailable();
 
     /*! \fn MemoryStream* GetMemoryStream()
      *  \brief Returns the class object which has interfacesed or derived from circuallar buffer.

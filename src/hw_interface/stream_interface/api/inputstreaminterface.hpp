@@ -77,7 +77,7 @@ class InputStreamInterface
      * \return true or false.
      * \remark If no concrete derived method, It simply returns false.
      */
-    virtual bool IsStreamAvailable(void) { return false; }
+    virtual bool IsStreamAvailable() { return false; }
 
     /** A virtual member.
      * \brief Read one line from the file.
@@ -85,7 +85,7 @@ class InputStreamInterface
      * \return Returns Read statistics structure (StreamReadStatus)
      * \remark If no concrete derived method, It simply returns default StreamReadStatus value.
      */
-    virtual StreamReadStatus ReadLine(std::string&) { return StreamReadStatus(); };
+    virtual StreamReadStatus ReadLine(std::string&) { return {}; };
 
     /** A virtual member.
      * \brief Returns the extension of the input file to be decoded.
@@ -93,9 +93,9 @@ class InputStreamInterface
      * \return Returns the extension of the input file to be decoded.
      * \remark If no concrete derived method, It simply returns NULL string.
      */
-    virtual std::string GetFileExtension() { return NULL; };
+    virtual std::string GetFileExtension() { return ""; };
 
-    virtual std::string GetFileName() { return NULL; };
+    virtual std::string GetFileName() { return ""; };
 
     /** A virtual member.
      * \brief Waiting period on port for incoming data to be decode.
@@ -120,7 +120,7 @@ class InputStreamInterface
 
     /** A virtual default destructor.
      */
-    virtual ~InputStreamInterface(){};
+    virtual ~InputStreamInterface() = default;
 
     /** A virtual member.
      * \brief Sets the current file offset. It could be read bytes so far.
@@ -134,14 +134,14 @@ class InputStreamInterface
      * \sa GetCurrentFileOffset().
      * \remark returns 0, if no concrete derived method for it.
      */
-    virtual uint64_t GetCurrentFileOffset(void) const { return 0; };
+    [[nodiscard]] virtual uint64_t GetCurrentFileOffset() const { return 0; };
 
     /** A virtual member.
      * \brief Returns the class object which has interfacesed or derived from circuallar buffer.
      * \sa GetMemoryStream().
      * \remark MemoryStream* class Object to access circullar buffer.
      */
-    virtual MemoryStream* GetMemoryStream() { return NULL; };
+    virtual MemoryStream* GetMemoryStream() { return nullptr; };
 
   private:
 };

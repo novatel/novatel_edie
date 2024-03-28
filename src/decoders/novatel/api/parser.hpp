@@ -106,14 +106,14 @@ class Parser
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    Parser(const std::string sDbPath_);
+    Parser(std::string sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    Parser(const std::u32string sDbPath_);
+    Parser(std::u32string sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.
@@ -175,7 +175,7 @@ class Parser
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    bool GetIgnoreAbbreviatedAsciiResponses(void);
+    bool GetIgnoreAbbreviatedAsciiResponses() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
@@ -189,7 +189,7 @@ class Parser
     //
     //! \return The current option for decompressing RANGECMP messages.
     //----------------------------------------------------------------------------
-    bool GetDecompressRangeCmp();
+    bool GetDecompressRangeCmp() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the return option for unknown bytes.
@@ -203,7 +203,7 @@ class Parser
     //
     //! \return The current option for returning unknown bytes.
     //----------------------------------------------------------------------------
-    bool GetReturnUnknownBytes();
+    bool GetReturnUnknownBytes() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the encode format for messages.

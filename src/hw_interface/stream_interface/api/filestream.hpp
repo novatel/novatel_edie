@@ -121,7 +121,7 @@ class FileStream
      *  \remark If s32FileName is an empty u32string, then exception "Filename name not valid" will
      * be thrown.
      */
-    FileStream(const std::u32string s32FileName_);
+    FileStream(std::u32string s32FileName_);
 
     /*! A Constructor
      *  \brief  Create filename string with name provided as argument.
@@ -172,7 +172,7 @@ class FileStream
      *  \return Percentage of Read.
      *  \remark If file length is '0', Then exception"...file  size not valid" will thrown.
      */
-    uint32_t CalculatePercentage(uint64_t);
+    uint32_t CalculatePercentage(uint64_t) const;
 
     /*! \fn StreamReadStatus ReadFile(char* cData, uint32_t );
      *  \brief Reads uiSize characters of data from fstream file and stores
@@ -228,7 +228,7 @@ class FileStream
      *
      *  \return Total file length.
      */
-    uint64_t GetFileLength() { return ullMyFileLength; };
+    uint64_t GetFileLength() const { return ullMyFileLength; };
 
     /*! \fn const char* GetFileName()
      *  \brief Returns File Name.
@@ -242,7 +242,7 @@ class FileStream
      *
      *  \return Cuurent file size which user has read so far.
      */
-    uint64_t GetCurrentFileSize() { return ullMyCurrentFileSize; };
+    uint64_t GetCurrentFileSize() const { return ullMyCurrentFileSize; };
 
     /*! \fn std::fstream* GetMyFileStream()
      *  \brief Returns file stream pointer.
@@ -267,12 +267,12 @@ class FileStream
      */
     void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
 
-    /*! \fn uint64_t  GetCurrentFileOffset(void)
+    /*! \fn uint64_t  GetCurrentFileOffset()
      *  \brief Returns Cuurent file offset.
      *
      *  \return Cuurent file offset.
      */
-    uint64_t GetCurrentFileOffset(void) const { return ullMyCurrentFileOffset; };
+    uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; };
 
     /*! \fn std::u32string Get32StringFileName()
      *  \brief Returns u32string filename.

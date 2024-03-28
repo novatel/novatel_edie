@@ -31,10 +31,9 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 
 #include "src/decoders/dynamic_library/api/common_jsonreader.hpp"
 #include "src/decoders/dynamic_library/api/novatel_fileparser.hpp"

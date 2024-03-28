@@ -28,8 +28,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <chrono>
 
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     stReadData.uiDataSize = sizeof(acFileStreamBuffer);
 
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucReadBuffer = acFrameBuffer;
+    [[maybe_unused]] unsigned char* pucReadBuffer = acFrameBuffer;
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 

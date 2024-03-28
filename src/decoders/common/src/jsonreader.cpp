@@ -146,14 +146,14 @@ uint32_t parse_fields(const json& j, std::vector<novatel::edie::BaseField*>& vFi
 
         if (sFieldType == "SIMPLE")
         {
-            novatel::edie::BaseField* pstField = new novatel::edie::BaseField;
+            auto* pstField = new novatel::edie::BaseField;
             *pstField = field;
             vFields.push_back(pstField);
             uiFieldSize += stDataType.length;
         }
         else if (sFieldType == "ENUM")
         {
-            novatel::edie::EnumField* pstField = new novatel::edie::EnumField;
+            auto* pstField = new novatel::edie::EnumField;
             *pstField = field;
             pstField->length = stDataType.length;
             vFields.push_back(pstField);
@@ -161,7 +161,7 @@ uint32_t parse_fields(const json& j, std::vector<novatel::edie::BaseField*>& vFi
         }
         else if (sFieldType == "FIXED_LENGTH_ARRAY" || sFieldType == "VARIABLE_LENGTH_ARRAY" || sFieldType == "STRING")
         {
-            novatel::edie::ArrayField* pstField = new novatel::edie::ArrayField;
+            auto* pstField = new novatel::edie::ArrayField;
             *pstField = field;
             vFields.push_back(pstField);
             uint32_t uiArrayLength = field.at("arrayLength").get<uint32_t>();
@@ -169,7 +169,7 @@ uint32_t parse_fields(const json& j, std::vector<novatel::edie::BaseField*>& vFi
         }
         else if (sFieldType == "FIELD_ARRAY")
         {
-            novatel::edie::FieldArrayField* pstField = new novatel::edie::FieldArrayField;
+            auto* pstField = new novatel::edie::FieldArrayField;
             *pstField = field;
             vFields.push_back(pstField);
         }

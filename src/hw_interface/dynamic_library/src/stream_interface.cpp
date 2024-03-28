@@ -30,7 +30,7 @@
 
 InputFileStream* ifs_init(char* pcInputFilePath_)
 {
-    InputFileStream* pclIFS = new InputFileStream(pcInputFilePath_);
+    auto* pclIFS = new InputFileStream(pcInputFilePath_);
     return pclIFS;
 }
 
@@ -39,7 +39,7 @@ void ifs_del(InputStreamInterface* pclIFS_)
     if (pclIFS_)
     {
         delete pclIFS_;
-        pclIFS_ = NULL;
+        pclIFS_ = nullptr;
     }
 }
 

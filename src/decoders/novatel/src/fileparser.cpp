@@ -70,10 +70,7 @@ FileParser::FileParser(JsonReader* pclJsonDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::~FileParser()
-{
-    if (pcMyStreamReadBuffer) { delete[] pcMyStreamReadBuffer; }
-}
+FileParser::~FileParser() { delete[] pcMyStreamReadBuffer; }
 
 // -------------------------------------------------------------------------------------------------------
 void FileParser::LoadJsonDb(JsonReader* pclJsonDb_)
@@ -132,7 +129,7 @@ Filter* FileParser::GetFilter() { return clMyParser.GetFilter(); }
 void FileParser::SetFilter(Filter* pclFilter_) { return clMyParser.SetFilter(pclFilter_); }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t FileParser::GetPercentRead() { return stMyStreamReadStatus.uiPercentStreamRead; }
+uint32_t FileParser::GetPercentRead() const { return stMyStreamReadStatus.uiPercentStreamRead; }
 
 // -------------------------------------------------------------------------------------------------------
 unsigned char* FileParser::GetInternalBuffer() { return clMyParser.GetInternalBuffer(); }

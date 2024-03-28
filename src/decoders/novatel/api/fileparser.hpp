@@ -75,14 +75,14 @@ class FileParser
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    FileParser(const std::string sDbPath_);
+    FileParser(std::string sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    FileParser(const std::u32string sDbPath_);
+    FileParser(std::u32string sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
@@ -144,14 +144,14 @@ class FileParser
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    bool GetIgnoreAbbreviatedAsciiResponses(void);
+    bool GetIgnoreAbbreviatedAsciiResponses();
 
     //----------------------------------------------------------------------------
     //! \brief Get the percent of the InputFileStream that has been parsed.
     //
     //! \return An integer percentage.
     //----------------------------------------------------------------------------
-    uint32_t GetPercentRead();
+    uint32_t GetPercentRead() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.

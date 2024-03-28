@@ -42,7 +42,7 @@ MultiOutputFileStream::~MultiOutputFileStream()
 void MultiOutputFileStream::SelectFileStream(std::u32string s32FileName_)
 {
     bEnableWideCharSupport = true;
-    WCFstreamMap::iterator itFstreamMapIterator = wmMyFstreamMap.find(s32FileName_);
+    auto itFstreamMapIterator = wmMyFstreamMap.find(s32FileName_);
     if (itFstreamMapIterator != wmMyFstreamMap.end()) { pLocalFileStream = itFstreamMapIterator->second; }
     else
     {
@@ -55,7 +55,7 @@ void MultiOutputFileStream::SelectFileStream(std::u32string s32FileName_)
 
 void MultiOutputFileStream::SelectFileStream(std::string stFileName)
 {
-    FstreamMap::iterator itFstreamMapIterator = mMyFstreamMap.find(stFileName);
+    auto itFstreamMapIterator = mMyFstreamMap.find(stFileName);
     if (itFstreamMapIterator != mMyFstreamMap.end()) { pLocalFileStream = itFstreamMapIterator->second; }
     else
     {
@@ -69,9 +69,9 @@ void MultiOutputFileStream::SelectFileStream(std::string stFileName)
 // ---------------------------------------------------------
 void MultiOutputFileStream::ClearWCFileStreamMap()
 {
-    for (WCFstreamMap::iterator itFstreamMapIterator = wmMyFstreamMap.begin(); itFstreamMapIterator != wmMyFstreamMap.end();)
+    for (auto itFstreamMapIterator = wmMyFstreamMap.begin(); itFstreamMapIterator != wmMyFstreamMap.end();)
     {
-        if (itFstreamMapIterator->second) { delete itFstreamMapIterator->second; }
+        delete itFstreamMapIterator->second;
         itFstreamMapIterator = wmMyFstreamMap.erase(itFstreamMapIterator);
     }
 }
@@ -80,9 +80,9 @@ void MultiOutputFileStream::ClearWCFileStreamMap()
 // ---------------------------------------------------------
 void MultiOutputFileStream::ClearFileStreamMap()
 {
-    for (FstreamMap::iterator itFstreamMapIterator = mMyFstreamMap.begin(); itFstreamMapIterator != mMyFstreamMap.end();)
+    for (auto itFstreamMapIterator = mMyFstreamMap.begin(); itFstreamMapIterator != mMyFstreamMap.end();)
     {
-        if (itFstreamMapIterator->second) { delete itFstreamMapIterator->second; }
+        delete itFstreamMapIterator->second;
         itFstreamMapIterator = mMyFstreamMap.erase(itFstreamMapIterator);
     }
 }
@@ -106,7 +106,7 @@ void MultiOutputFileStream::ConfigureSplitByLog(bool bStatus)
 void MultiOutputFileStream::ConfigureBaseFileName(std::u32string s32FileName_)
 {
     bEnableWideCharSupport = true;
-    size_t BaseNameLength = s32FileName_.find_last_of(U".");
+    size_t BaseNameLength = s32FileName_.find_last_of(U'.');
     if (BaseNameLength != std::u32string::npos)
     {
         s32MyBaseName = s32FileName_.substr(0, BaseNameLength);
@@ -117,7 +117,7 @@ void MultiOutputFileStream::ConfigureBaseFileName(std::u32string s32FileName_)
 
 void MultiOutputFileStream::ConfigureBaseFileName(std::string stFileName)
 {
-    size_t BaseNameLength = stFileName.find_last_of(".");
+    size_t BaseNameLength = stFileName.find_last_of('.');
     if (BaseNameLength != std::string::npos)
     {
         stMyBaseName = stFileName.substr(0, BaseNameLength);
@@ -218,7 +218,7 @@ void MultiOutputFileStream::SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_
 {
     // If a file already exist, write the UNKNOWN and SATTIME log into that.
     // Dont consider these time status for calculation.
-    if (pLocalFileStream != NULL)
+    if (pLocalFileStream != nullptr)
     {
         if ((eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN) || (eStatus_ == novatel::edie::TIME_STATUS::SATTIME)) return;
     }
@@ -260,7 +260,7 @@ void MultiOutputFileStream::SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, 
 {
     // If a file already exist, write the UNKNOWN and SATTIME log into that.
     // Dont consider these time stutus for calculation.
-    if (pLocalFileStream != NULL)
+    if (pLocalFileStream != nullptr)
     {
         if (eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN || eStatus_ == novatel::edie::TIME_STATUS::SATTIME) return;
     }
