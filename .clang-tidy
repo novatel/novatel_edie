@@ -1,4 +1,6 @@
 Checks: '-*, 
+portability-*,
+	
 readability-*,
 	-readability-braces-around-statements,
 	-readability-identifier-length,
