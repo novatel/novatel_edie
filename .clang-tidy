@@ -1,5 +1,6 @@
 Checks: '-*, 
 performance-*,
+	-performance-for-range-copy,
 	-performance-inefficient-string-concatenation, 
 	-performance-unnecessary-value-param, 
 	-performance-no-automatic-move, 
