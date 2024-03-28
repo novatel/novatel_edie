@@ -108,7 +108,7 @@ void MessageDecoder::SetLoggerLevel(spdlog::level::level_enum eLevel_) { pclMyLo
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoder::ShutdownLogger() { Logger::Shutdown(); }
 
-void MessageDecoder::DecodeBinaryField(BaseField* MessageDataType_, unsigned char** ppucLogBuf_,
+void MessageDecoder::DecodeBinaryField(const BaseField* MessageDataType_, unsigned char** ppucLogBuf_,
                                        std::vector<FieldContainer>& vIntermediateFormat_) const
 {
     switch (MessageDataType_->conversionStripped)
@@ -151,7 +151,7 @@ void MessageDecoder::DecodeBinaryField(BaseField* MessageDataType_, unsigned cha
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoder::DecodeAsciiField(BaseField* MessageDataType_, char** ppcToken_, const size_t tokenLength_,
+void MessageDecoder::DecodeAsciiField(const BaseField* MessageDataType_, char** ppcToken_, const size_t tokenLength_,
                                       std::vector<FieldContainer>& vIntermediateFormat_) const
 {
     switch (MessageDataType_->conversionStripped)
@@ -846,7 +846,7 @@ MessageDecoder::DecodeJson(const std::vector<BaseField*> MsgDefFields_, json clJ
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoder::DecodeJsonField(BaseField* MessageDataType_, json clJsonField_, std::vector<FieldContainer>& vIntermediateFormat_) const
+void MessageDecoder::DecodeJsonField(const BaseField* MessageDataType_, json clJsonField_, std::vector<FieldContainer>& vIntermediateFormat_) const
 {
     switch (MessageDataType_->conversionStripped)
     {
