@@ -151,7 +151,7 @@ class FileParser
     //
     //! \return An integer percentage.
     //----------------------------------------------------------------------------
-    uint32_t GetPercentRead();
+    uint32_t GetPercentRead() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
