@@ -106,14 +106,14 @@ class Parser
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    Parser(const std::string sDbPath_);
+    Parser(std::string sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    Parser(const std::u32string sDbPath_);
+    Parser(std::u32string sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.

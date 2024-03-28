@@ -56,7 +56,7 @@ class OutputFileStream : public OutputStreamInterface
      *  \param [in] pcFileName Output file name with wide characters.
      *
      */
-    OutputFileStream(const std::u32string ps32FileName_);
+    OutputFileStream(std::u32string ps32FileName_);
 
     /*! A Constructor.
      *  \brief  Creates FileStream Object for writing output. And intializes MessageDataFilter

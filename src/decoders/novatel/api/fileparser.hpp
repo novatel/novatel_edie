@@ -75,14 +75,14 @@ class FileParser
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    FileParser(const std::string sDbPath_);
+    FileParser(std::string sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    FileParser(const std::u32string sDbPath_);
+    FileParser(std::u32string sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.

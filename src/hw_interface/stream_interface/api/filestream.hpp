@@ -121,7 +121,7 @@ class FileStream
      *  \remark If s32FileName is an empty u32string, then exception "Filename name not valid" will
      * be thrown.
      */
-    FileStream(const std::u32string s32FileName_);
+    FileStream(std::u32string s32FileName_);
 
     /*! A Constructor
      *  \brief  Create filename string with name provided as argument.
@@ -228,7 +228,7 @@ class FileStream
      *
      *  \return Total file length.
      */
-    uint64_t GetFileLength() { return ullMyFileLength; };
+    uint64_t GetFileLength() const { return ullMyFileLength; };
 
     /*! \fn const char* GetFileName()
      *  \brief Returns File Name.
@@ -242,7 +242,7 @@ class FileStream
      *
      *  \return Cuurent file size which user has read so far.
      */
-    uint64_t GetCurrentFileSize() { return ullMyCurrentFileSize; };
+    uint64_t GetCurrentFileSize() const { return ullMyCurrentFileSize; };
 
     /*! \fn std::fstream* GetMyFileStream()
      *  \brief Returns file stream pointer.

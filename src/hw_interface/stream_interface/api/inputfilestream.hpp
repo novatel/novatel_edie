@@ -55,7 +55,7 @@ class InputFileStream : public InputStreamInterface
      *
      *  \remark If pwcFileName is NULL, then exception "Filename name not valid" will be thrown.
      */
-    InputFileStream(const std::u32string p32sFileName);
+    InputFileStream(std::u32string p32sFileName);
 
     /*! A Constructor
      *  \brief  Creates FileStream class object with filename string.
