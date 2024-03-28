@@ -172,7 +172,7 @@ class FileStream
      *  \return Percentage of Read.
      *  \remark If file length is '0', Then exception"...file  size not valid" will thrown.
      */
-    uint32_t CalculatePercentage(uint64_t);
+    uint32_t CalculatePercentage(uint64_t) const;
 
     /*! \fn StreamReadStatus ReadFile(char* cData, uint32_t );
      *  \brief Reads uiSize characters of data from fstream file and stores
