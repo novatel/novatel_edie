@@ -663,7 +663,7 @@ class JsonReader
     //
     //! \param [in] uiMessageID_ The message ID number
     //----------------------------------------------------------------------------
-    std::string MsgIdToMsgName(uint32_t uiMessageID_) const;
+    std::string MsgIdToMsgName(const uint32_t uiMessageID_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB enum definition for the provided enum ID.
