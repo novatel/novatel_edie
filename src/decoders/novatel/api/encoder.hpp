@@ -128,31 +128,30 @@ class Encoder
     // Enum util functions
     void InitEnumDefns();
     void CreateResponseMsgDefns();
-    [[nodiscard]] std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
+    [[nodiscard]] std::string JsonHeaderToMsgName(IntermediateHeader& stInterHeader_) const;
 
   protected:
     // Encode binary
-    [[nodiscard]] bool EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                        bool bFlatten_);
-    [[nodiscard]] bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeBinaryHeader(IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeBinaryShortHeader(IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeBinaryBody(IntermediateMessage& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_, bool bFlatten_);
+    [[nodiscard]] bool FieldToBinary(FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
     // Encode ascii
-    [[nodiscard]] bool EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+    [[nodiscard]] bool EncodeAsciiHeader(IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAsciiShortHeader(IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAbbrevAsciiHeader(IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                bool bIsEmbeddedHeader_ = false);
-    [[nodiscard]] bool EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool EncodeAsciiBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool EncodeAbbrevAsciiBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool FieldToAscii(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAbbrevAsciiShortHeader(IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAsciiBody(std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeAbbrevAsciiBody(std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool FieldToAscii(FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
     // Encode JSON
-    [[nodiscard]] bool EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool EncodeJsonBody(const std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool FieldToJson(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeJsonHeader(IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeJsonShortHeader(IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeJsonBody(std::vector<FieldContainer>& vInterFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool FieldToJson(FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
   public:
     //----------------------------------------------------------------------------
