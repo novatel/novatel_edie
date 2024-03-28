@@ -130,9 +130,9 @@ struct TRACKSTAT_chan_status
         constexpr double dEpsilon = 1e-3;
 
         return prn == other.prn && freq == other.freq && channel_status == other.channel_status && psr_range_reject == other.psr_range_reject &&
-               fabs(psr - other.psr) < dEpsilon && fabs(doppler - other.doppler) < dEpsilon && fabs(C_No - other.C_No) < dEpsilon &&
-               fabs(lock_time - other.lock_time) < dEpsilon && fabs(psr_residual - other.psr_residual) < dEpsilon &&
-               fabs(psr_filter_weighting - other.psr_filter_weighting) < dEpsilon;
+               std::fabs(psr - other.psr) < dEpsilon && std::fabs(doppler - other.doppler) < dEpsilon && std::fabs(C_No - other.C_No) < dEpsilon &&
+               std::fabs(lock_time - other.lock_time) < dEpsilon && std::fabs(psr_residual - other.psr_residual) < dEpsilon &&
+               std::fabs(psr_filter_weighting - other.psr_filter_weighting) < dEpsilon;
     }
 };
 
@@ -150,7 +150,7 @@ struct TRACKSTAT
 
         return position_status == other.position_status && position_status == other.position_status &&
                chan_status_arraylength == other.chan_status_arraylength &&
-               fabs(tracking_elevation_cutoff - other.tracking_elevation_cutoff) < dEpsilon &&
+               std::fabs(tracking_elevation_cutoff - other.tracking_elevation_cutoff) < dEpsilon &&
                std::equal(std::begin(chan_status), &chan_status[chan_status_arraylength], std::begin(other.chan_status));
     }
 };
@@ -199,11 +199,11 @@ struct BESTPOS
                num_svs == other.num_svs && num_soln_svs == other.num_soln_svs && num_soln_L1_svs == other.num_soln_L1_svs &&
                num_soln_multi_svs == other.num_soln_multi_svs && extended_solution_status2 == other.extended_solution_status2 &&
                ext_sol_stat == other.ext_sol_stat && gal_and_bds_mask == other.gal_and_bds_mask && gps_and_glo_mask == other.gps_and_glo_mask &&
-               fabs(latitude - other.latitude) < dCoordinateEpsilon && fabs(longitude - other.longitude) < dCoordinateEpsilon &&
-               fabs(orthometric_height - other.orthometric_height) < dEpsilon && fabs(undulation - other.undulation) < dEpsilon &&
-               fabs(latitude_std_dev - other.latitude_std_dev) < dEpsilon && fabs(longitude_std_dev - other.longitude_std_dev) < dEpsilon &&
-               fabs(height_std_dev - other.height_std_dev) < dEpsilon && fabs(diff_age - other.diff_age) < dEpsilon &&
-               fabs(solution_age - other.solution_age) < dEpsilon && memcmp(base_id, other.base_id, sizeof(base_id)) == 0;
+               std::fabs(latitude - other.latitude) < dCoordinateEpsilon && std::fabs(longitude - other.longitude) < dCoordinateEpsilon &&
+               std::fabs(orthometric_height - other.orthometric_height) < dEpsilon && std::fabs(undulation - other.undulation) < dEpsilon &&
+               std::fabs(latitude_std_dev - other.latitude_std_dev) < dEpsilon && std::fabs(longitude_std_dev - other.longitude_std_dev) < dEpsilon &&
+               std::fabs(height_std_dev - other.height_std_dev) < dEpsilon && std::fabs(diff_age - other.diff_age) < dEpsilon &&
+               std::fabs(solution_age - other.solution_age) < dEpsilon && memcmp(base_id, other.base_id, sizeof(base_id)) == 0;
     }
 };
 
@@ -221,7 +221,7 @@ struct LOGLIST_log_list
         constexpr double dEpsilon = 1e-4;
 
         return log_port_address == other.log_port_address && message_id == other.message_id && trigger == other.trigger && hold == other.hold &&
-               fabs(on_time - other.on_time) < dEpsilon && fabs(offset - other.offset) < dEpsilon;
+               std::fabs(on_time - other.on_time) < dEpsilon && std::fabs(offset - other.offset) < dEpsilon;
     }
 };
 
