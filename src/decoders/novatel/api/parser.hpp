@@ -175,7 +175,7 @@ class Parser
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    bool GetIgnoreAbbreviatedAsciiResponses();
+    bool GetIgnoreAbbreviatedAsciiResponses() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
@@ -189,7 +189,7 @@ class Parser
     //
     //! \return The current option for decompressing RANGECMP messages.
     //----------------------------------------------------------------------------
-    bool GetDecompressRangeCmp();
+    bool GetDecompressRangeCmp() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the return option for unknown bytes.
@@ -203,7 +203,7 @@ class Parser
     //
     //! \return The current option for returning unknown bytes.
     //----------------------------------------------------------------------------
-    bool GetReturnUnknownBytes();
+    bool GetReturnUnknownBytes() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the encode format for messages.

@@ -252,10 +252,5 @@ bool Filter::DoFiltering(MetaDataStruct& stMetaData_)
     if (stMetaData_.eFormat == HEADERFORMAT::UNKNOWN) { return false; }
     if (stMetaData_.eFormat == HEADERFORMAT::NMEA) { return bMyIncludeNMEA_; }
 
-    for (auto& vMyFilterFunction : vMyFilterFunctions)
-    {
-        if (!(this->*vMyFilterFunction)(stMetaData_)) { return false; }
-    }
-
-    return true;
+    return std::ranges::all_of(vMyFilterFunctions, [&](const auto& vMyFilterFunction) { return std::invoke(vMyFilterFunction, this, stMetaData_); });
 }

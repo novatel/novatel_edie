@@ -102,9 +102,8 @@ Parser::Parser(JsonReader* pclJsonDb_)
 // -------------------------------------------------------------------------------------------------------
 Parser::~Parser()
 {
-    if (pcMyFrameBuffer) { delete[] pcMyFrameBuffer; }
-
-    if (pcMyEncodeBuffer) { delete[] pcMyEncodeBuffer; }
+    delete[] pcMyFrameBuffer;
+    delete[] pcMyEncodeBuffer;
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -165,7 +164,7 @@ void Parser::SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreivatedAsciiResp
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Parser::GetIgnoreAbbreviatedAsciiResponses() { return bMyIgnoreAbbreviatedASCIIResponse; }
+bool Parser::GetIgnoreAbbreviatedAsciiResponses() const { return bMyIgnoreAbbreviatedASCIIResponse; }
 
 // -------------------------------------------------------------------------------------------------------
 void Parser::SetFilter(Filter* pclFilter_) { pclMyUserFilter = pclFilter_; }
@@ -177,13 +176,13 @@ Filter* Parser::GetFilter() { return pclMyUserFilter; }
 void Parser::SetDecompressRangeCmp(bool bDecompressRangeCmp_) { bMyDecompressRangeCmp = bDecompressRangeCmp_; }
 
 // -------------------------------------------------------------------------------------------------------
-bool Parser::GetDecompressRangeCmp() { return bMyDecompressRangeCmp; }
+bool Parser::GetDecompressRangeCmp() const { return bMyDecompressRangeCmp; }
 
 // -------------------------------------------------------------------------------------------------------
 void Parser::SetReturnUnknownBytes(bool bReturnUnknownBytes_) { bMyReturnUnknownBytes = bReturnUnknownBytes_; }
 
 // -------------------------------------------------------------------------------------------------------
-bool Parser::GetReturnUnknownBytes() { return bMyReturnUnknownBytes; }
+bool Parser::GetReturnUnknownBytes() const { return bMyReturnUnknownBytes; }
 
 // -------------------------------------------------------------------------------------------------------
 void Parser::SetEncodeFormat(ENCODEFORMAT eFormat_) { eMyEncodeFormat = eFormat_; }
