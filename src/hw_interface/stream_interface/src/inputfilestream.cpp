@@ -74,14 +74,14 @@ uint64_t InputFileStream::GetCurrentFileOffset() const { return pInFileStream->G
 // ---------------------------------------------------------
 std::string InputFileStream::FileExtension()
 {
-    size_t BaseNameLength = stFileName.find_last_of(".");
+    size_t BaseNameLength = stFileName.find_last_of('.');
     return BaseNameLength == std::string::npos ? "" : stFileName.substr(BaseNameLength + 1);
 }
 
 // ---------------------------------------------------------
 std::string InputFileStream::WCFileExtension()
 {
-    size_t BaseNameLength = stwFileName.find_last_of(L".");
+    size_t BaseNameLength = stwFileName.find_last_of(L'.');
     if (BaseNameLength != std::string::npos)
     {
         std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
