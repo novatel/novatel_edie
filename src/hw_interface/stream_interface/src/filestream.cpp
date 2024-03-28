@@ -193,10 +193,7 @@ void FileStream::GetFileSize()
 // ---------------------------------------------------------
 uint32_t FileStream::CalculatePercentage(uint64_t ullCurrentFileRead) const
 {
-    if (ullMyFileLength == 0L)
-        return 100;
-    else
-        return static_cast<uint32_t>(ullCurrentFileRead * 100 / ullMyFileLength);
+    return ullMyFileLength == 0L ? 100 : static_cast<uint32_t>(ullCurrentFileRead * 100 / ullMyFileLength);
 }
 
 // ---------------------------------------------------------

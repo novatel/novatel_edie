@@ -71,7 +71,7 @@ void MultiOutputFileStream::ClearWCFileStreamMap()
 {
     for (auto itFstreamMapIterator = wmMyFstreamMap.begin(); itFstreamMapIterator != wmMyFstreamMap.end();)
     {
-        if (itFstreamMapIterator->second) { delete itFstreamMapIterator->second; }
+        delete itFstreamMapIterator->second;
         itFstreamMapIterator = wmMyFstreamMap.erase(itFstreamMapIterator);
     }
 }
@@ -82,7 +82,7 @@ void MultiOutputFileStream::ClearFileStreamMap()
 {
     for (auto itFstreamMapIterator = mMyFstreamMap.begin(); itFstreamMapIterator != mMyFstreamMap.end();)
     {
-        if (itFstreamMapIterator->second) { delete itFstreamMapIterator->second; }
+        delete itFstreamMapIterator->second;
         itFstreamMapIterator = mMyFstreamMap.erase(itFstreamMapIterator);
     }
 }
