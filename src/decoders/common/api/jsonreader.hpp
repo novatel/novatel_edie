@@ -490,7 +490,7 @@ struct MessageDefinition
 
     ~MessageDefinition()
     {
-        for (const auto field : fields)
+        for (auto field : fields)
         {
             for (auto f : field.second) { delete f; }
         }
