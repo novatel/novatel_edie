@@ -177,7 +177,7 @@ struct IntermediateHeader
     uint32_t uiMessageDefinitionCRC{0};
     uint16_t usReceiverSwVersion{0};
 
-    constexpr IntermediateHeader() = default;
+    IntermediateHeader() = default;
 };
 
 #pragma pack(push, 1)
@@ -197,7 +197,18 @@ struct OEM4BinaryShortHeader
     uint16_t usWeekNo{0};    //!< GPS Week number.
     uint32_t uiWeekMSec{0};  //!< GPS Week seconds.
 
-    constexpr OEM4BinaryShortHeader() = default;
+    OEM4BinaryShortHeader() = default;
+
+    OEM4BinaryShortHeader(const IntermediateHeader& stInterHeader_)
+    {
+        ucSync1 = OEM4_BINARY_SYNC1;
+        ucSync2 = OEM4_BINARY_SYNC2;
+        ucSync3 = OEM4_SHORT_BINARY_SYNC3;
+        ucLength = 0; // Will be filled in following the body encoding
+        usMessageId = stInterHeader_.usMessageID;
+        usWeekNo = stInterHeader_.usWeek;
+        uiWeekMSec = static_cast<uint32_t>(stInterHeader_.dMilliseconds);
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -224,7 +235,27 @@ struct OEM4BinaryHeader
     uint16_t usMsgDefCRC{0};         //!< Message def CRC of binary log.
     uint16_t usReceiverSWVersion{0}; //!< Receiver Software version.
 
-    constexpr OEM4BinaryHeader() = default;
+    OEM4BinaryHeader() = default;
+
+    OEM4BinaryHeader(const IntermediateHeader& stInterHeader_)
+    {
+        ucSync1 = OEM4_BINARY_SYNC1;
+        ucSync2 = OEM4_BINARY_SYNC2;
+        ucSync3 = OEM4_BINARY_SYNC3;
+        ucHeaderLength = OEM4_BINARY_HEADER_LENGTH;
+        usMsgNumber = stInterHeader_.usMessageID;
+        ucMsgType = stInterHeader_.ucMessageType & (~static_cast<uint32_t>(MESSAGETYPEMASK::MSGFORMAT));
+        ucPort = static_cast<uint8_t>(stInterHeader_.uiPortAddress);
+        usLength = stInterHeader_.usLength;
+        usSequenceNumber = stInterHeader_.usSequence;
+        ucIdleTime = stInterHeader_.ucIdleTime;
+        ucTimeStatus = static_cast<uint8_t>(stInterHeader_.uiTimeStatus & 0xFF);
+        usWeekNo = stInterHeader_.usWeek;
+        uiWeekMSec = static_cast<uint32_t>(stInterHeader_.dMilliseconds);
+        uiStatus = stInterHeader_.uiReceiverStatus;
+        usMsgDefCRC = static_cast<uint16_t>(stInterHeader_.uiMessageDefinitionCRC & 0xFFFF);
+        usReceiverSWVersion = stInterHeader_.usReceiverSwVersion;
+    }
 
     bool operator==(const OEM4BinaryHeader& other) const { return memcmp(this, &other, sizeof(*this)) == 0; }
 

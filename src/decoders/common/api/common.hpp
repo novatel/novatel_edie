@@ -176,9 +176,13 @@ enum class HEADERFORMAT
     NMEA,
     JSON,
     SHORT_ABB_ASCII,
-    ALL // Used in filters to indicate all filter types : all new enums should be added before this
-        // value
+    ALL // Used in filters to indicate all filter types : all new enums should be added before this value
 };
+
+constexpr bool isShortHeaderFormat(HEADERFORMAT eFormat)
+{
+    return eFormat == HEADERFORMAT::SHORT_ASCII || eFormat == HEADERFORMAT::SHORT_BINARY || eFormat == HEADERFORMAT::SHORT_ABB_ASCII;
+}
 
 //-----------------------------------------------------------------------
 //! \enum MESSAGEFORMAT
