@@ -78,7 +78,7 @@ constexpr uint32_t CalculateBlockCRC32(uint32_t uiCount, uint32_t uiCRC, const u
 constexpr uint32_t CalculateBlockCRC32(const char* ucBuffer)
 {
     uint32_t uiCRC = 0;
-    while (*ucBuffer != '\0') { uiCRC = CalculateCharacterCRC32(uiCRC, static_cast<unsigned char>(*ucBuffer++)); }
+    while (*ucBuffer != '\0') { CalculateCharacterCRC32(uiCRC, static_cast<unsigned char>(*ucBuffer++)); }
     return (uiCRC);
 }
 
