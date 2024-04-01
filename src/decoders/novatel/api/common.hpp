@@ -84,10 +84,10 @@ constexpr uint16_t OEM4_SHORT_BINARY_HEADER_LENGTH = 12;
 constexpr uint8_t OEM4_PROPRIETARY_BINARY_SYNC2 = 0x45;
 
 //-----------------------------------------------------------------------
-//! \enum NovAtelFrameStateEnum
+//! \enum NovAtelFrameState
 //! \brief Enumeration for state machine used while framing the log.
 //-----------------------------------------------------------------------
-enum class NovAtelFrameStateEnum
+enum class NovAtelFrameState
 {
     WAITING_FOR_SYNC,                  //!< First sync byte of Header.
     WAITING_FOR_BINARY_SYNC2,          //!< Second sync byte of Header.

@@ -36,7 +36,6 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
-#include "decoders/common/api/framerinterface.hpp"
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/filter.hpp"
 #include "decoders/novatel/api/framer.hpp"

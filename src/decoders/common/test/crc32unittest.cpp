@@ -60,7 +60,7 @@ TEST_F(CRC32Test, CalculateBlockCRC32)
     for (uint64_t i = 1ULL; i < uiTerminatorIndex; i++)
     {
         if (sMessage[i] == '\0') break;
-        uiCalculatedCRC = CalculateCharacterCRC32(uiCalculatedCRC, sMessage[i]);
+        CalculateCharacterCRC32(uiCalculatedCRC, sMessage[i]);
     }
 
     ASSERT_EQ(uiCalculatedCRC, 0x42d4f5ccUL);

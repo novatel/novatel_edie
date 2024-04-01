@@ -23,16 +23,15 @@
 ////////////////////////////////////////////////////////////////////////
 //                            DESCRIPTION
 //
-//! \file common.hpp
-//! \brief Header file containing the common structs, enums and defines
-//! used throughout the EDIE source code.
+//! \file framer.hpp
+//! \brief Frame messages
 ////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------------------------------------
 // Recursive Inclusion
 //-----------------------------------------------------------------------
-#ifndef FRAMERINTERFACE_HPP
-#define FRAMERINTERFACE_HPP
+#ifndef FRAMER_HPP
+#define FRAMER_HPP
 
 //-----------------------------------------------------------------------
 // Includes
@@ -43,37 +42,61 @@
 #include "logger/logger.hpp"
 
 //============================================================================
-//! \class FramerInterface
+//! \class Framer
 //! \brief Base class for all framers.  Contains necessary buffers and member
 //! variables, defining generic framer operations.
 //============================================================================
-class FramerInterface
+class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
     CircularBuffer clMyCircularDataBuffer;
 
     uint32_t uiMyCalculatedCRC32{0U};
-
     uint32_t uiMyByteCount{0U};
     uint32_t uiMyExpectedPayloadLength{0U};
     uint32_t uiMyExpectedMessageLength{0U};
 
     bool bMyReportUnknownBytes{true};
+    bool bMyPayloadOnly{false};
+    bool bMyFrameJson{false};
 
-    virtual void HandleUnknownBytes(unsigned char* pucBuffer_, uint32_t uiUnknownBytes_) = 0;
+    virtual void ResetState() = 0;
+
+    bool IsCRLF(const uint32_t uiPosition_) const
+    {
+        return uiPosition_ + 1 < clMyCircularDataBuffer.GetLength() && clMyCircularDataBuffer[uiPosition_] == '\r' &&
+               clMyCircularDataBuffer[uiPosition_ + 1] == '\n';
+    }
+
+    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
+    {
+        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { clMyCircularDataBuffer.Copy(pucBuffer_, uiUnknownBytes_); }
+        clMyCircularDataBuffer.Discard(uiUnknownBytes_);
+
+        uiMyByteCount = 0;
+        uiMyExpectedMessageLength = 0;
+        uiMyExpectedPayloadLength = 0;
+
+        ResetState();
+    }
 
   public:
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerInterface class.
+    //! \brief A constructor for the FramerBase class.
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
     //----------------------------------------------------------------------------
-    FramerInterface(const std::string& strLoggerName_) : pclMyLogger(Logger::RegisterLogger(strLoggerName_))
+    FramerBase(const std::string& strLoggerName_) : pclMyLogger(Logger::RegisterLogger(strLoggerName_))
     {
         clMyCircularDataBuffer.Clear();
         pclMyLogger->debug("Framer initialized");
     }
+
+    //----------------------------------------------------------------------------
+    //! \brief A destructor for the FramerBase class.
+    //----------------------------------------------------------------------------
+    virtual ~FramerBase() = default;
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -93,6 +116,24 @@ class FramerInterface
     //! \brief Shutdown the internal logger.
     //----------------------------------------------------------------------------
     static void ShutdownLogger() { Logger::Shutdown(); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Should the Framer look for JSON objects in provided bytes?
+    //! This setting can be extremely error prone, as there is no CRC search or
+    //! sync bytes, just direct comparisons to '{' and '}' characters.
+    //
+    //! \param[in] bFrameJson_ true if the Framer should search for JSON objects.
+    //----------------------------------------------------------------------------
+    void SetFrameJson(bool bFrameJson_) { bMyFrameJson = bFrameJson_; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Should the Framer return only the message body of messages and
+    //! discard the header?
+    //
+    //! \param[in] bPayloadOnly_ true if the Framer should discard message
+    //! headers.
+    //----------------------------------------------------------------------------
+    void SetPayloadOnly(bool bPayloadOnly_) { bMyPayloadOnly = bPayloadOnly_; }
 
     //----------------------------------------------------------------------------
     //! \brief Configure the framer to return unknown bytes in the provided
@@ -140,4 +181,4 @@ class FramerInterface
     }
 };
 
-#endif // FRAMERINTERFACE_HPP
+#endif // FRAMER_HPP
