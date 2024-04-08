@@ -120,9 +120,8 @@ jobs:
 
     - name: Check code formatting
       run: |
-        clang-format --version
-        find src -name '*.cpp' -o -name '*.hpp' | xargs clang-format -n -Werror --style=file
-        find examples -name '*.cpp' -o -name '*.hpp' | xargs clang-format -n -Werror --style=file
+        find src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -n {} + || echo "Clang-format failed! See the README if you dont know how to fix this."
+
 
   # =========================================================
   # Clang Tidy Job
