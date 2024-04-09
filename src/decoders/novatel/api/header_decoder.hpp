@@ -48,8 +48,8 @@
 
 #include "decoders/common/api/common.hpp"
 #include "decoders/common/api/crc32.hpp"
-#include "decoders/common/api/logger.hpp"
 #include "decoders/common/api/jsonreader.hpp"
+#include "decoders/common/api/logger.hpp"
 #include "decoders/novatel/api/common.hpp"
 
 namespace novatel::edie::oem {

@@ -36,8 +36,8 @@
 
 #include <chrono>
 
-#include "src/decoders/common/api/logger.hpp"
 #include "src/decoders/common/api/jsonreader.hpp"
+#include "src/decoders/common/api/logger.hpp"
 #include "src/decoders/novatel/api/encoder.hpp"
 #include "src/decoders/novatel/api/filter.hpp"
 #include "src/decoders/novatel/api/framer.hpp"
