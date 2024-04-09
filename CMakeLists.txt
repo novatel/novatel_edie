@@ -49,6 +49,16 @@ if(NOT DEFINED GIT_BRANCH)
    set(GIT_BRANCH "")
 endif()
 
+# Set the path to the vcpkg toolchain file
+set(VCPKG_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg)
+set(CMAKE_TOOLCHAIN_FILE ${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake CACHE STRING "")
+
+# Include vcpkg CMake integration
+include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+
+# Find vcpkg packages
+#find_package(GTest REQUIRED)
+
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     string(REGEX REPLACE "/W3"  "/W4"  CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS}")
     string(REGEX REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -74,7 +84,7 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang
         set(COMMON_GCC_FLAGS_RELEASE "${COMMON_GCC_FLAGS_RELEASE} -s")
     endif()
     if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -pthread -Wno-unqualified-std-cast-call")
+        set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -pthread")
     endif()
 
     set(CMAKE_C_FLAGS_DEBUG     "${COMMON_GCC_FLAGS_DEBUG}")
@@ -111,10 +121,7 @@ message("CMAKE_CXX_COMPILER_TARGET " ${CMAKE_CXX_COMPILER_TARGET})
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Fetch the GoogleTest library
-FetchContent_Declare(
-  googletest
-   URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip
-)
+FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip)
 FetchContent_MakeAvailable(googletest)
 
 # Find Git package, if not need to install manually or through .yml file
