@@ -12,8 +12,6 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(".")
 include_directories("lib") # spdlog`s include structure is relative to its root folder
 
-include(FetchContent)
-
 if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -59,11 +57,13 @@ include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 # Find vcpkg packages
 find_package(spdlog REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(GTest REQUIRED)
 
 include_directories(${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/include)
 
 add_compile_definitions(SPDLOG_FMT_EXTERNAL)
 add_compile_definitions(FMT_HEADER_ONLY)
+add_compile_definitions(GTEST_USE_STATIC_LIBS)
 
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     string(REGEX REPLACE "/W3"  "/W4"  CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS}")
@@ -125,10 +125,6 @@ message("CMAKE_GENERATOR_TOOLSET: "  ${CMAKE_GENERATOR_TOOLSET})
 message("CMAKE_CXX_COMPILER_TARGET " ${CMAKE_CXX_COMPILER_TARGET})
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
-
-# Fetch the GoogleTest library
-FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip)
-FetchContent_MakeAvailable(googletest)
 
 # Find Git package, if not need to install manually or through .yml file
 find_package(Git)

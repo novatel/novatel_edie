@@ -57,6 +57,7 @@ jobs:
         run: |
           ./vcpkg/vcpkg install spdlog
           ./vcpkg/vcpkg install nlohmann-json
+          ./vcpkg/vcpkg install gtest
         
       - name: Configure
         shell: bash
@@ -173,6 +174,7 @@ jobs:
         run: |
           ./vcpkg/vcpkg install spdlog
           ./vcpkg/vcpkg install nlohmann-json
+          ./vcpkg/vcpkg install gtest
 
       - name: Static code analysis
         run: |
@@ -212,6 +214,7 @@ jobs:
       run: |
         ./vcpkg/vcpkg install spdlog
         ./vcpkg/vcpkg install nlohmann-json
+        ./vcpkg/vcpkg install gtest
 
     - name: Configure
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=debug -G "Ninja" -DCOVERAGE=ON -DVCPKG_TARGET_TRIPLET=x64-linux

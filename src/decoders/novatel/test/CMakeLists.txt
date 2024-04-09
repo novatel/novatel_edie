@@ -15,4 +15,4 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../api)
 
 get_directory_property( DirDefs COMPILE_DEFINITIONS )
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
-target_link_libraries(${PROJECT_NAME} PUBLIC novatel common stream_interface gtest)
+target_link_libraries(${PROJECT_NAME} PUBLIC novatel common stream_interface GTest::gtest)
