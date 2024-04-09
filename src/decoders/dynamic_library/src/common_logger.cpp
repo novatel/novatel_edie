@@ -34,7 +34,7 @@
 
 #include <string>
 
-#include "logger/logger.hpp"
+#include "decoders/common/api/logger.hpp"
 
 void common_logger_setup() { Logger::InitLogger(); }
 

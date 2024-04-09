@@ -39,7 +39,7 @@
 #include <memory>
 
 #include "circularbuffer.hpp"
-#include "logger/logger.hpp"
+#include "decoders/common/api/logger.hpp"
 
 //============================================================================
 //! \class Framer

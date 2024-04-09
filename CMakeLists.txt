@@ -57,7 +57,12 @@ set(CMAKE_TOOLCHAIN_FILE ${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake CACHE ST
 include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 # Find vcpkg packages
-#find_package(GTest REQUIRED)
+find_package(spdlog REQUIRED)
+
+include_directories(${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/include)
+
+add_compile_definitions(SPDLOG_FMT_EXTERNAL)
+add_compile_definitions(FMT_HEADER_ONLY)
 
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     string(REGEX REPLACE "/W3"  "/W4"  CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS}")

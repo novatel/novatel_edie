@@ -55,7 +55,7 @@ jobs:
       - name: Install packages with vcpkg
         shell: bash
         run: |
-          #./vcpkg/vcpkg install gtest
+          ./vcpkg/vcpkg install spdlog
         
       - name: Configure
         shell: bash
@@ -170,7 +170,7 @@ jobs:
       - name: Install packages with vcpkg
         shell: bash
         run: |
-          #./vcpkg/vcpkg install gtest
+          ./vcpkg/vcpkg install spdlog
 
       - name: Static code analysis
         run: |
@@ -208,7 +208,7 @@ jobs:
     - name: Install packages with vcpkg
       shell: bash
       run: |
-        #./vcpkg/vcpkg install gtest
+        ./vcpkg/vcpkg install spdlog
 
     - name: Configure
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=debug -G "Ninja" -DCOVERAGE=ON -DVCPKG_TARGET_TRIPLET=x64-linux

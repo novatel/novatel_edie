@@ -36,10 +36,10 @@
 //-----------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------
+#include "decoders/common/api/logger.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <logger/logger.hpp>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <string>
