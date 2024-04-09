@@ -82,6 +82,7 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang
 
     if(LINUX)
         set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -D_LINUX_")
+        set(COMMON_GCC_FLAGS_DEBUG "${COMMON_GCC_FLAGS_DEBUG} -O3") # Windows cant handle O3?
     endif()
     if(WINDOWS)
         set(COMMON_GCC_FLAGS_DEBUG "${COMMON_GCC_FLAGS_DEBUG} -O1")
@@ -153,7 +154,7 @@ add_subdirectory(src/decoders/common/test)
 #
 #add_subdirectory(examples/novatel/command_encoding)
 #add_subdirectory(examples/novatel/converter_fileparser)
-#add_subdirectory(examples/novatel/converter_components)
+add_subdirectory(examples/novatel/converter_components)
 #add_subdirectory(examples/novatel/converter_parser)
 #add_subdirectory(examples/novatel/json_parser)
 #add_subdirectory(examples/novatel/rangecmp)
