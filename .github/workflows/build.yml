@@ -56,6 +56,7 @@ jobs:
         shell: bash
         run: |
           ./vcpkg/vcpkg install spdlog
+          ./vcpkg/vcpkg install nlohmann-json
         
       - name: Configure
         shell: bash
@@ -171,6 +172,7 @@ jobs:
         shell: bash
         run: |
           ./vcpkg/vcpkg install spdlog
+          ./vcpkg/vcpkg install nlohmann-json
 
       - name: Static code analysis
         run: |
@@ -209,6 +211,7 @@ jobs:
       shell: bash
       run: |
         ./vcpkg/vcpkg install spdlog
+        ./vcpkg/vcpkg install nlohmann-json
 
     - name: Configure
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=debug -G "Ninja" -DCOVERAGE=ON -DVCPKG_TARGET_TRIPLET=x64-linux

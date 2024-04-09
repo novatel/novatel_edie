@@ -58,6 +58,7 @@ include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 # Find vcpkg packages
 find_package(spdlog REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 include_directories(${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/include)
 
