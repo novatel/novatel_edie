@@ -78,15 +78,13 @@ if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
     set(COMMON_GCC_CXX_FLAGS "-Wall -fPIC -Wfatal-errors -Wold-style-cast -Wextra -pedantic")
     set(COMMON_GCC_FLAGS_DEBUG "-g")
-    set(COMMON_GCC_FLAGS_RELEASE "-DNDEBUG")
+    set(COMMON_GCC_FLAGS_RELEASE "-O3 -DNDEBUG")
 
     if(LINUX)
         set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -D_LINUX_")
-        set(COMMON_GCC_FLAGS_RELEASE "${COMMON_GCC_FLAGS_RELEASE} -O3") # Windows cant handle O3?
     endif()
     if(WINDOWS)
         set(COMMON_GCC_FLAGS_DEBUG "${COMMON_GCC_FLAGS_DEBUG} -O1")
-        set(COMMON_GCC_FLAGS_RELEASE "${COMMON_GCC_FLAGS_RELEASE} -O1") # Windows cant handle O3?
     endif()
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
         set(COMMON_GCC_CXX_FLAGS "${COMMON_GCC_CXX_FLAGS} -Werror -Wno-format-truncation -Wno-error=format -Wno-format -Wno-format-extra-args")
