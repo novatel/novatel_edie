@@ -86,7 +86,6 @@ void init_novatel_message_decoder(nb::module_& m)
         .def("__str__", &PyIntermediateMessage::repr);
 
     nb::class_<FieldContainer>(m, "FieldContainer")
-        .def(nb::init<FieldValueVariant, BaseField*>())
         .def_rw("value", &FieldContainer::fieldValue)
         .def_rw("field_def", &FieldContainer::fieldDef)
         .def("__repr__", [](const FieldContainer& container) {
