@@ -278,6 +278,7 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField* MessageDataType_, un
     case DATA_TYPE::DOUBLE: vIntermediateFormat_.emplace_back(*reinterpret_cast<double*>(*ppucLogBuf_), MessageDataType_); break;
     default: throw std::runtime_error("DecodeBinaryField(): Unknown field type\n");
     }
+
     *ppucLogBuf_ += MessageDataType_->dataType.length;
 }
 
@@ -304,7 +305,6 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField*> MsgDefFields_, un
         {
             *ppucLogBuf_ += usTypeAlignment - (reinterpret_cast<uint64_t>(*ppucLogBuf_) % usTypeAlignment);
         }
-
 
         switch (field->type)
         {
