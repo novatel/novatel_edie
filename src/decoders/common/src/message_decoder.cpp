@@ -730,7 +730,7 @@ MessageDecoderBase::Decode(unsigned char* pucInData_, IntermediateMessage& stInt
     stInterMessage_.reserve(pvCurrentMsgFields->size());
 
     // Decode the detected format
-    return stMetaData_.eFormat == HEADERFORMAT::ASCII || stMetaData_.eFormat == HEADERFORMAT::SHORT_ASCII || stMetaData_.eFormat == HEADERFORMAT::NMEA
+    return stMetaData_.eFormat == HEADERFORMAT::ASCII || stMetaData_.eFormat == HEADERFORMAT::SHORT_ASCII 
                ? DecodeAscii<false>(*pvCurrentMsgFields, reinterpret_cast<char**>(&pucTempInData), stInterMessage_)
            : stMetaData_.eFormat == HEADERFORMAT::ABB_ASCII || stMetaData_.eFormat == HEADERFORMAT::SHORT_ABB_ASCII
                ? DecodeAscii<true>(*pvCurrentMsgFields, reinterpret_cast<char**>(&pucTempInData), stInterMessage_)
