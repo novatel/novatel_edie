@@ -433,7 +433,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*> MsgDefField
         }
         case FIELD_TYPE::STRING:
             // Empty Field
-            if (0 == strcspn(*ppucLogBuf_, ",*")) 
+            if (0 == strcspn(*ppucLogBuf_, ",*"))
             {
                 vIntermediateFormat_.emplace_back("", field);
                 *ppucLogBuf_ += 1;
@@ -448,7 +448,8 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*> MsgDefField
                 *ppucLogBuf_ += 1 + tokenLength + strcspn(*ppucLogBuf_ + tokenLength, acDelimiter1);
             }
             // Unquoted String
-            else {
+            else
+            {
                 // String that isn't surrounded by quotes
                 tokenLength = strcspn(*ppucLogBuf_, acDelimiter1); // Look for LAST '\"' or '*' character, skipping past the first.
                 vIntermediateFormat_.emplace_back(std::string(*ppucLogBuf_, tokenLength), field); // +1 to traverse opening double-quote.
