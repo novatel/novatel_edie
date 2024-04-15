@@ -238,6 +238,21 @@ if (eCommanderStatus == STATUS::SUCCESS) {
 
 We format our code using Clang-Format as it provides a well-defined set of rules and conventions that make it easier for developers to collaborate on and understand a codebase. Additionally, adhering to this styling guide helps catch potential coding errors and reduces the likelihood of introducing bugs through inconsistent formatting.
 
+If the code in a pull request does not match the style rules defined in our .clang-format file, the pipeline will fail and you will have to correct any discrepancies. To do this, you will need a method for applying clang-format settings. 
+
+### Windows
+
+You can install llvm and clang-format via the [builds page](https://llvm.org/builds/). However, Visual Studio has built-in clang-format support since 2017, as described [here](https://learn.microsoft.com/en-us/visualstudio/ide/reference/options-text-editor-c-cpp-formatting?view=vs-2022). You can also follow the steps below for linux if you are using WSL.
+
+### Linux
+
+If you are using linux, you simply use the commands below to install clang-format and apply the settings. 
+
+`sudo apt install clang-format
+`
+
+`find src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -i {} +`
+
 ## API Stability
 
 Currently, we do not guarantee API stability as development progresses. While we intend to minimize the frequency of changes that cause old things to break, please be aware that we retain the right to add, remove, or modify components.
