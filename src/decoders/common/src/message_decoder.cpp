@@ -306,6 +306,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField*> MsgDefFields_, un
             *ppucLogBuf_ += usTypeAlignment - (reinterpret_cast<uint64_t>(*ppucLogBuf_) % usTypeAlignment);
         }
 
+
         switch (field->type)
         {
         case FIELD_TYPE::SIMPLE: DecodeBinaryField(field, ppucLogBuf_, vIntermediateFormat_); break;
