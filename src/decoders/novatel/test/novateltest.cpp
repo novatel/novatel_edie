@@ -2934,7 +2934,7 @@ protected:
 
       bool TestEncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
       {
-         return Encoder::EncodeBinaryBody<false>(stInterMessage_, ppcOutBuf_, uiBytes);
+         return Encoder::EncodeBinaryBody<false, true>(stInterMessage_, ppcOutBuf_, uiBytes);
       }
    };
 
