@@ -123,6 +123,22 @@ jobs:
         find src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -n {} + || (echo "Clang-format failed! See the README if you don't know how to fix this." && exit 1)
 
   # =========================================================
+  # Editor Config Job
+  # =========================================================
+  editorconfig:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install editorconfig-checker
+      uses: editorconfig-checker/action-editorconfig-checker@main
+
+    - name: Check CMakeLists.txt formatting
+      run: editorconfig-checker --version
+
+  # =========================================================
   # Clang Tidy Job
   # =========================================================
   clang-tidy:
