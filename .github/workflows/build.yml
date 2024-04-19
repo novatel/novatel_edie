@@ -135,11 +135,8 @@ jobs:
       uses: editorconfig-checker/action-editorconfig-checker@main
 
     - name: Check CMakeLists.txt formatting
-      #run: find . \( -name 'CMakeLists.txt' \) -exec editorconfig-checker {} \; || (echo "EditorConfig check failed for CMakeLists.txt files! See the README if you don't know how to fix this." && exit 1)
-      run: |
-        set -e
-        find . \( -name 'CMakeLists.txt' \) -exec editorconfig-checker {} \;
-        echo "EditorConfig check passed for CMakeLists.txt files."
+      run: find . \( -name 'CMakeLists.txt' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed for CMakeLists.txt files! See the README if you don't know how to fix this."; exit 1; }
+
   # =========================================================
   # Clang Tidy Job
   # =========================================================
