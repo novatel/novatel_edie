@@ -1,0 +1,22 @@
+root = true
+
+[*]
+# Use spaces instead of tabs for indentation
+indent_style = space
+
+# Set the character set to UTF-8
+charset = utf-8
+
+# Trim trailing whitespace
+trim_trailing_whitespace = true
+
+# Use LF (Line Feed) as the end-of-line character
+end_of_line = crlf
+
+# Ensure a newline at the end of the file
+insert_final_newline = true
+
+[CMakeLists.txt]
+
+# 4 spaces per indentation level
+indent_size = 4
