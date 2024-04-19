@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 project(novatel VERSION 1.0.0)
 
-file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c*  ${CMAKE_CURRENT_SOURCE_DIR}/src/rangecmp/*.c* ${CMAKE_CURRENT_SOURCE_DIR}/src/rangecmp/*.h* ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h* ${CMAKE_CURRENT_SOURCE_DIR}/api/*.h*)
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c* ${CMAKE_CURRENT_SOURCE_DIR}/src/rangecmp/*.c* ${CMAKE_CURRENT_SOURCE_DIR}/src/rangecmp/*.h* ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h* ${CMAKE_CURRENT_SOURCE_DIR}/api/*.h*)
 set(NOVATEL_SOURCES)
 LIST(APPEND NOVATEL_SOURCES ${SOURCES})
 
@@ -21,8 +21,8 @@ add_library(${PROJECT_NAME} STATIC $<TARGET_OBJECTS:objcommon> $<TARGET_OBJECTS:
 
 # Copy the api folder to the bin output directory so they can be easily used
 add_custom_command(TARGET ${PROJECT_NAME}
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/api/ ${CMAKE_SOURCE_DIR}/bin/api/decoders/${PROJECT_NAME}/api/)
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/api/ ${CMAKE_SOURCE_DIR}/bin/api/decoders/${PROJECT_NAME}/api/)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "decoders")
 set_property(TARGET objnovatel PROPERTY FOLDER "decoders")
@@ -39,8 +39,8 @@ target_include_directories(
 if(LINUX)
     file(GLOB_RECURSE MY_PUBLIC_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/api/*.h*)
     set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${MY_PUBLIC_HEADERS}")
-    
-    #Install the shared/dynamic lib.
+
+    # Install the shared/dynamic lib.
     if(CMAKE_LIB_SHARED)
         install(TARGETS ${PROJECT_NAME} DynamicNovatel
             ARCHIVE DESTINATION /usr/lib
