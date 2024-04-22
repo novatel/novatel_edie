@@ -96,7 +96,7 @@ bool EncoderBase::EncodeBinaryBody(const IntermediateMessage& stInterMessage_, u
     for (const auto& field : stInterMessage_)
     {
         if constexpr (ALIGN)
-        { 
+        {
             // Realign to type byte boundary if needed
             const uint32_t uiAlign = std::min(4U, static_cast<uint32_t>(field.field_def->dataType.length));
             if (auto ullRem = reinterpret_cast<uint64_t>(*ppcOutBuf_) % uiAlign;
