@@ -431,11 +431,30 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*> MsgDefField
             break;
         }
         case FIELD_TYPE::STRING:
-            // If a field delimiter character is in the string, the previous tokenLength value is invalid.
-            tokenLength = strcspn(*ppucLogBuf_ + 1, acDelimiter2); // Look for LAST '\"' character, skipping past the first.
-            vIntermediateFormat_.emplace_back(std::string(*ppucLogBuf_ + 1, tokenLength), field); // + 1 to traverse opening double-quote.
-            // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
-            *ppucLogBuf_ += 1 + tokenLength + strcspn(*ppucLogBuf_ + tokenLength, acDelimiter1);
+            // Empty Field
+            if (0 == strcspn(*ppucLogBuf_, ",*"))
+            {
+                vIntermediateFormat_.emplace_back("", field);
+                *ppucLogBuf_ += 1;
+            }
+            // Quoted String
+            else if (0 == strcspn(*ppucLogBuf_, "\""))
+            {
+                // If a field delimiter character is in the string, the previous tokenLength value is invalid.
+                tokenLength = strcspn(*ppucLogBuf_ + 1, acDelimiter2); // Look for LAST '\"' character, skipping past the first.
+                vIntermediateFormat_.emplace_back(std::string(*ppucLogBuf_ + 1, tokenLength), field); // + 1 to traverse opening double-quote.
+                // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
+                *ppucLogBuf_ += 1 + tokenLength + strcspn(*ppucLogBuf_ + tokenLength, acDelimiter1);
+            }
+            // Unquoted String
+            else
+            {
+                // String that isn't surrounded by quotes
+                tokenLength = strcspn(*ppucLogBuf_, acDelimiter1); // Look for LAST '\"' or '*' character, skipping past the first.
+                vIntermediateFormat_.emplace_back(std::string(*ppucLogBuf_, tokenLength), field); // +1 to traverse opening double-quote.
+                // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
+                *ppucLogBuf_ += tokenLength + strcspn(*ppucLogBuf_ + tokenLength, acDelimiter1) + 1;
+            }
             break;
         case FIELD_TYPE::RESPONSE_ID: {
             // Ensure we get the whole response (skip over delimiters in responses)

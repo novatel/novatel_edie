@@ -308,8 +308,8 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(1);
 
-    std::vector<const char*> testInputs = {"#RAWEPHEMA,COM1,100"};
-    std::vector<const char*> testTargets = {"RAWEPHEMA,COM1,100"};
+    std::vector<const char*> testInputs = {"SOL_COMPUTED,WAAS"};
+    std::vector<const char*> testTargets = {"SOL_COMPUTED","WAAS"};
 
     for (size_t sz = 0; sz < testInputs.size(); ++sz)
     {
