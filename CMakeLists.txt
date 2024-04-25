@@ -132,7 +132,7 @@ if(GIT_EXECUTABLE)
     execute_process(COMMAND ${CMAKE_COMMAND}
         -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
         -D DST=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h
-        -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
+          -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
         -D GIT_BRANCH=${GIT_BRANCH}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
 endif()
