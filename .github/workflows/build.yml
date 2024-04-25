@@ -135,10 +135,10 @@ jobs:
       uses: editorconfig-checker/action-editorconfig-checker@main
 
     - name: Check CMakeLists.txt formatting
-      run: find . \( -name 'CMakeLists.txt' \) -exec ec {} \+ || { echo "EditorConfig check failed! See the README if you don't know how to fix this."; exit 1; }
+      run: find . \( -name 'CMakeLists.txt' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed! See the README if you don't know how to fix this."; exit 1; }
 
     - name: Check C++ formatting
-      run: find src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec ec {} \+ || { echo "EditorConfig check failed! See the README if you don't know how to fix this."; exit 1; }
+      run: find src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed! See the README if you don't know how to fix this."; exit 1; }
 
   # =========================================================
   # Clang Tidy Job
