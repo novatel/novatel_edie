@@ -240,11 +240,23 @@ if (eCommanderStatus == STATUS::SUCCESS) {
 
 We format our C++ code using Clang-Format as it provides a well-defined set of rules and conventions that make it easier for developers to collaborate on and understand a codebase. Additionally, adhering to this styling guide helps catch potential coding errors and reduces the likelihood of introducing bugs through inconsistent formatting.
 
-If the code in a pull request does not match the style rules defined in our .clang-format file, the pipeline will fail and you will have to correct any discrepancies. To do this, you will need a method for applying clang-format settings. 
+If the code in a pull request does not match the style rules defined in our .clang-format file, the pipeline will fail and you will have to correct any discrepancies.
+
+### EditorConfig
+
+Non-C++ files are more loosely formatted using EditorConfig. Failures in the EditorConfig pipeline stage will have more information than Clang-Format, so manual fixes are a bit easier. 
+
+### Applying Formatting Settings
 
 #### Windows
 
-You can install llvm and clang-format via the [builds page](https://llvm.org/builds/). However, Visual Studio has built-in clang-format support since 2017, as described [here](https://learn.microsoft.com/en-us/visualstudio/ide/reference/options-text-editor-c-cpp-formatting?view=vs-2022). You can also follow the steps below for linux if you are using WSL.
+You can install llvm and clang-format via the [builds page](https://llvm.org/builds/). However, Visual Studio has built-in clang-format support since 2017, as described [here](https://learn.microsoft.com/en-us/visualstudio/ide/reference/options-text-editor-c-cpp-formatting?view=vs-2022).
+
+The shortcuts below can be used to apply format settings to individual files.
+
+- **Visual Studio**:  `Ctrl` + `K`, `Ctrl` + `D`
+
+- **VS Code**: `Shift` + `Alt` + `F`
 
 #### Linux
 
@@ -253,16 +265,6 @@ If you are using linux, you simply use the commands below to install clang-forma
 `sudo apt install clang-format`
 
 `find src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -i {} +`
-
-### EditorConfig
-
-Non-C++ files are more loosely formatted using EditorConfig. Failures in the EditorConfig pipeline stage will have more information than Clang-Format, so manual fixes are a bit easier. If you want to format entire documents, do the following
-
-- **Visual Studio**:
-    - `Ctrl` + `K`, `Ctrl` + `D`
-
-- **VS Code**:
-    - `Shift` + `Alt` + `F`
 
 ## API Stability
 
