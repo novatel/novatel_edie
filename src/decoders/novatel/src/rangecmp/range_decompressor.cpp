@@ -574,11 +574,12 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     {
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GLONASS:
         // If ternary returns true, documentation suggests we should save this PRN as
-        // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - cGLONASSFrequencyNumber_. However, this
-        // would output the PRN as an actual valid Slot ID, which is not true. We will
-        // set this to 0 here because 0 is considered an unknown/invalid GLONASS Slot ID.
+        // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - cGLONASSFrequencyNumber_.
+        // It is important to note however, that this would output the PRN as an actual
+        // valid Slot ID, which is not true.
+
         stRangeData_.usPRN = (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT)
-                                 ? 0
+                                 ? GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - static_cast<int16_t>(cGLONASSFrequencyNumber_)
                                  : static_cast<uint16_t>(uiPRN_) + GLONASS_SLOT_OFFSET - 1;
         break;
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::SBAS:
@@ -591,8 +592,6 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_ + QZSS_PRN_OFFSET - 1); break;
     default: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_); break;
     }
-
-    if (stRangeData_.usPRN == 0) { throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits"); }
 
     // any fields flagged as invalid are set to NaN and appear in the log as such
     stRangeData_.sGLONASSFrequency = static_cast<int16_t>(cGLONASSFrequencyNumber_);

@@ -72,9 +72,9 @@ int main(int argc, char* argv[])
 
     if (argc < 3)
     {
-        pclLogger->info("ERROR: Need to specify a JSON message definitions DB, an input file and an output "
-                        "format.\n");
-        pclLogger->info("Example: converter.exe <path to Json DB> <path to input file> <output format>\n");
+        pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output "
+                         "format.\n");
+        pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>\n");
         return -1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
@@ -135,15 +135,19 @@ int main(int argc, char* argv[])
     stReadData.uiDataSize = sizeof(acFileStreamBuffer);
 
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucReadBuffer = acFrameBuffer;
+    unsigned char* pucFrameBuffer = acFrameBuffer;
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
     InputFileStream clIFS(sInFilename.c_str());
     OutputFileStream clOFS(sInFilename.append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
+    OutputFileStream clUnknownBytesOFS(sInFilename.append(".UNKNOWN").c_str());
     StreamReadStatus stReadStatus;
 
-    STATUS eStatus = STATUS::UNKNOWN;
+    STATUS eFramerStatus = STATUS::UNKNOWN;     // Framer Status
+    STATUS eDecompressStatus = STATUS::UNKNOWN; // Decompressor Status
+    STATUS eDecoderStatus = STATUS::UNKNOWN;    // Decoder Status
+    STATUS eEncoderStatus = STATUS::UNKNOWN;    // Encoder Status
 
     IntermediateHeader stHeader;
     IntermediateMessage stMessage;
@@ -154,50 +158,76 @@ int main(int argc, char* argv[])
     auto start = std::chrono::system_clock::now();
     uint32_t uiCompletedMessages = 0;
     do {
-        pucReadBuffer = acFrameBuffer;
+        pucFrameBuffer = acFrameBuffer;
 
         // Get frame, null-terminate.
-        eStatus = clFramer.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData);
-        if (eStatus == STATUS::SUCCESS)
+        eFramerStatus = clFramer.GetFrame(pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData);
+        if (eFramerStatus == STATUS::SUCCESS)
         {
-            // Decode the header.  Get meta data here and populate the Intermediate header.
-            eStatus = clHeaderDecoder.Decode(pucReadBuffer, stHeader, stMetaData);
-            if (eStatus == STATUS::SUCCESS)
+            if (stMetaData.bResponse)
             {
-                eStatus = clRangeDecompressor.Decompress(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat);
-                if (eStatus == STATUS::SUCCESS)
+                clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                continue;
+            }
+            // Decode the header.  Get meta data here and populate the Intermediate header.
+            eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
+            if (eDecoderStatus == STATUS::SUCCESS)
+            {
+                eDecompressStatus = clRangeDecompressor.Decompress(pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat);
+                if (eDecompressStatus == STATUS::SUCCESS)
                 {
                     uiCompletedMessages++;
-                    uint32_t uiBytesWritten = clOFS.WriteData(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
+                    uint32_t uiBytesWritten = clOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
                     if (stMetaData.uiLength == uiBytesWritten)
                     {
-                        pucReadBuffer[stMetaData.uiLength] = '\0';
-                        pclLogger->info("Decompressed: ({}) {}", stMetaData.uiLength, reinterpret_cast<char*>(pucReadBuffer));
+                        pucFrameBuffer[stMetaData.uiLength] = '\0';
+                        pclLogger->info("Decompressed: ({}) {}", stMetaData.uiLength, reinterpret_cast<char*>(pucFrameBuffer));
                     }
                     else { pclLogger->error("Could only write {}/{} bytes.", uiBytesWritten, stMessageData.uiMessageLength); }
                 }
-                else if (eStatus == STATUS::UNSUPPORTED)
+                else if (eDecompressStatus == STATUS::UNSUPPORTED)
                 {
-                    if (eStatus == STATUS::SUCCESS)
+                    if (eDecoderStatus == STATUS::SUCCESS)
                     {
                         stHeader.usMessageID = stMetaData.usMessageID;
-                        eStatus = clMessageDecoder.Decode((pucReadBuffer + stMetaData.uiHeaderLength), stMessage, stMetaData);
-                        if (eStatus == STATUS::SUCCESS)
+                        eDecoderStatus = clMessageDecoder.Decode((pucFrameBuffer + stMetaData.uiHeaderLength), stMessage, stMetaData);
+                        if (eDecoderStatus == STATUS::SUCCESS)
                         {
                             // Encode our message now that we have everything we need.
-                            eStatus = clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData,
-                                                       stMetaData, eEncodeFormat);
-                            if (eStatus == STATUS::SUCCESS)
+                            eEncoderStatus = clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData,
+                                                              stMetaData, eEncodeFormat);
+                            if (eEncoderStatus == STATUS::SUCCESS)
                             {
                                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
                             }
+                            else
+                            {
+                                clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                                pclLogger->warn("Encoder returned with status code {}", static_cast<int>(eEncoderStatus));
+                            }
+                        }
+                        else
+                        {
+                            clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                            pclLogger->warn("MessageDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
                         }
                     }
+                    else
+                    {
+                        clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                        pclLogger->warn("HeaderDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
+                    }
+                }
+                else
+                {
+                    clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                    pclLogger->warn("Decompressor returned with status code {}", static_cast<int>(eDecompressStatus));
                 }
             }
         }
-        else if ((eStatus == STATUS::BUFFER_EMPTY) || (eStatus == STATUS::INCOMPLETE))
+        else if (eFramerStatus == STATUS::UNKNOWN) { clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
+        else if ((eFramerStatus == STATUS::BUFFER_EMPTY) || (eFramerStatus == STATUS::INCOMPLETE))
         {
             // Read from file, write to framer.
             stReadStatus = clIFS.ReadData(stReadData);
@@ -209,6 +239,7 @@ int main(int argc, char* argv[])
 
             clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
         }
+        else { pclLogger->warn("Framer returned with status code {}", static_cast<int>(eFramerStatus)); }
     } while (true);
 
     std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start;
