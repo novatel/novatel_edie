@@ -401,7 +401,7 @@ struct MessageDefinition
     uint32_t logID{0};
     std::string name;
     std::string description;
-    std::map<uint32_t, std::vector<novatel::edie::BaseField*>> fields; // map of crc keys to field defs
+    std::unordered_map<uint32_t, std::vector<novatel::edie::BaseField*>> fields; // map of crc keys to field defs
     uint32_t latestMessageCrc{0};
 
     MessageDefinition() = default;
