@@ -173,7 +173,10 @@ int main(int argc, char* argv[])
             eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
             if (eDecoderStatus == STATUS::SUCCESS)
             {
-                eDecompressStatus = clRangeDecompressor.Decompress(pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat);
+                // Unknown PRNs are, by default, excluded from the range data.
+                bool bAllowUnknownObs = true;
+                eDecompressStatus =
+                    clRangeDecompressor.Decompress(pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat, bAllowUnknownObs);
                 if (eDecompressStatus == STATUS::SUCCESS)
                 {
                     uiCompletedMessages++;

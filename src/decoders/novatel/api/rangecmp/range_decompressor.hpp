@@ -17,6 +17,13 @@
 
 namespace novatel::edie::oem {
 
+enum observation_status : int
+{
+    invalid,
+    valid,
+    size
+};
+
 class RangeDecompressor
 {
   public:
@@ -55,7 +62,7 @@ class RangeDecompressor
     void ShutdownLogger();
 
     [[nodiscard]] STATUS Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
-                                    ENCODEFORMAT eFormat_ = ENCODEFORMAT::UNSPECIFIED);
+                                    ENCODEFORMAT eFormat_ = ENCODEFORMAT::UNSPECIFIED, bool bAllowUnknownObs = false);
 
   private:
     Filter clMyRangeCmpFilter;
@@ -102,13 +109,13 @@ class RangeDecompressor
     template <bool bIsSecondary>
     void DecompressDifferentialBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stDifferentialBlock_,
                                      const RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_, double dSecondOffset_);
-    void PopulateNextRangeData(RangeDataStruct& stRangeData_, const RangeCmp4MeasurementSignalBlockStruct& stBlock_,
-                               const MetaDataStruct& stMetaData_, const ChannelTrackingStatusStruct& stChannelTrackingStatus_, uint32_t uiPRN_,
-                               char cGLONASSFrequencyNumber_);
+    observation_status PopulateNextRangeData(RangeDataStruct& stRangeData_, const RangeCmp4MeasurementSignalBlockStruct& stBlock_,
+                                             const MetaDataStruct& stMetaData_, const ChannelTrackingStatusStruct& stChannelTrackingStatus_,
+                                             uint32_t uiPRN_, char cGLONASSFrequencyNumber_, bool bAllowUnknownObs);
 
     void RangeCmpToRange(const RangeCmpStruct& stRangeCmpMessage_, RangeStruct& stRangeMessage_);
     void RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Message_, RangeStruct& stRangeMessage_, const MetaDataStruct& stMetaData_);
-    void RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& pstMetaData_);
+    void RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& pstMetaData_, bool bAllowUnknownObs);
 
     // Protected members to be accessed by test child classes.
   protected:
