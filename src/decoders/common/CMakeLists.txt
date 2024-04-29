@@ -21,11 +21,11 @@ add_library(${PROJECT_NAME} STATIC $<TARGET_OBJECTS:objcommon>)
 
 # Copy the api folder to the bin output directory so they can be easily used
 add_custom_command(TARGET ${PROJECT_NAME}
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/api/ ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/api/decoders/${PROJECT_NAME}/api/)
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/api/ ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/api/decoders/${PROJECT_NAME}/api/)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "decoders")
-set_property(TARGET objcommon       PROPERTY FOLDER "decoders")
+set_property(TARGET objcommon PROPERTY FOLDER "decoders")
 
 target_include_directories(
     objcommon PUBLIC src
@@ -37,16 +37,16 @@ if(LINUX)
     file(GLOB_RECURSE MY_PUBLIC_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/api/*.h*)
     set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${MY_PUBLIC_HEADERS}")
 
-    #Install the shared/dynamic lib.
+    # Install the shared/dynamic lib.
     if(CMAKE_LIB_SHARED)
         install(TARGETS ${PROJECT_NAME} DynamicCommon
-        ARCHIVE DESTINATION /usr/lib
-        LIBRARY DESTINATION /usr/lib
-        PUBLIC_HEADER DESTINATION /usr/include/novatel/edie/decoders/common)
+            ARCHIVE DESTINATION /usr/lib
+            LIBRARY DESTINATION /usr/lib
+            PUBLIC_HEADER DESTINATION /usr/include/novatel/edie/decoders/common)
     else()
         install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION /usr/lib
-        LIBRARY DESTINATION /usr/lib
-        PUBLIC_HEADER DESTINATION /usr/include/novatel/edie/decoders/common)
+            ARCHIVE DESTINATION /usr/lib
+            LIBRARY DESTINATION /usr/lib
+            PUBLIC_HEADER DESTINATION /usr/include/novatel/edie/decoders/common)
     endif()
 endif()
