@@ -5,45 +5,44 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+// todo: should we just get rid of the template arg if all the arrays have 16 indices?
+template <size_t N> constexpr auto StandardDeviation(float base_, float factor_, bool bLeadingZero_, bool bEndingRepeat_)
+{
+    std::array<float, N> arr{};
+
+    for (size_t sz = bLeadingZero_ ? 1 : 0; sz < N; ++sz)
+    {
+        arr[sz] = bEndingRepeat_ && sz == N - 1 ? arr[sz - 1] : base_;
+        base_ *= factor_;
+    }
+
+    return arr;
+}
+
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Pseudorange STDs.  This is defined
 //! in the RANGECMP documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP.htm?Highlight=rangecmp#StdDevPSRValues
-//-----------------------------------------------------------------------
-constexpr float afTheRangeCmpPSRStdDevValues[] = {
-    // 0       1       2       3       4       5       6       7
-    0.050f, 0.075f, 0.113f, 0.169f, 0.253f, 0.380f, 0.570f, 0.854f,
-    // 8       9       10      11      12       13       14       15
-    1.281f, 2.375f, 4.750f, 9.500f, 19.000f, 38.000f, 76.000f, 152.000f};
+constexpr std::array<float, 16> afTheRangeCmpPSRStdDevValues = StandardDeviation<16>(0.050f, 1.5f, false, false);
 
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Pseudorange STDs.  This is defined
 //! in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevPSRScaling
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmp2PSRStdDevValues[] = {
-    // 0       1       2       3       4       5       6       7
-    0.020f, 0.030f, 0.045f, 0.066f, 0.099f, 0.148f, 0.220f, 0.329f,
-    // 8       9       10      11      12      13      14      15 (>5.409)
-    0.491f, 0.732f, 1.092f, 1.629f, 2.430f, 3.625f, 5.409f, 5.409f};
+constexpr std::array<float, 16> afTheRangeCmp2PSRStdDevValues = StandardDeviation<16>(0.020f, 1.5f, false, true);
 
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Accumulated Doppler Range STDs.  This
 //!  is defined in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevADRScaling
-//-----------------------------------------------------------------------
-constexpr float afTheRangeCmp2ADRStdDevValues[] = {
-    // 0         1         2         3         4         5         6         7
-    0.00391f, 0.00521f, 0.00696f, 0.00929f, 0.01239f, 0.01654f, 0.02208f, 0.02947f,
-    // 8         9         10        11        12        13        14        15 (>0.22230)
-    0.03933f, 0.05249f, 0.07006f, 0.09350f, 0.12480f, 0.16656f, 0.22230f, 0.22230f};
+constexpr std::array<float, 16> afTheRangeCmp2ADRStdDevValues = StandardDeviation<16>(0.00391f, 4.0f / 3.0f, false, true);
 
 //-----------------------------------------------------------------------
 //! Two-dimensional map to look up L1/E1/B1 Scaling for RANGECMP2 signals
 //! defined in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#L1_E1_B1_Scaling
 //-----------------------------------------------------------------------
-
 static std::map<SYSTEM, std::map<RangeCmp2::SIGNAL_TYPE, const double>> mmTheRangeCmp2SignalScalingMapping = {
     {SYSTEM::GPS,
      {{RangeCmp2::SIGNAL_TYPE::GPS_L1C, (1.0)},
@@ -130,11 +129,7 @@ static std::map<SYSTEM, std::vector<RangeCmp4::SIGNAL_TYPE>> mvTheRangeCmp4Syste
 //! standard deviation values defined in the RANGECMP4 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Pseudora
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmp4PSRStdDevValues[] = {
-    // 0         1         2         3         4         5         6         7
-    0.020f, 0.030f, 0.045f, 0.066f, 0.099f, 0.148f, 0.220f, 0.329f,
-    // 8         9         10        11        12        13        14        15 (>5.410)
-    0.491f, 0.732f, 1.092f, 1.629f, 2.430f, 3.625f, 5.409f, 5.409f};
+constexpr std::array<float, 16> afTheRangeCmp4PSRStdDevValues = StandardDeviation<16>(0.020f, 1.5f, false, true);
 
 //-----------------------------------------------------------------------
 //! List of pre-defined floats used as translations for RANGECMP4 ADR
@@ -145,9 +140,9 @@ constexpr float afTheRangeCmp4PSRStdDevValues[] = {
 //!       to be greater than values in the table.
 //-----------------------------------------------------------------------
 constexpr float afTheRangeCmp4ADRStdDevValues[] = {
-    // 0         1         2         3         4         5         6         7
+    // 0    1       2       3       4       5       6       7
     0.003f, 0.005f, 0.007f, 0.009f, 0.012f, 0.016f, 0.022f, 0.029f,
-    // 8         9         10        11        12        13        14        15 (>0.2223)
+    // 8    9       10      11      12      13      14      15 (>0.222)
     0.039f, 0.052f, 0.070f, 0.093f, 0.124f, 0.166f, 0.222f, 0.222f};
 
 //-----------------------------------------------------------------------
@@ -158,11 +153,7 @@ constexpr float afTheRangeCmp4ADRStdDevValues[] = {
 //! For more information on decompressing locktime bitfields, see the
 //! comment block above RangeDecompressor::DetermineRangeCmp4ObservationLocktime().
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmp4LockTimeValues[] = {
-    // 0         1         2         3         4         5         6         7
-    0.0f, 16.0f, 32.0f, 64.0f, 128.0f, 256.0f, 512.0f, 1024.0f,
-    // 8         9         10        11        12        13        14         15
-    2048.0f, 4096.0f, 8192.0f, 16384.0f, 32768.0f, 65536.0f, 131072.0f, 262144.0f};
+constexpr std::array<float, 16> afTheRangeCmp4LockTimeValues = StandardDeviation<16>(16.0f, 2.0f, true, false);
 
 //------------------------------------------------------------------------------
 RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_)
