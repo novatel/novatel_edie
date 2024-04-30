@@ -1,38 +1,38 @@
-////////////////////////////////////////////////////////////////////////
-//
-// COPYRIGHT Novatel Inc, 2021. All rights reserved.
-//
-// No part of this software may be reproduced or modified in any form
-// or by any means - electronic, mechanical, photocopying, recording,
-// or otherwise - without the prior written consent of NovAtel Inc.
-//
-////////////////////////////////////////////////////////////////////////
-//                            DESCRIPTION
-//
-//! \file rxconfigtest.hpp
-//! \brief Unit Tests for RxConfigHandler.
-////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include <gtest/gtest.h>
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file rx_config_test.cpp
+// ===============================================================================
 
 #include <chrono>
 #include <filesystem>
-#include <fstream>
-#include <iostream>
+#include <gtest/gtest.h>
 
 #include "decoders/common/api/common.hpp"
-#include "decoders/common/api/jsonreader.hpp"
+#include "decoders/common/api/json_reader.hpp"
 #include "decoders/common/api/message_decoder.hpp"
-#include "decoders/novatel/api/encoder.hpp"
-#include "decoders/novatel/api/filter.hpp"
-#include "decoders/novatel/api/framer.hpp"
-#include "decoders/novatel/api/header_decoder.hpp"
 #include "decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
 
-using namespace std;
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -54,10 +54,10 @@ class RxConfigTest : public ::testing::Test
     static void TearDownTestSuite() { pclMyRxConfigHandler->ShutdownLogger(); }
 
     // Per-test setup
-    void SetUp() { pclMyRxConfigHandler->Flush(); }
+    void SetUp() override { pclMyRxConfigHandler->Flush(); }
 
     // Per-test teardown
-    void TearDown() { pclMyRxConfigHandler->Flush(); }
+    void TearDown() override { pclMyRxConfigHandler->Flush(); }
 
   public:
     void WriteBytesToHandler(unsigned char* pucBytes_, uint32_t uiNumBytes_)
@@ -65,7 +65,7 @@ class RxConfigTest : public ::testing::Test
         ASSERT_EQ(pclMyRxConfigHandler->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
     }
 
-    bool TestSameFormatCompare(ENCODEFORMAT eFormat_, MessageDataStruct* pstExpectedRxConfigMessageData_,
+    bool TestSameFormatCompare(ENCODE_FORMAT eFormat_, MessageDataStruct* pstExpectedRxConfigMessageData_,
                                MessageDataStruct* pstExpectedEmbeddedMessageData_)
     {
         MetaDataStruct stTestRxConfigMetaData;
@@ -123,7 +123,7 @@ TEST_F(RxConfigTest, DISABLED_RXCONFIG_ROUNDTRIP_ASCII)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ABBREV)
@@ -150,7 +150,7 @@ TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ABBREV)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::ABBREV_ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_BINARY)
@@ -177,7 +177,7 @@ TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_BINARY)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 20;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_ASCII_TO_JSON)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 TEST_F(RxConfigTest, RXCONFIG_CONVERT_ABBREV_TO_JSON)
@@ -232,7 +232,7 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_ABBREV_TO_JSON)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 TEST_F(RxConfigTest, RXCONFIG_CONVERT_BINARY_TO_JSON)
@@ -261,5 +261,5 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_BINARY_TO_JSON)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 115;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }

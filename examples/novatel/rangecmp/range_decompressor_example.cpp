@@ -1,35 +1,28 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Copyright (c) 2021 NovAtel Inc.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////////////
-//
-//  DESCRIPTION:
-//    An example program using the low-level EDIE components to filter for
-//    and decompress rangecmp logs.
-//
-////////////////////////////////////////////////////////////////////////////////
-
-#include <stdio.h>
-#include <stdlib.h>
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file range_decompressor_example.cpp
+// ===============================================================================
 
 #include <chrono>
 
@@ -46,10 +39,10 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-inline bool file_exists(const std::string& name)
+inline bool FileExists(const std::string& strName_)
 {
     struct stat buffer;
-    return (stat(name.c_str(), &buffer) == 0);
+    return stat(strName_.c_str(), &buffer) == 0;
 }
 
 int main(int argc, char* argv[])
@@ -72,29 +65,28 @@ int main(int argc, char* argv[])
 
     if (argc < 3)
     {
-        pclLogger->info("ERROR: Need to specify a JSON message definitions DB, an input file and an output "
-                        "format.\n");
+        pclLogger->info("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.\n");
         pclLogger->info("Example: converter.exe <path to Json DB> <path to input file> <output format>\n");
         return -1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
-    if (!file_exists(argv[1]))
+    if (!FileExists(argv[1]))
     {
         pclLogger->error("File \"{}\" does not exist", argv[1]);
         return 1;
     }
-    if (!file_exists(argv[2]))
+    if (!FileExists(argv[2]))
     {
         pclLogger->error("File \"{}\" does not exist", argv[2]);
         return 1;
     }
 
-    std::string sJsonDB = argv[1];
+    std::string sJsonDb = argv[1];
     std::string sInFilename = argv[2];
 
-    ENCODEFORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
-    if (eEncodeFormat == ENCODEFORMAT::UNSPECIFIED)
+    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
+    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
     {
         pclLogger->error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY");
         return -1;
@@ -105,7 +97,7 @@ int main(int argc, char* argv[])
     JsonReader clJsonDb;
     pclLogger->info("Loading Database... ");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(sJsonDB);
+    clJsonDb.LoadFile(sJsonDb);
     pclLogger->info("DONE ({}ms)", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     Framer clFramer;
@@ -139,11 +131,11 @@ int main(int argc, char* argv[])
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
-    InputFileStream clIFS(sInFilename.c_str());
-    OutputFileStream clOFS(sInFilename.append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
+    InputFileStream clIfs(sInFilename.c_str());
+    OutputFileStream clOfs(sInFilename.append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
     StreamReadStatus stReadStatus;
 
-    STATUS eStatus = STATUS::UNKNOWN;
+    auto eStatus = STATUS::UNKNOWN;
 
     IntermediateHeader stHeader;
     IntermediateMessage stMessage;
@@ -160,7 +152,7 @@ int main(int argc, char* argv[])
         eStatus = clFramer.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData);
         if (eStatus == STATUS::SUCCESS)
         {
-            // Decode the header.  Get meta data here and populate the Intermediate header.
+            // Decode the header.  Get metadata here and populate the Intermediate header.
             eStatus = clHeaderDecoder.Decode(pucReadBuffer, stHeader, stMetaData);
             if (eStatus == STATUS::SUCCESS)
             {
@@ -168,7 +160,7 @@ int main(int argc, char* argv[])
                 if (eStatus == STATUS::SUCCESS)
                 {
                     uiCompletedMessages++;
-                    uint32_t uiBytesWritten = clOFS.WriteData(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
+                    uint32_t uiBytesWritten = clOfs.WriteData(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
                     if (stMetaData.uiLength == uiBytesWritten)
                     {
                         pucReadBuffer[stMetaData.uiLength] = '\0';
@@ -180,7 +172,7 @@ int main(int argc, char* argv[])
                 {
                     if (eStatus == STATUS::SUCCESS)
                     {
-                        stHeader.usMessageID = stMetaData.usMessageID;
+                        stHeader.usMessageId = stMetaData.usMessageId;
                         eStatus = clMessageDecoder.Decode((pucReadBuffer + stMetaData.uiHeaderLength), stMessage, stMetaData);
                         if (eStatus == STATUS::SUCCESS)
                         {
@@ -197,10 +189,10 @@ int main(int argc, char* argv[])
                 }
             }
         }
-        else if ((eStatus == STATUS::BUFFER_EMPTY) || (eStatus == STATUS::INCOMPLETE))
+        else if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE)
         {
             // Read from file, write to framer.
-            stReadStatus = clIFS.ReadData(stReadData);
+            stReadStatus = clIfs.ReadData(stReadData);
             if (stReadStatus.uiCurrentStreamRead == 0)
             {
                 pclLogger->info("Stream finished");
@@ -211,10 +203,9 @@ int main(int argc, char* argv[])
         }
     } while (true);
 
-    std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start;
-    pclLogger->info("Decoded {} messages in {}s. ({}msg/s)", uiCompletedMessages, elapsed_seconds.count(),
-                    uiCompletedMessages / elapsed_seconds.count());
-
+    std::chrono::duration<double> elapsedSeconds = std::chrono::system_clock::now() - start;
+    pclLogger->info("Decoded {} messages in {}s. ({}msg/s)", uiCompletedMessages, elapsedSeconds.count(),
+                    uiCompletedMessages / elapsedSeconds.count());
     Logger::Shutdown();
     return 0;
 }

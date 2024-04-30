@@ -1,35 +1,29 @@
-////////////////////////////////////////////////////////////////////////
-//
-// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////
-//                            DESCRIPTION
-//
-//! \file rxconfig_handler.cpp
-//! \brief Class implementation for the RxConfigHandler.
-////////////////////////////////////////////////////////////////////////
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file rxconfig_handler.cpp
+// ===============================================================================
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include "decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
 
 using namespace novatel::edie;
@@ -38,8 +32,8 @@ using namespace novatel::edie::oem;
 // -------------------------------------------------------------------------------------------------------
 RxConfigHandler::RxConfigHandler(JsonReader* pclJsonDB_)
     : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_),
-      pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiINTERNAL_BUFFER_SIZE)),
-      pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiINTERNAL_BUFFER_SIZE))
+      pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)),
+      pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize))
 {
     pclMyLogger = Logger::RegisterLogger("rxconfig_handler");
 
@@ -53,27 +47,30 @@ RxConfigHandler::RxConfigHandler(JsonReader* pclJsonDB_)
 // -------------------------------------------------------------------------------------------------------
 void RxConfigHandler::LoadJsonDb(JsonReader* pclJsonDB_)
 {
-    pclMyMsgDB = pclJsonDB_;
+    pclMyMsgDb = pclJsonDB_;
     clMyHeaderDecoder.LoadJsonDb(pclJsonDB_);
     clMyMessageDecoder.LoadJsonDb(pclJsonDB_);
     clMyEncoder.LoadJsonDb(pclJsonDB_);
 
-    vMyCommandDefns = pclMyMsgDB->GetEnumDefName("Commands");
-    vMyPortAddrDefns = pclMyMsgDB->GetEnumDefName("PortAddress");
-    vMyGPSTimeStatusDefns = pclMyMsgDB->GetEnumDefName("GPSTimeStatus");
+    vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
+    vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
+    vMyGpsTimeStatusDefinitions = pclMyMsgDb->GetEnumDefName("GPSTimeStatus");
 }
 
 // -------------------------------------------------------------------------------------------------------
-void RxConfigHandler::SetLoggerLevel(spdlog::level::level_enum eLevel_) { pclMyLogger->set_level(eLevel_); }
+void RxConfigHandler::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
 void RxConfigHandler::ShutdownLogger() { Logger::Shutdown(); }
 
 // -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger> RxConfigHandler::GetLogger() { return pclMyLogger; }
+std::shared_ptr<spdlog::logger> RxConfigHandler::GetLogger() const { return pclMyLogger; }
 
 //-----------------------------------------------------------------------
-bool RxConfigHandler::IsRXConfigTypeMsg(uint16_t usMessageID_) { return (usMessageID_ == usRXConfigMsgID || usMessageID_ == usRXConfigUserMsgID); }
+bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
+{
+    return (usMessageId_ == US_RX_CONFIG_MSG_ID || usMessageId_ == US_RX_CONFIG_USER_MSG_ID);
+}
 
 // -------------------------------------------------------------------------------------------------------
 uint32_t RxConfigHandler::Write(unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
@@ -81,7 +78,7 @@ uint32_t RxConfigHandler::Write(unsigned char* pucData_, uint32_t uiDataSize_) {
 // -------------------------------------------------------------------------------------------------------
 STATUS
 RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStruct& stRxConfigMetaData_, MessageDataStruct& stEmbeddedMessageData_,
-                         MetaDataStruct& stEmbeddedMetaData_, ENCODEFORMAT eEncodeFormat_)
+                         MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eEncodeFormat_)
 {
     IntermediateHeader stRxConfigHeader;
     IntermediateHeader stEmbeddedHeader;
@@ -90,7 +87,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     unsigned char* pucTempMessagePointer = pcMyFrameBuffer.get();
 
     // Get an RXCONFIG log.
-    STATUS eStatus = clMyFramer.GetFrame(pcMyFrameBuffer.get(), uiINTERNAL_BUFFER_SIZE, stRxConfigMetaData_);
+    STATUS eStatus = clMyFramer.GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
@@ -100,9 +97,9 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     pucTempMessagePointer += stRxConfigMetaData_.uiHeaderLength;
 
     // If we have something that isn't RXCONFIG, get rid of it.
-    if (!IsRXConfigTypeMsg(stRxConfigMetaData_.usMessageID)) { return STATUS::UNKNOWN; }
+    if (!IsRxConfigTypeMsg(stRxConfigMetaData_.usMessageId)) { return STATUS::UNKNOWN; }
 
-    if (stRxConfigMetaData_.eFormat == HEADERFORMAT::ABB_ASCII)
+    if (stRxConfigMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII)
     {
         // Abbreviated ASCII RXCONFIG logs have indentations on the embedded header.  The
         // HeaderDecoder does not expect this and the spaces must be removed.  Remove "<     ", then
@@ -124,9 +121,9 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     // Encode the RXCONFIG log.
     unsigned char* pucTempEncodeBuffer = pcMyEncodeBuffer.get();
-    uint32_t uiMyBufferBytesRemaining = uiINTERNAL_BUFFER_SIZE;
+    uint32_t uiMyBufferBytesRemaining = uiInternalBufferSize;
 
-    if (eEncodeFormat_ == ENCODEFORMAT::JSON &&
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON &&
         !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"({"header":)"))
     {
         return STATUS::BUFFER_FULL;
@@ -139,7 +136,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     pucTempEncodeBuffer += stRxConfigMessageData_.uiMessageHeaderLength;
 
-    if (eEncodeFormat_ == ENCODEFORMAT::JSON &&
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON &&
         !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(,"body":)"))
     {
         return STATUS::BUFFER_FULL;
@@ -153,15 +150,15 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     switch (eEncodeFormat_)
     {
-    case ENCODEFORMAT::JSON:
+    case ENCODE_FORMAT::JSON:
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"({"embedded_header":)"))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
 
-    case ENCODEFORMAT::ABBREV_ASCII:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, szAbbrevASCIIEmbeddedHeaderPrefix))
+    case ENCODE_FORMAT::ABBREV_ASCII:
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, szAbbrevAsciiEmbeddedHeaderPrefix))
         {
             return STATUS::BUFFER_FULL;
         }
@@ -179,18 +176,18 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     switch (eEncodeFormat_)
     {
-    case ENCODEFORMAT::JSON:
+    case ENCODE_FORMAT::JSON:
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(,"embedded_body":)"))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
 
-    case ENCODEFORMAT::ABBREV_ASCII:
+    case ENCODE_FORMAT::ABBREV_ASCII:
         // The header is going to be pointing to the wrong location, so reverse it back to
         // before the "<     " characters.
-        stEmbeddedMessageData_.pucMessageHeader -= strlen(szAbbrevASCIIEmbeddedHeaderPrefix);
-        stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(strlen(szAbbrevASCIIEmbeddedHeaderPrefix));
+        stEmbeddedMessageData_.pucMessageHeader -= strlen(szAbbrevAsciiEmbeddedHeaderPrefix);
+        stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(strlen(szAbbrevAsciiEmbeddedHeaderPrefix));
         // A normal abbreviated ASCII log would remove the final ' ' delimiter, however since
         // this is part of a message body, we should encode it to follow the standard of
         // trailing spaces in the message body.  EncodeHeader() would have removed this, so add
@@ -216,7 +213,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     // This will be done differently depending on how we encoded the message.
     switch (eEncodeFormat_)
     {
-    case ENCODEFORMAT::ASCII:
+    case ENCODE_FORMAT::ASCII:
         // Move back over CRLF.
         pucTempEncodeBuffer -= 2;
         uiMyBufferBytesRemaining += 2;
@@ -229,16 +226,16 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "%08x", uiCRC)) { return STATUS::BUFFER_FULL; }
         break;
 
-    case ENCODEFORMAT::BINARY:
+    case ENCODE_FORMAT::BINARY:
         // Move back over the CRC.
         pucTempEncodeBuffer -= OEM4_BINARY_CRC_LENGTH;
         uiMyBufferBytesRemaining += OEM4_BINARY_CRC_LENGTH;
         // Grab the CRC from the encode buffer and invert it.
         uiCRC = *(reinterpret_cast<uint32_t*>(pucTempEncodeBuffer)) ^ 0xFFFFFFFF;
-        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC, sizeof(uint32_t))) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC)) { return STATUS::BUFFER_FULL; }
         break;
 
-    case ENCODEFORMAT::JSON:
+    case ENCODE_FORMAT::JSON:
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})")) { return STATUS::BUFFER_FULL; }
         break;
 
@@ -250,17 +247,17 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     // Put the final CRC at the end.
     switch (eEncodeFormat_)
     {
-    case ENCODEFORMAT::ASCII:
-        uiCRC = CalculateBlockCRC32(static_cast<uint32_t>(pucTempEncodeBuffer - (pcMyEncodeBuffer.get() + 1)), 0, pcMyEncodeBuffer.get() + 1);
+    case ENCODE_FORMAT::ASCII:
+        uiCRC = CalculateBlockCrc32(static_cast<uint32_t>(pucTempEncodeBuffer - (pcMyEncodeBuffer.get() + 1)), 0, pcMyEncodeBuffer.get() + 1);
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "*%08x\r\n", uiCRC))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
 
-    case ENCODEFORMAT::BINARY:
-        uiCRC = CalculateBlockCRC32(static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get()), 0, pcMyEncodeBuffer.get());
-        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC, sizeof(uint32_t))) { return STATUS::BUFFER_FULL; }
+    case ENCODE_FORMAT::BINARY:
+        uiCRC = CalculateBlockCrc32(static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get()), 0, pcMyEncodeBuffer.get());
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC)) { return STATUS::BUFFER_FULL; }
         break;
 
     default: break;
@@ -268,8 +265,8 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     stRxConfigMessageData_.uiMessageBodyLength = static_cast<uint32_t>(pucTempEncodeBuffer - stRxConfigMessageData_.pucMessageBody);
 
-    // Add the closing '}' character, but don't count it as part of the messasge body length.
-    if (eEncodeFormat_ == ENCODEFORMAT::JSON && !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})"))
+    // Add the closing '}' character, but don't count it as part of the message body length.
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})"))
     {
         return STATUS::BUFFER_FULL;
     }

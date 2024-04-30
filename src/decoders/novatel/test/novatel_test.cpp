@@ -1,61 +1,51 @@
-////////////////////////////////////////////////////////////////////////
-//
-// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////
-//                            DESCRIPTION
-//
-//! \file novateltest.hpp
-//! \brief Unit tests for OEM Framer, HeaderDecoder, MessageDecoder,
-//! Encoder and Filter.
-////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include <gtest/gtest.h>
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file novatel_test.cpp
+// ===============================================================================
 
 #include <chrono>
 #include <codecvt>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <locale>
 #include <nlohmann/json.hpp>
 
-#include "decoders/common/api/jsonreader.hpp"
+#include "decoders/common/api/json_reader.hpp"
 #include "decoders/common/api/message_decoder.hpp"
 #include "decoders/novatel/api/commander.hpp"
 #include "decoders/novatel/api/encoder.hpp"
-#include "decoders/novatel/api/fileparser.hpp"
+#include "decoders/novatel/api/file_parser.hpp"
 #include "decoders/novatel/api/filter.hpp"
 #include "decoders/novatel/api/framer.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"
 #include "hw_interface/stream_interface/api/inputfilestream.hpp"
 #include "hw_interface/stream_interface/api/inputstreaminterface.hpp"
 #include "resources/novatel_message_definitions.hpp"
+#include <gtest/gtest.h>
 
 using json = nlohmann::json;
 
-using namespace std;
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -79,13 +69,13 @@ class FramerTest : public ::testing::Test
     static void TearDownTestSuite() { pclMyFramer->ShutdownLogger(); }
 
     // Per-test setup
-    void SetUp() { FlushFramer(); }
+    void SetUp() override { FlushFramer(); }
 
     // Per-test teardown
-    void TearDown() { FlushFramer(); }
+    void TearDown() override { FlushFramer(); }
 
   public:
-    template <HEADERFORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
+    template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
     {
         MetaDataStruct stExpectedMetaData(F, uiLength_), stTestMetaData;
         ASSERT_EQ(S, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, stTestMetaData));
@@ -156,42 +146,42 @@ TEST_F(FramerTest, ASCII_COMPLETE)
 {
    constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ASCII_INCOMPLETE)
 {
    constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ASCII_SYNC_ERROR)
 {
    WriteFileStreamToFramer("ascii_sync_error.ASC");
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ASCII_BAD_CRC)
 {
    constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*ffffffff\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ASCII_RUN_ON_CRC)
 {
    constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35ff\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ASCII_INADEQUATE_BUFFER)
 {
    constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
-   FramerHelper<HEADERFORMAT::ASCII, STATUS::SUCCESS    >(sizeof(aucData) - 1, sizeof(aucData) - 1);
+   FramerHelper<HEADER_FORMAT::ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
+   FramerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS    >(sizeof(aucData) - 1, sizeof(aucData) - 1);
 }
 
 TEST_F(FramerTest, ASCII_BYTE_BY_BYTE)
@@ -200,7 +190,7 @@ TEST_F(FramerTest, ASCII_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData) - 1;
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADERFORMAT::ASCII), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ASCII), stTestMetaData;
 
    while (true)
    {
@@ -215,7 +205,9 @@ TEST_F(FramerTest, ASCII_BYTE_BY_BYTE)
          ASSERT_EQ(stTestMetaData, stExpectedMetaData);
       }
       else if (uiRemainingBytes == 0)
-         break;
+      {
+          break;
+      }
    }
 
    stExpectedMetaData.uiLength = uiLogSize;
@@ -230,23 +222,23 @@ TEST_F(FramerTest, ASCII_SEGMENTED)
 
    WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_ASCII_SYNC_LENGTH);
    uiBytesWritten += OEM4_ASCII_SYNC_LENGTH;
-   FramerHelper<HEADERFORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 70);
    uiBytesWritten += 70;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 135);
    uiBytesWritten += 135;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 1);
    uiBytesWritten += 1;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_ASCII_CRC_LENGTH + 2);
    uiBytesWritten += OEM4_ASCII_CRC_LENGTH + 2;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
 
    ASSERT_EQ(sizeof(aucData) - 1, uiBytesWritten);
 }
@@ -256,9 +248,9 @@ TEST_F(FramerTest, ASCII_TRICK)
    constexpr unsigned char aucData[] = "#TEST;*ffffffff\r\n#;*\r\n#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
    uint32_t uiLogSize = sizeof(aucData) - 1;
    WriteBytesToFramer(aucData, uiLogSize);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(17,  MAX_ASCII_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(5,   MAX_ASCII_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::ASCII,   STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(17,  MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5,   MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ASCII,   STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_SEGMENTED)
@@ -271,43 +263,43 @@ TEST_F(FramerTest, ABBREV_ASCII_SEGMENTED)
    WriteBytesToFramer(&aucData[uiBytesWritten], 1); // Sync Byte
    uiBytesWritten += 1;
    stExpectedFrameData.uiLength = uiBytesWritten;
-   stExpectedFrameData.eFormat = HEADERFORMAT::ABB_ASCII;
+   stExpectedFrameData.eFormat = HEADER_FORMAT::ABB_ASCII;
    ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
    ASSERT_EQ(stTestMetaData, stExpectedFrameData);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 69); // Header with no CRLF
    uiBytesWritten += 69;
    stExpectedFrameData.uiLength = uiBytesWritten;
-   stExpectedFrameData.eFormat = HEADERFORMAT::ABB_ASCII;
+   stExpectedFrameData.eFormat = HEADER_FORMAT::ABB_ASCII;
    ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
    ASSERT_EQ(stTestMetaData, stExpectedFrameData);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 1); // CR
    uiBytesWritten += 1;
    stExpectedFrameData.uiLength = uiBytesWritten;
-   stExpectedFrameData.eFormat = HEADERFORMAT::ABB_ASCII;
+   stExpectedFrameData.eFormat = HEADER_FORMAT::ABB_ASCII;
    ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
    ASSERT_EQ(stTestMetaData, stExpectedFrameData);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 1); // LF
    uiBytesWritten += 1;
    stExpectedFrameData.uiLength = uiBytesWritten - 2; // Framer is going to step back 2 bytes to keep alignment with the CR
-   // so no extra bytes to detect. Odd quirk with abbv ascii framing.
-   stExpectedFrameData.eFormat = HEADERFORMAT::ABB_ASCII;
+   // so no extra bytes to detect. Odd quirk with abbreviated ascii framing.
+   stExpectedFrameData.eFormat = HEADER_FORMAT::ABB_ASCII;
    ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
    ASSERT_EQ(stTestMetaData, stExpectedFrameData);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 89); // Body
    uiBytesWritten += 89;
    stExpectedFrameData.uiLength = uiBytesWritten;
-   stExpectedFrameData.eFormat = HEADERFORMAT::ABB_ASCII;
+   stExpectedFrameData.eFormat = HEADER_FORMAT::ABB_ASCII;
    ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
    ASSERT_EQ(stTestMetaData, stExpectedFrameData);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 6 + 2); // CRLF + [COM1]
    uiBytesWritten += 2;  // Ignore the [COM1]
    stExpectedFrameData.uiLength = uiBytesWritten;
-   stExpectedFrameData.eFormat = HEADERFORMAT::ABB_ASCII;
+   stExpectedFrameData.eFormat = HEADER_FORMAT::ABB_ASCII;
    ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
    ASSERT_EQ(stTestMetaData, stExpectedFrameData);
    ASSERT_EQ(uiLogSize, uiBytesWritten);
@@ -319,23 +311,23 @@ TEST_F(FramerTest, ABBREV_ASCII_SEGMENTED)
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerTest, BINARY_COMPLETE)
 {
-   // "<binary bestpos log>"
+   // "<binary BESTPOS log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89 };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucData), MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucData), MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, BINARY_INCOMPLETE)
 {
-   // "<incomplete binary bestpos log>"
+   // "<incomplete binary BESTPOS log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00 };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::BINARY, STATUS::INCOMPLETE>(sizeof(aucData), MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::BINARY, STATUS::INCOMPLETE>(sizeof(aucData), MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, BINARY_BUFFER_FULL)
 {
-   // "<incomplete binary bestpos log>"
+   // "<incomplete binary BESTPOS log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00 };
    WriteBytesToFramer(aucData, sizeof(aucData));
    MetaDataStruct stMetaData;
@@ -345,42 +337,42 @@ TEST_F(FramerTest, BINARY_BUFFER_FULL)
 TEST_F(FramerTest, BINARY_SYNC_ERROR)
 {
    WriteFileStreamToFramer("binary_sync_error.BIN");
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_BINARY_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_BINARY_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, BINARY_BAD_CRC)
 {
-   // "<binary bestpos log>"
+   // "<binary BESTPOS log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0xFF };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(57, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(57, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, BINARY_RUN_ON_CRC)
 {
-   // "<binary bestpos log>FF"
+   // "<binary BESTPOS log>FF"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89, 0xFF, 0xFF };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::BINARY, STATUS::SUCCESS>(104, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::BINARY, STATUS::SUCCESS>(104, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, BINARY_INADEQUATE_BUFFER)
 {
-   // "<binary bestpos log>"
+   // "<binary BESTPOS log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89 };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::BINARY, STATUS::SUCCESS    >(sizeof(aucData), sizeof(aucData));
+   FramerHelper<HEADER_FORMAT::BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
+   FramerHelper<HEADER_FORMAT::BINARY, STATUS::SUCCESS    >(sizeof(aucData), sizeof(aucData));
 }
 
 TEST_F(FramerTest, BINARY_BYTE_BY_BYTE)
 {
-   // "<binary bestpos log>"
+   // "<binary BESTPOS log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89 };
    uint32_t uiLogSize = sizeof(aucData);
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADERFORMAT::UNKNOWN), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN), stTestMetaData;
 
    while (true)
    {
@@ -389,10 +381,14 @@ TEST_F(FramerTest, BINARY_BYTE_BY_BYTE)
       stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
 
       if (stExpectedMetaData.uiLength == OEM4_BINARY_SYNC_LENGTH)
-         stExpectedMetaData.eFormat = HEADERFORMAT::BINARY;
+      {
+          stExpectedMetaData.eFormat = HEADER_FORMAT::BINARY;
+      }
 
       if (uiRemainingBytes == 0)
-         break;
+      {
+          break;
+      }
 
       ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
       ASSERT_EQ(stTestMetaData, stExpectedMetaData);
@@ -405,39 +401,39 @@ TEST_F(FramerTest, BINARY_BYTE_BY_BYTE)
 
 TEST_F(FramerTest, BINARY_SEGMENTED)
 {
-   // "<binary bestpos log>"
+   // "<binary BESTPOS log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89 };
    uint32_t uiBytesWritten = 0;
 
    WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_BINARY_SYNC_LENGTH);
    uiBytesWritten += OEM4_BINARY_SYNC_LENGTH;
-   FramerHelper<HEADERFORMAT::BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_BINARY_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], (OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH));
    uiBytesWritten += (OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_SYNC_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_BINARY_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 72);
    uiBytesWritten += 72;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_BINARY_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_BINARY_CRC_LENGTH);
    uiBytesWritten += OEM4_BINARY_CRC_LENGTH;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_BINARY_MESSAGE_LENGTH);
 
    ASSERT_EQ(sizeof(aucData), uiBytesWritten);
 }
 
 TEST_F(FramerTest, BINARY_TRICK)
 {
-   // "<binary syncs><binary sync + half header><binary sync byte 1><binary bestpos log>"
+   // "<binary syncs><binary sync + half header><binary sync byte 1><binary BESTPOS log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x12, 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0xAA, 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89 };
    uint32_t uiLogSize = sizeof(aucData);
    WriteBytesToFramer(aucData, uiLogSize);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(3,   MAX_BINARY_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(15,  MAX_BINARY_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(1,   MAX_BINARY_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::BINARY,  STATUS::SUCCESS>(104, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(3,   MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(15,  MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1,   MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::BINARY,  STATUS::SUCCESS>(104, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -447,43 +443,43 @@ TEST_F(FramerTest, SHORT_ASCII_COMPLETE)
 {
    constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::SHORT_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_ASCII_INCOMPLETE)
 {
    constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_ASCII_SYNC_ERROR)
 {
    WriteFileStreamToFramer("short_ascii_sync_error.ASC");
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_ASCII_BAD_CRC)
 {
    constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*ffffffff\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_ASCII_RUN_ON_CRC)
 {
    constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7bff\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_ASCII_INADEQUATE_BUFFER)
 {
-   // "<binary bestpos log>"
+   // "<binary BESTPOS log>"
    constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::SHORT_ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
-   FramerHelper<HEADERFORMAT::SHORT_ASCII, STATUS::SUCCESS    >(sizeof(aucData) - 1, sizeof(aucData) - 1);
+   FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
+   FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::SUCCESS    >(sizeof(aucData) - 1, sizeof(aucData) - 1);
 }
 
 TEST_F(FramerTest, SHORT_ASCII_BYTE_BY_BYTE)
@@ -492,7 +488,7 @@ TEST_F(FramerTest, SHORT_ASCII_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData) - 1;
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADERFORMAT::SHORT_ASCII), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::SHORT_ASCII), stTestMetaData;
 
    while (true)
    {
@@ -507,7 +503,9 @@ TEST_F(FramerTest, SHORT_ASCII_BYTE_BY_BYTE)
          ASSERT_EQ(stTestMetaData, stExpectedMetaData);
       }
       else if (uiRemainingBytes == 0)
-         break;
+      {
+          break;
+      }
    }
 
    stExpectedMetaData.uiLength = uiLogSize;
@@ -522,23 +520,23 @@ TEST_F(FramerTest, SHORT_ASCII_SEGMENTED)
 
    WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_SHORT_ASCII_SYNC_LENGTH);
    uiBytesWritten += OEM4_SHORT_ASCII_SYNC_LENGTH;
-   FramerHelper<HEADERFORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 26);
    uiBytesWritten += 26;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 82);
    uiBytesWritten += 82;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 1);
    uiBytesWritten += 1;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_ASCII_CRC_LENGTH + 2);
    uiBytesWritten += OEM4_ASCII_CRC_LENGTH + 2;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 
    ASSERT_EQ(sizeof(aucData) - 1, uiBytesWritten);
 }
@@ -548,10 +546,10 @@ TEST_F(FramerTest, SHORT_ASCII_TRICK)
    constexpr unsigned char aucData[] = "%;*\r\n%%**\r\n%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
    uint32_t uiLogSize = sizeof(aucData) - 1;
    WriteBytesToFramer(aucData, uiLogSize);
-   FramerHelper<HEADERFORMAT::UNKNOWN,     STATUS::UNKNOWN>(5,   MAX_SHORT_ASCII_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN,     STATUS::UNKNOWN>(1,   MAX_SHORT_ASCII_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN,     STATUS::UNKNOWN>(5,   MAX_SHORT_ASCII_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::SHORT_ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN,     STATUS::UNKNOWN>(5,   MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN,     STATUS::UNKNOWN>(1,   MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN,     STATUS::UNKNOWN>(5,   MAX_SHORT_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -562,7 +560,7 @@ TEST_F(FramerTest, SHORT_BINARY_COMPLETE)
    // "<short binary rawimusx log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::SHORT_BINARY, STATUS::SUCCESS>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_BINARY_INCOMPLETE)
@@ -570,7 +568,7 @@ TEST_F(FramerTest, SHORT_BINARY_INCOMPLETE)
    // "<incomplete short binary rawimusx log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87 };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_BINARY_BUFFER_FULL)
@@ -585,7 +583,7 @@ TEST_F(FramerTest, SHORT_BINARY_BUFFER_FULL)
 TEST_F(FramerTest, SHORT_BINARY_SYNC_ERROR)
 {
    WriteFileStreamToFramer("short_binary_sync_error.BIN");
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_SHORT_BINARY_MESSAGE_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_SHORT_BINARY_MESSAGE_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_BINARY_BAD_CRC)
@@ -593,7 +591,7 @@ TEST_F(FramerTest, SHORT_BINARY_BAD_CRC)
    // "<short binary rawimusx log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xFF };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData), MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_BINARY_RUN_ON_CRC)
@@ -601,7 +599,7 @@ TEST_F(FramerTest, SHORT_BINARY_RUN_ON_CRC)
    // "<short binary rawimusx log>FF"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA, 0xFF, 0xFF };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::SHORT_BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(56, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_BINARY_INADEQUATE_BUFFER)
@@ -609,8 +607,8 @@ TEST_F(FramerTest, SHORT_BINARY_INADEQUATE_BUFFER)
    // "<short binary rawimusx log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::SHORT_BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::SHORT_BINARY, STATUS::SUCCESS    >(sizeof(aucData), sizeof(aucData));
+   FramerHelper<HEADER_FORMAT::SHORT_BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
+   FramerHelper<HEADER_FORMAT::SHORT_BINARY, STATUS::SUCCESS    >(sizeof(aucData), sizeof(aucData));
 }
 
 TEST_F(FramerTest, SHORT_BINARY_BYTE_BY_BYTE)
@@ -620,7 +618,7 @@ TEST_F(FramerTest, SHORT_BINARY_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData);
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADERFORMAT::UNKNOWN), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN), stTestMetaData;
 
    while (true)
    {
@@ -629,10 +627,14 @@ TEST_F(FramerTest, SHORT_BINARY_BYTE_BY_BYTE)
       stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
 
       if (stExpectedMetaData.uiLength == OEM4_SHORT_BINARY_SYNC_LENGTH)
-         stExpectedMetaData.eFormat = HEADERFORMAT::SHORT_BINARY;
+      {
+          stExpectedMetaData.eFormat = HEADER_FORMAT::SHORT_BINARY;
+      }
 
       if (uiRemainingBytes == 0)
-         break;
+      {
+          break;
+      }
 
       ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_SHORT_BINARY_MESSAGE_LENGTH, stTestMetaData));
       ASSERT_EQ(stTestMetaData, stExpectedMetaData);
@@ -651,32 +653,32 @@ TEST_F(FramerTest, SHORT_BINARY_SEGMENTED)
 
    WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_SHORT_BINARY_SYNC_LENGTH);
    uiBytesWritten += OEM4_SHORT_BINARY_SYNC_LENGTH;
-   FramerHelper<HEADERFORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_BINARY, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], (OEM4_SHORT_BINARY_HEADER_LENGTH - OEM4_SHORT_BINARY_SYNC_LENGTH));
    uiBytesWritten += (OEM4_SHORT_BINARY_HEADER_LENGTH - OEM4_SHORT_BINARY_SYNC_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 40);
    uiBytesWritten += 40;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_BINARY_CRC_LENGTH);
    uiBytesWritten += OEM4_BINARY_CRC_LENGTH;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_SHORT_BINARY_MESSAGE_LENGTH);
 
    ASSERT_EQ(sizeof(aucData), uiBytesWritten);
 }
 
 TEST_F(FramerTest, SHORT_BINARY_TRICK)
 {
-   // "<short binary sync><short binary sync + part header><short binary sync 1><short binary rawimusx log>"
+   // "<short binary sync><short binary sync + part header><short binary sync 1><short binary RAWIMUSX log>"
    constexpr unsigned char aucData[] = { 0xAA, 0x44, 0x13, 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xAA, 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::UNKNOWN,      STATUS::UNKNOWN>(3,   MAX_SHORT_BINARY_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN,      STATUS::UNKNOWN>(10,  MAX_SHORT_BINARY_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN,      STATUS::UNKNOWN>(1,   MAX_SHORT_BINARY_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::SHORT_BINARY, STATUS::SUCCESS>(56,  MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN,      STATUS::UNKNOWN>(3,   MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN,      STATUS::UNKNOWN>(10,  MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN,      STATUS::UNKNOWN>(1,   MAX_SHORT_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::SHORT_BINARY, STATUS::SUCCESS>(56,  MAX_SHORT_BINARY_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -686,42 +688,42 @@ TEST_F(FramerTest, NMEA_COMPLETE)
 {
    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::NMEA, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::NMEA, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, NMEA_INCOMPLETE)
 {
    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc4";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::NMEA, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::NMEA, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, NMEA_SYNC_ERROR)
 {
    WriteFileStreamToFramer("nmea_sync_error.txt");
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_NMEA_MESSAGE_LENGTH, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_NMEA_MESSAGE_LENGTH, MAX_NMEA_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, NMEA_BAD_CRC)
 {
    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*11\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, NMEA_RUN_ON_CRC)
 {
    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29ff\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, NMEA_INADEQUATE_BUFFER)
 {
    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::NMEA, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
-   FramerHelper<HEADERFORMAT::NMEA, STATUS::SUCCESS    >(sizeof(aucData) - 1, sizeof(aucData) - 1);
+   FramerHelper<HEADER_FORMAT::NMEA, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
+   FramerHelper<HEADER_FORMAT::NMEA, STATUS::SUCCESS    >(sizeof(aucData) - 1, sizeof(aucData) - 1);
 }
 
 TEST_F(FramerTest, NMEA_BYTE_BY_BYTE)
@@ -730,7 +732,7 @@ TEST_F(FramerTest, NMEA_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData) - 1;
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADERFORMAT::NMEA), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::NMEA), stTestMetaData;
 
    while (true)
    {
@@ -739,7 +741,9 @@ TEST_F(FramerTest, NMEA_BYTE_BY_BYTE)
       stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
 
       if (uiRemainingBytes == 0)
-         break;
+      {
+          break;
+      }
 
       ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_NMEA_MESSAGE_LENGTH, stTestMetaData));
       ASSERT_EQ(stTestMetaData, stExpectedMetaData);
@@ -757,23 +761,23 @@ TEST_F(FramerTest, NMEA_SEGMENTED)
 
    WriteBytesToFramer(&aucData[uiBytesWritten], NMEA_SYNC_LENGTH);
    uiBytesWritten += NMEA_SYNC_LENGTH;
-   FramerHelper<HEADERFORMAT::NMEA, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::NMEA, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 76);
    uiBytesWritten += 76;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 1);
    uiBytesWritten += 1;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], NMEA_CRC_LENGTH);
    uiBytesWritten += NMEA_CRC_LENGTH;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 2);
    uiBytesWritten += 2;
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
 
    ASSERT_EQ(sizeof(aucData) - 1, uiBytesWritten);
 }
@@ -782,10 +786,10 @@ TEST_F(FramerTest, NMEA_TRICK)
 {
    constexpr unsigned char aucData[] = "$*ff\r\n$$**\r\n$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(6,  MAX_NMEA_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(1,  MAX_NMEA_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(5,  MAX_NMEA_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::NMEA,    STATUS::SUCCESS>(82, MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(6,  MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1,  MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5,  MAX_NMEA_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::NMEA,    STATUS::SUCCESS>(82, MAX_NMEA_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -796,7 +800,7 @@ TEST_F(FramerTest, ABBREV_ASCII_COMPLETE)
    constexpr unsigned char aucData[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"\
       "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n[COM1]";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 7, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 7, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_INCOMPLETE)
@@ -804,7 +808,7 @@ TEST_F(FramerTest, ABBREV_ASCII_INCOMPLETE)
    constexpr unsigned char aucData[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"\
       "<     SOL_COMPUTED SINGLE 51.15043711386 ";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ABB_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_BUFFER_FULL)
@@ -818,7 +822,7 @@ TEST_F(FramerTest, ABBREV_ASCII_BUFFER_FULL)
 TEST_F(FramerTest, ABBREV_ASCII_SYNC_ERROR)
 {
    WriteFileStreamToFramer("abbreviated_ascii_sync_error.ASC");
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_INADEQUATE_BUFFER)
@@ -826,8 +830,8 @@ TEST_F(FramerTest, ABBREV_ASCII_INADEQUATE_BUFFER)
    constexpr unsigned char aucData[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"\
       "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n[COM1]";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ABB_ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 7, sizeof(aucData) - 8);
-   FramerHelper<HEADERFORMAT::ABB_ASCII, STATUS::SUCCESS    >(sizeof(aucData) - 7, sizeof(aucData) - 7);
+   FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::BUFFER_FULL>(sizeof(aucData) - 7, sizeof(aucData) - 8);
+   FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS    >(sizeof(aucData) - 7, sizeof(aucData) - 7);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_NO_PROMPT)
@@ -837,9 +841,9 @@ TEST_F(FramerTest, ABBREV_ASCII_NO_PROMPT)
       "<TIME COM1 0 46.5 FINESTEERING 2211 314490.000 02000000 9924 32768\r\n"\
       "<     VALID 5.035219694e-10 7.564775104e-10 -17.99999999958 2022 5 25 15 21 12000 VALID\r\n";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ABB_ASCII, STATUS::SUCCESS>(157, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(157, MAX_ASCII_MESSAGE_LENGTH);
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ABB_ASCII, STATUS::SUCCESS>(157, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(157, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_MULTILINE)
@@ -849,13 +853,13 @@ TEST_F(FramerTest, ABBREV_ASCII_MULTILINE)
       "<          \"MN01\" 51.11600000000 -114.03800000000 1065.0000 \r\n"\
       "<          \"MN02\" 51.11400000000 -114.03700000000 1063.1000\r\n[COM1]";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 7, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 7, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_RESPONSE)
 {
    constexpr unsigned char aucData[] = "<ERROR:Message is invalid for this model\r\n";
-   MetaDataStruct stExpectedMetaData(HEADERFORMAT::ABB_ASCII), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ABB_ASCII), stTestMetaData;
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
    stExpectedMetaData.bResponse = true;
    stExpectedMetaData.uiLength = sizeof(aucData) - 1;
@@ -868,15 +872,15 @@ TEST_F(FramerTest, ABBREV_ASCII_SWAPPED)
    constexpr unsigned char aucData[] = "<     64 60 B1D2 4 e2410e75b821e2664201b02000b022816c36140020001ddde0000000\r\n"\
       "<BDSRAWNAVSUBFRAME ICOM1_29 0 40.5 FINESTEERING 2204 236927.000 02060000 88f3 16807\r\n<GARBAGE";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(77, MAX_ASCII_MESSAGE_LENGTH);
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(85, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(77, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(85, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_EMPTY_ARRAY)
 {
    constexpr unsigned char aucData[] = "<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     0 \r\n<         \r\n[COM1]";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-   FramerHelper<HEADERFORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 7, MAX_ASCII_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 7, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -887,7 +891,7 @@ TEST_F(FramerTest, JSON_COMPLETE)
    constexpr unsigned char aucData[] = R"({"header": {"message": "BESTSATS","id": 1194,"port": "COM1","sequence_num": 0,"percent_idle_time": 50.0,"time_status": "FINESTEERING","week": 2167,"seconds": 244820.000,"receiver_status": 33554432,"HEADER_reserved1": 48645,"receiver_sw_version": 16248},"body": {"satellite_entries": [{"system_type": "GPS","id": "2","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "20","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "29","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "13","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "15","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "16","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "18","status": "GOOD","status_mask": 7},{"system_type": "GPS","id": "25","status": "GOOD","status_mask": 7},{"system_type": "GPS","id": "5","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "26","status": "GOOD","status_mask": 7},{"system_type": "GPS","id": "23","status": "GOOD","status_mask": 7},{"system_type": "QZSS","id": "194","status": "SUPPLEMENTARY","status_mask": 7},{"system_type": "SBAS","id": "131","status": "NOTUSED","status_mask": 0},{"system_type": "SBAS","id": "133","status": "NOTUSED","status_mask": 0},{"system_type": "SBAS","id": "138","status": "NOTUSED","status_mask": 0},{"system_type": "GLONASS","id": "8+6","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "9-2","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "1+1","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "24+2","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "2-4","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "17+4","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "16-1","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "18-3","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "15","status": "GOOD","status_mask": 3},{"system_type": "GALILEO","id": "26","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "12","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "19","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "GALILEO","id": "31","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "25","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "GALILEO","id": "33","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "8","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "GALILEO","id": "7","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "24","status": "GOOD","status_mask": 15},{"system_type": "BEIDOU","id": "35","status": "LOCKEDOUT","status_mask": 0},{"system_type": "BEIDOU","id": "29","status": "SUPPLEMENTARY","status_mask": 1},{"system_type": "BEIDOU","id": "25","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "BEIDOU","id": "20","status": "SUPPLEMENTARY","status_mask": 1},{"system_type": "BEIDOU","id": "22","status": "SUPPLEMENTARY","status_mask": 1},{"system_type": "BEIDOU","id": "44","status": "LOCKEDOUT","status_mask": 0},{"system_type": "BEIDOU","id": "57","status": "NOEPHEMERIS","status_mask": 0},{"system_type": "BEIDOU","id": "12","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "BEIDOU","id": "24","status": "SUPPLEMENTARY","status_mask": 1},{"system_type": "BEIDOU","id": "19","status": "SUPPLEMENTARY","status_mask": 1}]}})";
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
    pclMyFramer->SetFrameJson(true);
-   FramerHelper<HEADERFORMAT::JSON, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::JSON, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_BINARY_MESSAGE_LENGTH);
    pclMyFramer->SetFrameJson(false);
 }
 
@@ -898,7 +902,7 @@ TEST_F(FramerTest, UNKNOWN_BINARY_WITH_ASCII_SYNC)
 {
    constexpr unsigned char aucData[] = { 0x07, 0x23, 0x82 }; // 0x23 is '#' This is used-to identify binary payload with'#'
    WriteBytesToFramer(aucData, sizeof(aucData));
-   FramerHelper<HEADERFORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_BINARY_MESSAGE_LENGTH);
+   FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, NULL_FRAME)
@@ -944,7 +948,7 @@ protected:
    }
 
 public:
-   typedef void (*logchecker)(char*, char*);
+   using logChecker = void (*)(char*, char*);
 
    enum
    {
@@ -954,10 +958,10 @@ public:
       ENCODER_ERROR,
       HEADER_LENGTH_ERROR,
       LENGTH_ERROR,
-      MESSAGEDATA_COMPARISON_ERROR
+      MESSAGE_DATA_COMPARISON_ERROR
    };
 
-   int32_t DecodeEncode(ENCODEFORMAT eFormat_, unsigned char* pucMessageBuffer_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
+   int32_t DecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
    {
       IntermediateHeader stHeader;
       IntermediateMessage stMessage;
@@ -988,26 +992,26 @@ public:
       return SUCCESS;
    }
 
-   template<typename T, typename T2 = OEM4BinaryHeader>
+   template<typename T, typename T2 = Oem4BinaryHeader>
    void ConversionFlatBinaryHelper(uint8_t* pucLog1, uint8_t* pucLog2)
    {
       uint8_t aucLog1EncodeBuffer[MAX_BINARY_MESSAGE_LENGTH], aucLog2EncodeBuffer[MAX_BINARY_MESSAGE_LENGTH];
       MessageDataStruct stMessageData1, stMessageData2;
       MetaDataStruct stMetaData1, stMetaData2;
 
-      ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, pucLog1, aucLog1EncodeBuffer, sizeof(aucLog1EncodeBuffer), stMetaData1, stMessageData1));
-      ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, pucLog2, aucLog2EncodeBuffer, sizeof(aucLog2EncodeBuffer), stMetaData2, stMessageData2));
+      ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, pucLog1, aucLog1EncodeBuffer, sizeof(aucLog1EncodeBuffer), stMetaData1, stMessageData1));
+      ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, pucLog2, aucLog2EncodeBuffer, sizeof(aucLog2EncodeBuffer), stMetaData2, stMessageData2));
 
-      ASSERT_EQ(*reinterpret_cast<OEM4BinaryHeader*>(stMessageData1.pucMessageHeader), *reinterpret_cast<T2*>(stMessageData2.pucMessageHeader));
+      ASSERT_EQ(*reinterpret_cast<Oem4BinaryHeader*>(stMessageData1.pucMessageHeader), *reinterpret_cast<T2*>(stMessageData2.pucMessageHeader));
 
-      // we shouldnt have to do this. should make structs for the logtypes tested with T != void
+      // we shouldn't have to do this. should make structs for the log types tested with T != void
       if constexpr (!std::is_same<T, void>())
       {
          ASSERT_EQ(*reinterpret_cast<T*>(stMessageData1.pucMessageBody), *reinterpret_cast<T*>(stMessageData2.pucMessageBody));
       }
    }
 
-   int TestDecodeEncode(ENCODEFORMAT eFormat_, unsigned char* pucMessageBuffer_)
+   int TestDecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_)
    {
       MetaDataStruct stMetaData;
       MessageDataStruct stMessageData;
@@ -1018,7 +1022,7 @@ public:
       return DecodeEncode(eFormat_, pucMessageBuffer_, pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, stMessageData);
    }
 
-   int TestSameFormatCompare(ENCODEFORMAT eFormat_, MessageDataStruct* pstExpectedMessageData_)
+   int TestSameFormatCompare(ENCODE_FORMAT eFormat_, MessageDataStruct* pstExpectedMessageData_)
    {
       MetaDataStruct stMetaData;
       MessageDataStruct stMessageData;
@@ -1029,13 +1033,13 @@ public:
       int32_t iRetCode = DecodeEncode(eFormat_, pstExpectedMessageData_->pucMessage, pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, stMessageData);
 
       return iRetCode != SUCCESS                                                                              ? iRetCode
-         : eFormat_ != ENCODEFORMAT::JSON && stMetaData.uiHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR
+         : eFormat_ != ENCODE_FORMAT::JSON && stMetaData.uiHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR
          : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength                          ? LENGTH_ERROR
-         : stMessageData != *pstExpectedMessageData_                                                          ? MESSAGEDATA_COMPARISON_ERROR
+         : stMessageData != *pstExpectedMessageData_                                                          ? MESSAGE_DATA_COMPARISON_ERROR
          : SUCCESS;
    }
 
-   int32_t TestConversion(ENCODEFORMAT eFormat_, unsigned char* pucMessageBuffer_, MessageDataStruct* pstExpectedMessageData_)
+   int32_t TestConversion(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, MessageDataStruct* pstExpectedMessageData_)
    {
       MetaDataStruct stMetaData;
       MessageDataStruct stMessageData;
@@ -1048,7 +1052,7 @@ public:
       return iRetCode != SUCCESS                                                                 ? iRetCode
          : pstExpectedMessageData_->uiMessageHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR
          : pstExpectedMessageData_->uiMessageLength       != stMessageData.uiMessageLength       ? LENGTH_ERROR
-         : stMessageData != *pstExpectedMessageData_                                             ? MESSAGEDATA_COMPARISON_ERROR
+         : stMessageData != *pstExpectedMessageData_                                             ? MESSAGE_DATA_COMPARISON_ERROR
          : SUCCESS;
    }
 };
@@ -1086,28 +1090,28 @@ TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_BESTPOS)
 {
    unsigned char aucLog[] = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 71);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_BESTSATS)
 {
    unsigned char aucLog[] = "#BESTSATSA,COM1,0,50.0,FINESTEERING,2167,244820.000,02000000,be05,16248;43,GPS,2,GOOD,00000003,GPS,20,GOOD,00000003,GPS,29,GOOD,00000003,GPS,13,GOOD,00000003,GPS,15,GOOD,00000003,GPS,16,GOOD,00000003,GPS,18,GOOD,00000007,GPS,25,GOOD,00000007,GPS,5,GOOD,00000003,GPS,26,GOOD,00000007,GPS,23,GOOD,00000007,QZSS,194,SUPPLEMENTARY,00000007,SBAS,131,NOTUSED,00000000,SBAS,133,NOTUSED,00000000,SBAS,138,NOTUSED,00000000,GLONASS,8+6,GOOD,00000003,GLONASS,9-2,GOOD,00000003,GLONASS,1+1,GOOD,00000003,GLONASS,24+2,GOOD,00000003,GLONASS,2-4,GOOD,00000003,GLONASS,17+4,GOOD,00000003,GLONASS,16-1,GOOD,00000003,GLONASS,18-3,GOOD,00000003,GLONASS,15,GOOD,00000003,GALILEO,26,GOOD,0000000f,GALILEO,12,GOOD,0000000f,GALILEO,19,ELEVATIONERROR,00000000,GALILEO,31,GOOD,0000000f,GALILEO,25,ELEVATIONERROR,00000000,GALILEO,33,GOOD,0000000f,GALILEO,8,ELEVATIONERROR,00000000,GALILEO,7,GOOD,0000000f,GALILEO,24,GOOD,0000000f,BEIDOU,35,LOCKEDOUT,00000000,BEIDOU,29,SUPPLEMENTARY,00000001,BEIDOU,25,ELEVATIONERROR,00000000,BEIDOU,20,SUPPLEMENTARY,00000001,BEIDOU,22,SUPPLEMENTARY,00000001,BEIDOU,44,LOCKEDOUT,00000000,BEIDOU,57,NOEPHEMERIS,00000000,BEIDOU,12,ELEVATIONERROR,00000000,BEIDOU,24,SUPPLEMENTARY,00000001,BEIDOU,19,SUPPLEMENTARY,00000001*7abea593\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 72);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_CLOCKMODEL)
 {
    unsigned char aucLog[] = "#CLOCKMODELA,COM1,0,57.5,FINESTEERING,2167,255598.000,02000000,98f9,16248;VALID,0,255598.000,255598.000,-8.630928664e-01,1.883231757e-02,0.000000000,4.433118538e-02,1.028561778e-03,0.000000000,1.028561778e-03,4.318654824e-03,0.000000000,0.000000000,0.000000000,0.000000000,-0.896,3.704174499e-02,FALSE*18015524\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 74);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_GLOALMANAC)
 {
    unsigned char aucLog[] = "#GLOALMANACA,COM1,0,54.0,SATTIME,2167,159108.000,02000000,ba83,16248;24,2167,115150.343,1,1,1,0,39532.343750000,1.316556988,0.022644193,0.000380516,-0.200759736,-2655.375000000,-0.000305176,-0.000080109,2167,80546.843,2,-4,1,0,4928.843750000,-2.415465471,0.030652651,0.001904488,-2.240858310,-2655.851562500,0.000305176,-0.000484467,2167,85554.000,3,5,1,0,9936.000000000,-2.786838624,0.027761457,0.001849174,-2.155051259,-2655.845703125,0.000244141,-0.000038147,2167,90494.343,4,6,1,0,14876.343750000,3.138599593,0.033250232,0.000991821,-1.632539054,-2655.865234375,0.000061035,-0.000095367,2167,95426.781,5,1,1,0,19808.781250000,2.781340861,0.033516881,0.000567436,-2.318803708,-2655.912109375,0.000000000,-0.000072479,2167,101118.375,6,-4,1,0,25500.375000000,2.337855630,0.022338595,0.000492096,2.475749118,-2655.802734375,-0.000183105,-0.000198364,2167,106019.281,7,5,1,0,30401.281250000,2.004915886,0.027902272,0.001599312,-2.137026985,-2655.806640625,-0.000122070,0.000041962,2167,110772.718,8,6,1,0,35154.718750000,1.658347082,0.028034098,0.002008438,-1.757079119,-2655.869140625,-0.000183105,0.000057220,2167,114259.031,9,-2,1,0,38641.031250000,-2.800770285,0.013374395,0.001688004,-2.688301331,-2655.992187500,-0.000915527,-0.000000000,2167,78451.250,10,-7,1,0,2833.250000000,-0.189087101,0.025562352,0.001439095,0.043239083,-2656.169921875,-0.001342773,0.000072479,2167,83619.250,11,0,1,1,8001.250000000,-0.568264981,0.030221219,0.000588417,-2.044029400,-2656.169921875,-0.001342773,0.000022888,2167,88863.437,12,-1,1,0,13245.437500000,-0.938955033,0.026368291,0.001175880,-1.256138518,-2655.986328125,-0.001159668,-0.000244141,2167,93781.406,13,-2,1,0,18163.406250000,-1.308018227,0.025406557,0.000337601,1.744136156,-2656.201171875,-0.001037598,0.000057220,2167,99049.875,14,-7,1,0,23431.875000000,-1.683226333,0.021385849,0.000715256,-2.112099797,-2656.009765625,-0.001098633,-0.000064850,2167,104050.250,15,0,1,0,28432.250000000,-2.043945510,0.025130920,0.000899315,-1.639250219,-2656.019531250,-0.001037598,-0.000099182,2167,109475.187,16,-1,1,0,33857.187500000,-2.465775247,0.018401777,0.002746582,0.205936921,-2655.822265625,-0.000854492,0.000015259,2167,112381.000,17,4,1,0,36763.000000000,-0.550378525,0.044683183,0.000854492,-3.118007699,-2655.976562500,0.001098633,-0.000438690,2167,76649.656,18,-3,1,0,1031.656250000,2.061364581,0.049192247,0.001056671,-0.229426002,-2656.011718750,0.001037598,-0.000083923,2167,81216.375,19,3,1,0,5598.375000000,1.753316072,0.053257895,0.000308990,2.031661680,-2656.169921875,0.000915527,0.000148773,2167,86932.187,20,2,1,0,11314.187500000,1.338137581,0.053485596,0.000810623,0.016106798,-2656.033203125,0.001037598,0.000049591,2167,92471.875,21,4,1,0,16853.875000000,0.905492081,0.048149620,0.000671387,2.711982159,-2655.875000000,0.001098633,0.000225067,2167,97225.437,22,-3,1,0,21607.437500000,0.566332524,0.051370380,0.002092361,0.380906604,-2656.091796875,0.001159668,0.000122070,2167,103403.781,23,3,1,0,27785.781250000,0.114991634,0.051142680,0.000539780,1.610679827,-2656.626953125,0.001098633,0.000007629,2167,107403.343,24,2,1,0,31785.343750000,-0.171967635,0.033052492,0.000456810,-2.399433574,-2656.039062500,0.001037598,-0.000049591*6dee109c\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 69);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_GLOEPHEM)
@@ -1119,122 +1123,122 @@ TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_GLOEPHEM)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(0, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucEncodeBuffer, sizeof(acEncodeBuffer), stMetaData, stMessageData));
+   ASSERT_EQ(0, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucEncodeBuffer, sizeof(acEncodeBuffer), stMetaData, stMessageData));
 
-   auto* pstGloEphpemeris = reinterpret_cast<GLOEPHEMERIS*>(stMessageData.pucMessageBody);
-   ASSERT_EQ(pstGloEphpemeris->sloto, 51);
-   ASSERT_EQ(pstGloEphpemeris->freqo, 0);
-   ASSERT_EQ(pstGloEphpemeris->sat_type, 1);
-   ASSERT_EQ(pstGloEphpemeris->false_iod, 80);
-   ASSERT_EQ(pstGloEphpemeris->ephem_week, 2168);
-   ASSERT_EQ(pstGloEphpemeris->ephem_time, 161118000U);
-   ASSERT_EQ(pstGloEphpemeris->time_offset, 10782U);
-   ASSERT_EQ(pstGloEphpemeris->nt, 573);
-   ASSERT_EQ(pstGloEphpemeris->GLOEPHEMERIS_reserved, 0);
-   ASSERT_EQ(pstGloEphpemeris->GLOEPHEMERIS_reserved_9, 0);
-   ASSERT_EQ(pstGloEphpemeris->issue, 95U);
-   ASSERT_EQ(pstGloEphpemeris->broadcast_health, 0U);
-   ASSERT_EQ(pstGloEphpemeris->pos_x, -2.3917966796875000e+07);
-   ASSERT_EQ(pstGloEphpemeris->pos_y, 4.8163881835937500e+06);
-   ASSERT_EQ(pstGloEphpemeris->pos_z, 7.4258510742187500e+06);
-   ASSERT_EQ(pstGloEphpemeris->vel_x, -1.0062713623046875e+03);
-   ASSERT_EQ(pstGloEphpemeris->vel_y, 1.8321990966796875e+02);
-   ASSERT_EQ(pstGloEphpemeris->vel_z, -3.3695755004882813e+03);
-   ASSERT_NEAR(pstGloEphpemeris->ls_acc_x, 1.86264514923095700e-06, 0.0000000000000001e-06);
-   ASSERT_NEAR(pstGloEphpemeris->ls_acc_y, -9.31322574615478510e-07, 0.0000000000000001e-07);
-   ASSERT_NEAR(pstGloEphpemeris->ls_acc_z, -0.00000000000000000, 0.0000000000000001);
-   ASSERT_NEAR(pstGloEphpemeris->tau, -6.69313594698905940e-05, 0.0000000000000001e-05);
-   ASSERT_EQ(pstGloEphpemeris->delta_tau, 5.587935448e-09);
-   ASSERT_NEAR(pstGloEphpemeris->gamma, 0.00000000000000000, 0.0000000000000001);
-   ASSERT_EQ(pstGloEphpemeris->tk, 84600U);
-   ASSERT_EQ(pstGloEphpemeris->p, 3U);
-   ASSERT_EQ(pstGloEphpemeris->ft, 2U);
-   ASSERT_EQ(pstGloEphpemeris->age, 0U);
-   ASSERT_EQ(pstGloEphpemeris->flags, 13U);
+   auto* pstGloEphemeris = reinterpret_cast<GLOEPHEMERIS*>(stMessageData.pucMessageBody);
+   ASSERT_EQ(pstGloEphemeris->sloto, 51);
+   ASSERT_EQ(pstGloEphemeris->freqo, 0);
+   ASSERT_EQ(pstGloEphemeris->sat_type, 1);
+   ASSERT_EQ(pstGloEphemeris->false_iod, 80);
+   ASSERT_EQ(pstGloEphemeris->ephem_week, 2168);
+   ASSERT_EQ(pstGloEphemeris->ephem_time, 161118000U);
+   ASSERT_EQ(pstGloEphemeris->time_offset, 10782U);
+   ASSERT_EQ(pstGloEphemeris->nt, 573);
+   ASSERT_EQ(pstGloEphemeris->GLOEPHEMERIS_reserved, 0);
+   ASSERT_EQ(pstGloEphemeris->GLOEPHEMERIS_reserved_9, 0);
+   ASSERT_EQ(pstGloEphemeris->issue, 95U);
+   ASSERT_EQ(pstGloEphemeris->broadcast_health, 0U);
+   ASSERT_EQ(pstGloEphemeris->pos_x, -2.3917966796875000e+07);
+   ASSERT_EQ(pstGloEphemeris->pos_y, 4.8163881835937500e+06);
+   ASSERT_EQ(pstGloEphemeris->pos_z, 7.4258510742187500e+06);
+   ASSERT_EQ(pstGloEphemeris->vel_x, -1.0062713623046875e+03);
+   ASSERT_EQ(pstGloEphemeris->vel_y, 1.8321990966796875e+02);
+   ASSERT_EQ(pstGloEphemeris->vel_z, -3.3695755004882813e+03);
+   ASSERT_NEAR(pstGloEphemeris->ls_acc_x, 1.86264514923095700e-06, 0.0000000000000001e-06);
+   ASSERT_NEAR(pstGloEphemeris->ls_acc_y, -9.31322574615478510e-07, 0.0000000000000001e-07);
+   ASSERT_NEAR(pstGloEphemeris->ls_acc_z, -0.00000000000000000, 0.0000000000000001);
+   ASSERT_NEAR(pstGloEphemeris->tau, -6.69313594698905940e-05, 0.0000000000000001e-05);
+   ASSERT_EQ(pstGloEphemeris->delta_tau, 5.587935448e-09);
+   ASSERT_NEAR(pstGloEphemeris->gamma, 0.00000000000000000, 0.0000000000000001);
+   ASSERT_EQ(pstGloEphemeris->tk, 84600U);
+   ASSERT_EQ(pstGloEphemeris->p, 3U);
+   ASSERT_EQ(pstGloEphemeris->ft, 2U);
+   ASSERT_EQ(pstGloEphemeris->age, 0U);
+   ASSERT_EQ(pstGloEphemeris->flags, 13U);
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_LOGLIST)
 {
    unsigned char aucLog[] = "#LOGLISTA,COM1,0,63.5,FINESTEERING,2172,164226.000,02010000,c00c,16248;6,COM1,RXSTATUSEVENTA,ONNEW,0.000000,0.000000,HOLD,COM1,INTERFACEMODE,ONTIME,20.000000,0.000000,NOHOLD,COM1,LOGLISTA,ONCE,0.000000,0.000000,NOHOLD,COM2,RXSTATUSEVENTA,ONNEW,0.000000,0.000000,HOLD,CCOM1,INSPVACMPB,ONTIME,0.050000,0.000000,HOLD,CCOM1,INSPVASDCMPB,ONTIME,1.000000,0.000000,HOLD*53104c0f\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 71);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RANGE)
 {
    unsigned char aucLog[] = "#RANGEA,COM1,0,49.0,FINESTEERING,2167,159740.000,02000000,5103,16248;115,20,0,23291390.821,0.051,-122397109.320305,0.011,-3214.414,44.0,16498.975,1810bc04,20,0,23291389.349,0.184,-95374376.486282,0.013,-2504.740,41.1,16492.754,11303c0b,29,0,20705108.295,0.022,-108806118.750397,0.005,-1620.698,51.2,14908.774,0810bc44,29,0,20705106.528,0.061,-84783996.294254,0.006,-1262.882,50.7,14902.754,01303c4b,29,0,20705107.069,0.025,-84783990.539554,0.005,-1262.882,51.3,14905.534,02309c4b,13,0,22941454.717,0.042,-120558183.531157,0.009,2111.590,45.7,3984.555,1810bc64,13,0,22941453.693,0.180,-93941456.741696,0.011,1645.396,41.2,3978.255,11303c6b,15,0,22752775.227,0.046,-119566687.005913,0.012,3112.730,44.8,3628.275,0810bc84,15,0,22752775.420,0.118,-93168858.308908,0.012,2425.506,44.9,3622.754,01303c8b,15,0,22752775.932,0.043,-93168851.550483,0.012,2425.505,46.7,3625.014,02309c8b,16,0,23437165.563,0.058,-123163154.592686,0.010,1667.743,42.8,3318.855,1810bca4,16,0,23437164.832,0.179,-95971289.711375,0.012,1299.540,41.3,3313.415,11303cab,18,0,20870226.835,0.024,-109673843.056839,0.005,1782.527,50.4,7988.975,1810bcc4,18,0,20870225.520,0.080,-85460161.951054,0.006,1388.983,48.3,7983.255,11303ccb,18,0,20870225.982,0.024,-85460166.200662,0.006,1388.983,51.9,7985.814,02309ccb,18,0,20870231.341,0.004,-81899348.012827,0.003,1331.096,55.4,7987.255,01d03cc4,5,0,20977730.840,0.024,-110238771.341810,0.006,-1850.683,50.6,12588.896,0810bd04,5,0,20977729.403,0.070,-85900356.288455,0.006,-1442.091,49.4,12583.755,01303d0b,5,0,20977730.127,0.030,-85900355.538492,0.006,-1442.091,49.8,12585.716,02309d0b,26,0,22753733.201,0.042,-119571694.561007,0.008,-494.798,45.7,7318.775,1810bd24,26,0,22753735.163,0.118,-93172767.333088,0.010,-385.557,44.9,7312.755,11303d2b,26,0,22753735.387,0.043,-93172769.582418,0.009,-385.557,46.7,7315.375,02309d2b,26,0,22753735.481,0.008,-89290576.088766,0.005,-369.472,50.1,7316.815,01d03d24,23,0,23067782.934,0.040,-121222050.181679,0.009,3453.274,46.0,3078.894,0810bd44,23,0,23067783.254,0.142,-94458759.273215,0.010,2690.865,43.3,3073.754,01303d4b,23,0,23067783.763,0.040,-94458764.522108,0.009,2690.865,47.3,3076.395,02309d4b,23,0,23067789.450,0.007,-90523004.360543,0.004,2578.883,51.2,3077.834,01d03d44,194,0,43027813.095,0.065,-226112681.899748,0.013,43.499,41.9,17178.695,1815be04,194,0,43027815.196,0.059,-176191709.875251,0.014,33.896,44.0,17173.014,02359e0b,194,0,43027817.865,0.014,-168850394.176443,0.007,32.406,45.4,17177.053,01d53e04,131,0,38480107.260,0.124,-202214296.438902,0.009,-0.922,46.2,292335.531,48023e84,133,0,38618703.555,0.119,-202942631.161186,0.007,0.421,46.7,916697.188,58023ec4,138,0,38495561.597,0.116,-202295515.714333,0.008,-4.752,46.8,292343.625,48023ee4,45,13,20655319.254,0.111,-110608334.938276,0.006,-1928.119,46.3,9728.839,18119f04,45,13,20655320.731,0.021,-86028727.119001,0.006,-1499.649,45.9,9724.239,10b13f0b,45,13,20655321.099,0.092,-86028721.367030,0.006,-1499.649,46.1,9725.238,10319f0b,53,6,23361335.550,0.284,-124792043.406215,0.017,1741.893,38.1,444.840,08119f24,53,6,23361340.271,0.098,-97060514.793435,0.017,1354.807,32.6,444.741,00b13f2b,53,6,23361339.423,0.393,-97060517.036654,0.018,1354.806,33.5,444.801,10319f2b,60,10,20724752.466,0.106,-110863493.957380,0.007,-2492.451,46.7,16549.037,18019f44,39,3,23534282.253,0.169,-125583452.109842,0.012,4608.280,42.6,557.668,08119f84,39,3,23534291.023,0.027,-97676038.550992,0.013,3584.223,43.8,552.119,10b13f8b,39,3,23534290.639,0.108,-97676048.806539,0.013,3584.223,44.7,552.959,10319f8b,61,9,19285134.504,0.086,-103126338.171372,0.005,228.766,48.6,11128.199,08119fa4,61,9,19285138.043,0.020,-80209402.132964,0.005,177.929,46.3,11124.118,00b13fab,61,9,19285138.376,0.084,-80209411.390794,0.005,177.929,46.9,11125.037,00319fab,52,7,22348227.548,0.137,-119422164.171132,0.008,-1798.230,44.4,7458.668,08119fc4,52,7,22348232.044,0.025,-92883929.564420,0.008,-1398.625,44.4,7453.898,00b13fcb,52,7,22348232.124,0.104,-92883930.822797,0.008,-1398.624,45.0,7455.038,10319fcb,54,11,21518220.426,0.169,-115148393.440041,0.010,3262.249,42.6,3877.098,18119fe4,54,11,21518225.678,0.025,-89559888.534930,0.010,2537.306,44.6,3871.818,00b13feb,54,11,21518226.376,0.107,-89559882.794247,0.010,2537.307,44.8,3872.818,10319feb,51,0,23917426.780,0.130,-127493324.706900,0.008,-3976.867,44.9,13028.379,08119c04,51,0,23917434.944,0.031,-99161492.405944,0.010,-3093.121,42.6,13024.238,10b13c0b,51,0,23917434.780,0.126,-99161488.657552,0.010,-3093.121,43.4,13025.178,00319c0b,38,8,19851538.779,0.107,-106117893.493769,0.007,1849.414,46.6,6208.818,08119c24,38,8,19851544.763,0.031,-82536182.471767,0.007,1438.434,42.6,6204.118,00b13c2b,38,8,19851543.771,0.124,-82536181.722576,0.007,1438.434,43.6,6205.038,00319c2b,25,0,27861125.116,0.078,-146411169.405727,0.011,-3136.592,43.2,21188.543,08539cc4,25,0,27861133.366,0.009,-109333028.194067,0.005,-2342.203,49.0,21186.443,01933cc4,25,0,27861129.463,0.011,-112185182.897162,0.006,-2403.344,47.0,21186.443,02333cc4,25,0,27861129.580,0.007,-110759098.611107,0.006,-2372.787,50.8,21186.164,02933cc4,4,0,25274631.488,0.038,-132819124.897734,0.006,997.361,49.6,7638.783,08539ce4,4,0,25274635.181,0.007,-99183140.380658,0.004,744.803,50.8,7636.565,01933ce4,4,0,25274631.890,0.007,-101770517.169783,0.004,764.254,50.9,7636.444,02333ce4,4,0,25274631.708,0.005,-100476824.840813,0.004,754.545,53.6,7636.363,02933ce4,12,0,26373649.887,0.092,-138594449.111813,0.012,-2565.281,41.8,26740.730,08539d04,12,0,26373653.619,0.019,-103495853.823161,0.008,-1915.449,42.6,26738.648,01933d04,12,0,26373650.081,0.023,-106195738.067164,0.011,-1965.500,41.1,26738.449,02333d04,12,0,26373650.251,0.015,-104845791.009488,0.010,-1940.442,44.6,26738.371,02933d04,11,0,22137124.256,0.039,-116331408.305147,0.015,-1200.216,49.2,19415.590,08539d24,11,0,22137125.344,0.008,-86870883.829203,0.011,-896.289,49.8,19413.172,01933d24,11,0,22137122.146,0.008,-89137066.170706,0.012,-919.719,49.6,19413.248,02333d24,11,0,22137121.891,0.006,-88003971.568373,0.011,-908.028,52.4,19413.172,02933d24,30,0,25928558.680,0.072,-136255508.290211,0.010,743.664,43.9,3960.112,08539d44,30,0,25928564.638,0.011,-101749279.487957,0.006,555.328,47.5,4752.748,01933d44,30,0,25928561.460,0.010,-104403592.595320,0.005,569.759,48.1,4753.047,02333d44,30,0,25928561.332,0.008,-103076425.609137,0.006,562.539,50.5,4752.767,02933d44,2,0,25889111.981,0.043,-136048218.157560,0.006,-1792.931,48.4,12654.424,08539d64,2,0,25889117.006,0.009,-101594476.864922,0.005,-1338.866,48.7,12652.444,01933d64,2,0,25889114.168,0.009,-104244753.680674,0.004,-1373.765,49.5,12651.978,02333d64,2,0,25889113.739,0.007,-102919609.843844,0.005,-1356.370,51.8,12651.943,02933d64,19,0,27039623.380,0.118,-142094196.888887,0.015,-1878.632,39.7,11125.104,08539d84,19,0,27039628.887,0.020,-106109319.847355,0.010,-1402.842,41.9,11123.043,01933d84,19,0,27039625.153,0.024,-108877382.476710,0.011,-1439.341,40.6,11122.757,02333d84,19,0,27039625.337,0.016,-107493348.232960,0.010,-1421.103,44.1,11122.765,02933d84,36,0,23927504.603,0.030,-125739945.419298,0.005,1241.596,51.7,11037.264,08539da4,36,0,23927510.217,0.006,-93896767.646843,0.004,927.156,52.9,11035.164,01933da4,36,0,23927507.273,0.006,-96346233.181780,0.004,951.361,53.2,11035.376,02333da4,36,0,23927507.057,0.004,-95121494.979676,0.004,939.285,55.8,11031.874,02933da4,9,0,24890379.004,0.046,-130799846.144936,0.007,3052.621,47.8,2955.889,08539dc4,9,0,24890384.304,0.009,-97675250.055577,0.005,2279.540,49.1,2953.828,01933dc4,9,0,24890381.065,0.008,-100223286.825938,0.004,2338.979,50.0,2953.762,02333dc4,9,0,24890381.366,0.006,-98949262.506583,0.005,2309.297,52.2,2949.700,02933dc4,23,0,26593863.945,0.036,-138481231.000933,0.010,-48.553,44.1,2628.888,08149ec4,23,0,26593862.563,0.010,-104360035.310223,0.005,-36.590,48.2,2623.647,41343ec4,34,0,23330414.273,0.017,-121487628.857801,0.005,2280.558,50.6,6539.069,58149ee4,34,0,23330415.641,0.008,-91553618.939049,0.005,1718.641,50.1,6533.770,41343ee4,35,0,24822913.452,0.024,-129259432.414616,0.007,-2925.143,47.4,23499.049,58149f04,35,0,24822915.980,0.012,-97410461.716286,0.006,-2204.368,46.7,23493.830,41343f04,11,0,24964039.739,0.052,-129994328.361984,0.014,2939.333,40.8,2708.970,18149f24,11,0,24964038.060,0.022,-100519869.959755,0.006,2272.851,48.3,2708.810,00349f24,19,0,23905947.282,0.033,-124484578.888819,0.009,-2342.726,44.8,13489.051,18149f44,19,0,23905949.046,0.008,-93812119.376225,0.005,-1765.479,50.1,13483.831,41343f44,21,0,24577306.170,0.027,-127980528.823414,0.008,3242.344,46.7,3439.068,18149f84,21,0,24577307.993,0.008,-96446682.849511,0.005,2443.502,49.7,3433.828,41343f84,22,0,22438270.920,0.015,-116842012.781567,0.005,729.096,51.5,8979.049,18149fa4,22,0,22438269.274,0.005,-88052653.428423,0.003,549.506,54.1,8973.770,41343fa4,44,0,21553538.984,0.014,-112234979.640419,0.005,-679.127,52.1,15439.131,48149ca4,44,0,21553540.824,0.005,-84580779.869687,0.003,-511.716,53.6,15433.829,41343ca4,57,0,26771391.610,0.021,-139405685.309616,0.007,-2069.940,48.5,20196.455,48049d04,12,0,21542689.063,0.021,-112178498.767984,0.006,952.964,48.8,11229.051,18149d24,12,0,21542686.409,0.013,-86743545.297369,0.004,736.976,52.6,11228.890,00349d24,25,0,26603375.741,0.069,-138530755.415895,0.019,-2155.462,38.4,9789.050,18149d44,25,0,26603380.238,0.015,-104397363.013083,0.007,-1624.205,44.7,9783.829,41343d44*5e9785bd\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 69);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RANGE_ROUNDING_ERROR)
 {
    unsigned char aucLog[] = "#RANGEA,COM1,0,51.5,FINESTEERING,2166,395964.000,02000000,5103,16248;122,14,0,21667472.815,0.037,-113863359.396500,0.008,-2377.013,46.9,17892.975,0810bc04,14,0,21667471.798,0.100,-88724695.332287,0.008,-1852.218,46.4,17887.254,01303c0b,14,0,21667471.869,0.030,-88724703.580824,0.008,-1852.218,49.9,17889.613,02309c0b,14,0,21667477.147,0.006,-85027853.855276,0.004,-1775.136,52.4,17891.055,01d03c04,30,0,24951876.935,0.052,-131122991.675337,0.011,-3887.187,43.9,22862.973,0810bc24,30,0,24951878.854,0.144,-102173767.330929,0.012,-3028.978,43.2,22858.254,01303c2b,30,0,24951879.324,0.054,-102173767.578720,0.011,-3028.978,44.8,22859.914,02309c2b,30,0,24951881.178,0.010,-97916529.416470,0.005,-2902.729,48.4,22861.453,01d03c24,6,0,23512406.638,0.052,-123558540.466820,0.013,3695.143,43.8,2282.935,1810bc44,6,0,23512408.025,0.137,-96279393.879062,0.013,2879.333,43.6,2276.754,11303c4b,6,0,23512408.964,0.040,-96279396.122659,0.012,2879.333,47.4,2279.715,02309c4b,6,0,23512410.302,0.009,-92267760.963149,0.005,2759.320,49.1,2281.196,01d03c44,15,0,24916477.333,0.059,-130936968.837648,0.013,-3034.036,42.7,12412.816,0810bc64,15,0,24916476.620,0.188,-102028802.341248,0.015,-2364.185,40.9,12407.755,01303c6b,15,0,24916477.107,0.072,-102028805.583397,0.013,-2364.185,42.1,12409.297,02309c6b,22,0,25066199.607,0.069,-131723770.888638,0.023,903.820,41.3,1451.073,1810bc84,22,0,25066195.782,0.255,-102641891.725302,0.027,704.276,38.2,1445.754,11303c8b,19,0,20174355.199,0.023,-106016955.400284,0.006,1017.117,51.0,9052.854,0810bca4,19,0,20174350.725,0.072,-82610603.579487,0.006,792.558,49.2,9047.515,01303cab,24,0,21615388.172,0.031,-113589632.948200,0.007,1528.792,48.4,5999.336,1810bcc4,24,0,21615387.962,0.095,-88511414.895175,0.007,1191.266,46.8,5993.755,11303ccb,24,0,21615388.468,0.032,-88511406.149953,0.007,1191.267,49.2,5996.136,02309ccb,24,0,21615390.665,0.006,-84823446.786208,0.004,1141.508,52.7,5997.635,01d03cc4,13,0,24724806.437,0.066,-129929733.351660,0.014,-3521.752,41.7,16102.854,0810bce4,13,0,24724805.621,0.280,-101243942.572119,0.018,-2744.224,37.4,16097.756,01303ceb,21,0,25716810.210,0.052,-135142718.937328,0.015,-3128.023,43.8,12892.756,1810bd04,21,0,25716807.897,0.234,-105305999.403490,0.016,-2437.422,38.9,12887.416,11303d0b,17,0,20678889.831,0.020,-108668308.997997,0.005,-1124.563,51.9,12322.776,1810bd24,17,0,20678887.276,0.063,-84676598.609518,0.006,-876.283,50.3,12317.415,11303d2b,17,0,20678887.695,0.027,-84676606.858549,0.005,-876.283,50.8,12319.616,02309d2b,1,0,22989835.696,0.052,-120812394.789843,0.011,-2576.784,43.8,10700.536,1810bd44,1,0,22989837.021,0.132,-94139526.428291,0.010,-2007.885,43.9,10694.756,11303d4b,1,0,22989837.105,0.047,-94139525.678403,0.011,-2007.885,45.9,10697.216,02309d4b,1,0,22989837.062,0.008,-90217051.711178,0.005,-1924.169,50.0,10698.655,01d03d44,12,0,24793054.106,0.050,-130288376.315651,0.010,3507.159,44.0,442.614,0810bd64,12,0,24793052.865,0.197,-101523404.561717,0.013,2732.850,40.4,436.254,01303d6b,12,0,24793053.357,0.081,-101523411.805143,0.011,2732.850,41.2,439.215,02309d6b,131,0,38479354.294,0.122,-202210368.857420,0.009,-0.740,46.4,548123.375,48023e84,135,0,38558357.297,1.273,-202625536.414007,0.034,2.750,45.7,2.609,48023ea4,133,0,38626890.881,0.113,-202985679.907909,0.011,1.345,47.0,548121.188,58023ec4,138,0,38496470.429,0.115,-202300172.860430,0.010,2.604,46.9,975466.250,48023ee4,51,0,20175884.008,0.089,-107548831.258419,0.005,-2418.722,48.2,15611.236,18119f04,51,0,20175889.540,0.017,-83649110.819447,0.005,-1881.229,48.0,15606.118,00b13f0b,51,0,20175889.290,0.067,-83649115.067776,0.005,-1881.229,48.8,15606.958,10319f0b,61,9,19797266.250,0.081,-105864882.825125,0.005,-1683.446,49.0,10281.129,08119f24,61,9,19797268.522,0.018,-82339369.053414,0.005,-1309.348,47.1,10275.898,00b13f2b,61,9,19797269.032,0.078,-82339368.313369,0.005,-1309.347,47.5,10276.739,10319f2b,52,7,19441079.059,0.070,-103887233.259309,0.004,1478.277,50.3,8472.738,18119f44,52,7,19441082.501,0.016,-80801195.347749,0.004,1149.771,48.6,8468.118,00b13f4b,52,7,19441082.428,0.067,-80801194.604873,0.005,1149.771,48.9,8468.959,00319f4b,44,12,23592140.342,0.320,-126290574.937003,0.016,1158.068,37.1,1782.268,18119f84,44,12,23592143.543,0.038,-98226016.542674,0.016,900.721,40.8,1778.118,10b13f8b,44,12,23592144.060,0.160,-98226016.795870,0.016,900.720,41.3,1779.038,00319f8b,55,4,23720844.148,0.174,-126623469.505783,0.017,4540.528,42.4,435.288,08119fa4,55,4,23720849.990,0.026,-98484943.926112,0.018,3531.522,44.1,430.118,10b13fab,55,4,23720849.502,0.107,-98484948.184549,0.018,3531.523,44.8,430.959,00319fab,53,6,23345170.428,0.286,-124705714.112983,0.022,4005.376,38.0,976.358,08119fc4,53,6,23345173.285,0.083,-96993346.313948,0.023,3115.291,34.0,972.259,10b13fcb,53,6,23345172.397,0.329,-96993340.557985,0.023,3115.292,35.0,973.238,00319fcb,54,11,19866439.021,0.090,-106309339.516639,0.005,2625.298,48.0,5571.388,18119fe4,54,11,19866441.196,0.017,-82685054.461380,0.005,2041.899,47.7,5566.039,00b13feb,54,11,19866441.770,0.073,-82685054.717276,0.005,2041.899,48.1,5567.039,10319feb,60,10,22600053.320,0.187,-120895040.710794,0.010,-4059.449,41.7,13591.559,18019c04,36,0,28384363.934,0.132,-149160837.631359,0.013,3344.571,42.7,54.004,08539cc4,36,0,28384370.165,0.026,-111386362.575417,0.008,2497.580,44.0,51.641,01933cc4,36,0,28384366.856,0.024,-114292079.525855,0.007,2562.721,44.6,51.642,02333cc4,36,0,28384366.993,0.020,-112839213.113177,0.008,2530.178,46.2,51.565,02933cc4,25,0,23636884.911,0.027,-124212693.603155,0.005,836.383,52.6,12990.103,08539d04,25,0,23636889.504,0.006,-92756258.196410,0.004,624.605,53.3,12988.042,01933d04,25,0,23636886.097,0.005,-95175971.627448,0.003,640.889,53.8,12987.756,02333d04,25,0,23636886.124,0.004,-93966110.980589,0.003,632.726,55.4,12987.764,02933d04,24,0,24846946.159,0.032,-130571605.025648,0.005,-1807.016,51.1,22328.822,08539d24,24,0,24846948.793,0.007,-97504795.166661,0.004,-1349.399,51.6,22327.043,01933d24,24,0,24846945.710,0.006,-100048383.385584,0.004,-1384.560,53.3,22326.754,02333d24,24,0,24846945.678,0.005,-98776584.342612,0.004,-1366.959,54.3,22326.563,02933d24,8,0,25516901.814,0.071,-134092226.312443,0.009,-813.882,44.1,6892.478,08539d44,8,0,25516905.563,0.014,-100133819.235979,0.007,-607.693,44.9,6890.449,01933d44,8,0,25516902.060,0.013,-102745993.466502,0.007,-623.591,45.9,6890.450,02333d44,8,0,25516902.302,0.011,-101439901.420292,0.007,-615.692,47.2,6890.170,02933d44,11,0,23014655.101,0.047,-120942830.634705,0.017,2343.077,47.7,6259.969,08539d64,11,0,23014655.448,0.010,-90314462.515908,0.011,1749.637,47.9,6257.750,01933d64,11,0,23014652.288,0.009,-92670477.327938,0.012,1795.414,48.7,6257.982,02333d64,11,0,23014652.048,0.008,-91492463.991082,0.011,1772.540,50.1,6257.570,02933d64,12,0,22921345.477,0.049,-120452485.770580,0.008,-625.712,47.3,11376.448,08539d84,12,0,22921346.835,0.009,-89948289.930100,0.005,-467.290,49.3,11374.369,01933d84,12,0,22921343.647,0.009,-92294758.701130,0.005,-479.561,49.3,11374.182,02333d84,12,0,22921343.748,0.007,-91121516.379511,0.005,-473.374,51.1,11374.170,02933d84,33,0,27957531.600,0.097,-146917798.950613,0.014,-2793.492,41.4,15070.385,08539da4,33,0,27957536.103,0.014,-109711347.118576,0.007,-2085.986,45.5,15068.044,01933da4,33,0,27957533.204,0.012,-112573368.693827,0.006,-2140.510,46.2,15068.756,02333da4,33,0,27957532.694,0.011,-111142353.973864,0.007,-2113.279,47.7,15067.944,02933da4,2,0,26654945.600,0.082,-140072694.237015,0.011,2558.429,42.8,2028.863,08539dc4,2,0,26654948.909,0.011,-104599749.952841,0.006,1910.490,47.6,3259.644,01933dc4,2,0,26654946.389,0.009,-107328429.627432,0.005,1960.239,49.4,3259.044,02333dc4,2,0,26654945.686,0.008,-105964084.356438,0.005,1935.353,50.3,3258.764,02933dc4,3,0,27925045.367,0.143,-146747109.367117,0.020,-2594.649,38.0,14980.084,08539de4,3,0,27925052.310,0.010,-109583900.965844,0.005,-1937.513,48.3,14978.242,01933de4,3,0,27925049.007,0.010,-112442593.146502,0.005,-1988.074,48.5,14978.243,02333de4,3,0,27925048.907,0.008,-111013242.126755,0.005,-1962.813,50.1,14977.764,02933de4,28,0,24295346.534,0.022,-126512252.843586,0.007,3115.172,48.3,3583.050,08149ee4,28,0,24295347.953,0.010,-95340169.032822,0.005,2347.575,48.5,3577.830,41343ee4,58,0,30352505.594,0.018,-158053468.415728,0.005,2180.668,50.2,6805.764,48049f04,37,0,23654585.807,0.024,-123175640.316366,0.007,2315.890,47.3,5903.148,48149f64,37,0,23654591.469,0.007,-92825691.167170,0.004,1745.292,50.8,5897.829,41343f64,16,0,40981058.030,0.070,-213399122.234510,0.018,1021.730,38.2,2543.120,18149fa4,16,0,40981060.084,0.069,-165013741.944354,0.017,789.719,38.3,2542.900,10349fa4,25,0,24527132.667,0.024,-127719233.869791,0.007,-3012.064,47.3,22603.049,18149fc4,25,0,24527132.642,0.009,-96249757.320986,0.005,-2269.882,49.0,22597.830,41343fc4,11,0,22072594.483,0.021,-114937804.338566,0.007,-1124.209,48.7,12583.050,18149c44,11,0,22072591.972,0.012,-88877191.965456,0.004,-869.322,53.6,12582.891,00349c44,39,0,40758395.962,0.093,-212239668.209597,0.022,1033.544,35.7,1823.061,48149c64,39,0,40758396.181,0.018,-159944708.054331,0.008,779.072,43.1,1817.821,41343c64,6,0,40660168.462,0.068,-211728167.318087,0.020,933.249,38.4,3533.121,08149ca4,6,0,40660164.534,0.062,-163721634.174305,0.015,721.687,39.2,3532.960,00349ca4,23,0,21983418.177,0.014,-114473435.239145,0.004,-605.859,52.1,14413.048,18149d04,23,0,21983413.987,0.005,-86267655.346871,0.003,-456.641,55.0,14407.829,41343d04,12,0,25523288.744,0.050,-132906445.913874,0.014,-3185.714,41.2,17202.971,18149d24,12,0,25523285.648,0.047,-102771684.666844,0.012,-2463.359,41.6,17202.811,00349d24,43,0,21964477.374,0.015,-114374807.893314,0.005,517.000,51.5,10043.069,48149d44,43,0,21964479.560,0.005,-86193345.125571,0.003,389.631,53.6,10037.829,41343d44,34,0,23704649.976,0.029,-123436343.578545,0.007,-2381.759,46.0,15113.069,48149d64,34,0,23704653.450,0.008,-93022152.754343,0.005,-1794.921,50.1,15107.829,41343d64*3e6cb7c9\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 69);
-   ASSERT_EQ(DecodeEncodeTest::MESSAGEDATA_COMPARISON_ERROR, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::MESSAGE_DATA_COMPARISON_ERROR, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RANGECMP)
 {
    unsigned char aucLog[] = "#RANGECMP2A,COM1,0,56.0,FINESTEERING,2171,404649.000,02010000,1fe3,16248;1870,000200c8ba5b859afb2fe1ffff6b3f0651e830813d00e4ffff43bac60a006c803d0001140034b7f884a8ff2fe1ffff6b3fa428a83c82f0ffe4ffff439c4404c8cb82f0ff021d00043bfd04720330e1ffff6b3f2628086b811200e4ffff439ca605283f811200e5ffff095d860f50b081120003060020dbf8854ef94fe1ffff6b954a513855800a00e4ffff43d56a798813800a00e5ffff09782a88a836800a00e7ffff031ca4a8706980f7ff041f001822d685d8fc3fe1ffff6b5b483218a2003b00e4ffff43f1280ee054003b00e5ffff09b268154897003b00050900ac57ef85effe4fe1ffff6b948c0a705680f7ffe4ffff43d44c1ea87900f7ffe5ffff095bac23987d00f7ffe7ffff031fa249f0148116000612001813cb059e0640e1ffff6b59480fb0da802d00e4ffff43f38a07183e812d00e5ffff09966a12c0f3002e00e7ffff031b2669187782190007190048e81385abfb4fe1ffff2b3e6639208800eaffe4ffff039b4649586400eaffe5ffff095ee651583900eaffe7ffff031f827020ac00e0ff080500f8ce12059b0430e1ffff6b3f842c5829820c00e4ffff439c040b50e5820c00e5ffff095da414788b820c00091a00d4c6dd85140640e1ffff6b92ae0b289300ccffe4ffff43f30e35f0db80cbffe5ffff0978ce38a89100ccffe7ffff031c643a885081c8ff0b0c00e88f7105f0f83fe1ffff2b5c4686e805011c00e4ffff03b82669c03e801b00e5ffff097a866f70a0801b0010c270b8074e8a660030e1ffff2b78e840084080edffe3ffff0978884af01500edffe4ffff0319e671088f80f4ff14852054613589010010e1ffff63bba60ab02200c7ff158a208c6a2d89000010e1ffff63bc0880503f00260017832000972c89000010e1ffff63bb885f2007000000180d15640900851f0030e1ffff290fcd0f18f900deffe4ffff43564e4e70b001deffe3ffff49d30e4cf0a401deff190c168cd722052af93fe1ffff29b9a619283300f4ffe4ffff031b066e00bf80f3ffe3ffff499b266988b380f3ff1a171a60005285370610e1ffff69d7660410220114001b151be8a3298543fa3fe1ffff69d72608885800e2ffe4ffff033a4635788a00e2ffe3ffff499a663e306000e2ff1c16146892a3046bff3fe1ffff6911cd11d03300e8ffe4ffff43714c55482f01e8ffe3ffff09f12c5cf85101e8ff1d071c9c3942853f0730e1ffff69d6c60f705e01e8ffe4ffff0339463a98cf82e8ffe3ffff499ae641682083e8ff1e0e10fc64a785d90630e1ffff29f3ca0e1021801a00e4ffff4337aa7fe833811a00e3ffff09b8ca7610fa801a001f05188c42a9854ef93fe1ffff29f1ea06585080dbffe4ffff4372ea46280f01dbffe3ffff49f20c50504101dbff2006137c4000059e0010e1ffff690e3904080400c5ff261a5064418705fbfd4fe1ffff293f0406908b80ecffe2ffff031f6264f8e601e6ffe3ffff031fc22ec85801ebffe4ffff031fe22ae05681e8ff270c50ec595586230540e1ffff29950a02c04b801900e2ffff031ac6496035812200e3ffff031924168079001f00e4ffff031ca6110086802400280d50488d8506ebfa4fe1ffff29980839600500c9ffe2ffff031a668fd80681d2ffe3ffff0319066b801300bcffe4ffff031c8654401b80c1ff291f5034b8e385a5ff4fe1ffff295f640c683700e0ffe2ffff031f225b802581daffe3ffff031fe21d906b00d9ffe4ffff031f4221609780d8ff2b2150f8eac105a70240e1ffff293f641468ef802500e2ffff031f8240905c022000e3ffff031f82042888812900e4ffff031f6207e0a80124002c0850309a0206250040e1ffff2979e80eb8b9003100e2ffff031b044018e7013200e3ffff031c441dd036812300e4ffff031ea413e0650128002d0150f8db2f068afa4fe1ffff297ce63c0043001b00e2ffff031fe29948fa801a00e3ffff031e84589847801a00e4ffff031f045e883f001a002e0750dc257686740440e1ffff297a680f881f81d4ffe2ffff031e047970f102c2ffe3ffff031ea249f85e02bfffe4ffff031f244390fe81bfff2f1850d08c82065f0440e1ffff2998a803488b00e4ffe2ffff031b664f981202ccffe3ffff031bc40f201201cdffe4ffff031d4418602001ccff362d6040494c060f0420e1ffff6958e80fe837003d00f4ffff031ca4acd845823000371c60983fad8543fb2fe1ffff293a860f388f00cdfff4ffff031ee234b8c680ccff3b1e60ccf2a885dc0420e1ffff293b6606800701effff4ffff031e6446402f02edff3f3a607ca3168851fa1fe1ffff2957a8589829000700410e60701bf60529fc2fe1ffff2976e82a880101ebffe3ffff093ce40148e480e3ff422e607085ec05acfa2fe1ffff293a06614007002600f4ffff031e42e7b01981240044216008d2be85f6fe2fe1ffff293b060f0053813e00f4ffff031f22bf8111863b00451b6048481885190020e1ffff691f0204d06a001800f4ffff031f621b986e810f0047246044cfe4053cff2fe1ffff293bc60ea00a001700f4ffff031d249748ad8219004b29600c07b9859e0420e1ffff293b460e98a9011c00f4ffff031fe2de305f850700*2b134683\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 73);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RANGECMP2)
 {
    unsigned char aucLog[] = "#RANGECMP2A,COM1,0,56.0,FINESTEERING,2171,404649.000,02010000,1fe3,16248;1870,000200c8ba5b859afb2fe1ffff6b3f0651e830813d00e4ffff43bac60a006c803d0001140034b7f884a8ff2fe1ffff6b3fa428a83c82f0ffe4ffff439c4404c8cb82f0ff021d00043bfd04720330e1ffff6b3f2628086b811200e4ffff439ca605283f811200e5ffff095d860f50b081120003060020dbf8854ef94fe1ffff6b954a513855800a00e4ffff43d56a798813800a00e5ffff09782a88a836800a00e7ffff031ca4a8706980f7ff041f001822d685d8fc3fe1ffff6b5b483218a2003b00e4ffff43f1280ee054003b00e5ffff09b268154897003b00050900ac57ef85effe4fe1ffff6b948c0a705680f7ffe4ffff43d44c1ea87900f7ffe5ffff095bac23987d00f7ffe7ffff031fa249f0148116000612001813cb059e0640e1ffff6b59480fb0da802d00e4ffff43f38a07183e812d00e5ffff09966a12c0f3002e00e7ffff031b2669187782190007190048e81385abfb4fe1ffff2b3e6639208800eaffe4ffff039b4649586400eaffe5ffff095ee651583900eaffe7ffff031f827020ac00e0ff080500f8ce12059b0430e1ffff6b3f842c5829820c00e4ffff439c040b50e5820c00e5ffff095da414788b820c00091a00d4c6dd85140640e1ffff6b92ae0b289300ccffe4ffff43f30e35f0db80cbffe5ffff0978ce38a89100ccffe7ffff031c643a885081c8ff0b0c00e88f7105f0f83fe1ffff2b5c4686e805011c00e4ffff03b82669c03e801b00e5ffff097a866f70a0801b0010c270b8074e8a660030e1ffff2b78e840084080edffe3ffff0978884af01500edffe4ffff0319e671088f80f4ff14852054613589010010e1ffff63bba60ab02200c7ff158a208c6a2d89000010e1ffff63bc0880503f00260017832000972c89000010e1ffff63bb885f2007000000180d15640900851f0030e1ffff290fcd0f18f900deffe4ffff43564e4e70b001deffe3ffff49d30e4cf0a401deff190c168cd722052af93fe1ffff29b9a619283300f4ffe4ffff031b066e00bf80f3ffe3ffff499b266988b380f3ff1a171a60005285370610e1ffff69d7660410220114001b151be8a3298543fa3fe1ffff69d72608885800e2ffe4ffff033a4635788a00e2ffe3ffff499a663e306000e2ff1c16146892a3046bff3fe1ffff6911cd11d03300e8ffe4ffff43714c55482f01e8ffe3ffff09f12c5cf85101e8ff1d071c9c3942853f0730e1ffff69d6c60f705e01e8ffe4ffff0339463a98cf82e8ffe3ffff499ae641682083e8ff1e0e10fc64a785d90630e1ffff29f3ca0e1021801a00e4ffff4337aa7fe833811a00e3ffff09b8ca7610fa801a001f05188c42a9854ef93fe1ffff29f1ea06585080dbffe4ffff4372ea46280f01dbffe3ffff49f20c50504101dbff2006137c4000059e0010e1ffff690e3904080400c5ff261a5064418705fbfd4fe1ffff293f0406908b80ecffe2ffff031f6264f8e601e6ffe3ffff031fc22ec85801ebffe4ffff031fe22ae05681e8ff270c50ec595586230540e1ffff29950a02c04b801900e2ffff031ac6496035812200e3ffff031924168079001f00e4ffff031ca6110086802400280d50488d8506ebfa4fe1ffff29980839600500c9ffe2ffff031a668fd80681d2ffe3ffff0319066b801300bcffe4ffff031c8654401b80c1ff291f5034b8e385a5ff4fe1ffff295f640c683700e0ffe2ffff031f225b802581daffe3ffff031fe21d906b00d9ffe4ffff031f4221609780d8ff2b2150f8eac105a70240e1ffff293f641468ef802500e2ffff031f8240905c022000e3ffff031f82042888812900e4ffff031f6207e0a80124002c0850309a0206250040e1ffff2979e80eb8b9003100e2ffff031b044018e7013200e3ffff031c441dd036812300e4ffff031ea413e0650128002d0150f8db2f068afa4fe1ffff297ce63c0043001b00e2ffff031fe29948fa801a00e3ffff031e84589847801a00e4ffff031f045e883f001a002e0750dc257686740440e1ffff297a680f881f81d4ffe2ffff031e047970f102c2ffe3ffff031ea249f85e02bfffe4ffff031f244390fe81bfff2f1850d08c82065f0440e1ffff2998a803488b00e4ffe2ffff031b664f981202ccffe3ffff031bc40f201201cdffe4ffff031d4418602001ccff362d6040494c060f0420e1ffff6958e80fe837003d00f4ffff031ca4acd845823000371c60983fad8543fb2fe1ffff293a860f388f00cdfff4ffff031ee234b8c680ccff3b1e60ccf2a885dc0420e1ffff293b6606800701effff4ffff031e6446402f02edff3f3a607ca3168851fa1fe1ffff2957a8589829000700410e60701bf60529fc2fe1ffff2976e82a880101ebffe3ffff093ce40148e480e3ff422e607085ec05acfa2fe1ffff293a06614007002600f4ffff031e42e7b01981240044216008d2be85f6fe2fe1ffff293b060f0053813e00f4ffff031f22bf8111863b00451b6048481885190020e1ffff691f0204d06a001800f4ffff031f621b986e810f0047246044cfe4053cff2fe1ffff293bc60ea00a001700f4ffff031d249748ad8219004b29600c07b9859e0420e1ffff293b460e98a9011c00f4ffff031fe2de305f850700*2b134683\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 73);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RAWGPSSUBFRAME)
 {
    unsigned char aucLog[] = "#RAWGPSSUBFRAMEA,COM1,0,54.0,SATTIME,2167,254754.000,02000000,0457,16248;4,32,5,8b01dc52ee35516daa63199cfd4c00a10cb7227993c059e0b9c4d63e0054,4*80b22f2e\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 73);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RAWWAASFRAME_2)
 {
    unsigned char aucLog[] = "#RAWWAASFRAMEA_2,COM2,0,77.5,SATTIME,1747,411899.000,00000020,58e4,11526;62,138,9,c6243a0581b555352c4056aae0103cf03daff2e00057ff7fdff8010180,62*b026c677\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 69);
-   ASSERT_EQ(DecodeEncodeTest::MESSAGE_DECODER_ERROR, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::MESSAGE_DECODER_ERROR, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSCOM_CLEAN)
 {
    unsigned char aucLog[] = "#PASSCOM3A,COM1,0,58.0,FINESTEERING,2171,404283.962,02010000,4c23,16248;11,1843000570\\x0d*51c2a4b6\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 72);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSCOM_DIRTY)
 {
    unsigned char aucLog[] = "#PASSCOM3A,COM1,0,45.5,FINESTEERING,2171,404283.635,02010000,4c23,16248;12,38400,8,N,1\\x0d*c4052078\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 72);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_TRACKSTAT)
 {
    unsigned char aucLog[] = "#TRACKSTATA,COM1,0,58.0,FINESTEERING,2166,318996.000,02000000,457c,16248;SOL_COMPUTED,WAAS,5.0,235,2,0,0810bc04,20999784.925,770.496,49.041,8473.355,0.228,GOOD,0.975,2,0,01303c0b,20999781.972,600.387,49.021,8466.896,0.000,OBSL2,0.000,0,0,02208000,0.000,-0.004,0.000,0.000,0.000,NA,0.000,0,0,01c02000,0.000,0.000,0.000,0.000,0.000,NA,0.000,20,0,0810bc24,24120644.940,3512.403,42.138,1624.974,0.464,GOOD,0.588,20,0,01303c2b,24120645.042,2736.937,39.553,1619.755,0.000,OBSL2,0.000,0,0,02208020,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,01c02020,0.000,0.000,0.000,0.000,0.000,NA,0.000,6,0,0810bc44,20727107.371,-1161.109,50.325,11454.975,-0.695,GOOD,0.979,6,0,01303c4b,20727108.785,-904.761,50.213,11448.915,0.000,OBSL2,0.000,6,0,02309c4b,20727109.344,-904.761,52.568,11451.815,0.000,OBSL2,0.000,6,0,01d03c44,20727110.520,-867.070,55.259,11453.455,0.000,OBSL5,0.000,29,0,0810bc64,25296813.545,3338.614,43.675,114.534,-0.170,GOOD,0.206,29,0,01303c6b,25296814.118,2601.518,39.636,109.254,0.000,OBSL2,0.000,29,0,02309c6b,25296814.580,2601.517,40.637,111.114,0.000,OBSL2,0.000,0,0,01c02060,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a080,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a02080,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,02208080,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,01c02080,0.000,0.000,0.000,0.000,0.000,NA,0.000,19,0,0810bca4,22493227.199,-3020.625,44.911,18244.973,0.411,GOOD,0.970,19,0,01303cab,22493225.215,-2353.736,44.957,18239.754,0.000,OBSL2,0.000,0,0,022080a0,0.000,-0.006,0.000,0.000,0.000,NA,0.000,0,0,01c020a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,24,0,0810bcc4,23856706.090,-3347.685,43.417,15187.116,-0.358,GOOD,0.957,24,0,01303ccb,23856708.306,-2608.588,43.207,15181.256,0.000,OBSL2,0.000,24,0,02309ccb,23856708.614,-2608.588,46.741,15183.815,0.000,OBSL2,0.000,24,0,01d03cc4,23856711.245,-2499.840,50.038,15185.256,0.000,OBSL5,0.000,25,0,1810bce4,21953295.423,2746.317,46.205,4664.936,0.322,GOOD,0.622,25,0,11303ceb,21953296.482,2139.988,45.623,4658.756,0.000,OBSL2,0.000,25,0,02309ceb,21953296.899,2139.988,47.584,4661.796,0.000,OBSL2,0.000,25,0,01d03ce4,21953298.590,2050.845,51.711,4662.976,0.000,OBSL5,0.000,0,0,0000a100,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a02100,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,02208100,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,01c02100,0.000,0.000,0.000,0.000,0.000,NA,0.000,17,0,1810bd24,24833573.179,-3002.286,43.809,21504.975,-0.219,GOOD,0.903,17,0,11303d2b,24833573.345,-2339.444,42.894,21499.256,0.000,OBSL2,0.000,17,0,02309d2b,24833573.677,-2339.444,44.238,21501.717,0.000,OBSL2,0.000,0,0,01c02120,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a140,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a02140,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,02208140,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,01c02140,0.000,0.000,0.000,0.000,0.000,NA,0.000,12,0,0810bd64,20275478.792,742.751,50.336,9634.855,0.166,GOOD,0.977,12,0,01303d6b,20275477.189,578.767,50.042,9629.756,0.000,OBSL2,0.000,12,0,02309d6b,20275477.555,578.767,51.012,9631.516,0.000,OBSL2,0.000,0,0,01c02160,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a02180,0.000,0.002,0.000,0.000,0.000,NA,0.000,0,0,02208180,0.000,0.003,0.000,0.000,0.000,NA,0.000,0,0,01c02180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a1a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a021a0,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,022081a0,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,01c021a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a1c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a021c0,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,022081c0,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,01c021c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a1e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a021e0,0.000,0.001,0.000,0.000,0.000,NA,0.000,0,0,022081e0,0.000,0.003,0.000,0.000,0.000,NA,0.000,0,0,01c021e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,194,0,0815be04,43478223.927,63.042,38.698,2382.214,0.000,NODIFFCORR,0.000,194,0,02359e0b,43478226.941,49.122,44.508,2378.714,0.000,OBSL2,0.000,194,0,01d53e04,43478228.121,47.080,43.958,2380.253,0.000,OBSL5,0.000,0,0,0005a220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01c52220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0005a240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258240,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,01c52240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0005a260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01c52260,0.000,0.000,0.000,0.000,0.000,NA,0.000,131,0,48023e84,38480992.384,-0.167,45.356,471155.406,0.000,LOCKEDOUT,0.000,135,0,58023ea4,38553658.881,3.771,44.648,4.449,0.000,NODIFFCORR,0.000,133,0,58023ec4,38624746.161,1.065,45.618,471153.219,0.000,LOCKEDOUT,0.000,138,0,48023ee4,38493033.873,0.953,45.833,898498.250,0.000,LOCKEDOUT,0.000,55,4,18119f04,21580157.377,3208.835,44.921,3584.798,0.000,NODIFFCORR,0.000,55,4,00b13f0b,21580163.823,2495.762,45.078,3580.119,0.000,OBSL2,0.000,55,4,10319f0b,21580163.635,2495.762,45.682,3581.038,0.000,OBSL2,0.000,45,13,08119f24,23088997.031,-313.758,44.105,4273.538,0.000,NODIFFCORR,0.000,45,13,00b13f2b,23088998.989,-244.036,42.927,4267.818,0.000,OBSL2,0.000,45,13,00319f2b,23088999.269,-244.036,43.297,4268.818,0.000,OBSL2,0.000,54,11,18119f44,19120160.469,178.235,50.805,9344.977,0.000,NODIFFCORR,0.000,54,11,00b13f4b,19120162.255,138.627,46.584,9339.897,0.000,OBSL2,0.000,54,11,00319f4b,19120162.559,138.627,47.049,9340.818,0.000,OBSL2,0.000,0,0,00018360,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12360,0.000,0.004,0.000,0.000,0.000,NA,0.000,0,0,00218360,0.000,0.004,0.000,0.000,0.000,NA,0.000,0,0,00018380,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12380,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00218380,0.000,0.000,0.000,0.000,0.000,NA,0.000,53,6,18119fa4,21330036.443,3045.661,43.167,3862.756,0.000,NODIFFCORR,0.000,53,6,00b13fab,21330040.203,2368.849,41.759,3858.039,0.000,OBSL2,0.000,53,6,00319fab,21330039.119,2368.850,42.691,3859.038,0.000,OBSL2,0.000,38,8,18119fc4,22996582.245,2427.724,41.817,2014.338,0.000,NODIFFCORR,0.000,38,8,10b13fcb,22996590.440,1888.231,35.968,2010.119,0.000,OBSL2,0.000,38,8,10319fcb,22996589.454,1888.230,36.755,2011.038,0.000,OBSL2,0.000,52,7,08119fe4,19520740.266,-1275.394,50.736,10712.179,0.000,NODIFFCORR,0.000,52,7,00b13feb,19520744.583,-991.974,47.931,10708.038,0.000,OBSL2,0.000,52,7,10319feb,19520744.527,-991.974,48.251,10709.038,0.000,OBSL2,0.000,51,0,18119c04,22302364.417,-4314.112,43.692,16603.602,0.000,NODIFFCORR,0.000,51,0,00b13c0b,22302371.827,-3355.424,45.975,16603.580,0.000,OBSL2,0.000,51,0,00319c0b,22302371.325,-3355.424,46.904,16603.502,0.000,OBSL2,0.000,61,9,08119c24,21163674.206,-3198.898,47.898,14680.979,0.000,NODIFFCORR,0.000,61,9,10b13c2b,21163677.196,-2488.033,44.960,14675.897,0.000,OBSL2,0.000,61,9,00319c2b,21163677.300,-2488.033,45.628,14676.737,0.000,OBSL2,0.000,0,0,00018040,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12040,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00218040,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00018060,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12060,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,00218060,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,00018080,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12080,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00218080,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,000180a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a120a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,002180a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,004380c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,018320c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022320c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,028320c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,21,0,08539ce4,25416828.004,2077.626,46.584,6337.363,0.000,NODIFFCORR,0.000,21,0,01933ce4,25416833.286,1551.460,49.589,6335.164,0.000,OBSE5,0.000,21,0,02333ce4,25416829.717,1591.910,50.226,6335.176,0.000,OBSE5,0.000,21,0,02933ce4,25416829.814,1571.722,52.198,6334.944,0.000,OBSE5,0.000,27,0,08539d04,23510780.996,-707.419,51.721,16182.524,0.000,NODIFFCORR,0.000,27,0,01933d04,23510785.247,-528.262,53.239,16180.444,0.000,OBSE5,0.000,27,0,02333d04,23510781.458,-542.015,53.731,16180.243,0.000,OBSE5,0.000,27,0,02933d04,23510781.960,-535.149,55.822,16180.165,0.000,OBSE5,0.000,0,0,00438120,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832120,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232120,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832120,0.000,0.000,0.000,0.000,0.000,NA,0.000,15,0,08539d44,23034423.020,183.445,51.283,11971.245,0.000,NODIFFCORR,0.000,15,0,01933d44,23034428.761,136.945,53.293,11969.243,0.000,OBSE5,0.000,15,0,02333d44,23034425.379,140.546,53.897,11969.245,0.000,OBSE5,0.000,15,0,02933d44,23034425.436,138.742,55.909,11968.946,0.000,OBSE5,0.000,13,0,08539d64,25488681.795,2565.988,46.632,4828.445,0.000,NODIFFCORR,0.000,13,0,01933d64,25488687.213,1916.182,47.753,4826.243,0.000,OBSE5,0.000,13,0,02333d64,25488683.967,1966.148,50.045,4826.243,0.000,OBSE5,0.000,13,0,02933d64,25488684.398,1941.169,51.348,4826.165,0.000,OBSE5,0.000,0,0,00438180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,004381a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,018321a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022321a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,028321a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,004381c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,018321c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022321c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,028321c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,30,0,08539de4,25532715.149,-2938.485,46.289,26421.467,0.000,NODIFFCORR,0.000,30,0,01933de4,25532721.371,-2194.317,49.285,26419.447,0.000,OBSE5,0.000,30,0,02333de4,25532718.174,-2251.520,50.681,26419.447,0.000,OBSE5,0.000,30,0,02933de4,25532717.843,-2222.952,52.291,26419.166,0.000,OBSE5,0.000,0,0,00438200,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832200,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232200,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832200,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,004382a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,018322a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022322a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,028322a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,41,0,48149ec4,26228546.068,2731.326,43.047,1244.968,0.000,NODIFFCORR,0.000,41,0,41343ec4,26228560.733,2058.212,46.309,1239.648,0.000,NA,0.000,27,0,08149ee4,21470141.903,-686.571,51.408,13695.229,0.000,NODIFFCORR,0.000,27,0,41343ee4,21470143.417,-517.430,52.724,13690.050,0.000,NA,0.000,6,0,08149f04,40334269.953,-663.889,38.200,12755.121,0.000,NODIFFCORR,0.000,6,0,00349f04,40334265.525,-513.549,39.333,12754.961,0.000,OBSB2,0.000,16,0,08149f24,40591561.211,-689.953,40.783,11755.120,0.000,NODIFFCORR,0.000,16,0,00349f24,40591562.100,-533.388,39.928,11754.960,0.000,OBSB2,0.000,39,0,58149f44,40402963.125,-730.398,41.019,11015.042,0.000,NODIFFCORR,0.000,39,0,41343f44,40402964.083,-550.456,43.408,11009.821,0.000,NA,0.000,30,0,18149f64,22847646.673,2123.913,50.266,6625.051,0.000,NODIFFCORR,0.000,30,0,41343f64,22847649.151,1600.605,49.656,6619.991,0.000,NA,0.000,7,0,08048381,0.000,2500.000,0.000,0.000,0.000,NA,0.000,7,0,08048381,0.000,-2500.000,0.000,0.000,0.000,NA,0.000,33,0,48149fa4,25666349.147,776.929,42.271,3835.148,0.000,NODIFFCORR,0.000,33,0,41343fa4,25666377.385,585.535,48.361,3697.589,0.000,NA,0.000,46,0,48149fc4,23048323.129,-2333.170,49.345,15915.131,0.000,NODIFFCORR,0.000,46,0,41343fc4,23048329.413,-1758.350,52.408,15909.830,0.000,NA,0.000,18,0,080483e1,0.000,4000.000,0.000,0.000,0.000,NA,0.000,18,0,080483e1,0.000,-500.000,0.000,0.000,0.000,NA,0.000,45,0,48149c04,26221109.945,2965.644,44.864,435.050,0.000,NODIFFCORR,0.000,45,0,41343c04,26221119.956,2234.910,47.292,429.831,0.000,NA,0.000,36,0,58149c24,23277715.056,700.443,48.907,8015.069,0.000,NODIFFCORR,0.000,36,0,41343c24,23277723.101,527.848,51.167,8009.829,0.000,NA,0.000,52,0,08048041,0.000,1667.000,0.000,0.000,0.000,NA,0.000,52,0,08048041,0.000,-4166.000,0.000,0.000,0.000,NA,0.000,49,0,08048061,0.000,5832.000,0.000,0.000,0.000,NA,0.000,49,0,08048061,0.000,-4999.000,0.000,0.000,0.000,NA,0.000,47,0,08048081,0.000,1000.000,0.000,0.000,0.000,NA,0.000,47,0,08048081,0.000,-500.000,0.000,0.000,0.000,NA,0.000,58,0,48049ca4,34894393.899,-3079.127,30.345,47.772,0.000,NODIFFCORR,0.000,58,0,012420a9,0.000,-2321.139,0.000,0.000,0.000,NA,0.000,14,0,08149cc4,25730238.361,-588.324,38.191,4795.070,0.000,NODIFFCORR,0.000,14,0,00349cc4,25730237.379,-454.787,44.427,4794.910,0.000,OBSB2,0.000,28,0,08149ce4,24802536.288,-2833.581,46.004,19865.129,0.000,NODIFFCORR,0.000,28,0,41343ce4,24802537.579,-2135.389,46.897,19859.650,0.000,NA,0.000,48,0,08048101,0.000,16000.000,0.000,0.000,0.000,NA,0.000,0,0,00248100,0.000,0.000,0.000,0.000,0.000,NA,0.000,9,0,08149d24,40753569.155,222.237,37.682,1784.493,0.000,NODIFFCORR,0.000,9,0,00349d24,40753568.209,171.813,41.501,4664.961,0.000,OBSB2,0.000,3,0,08848141,0.000,6000.000,0.000,0.000,0.000,NA,0.000,3,0,08848141,0.000,-11000.000,0.000,0.000,0.000,NA,0.000,1,0,08848161,0.000,4999.000,0.000,0.000,0.000,NA,0.000,1,0,08848161,0.000,-4166.000,0.000,0.000,0.000,NA,0.000,6,0,0a670984,0.000,-301.833,36.924,1734607.250,0.000,NA,0.000,1,0,0a6709a4,0.000,83.304,43.782,558002.188,0.000,NA,0.000,0,0,026701c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,3,0,0a6701e1,0.000,419.842,0.000,0.000,0.000,NA,0.000,0,0,02670200,0.000,0.000,0.000,0.000,0.000,NA,0.000*c8963f70\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 73);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_VALIDMODELS)
 {
    unsigned char aucLog[] = "#VALIDMODELSA,COM1,0,50.0,FINESTEERING,2167,254543.994,02000000,342f,16248;1,\"FFNBYNTMNP1\",0,0,0*f895bb72\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 75);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_VERSION)
 {
    unsigned char aucLog[] = "#VERSIONA,COM1,0,55.5,FINESTEERING,2167,254938.857,02000000,3681,16248;8,GPSCARD,\"FFNBYNTMNP1\",\"BMHR15470120X\",\"OEM719N-0.00C\",\"OM7CR0707RN0000\",\"OM7BR0000RBG000\",\"2020/Apr/09\",\"13:40:45\",OEM7FPGA,\"\",\"\",\"\",\"OMV070001RN0000\",\"\",\"\",\"\",DEFAULT_CONFIG,\"\",\"\",\"\",\"EZDCD0707RN0001\",\"\",\"2020/Apr/09\",\"13:41:07\",APPLICATION,\"\",\"\",\"\",\"EZAPR0707RN0000\",\"\",\"2020/Apr/09\",\"13:41:00\",PACKAGE,\"\",\"\",\"\",\"EZPKR0103RN0000\",\"\",\"2020/Apr/09\",\"13:41:14\",ENCLOSURE,\"\",\"NMJC14520001W\",\"0.0.0.H\",\"\",\"\",\"\",\"\",IMUCARD,\"Epson G320N 125\",\"E0000114\",\"G320PDGN\",\"2302\",\"\",\"\",\"\",RADIO,\"M3-R4\",\"1843000570\",\"SPL0020d12\",\"V07.34.2.5.1.11\",\"\",\"\",\"\"*4b995016\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 71);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1244,7 +1248,7 @@ TEST_F(DecodeEncodeTest, SHORT_ASCII_LOG_ROUNDTRIP_RAWIMU)
 {
    unsigned char aucLog[] = "%RAWIMUSXA,0,5.998;04,41,0,5.998473,0ba4fe00,-327350056,-10403806,-14067095,-33331,111741,345139*db627314\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 19);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1254,7 +1258,7 @@ TEST_F(DecodeEncodeTest, ABBREV_ASCII_LOG_ROUNDTRIP_BESTPOS)
 {
    unsigned char aucLog[] = "<BESTPOS COM1 0 80.0 FINESTEERING 2217 164041.000 02000000 cdba 32768\r\n<     SOL_COMPUTED SINGLE 51.15043628556 -114.03068602900 1099.2120 -17.0000 WGS84 1.4033 1.0278 3.0744 \"\" 0.000 0.000 18 17 17 17 00 06 00 33\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 71);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ABBREV_ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_LOG_ROUNDTRIP_CHANCONFIGLIST)
@@ -1262,27 +1266,27 @@ TEST_F(DecodeEncodeTest, ABBREV_ASCII_LOG_ROUNDTRIP_CHANCONFIGLIST)
    // Note that this does not match receiver output, but was chosen as a test case because it contains multiple indentation levels
    unsigned char aucLog[] = "<CHANCONFIGLIST COM1 0 80.5 FINESTEERING 2217 231320.204 02000000 d1c0 32768\r\n<     3 5 \r\n<          8 \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               4 SBASL1 \r\n<               14 GLOL1L2 \r\n<               5 LBAND \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               14 GLOL1L2 \r\n<          8 \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               4 SBASL1 \r\n<               14 GLOL1L2 \r\n<               5 LBAND \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               14 GLOL1L2 \r\n<          8 \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               4 SBASL1 \r\n<               14 GLOL1L2 \r\n<               5 LBAND \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               14 GLOL1L2 \r\n<          8 \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               4 SBASL1 \r\n<               14 GLOL1L2 \r\n<               5 LBAND \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               14 GLOL1L2 \r\n<          8 \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               4 SBASL1 \r\n<               14 GLOL1L2 \r\n<               5 LBAND \r\n<               16 GPSL1L2 \r\n<               4 QZSSL1CAL2C \r\n<               14 GLOL1L2\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 78);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ABBREV_ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_LOG_ROUNDTRIP_INSPVAS)
 {
    unsigned char aucLog[] = "<INSPVAS 2217 246221.000\r\n<     2217 246221.000000000 51.15042226211 -114.03068692022 1078.2299 -0.0031 -0.0044 0.0019 -1.546742762 -0.608363519 -0.000000000 WAITING_AZIMUTH\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 26);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ABBREV_ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_LOG_MALFORMED_INPUT_RXSTATUS)
 {
    unsigned char aucLog[] = "<RXSTATUS ICOM5_29 0 45.5 FINESTEERING 2216 112766.000 03004020 2ae1 16809\r\n<     00000000 5 \r\n<          00000080 00001008 00000000 00000000 \r\n<          03004020 00000000 00030000 00020000 \r\n<          d031c000 00000000 ffffffff 00000000\r\n[ICOM29_5]";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 19);
-   ASSERT_EQ(DecodeEncodeTest::MESSAGE_DECODER_ERROR, TestSameFormatCompare(ENCODEFORMAT::ABBREV_ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::MESSAGE_DECODER_ERROR, TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_EMPTY_ARRAY) {
    unsigned char aucLog[] = "<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     0 \r\n<         \r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 58);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ABBREV_ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1292,28 +1296,28 @@ TEST_F(DecodeEncodeTest, BINARY_LOG_ROUNDTRIP_BESTPOS)
 {
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA4, 0xB4, 0xAC, 0x07, 0xD8, 0x16, 0x6D, 0x08, 0x08, 0x40, 0x00, 0x02, 0xF6, 0xB1, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xD7, 0x03, 0xB0, 0x4C, 0xE5, 0x8E, 0x49, 0x40, 0x52, 0xC4, 0x26, 0xD1, 0x72, 0x82, 0x5C, 0xC0, 0x29, 0xCB, 0x10, 0xC7, 0x7A, 0xA2, 0x90, 0x40, 0x33, 0x33, 0x87, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0xFA, 0x7E, 0xBA, 0x3F, 0x3F, 0x57, 0x83, 0x3F, 0xA9, 0xA4, 0x0A, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x16, 0x16, 0x16, 0x00, 0x06, 0x39, 0x33, 0x23, 0xC4, 0x89, 0x7A };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, BINARY_LOG_ROUNDTRIP_LOGLIST)
 {
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x05, 0x00, 0x00, 0x20, 0x24, 0x02, 0x00, 0x00, 0x8B, 0xB4, 0x7A, 0x08, 0x40, 0xE9, 0x72, 0x18, 0x20, 0x08, 0x00, 0x02, 0x0C, 0xC0, 0x00, 0x80, 0x11, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x01, 0x06, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x60, 0x00, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x05, 0x00, 0x00, 0x01, 0x06, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x05, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x06, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x07, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x0F, 0x00, 0x00, 0x01, 0x06, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x0F, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x10, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x11, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x15, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x26, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x27, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x28, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x1A, 0xE4, 0x1B, 0x00 };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, BINARY_LOG_ROUNDTRIP_SOURCETABLE)
 {
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x40, 0x05, 0x00, 0x20, 0x68, 0x00, 0x15, 0x00, 0x80, 0xB4, 0x74, 0x08, 0x00, 0x5B, 0x88, 0x0D, 0x20, 0x80, 0x00, 0x02, 0xDD, 0x71, 0x00, 0x80, 0x68, 0x65, 0x72, 0x61, 0x2E, 0x6E, 0x6F, 0x76, 0x61, 0x74, 0x65, 0x6C, 0x2E, 0x63, 0x6F, 0x6D, 0x3A, 0x32, 0x31, 0x30, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x53, 0x54, 0x52, 0x3B, 0x48, 0x79, 0x64, 0x65, 0x72, 0x61, 0x62, 0x61, 0x64, 0x5F, 0x4C, 0x42, 0x32, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x53, 0x4E, 0x49, 0x50, 0x3B, 0x58, 0x58, 0x58, 0x3B, 0x30, 0x2E, 0x30, 0x30, 0x3B, 0x30, 0x2E, 0x30, 0x30, 0x3B, 0x30, 0x3B, 0x30, 0x3B, 0x73, 0x4E, 0x54, 0x52, 0x49, 0x50, 0x3B, 0x6E, 0x6F, 0x6E, 0x65, 0x3B, 0x4E, 0x3B, 0x4E, 0x3B, 0x30, 0x3B, 0x6E, 0x6F, 0x6E, 0x65, 0x3B, 0x00, 0x00, 0x00, 0xB9, 0x6E, 0x19, 0x2E };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, BINARY_LOG_ROUNDTRIP_VERSION)
 {
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x25, 0x00, 0x00, 0xA0, 0xDC, 0x00, 0x00, 0x00, 0xA8, 0x14, 0x00, 0x00, 0x89, 0x58, 0x00, 0x00, 0x20, 0x40, 0x4C, 0x02, 0x81, 0x36, 0x00, 0x80, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x46, 0x46, 0x4E, 0x52, 0x4E, 0x4E, 0x43, 0x42, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42, 0x4D, 0x47, 0x57, 0x31, 0x39, 0x33, 0x39, 0x30, 0x31, 0x36, 0x34, 0x5A, 0x00, 0x00, 0x00, 0x4F, 0x45, 0x4D, 0x37, 0x31, 0x39, 0x2D, 0x31, 0x2E, 0x30, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4F, 0x4D, 0x37, 0x4D, 0x47, 0x30, 0x38, 0x30, 0x30, 0x44, 0x4E, 0x30, 0x30, 0x30, 0x30, 0x00, 0x4F, 0x4D, 0x37, 0x42, 0x52, 0x30, 0x31, 0x30, 0x30, 0x52, 0x42, 0x47, 0x30, 0x30, 0x30, 0x00, 0x32, 0x30, 0x32, 0x31, 0x2F, 0x41, 0x70, 0x72, 0x2F, 0x32, 0x37, 0x00, 0x32, 0x30, 0x3A, 0x31, 0x33, 0x3A, 0x33, 0x38, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4F, 0x4D, 0x56, 0x30, 0x37, 0x30, 0x30, 0x30, 0x31, 0x52, 0x4E, 0x30, 0x30, 0x30, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x58, 0x2B, 0xB8, 0xDB };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1323,7 +1327,7 @@ TEST_F(DecodeEncodeTest, SHORT_BINARY_LOG_ROUNDTRIP_RAWIMU)
 {
    unsigned char aucLog[] = { 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x00, 0x00, 0x6E, 0x17, 0x00, 0x00, 0x04, 0x29, 0x00, 0x00, 0x8C, 0xC1, 0xC3, 0xB4, 0x6F, 0xFE, 0x17, 0x40, 0x00, 0xFE, 0xA4, 0x0B, 0xD8, 0x08, 0x7D, 0xEC, 0x22, 0x40, 0x61, 0xFF, 0x69, 0x5A, 0x29, 0xFF, 0xCD, 0x7D, 0xFF, 0xFF, 0x7D, 0xB4, 0x01, 0x00, 0x33, 0x44, 0x05, 0x00, 0xDA, 0x20, 0x27, 0xB9 };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_SHORT_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1340,9 +1344,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_BESTPOS)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
 
-   auto* pstLogHeader = reinterpret_cast<OEM4BinaryHeader*>(stMessageData.pucMessageHeader);
+   auto* pstLogHeader = reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
    ASSERT_EQ(pstLogHeader->ucSync1, OEM4_BINARY_SYNC1);
    ASSERT_EQ(pstLogHeader->ucSync2, OEM4_BINARY_SYNC2);
    ASSERT_EQ(pstLogHeader->ucSync3, OEM4_BINARY_SYNC3);
@@ -1357,8 +1361,8 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_BESTPOS)
    ASSERT_EQ(pstLogHeader->usWeekNo, 2215);
    ASSERT_EQ(pstLogHeader->uiWeekMSec, 148248000U);
    ASSERT_EQ(pstLogHeader->uiStatus, 0x02000020U);
-   ASSERT_EQ(pstLogHeader->usMsgDefCRC, 0xcdba);
-   ASSERT_EQ(pstLogHeader->usReceiverSWVersion, 32768);
+   ASSERT_EQ(pstLogHeader->usMsgDefCrc, 0xcdba);
+   ASSERT_EQ(pstLogHeader->usReceiverSwVersion, 32768);
 
    // SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n"
    auto* pstLogBody = reinterpret_cast<BESTPOS*>(stMessageData.pucMessageBody);
@@ -1395,9 +1399,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_GLOEPHEMA)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
 
-   auto* pstLogHeader = reinterpret_cast<OEM4BinaryHeader*>(stMessageData.pucMessageHeader);
+   auto* pstLogHeader = reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
    ASSERT_EQ(pstLogHeader->ucSync1, OEM4_BINARY_SYNC1);
    ASSERT_EQ(pstLogHeader->ucSync2, OEM4_BINARY_SYNC2);
    ASSERT_EQ(pstLogHeader->ucSync3, OEM4_BINARY_SYNC3);
@@ -1412,8 +1416,8 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_GLOEPHEMA)
    ASSERT_EQ(pstLogHeader->usWeekNo, 2168);
    ASSERT_EQ(pstLogHeader->uiWeekMSec, 160218000U);
    ASSERT_EQ(pstLogHeader->uiStatus, 0x02000820U);
-   ASSERT_EQ(pstLogHeader->usMsgDefCRC, 0x8d29);
-   ASSERT_EQ(pstLogHeader->usReceiverSWVersion, 32768);
+   ASSERT_EQ(pstLogHeader->usMsgDefCrc, 0x8d29);
+   ASSERT_EQ(pstLogHeader->usReceiverSwVersion, 32768);
 
    auto* pstLogBody = reinterpret_cast<GLOEPHEMERIS*>(stMessageData.pucMessageBody);
    ASSERT_EQ(pstLogBody->sloto, 51);
@@ -1459,12 +1463,12 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_PORTSTATSB)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
    ASSERT_EQ(1356U, stMessageData.uiMessageLength);
 
-   OEM4BinaryHeader stLogHeader = *reinterpret_cast<OEM4BinaryHeader*>(stMessageData.pucMessageHeader);
+   Oem4BinaryHeader stLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
    PORTSTATS stLogBody = *reinterpret_cast<PORTSTATS*>(stMessageData.pucMessageBody);
-   OEM4BinaryHeader stTestLogHeader = *reinterpret_cast<OEM4BinaryHeader*>(aucLog);
+   Oem4BinaryHeader stTestLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(aucLog);
    stTestLogHeader.usLength = 1356 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
    ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -1503,12 +1507,12 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_PSRDOPB)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
    ASSERT_EQ(1360U, stMessageData.uiMessageLength);
 
-   auto stLogHeader = *reinterpret_cast<OEM4BinaryHeader*>(stMessageData.pucMessageHeader);
+   auto stLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
    auto stLogBody = *reinterpret_cast<PSRDOP*>(stMessageData.pucMessageBody);
-   auto stTestLogHeader = *reinterpret_cast<OEM4BinaryHeader*>(aucLog);
+   auto stTestLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(aucLog);
    stTestLogHeader.usLength = 1360 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
    ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -1536,12 +1540,12 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VALIDMODELSB)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
    ASSERT_EQ(708U, stMessageData.uiMessageLength);
 
-   auto stLogHeader = *reinterpret_cast<OEM4BinaryHeader*>(stMessageData.pucMessageHeader);
+   auto stLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
    auto stLogBody = *reinterpret_cast<VALIDMODELS*>(stMessageData.pucMessageBody);
-   auto stTestLogHeader = *reinterpret_cast<OEM4BinaryHeader*>(aucLog);
+   auto stTestLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(aucLog);
    stTestLogHeader.usLength = 708 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
    ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -1576,10 +1580,10 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSION)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
    ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-   auto* pstLogHeader = reinterpret_cast<OEM4BinaryHeader*>(stMessageData.pucMessageHeader);
+   auto* pstLogHeader = reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
    ASSERT_EQ(pstLogHeader->ucSync1, OEM4_BINARY_SYNC1);
    ASSERT_EQ(pstLogHeader->ucSync2, OEM4_BINARY_SYNC2);
    ASSERT_EQ(pstLogHeader->ucSync3, OEM4_BINARY_SYNC3);
@@ -1594,8 +1598,8 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSION)
    ASSERT_EQ(pstLogHeader->usWeekNo, 2215);
    ASSERT_EQ(pstLogHeader->uiWeekMSec, 148710357U);
    ASSERT_EQ(pstLogHeader->uiStatus, 0x02000020U);
-   ASSERT_EQ(pstLogHeader->usMsgDefCRC, 0x3681);
-   ASSERT_EQ(pstLogHeader->usReceiverSWVersion, 32768);
+   ASSERT_EQ(pstLogHeader->usMsgDefCrc, 0x3681);
+   ASSERT_EQ(pstLogHeader->usReceiverSwVersion, 32768);
 
    auto* pstLogBody = reinterpret_cast<VERSION*>(stMessageData.pucMessageBody);
 
@@ -1653,10 +1657,10 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONA)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
    ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-   auto* pstLogHeader = reinterpret_cast<OEM4BinaryHeader*>(stMessageData.pucMessageHeader);
+   auto* pstLogHeader = reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
    ASSERT_EQ(pstLogHeader->ucSync1, OEM4_BINARY_SYNC1);
    ASSERT_EQ(pstLogHeader->ucSync2, OEM4_BINARY_SYNC2);
    ASSERT_EQ(pstLogHeader->ucSync3, OEM4_BINARY_SYNC3);
@@ -1671,8 +1675,8 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONA)
    ASSERT_EQ(pstLogHeader->usWeekNo, 2167);
    ASSERT_EQ(pstLogHeader->uiWeekMSec, 254938857U);
    ASSERT_EQ(pstLogHeader->uiStatus, 0x02000000U);
-   ASSERT_EQ(pstLogHeader->usMsgDefCRC, 0x3681);
-   ASSERT_EQ(pstLogHeader->usReceiverSWVersion, 16248);
+   ASSERT_EQ(pstLogHeader->usMsgDefCrc, 0x3681);
+   ASSERT_EQ(pstLogHeader->usReceiverSwVersion, 16248);
 
    auto* pstLogBody = reinterpret_cast<VERSION*>(stMessageData.pucMessageBody);
 
@@ -1724,12 +1728,12 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONB)
    MetaDataStruct stMetaData;
    MessageDataStruct stMessageData;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODEFORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
    ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-   auto stLogHeader = *reinterpret_cast<OEM4BinaryHeader*>(stMessageData.pucMessageHeader);
+   auto stLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(stMessageData.pucMessageHeader);
    auto stLogBody = *reinterpret_cast<VERSION*>(stMessageData.pucMessageBody);
-   auto stTestLogHeader = *reinterpret_cast<OEM4BinaryHeader*>(aucLog);
+   auto stTestLogHeader = *reinterpret_cast<Oem4BinaryHeader*>(aucLog);
    stTestLogHeader.usLength = 2196 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
    ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -1761,7 +1765,7 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_BESTPOS)
    stExpectedMessageData.pucMessageBody = stExpectedMessageData.pucMessageHeader + stExpectedMessageData.uiMessageHeaderLength + 9;
    stExpectedMessageData.uiMessageBodyLength = 502;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_BESTSATS)
@@ -1775,7 +1779,7 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_BESTSATS)
    stExpectedMessageData.pucMessageBody = stExpectedMessageData.pucMessageHeader + stExpectedMessageData.uiMessageHeaderLength + 9;
    stExpectedMessageData.uiMessageBodyLength = 3202;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_GPSEPHEM)
@@ -1789,7 +1793,7 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_GPSEPHEM)
    stExpectedMessageData.pucMessageBody = stExpectedMessageData.pucMessageHeader + stExpectedMessageData.uiMessageHeaderLength + 9;
    stExpectedMessageData.uiMessageBodyLength = 649;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_LOGLIST)
@@ -1803,7 +1807,7 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_LOGLIST)
    stExpectedMessageData.pucMessageBody = stExpectedMessageData.pucMessageHeader + stExpectedMessageData.uiMessageHeaderLength + 9;
    stExpectedMessageData.uiMessageBodyLength = 809;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_RANGECMP2)
@@ -1817,7 +1821,7 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_RANGECMP2)
    stExpectedMessageData.pucMessageBody = stExpectedMessageData.pucMessageHeader + stExpectedMessageData.uiMessageHeaderLength + 9;
    stExpectedMessageData.uiMessageBodyLength = 6289;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_VERSION)
@@ -1831,7 +1835,7 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_VERSION)
    stExpectedMessageData.pucMessageBody = stExpectedMessageData.pucMessageHeader + stExpectedMessageData.uiMessageHeaderLength + 9;
    stExpectedMessageData.uiMessageBodyLength = 434;
 
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::JSON, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1848,9 +1852,9 @@ TEST_F(DecodeEncodeTest, ENCODEFORMAT_UNSPECIFIED)
    unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
    unsigned char* pucEncodeBuffer = acEncodeBuffer;
 
-   ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode      (&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader,  stMessage, stMessageData, stMetaData, ENCODEFORMAT::UNSPECIFIED));
-   ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader,             stMessageData, stMetaData, ENCODEFORMAT::UNSPECIFIED));
-   ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeBody  (&pucEncodeBuffer, sizeof(acEncodeBuffer),            stMessage, stMessageData, stMetaData, ENCODEFORMAT::UNSPECIFIED));
+   ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode      (&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader,  stMessage, stMessageData, stMetaData, ENCODE_FORMAT::UNSPECIFIED));
+   ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader,             stMessageData, stMetaData, ENCODE_FORMAT::UNSPECIFIED));
+   ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeBody  (&pucEncodeBuffer, sizeof(acEncodeBuffer),            stMessage, stMessageData, stMetaData, ENCODE_FORMAT::UNSPECIFIED));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1860,28 +1864,28 @@ TEST_F(DecodeEncodeTest, ASCII_RESPONSE)
 {
    unsigned char aucLog[] = "#FRESETR,COM1,0,73.0,UNKNOWN,0,0.000,00000000,06e5,0;OK*55c70910\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 53);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_RESPONSE_ERROR)
 {
    unsigned char aucLog[] = "#SATEL4CONFIGR,COM1,0,0.0,UNKNOWN,0,0.000,00000000,0000,0;ERROR:Radio must be detected before configuration*3aa62ce2\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 58);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_RESPONSE_ERROR_FORMAT_SPEC_D)
 {
    unsigned char aucLog[] = "#SATEL4CONFIGR,COM1,0,44.0,UNKNOWN,0,0.000,00000000,d387,0;ERROR:Parameter 4 is out of range*0059f9b3\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 59);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_RESPONSE_ERROR_FORMAT_SPEC_S)
 {
    unsigned char aucLog[] = "#SATEL4CONFIGR,COM1,0,44.0,UNKNOWN,0,0.000,00000000,d387,0;ERROR:Invalid combination of parameters (1 & 2)*60b8324b\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 59);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::ASCII, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1892,7 +1896,7 @@ TEST_F(DecodeEncodeTest, BINARY_RESPONSE)
    // SETNAV Command Response
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0xA2, 0x00, 0x80, 0x20, 0x06, 0x00, 0x00, 0x00, 0xBB, 0xB4, 0xF7, 0x06, 0xB0, 0x8A, 0x1A, 0x1D, 0x00, 0x00, 0x00, 0x00, 0xBB, 0xBB, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x4F, 0x4B, 0x9C, 0x8B, 0xEE, 0xA3 };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, BINARY_RESPONSE_ERROR)
@@ -1900,7 +1904,7 @@ TEST_F(DecodeEncodeTest, BINARY_RESPONSE_ERROR)
    // SETNAV Command Response
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0xA2, 0x00, 0x80, 0x20, 0x1E, 0x00, 0x00, 0x00, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xBB, 0xBB, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x45, 0x52, 0x52, 0x4F, 0x52, 0x3A, 0x4D, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x69, 0x73, 0x20, 0x69, 0x6E, 0x63, 0x6F, 0x72, 0x72, 0x65, 0x63, 0x74, 0x61, 0xCB, 0x52, 0x9C };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1909,19 +1913,19 @@ TEST_F(DecodeEncodeTest, BINARY_RESPONSE_ERROR)
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_RESPONSE)
 {
    unsigned char aucLog[] = "<OK\r\n";
-   ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODEFORMAT::ABBREV_ASCII, aucLog));
+   ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
 }
 
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_RESPONSE_MORE_DATA)
 {
    unsigned char aucLog[] = "<OK\r\nGARBAGE";
-   ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODEFORMAT::ABBREV_ASCII, aucLog));
+   ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
 }
 
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_RESPONSE_ERROR)
 {
    unsigned char aucLog[] = "<ERROR:Invalid Message. Field = 1\r\n";
-   ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODEFORMAT::ABBREV_ASCII, aucLog));
+   ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1930,7 +1934,7 @@ TEST_F(DecodeEncodeTest, ABBREV_ASCII_RESPONSE_ERROR)
 TEST_F(DecodeEncodeTest, ASCII_CMD_ROUNDTRIP_INSTHRESHOLD)
 {
    unsigned char aucLog[] = "#INSTHRESHOLDSA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,48a5,0;LOW,0.000000000,0.000000000,0.000000000*3989c2ac\r\n";
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestDecodeEncode(ENCODEFORMAT::ASCII, aucLog));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestDecodeEncode(ENCODE_FORMAT::ASCII, aucLog));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1939,7 +1943,7 @@ TEST_F(DecodeEncodeTest, ASCII_CMD_ROUNDTRIP_INSTHRESHOLD)
 TEST_F(DecodeEncodeTest, BINARY_CMD_ROUNDTRIP_INSTHRESHOLD)
 {
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x5B, 0x06, 0x00, 0xC0, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA3, 0x49, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F, 0xFF, 0xF8, 0x3A, 0xA7 };
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestDecodeEncode(ENCODEFORMAT::BINARY, aucLog));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestDecodeEncode(ENCODE_FORMAT::BINARY, aucLog));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -1950,7 +1954,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_BIN_BESTPOS)
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x75, 0xB4, 0x7B, 0x08, 0x10, 0x31, 0xD4, 0x0D, 0x00, 0x00, 0x01, 0x02, 0xF6, 0xB1, 0x78, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0xCA, 0xA8, 0x35, 0x86, 0x41, 0x93, 0x49, 0x40, 0x2E, 0x0B, 0x3F, 0xB1, 0xF6, 0x81, 0x5C, 0xC0, 0x4F, 0x1E, 0x16, 0x6A, 0x8D, 0x24, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0xDE, 0x02, 0x19, 0x3F, 0x69, 0x00, 0x0F, 0x3F, 0x09, 0x8A, 0x6F, 0x3F, 0x31, 0x33, 0x31, 0x00, 0x00, 0x00, 0xC0, 0x40, 0x00, 0x00, 0x00, 0x00, 0x29, 0x21, 0x21, 0x1A, 0x00, 0x0B, 0x1F, 0x37, 0xFD, 0x9F, 0x6A, 0xD5 };
    uint8_t aucLogToConvert[] = "#BESTPOSA,COM1,0,58.5,FINESTEERING,2171,232010.000,02010000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043714161,-114.03068190724,1097.1381,-17.0000,WGS84,0.5977,0.5586,0.9357,\"131\",6.000,0.000,41,33,33,26,00,0b,1f,37*f1136906\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::BINARY, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::BINARY, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_BIN_TO_ASC_BESTPOS)
@@ -1958,7 +1962,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_BIN_TO_ASC_BESTPOS)
    unsigned char aucLog[] = "#BESTPOSA,COM1,0,69.5,FINESTEERING,2215,141611.000,02000020,cdba,32768;SOL_COMPUTED,SINGLE,51.15043571404,-114.03067339431,1096.9530,-17.0000,WGS84,0.8022,0.7996,1.5021,\"\",0.000,0.000,34,32,32,32,00,06,39,33*9ad924c6\r\n";
    uint8_t aucLogToConvert[] = { 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x8B, 0xB4, 0xA7, 0x08, 0xF8, 0xCF, 0x70, 0x08, 0x20, 0x00, 0x00, 0x02, 0xBA, 0xCD, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x49, 0xF8, 0x3B, 0x7A, 0x41, 0x93, 0x49, 0x40, 0x50, 0x5B, 0x8A, 0x8D, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x70, 0xED, 0xE2, 0xCF, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0xAA, 0x5A, 0x4D, 0x3F, 0xF9, 0xB3, 0x4C, 0x3F, 0xE3, 0x45, 0xC0, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22, 0x20, 0x20, 0x20, 0x00, 0x06, 0x39, 0x33, 0x74, 0x5F, 0x1B, 0x9A };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 71);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::ASCII, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::ASCII, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_BESTPOS)
@@ -1966,7 +1970,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_BESTPOS)
    unsigned char aucLog[] = "<BESTPOS COM1 0 54.0 FINESTEERING 2211 407360.000 02000000 cdba 32768\r\n<     SOL_COMPUTED SINGLE 51.15042853573 -114.03067810577 1095.6360 -17.0000 WGS84 0.9594 1.1258 1.9065 \"\" 0.000 0.000 31 21 21 21 00 06 30 33\r\n";
    uint8_t aucLogToConvert[] = "#BESTPOSA,COM1,0,54.0,FINESTEERING,2211,407360.000,02000000,cdba,32768;SOL_COMPUTED,SINGLE,51.15042853573,-114.03067810577,1095.6360,-17.0000,WGS84,0.9594,1.1258,1.9065,\"\",0.000,0.000,31,21,21,21,00,06,30,33*2a42e34b\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 71);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_BIN_TO_ASC_TRACKSTAT)
@@ -1974,7 +1978,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_BIN_TO_ASC_TRACKSTAT)
    unsigned char aucLog[] = "#TRACKSTATA,COM1,0,49.0,FINESTEERING,2171,398640.000,02010000,457c,16248;SOL_COMPUTED,WAAS,5.0,235,2,0,1810bc04,20896145.694,-217.249,53.850,10448.934,-0.465,GOOD,0.980,2,0,11303c0b,20896140.914,-169.285,51.590,10442.755,0.000,OBSL2,0.000,0,0,02208000,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,01c02000,0.000,0.000,0.000,0.000,0.000,NA,0.000,20,0,1810bc24,22707310.192,3070.568,46.454,3868.615,0.120,GOOD,0.949,20,0,11303c2b,22707308.600,2392.650,43.722,3861.915,0.000,OBSL2,0.000,0,0,02208020,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,01c02020,0.000,0.000,0.000,0.000,0.000,NA,0.000,29,0,1810bc44,23905330.434,3168.755,43.740,2368.533,0.177,GOOD,0.427,29,0,11303c4b,23905329.129,2469.161,43.685,2362.015,0.000,OBSL2,0.000,29,0,02309c4b,23905329.780,2469.161,44.261,2365.375,0.000,OBSL2,0.000,0,0,01c02040,0.000,0.000,0.000,0.000,0.000,NA,0.000,6,0,1810bc64,21527085.528,-2321.828,49.094,13738.735,0.347,GOOD,0.978,6,0,11303c6b,21527086.727,-1809.217,49.051,13733.415,0.000,OBSL2,0.000,6,0,02309c6b,21527087.354,-1809.217,51.680,13735.296,0.000,OBSL2,0.000,6,0,01d03c64,21527088.559,-1733.929,53.706,13736.814,0.000,OBSL5,0.000,31,0,1810bc84,24673727.891,1980.320,41.565,1078.815,-0.418,GOOD,0.405,31,0,11303c8b,24673726.284,1543.107,41.202,1073.516,0.000,OBSL2,0.000,31,0,02309c8b,24673726.867,1543.109,43.518,1075.395,0.000,OBSL2,0.000,0,0,01c02080,0.000,0.000,0.000,0.000,0.000,NA,0.000,19,0,0810bca4,23786785.522,-3358.760,45.789,20368.574,-0.101,GOOD,0.956,19,0,01303cab,23786782.184,-2617.217,41.773,20362.254,0.000,OBSL2,0.000,0,0,022080a0,0.000,-0.004,0.000,0.000,0.000,NA,0.000,0,0,01c020a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,24,0,1810bcc4,25183575.384,-3468.042,42.976,17183.717,-0.029,GOOD,0.870,24,0,11303ccb,25183578.439,-2702.372,42.858,17177.516,0.000,OBSL2,0.000,24,0,02309ccb,25183578.702,-2702.372,47.048,17180.277,0.000,OBSL2,0.000,24,0,01d03cc4,25183579.739,-2589.781,49.028,17181.816,0.000,OBSL5,0.000,25,0,0810bce4,20975024.988,1660.168,50.335,6938.935,0.209,GOOD,0.971,25,0,01303ceb,20975025.604,1293.638,48.657,6932.756,0.000,OBSL2,0.000,25,0,02309ceb,20975026.214,1293.638,50.565,6935.815,0.000,OBSL2,0.000,25,0,01d03ce4,20975027.955,1239.682,54.122,6937.255,0.000,OBSL5,0.000,0,0,0000a100,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a02100,0.000,-0.010,0.000,0.000,0.000,NA,0.000,0,0,02208100,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,01c02100,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a120,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a02120,0.000,-0.004,0.000,0.000,0.000,NA,0.000,0,0,02208120,0.000,-0.005,0.000,0.000,0.000,NA,0.000,0,0,01c02120,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a140,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a02140,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,02208140,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,01c02140,0.000,0.000,0.000,0.000,0.000,NA,0.000,12,0,0810bd64,20240881.497,-528.198,52.945,11628.935,0.015,GOOD,0.980,12,0,01303d6b,20240878.785,-411.583,51.730,11622.916,0.000,OBSL2,0.000,12,0,02309d6b,20240879.335,-411.583,51.580,11625.614,0.000,OBSL2,0.000,0,0,01c02160,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a02180,0.000,0.005,0.000,0.000,0.000,NA,0.000,0,0,02208180,0.000,0.005,0.000,0.000,0.000,NA,0.000,0,0,01c02180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a1a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a021a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022081a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01c021a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a1c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a021c0,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,022081c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01c021c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a1e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a021e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022081e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01c021e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,194,0,0815be04,43427077.798,119.358,43.060,4358.514,0.000,NODIFFCORR,0.000,194,0,02359e0b,43427078.197,93.006,43.803,4355.394,0.000,OBSL2,0.000,194,0,01d53e04,43427081.326,89.146,45.901,4356.833,0.000,OBSL5,0.000,0,0,0005a220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01c52220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0005a240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01c52240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0005a260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258260,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,01c52260,0.000,0.000,0.000,0.000,0.000,NA,0.000,133,0,58023e84,38625837.440,1.458,47.925,322076.969,0.000,LOCKEDOUT,0.000,138,0,58023ea4,38494663.415,1.903,48.045,1565693.625,0.000,LOCKEDOUT,0.000,144,0,080222c1,0.000,166.000,0.000,0.000,0.000,NA,0.000,131,0,58023ee4,38480032.645,-0.167,47.337,1565698.250,0.000,LOCKEDOUT,0.000,50,5,08018301,0.000,4097.000,0.000,0.000,0.000,NA,0.000,0,0,00a12300,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,00218300,0.000,-0.000,0.000,0.000,0.000,NA,0.000,49,6,08119f24,20180413.902,1424.752,48.590,6337.980,0.000,NODIFFCORR,0.000,49,6,00b13f2b,20180418.677,1108.141,48.456,6333.898,0.000,OBSL2,0.000,49,6,10319f2b,20180418.453,1108.141,49.174,6334.818,0.000,OBSL2,0.000,41,13,18119f44,23433009.567,-2006.451,41.675,6327.127,0.000,NODIFFCORR,0.000,41,13,10b13f4b,23433011.946,-1560.574,40.645,6321.898,0.000,OBSL2,0.000,41,13,00319f4b,23433012.447,-1560.574,41.008,6322.738,0.000,OBSL2,0.000,58,11,18119f64,19414951.522,-723.284,48.739,10947.098,0.000,NODIFFCORR,0.000,58,11,00b13f6b,19414952.430,-562.555,46.876,10941.897,0.000,OBSL2,0.000,58,11,10319f6b,19414953.159,-562.555,46.973,10942.738,0.000,OBSL2,0.000,59,4,18119f84,20729590.409,2535.796,36.096,14.960,0.000,NODIFFCORR,0.000,59,4,10b13f8b,20729594.281,1972.287,35.054,14.960,0.000,OBSL2,0.000,59,4,00319f8b,20729594.515,1972.286,35.695,14.960,0.000,OBSL2,0.000,57,9,18119fa4,22767196.378,-3658.212,33.092,14159.973,0.000,NODIFFCORR,0.000,57,9,10b13fab,22767200.843,-2845.278,41.861,14155.907,0.000,OBSL2,0.000,57,9,00319fab,22767202.552,-2845.278,41.492,14156.826,0.000,OBSL2,0.000,0,0,000183c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a123c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,002183c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,42,8,08119fe4,22393503.679,1361.899,43.938,3595.797,0.000,NODIFFCORR,0.000,42,8,10b13feb,22393507.436,1059.255,43.777,3590.039,0.000,OBSL2,0.000,42,8,10319feb,22393507.759,1059.256,44.162,3590.958,0.000,OBSL2,0.000,43,3,08018001,0.000,4037.000,0.000,0.000,0.000,NA,0.000,0,0,00a12000,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,00218000,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,00018020,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12020,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,00218020,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,00018040,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12040,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00218040,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00018060,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12060,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,00218060,0.000,-0.002,0.000,0.000,0.000,NA,0.000,0,0,00018080,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12080,0.000,-0.007,0.000,0.000,0.000,NA,0.000,0,0,00218080,0.000,-0.007,0.000,0.000,0.000,NA,0.000,0,0,000180a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a120a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,002180a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,26,0,08539cc4,22963489.915,766.027,53.922,10914.045,0.000,NODIFFCORR,0.000,26,0,01933cc4,22963494.808,571.961,53.434,10911.826,0.000,OBSE5,0.000,26,0,02333cc4,22963491.028,586.885,53.677,10912.045,0.000,OBSE5,0.000,26,0,02933cc4,22963491.069,579.431,56.348,10911.767,0.000,OBSE5,0.000,21,0,08539ce4,25762621.738,-2783.625,48.777,24054.283,0.000,NODIFFCORR,0.000,21,0,01933ce4,25762627.262,-2078.641,49.628,24052.043,0.000,OBSE5,0.000,21,0,02333ce4,25762622.443,-2132.879,49.099,24052.043,0.000,OBSE5,0.000,21,0,02933ce4,25762623.893,-2105.813,52.280,24051.943,0.000,OBSE5,0.000,13,0,08539d04,24612256.370,-2001.181,49.856,17556.785,0.000,NODIFFCORR,0.000,13,0,01933d04,24612260.363,-1494.437,51.242,17554.365,0.000,OBSE5,0.000,13,0,02333d04,24612257.183,-1533.415,51.594,17554.645,0.000,OBSE5,0.000,13,0,02933d04,24612256.859,-1513.902,54.135,17554.363,0.000,OBSE5,0.000,31,0,08539d24,26050071.272,2290.980,45.702,4770.864,0.000,NODIFFCORR,0.000,31,0,01933d24,26050076.452,1710.845,47.980,4768.823,0.000,OBSE5,0.000,31,0,02333d24,26050074.247,1755.423,49.726,4768.756,0.000,OBSE5,0.000,31,0,02933d24,26050073.589,1733.103,51.757,4768.564,0.000,OBSE5,0.000,3,0,08539d44,28323058.671,588.051,46.089,1063.543,0.000,NODIFFCORR,0.000,3,0,01933d44,28323064.262,439.076,47.811,1061.364,0.000,OBSE5,0.000,3,0,02333d44,28323061.323,450.452,48.562,1061.244,0.000,OBSE5,0.000,3,0,02933d44,28323060.676,444.799,50.954,1061.164,0.000,OBSE5,0.000,33,0,08539d64,26478271.103,2652.091,47.102,3645.384,0.000,NODIFFCORR,0.000,33,0,01933d64,26478275.360,1980.515,48.715,3643.044,0.000,OBSE5,0.000,33,0,02333d64,26478271.929,2032.176,48.750,3643.243,0.000,OBSE5,0.000,33,0,02933d64,26478271.282,2006.363,51.367,3642.943,0.000,OBSE5,0.000,0,0,00438180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832180,0.000,0.000,0.000,0.000,0.000,NA,0.000,1,0,08539da4,23958766.073,-475.463,54.092,14535.322,0.000,NODIFFCORR,0.000,1,0,01933da4,23958769.774,-355.010,53.337,14533.043,0.000,OBSE5,0.000,1,0,02333da4,23958766.248,-364.278,53.535,14533.242,0.000,OBSE5,0.000,1,0,02933da4,23958766.283,-359.648,56.226,14532.942,0.000,OBSE5,0.000,0,0,004381c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,018321c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022321c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,028321c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,004381e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,018321e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022321e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,028321e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438200,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832200,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232200,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832200,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00438280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,01832280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02232280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02832280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,004382a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,018322a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,022322a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,028322a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,17,0,080482c1,0.000,1000.000,0.000,0.000,0.000,NA,0.000,17,0,080482c1,0.000,-4500.000,0.000,0.000,0.000,NA,0.000,28,0,08149ee4,21790652.051,-928.805,52.039,14739.068,0.000,NODIFFCORR,0.000,28,0,41343ee4,21790652.674,-699.991,52.547,14733.771,0.000,NA,0.000,39,0,48149f04,40782140.897,-1404.911,41.132,14657.694,0.000,NODIFFCORR,0.000,39,0,41343f04,40782141.013,-1058.816,45.107,16163.642,0.000,NA,0.000,37,0,58149f24,24136553.939,-2822.525,47.093,17079.148,0.000,NODIFFCORR,0.000,37,0,41343f24,24136559.917,-2127.116,50.676,17073.830,0.000,NA,0.000,16,0,18149f44,40866474.444,-958.876,38.978,12759.060,0.000,NODIFFCORR,0.000,16,0,10349f44,40866476.348,-741.557,39.789,12758.899,0.000,OBSB2,0.000,53,0,08048361,0.000,2000.000,0.000,0.000,0.000,NA,0.000,53,0,08048361,0.000,-14000.000,0.000,0.000,0.000,NA,0.000,43,0,48149f84,25483390.657,-2862.193,45.838,21209.148,0.000,NODIFFCORR,0.000,43,0,41343f84,25483394.575,-2157.030,46.839,21203.830,0.000,NA,0.000,2,0,088483a1,0.000,2500.000,0.000,0.000,0.000,NA,0.000,2,0,088483a1,0.000,-2500.000,0.000,0.000,0.000,NA,0.000,42,0,48149fc4,25419583.583,41.278,44.613,5499.149,0.000,NODIFFCORR,0.000,42,0,41343fc4,25419597.097,31.133,49.977,5493.829,0.000,NA,0.000,58,0,48049fe4,30936374.860,-2124.546,49.039,18146.543,0.000,NODIFFCORR,0.000,58,0,012423e9,0.000,-1600.901,0.000,0.000,0.000,NA,0.000,0,0,00048000,0.000,0.000,0.000,0.000,0.000,NA,0.000,18,0,08048002,0.000,-7620.000,0.000,0.000,0.000,NA,0.000,14,0,08149c24,24592161.459,1301.171,46.351,4309.071,0.000,NODIFFCORR,0.000,14,0,00349c24,24592158.131,1006.133,49.425,4308.911,0.000,OBSB2,0.000,46,0,48149c44,23130882.960,85.620,49.050,8689.149,0.000,NODIFFCORR,0.000,46,0,41343c44,23130889.469,64.558,52.186,8683.649,0.000,NA,0.000,0,0,00048060,0.000,0.000,0.000,0.000,0.000,NA,0.000,57,0,08048061,0.000,0.000,0.000,0.000,0.000,NA,0.000,33,0,48149c84,25393217.875,2491.764,43.814,2789.069,0.000,NODIFFCORR,0.000,33,0,41343c84,25393245.187,1877.809,50.270,2253.250,0.000,NA,0.000,27,0,18149ca4,22545097.717,1922.685,51.025,7399.069,0.000,NODIFFCORR,0.000,27,0,41343ca4,22545099.084,1448.937,50.373,7393.830,0.000,NA,0.000,0,0,000480c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,29,0,080480c1,0.000,-5000.000,0.000,0.000,0.000,NA,0.000,36,0,48149ce4,26118959.231,2578.202,40.927,1399.070,0.000,NODIFFCORR,0.000,36,0,41343ce4,26118969.105,1942.746,45.630,1393.830,0.000,NA,0.000,6,0,08149d04,40352408.747,-813.342,30.526,8905.414,0.000,NODIFFCORR,0.000,6,0,10349d04,40352406.750,-628.646,43.700,11028.902,0.000,OBSB2,0.000,51,0,08048121,0.000,2000.000,0.000,0.000,0.000,NA,0.000,51,0,08048122,0.000,-4714.000,0.000,0.000,0.000,NA,0.000,9,0,08149d44,40898830.833,-55.720,37.707,2297.372,0.000,NODIFFCORR,0.000,9,0,10349d44,40898828.592,-42.940,40.025,5808.901,0.000,OBSB2,0.000,0,0,00048160,0.000,0.000,0.000,0.000,0.000,NA,0.000,49,0,08048161,0.000,-5832.000,0.000,0.000,0.000,NA,0.000,6,0,0a670984,0.000,-313.494,37.057,1565675.125,0.000,NA,0.000,1,0,0a6709a4,0.000,64.105,43.017,669421.625,0.000,NA,0.000,0,0,026701c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,3,0,0a6701e1,0.000,-277.904,0.000,0.000,0.000,NA,0.000,0,0,02670200,0.000,0.000,0.000,0.000,0.000,NA,0.000*bc28a409\r\n";
    uint8_t aucLogToConvert[] = { 0xAA, 0x44, 0x12, 0x1C, 0x53, 0x00, 0x00, 0x20, 0xC8, 0x24, 0x00, 0x00, 0x62, 0xB4, 0x7B, 0x08, 0x80, 0xC3, 0xC2, 0x17, 0x00, 0x00, 0x01, 0x02, 0x7C, 0x45, 0x78, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x40, 0xEB, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x04, 0xBC, 0x10, 0x18, 0xBE, 0x9F, 0x1A, 0x1B, 0x99, 0xED, 0x73, 0x41, 0xBE, 0x3F, 0x59, 0xC3, 0x66, 0x66, 0x57, 0x42, 0xBC, 0x43, 0x23, 0x46, 0x7B, 0x14, 0xEE, 0xBE, 0x00, 0x00, 0x00, 0x00, 0x48, 0xE1, 0x7A, 0x3F, 0x02, 0x00, 0x00, 0x00, 0x0B, 0x3C, 0x30, 0x11, 0x77, 0xBE, 0x9F, 0xCE, 0x98, 0xED, 0x73, 0x41, 0xF6, 0x48, 0x29, 0xC3, 0x29, 0x5C, 0x4E, 0x42, 0x05, 0x2B, 0x23, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x24, 0xBC, 0x10, 0x18, 0x98, 0x6E, 0x12, 0xE3, 0xC6, 0xA7, 0x75, 0x41, 0x17, 0xE9, 0x3F, 0x45, 0xE5, 0xD0, 0x39, 0x42, 0xD7, 0xC9, 0x71, 0x45, 0x8F, 0xC2, 0xF5, 0x3D, 0x00, 0x00, 0x00, 0x00, 0xAA, 0xF1, 0x72, 0x3F, 0x14, 0x00, 0x00, 0x00, 0x2B, 0x3C, 0x30, 0x11, 0x9A, 0x99, 0x99, 0xC9, 0xC6, 0xA7, 0x75, 0x41, 0x66, 0x8A, 0x15, 0x45, 0x54, 0xE3, 0x2E, 0x42, 0xA4, 0x5E, 0x71, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x80, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x20, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1D, 0x00, 0x00, 0x00, 0x44, 0xBC, 0x10, 0x18, 0xFC, 0xA9, 0xF1, 0x26, 0x43, 0xCC, 0x76, 0x41, 0x14, 0x0C, 0x46, 0x45, 0xC3, 0xF5, 0x2E, 0x42, 0x87, 0x08, 0x14, 0x45, 0x7D, 0x3F, 0x35, 0x3E, 0x00, 0x00, 0x00, 0x00, 0xBE, 0x9F, 0xDA, 0x3E, 0x1D, 0x00, 0x00, 0x00, 0x4B, 0x3C, 0x30, 0x11, 0x4E, 0x62, 0x10, 0x12, 0x43, 0xCC, 0x76, 0x41, 0x93, 0x52, 0x1A, 0x45, 0x71, 0xBD, 0x2E, 0x42, 0x3D, 0xA0, 0x13, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1D, 0x00, 0x00, 0x00, 0x4B, 0x9C, 0x30, 0x02, 0x48, 0xE1, 0x7A, 0x1C, 0x43, 0xCC, 0x76, 0x41, 0x93, 0x52, 0x1A, 0x45, 0x44, 0x0B, 0x31, 0x42, 0x00, 0xD6, 0x13, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x20, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x64, 0xBC, 0x10, 0x18, 0x21, 0xB0, 0x72, 0xD8, 0xA2, 0x87, 0x74, 0x41, 0x3F, 0x1D, 0x11, 0xC5, 0x42, 0x60, 0x44, 0x42, 0xF1, 0xAA, 0x56, 0x46, 0xFC, 0xA9, 0xB1, 0x3E, 0x00, 0x00, 0x00, 0x00, 0x35, 0x5E, 0x7A, 0x3F, 0x06, 0x00, 0x00, 0x00, 0x6B, 0x3C, 0x30, 0x11, 0xC1, 0xCA, 0xA1, 0xEB, 0xA2, 0x87, 0x74, 0x41, 0xF2, 0x26, 0xE2, 0xC4, 0x39, 0x34, 0x44, 0x42, 0xA9, 0x95, 0x56, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x6B, 0x9C, 0x30, 0x02, 0xE7, 0xFB, 0xA9, 0xF5, 0xA2, 0x87, 0x74, 0x41, 0xF2, 0x26, 0xE2, 0xC4, 0x52, 0xB8, 0x4E, 0x42, 0x2F, 0x9D, 0x56, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x64, 0x3C, 0xD0, 0x01, 0xFC, 0xA9, 0xF1, 0x08, 0xA3, 0x87, 0x74, 0x41, 0xBA, 0xBD, 0xD8, 0xC4, 0xF2, 0xD2, 0x56, 0x42, 0x42, 0xA3, 0x56, 0x46, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00, 0x84, 0xBC, 0x10, 0x18, 0x37, 0x89, 0x41, 0xFE, 0xDB, 0x87, 0x77, 0x41, 0x3D, 0x8A, 0xF7, 0x44, 0x8F, 0x42, 0x26, 0x42, 0x14, 0xDA, 0x86, 0x44, 0x19, 0x04, 0xD6, 0xBE, 0x00, 0x00, 0x00, 0x00, 0x29, 0x5C, 0xCF, 0x3E, 0x1F, 0x00, 0x00, 0x00, 0x8B, 0x3C, 0x30, 0x11, 0x96, 0x43, 0x8B, 0xE4, 0xDB, 0x87, 0x77, 0x41, 0x6D, 0xE3, 0xC0, 0x44, 0xD9, 0xCE, 0x24, 0x42, 0x83, 0x30, 0x86, 0x44, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00, 0x8B, 0x9C, 0x30, 0x02, 0x64, 0x3B, 0xDF, 0xED, 0xDB, 0x87, 0x77, 0x41, 0x7D, 0xE3, 0xC0, 0x44, 0x6F, 0x12, 0x2E, 0x42, 0xA4, 0x6C, 0x86, 0x44, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x20, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0xA4, 0xBC, 0x10, 0x08, 0xAC, 0x1C, 0x5A, 0x18, 0x52, 0xAF, 0x76, 0x41, 0x29, 0xEC, 0x51, 0xC5, 0xF0, 0x27, 0x37, 0x42, 0x26, 0x21, 0x9F, 0x46, 0x17, 0xD9, 0xCE, 0xBD, 0x00, 0x00, 0x00, 0x00, 0x6A, 0xBC, 0x74, 0x3F, 0x13, 0x00, 0x00, 0x00, 0xAB, 0x3C, 0x30, 0x01, 0xFC, 0xA9, 0xF1, 0xE2, 0x51, 0xAF, 0x76, 0x41, 0x79, 0x93, 0x23, 0xC5, 0x8D, 0x17, 0x27, 0x42, 0x82, 0x14, 0x9F, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x80, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x83, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x20, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0xC4, 0xBC, 0x10, 0x18, 0x2F, 0xDD, 0x24, 0x76, 0x55, 0x04, 0x78, 0x41, 0xAC, 0xC0, 0x58, 0xC5, 0x6D, 0xE7, 0x2B, 0x42, 0x6F, 0x3F, 0x86, 0x46, 0x68, 0x91, 0xED, 0xBC, 0x00, 0x00, 0x00, 0x00, 0x52, 0xB8, 0x5E, 0x3F, 0x18, 0x00, 0x00, 0x00, 0xCB, 0x3C, 0x30, 0x11, 0xDD, 0x24, 0x06, 0xA7, 0x55, 0x04, 0x78, 0x41, 0xF4, 0xE5, 0x28, 0xC5, 0x98, 0x6E, 0x2B, 0x42, 0x08, 0x33, 0x86, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0xCB, 0x9C, 0x30, 0x02, 0x5A, 0x64, 0x3B, 0xAB, 0x55, 0x04, 0x78, 0x41, 0xF4, 0xE5, 0x28, 0xC5, 0x27, 0x31, 0x3C, 0x42, 0x8E, 0x38, 0x86, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0xC4, 0x3C, 0xD0, 0x01, 0xAA, 0xF1, 0xD2, 0xBB, 0x55, 0x04, 0x78, 0x41, 0x7F, 0xDC, 0x21, 0xC5, 0xAC, 0x1C, 0x44, 0x42, 0xA2, 0x3B, 0x86, 0x46, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x19, 0x00, 0x00, 0x00, 0xE4, 0xBC, 0x10, 0x08, 0x17, 0xD9, 0xCE, 0x0F, 0xDB, 0x00, 0x74, 0x41, 0x60, 0x85, 0xCF, 0x44, 0x0A, 0x57, 0x49, 0x42, 0x7B, 0xD7, 0xD8, 0x45, 0x19, 0x04, 0x56, 0x3E, 0x00, 0x00, 0x00, 0x00, 0x75, 0x93, 0x78, 0x3F, 0x19, 0x00, 0x00, 0x00, 0xEB, 0x3C, 0x30, 0x01, 0xE7, 0xFB, 0xA9, 0x19, 0xDB, 0x00, 0x74, 0x41, 0x6A, 0xB4, 0xA1, 0x44, 0xC5, 0xA0, 0x42, 0x42, 0x0C, 0xA6, 0xD8, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x19, 0x00, 0x00, 0x00, 0xEB, 0x9C, 0x30, 0x02, 0x44, 0x8B, 0x6C, 0x23, 0xDB, 0x00, 0x74, 0x41, 0x6A, 0xB4, 0xA1, 0x44, 0x8F, 0x42, 0x4A, 0x42, 0x85, 0xBE, 0xD8, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x19, 0x00, 0x00, 0x00, 0xE4, 0x3C, 0xD0, 0x01, 0x14, 0xAE, 0x47, 0x3F, 0xDB, 0x00, 0x74, 0x41, 0xD3, 0xF5, 0x9A, 0x44, 0xEE, 0x7C, 0x58, 0x42, 0x0A, 0xCA, 0xD8, 0x45, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0xD7, 0x23, 0xBC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x81, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x21, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x83, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x81, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0xD7, 0xA3, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x21, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x21, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x83, 0xBA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x81, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x83, 0xBA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x21, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x64, 0xBD, 0x10, 0x08, 0x46, 0xB6, 0xF3, 0x17, 0x9F, 0x4D, 0x73, 0x41, 0xAC, 0x0C, 0x04, 0xC4, 0xAE, 0xC7, 0x53, 0x42, 0xBD, 0xB3, 0x35, 0x46, 0x8F, 0xC2, 0x75, 0x3C, 0x00, 0x00, 0x00, 0x00, 0x48, 0xE1, 0x7A, 0x3F, 0x0C, 0x00, 0x00, 0x00, 0x6B, 0x3D, 0x30, 0x01, 0x29, 0x5C, 0x8F, 0xEC, 0x9E, 0x4D, 0x73, 0x41, 0xA0, 0xCA, 0xCD, 0xC3, 0x85, 0xEB, 0x4E, 0x42, 0xAA, 0x9B, 0x35, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x6B, 0x9D, 0x30, 0x02, 0xF6, 0x28, 0x5C, 0xF5, 0x9E, 0x4D, 0x73, 0x41, 0xA0, 0xCA, 0xCD, 0xC3, 0xEC, 0x51, 0x4E, 0x42, 0x75, 0xA6, 0x35, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x21, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x21, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0xD7, 0xA3, 0x3B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x81, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0xD7, 0xA3, 0x3B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x21, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x21, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x81, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x21, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x21, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x81, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x21, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE0, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x21, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x81, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x21, 0xC0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC2, 0x00, 0x00, 0x00, 0x04, 0xBE, 0x15, 0x08, 0xD3, 0x4D, 0x62, 0x2E, 0x28, 0xB5, 0x84, 0x41, 0x4C, 0xB7, 0xEE, 0x42, 0x71, 0x3D, 0x2C, 0x42, 0x1D, 0x34, 0x88, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC2, 0x00, 0x00, 0x00, 0x0B, 0x9E, 0x35, 0x02, 0xBC, 0x74, 0x93, 0x31, 0x28, 0xB5, 0x84, 0x41, 0x12, 0x03, 0xBA, 0x42, 0x46, 0x36, 0x2F, 0x42, 0x27, 0x1B, 0x88, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC2, 0x00, 0x00, 0x00, 0x04, 0x3E, 0xD5, 0x01, 0xE3, 0xA5, 0x9B, 0x4A, 0x28, 0xB5, 0x84, 0x41, 0xC1, 0x4A, 0xB2, 0x42, 0xA0, 0x9A, 0x37, 0x42, 0xAA, 0x26, 0x88, 0x45, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0xA2, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x82, 0x25, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x22, 0xC5, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xA2, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x82, 0x25, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x22, 0xC5, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0xA2, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x82, 0x25, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x22, 0xC5, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x85, 0x00, 0x00, 0x00, 0x84, 0x3E, 0x02, 0x58, 0xB8, 0x1E, 0x85, 0x6B, 0x11, 0x6B, 0x82, 0x41, 0xBE, 0x9F, 0xBA, 0x3F, 0x33, 0xB3, 0x3F, 0x42, 0x9F, 0x43, 0x9D, 0x48, 0x00, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x8A, 0x00, 0x00, 0x00, 0xA4, 0x3E, 0x02, 0x58, 0x85, 0xEB, 0x51, 0x3B, 0x0E, 0x5B, 0x82, 0x41, 0x81, 0x95, 0xF3, 0x3F, 0x14, 0x2E, 0x40, 0x42, 0xED, 0x1F, 0xBF, 0x49, 0x00, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x90, 0x00, 0x00, 0x00, 0xC1, 0x22, 0x02, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x26, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x83, 0x00, 0x00, 0x00, 0xE4, 0x3E, 0x02, 0x58, 0xC3, 0xF5, 0x28, 0x05, 0x45, 0x59, 0x82, 0x41, 0x0C, 0x02, 0x2B, 0xBE, 0x17, 0x59, 0x3D, 0x42, 0x12, 0x20, 0xBF, 0x49, 0x00, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32, 0x00, 0x05, 0x00, 0x01, 0x83, 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x80, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x23, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x83, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x00, 0x06, 0x00, 0x24, 0x9F, 0x11, 0x08, 0x8D, 0x97, 0x6E, 0xDE, 0xDB, 0x3E, 0x73, 0x41, 0x10, 0x18, 0xB2, 0x44, 0x29, 0x5C, 0x42, 0x42, 0xD7, 0x0F, 0xC6, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x00, 0x06, 0x00, 0x2B, 0x3F, 0xB1, 0x00, 0xF4, 0xFD, 0xD4, 0x2A, 0xDC, 0x3E, 0x73, 0x41, 0x83, 0x84, 0x8A, 0x44, 0xF2, 0xD2, 0x41, 0x42, 0x2F, 0xEF, 0xC5, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x00, 0x06, 0x00, 0x2B, 0x9F, 0x31, 0x10, 0xEE, 0x7C, 0x3F, 0x27, 0xDC, 0x3E, 0x73, 0x41, 0x83, 0x84, 0x8A, 0x44, 0x2D, 0xB2, 0x44, 0x42, 0x8B, 0xF6, 0xC5, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x29, 0x00, 0x0D, 0x00, 0x44, 0x9F, 0x11, 0x18, 0x98, 0x6E, 0x12, 0x19, 0xF3, 0x58, 0x76, 0x41, 0x6F, 0xCE, 0xFA, 0xC4, 0x33, 0xB3, 0x26, 0x42, 0x04, 0xB9, 0xC5, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x29, 0x00, 0x0D, 0x00, 0x4B, 0x3F, 0xB1, 0x10, 0xE5, 0xD0, 0x22, 0x3F, 0xF3, 0x58, 0x76, 0x41, 0x5E, 0x12, 0xC3, 0xC4, 0x7B, 0x94, 0x22, 0x42, 0x2F, 0x8F, 0xC5, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x29, 0x00, 0x0D, 0x00, 0x4B, 0x9F, 0x31, 0x00, 0x79, 0xE9, 0x26, 0x47, 0xF3, 0x58, 0x76, 0x41, 0x5E, 0x12, 0xC3, 0xC4, 0x31, 0x08, 0x24, 0x42, 0xE7, 0x95, 0xC5, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3A, 0x00, 0x0B, 0x00, 0x64, 0x9F, 0x11, 0x18, 0xAC, 0x1C, 0x5A, 0x78, 0xFA, 0x83, 0x72, 0x41, 0x2D, 0xD2, 0x34, 0xC4, 0xBC, 0xF4, 0x42, 0x42, 0x64, 0x0C, 0x2B, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3A, 0x00, 0x0B, 0x00, 0x6B, 0x3F, 0xB1, 0x00, 0xAE, 0x47, 0xE1, 0x86, 0xFA, 0x83, 0x72, 0x41, 0x85, 0xA3, 0x0C, 0xC4, 0x06, 0x81, 0x3B, 0x42, 0x97, 0xF7, 0x2A, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3A, 0x00, 0x0B, 0x00, 0x6B, 0x9F, 0x31, 0x10, 0x96, 0x43, 0x8B, 0x92, 0xFA, 0x83, 0x72, 0x41, 0x85, 0xA3, 0x0C, 0xC4, 0x5A, 0xE4, 0x3B, 0x42, 0xF4, 0xFA, 0x2A, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3B, 0x00, 0x04, 0x00, 0x84, 0x9F, 0x11, 0x18, 0x96, 0x43, 0x8B, 0x66, 0xEF, 0xC4, 0x73, 0x41, 0xBC, 0x7C, 0x1E, 0x45, 0x4E, 0x62, 0x10, 0x42, 0x29, 0x5C, 0x6F, 0x41, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3B, 0x00, 0x04, 0x00, 0x8B, 0x3F, 0xB1, 0x10, 0xDB, 0xF9, 0x7E, 0xA4, 0xEF, 0xC4, 0x73, 0x41, 0x2F, 0x89, 0xF6, 0x44, 0x4C, 0x37, 0x0C, 0x42, 0x29, 0x5C, 0x6F, 0x41, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3B, 0x00, 0x04, 0x00, 0x8B, 0x9F, 0x31, 0x00, 0xA4, 0x70, 0x3D, 0xA8, 0xEF, 0xC4, 0x73, 0x41, 0x27, 0x89, 0xF6, 0x44, 0xAE, 0xC7, 0x0E, 0x42, 0x29, 0x5C, 0x6F, 0x41, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x39, 0x00, 0x09, 0x00, 0xA4, 0x9F, 0x11, 0x18, 0xBA, 0x49, 0x0C, 0xC6, 0x65, 0xB6, 0x75, 0x41, 0x64, 0xA3, 0x64, 0xC5, 0x35, 0x5E, 0x04, 0x42, 0xE4, 0x3F, 0x5D, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x39, 0x00, 0x09, 0x00, 0xAB, 0x3F, 0xB1, 0x10, 0x91, 0xED, 0x7C, 0x0D, 0x66, 0xB6, 0x75, 0x41, 0x73, 0xD4, 0x31, 0xC5, 0xAA, 0x71, 0x27, 0x42, 0xA1, 0x2F, 0x5D, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x39, 0x00, 0x09, 0x00, 0xAB, 0x9F, 0x31, 0x00, 0xF4, 0xFD, 0xD4, 0x28, 0x66, 0xB6, 0x75, 0x41, 0x73, 0xD4, 0x31, 0xC5, 0xCF, 0xF7, 0x25, 0x42, 0x4E, 0x33, 0x5D, 0x46, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x23, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x83, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A, 0x00, 0x08, 0x00, 0xE4, 0x9F, 0x11, 0x08, 0x1B, 0x2F, 0xDD, 0xFA, 0x29, 0x5B, 0x75, 0x41, 0xC5, 0x3C, 0xAA, 0x44, 0x83, 0xC0, 0x2F, 0x42, 0xC1, 0xBC, 0x60, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A, 0x00, 0x08, 0x00, 0xEB, 0x3F, 0xB1, 0x10, 0x23, 0xDB, 0xF9, 0x36, 0x2A, 0x5B, 0x75, 0x41, 0x29, 0x68, 0x84, 0x44, 0xA6, 0x1B, 0x2F, 0x42, 0xA0, 0x60, 0x60, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A, 0x00, 0x08, 0x00, 0xEB, 0x9F, 0x31, 0x10, 0x2F, 0xDD, 0x24, 0x3C, 0x2A, 0x5B, 0x75, 0x41, 0x31, 0x68, 0x84, 0x44, 0xE3, 0xA5, 0x30, 0x42, 0x54, 0x6F, 0x60, 0x45, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2B, 0x00, 0x03, 0x00, 0x01, 0x80, 0x01, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50, 0x7C, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x80, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x20, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x80, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x80, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x20, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x80, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x80, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x20, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x80, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6F, 0x12, 0x03, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x80, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x20, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42, 0x60, 0xE5, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x80, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x42, 0x60, 0xE5, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x80, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x20, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x80, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0xC4, 0x9C, 0x53, 0x08, 0x0A, 0xD7, 0xA3, 0x1E, 0x52, 0xE6, 0x75, 0x41, 0xBA, 0x81, 0x3F, 0x44, 0x21, 0xB0, 0x57, 0x42, 0x2E, 0x88, 0x2A, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0xC4, 0x3C, 0x93, 0x01, 0x68, 0x91, 0xED, 0x6C, 0x52, 0xE6, 0x75, 0x41, 0x81, 0xFD, 0x0E, 0x44, 0x6A, 0xBC, 0x55, 0x42, 0x4E, 0x7F, 0x2A, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0xC4, 0x3C, 0x33, 0x02, 0x21, 0xB0, 0x72, 0x30, 0x52, 0xE6, 0x75, 0x41, 0xA4, 0xB8, 0x12, 0x44, 0x3F, 0xB5, 0x56, 0x42, 0x2E, 0x80, 0x2A, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0xC4, 0x3C, 0x93, 0x02, 0xBE, 0x9F, 0x1A, 0x31, 0x52, 0xE6, 0x75, 0x41, 0x96, 0xDB, 0x10, 0x44, 0x5A, 0x64, 0x61, 0x42, 0x11, 0x7F, 0x2A, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0xE4, 0x9C, 0x53, 0x08, 0x17, 0xD9, 0xCE, 0xDB, 0xB3, 0x91, 0x78, 0x41, 0x00, 0xFA, 0x2D, 0xC5, 0xA6, 0x1B, 0x43, 0x42, 0x91, 0xEC, 0xBB, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0xE4, 0x3C, 0x93, 0x01, 0xE9, 0x26, 0x31, 0x34, 0xB4, 0x91, 0x78, 0x41, 0x42, 0xEA, 0x01, 0xC5, 0x12, 0x83, 0x46, 0x42, 0x16, 0xE8, 0xBB, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0xE4, 0x3C, 0x33, 0x02, 0x2B, 0x87, 0x16, 0xE7, 0xB3, 0x91, 0x78, 0x41, 0x10, 0x4E, 0x05, 0xC5, 0x60, 0x65, 0x44, 0x42, 0x16, 0xE8, 0xBB, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0xE4, 0x3C, 0x93, 0x02, 0x5E, 0xBA, 0x49, 0xFE, 0xB3, 0x91, 0x78, 0x41, 0x02, 0x9D, 0x03, 0xC5, 0xB8, 0x1E, 0x51, 0x42, 0xE3, 0xE7, 0xBB, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x04, 0x9D, 0x53, 0x08, 0x1F, 0x85, 0xEB, 0x05, 0xDA, 0x78, 0x77, 0x41, 0xCB, 0x25, 0xFA, 0xC4, 0x8B, 0x6C, 0x47, 0x42, 0x92, 0x29, 0x89, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x04, 0x3D, 0x93, 0x01, 0x17, 0xD9, 0xCE, 0x45, 0xDA, 0x78, 0x77, 0x41, 0xFC, 0xCD, 0xBA, 0xC4, 0xCF, 0xF7, 0x4C, 0x42, 0xBB, 0x24, 0x89, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x04, 0x3D, 0x33, 0x02, 0x68, 0x91, 0xED, 0x12, 0xDA, 0x78, 0x77, 0x41, 0x48, 0xAD, 0xBF, 0xC4, 0x42, 0x60, 0x4E, 0x42, 0x4A, 0x25, 0x89, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x04, 0x3D, 0x93, 0x02, 0xC9, 0x76, 0xBE, 0x0D, 0xDA, 0x78, 0x77, 0x41, 0xDD, 0x3C, 0xBD, 0xC4, 0x3D, 0x8A, 0x58, 0x42, 0xBA, 0x24, 0x89, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00, 0x24, 0x9D, 0x53, 0x08, 0xAC, 0x1C, 0x5A, 0x74, 0xE1, 0xD7, 0x78, 0x41, 0xAE, 0x2F, 0x0F, 0x45, 0xD9, 0xCE, 0x36, 0x42, 0xE9, 0x16, 0x95, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00, 0x24, 0x3D, 0x93, 0x01, 0x5A, 0x64, 0x3B, 0xC7, 0xE1, 0xD7, 0x78, 0x41, 0x0A, 0xDB, 0xD5, 0x44, 0x85, 0xEB, 0x3F, 0x42, 0x96, 0x06, 0x95, 0x45, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00, 0x24, 0x3D, 0x33, 0x02, 0x46, 0xB6, 0xF3, 0xA3, 0xE1, 0xD7, 0x78, 0x41, 0x89, 0x6D, 0xDB, 0x44, 0x6D, 0xE7, 0x46, 0x42, 0x0C, 0x06, 0x95, 0x45, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00, 0x24, 0x3D, 0x93, 0x02, 0x44, 0x8B, 0x6C, 0x99, 0xE1, 0xD7, 0x78, 0x41, 0x4C, 0xA3, 0xD8, 0x44, 0x2B, 0x07, 0x4F, 0x42, 0x83, 0x04, 0x95, 0x45, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x44, 0x9D, 0x53, 0x08, 0x7F, 0x6A, 0xBC, 0x2A, 0xCF, 0x02, 0x7B, 0x41, 0x44, 0x03, 0x13, 0x44, 0x23, 0x5B, 0x38, 0x42, 0x60, 0xF1, 0x84, 0x44, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x44, 0x3D, 0x93, 0x01, 0xE9, 0x26, 0x31, 0x84, 0xCF, 0x02, 0x7B, 0x41, 0xBA, 0x89, 0xDB, 0x43, 0x77, 0x3E, 0x3F, 0x42, 0xA6, 0xAB, 0x84, 0x44, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x44, 0x3D, 0x33, 0x02, 0x0C, 0x02, 0x2B, 0x55, 0xCF, 0x02, 0x7B, 0x41, 0xDB, 0x39, 0xE1, 0x43, 0x7D, 0x3F, 0x42, 0x42, 0xCF, 0xA7, 0x84, 0x44, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x44, 0x3D, 0x93, 0x02, 0x60, 0xE5, 0xD0, 0x4A, 0xCF, 0x02, 0x7B, 0x41, 0x46, 0x66, 0xDE, 0x43, 0xE5, 0xD0, 0x4B, 0x42, 0x3F, 0xA5, 0x84, 0x44, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x64, 0x9D, 0x53, 0x08, 0x54, 0xE3, 0xA5, 0xF1, 0x6B, 0x40, 0x79, 0x41, 0x75, 0xC1, 0x25, 0x45, 0x73, 0x68, 0x3C, 0x42, 0x25, 0xD6, 0x63, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x64, 0x3D, 0x93, 0x01, 0x5C, 0x8F, 0xC2, 0x35, 0x6C, 0x40, 0x79, 0x41, 0x7B, 0x90, 0xF7, 0x44, 0x29, 0xDC, 0x42, 0x42, 0xB4, 0xB0, 0x63, 0x45, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x64, 0x3D, 0x33, 0x02, 0x1B, 0x2F, 0xDD, 0xFE, 0x6B, 0x40, 0x79, 0x41, 0xA2, 0x05, 0xFE, 0x44, 0x00, 0x00, 0x43, 0x42, 0xE3, 0xB3, 0x63, 0x45, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x64, 0x3D, 0x93, 0x02, 0x6F, 0x12, 0x83, 0xF4, 0x6B, 0x40, 0x79, 0x41, 0x9E, 0xCB, 0xFA, 0x44, 0xCF, 0x77, 0x4D, 0x42, 0x17, 0xAF, 0x63, 0x45, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x81, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x21, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x21, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x21, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA4, 0x9D, 0x53, 0x08, 0x0C, 0x02, 0x2B, 0xE1, 0x4E, 0xD9, 0x76, 0x41, 0x44, 0xBB, 0xED, 0xC3, 0x35, 0x5E, 0x58, 0x42, 0x4A, 0x1D, 0x63, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA4, 0x3D, 0x93, 0x01, 0xD3, 0x4D, 0x62, 0x1C, 0x4F, 0xD9, 0x76, 0x41, 0x48, 0x81, 0xB1, 0xC3, 0x17, 0x59, 0x55, 0x42, 0x2C, 0x14, 0x63, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA4, 0x3D, 0x33, 0x02, 0xD9, 0xCE, 0xF7, 0xE3, 0x4E, 0xD9, 0x76, 0x41, 0x96, 0x23, 0xB6, 0xC3, 0xD7, 0x23, 0x56, 0x42, 0xF8, 0x14, 0x63, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA4, 0x3D, 0x93, 0x02, 0x02, 0x2B, 0x87, 0xE4, 0x4E, 0xD9, 0x76, 0x41, 0xF2, 0xD2, 0xB3, 0xC3, 0x6D, 0xE7, 0x60, 0x42, 0xC5, 0x13, 0x63, 0x46, 0x00, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x81, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x21, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x21, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x21, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x81, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x21, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x21, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x21, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x82, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x22, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x82, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x22, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x22, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x22, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x82, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x22, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x22, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x22, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x82, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x22, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x22, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x22, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x82, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x22, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x22, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x22, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x82, 0x43, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x22, 0x83, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x22, 0x23, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x22, 0x83, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0xC1, 0x82, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7A, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0xC1, 0x82, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x8C, 0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00, 0xE4, 0x9E, 0x14, 0x08, 0x60, 0xE5, 0xD0, 0xC0, 0xFB, 0xC7, 0x74, 0x41, 0x85, 0x33, 0x68, 0xC4, 0xF0, 0x27, 0x50, 0x42, 0x46, 0x4C, 0x66, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00, 0xE4, 0x3E, 0x34, 0x41, 0x39, 0xB4, 0xC8, 0xCA, 0xFB, 0xC7, 0x74, 0x41, 0x6D, 0xFF, 0x2E, 0xC4, 0x21, 0x30, 0x52, 0x42, 0x16, 0x37, 0x66, 0x46, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x00, 0x04, 0x9F, 0x14, 0x48, 0x56, 0x0E, 0x2D, 0xE7, 0x49, 0x72, 0x83, 0x41, 0x27, 0x9D, 0xAF, 0xC4, 0x2B, 0x87, 0x24, 0x42, 0xC7, 0x06, 0x65, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x00, 0x04, 0x3F, 0x34, 0x41, 0xBE, 0x9F, 0x1A, 0xE8, 0x49, 0x72, 0x83, 0x41, 0x1D, 0x5A, 0x84, 0xC4, 0x91, 0x6D, 0x34, 0x42, 0x91, 0x8E, 0x7C, 0x46, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00, 0x24, 0x9F, 0x14, 0x58, 0xDD, 0x24, 0x06, 0x9F, 0xB6, 0x04, 0x77, 0x41, 0x66, 0x68, 0x30, 0xC5, 0x3B, 0x5F, 0x3C, 0x42, 0x4C, 0x6E, 0x85, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00, 0x24, 0x3F, 0x34, 0x41, 0x31, 0x08, 0xAC, 0xFE, 0xB6, 0x04, 0x77, 0x41, 0xDB, 0xF1, 0x04, 0xC5, 0x39, 0xB4, 0x4A, 0x42, 0xA9, 0x63, 0x85, 0x46, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x44, 0x9F, 0x14, 0x18, 0xDF, 0x4F, 0x8D, 0x53, 0x95, 0x7C, 0x83, 0x41, 0x10, 0xB8, 0x6F, 0xC4, 0x79, 0xE9, 0x1B, 0x42, 0x3D, 0x5C, 0x47, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x44, 0x9F, 0x34, 0x10, 0x39, 0xB4, 0xC8, 0x62, 0x95, 0x7C, 0x83, 0x41, 0xA6, 0x63, 0x39, 0xC4, 0xF0, 0x27, 0x1F, 0x42, 0x99, 0x5B, 0x47, 0x46, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x35, 0x00, 0x00, 0x00, 0x61, 0x83, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFA, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x35, 0x00, 0x00, 0x00, 0x61, 0x83, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x5A, 0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2B, 0x00, 0x00, 0x00, 0x84, 0x9F, 0x14, 0x48, 0x6F, 0x12, 0x83, 0xEA, 0x87, 0x4D, 0x78, 0x41, 0x17, 0xE3, 0x32, 0xC5, 0x1D, 0x5A, 0x37, 0x42, 0x4C, 0xB2, 0xA5, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2B, 0x00, 0x00, 0x00, 0x84, 0x3F, 0x34, 0x41, 0x33, 0x33, 0x33, 0x29, 0x88, 0x4D, 0x78, 0x41, 0x7B, 0xD0, 0x06, 0xC5, 0x23, 0x5B, 0x3B, 0x42, 0xA9, 0xA7, 0xA5, 0x46, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0xA1, 0x83, 0x84, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x1C, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0xA1, 0x83, 0x84, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x1C, 0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A, 0x00, 0x00, 0x00, 0xC4, 0x9F, 0x14, 0x48, 0xCF, 0xF7, 0x53, 0xF9, 0xF3, 0x3D, 0x78, 0x41, 0xAC, 0x1C, 0x25, 0x42, 0xB6, 0x73, 0x32, 0x42, 0x31, 0xD9, 0xAB, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A, 0x00, 0x00, 0x00, 0xC4, 0x3F, 0x34, 0x41, 0xDF, 0x4F, 0x8D, 0xD1, 0xF4, 0x3D, 0x78, 0x41, 0x62, 0x10, 0xF9, 0x41, 0x73, 0xE8, 0x47, 0x42, 0xA2, 0xAE, 0xAB, 0x45, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3A, 0x00, 0x00, 0x00, 0xE4, 0x9F, 0x04, 0x48, 0x5C, 0x8F, 0xC2, 0x6D, 0xD3, 0x80, 0x7D, 0x41, 0xBC, 0xC8, 0x04, 0xC5, 0xF0, 0x27, 0x44, 0x42, 0x16, 0xC5, 0x8D, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3A, 0x00, 0x00, 0x00, 0xE9, 0x23, 0x24, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xD5, 0x1C, 0xC8, 0xC4, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x02, 0x80, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0xEE, 0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x00, 0x00, 0x24, 0x9C, 0x14, 0x08, 0x62, 0x10, 0x58, 0x17, 0xF2, 0x73, 0x77, 0x41, 0x79, 0xA5, 0xA2, 0x44, 0x6D, 0x67, 0x39, 0x42, 0x91, 0xA8, 0x86, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E, 0x00, 0x00, 0x00, 0x24, 0x9C, 0x34, 0x00, 0x75, 0x93, 0x18, 0xE2, 0xF1, 0x73, 0x77, 0x41, 0x83, 0x88, 0x7B, 0x44, 0x33, 0xB3, 0x45, 0x42, 0x4A, 0xA7, 0x86, 0x45, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x00, 0x00, 0x00, 0x44, 0x9C, 0x14, 0x48, 0xF6, 0x28, 0x5C, 0x2F, 0x30, 0x0F, 0x76, 0x41, 0x71, 0x3D, 0xAB, 0x42, 0x33, 0x33, 0x44, 0x42, 0x99, 0xC4, 0x07, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x00, 0x00, 0x00, 0x44, 0x3C, 0x34, 0x41, 0x25, 0x06, 0x81, 0x97, 0x30, 0x0F, 0x76, 0x41, 0xB2, 0x1D, 0x81, 0x42, 0x77, 0xBE, 0x50, 0x42, 0x99, 0xAE, 0x07, 0x46, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x80, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x39, 0x00, 0x00, 0x00, 0x61, 0x80, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x84, 0x9C, 0x14, 0x48, 0x00, 0x00, 0x00, 0x1E, 0x84, 0x37, 0x78, 0x41, 0x39, 0xBC, 0x1B, 0x45, 0x89, 0x41, 0x2F, 0x42, 0x1B, 0x51, 0x2E, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x84, 0x3C, 0x34, 0x41, 0xB6, 0xF3, 0xFD, 0xD2, 0x85, 0x37, 0x78, 0x41, 0xE3, 0xB9, 0xEA, 0x44, 0x7B, 0x14, 0x49, 0x42, 0x00, 0xD4, 0x0C, 0x45, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1B, 0x00, 0x00, 0x00, 0xA4, 0x9C, 0x14, 0x18, 0xFE, 0xD4, 0x78, 0x9B, 0x2C, 0x80, 0x75, 0x41, 0xEC, 0x55, 0xF0, 0x44, 0x9A, 0x19, 0x4C, 0x42, 0x8D, 0x38, 0xE7, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1B, 0x00, 0x00, 0x00, 0xA4, 0x3C, 0x34, 0x41, 0x62, 0x10, 0x58, 0xB1, 0x2C, 0x80, 0x75, 0x41, 0xFC, 0x1D, 0xB5, 0x44, 0xF4, 0x7D, 0x49, 0x42, 0xA4, 0x0E, 0xE7, 0x45, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x80, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1D, 0x00, 0x00, 0x00, 0xC1, 0x80, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x9C, 0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0xE4, 0x9C, 0x14, 0x48, 0x0E, 0x2D, 0xB2, 0xF3, 0xB2, 0xE8, 0x78, 0x41, 0x3B, 0x23, 0x21, 0x45, 0x3F, 0xB5, 0x23, 0x42, 0x3D, 0xE2, 0xAE, 0x44, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0xE4, 0x3C, 0x34, 0x41, 0x7B, 0x14, 0xAE, 0x91, 0xB3, 0xE8, 0x78, 0x41, 0xDF, 0xD7, 0xF2, 0x44, 0x1F, 0x85, 0x36, 0x42, 0x8F, 0x3A, 0xAE, 0x44, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x04, 0x9D, 0x14, 0x08, 0x23, 0xDB, 0xF9, 0xC5, 0xD4, 0x3D, 0x83, 0x41, 0xE3, 0x55, 0x4B, 0xC4, 0x3F, 0x35, 0xF4, 0x41, 0xA8, 0x25, 0x0B, 0x46, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x04, 0x9D, 0x34, 0x10, 0x00, 0x00, 0x00, 0xB6, 0xD4, 0x3D, 0x83, 0x41, 0x58, 0x29, 0x1D, 0xC4, 0xCD, 0xCC, 0x2E, 0x42, 0x9C, 0x53, 0x2C, 0x46, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x33, 0x00, 0x00, 0x00, 0x21, 0x81, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFA, 0x44, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x33, 0x00, 0x00, 0x00, 0x22, 0x81, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50, 0x93, 0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x44, 0x9D, 0x14, 0x08, 0xE7, 0xFB, 0xA9, 0x76, 0x88, 0x80, 0x83, 0x41, 0x48, 0xE1, 0x5E, 0xC2, 0xF8, 0xD3, 0x16, 0x42, 0xF4, 0x95, 0x0F, 0x45, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x44, 0x9D, 0x34, 0x10, 0x7F, 0x6A, 0xBC, 0x64, 0x88, 0x80, 0x83, 0x41, 0x8F, 0xC2, 0x2B, 0xC2, 0x9A, 0x19, 0x20, 0x42, 0x35, 0x87, 0xB5, 0x45, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x81, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x00, 0x00, 0x00, 0x61, 0x81, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xB6, 0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x84, 0x09, 0x67, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3B, 0xBF, 0x9C, 0xC3, 0x5E, 0x3A, 0x14, 0x42, 0x59, 0x1F, 0xBF, 0x49, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA4, 0x09, 0x67, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC3, 0x35, 0x80, 0x42, 0x68, 0x11, 0x2C, 0x42, 0xDA, 0x6E, 0x23, 0x49, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x01, 0x67, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0xE1, 0x01, 0x67, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xB6, 0xF3, 0x8A, 0xC3, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x67, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x52, 0xB3, 0x00, 0x57 };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 73);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::ASCII, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::ASCII, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_TRACKSTAT)
@@ -1982,7 +1986,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_TRACKSTAT)
    unsigned char aucLog[] = "<TRACKSTAT COM1 0 52.5 FINESTEERING 2211 417770.000 02000000 457c 32768\r\n<     SOL_COMPUTED SINGLE 5.0 149 \r\n<          5 0 1810bc04 23701425.492 3789.992 46.788 2078.974 1.085 GOOD 0.244 \r\n<          5 0 11305c0b 23701430.037 2953.246 45.620 2072.914 0.000 OBSL2 0.000 \r\n<          29 0 0810bc24 23082310.768 2981.262 47.273 3828.954 -0.032 GOOD 0.247 \r\n<          29 0 01305c2b 23082313.700 2323.065 44.880 3823.754 0.000 OBSL2 0.000 \r\n<          19 0 0810bc44 24714583.651 -3486.828 44.074 21948.975 0.266 GOOD 0.242 \r\n<          19 0 01305c4b 24714585.894 -2717.014 41.115 21943.754 0.000 OBSL2 0.000 \r\n<          6 0 1810bc64 22530869.360 -3009.560 46.137 15678.695 -0.700 GOOD 0.248 \r\n<          6 0 11305c6b 22530873.571 -2345.113 45.456 15671.915 0.000 OBSL2 0.000 \r\n<          31 0 1810bc84 24133460.335 940.801 45.484 2898.935 -0.039 GOOD 0.245 \r\n<          31 0 11305c8b 24133463.193 733.093 45.643 2893.415 0.000 OBSL2 0.000 \r\n<          2 0 1810bca4 20963526.269 -712.720 52.205 11538.955 -0.451 GOOD 0.249 \r\n<          2 0 11305cab 20963524.462 -555.367 51.430 11533.754 0.000 OBSL2 0.000 \r\n<          20 0 1810bcc4 21742080.142 2309.293 50.589 5698.986 -0.339 GOOD 0.248 \r\n<          20 0 11305ccb 21742080.656 1799.452 46.530 5692.415 0.000 OBSL2 0.000 \r\n<          25 0 0810bce4 20665522.673 870.692 50.806 8086.716 -1.284 GOOD 0.248 \r\n<          25 0 01305ceb 20665526.038 678.462 48.855 8080.517 0.000 OBSL2 0.000 \r\n<          11 0 1810bd04 20362089.745 -601.177 51.571 11278.894 1.094 GOOD 0.249 \r\n<          11 0 11305d0b 20362090.656 -468.450 51.328 11272.415 0.000 OBSL2 0.000 \r\n<          0 0 0000a120 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a04120 0.000 -0.001 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 0000a140 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a04140 0.000 -0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 0000a160 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a04160 0.000 -0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 0000a180 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a04180 0.000 -0.005 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 0000a1a0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a041a0 0.000 -0.009 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 0000a1c0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a041c0 0.000 -0.008 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 0000a1e0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a041e0 0.000 -0.007 0.000 0.000 0.000 NA 0.000 \r\n<          194 0 1815be04 43595011.956 105.359 40.180 2967.754 1.259 GOOD 0.083 \r\n<          194 0 02359e0b 43595018.364 82.101 45.378 2964.394 0.000 OBSL2 0.000 \r\n<          0 0 0005a220 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 02258220 0.000 -0.001 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 0005a240 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 02258240 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 0005a260 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 02258260 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00022280 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 000222a0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 000222c0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 000222e0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          59 4 08119f04 19784649.048 -1697.276 40.617 11270.271 -0.406 GOOD 0.013 \r\n<          59 4 00b13f0b 19784654.114 -1320.105 37.078 11267.843 0.000 OBSL2 0.000 \r\n<          60 10 18019f24 20676119.555 2426.357 47.661 5537.208 0.000 NOIONOCORR 0.000 \r\n<          60 10 00a12329 0.000 1887.167 0.000 0.000 0.000 NA 0.000 \r\n<          58 11 08119f44 23007031.853 -3585.721 42.540 17527.469 -1.027 GOOD 0.024 \r\n<          58 11 00b13f4b 23007037.627 -2788.897 43.873 17525.518 0.000 OBSL2 0.000 \r\n<          43 3 08019f64 22109153.041 653.979 34.488 2875.611 0.000 NOIONOCORR 0.000 \r\n<          43 3 00a1236a 0.000 508.650 0.000 0.000 0.000 NA 0.000 \r\n<          49 6 08119f84 21145952.567 -3665.791 49.608 13987.188 0.206 GOOD 0.033 \r\n<          49 6 10b13f8b 21145960.005 -2851.174 46.300 13984.918 0.000 OBSL2 0.000 \r\n<          51 0 18119fa4 22949361.716 3724.046 48.048 1598.788 5.125 GOOD 0.031 \r\n<          51 0 00b13fab 22949370.526 2896.484 45.398 1596.718 0.000 OBSL2 0.000 \r\n<          50 5 18119fc4 19987988.748 -30.141 38.296 6750.071 0.488 GOOD 0.020 \r\n<          50 5 10b13fcb 19987994.167 -23.443 43.197 6747.661 0.000 OBSL2 0.000 \r\n<          42 8 18119fe4 24110164.746 -2951.318 46.765 7697.488 -2.593 GOOD 0.024 \r\n<          42 8 10b13feb 24110172.476 -2295.476 41.549 7695.458 0.000 OBSL2 0.000 \r\n<          0 0 00018000 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a12000 0.000 -0.015 0.000 0.000 0.000 NA 0.000 \r\n<          44 12 18119c24 23028956.405 3594.785 45.326 1587.448 -2.517 GOOD 0.033 \r\n<          44 12 10b13c2b 23028963.538 2795.949 40.845 1585.059 0.000 OBSL2 0.000 \r\n<          0 0 00018040 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a12040 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00018060 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a12060 0.000 0.001 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00018080 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a12080 0.000 -0.001 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 000180a0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00a120a0 0.000 -0.003 0.000 0.000 0.000 NA 0.000 \r\n<          16 0 08149cc4 40527641.107 -891.176 42.389 12619.062 0.015 GOOD 0.165 \r\n<          16 0 00349cc4 40527646.740 -688.872 40.549 12618.900 0.000 OBSB2 0.000 \r\n<          16 0 016420c9 0.000 -689.114 0.000 0.000 0.000 NA 0.000 \r\n<          46 0 08149ce4 26203507.728 2528.383 40.344 998.850 0.000 NOIONOCORR 0.000 \r\n<          46 0 002480e9 0.000 1955.106 0.000 0.000 0.000 NA 0.000 \r\n<          46 0 51743ce4 26203516.234 1954.975 45.261 998.249 0.000 OBSB2 0.000 \r\n<          51 0 08048101 0.000 834.000 0.000 0.000 0.000 NA 0.000 \r\n<          51 0 08048101 0.000 -4166.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 01642100 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          9 0 08149d24 41114161.025 -63.950 39.061 3429.762 0.063 GOOD 0.164 \r\n<          9 0 00349d24 41114162.707 -49.152 40.579 6268.900 0.000 OBSB2 0.000 \r\n<          9 0 01642129 0.000 -49.450 0.000 0.000 0.000 NA 0.000 \r\n<          18 0 08048142 0.000 2191.000 0.000 0.000 0.000 NA 0.000 \r\n<          18 0 08048141 0.000 -3000.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 01642140 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 00048160 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          38 0 08048162 0.000 -4864.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 01642160 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          43 0 08149d84 21976230.668 -767.926 53.000 14708.749 0.000 NOIONOCORR 0.000 \r\n<          43 0 00248189 0.000 -593.809 0.000 0.000 0.000 NA 0.000 \r\n<          43 0 41743d84 21976231.759 -593.806 51.238 13013.732 0.000 OBSB2 0.000 \r\n<          34 0 18149da4 24778973.970 -2726.753 45.887 20888.650 0.000 NOIONOCORR 0.000 \r\n<          34 0 002481a9 0.000 -2108.499 0.000 0.000 0.000 NA 0.000 \r\n<          34 0 51743da4 24778976.771 -2108.527 42.384 20888.250 0.000 OBSB2 0.000 \r\n<          0 0 000481c0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          10 0 080481c1 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 016421c0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          1 0 088481e1 0.000 834.000 0.000 0.000 0.000 NA 0.000 \r\n<          1 0 088481e1 0.000 -4166.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 016421e0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          37 0 18149e04 23644809.748 -209.827 51.046 8888.749 0.000 NOIONOCORR 0.000 \r\n<          37 0 00248209 0.000 -162.252 0.000 0.000 0.000 NA 0.000 \r\n<          37 0 51743e04 23644814.609 -162.173 47.800 8888.589 0.000 OBSB2 0.000 \r\n<          21 0 08149e24 24936225.322 -66.255 47.182 6239.049 0.000 NOIONOCORR 0.000 \r\n<          21 0 00248229 0.000 -51.232 0.000 0.000 0.000 NA 0.000 \r\n<          21 0 41743e24 24936224.946 -51.236 44.955 6237.648 0.000 OBSB2 0.000 \r\n<          55 0 08048241 0.000 11000.000 0.000 0.000 0.000 NA 0.000 \r\n<          55 0 08048241 0.000 -5000.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 01642240 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          23 0 08149e64 24335820.858 -2828.899 49.305 16609.148 0.000 NOIONOCORR 0.000 \r\n<          23 0 00248269 0.000 -2187.484 0.000 0.000 0.000 NA 0.000 \r\n<          23 0 41743e64 24335817.841 -2187.432 47.603 16608.648 0.000 OBSB2 0.000 \r\n<          6 0 08149e84 40542914.308 -698.666 37.528 8544.843 -0.444 GOOD 0.164 \r\n<          6 0 10349e84 40542914.850 -540.299 43.901 10378.661 0.000 OBSB2 0.000 \r\n<          6 0 01642289 0.000 -540.253 0.000 0.000 0.000 NA 0.000 \r\n<          27 0 080482a1 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          27 0 080482a2 0.000 -6363.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 016422a0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          28 0 08149ec4 23032309.590 2093.708 50.562 6769.050 0.000 NOIONOCORR 0.000 \r\n<          28 0 002482c9 0.000 1618.988 0.000 0.000 0.000 NA 0.000 \r\n<          28 0 41743ec4 23032311.068 1619.068 48.490 5230.733 0.000 OBSB2 0.000 \r\n<          11 0 18149ee4 22903570.657 -2050.778 48.744 18098.982 1.808 GOOD 0.166 \r\n<          11 0 10349ee4 22903569.907 -1585.855 52.205 18098.830 0.000 OBSB2 0.000 \r\n<          11 0 016422e9 0.000 -1585.792 0.000 0.000 0.000 NA 0.000 \r\n<          48 0 08048302 0.000 1990.000 0.000 0.000 0.000 NA 0.000 \r\n<          48 0 08048301 0.000 -2000.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 01642300 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          39 0 18149f24 40712703.926 -1342.518 42.649 15938.900 0.000 NOIONOCORR 0.000 \r\n<          39 0 00248329 0.000 -1038.120 0.000 0.000 0.000 NA 0.000 \r\n<          39 0 41743f24 40712706.354 -1038.160 42.958 13271.623 0.000 OBSB2 0.000 \r\n<          26 0 08048341 0.000 9000.000 0.000 0.000 0.000 NA 0.000 \r\n<          26 0 08048341 0.000 -7000.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 01642340 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          42 0 08149f64 25060321.026 2422.533 46.916 3378.669 0.000 NOIONOCORR 0.000 \r\n<          42 0 00248369 0.000 1873.256 0.000 0.000 0.000 NA 0.000 \r\n<          42 0 51743f64 25060334.513 1873.301 46.947 3378.249 0.000 OBSB2 0.000 \r\n<          14 0 08149f84 25485562.721 3126.919 44.053 1548.970 -1.473 GOOD 0.163 \r\n<          14 0 00349f84 25485565.097 2418.014 47.552 1548.810 0.000 OBSB2 0.000 \r\n<          14 0 01642389 0.000 2417.932 0.000 0.000 0.000 NA 0.000 \r\n<          58 0 08049fa4 29895620.607 806.953 51.603 11229.342 0.000 BADHEALTH 0.000 \r\n<          58 0 002483a9 0.000 623.987 0.000 0.000 0.000 NA 0.000 \r\n<          58 0 016423a9 0.000 623.987 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 826703c0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 826703e0 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 82670000 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 82670020 0.000 0.000 0.000 0.000 0.000 NA 0.000 \r\n<          0 0 82670040 0.000 0.000 0.000 0.000 0.000 NA 0.000\r\n";
    uint8_t aucLogToConvert[] = "#TRACKSTATA,COM1,0,52.5,FINESTEERING,2211,417770.000,02000000,457c,32768;SOL_COMPUTED,SINGLE,5.0,149,5,0,1810bc04,23701425.492,3789.992,46.788,2078.974,1.085,GOOD,0.244,5,0,11305c0b,23701430.037,2953.246,45.620,2072.914,0.000,OBSL2,0.000,29,0,0810bc24,23082310.768,2981.262,47.273,3828.954,-0.032,GOOD,0.247,29,0,01305c2b,23082313.700,2323.065,44.880,3823.754,0.000,OBSL2,0.000,19,0,0810bc44,24714583.651,-3486.828,44.074,21948.975,0.266,GOOD,0.242,19,0,01305c4b,24714585.894,-2717.014,41.115,21943.754,0.000,OBSL2,0.000,6,0,1810bc64,22530869.360,-3009.560,46.137,15678.695,-0.700,GOOD,0.248,6,0,11305c6b,22530873.571,-2345.113,45.456,15671.915,0.000,OBSL2,0.000,31,0,1810bc84,24133460.335,940.801,45.484,2898.935,-0.039,GOOD,0.245,31,0,11305c8b,24133463.193,733.093,45.643,2893.415,0.000,OBSL2,0.000,2,0,1810bca4,20963526.269,-712.720,52.205,11538.955,-0.451,GOOD,0.249,2,0,11305cab,20963524.462,-555.367,51.430,11533.754,0.000,OBSL2,0.000,20,0,1810bcc4,21742080.142,2309.293,50.589,5698.986,-0.339,GOOD,0.248,20,0,11305ccb,21742080.656,1799.452,46.530,5692.415,0.000,OBSL2,0.000,25,0,0810bce4,20665522.673,870.692,50.806,8086.716,-1.284,GOOD,0.248,25,0,01305ceb,20665526.038,678.462,48.855,8080.517,0.000,OBSL2,0.000,11,0,1810bd04,20362089.745,-601.177,51.571,11278.894,1.094,GOOD,0.249,11,0,11305d0b,20362090.656,-468.450,51.328,11272.415,0.000,OBSL2,0.000,0,0,0000a120,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a04120,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,0000a140,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a04140,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a160,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a04160,0.000,-0.000,0.000,0.000,0.000,NA,0.000,0,0,0000a180,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a04180,0.000,-0.005,0.000,0.000,0.000,NA,0.000,0,0,0000a1a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a041a0,0.000,-0.009,0.000,0.000,0.000,NA,0.000,0,0,0000a1c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a041c0,0.000,-0.008,0.000,0.000,0.000,NA,0.000,0,0,0000a1e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a041e0,0.000,-0.007,0.000,0.000,0.000,NA,0.000,194,0,1815be04,43595011.956,105.359,40.180,2967.754,1.259,GOOD,0.083,194,0,02359e0b,43595018.364,82.101,45.378,2964.394,0.000,OBSL2,0.000,0,0,0005a220,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258220,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,0005a240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258240,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,0005a260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,02258260,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00022280,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,000222a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,000222c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,000222e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,59,4,08119f04,19784649.048,-1697.276,40.617,11270.271,-0.406,GOOD,0.013,59,4,00b13f0b,19784654.114,-1320.105,37.078,11267.843,0.000,OBSL2,0.000,60,10,18019f24,20676119.555,2426.357,47.661,5537.208,0.000,NOIONOCORR,0.000,60,10,00a12329,0.000,1887.167,0.000,0.000,0.000,NA,0.000,58,11,08119f44,23007031.853,-3585.721,42.540,17527.469,-1.027,GOOD,0.024,58,11,00b13f4b,23007037.627,-2788.897,43.873,17525.518,0.000,OBSL2,0.000,43,3,08019f64,22109153.041,653.979,34.488,2875.611,0.000,NOIONOCORR,0.000,43,3,00a1236a,0.000,508.650,0.000,0.000,0.000,NA,0.000,49,6,08119f84,21145952.567,-3665.791,49.608,13987.188,0.206,GOOD,0.033,49,6,10b13f8b,21145960.005,-2851.174,46.300,13984.918,0.000,OBSL2,0.000,51,0,18119fa4,22949361.716,3724.046,48.048,1598.788,5.125,GOOD,0.031,51,0,00b13fab,22949370.526,2896.484,45.398,1596.718,0.000,OBSL2,0.000,50,5,18119fc4,19987988.748,-30.141,38.296,6750.071,0.488,GOOD,0.020,50,5,10b13fcb,19987994.167,-23.443,43.197,6747.661,0.000,OBSL2,0.000,42,8,18119fe4,24110164.746,-2951.318,46.765,7697.488,-2.593,GOOD,0.024,42,8,10b13feb,24110172.476,-2295.476,41.549,7695.458,0.000,OBSL2,0.000,0,0,00018000,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12000,0.000,-0.015,0.000,0.000,0.000,NA,0.000,44,12,18119c24,23028956.405,3594.785,45.326,1587.448,-2.517,GOOD,0.033,44,12,10b13c2b,23028963.538,2795.949,40.845,1585.059,0.000,OBSL2,0.000,0,0,00018040,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12040,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00018060,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12060,0.000,0.001,0.000,0.000,0.000,NA,0.000,0,0,00018080,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a12080,0.000,-0.001,0.000,0.000,0.000,NA,0.000,0,0,000180a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00a120a0,0.000,-0.003,0.000,0.000,0.000,NA,0.000,16,0,08149cc4,40527641.107,-891.176,42.389,12619.062,0.015,GOOD,0.165,16,0,00349cc4,40527646.740,-688.872,40.549,12618.900,0.000,OBSB2,0.000,16,0,016420c9,0.000,-689.114,0.000,0.000,0.000,NA,0.000,46,0,08149ce4,26203507.728,2528.383,40.344,998.850,0.000,NOIONOCORR,0.000,46,0,002480e9,0.000,1955.106,0.000,0.000,0.000,NA,0.000,46,0,51743ce4,26203516.234,1954.975,45.261,998.249,0.000,OBSB2,0.000,51,0,08048101,0.000,834.000,0.000,0.000,0.000,NA,0.000,51,0,08048101,0.000,-4166.000,0.000,0.000,0.000,NA,0.000,0,0,01642100,0.000,0.000,0.000,0.000,0.000,NA,0.000,9,0,08149d24,41114161.025,-63.950,39.061,3429.762,0.063,GOOD,0.164,9,0,00349d24,41114162.707,-49.152,40.579,6268.900,0.000,OBSB2,0.000,9,0,01642129,0.000,-49.450,0.000,0.000,0.000,NA,0.000,18,0,08048142,0.000,2191.000,0.000,0.000,0.000,NA,0.000,18,0,08048141,0.000,-3000.000,0.000,0.000,0.000,NA,0.000,0,0,01642140,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,00048160,0.000,0.000,0.000,0.000,0.000,NA,0.000,38,0,08048162,0.000,-4864.000,0.000,0.000,0.000,NA,0.000,0,0,01642160,0.000,0.000,0.000,0.000,0.000,NA,0.000,43,0,08149d84,21976230.668,-767.926,53.000,14708.749,0.000,NOIONOCORR,0.000,43,0,00248189,0.000,-593.809,0.000,0.000,0.000,NA,0.000,43,0,41743d84,21976231.759,-593.806,51.238,13013.732,0.000,OBSB2,0.000,34,0,18149da4,24778973.970,-2726.753,45.887,20888.650,0.000,NOIONOCORR,0.000,34,0,002481a9,0.000,-2108.499,0.000,0.000,0.000,NA,0.000,34,0,51743da4,24778976.771,-2108.527,42.384,20888.250,0.000,OBSB2,0.000,0,0,000481c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,10,0,080481c1,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,016421c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,1,0,088481e1,0.000,834.000,0.000,0.000,0.000,NA,0.000,1,0,088481e1,0.000,-4166.000,0.000,0.000,0.000,NA,0.000,0,0,016421e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,37,0,18149e04,23644809.748,-209.827,51.046,8888.749,0.000,NOIONOCORR,0.000,37,0,00248209,0.000,-162.252,0.000,0.000,0.000,NA,0.000,37,0,51743e04,23644814.609,-162.173,47.800,8888.589,0.000,OBSB2,0.000,21,0,08149e24,24936225.322,-66.255,47.182,6239.049,0.000,NOIONOCORR,0.000,21,0,00248229,0.000,-51.232,0.000,0.000,0.000,NA,0.000,21,0,41743e24,24936224.946,-51.236,44.955,6237.648,0.000,OBSB2,0.000,55,0,08048241,0.000,11000.000,0.000,0.000,0.000,NA,0.000,55,0,08048241,0.000,-5000.000,0.000,0.000,0.000,NA,0.000,0,0,01642240,0.000,0.000,0.000,0.000,0.000,NA,0.000,23,0,08149e64,24335820.858,-2828.899,49.305,16609.148,0.000,NOIONOCORR,0.000,23,0,00248269,0.000,-2187.484,0.000,0.000,0.000,NA,0.000,23,0,41743e64,24335817.841,-2187.432,47.603,16608.648,0.000,OBSB2,0.000,6,0,08149e84,40542914.308,-698.666,37.528,8544.843,-0.444,GOOD,0.164,6,0,10349e84,40542914.850,-540.299,43.901,10378.661,0.000,OBSB2,0.000,6,0,01642289,0.000,-540.253,0.000,0.000,0.000,NA,0.000,27,0,080482a1,0.000,0.000,0.000,0.000,0.000,NA,0.000,27,0,080482a2,0.000,-6363.000,0.000,0.000,0.000,NA,0.000,0,0,016422a0,0.000,0.000,0.000,0.000,0.000,NA,0.000,28,0,08149ec4,23032309.590,2093.708,50.562,6769.050,0.000,NOIONOCORR,0.000,28,0,002482c9,0.000,1618.988,0.000,0.000,0.000,NA,0.000,28,0,41743ec4,23032311.068,1619.068,48.490,5230.733,0.000,OBSB2,0.000,11,0,18149ee4,22903570.657,-2050.778,48.744,18098.982,1.808,GOOD,0.166,11,0,10349ee4,22903569.907,-1585.855,52.205,18098.830,0.000,OBSB2,0.000,11,0,016422e9,0.000,-1585.792,0.000,0.000,0.000,NA,0.000,48,0,08048302,0.000,1990.000,0.000,0.000,0.000,NA,0.000,48,0,08048301,0.000,-2000.000,0.000,0.000,0.000,NA,0.000,0,0,01642300,0.000,0.000,0.000,0.000,0.000,NA,0.000,39,0,18149f24,40712703.926,-1342.518,42.649,15938.900,0.000,NOIONOCORR,0.000,39,0,00248329,0.000,-1038.120,0.000,0.000,0.000,NA,0.000,39,0,41743f24,40712706.354,-1038.160,42.958,13271.623,0.000,OBSB2,0.000,26,0,08048341,0.000,9000.000,0.000,0.000,0.000,NA,0.000,26,0,08048341,0.000,-7000.000,0.000,0.000,0.000,NA,0.000,0,0,01642340,0.000,0.000,0.000,0.000,0.000,NA,0.000,42,0,08149f64,25060321.026,2422.533,46.916,3378.669,0.000,NOIONOCORR,0.000,42,0,00248369,0.000,1873.256,0.000,0.000,0.000,NA,0.000,42,0,51743f64,25060334.513,1873.301,46.947,3378.249,0.000,OBSB2,0.000,14,0,08149f84,25485562.721,3126.919,44.053,1548.970,-1.473,GOOD,0.163,14,0,00349f84,25485565.097,2418.014,47.552,1548.810,0.000,OBSB2,0.000,14,0,01642389,0.000,2417.932,0.000,0.000,0.000,NA,0.000,58,0,08049fa4,29895620.607,806.953,51.603,11229.342,0.000,BADHEALTH,0.000,58,0,002483a9,0.000,623.987,0.000,0.000,0.000,NA,0.000,58,0,016423a9,0.000,623.987,0.000,0.000,0.000,NA,0.000,0,0,826703c0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,826703e0,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,82670000,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,82670020,0.000,0.000,0.000,0.000,0.000,NA,0.000,0,0,82670040,0.000,0.000,0.000,0.000,0.000,NA,0.000*506ac68d";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 73);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_BIN_LOGLIST)
@@ -1990,7 +1994,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_BIN_LOGLIST)
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x05, 0x00, 0x00, 0x20, 0xC4, 0x00, 0x00, 0x00, 0x74, 0xB4, 0x7B, 0x08, 0x50, 0x7B, 0x11, 0x14, 0x00, 0x00, 0x01, 0x02, 0x0C, 0xC0, 0x78, 0x3F, 0x06, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x05, 0x00, 0x20, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x5E, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x1E, 0x00, 0x00, 0x61, 0x07, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x9A, 0x99, 0x99, 0x99, 0x99, 0x99, 0xA9, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xA0, 0x1E, 0x00, 0x00, 0x62, 0x07, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF6, 0x1A, 0x12, 0x29 };
    uint8_t aucLogToConvert[] = "#LOGLISTA,COM1,0,58.0,FINESTEERING,2171,336690.000,02010000,c00c,16248;6,COM1,RXSTATUSEVENTA,ONNEW,0.000000,0.000000,HOLD,COM1,LOGLISTB,ONTIME,10.000000,0.000000,NOHOLD,COM1,LOGLISTA,ONTIME,10.000000,0.000000,NOHOLD,COM2,RXSTATUSEVENTA,ONNEW,0.000000,0.000000,HOLD,CCOM1,INSPVACMPB,ONTIME,0.050000,0.000000,HOLD,CCOM1,INSPVASDCMPB,ONTIME,1.000000,0.000000,HOLD*543ff79b\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::BINARY, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::BINARY, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_LOGLIST)
@@ -1998,7 +2002,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_LOGLIST)
    unsigned char aucLog[] = "<LOGLIST COM1 0 58.0 FINESTEERING 2171 336690.000 02010000 c00c 16248\r\n<     6 \r\n<          COM1 RXSTATUSEVENTA ONNEW 0.000000 0.000000 HOLD \r\n<          COM1 LOGLISTB ONTIME 10.000000 0.000000 NOHOLD \r\n<          COM1 LOGLISTA ONTIME 10.000000 0.000000 NOHOLD \r\n<          COM2 RXSTATUSEVENTA ONNEW 0.000000 0.000000 HOLD \r\n<          CCOM1 INSPVACMPB ONTIME 0.050000 0.000000 HOLD \r\n<          CCOM1 INSPVASDCMPB ONTIME 1.000000 0.000000 HOLD\r\n";
    uint8_t aucLogToConvert[] = "#LOGLISTA,COM1,0,58.0,FINESTEERING,2171,336690.000,02010000,c00c,16248;6,COM1,RXSTATUSEVENTA,ONNEW,0.000000,0.000000,HOLD,COM1,LOGLISTB,ONTIME,10.000000,0.000000,NOHOLD,COM1,LOGLISTA,ONTIME,10.000000,0.000000,NOHOLD,COM2,RXSTATUSEVENTA,ONNEW,0.000000,0.000000,HOLD,CCOM1,INSPVACMPB,ONTIME,0.050000,0.000000,HOLD,CCOM1,INSPVASDCMPB,ONTIME,1.000000,0.000000,HOLD*543ff79b\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 71);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_BIN_BESTSATS)
@@ -2006,7 +2010,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_BIN_BESTSATS)
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0xAA, 0x04, 0x00, 0x20, 0x84, 0x02, 0x00, 0x00, 0x6E, 0xB4, 0x7B, 0x08, 0xA0, 0xE9, 0xB7, 0x13, 0x00, 0x00, 0x01, 0x02, 0x05, 0xBE, 0x78, 0x3F, 0x28, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x17, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0xC2, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x85, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x8A, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x83, 0x00, 0x00, 0x00, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x16, 0x00, 0xFD, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x17, 0x00, 0x03, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x07, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0E, 0x00, 0xF9, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x18, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x08, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x1E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x2C, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x23, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x1D, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x38, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x1A, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x39, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x65, 0x23, 0x06 };
    uint8_t aucLogToConvert[] = "#BESTSATSA,COM1,0,55.0,FINESTEERING,2171,330820.000,02010000,be05,16248;40,GPS,10,GOOD,00000007,GPS,29,GOOD,00000003,GPS,13,GOOD,00000003,GPS,15,GOOD,00000003,GPS,16,GOOD,00000003,GPS,18,GOOD,00000007,GPS,27,GOOD,00000007,GPS,5,GOOD,00000003,GPS,26,GOOD,00000007,GPS,23,GOOD,00000007,QZSS,194,SUPPLEMENTARY,00000007,SBAS,133,NOTUSED,00000000,SBAS,138,NOTUSED,00000000,SBAS,131,NOTUSED,00000000,GLONASS,22-3,GOOD,00000003,GLONASS,15,GOOD,00000003,GLONASS,23+3,SUPPLEMENTARY,00000001,GLONASS,1+1,GOOD,00000003,GLONASS,7+5,GOOD,00000003,GLONASS,14-7,GOOD,00000003,GLONASS,24+2,GOOD,00000003,GLONASS,8+6,GOOD,00000003,GALILEO,5,GOOD,0000000f,GALILEO,4,GOOD,0000000f,GALILEO,27,GOOD,0000000f,GALILEO,11,GOOD,0000000f,GALILEO,30,GOOD,0000000f,GALILEO,36,GOOD,0000000f,GALILEO,9,GOOD,0000000f,BEIDOU,44,LOCKEDOUT,00000000,BEIDOU,35,LOCKEDOUT,00000000,BEIDOU,7,NOEPHEMERIS,00000000,BEIDOU,29,SUPPLEMENTARY,00000001,BEIDOU,40,NOEPHEMERIS,00000000,BEIDOU,32,LOCKEDOUT,00000000,BEIDOU,22,ELEVATIONERROR,00000000,BEIDOU,56,NOEPHEMERIS,00000000,BEIDOU,19,SUPPLEMENTARY,00000001,BEIDOU,20,SUPPLEMENTARY,00000001,BEIDOU,57,NOEPHEMERIS,00000000*5c85690f\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::BINARY, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::BINARY, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_BESTSATS)
@@ -2014,7 +2018,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_BESTSATS)
    unsigned char aucLog[] = "<BESTSATS COM1 0 51.0 FINESTEERING 2211 419330.000 02000000 be05 32768\r\n<     34 \r\n<          GPS 5 GOOD 00000003 \r\n<          GPS 29 GOOD 00000003 \r\n<          GPS 9 GOOD 00000003 \r\n<          GPS 6 GOOD 00000003 \r\n<          GPS 31 GOOD 00000003 \r\n<          GPS 2 GOOD 00000003 \r\n<          GPS 20 GOOD 00000003 \r\n<          GPS 25 GOOD 00000003 \r\n<          GPS 11 GOOD 00000003 \r\n<          QZSS 194 GOOD 00000003 \r\n<          GLONASS 22-3 GOOD 00000003 \r\n<          GLONASS 23+3 NOIONOCORR 00000000 \r\n<          GLONASS 21+4 GOOD 00000003 \r\n<          GLONASS 6-4 NOIONOCORR 00000000 \r\n<          GLONASS 12-1 GOOD 00000003 \r\n<          GLONASS 14-7 GOOD 00000003 \r\n<          GLONASS 13-2 GOOD 00000003 \r\n<          GLONASS 24+2 GOOD 00000003 \r\n<          GLONASS 7+5 GOOD 00000003 \r\n<          BEIDOU 16 GOOD 00000003 \r\n<          BEIDOU 46 NOIONOCORR 00000000 \r\n<          BEIDOU 9 GOOD 00000003 \r\n<          BEIDOU 43 NOIONOCORR 00000000 \r\n<          BEIDOU 34 NOIONOCORR 00000000 \r\n<          BEIDOU 33 NOIONOCORR 00000000 \r\n<          BEIDOU 37 NOIONOCORR 00000000 \r\n<          BEIDOU 21 NOIONOCORR 00000000 \r\n<          BEIDOU 23 NOIONOCORR 00000000 \r\n<          BEIDOU 6 GOOD 00000003 \r\n<          BEIDOU 28 NOIONOCORR 00000000 \r\n<          BEIDOU 11 GOOD 00000003 \r\n<          BEIDOU 42 NOIONOCORR 00000000 \r\n<          BEIDOU 14 GOOD 00000003 \r\n<          BEIDOU 58 BADHEALTH 00000000\r\n";
    uint8_t aucLogToConvert[] = "#BESTSATSA,COM1,0,51.0,FINESTEERING,2211,419330.000,02000000,be05,32768;34,GPS,5,GOOD,00000003,GPS,29,GOOD,00000003,GPS,9,GOOD,00000003,GPS,6,GOOD,00000003,GPS,31,GOOD,00000003,GPS,2,GOOD,00000003,GPS,20,GOOD,00000003,GPS,25,GOOD,00000003,GPS,11,GOOD,00000003,QZSS,194,GOOD,00000003,GLONASS,22-3,GOOD,00000003,GLONASS,23+3,NOIONOCORR,00000000,GLONASS,21+4,GOOD,00000003,GLONASS,6-4,NOIONOCORR,00000000,GLONASS,12-1,GOOD,00000003,GLONASS,14-7,GOOD,00000003,GLONASS,13-2,GOOD,00000003,GLONASS,24+2,GOOD,00000003,GLONASS,7+5,GOOD,00000003,BEIDOU,16,GOOD,00000003,BEIDOU,46,NOIONOCORR,00000000,BEIDOU,9,GOOD,00000003,BEIDOU,43,NOIONOCORR,00000000,BEIDOU,34,NOIONOCORR,00000000,BEIDOU,33,NOIONOCORR,00000000,BEIDOU,37,NOIONOCORR,00000000,BEIDOU,21,NOIONOCORR,00000000,BEIDOU,23,NOIONOCORR,00000000,BEIDOU,6,GOOD,00000003,BEIDOU,28,NOIONOCORR,00000000,BEIDOU,11,GOOD,00000003,BEIDOU,42,NOIONOCORR,00000000,BEIDOU,14,GOOD,00000003,BEIDOU,58,BADHEALTH,00000000*156e7202\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 72);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_BIN_RAWGPSSUBFRAME)
@@ -2022,7 +2026,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_BIN_RAWGPSSUBFRAME)
    unsigned char aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0x19, 0x00, 0x00, 0x20, 0x30, 0x00, 0x00, 0x00, 0x66, 0xB4, 0x7B, 0x08, 0x30, 0xD3, 0x1F, 0x14, 0x00, 0x00, 0x01, 0x02, 0x57, 0x04, 0x78, 0x3F, 0x06, 0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x8B, 0x01, 0xEC, 0x6D, 0xE7, 0xA4, 0x1E, 0xD0, 0x00, 0x2D, 0x80, 0x24, 0x86, 0x30, 0xFB, 0xE7, 0xAA, 0x3A, 0x04, 0xA4, 0xEA, 0x0C, 0x52, 0x9E, 0x00, 0x00, 0x13, 0x12, 0x15, 0x66, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x97, 0x0C, 0x92, 0xAB };
    uint8_t aucLogToConvert[] = "#RAWGPSSUBFRAMEA,COM1,0,51.0,FINESTEERING,2171,337630.000,02010000,0457,16248;6,21,1,8b01ec6de7a41ed0002d80248630fbe7aa3a04a4ea0c529e000013121566,6*91fc6cdd\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::BINARY, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::BINARY, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_RAWGPSSUBFRAME)
@@ -2030,14 +2034,14 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_RAWGPSSUBFRAME)
    unsigned char aucLog[] = "<RAWGPSSUBFRAME COM1 0 53.5 FINESTEERING 2211 419460.000 02000000 0457 32768\r\n<     12 20 4 8b028c888ab35d11dd7b18d5fd4200a10d36427feb5cc4cbc33fcabcffe6 12\r\n";
    uint8_t aucLogToConvert[] = "#RAWGPSSUBFRAMEA,COM1,0,53.5,FINESTEERING,2211,419460.000,02000000,0457,32768;12,20,4,8b028c888ab35d11dd7b18d5fd4200a10d36427feb5cc4cbc33fcabcffe6,12*86299402\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 78);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, BINARY_BESTUTM)
 {
    uint8_t aucLog[] = { 0xAA, 0x44, 0x12, 0x1C, 0xD6, 0x02, 0x00, 0xA0, 0x50, 0x00, 0x00, 0x00, 0x91, 0xB4, 0xBD, 0x08, 0x18, 0xCD, 0x0F, 0x10, 0x00, 0x00, 0x00, 0x1A, 0x0A, 0xA4, 0x6F, 0x42, 0x00, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x0B, 0x00, 0x00, 0x00, 0x55, 0x00, 0x00, 0x00, 0xE3, 0xCA, 0x9A, 0x89, 0xD6, 0xA1, 0x55, 0x41, 0xD0, 0xB2, 0xEA, 0x2C, 0x9C, 0x98, 0x25, 0x41, 0x00, 0x60, 0x16, 0xCD, 0x30, 0x29, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x9B, 0x5A, 0x42, 0x3F, 0x37, 0x8E, 0x16, 0x3F, 0x79, 0x4A, 0xB7, 0x3F, 0x31, 0x33, 0x31, 0x00, 0x00, 0x00, 0x80, 0x40, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x0A, 0x0A, 0x0A, 0x00, 0x06, 0x00, 0x03, 0x93, 0xF1, 0x5F, 0x62 };
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog), OEM4_BINARY_HEADER_LENGTH);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODEFORMAT::BINARY, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_FIELDS_AFTER_ARRAY)
@@ -2045,7 +2049,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_ASC_TO_ABB_FIELDS_AFTER_ARRAY)
    unsigned char aucLog[] = "<SBAS26 COM1 0 29.5 SATTIME 2234 401104.000 03000020 ec70 16860\r\n<     132 6 5 15 \r\n<          51 13 \r\n<          23 12 \r\n<          7 12 \r\n<          3 12 \r\n<          0 13 \r\n<          0 0 \r\n<          0 0 \r\n<          0 0 \r\n<          0 0 \r\n<          0 0 \r\n<          0 0 \r\n<          0 0 \r\n<          0 0 \r\n<          0 0 \r\n<          0 0 \r\n<     3 0\r\n";
    uint8_t aucLogToConvert[] = "#SBAS26A,COM1,0,29.5,SATTIME,2234,401104.000,03000020,ec70,16860;132,6,5,15,51,13,23,12,7,12,3,12,0,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0*f98d2da0\r\n";
    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 65);
-   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODEFORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
+   ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestConversion(ENCODE_FORMAT::ABBREV_ASCII, aucLogToConvert, &stExpectedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -2055,7 +2059,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_TO_FLAT_BIN_HEADER_SHORT_ASC_TO_ASC)
 {
    unsigned char aucLog1[] = "#INSPVAA,COM1,0,52.5,FINESTEERING,2174,397710.000,02000000,18bc,16649;2174,397710.000000000,51.15044562951,-114.03068302183,1079.6234,0.0020,0.0018,-0.0026,0.728127738,0.536322202,-0.000000000,WAITING_AZIMUTH*259ccd57";
    unsigned char aucLog2[] = "%INSPVASA,2174,397710.000;2174,397710.000000000,51.15044562951,-114.03068302183,1079.6234,0.0020,0.0018,-0.0026,0.728127738,0.536322202,-0.000000000,WAITING_AZIMUTH*e632993c\r\n";
-   ConversionFlatBinaryHelper<void, OEM4BinaryShortHeader>(aucLog1, aucLog2);
+   ConversionFlatBinaryHelper<void, Oem4BinaryShortHeader>(aucLog1, aucLog2);
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_TO_FLAT_BIN_HEADER_SHORT_BIN_TO_BIN)
@@ -2063,7 +2067,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_TO_FLAT_BIN_HEADER_SHORT_BIN_TO_BIN)
    // INSPVA, INSPVAS
    uint8_t aucLog1[] = { 0xAA, 0x44, 0x12, 0x1C, 0xFB, 0x01, 0x00, 0x20, 0x58, 0x00, 0x00, 0x00, 0x69, 0xB4, 0x7E, 0x08, 0xB0, 0x92, 0xB4, 0x17, 0x00, 0x00, 0x00, 0x02, 0xBC, 0x18, 0x09, 0x41, 0x7E, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x38, 0x46, 0x18, 0x41, 0x8C, 0x48, 0x69, 0xCD, 0x41, 0x93, 0x49, 0x40, 0x24, 0xD4, 0xEB, 0xB5, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x60, 0xF6, 0x55, 0x7E, 0xDE, 0x90, 0x40, 0xA1, 0x23, 0x99, 0x4C, 0x9F, 0x31, 0x60, 0x3F, 0x94, 0xFB, 0xF1, 0x3D, 0x25, 0x88, 0x5D, 0x3F, 0xF5, 0x27, 0x2C, 0xF6, 0xA2, 0x75, 0x65, 0xBF, 0x15, 0xA3, 0xE2, 0x8A, 0xD2, 0x4C, 0xE7, 0x3F, 0x32, 0xBD, 0xB3, 0x2D, 0x8D, 0x29, 0xE1, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x0A, 0x00, 0x00, 0x00, 0xCB, 0x85, 0x94, 0xA8 };
    uint8_t aucLog2[] = { 0xAA, 0x44, 0x13, 0x58, 0xFC, 0x01, 0x7E, 0x08, 0xB0, 0x92, 0xB4, 0x17, 0x7E, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x38, 0x46, 0x18, 0x41, 0x8C, 0x48, 0x69, 0xCD, 0x41, 0x93, 0x49, 0x40, 0x24, 0xD4, 0xEB, 0xB5, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x60, 0xF6, 0x55, 0x7E, 0xDE, 0x90, 0x40, 0xA1, 0x23, 0x99, 0x4C, 0x9F, 0x31, 0x60, 0x3F, 0x94, 0xFB, 0xF1, 0x3D, 0x25, 0x88, 0x5D, 0x3F, 0xF5, 0x27, 0x2C, 0xF6, 0xA2, 0x75, 0x65, 0xBF, 0x15, 0xA3, 0xE2, 0x8A, 0xD2, 0x4C, 0xE7, 0x3F, 0x32, 0xBD, 0xB3, 0x2D, 0x8D, 0x29, 0xE1, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x0A, 0x00, 0x00, 0x00, 0x5A, 0xDA, 0x26, 0x64 };
-   ConversionFlatBinaryHelper<void, OEM4BinaryShortHeader>(aucLog1, aucLog2);
+   ConversionFlatBinaryHelper<void, Oem4BinaryShortHeader>(aucLog1, aucLog2);
 }
 
 TEST_F(DecodeEncodeTest, CONVERSION_TO_FLAT_BIN_BESTSATS_ABB_AND_ASC)
@@ -2167,7 +2171,7 @@ protected:
    }
 
 public:
-   STATUS TestCommandConversion(std::string sCommandToEncode_, char* pcEncodedCommandBuffer_, uint32_t uiEncodedCommandBufferSize_, ENCODEFORMAT eFormat_)
+   STATUS TestCommandConversion(std::string sCommandToEncode_, char* pcEncodedCommandBuffer_, uint32_t uiEncodedCommandBufferSize_, ENCODE_FORMAT eFormat_)
    {
       return pclMyCommander->Encode(sCommandToEncode_.c_str(), static_cast<uint32_t>(sCommandToEncode_.length()), pcEncodedCommandBuffer_, uiEncodedCommandBufferSize_, eFormat_);
    }
@@ -2197,7 +2201,7 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_ASCII_CONFIGCODE)
    char aucExpectedCommand[] = "#CONFIGCODEA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,dbc9,0;ERASE_TABLE,\"WJ4HDW\",\"GM5Z99\",\"T2M7DP\",\"KG2T8T\",\"KF7GKR\",\"TABLECLEAR\"*69419dec\r\n";
    char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
 
-   ASSERT_EQ(STATUS::SUCCESS, TestCommandConversion("CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\"", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODEFORMAT::ASCII));
+   ASSERT_EQ(STATUS::SUCCESS, TestCommandConversion("CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\"", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODE_FORMAT::ASCII));
    ASSERT_EQ(0, memcmp(acEncodeBuffer, aucExpectedCommand, sizeof(aucExpectedCommand)));
 }
 
@@ -2206,7 +2210,7 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_ASCII_INSTHRESHOLDS)
    char aucExpectedCommand[] = "#INSTHRESHOLDSA,THISPORT,0,0.0,UNKNOWN,0,0.000,00000000,48a5,0;LOW,0.000000000,0.000000000,0.000000000*3989c2ac\r\n";
    char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
 
-   TestCommandConversion("INSTHRESHOLDS LOW 0.0 0.0 0.0", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODEFORMAT::ASCII);
+   TestCommandConversion("INSTHRESHOLDS LOW 0.0 0.0 0.0", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODE_FORMAT::ASCII);
    ASSERT_EQ(0, memcmp(acEncodeBuffer, aucExpectedCommand, sizeof(aucExpectedCommand)));
 }
 
@@ -2218,14 +2222,14 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_CONFIGCODE)
    unsigned char aucExpectedCommand[] = { 0xAA, 0x44, 0x12, 0x1C, 0x11, 0x04, 0x00, 0xC0, 0x38, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC9, 0xDB, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x57, 0x4A, 0x34, 0x48, 0x44, 0x57, 0x00, 0x00, 0x47, 0x4D, 0x35, 0x5A, 0x39, 0x39, 0x00, 0x00, 0x54, 0x32, 0x4D, 0x37, 0x44, 0x50, 0x00, 0x00, 0x4B, 0x47, 0x32, 0x54, 0x38, 0x54, 0x00, 0x00, 0x4B, 0x46, 0x37, 0x47, 0x4B, 0x52, 0x00, 0x00, 0x54, 0x41, 0x42, 0x4C, 0x45, 0x43, 0x4C, 0x45, 0x41, 0x52, 0x00, 0x00, 0x06, 0xF3, 0x54, 0x45 };
    char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
 
-   ASSERT_EQ(STATUS::SUCCESS, TestCommandConversion("CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\"", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODEFORMAT::BINARY));
+   ASSERT_EQ(STATUS::SUCCESS, TestCommandConversion("CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\"", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODE_FORMAT::BINARY));
    ASSERT_EQ(0, memcmp(acEncodeBuffer, aucExpectedCommand, sizeof(aucExpectedCommand)));
 }
 
 TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_LOG_PARTIAL)
 {
    char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
-   ASSERT_EQ(STATUS::MALFORMED_INPUT, TestCommandConversion("LOG THISPORT BESTPOSA ONCE\r\n", acEncodeBuffer, sizeof(acEncodeBuffer), ENCODEFORMAT::BINARY));
+   ASSERT_EQ(STATUS::MALFORMED_INPUT, TestCommandConversion("LOG THISPORT BESTPOSA ONCE\r\n", acEncodeBuffer, sizeof(acEncodeBuffer), ENCODE_FORMAT::BINARY));
 }
 
 TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_UALCONTROL)
@@ -2233,7 +2237,7 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_UALCONTROL)
    unsigned char aucExpectedCommand[] = { 0xAA, 0x44, 0x12, 0x1C, 0x5B, 0x06, 0x00, 0xC0, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA3, 0x49, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F, 0xFF, 0xF8, 0x3A, 0xA7 };
    char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
 
-   ASSERT_EQ(STATUS::SUCCESS, TestCommandConversion("UALCONTROL ENABLE 2.0 1.0", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODEFORMAT::BINARY));
+   ASSERT_EQ(STATUS::SUCCESS, TestCommandConversion("UALCONTROL ENABLE 2.0 1.0", acEncodeBuffer, sizeof(aucExpectedCommand), ENCODE_FORMAT::BINARY));
    ASSERT_EQ(0, memcmp(acEncodeBuffer, aucExpectedCommand, sizeof(aucExpectedCommand)));
 }
 
@@ -2274,7 +2278,7 @@ std::unique_ptr<Encoder> BenchmarkTest::pclMyEncoder = nullptr;
 
 void BenchmarkHelper(BenchmarkTest& test, unsigned char* aucLog)
 {
-   for (const auto eFormat : { ENCODEFORMAT::ASCII, ENCODEFORMAT::BINARY, ENCODEFORMAT::FLATTENED_BINARY, ENCODEFORMAT::ABBREV_ASCII, ENCODEFORMAT::JSON })
+   for (const auto eFormat : { ENCODE_FORMAT::ASCII, ENCODE_FORMAT::BINARY, ENCODE_FORMAT::FLATTENED_BINARY, ENCODE_FORMAT::ABBREV_ASCII, ENCODE_FORMAT::JSON })
    {
       unsigned char aucEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
       unsigned char* pucEncodeBuffer = aucEncodeBuffer;
@@ -2514,12 +2518,12 @@ TEST_F(FilterTest, STOP_TIME)
 
 TEST_F(FilterTest, MESSAGE_FORMAT)
 {
-   std::vector<std::tuple<std::string, HEADERFORMAT, MEASUREMENT_SOURCE>> filterlist = {
-      {"BESTPOS", HEADERFORMAT::ASCII, MEASUREMENT_SOURCE::PRIMARY},
-      {"RAWIMUSX", HEADERFORMAT::SHORT_ASCII, MEASUREMENT_SOURCE::PRIMARY}
+   std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>> filterList = {
+      {"BESTPOS", HEADER_FORMAT::ASCII, MEASUREMENT_SOURCE::PRIMARY},
+      {"RAWIMUSX", HEADER_FORMAT::SHORT_ASCII, MEASUREMENT_SOURCE::PRIMARY}
    };
 
-   pclMyFilter->IncludeMessageName(filterlist);
+   pclMyFilter->IncludeMessageName(filterList);
 
    ASSERT_TRUE(TestFilter("#BESTPOSA,COM1,0,8.0,FINESTEERING,2180,313698.000,024000a0,cdba,32768;SOL_COMPUTED,SINGLE,51.15045046450,-114.03068725072,1097.2706,-17.0000,WGS84,1.3811,1.1629,3.1178,\"\",0.000,0.000,24,22,22,0,00,02,11,11*c64c3d4a\r\n"));
    ASSERT_TRUE(TestFilter("%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"));
@@ -2530,7 +2534,7 @@ TEST_F(FilterTest, MESSAGE_FORMAT)
 
 TEST_F(FilterTest, MESSAGE_ID)
 {
-   pclMyFilter->IncludeMessageId(42, HEADERFORMAT::ASCII, MEASUREMENT_SOURCE::PRIMARY);
+   pclMyFilter->IncludeMessageId(42, HEADER_FORMAT::ASCII, MEASUREMENT_SOURCE::PRIMARY);
 
    ASSERT_TRUE(TestFilter("#BESTPOSA,COM1,0,8.0,FINESTEERING,2180,313698.000,024000a0,cdba,32768;SOL_COMPUTED,SINGLE,51.15045046450,-114.03068725072,1097.2706,-17.0000,WGS84,1.3811,1.1629,3.1178,\"\",0.000,0.000,24,22,22,0,00,02,11,11*c64c3d4a\r\n"));
 
@@ -2541,9 +2545,9 @@ TEST_F(FilterTest, MESSAGE_ID)
 
 TEST_F(FilterTest, MULTIPLE_MESSAGE_ID)
 {
-   std::vector<std::tuple<uint32_t, HEADERFORMAT, MEASUREMENT_SOURCE>> message_ids = {
-      { 43,  HEADERFORMAT::ASCII, MEASUREMENT_SOURCE::PRIMARY },
-      { 718, HEADERFORMAT::ASCII, MEASUREMENT_SOURCE::PRIMARY },
+   std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>> message_ids = {
+      { 43,  HEADER_FORMAT::ASCII, MEASUREMENT_SOURCE::PRIMARY },
+      { 718, HEADER_FORMAT::ASCII, MEASUREMENT_SOURCE::PRIMARY },
    };
 
    pclMyFilter->IncludeMessageId(message_ids);
@@ -2579,7 +2583,7 @@ invert:
 
 TEST_F(FilterTest, MEASUREMENT_SOURCE_SECONDARY)
 {
-   pclMyFilter->IncludeMessageId(43, HEADERFORMAT::ASCII, MEASUREMENT_SOURCE::SECONDARY);
+   pclMyFilter->IncludeMessageId(43, HEADER_FORMAT::ASCII, MEASUREMENT_SOURCE::SECONDARY);
 
    ASSERT_TRUE(TestFilter("#RANGEA_1,COM1,0,49.0,FINESTEERING,2167,159740.000,02000000,5103,16248;115,20,0,23291390.821,0.051,-122397109.320305,0.011,-3214.414,44.0,16498.975,1810bc04,20,0,23291389.349,0.184,-95374376.486282,0.013,-2504.740,41.1,16492.754,11303c0b,29,0,20705108.295,0.022,-108806118.750397,0.005,-1620.698,51.2,14908.774,0810bc44,29,0,20705106.528,0.061,-84783996.294254,0.006,-1262.882,50.7,14902.754,01303c4b,29,0,20705107.069,0.025,-84783990.539554,0.005,-1262.882,51.3,14905.534,02309c4b,13,0,22941454.717,0.042,-120558183.531157,0.009,2111.590,45.7,3984.555,1810bc64,13,0,22941453.693,0.180,-93941456.741696,0.011,1645.396,41.2,3978.255,11303c6b,15,0,22752775.227,0.046,-119566687.005913,0.012,3112.730,44.8,3628.275,0810bc84,15,0,22752775.420,0.118,-93168858.308908,0.012,2425.506,44.9,3622.754,01303c8b,15,0,22752775.932,0.043,-93168851.550483,0.012,2425.505,46.7,3625.014,02309c8b,16,0,23437165.563,0.058,-123163154.592686,0.010,1667.743,42.8,3318.855,1810bca4,16,0,23437164.832,0.179,-95971289.711375,0.012,1299.540,41.3,3313.415,11303cab,18,0,20870226.835,0.024,-109673843.056839,0.005,1782.527,50.4,7988.975,1810bcc4,18,0,20870225.520,0.080,-85460161.951054,0.006,1388.983,48.3,7983.255,11303ccb,18,0,20870225.982,0.024,-85460166.200662,0.006,1388.983,51.9,7985.814,02309ccb,18,0,20870231.341,0.004,-81899348.012827,0.003,1331.096,55.4,7987.255,01d03cc4,5,0,20977730.840,0.024,-110238771.341810,0.006,-1850.683,50.6,12588.896,0810bd04,5,0,20977729.403,0.070,-85900356.288455,0.006,-1442.091,49.4,12583.755,01303d0b,5,0,20977730.127,0.030,-85900355.538492,0.006,-1442.091,49.8,12585.716,02309d0b,26,0,22753733.201,0.042,-119571694.561007,0.008,-494.798,45.7,7318.775,1810bd24,26,0,22753735.163,0.118,-93172767.333088,0.010,-385.557,44.9,7312.755,11303d2b,26,0,22753735.387,0.043,-93172769.582418,0.009,-385.557,46.7,7315.375,02309d2b,26,0,22753735.481,0.008,-89290576.088766,0.005,-369.472,50.1,7316.815,01d03d24,23,0,23067782.934,0.040,-121222050.181679,0.009,3453.274,46.0,3078.894,0810bd44,23,0,23067783.254,0.142,-94458759.273215,0.010,2690.865,43.3,3073.754,01303d4b,23,0,23067783.763,0.040,-94458764.522108,0.009,2690.865,47.3,3076.395,02309d4b,23,0,23067789.450,0.007,-90523004.360543,0.004,2578.883,51.2,3077.834,01d03d44,194,0,43027813.095,0.065,-226112681.899748,0.013,43.499,41.9,17178.695,1815be04,194,0,43027815.196,0.059,-176191709.875251,0.014,33.896,44.0,17173.014,02359e0b,194,0,43027817.865,0.014,-168850394.176443,0.007,32.406,45.4,17177.053,01d53e04,131,0,38480107.260,0.124,-202214296.438902,0.009,-0.922,46.2,292335.531,48023e84,133,0,38618703.555,0.119,-202942631.161186,0.007,0.421,46.7,916697.188,58023ec4,138,0,38495561.597,0.116,-202295515.714333,0.008,-4.752,46.8,292343.625,48023ee4,45,13,20655319.254,0.111,-110608334.938276,0.006,-1928.119,46.3,9728.839,18119f04,45,13,20655320.731,0.021,-86028727.119001,0.006,-1499.649,45.9,9724.239,10b13f0b,45,13,20655321.099,0.092,-86028721.367030,0.006,-1499.649,46.1,9725.238,10319f0b,53,6,23361335.550,0.284,-124792043.406215,0.017,1741.893,38.1,444.840,08119f24,53,6,23361340.271,0.098,-97060514.793435,0.017,1354.807,32.6,444.741,00b13f2b,53,6,23361339.423,0.393,-97060517.036654,0.018,1354.806,33.5,444.801,10319f2b,60,10,20724752.466,0.106,-110863493.957380,0.007,-2492.451,46.7,16549.037,18019f44,39,3,23534282.253,0.169,-125583452.109842,0.012,4608.280,42.6,557.668,08119f84,39,3,23534291.023,0.027,-97676038.550992,0.013,3584.223,43.8,552.119,10b13f8b,39,3,23534290.639,0.108,-97676048.806539,0.013,3584.223,44.7,552.959,10319f8b,61,9,19285134.504,0.086,-103126338.171372,0.005,228.766,48.6,11128.199,08119fa4,61,9,19285138.043,0.020,-80209402.132964,0.005,177.929,46.3,11124.118,00b13fab,61,9,19285138.376,0.084,-80209411.390794,0.005,177.929,46.9,11125.037,00319fab,52,7,22348227.548,0.137,-119422164.171132,0.008,-1798.230,44.4,7458.668,08119fc4,52,7,22348232.044,0.025,-92883929.564420,0.008,-1398.625,44.4,7453.898,00b13fcb,52,7,22348232.124,0.104,-92883930.822797,0.008,-1398.624,45.0,7455.038,10319fcb,54,11,21518220.426,0.169,-115148393.440041,0.010,3262.249,42.6,3877.098,18119fe4,54,11,21518225.678,0.025,-89559888.534930,0.010,2537.306,44.6,3871.818,00b13feb,54,11,21518226.376,0.107,-89559882.794247,0.010,2537.307,44.8,3872.818,10319feb,51,0,23917426.780,0.130,-127493324.706900,0.008,-3976.867,44.9,13028.379,08119c04,51,0,23917434.944,0.031,-99161492.405944,0.010,-3093.121,42.6,13024.238,10b13c0b,51,0,23917434.780,0.126,-99161488.657552,0.010,-3093.121,43.4,13025.178,00319c0b,38,8,19851538.779,0.107,-106117893.493769,0.007,1849.414,46.6,6208.818,08119c24,38,8,19851544.763,0.031,-82536182.471767,0.007,1438.434,42.6,6204.118,00b13c2b,38,8,19851543.771,0.124,-82536181.722576,0.007,1438.434,43.6,6205.038,00319c2b,25,0,27861125.116,0.078,-146411169.405727,0.011,-3136.592,43.2,21188.543,08539cc4,25,0,27861133.366,0.009,-109333028.194067,0.005,-2342.203,49.0,21186.443,01933cc4,25,0,27861129.463,0.011,-112185182.897162,0.006,-2403.344,47.0,21186.443,02333cc4,25,0,27861129.580,0.007,-110759098.611107,0.006,-2372.787,50.8,21186.164,02933cc4,4,0,25274631.488,0.038,-132819124.897734,0.006,997.361,49.6,7638.783,08539ce4,4,0,25274635.181,0.007,-99183140.380658,0.004,744.803,50.8,7636.565,01933ce4,4,0,25274631.890,0.007,-101770517.169783,0.004,764.254,50.9,7636.444,02333ce4,4,0,25274631.708,0.005,-100476824.840813,0.004,754.545,53.6,7636.363,02933ce4,12,0,26373649.887,0.092,-138594449.111813,0.012,-2565.281,41.8,26740.730,08539d04,12,0,26373653.619,0.019,-103495853.823161,0.008,-1915.449,42.6,26738.648,01933d04,12,0,26373650.081,0.023,-106195738.067164,0.011,-1965.500,41.1,26738.449,02333d04,12,0,26373650.251,0.015,-104845791.009488,0.010,-1940.442,44.6,26738.371,02933d04,11,0,22137124.256,0.039,-116331408.305147,0.015,-1200.216,49.2,19415.590,08539d24,11,0,22137125.344,0.008,-86870883.829203,0.011,-896.289,49.8,19413.172,01933d24,11,0,22137122.146,0.008,-89137066.170706,0.012,-919.719,49.6,19413.248,02333d24,11,0,22137121.891,0.006,-88003971.568373,0.011,-908.028,52.4,19413.172,02933d24,30,0,25928558.680,0.072,-136255508.290211,0.010,743.664,43.9,3960.112,08539d44,30,0,25928564.638,0.011,-101749279.487957,0.006,555.328,47.5,4752.748,01933d44,30,0,25928561.460,0.010,-104403592.595320,0.005,569.759,48.1,4753.047,02333d44,30,0,25928561.332,0.008,-103076425.609137,0.006,562.539,50.5,4752.767,02933d44,2,0,25889111.981,0.043,-136048218.157560,0.006,-1792.931,48.4,12654.424,08539d64,2,0,25889117.006,0.009,-101594476.864922,0.005,-1338.866,48.7,12652.444,01933d64,2,0,25889114.168,0.009,-104244753.680674,0.004,-1373.765,49.5,12651.978,02333d64,2,0,25889113.739,0.007,-102919609.843844,0.005,-1356.370,51.8,12651.943,02933d64,19,0,27039623.380,0.118,-142094196.888887,0.015,-1878.632,39.7,11125.104,08539d84,19,0,27039628.887,0.020,-106109319.847355,0.010,-1402.842,41.9,11123.043,01933d84,19,0,27039625.153,0.024,-108877382.476710,0.011,-1439.341,40.6,11122.757,02333d84,19,0,27039625.337,0.016,-107493348.232960,0.010,-1421.103,44.1,11122.765,02933d84,36,0,23927504.603,0.030,-125739945.419298,0.005,1241.596,51.7,11037.264,08539da4,36,0,23927510.217,0.006,-93896767.646843,0.004,927.156,52.9,11035.164,01933da4,36,0,23927507.273,0.006,-96346233.181780,0.004,951.361,53.2,11035.376,02333da4,36,0,23927507.057,0.004,-95121494.979676,0.004,939.285,55.8,11031.874,02933da4,9,0,24890379.004,0.046,-130799846.144936,0.007,3052.621,47.8,2955.889,08539dc4,9,0,24890384.304,0.009,-97675250.055577,0.005,2279.540,49.1,2953.828,01933dc4,9,0,24890381.065,0.008,-100223286.825938,0.004,2338.979,50.0,2953.762,02333dc4,9,0,24890381.366,0.006,-98949262.506583,0.005,2309.297,52.2,2949.700,02933dc4,23,0,26593863.945,0.036,-138481231.000933,0.010,-48.553,44.1,2628.888,08149ec4,23,0,26593862.563,0.010,-104360035.310223,0.005,-36.590,48.2,2623.647,41343ec4,34,0,23330414.273,0.017,-121487628.857801,0.005,2280.558,50.6,6539.069,58149ee4,34,0,23330415.641,0.008,-91553618.939049,0.005,1718.641,50.1,6533.770,41343ee4,35,0,24822913.452,0.024,-129259432.414616,0.007,-2925.143,47.4,23499.049,58149f04,35,0,24822915.980,0.012,-97410461.716286,0.006,-2204.368,46.7,23493.830,41343f04,11,0,24964039.739,0.052,-129994328.361984,0.014,2939.333,40.8,2708.970,18149f24,11,0,24964038.060,0.022,-100519869.959755,0.006,2272.851,48.3,2708.810,00349f24,19,0,23905947.282,0.033,-124484578.888819,0.009,-2342.726,44.8,13489.051,18149f44,19,0,23905949.046,0.008,-93812119.376225,0.005,-1765.479,50.1,13483.831,41343f44,21,0,24577306.170,0.027,-127980528.823414,0.008,3242.344,46.7,3439.068,18149f84,21,0,24577307.993,0.008,-96446682.849511,0.005,2443.502,49.7,3433.828,41343f84,22,0,22438270.920,0.015,-116842012.781567,0.005,729.096,51.5,8979.049,18149fa4,22,0,22438269.274,0.005,-88052653.428423,0.003,549.506,54.1,8973.770,41343fa4,44,0,21553538.984,0.014,-112234979.640419,0.005,-679.127,52.1,15439.131,48149ca4,44,0,21553540.824,0.005,-84580779.869687,0.003,-511.716,53.6,15433.829,41343ca4,57,0,26771391.610,0.021,-139405685.309616,0.007,-2069.940,48.5,20196.455,48049d04,12,0,21542689.063,0.021,-112178498.767984,0.006,952.964,48.8,11229.051,18149d24,12,0,21542686.409,0.013,-86743545.297369,0.004,736.976,52.6,11228.890,00349d24,25,0,26603375.741,0.069,-138530755.415895,0.019,-2155.462,38.4,9789.050,18149d44,25,0,26603380.238,0.015,-104397363.013083,0.007,-1624.205,44.7,9783.829,41343d44*5e9785bd\r\n"));
 
@@ -2617,12 +2621,12 @@ invert:
 
 TEST_F(FilterTest, MIX_1)
 {
-   pclMyFilter->IncludeMessageId(42, HEADERFORMAT::ASCII); // Filter for BESTPOS (ASCII)
+   pclMyFilter->IncludeMessageId(42, HEADER_FORMAT::ASCII); // Filter for BESTPOS (ASCII)
    pclMyFilter->IncludeTimeStatus(TIME_STATUS::FINESTEERING); // Filter for FINESTEERING
    pclMyFilter->SetIncludeLowerTimeBound(2180, 313699);
    // We only want WEEK 2180 and GPS Second 313700
    pclMyFilter->SetIncludeUpperTimeBound(2180, 313701);
-   pclMyFilter->IncludeNMEAMessages(true);
+   pclMyFilter->IncludeNmeaMessages(true);
 
    ASSERT_TRUE(TestFilter("#BESTPOSA,COM1,0,8.0,FINESTEERING,2180,313700.000,024000a0,cdba,32768;SOL_COMPUTED,SINGLE,51.15045046450,-114.03068725072,1097.2706,-17.0000,WGS84,1.3811,1.1629,3.1178,\"\",0.000,0.000,24,22,22,0,00,02,11,11*c64c3d4a\r\n"));
    ASSERT_TRUE(TestFilter("$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n"));
@@ -2640,11 +2644,11 @@ TEST_F(FilterTest, MIX_1)
 
 TEST_F(FilterTest, MIX_1_INVERTED)
 {
-   pclMyFilter->IncludeMessageId(42, HEADERFORMAT::ALL);   // Filter for BESTPOS (ASCII)
-   pclMyFilter->IncludeMessageId(37, HEADERFORMAT::ASCII); // Filter for VERSION (ASCII)
-   pclMyFilter->IncludeMessageId(83, HEADERFORMAT::ASCII); // Filter for TRACKSTAT (ASCII)
+   pclMyFilter->IncludeMessageId(42, HEADER_FORMAT::ALL);   // Filter for BESTPOS (ASCII)
+   pclMyFilter->IncludeMessageId(37, HEADER_FORMAT::ASCII); // Filter for VERSION (ASCII)
+   pclMyFilter->IncludeMessageId(83, HEADER_FORMAT::ASCII); // Filter for TRACKSTAT (ASCII)
    pclMyFilter->InvertMessageIdFilter(true);
-   pclMyFilter->IncludeNMEAMessages(false);
+   pclMyFilter->IncludeNmeaMessages(false);
 
    ASSERT_TRUE(TestFilter({ 0xAA, 0x44, 0x12, 0x1C, 0x40, 0x05, 0x00, 0x20, 0x68, 0x00, 0x15, 0x00, 0x80, 0xB4, 0x74, 0x08, 0x00, 0x5B, 0x88, 0x0D, 0x20, 0x80, 0x00, 0x02, 0xDD, 0x71, 0x00, 0x80, 0x68, 0x65, 0x72, 0x61, 0x2E, 0x6E, 0x6F, 0x76, 0x61, 0x74, 0x65, 0x6C, 0x2E, 0x63, 0x6F, 0x6D, 0x3A, 0x32, 0x31, 0x30, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x53, 0x54, 0x52, 0x3B, 0x48, 0x79, 0x64, 0x65, 0x72, 0x61, 0x62, 0x61, 0x64, 0x5F, 0x4C, 0x42, 0x32, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x3B, 0x53, 0x4E, 0x49, 0x50, 0x3B, 0x58, 0x58, 0x58, 0x3B, 0x30, 0x2E, 0x30, 0x30, 0x3B, 0x30, 0x2E, 0x30, 0x30, 0x3B, 0x30, 0x3B, 0x30, 0x3B, 0x73, 0x4E, 0x54, 0x52, 0x49, 0x50, 0x3B, 0x6E, 0x6F, 0x6E, 0x65, 0x3B, 0x4E, 0x3B, 0x4E, 0x3B, 0x30, 0x3B, 0x6E, 0x6F, 0x6E, 0x65, 0x3B, 0x00, 0x00, 0x00, 0xB9, 0x6E, 0x19, 0x2E }));
 
@@ -2662,7 +2666,7 @@ TEST_F(FilterTest, MIX_1_INVERTED)
 
 TEST_F(FilterTest, MIX_2)
 {
-   pclMyFilter->IncludeMessageId(43, HEADERFORMAT::ASCII); // Filter for RANGE
+   pclMyFilter->IncludeMessageId(43, HEADER_FORMAT::ASCII); // Filter for RANGE
    pclMyFilter->IncludeTimeStatus(TIME_STATUS::FINESTEERING); // Filter for FINESTEERING
    pclMyFilter->SetIncludeLowerTimeBound(2180, 407595);
 
@@ -2788,10 +2792,10 @@ TEST_F(FileParserTest, LOGGER)
    spdlog::level::level_enum eLevel = spdlog::level::off;
 
    // FileParser logger
-   ASSERT_NE(spdlog::get("novatel_fileparser"), nullptr);
-   std::shared_ptr<spdlog::logger> novatel_fileparser = pclFp->GetLogger();
+   ASSERT_NE(spdlog::get("novatel_file_parser"), nullptr);
+   std::shared_ptr<spdlog::logger> novatelFileParser = pclFp->GetLogger();
    pclFp->SetLoggerLevel(eLevel);
-   ASSERT_EQ(novatel_fileparser->level(), eLevel);
+   ASSERT_EQ(novatelFileParser->level(), eLevel);
 
    // Parser logger
    ASSERT_NE(spdlog::get("novatel_parser"), nullptr);
@@ -2875,8 +2879,8 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
    double dExpectedMilliseconds[2] = { 270605000, 172189053 };
    uint32_t uiExpectedMessageLength[2] = { 213, 195 };
 
-   pclFp->SetEncodeFormat(ENCODEFORMAT::ASCII);
-   ASSERT_EQ(pclFp->GetEncodeFormat(), ENCODEFORMAT::ASCII);
+   pclFp->SetEncodeFormat(ENCODE_FORMAT::ASCII);
+   ASSERT_EQ(pclFp->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
 
    STATUS eStatus;
 
@@ -2899,7 +2903,7 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
 TEST_F(FileParserTest, RESET)
 {
    pclFp = std::make_unique<FileParser>();
-   ASSERT_NO_THROW(pclFp->GetInternalBuffer(););
+   ASSERT_NO_THROW([[maybe_unused]] unsigned char* pucResult = pclFp->GetInternalBuffer(););
    ASSERT_TRUE(pclFp->Reset());
 }
 
@@ -2934,7 +2938,7 @@ protected:
 
       bool TestEncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
       {
-         return Encoder::EncodeBinaryBody<false, true>(stInterMessage_, ppcOutBuf_, uiBytes);
+         return EncodeBinaryBody<false, true>(stInterMessage_, ppcOutBuf_, uiBytes);
       }
    };
 
@@ -2973,7 +2977,7 @@ public:
                   }";
    }
 
-   virtual void SetUp()
+   void SetUp() override
    {
       try
       {
@@ -2991,21 +2995,21 @@ public:
       }
    }
 
-   virtual void TearDown()
+   void TearDown() override
    {
       pclMyDecoderTester->ShutdownLogger();
       for (auto it : MsgDefFields) { delete it; }
       MsgDefFields.clear();
    }
 
-   void CreateEnumField(std::string name, std::string description, int32_t value)
+   void CreateEnumField(const std::string& strName, const std::string& strDescription, int32_t iValue)
    {
-      EnumField* stField = new EnumField();
-      EnumDefinition* enumDef = new EnumDefinition();
-      EnumDataType* enumDT = new EnumDataType();
-      enumDT->name = name;
-      enumDT->description = description;
-      enumDT->value = value;
+       auto stField = new EnumField();
+       auto enumDef = new EnumDefinition();
+       auto enumDT = new EnumDataType();
+      enumDT->name = strName;
+      enumDT->description = strDescription;
+      enumDT->value = iValue;
       enumDef->enumerators.push_back(*enumDT);
       stField->enumDef = enumDef;
       stField->type = FIELD_TYPE::ENUM;
@@ -3022,17 +3026,17 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(4);
 
-    const char* testInput = "-1.000,0.000,604800.000,4294967295.000";
+    auto testInput = "-1.000,0.000,604800.000,4294967295.000";
 
     STATUS stDecoderStatus = pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
     ASSERT_EQ(stDecoderStatus, STATUS::SUCCESS);
-    // If GPSTIME exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong
+    // If GPS time exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong
     // But the limit should be 604,800 (seconds) as that's the number of seconds in a GPS reference week
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[0].field_value), 4294966296U); // 4,294,967,295 + 1 - 1,000 = 4,294,966,296
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[1].field_value), 0U);
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[2].field_value), 604800000U);
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[3].field_value), 4294966296U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[0].fieldValue), 4294966296U); // 4,294,967,295 + 1 - 1,000 = 4,294,966,296
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[1].fieldValue), 0U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[2].fieldValue), 604800000U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[3].fieldValue), 4294966296U);
 }
 
-//TODO: Add tests for OEM Message Decoder Quirks that arent covered by the common tests
+//TODO: Add tests for OEM Message Decoder Quirks that aren't covered by the common tests

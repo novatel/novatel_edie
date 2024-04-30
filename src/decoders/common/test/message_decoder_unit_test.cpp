@@ -1,35 +1,29 @@
-////////////////////////////////////////////////////////////////////////
-//
-// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////
-//                            DESCRIPTION
-//
-//! \file messagedecoderunittest.cpp
-//! \brief Unit test cases for circular buffer implemenatation.
-////////////////////////////////////////////////////////////////////////
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file message_decoder_unit_test.cpp
+// ===============================================================================
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include <gtest/gtest.h>
 
 #include "decoders/common/api/message_decoder.hpp"
@@ -76,16 +70,17 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const BaseField stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
                 MessageDecoderBase::DecodeAsciiField(&stMessageDataType, const_cast<char**>(&tempStr), vstrTestInput[sz].length(),
                                                      vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
-                    ASSERT_NEAR(std::get<T>(vIntermediateFormat_[0].field_value), vTargets[sz],
+                {
+                    ASSERT_NEAR(std::get<T>(vIntermediateFormat_[0].fieldValue), vTargets[sz],
                                 std::abs(vTargets[sz]) * std::numeric_limits<T>::epsilon());
-                else
-                    ASSERT_EQ(std::get<T>(vIntermediateFormat_[0].field_value), vTargets[sz]);
+                }
+                else { ASSERT_EQ(std::get<T>(vIntermediateFormat_[0].fieldValue), vTargets[sz]); }
             }
         }
 
@@ -94,7 +89,7 @@ class MessageDecoderTypesTest : public ::testing::Test
             std::vector<FieldContainer> vIntermediateFormat;
             vIntermediateFormat.reserve(1);
 
-            const BaseField stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
+            const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
             const char* tempStr = strTestInput.c_str();
             ASSERT_THROW(
                 MessageDecoderBase::DecodeAsciiField(&stMessageDataType, const_cast<char**>(&tempStr), strTestInput.length(), vIntermediateFormat),
@@ -116,16 +111,17 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const BaseField stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 // there should be a better way to do this
                 uint8_t* pucTestInput = vvucTestInput[sz].data();
                 MessageDecoderBase::DecodeBinaryField(&stMessageDataType, &pucTestInput, vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
-                    ASSERT_NEAR(std::get<T>(vIntermediateFormat_[0].field_value), vTargets[sz],
+                {
+                    ASSERT_NEAR(std::get<T>(vIntermediateFormat_[0].fieldValue), vTargets[sz],
                                 std::abs(vTargets[sz]) * std::numeric_limits<T>::epsilon());
-                else
-                    ASSERT_EQ(std::get<T>(vIntermediateFormat_[0].field_value), vTargets[sz]);
+                }
+                else { ASSERT_EQ(std::get<T>(vIntermediateFormat_[0].fieldValue), vTargets[sz]); }
             }
         }
     };
@@ -165,7 +161,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                   }";
     }
 
-    virtual void SetUp()
+    void SetUp() override
     {
         try
         {
@@ -177,26 +173,26 @@ class MessageDecoderTypesTest : public ::testing::Test
         {
             std::cout << e.what() << std::endl;
 
-            for (auto it : MsgDefFields) delete it;
+            for (auto it : MsgDefFields) { delete it; }
 
             MsgDefFields.clear();
         }
     }
 
-    virtual void TearDown()
+    void TearDown() override
     {
         pclMyDecoderTester->ShutdownLogger();
 
-        for (auto it : MsgDefFields) delete it;
+        for (auto it : MsgDefFields) { delete it; }
 
         MsgDefFields.clear();
     }
 
     void CreateEnumField(std::string name, std::string description, int32_t value)
     {
-        EnumField* stField = new EnumField();
-        EnumDefinition* enumDef = new EnumDefinition();
-        EnumDataType* enumDT = new EnumDataType();
+        auto stField = new EnumField();
+        auto enumDef = new EnumDefinition();
+        auto enumDT = new EnumDataType();
         enumDT->name = name;
         enumDT->description = description;
         enumDT->value = value;
@@ -267,10 +263,10 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    const char* testInput = "4";
+    auto testInput = "4";
     pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
-    ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_[0].field_value), '4');
+    ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_[0].fieldValue), '4');
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
@@ -279,27 +275,33 @@ TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    const char* testInput = "True";
+    auto testInput = "True";
     pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
-    ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].field_value), false);
+    ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), false);
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
 {
     std::vector<std::pair<std::string, int32_t>> vTestInput = {{"UNKNOWN", 20}, {"APPROXIMATE", 60}, {"SATTIME", 200}};
 
-    for (const auto& input : vTestInput) CreateEnumField(input.first, "", input.second);
+    for (const auto& input : vTestInput)
+    {
+        CreateEnumField(input.first, "", input.second);
+    }
 
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(vTestInput.size());
 
-    const char* testInput = "UNKNOWN,APPROXIMATE,SATTIME";
+    auto testInput = "UNKNOWN,APPROXIMATE,SATTIME";
 
     ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat), STATUS::SUCCESS);
     ASSERT_EQ(vIntermediateFormat.size(), vTestInput.size());
 
-    for (size_t sz = 0; sz < vTestInput.size(); ++sz) ASSERT_EQ(std::get<int32_t>(vIntermediateFormat[sz].field_value), vTestInput[sz].second);
+    for (size_t sz = 0; sz < vTestInput.size(); ++sz)
+    {
+        ASSERT_EQ(std::get<int32_t>(vIntermediateFormat[sz].fieldValue), vTestInput[sz].second);
+    }
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
@@ -314,7 +316,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
     for (size_t sz = 0; sz < testInputs.size(); ++sz)
     {
         ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
-        ASSERT_EQ(std::get<std::string>(vIntermediateFormat[0].field_value), testTargets[sz]);
+        ASSERT_EQ(std::get<std::string>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
 
         vIntermediateFormat.clear();
     }
@@ -326,7 +328,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    const char* testInput = "garbage";
+    auto testInput = "garbage";
 
     ASSERT_THROW(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
 }
@@ -386,7 +388,7 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     IntermediateMessage vIntermediateFormat;
     vIntermediateFormat.reserve(MsgDefFields.size());
 
-    const char* testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
+    auto testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
 
     ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat));
     // TODO: Keep this here or make a file for testing common encoder?

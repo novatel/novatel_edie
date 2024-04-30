@@ -1,3 +1,29 @@
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file range_decompressor.cpp
+// ===============================================================================
+
 #include "decoders/novatel/api/rangecmp/range_decompressor.hpp"
 
 #include <stdexcept>
@@ -172,14 +198,14 @@ RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder
 
     if (pclJsonDB_ != nullptr) { LoadJsonDb(pclJsonDB_); }
 
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADERFORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADERFORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADERFORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADERFORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADERFORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADERFORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADERFORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADERFORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
 
     pclMyLogger->debug("RangeDecompressor initialized");
 }
@@ -329,35 +355,35 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
 //! observation, and may not be a true representation of the time the
 //! observation has actually been locked.
 //------------------------------------------------------------------------------
-float RangeDecompressor::DetermineRangeCmp2ObservationLocktime(const MetaDataStruct& stMetaData_, uint32_t uiLocktimeBits_,
+float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
                                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_)
 {
-    float fLocktimeMilliseconds = static_cast<float>(uiLocktimeBits_);
+    float fLocktimeMilliseconds = static_cast<float>(uiLockTimeBits_);
 
-    RangeCmp2LocktimeInfoStruct& stLocktimeInfo =
-        ammmMyRangeCmp2Locktimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
-    if (uiLocktimeBits_ == (RC2_SIG_LOCKTIME_MASK >> RC2_SIG_LOCKTIME_SHIFT))
+    RangeCmp2LockTimeInfoStruct& stLocktimeInfo =
+        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
+    if (uiLockTimeBits_ == (RC2_SIG_LOCKTIME_MASK >> RC2_SIG_LOCKTIME_SHIFT))
     {
         // If the locktime was already saturated, use the stored time to add the missing offset.
-        if (stLocktimeInfo.bLocktimeSaturated)
+        if (stLocktimeInfo.bLockTimeSaturated)
         {
-            fLocktimeMilliseconds += static_cast<float>(stMetaData_.dMilliseconds - stLocktimeInfo.dLocktimeSaturatedMilliseconds);
+            fLocktimeMilliseconds += static_cast<float>(stMetaData_.dMilliseconds - stLocktimeInfo.dLockTimeSaturatedMilliseconds);
         }
         else // If the locktime is not already saturated, store this information if this
              // observation is seen again.
         {
-            stLocktimeInfo.dLocktimeSaturatedMilliseconds = stMetaData_.dMilliseconds;
-            stLocktimeInfo.bLocktimeSaturated = true;
+            stLocktimeInfo.dLockTimeSaturatedMilliseconds = stMetaData_.dMilliseconds;
+            stLocktimeInfo.bLockTimeSaturated = true;
         }
     }
-    else if (stLocktimeInfo.bLocktimeSaturated) // If the locktime marked as saturated, but is not reported
+    else if (stLocktimeInfo.bLockTimeSaturated) // If the locktime marked as saturated, but is not reported
                                                 // as such from the RANGECMP2 message, clear the flag.
     {
-        stLocktimeInfo.bLocktimeSaturated = false;
+        stLocktimeInfo.bLockTimeSaturated = false;
     }
 
-    return fLocktimeMilliseconds / SEC_TO_MSEC;
+    return fLocktimeMilliseconds / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
@@ -419,26 +445,26 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLocktime(const MetaDataStr
 //!   +-------------------------------------------------------------------->
 //!                   Header time (t)
 //------------------------------------------------------------------------------
-float RangeDecompressor::DetermineRangeCmp4ObservationLocktime(const MetaDataStruct& stMetaData_, uint8_t ucLocktimeBits_,
+float RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
                                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_)
 {
     // Store the locktime if it is different then the once we have currently.
     RangeCmp4LocktimeInfoStruct& stLocktimeInfo =
-        ammmMyRangeCmp4Locktimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][uiPRN_];
+        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][uiPRN_];
 
     // Is the locktime relative and has a bitfield change been found?
-    if ((!stLocktimeInfo.bLocktimeAbsolute) && (ucLocktimeBits_ != stLocktimeInfo.ucLocktimeBits))
+    if ((!stLocktimeInfo.bLocktimeAbsolute) && (ucLockTimeBits_ != stLocktimeInfo.ucLocktimeBits))
     {
         // If the locktime bits are 0, we can immediately set this as absolute locktime.
         // Or, if the locktime bits stored for this observation are non-default (0xFF),
         // this is a transition point from relative to absolute locktime.
-        if (ucLocktimeBits_ == 0 || (stLocktimeInfo.ucLocktimeBits != 0xFF && ucLocktimeBits_ > stLocktimeInfo.ucLocktimeBits))
+        if (ucLockTimeBits_ == 0 || (stLocktimeInfo.ucLocktimeBits != 0xFF && ucLockTimeBits_ > stLocktimeInfo.ucLocktimeBits))
         {
             stLocktimeInfo.bLocktimeAbsolute = true;
 
             // Record any locktime jump or slip for records.
-            double dLocktimeChangeMilliseconds = afTheRangeCmp4LockTimeValues[ucLocktimeBits_] - stLocktimeInfo.dLocktimeMilliseconds;
+            double dLocktimeChangeMilliseconds = afTheRangeCmp4LockTimeValues[ucLockTimeBits_] - stLocktimeInfo.dLocktimeMilliseconds;
             if (fabs(dLocktimeChangeMilliseconds) > std::numeric_limits<double>::epsilon())
             {
                 pclMyLogger->warn("Detected a locktime jump of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, "
@@ -450,15 +476,15 @@ float RangeDecompressor::DetermineRangeCmp4ObservationLocktime(const MetaDataStr
 
         // Record the last bit change and the bitfield that was changed to.
         stLocktimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        stLocktimeInfo.ucLocktimeBits = ucLocktimeBits_;
+        stLocktimeInfo.ucLocktimeBits = ucLockTimeBits_;
     } // If the locktime is absolute and the locktime bits have decreased, there was likely an
       // outage.
-    else if (ucLocktimeBits_ < stLocktimeInfo.ucLocktimeBits)
+    else if (ucLockTimeBits_ < stLocktimeInfo.ucLocktimeBits)
     {
         // In the event of an outage of any kind, reset the locktime to relative.
         stLocktimeInfo.bLocktimeAbsolute = false;
         stLocktimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        stLocktimeInfo.ucLocktimeBits = ucLocktimeBits_;
+        stLocktimeInfo.ucLocktimeBits = ucLockTimeBits_;
 
         // Record the slip
         pclMyLogger->warn("Detected a locktime slip (perhaps caused by an outage) of {}ms at time {}w, {}ms. "
@@ -470,7 +496,7 @@ float RangeDecompressor::DetermineRangeCmp4ObservationLocktime(const MetaDataStr
     {
         // If the locktime is absolute, and the bits have not changed after a change would be
         // expected, reset the time since last bitfield change as there may have been an outage.
-        if ((stMetaData_.dMilliseconds - stLocktimeInfo.dLastBitfieldChangeMilliseconds) > (2 * afTheRangeCmp4LockTimeValues[ucLocktimeBits_]))
+        if ((stMetaData_.dMilliseconds - stLocktimeInfo.dLastBitfieldChangeMilliseconds) > (2 * afTheRangeCmp4LockTimeValues[ucLockTimeBits_]))
         {
             pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: "
                               "{}.",
@@ -480,7 +506,7 @@ float RangeDecompressor::DetermineRangeCmp4ObservationLocktime(const MetaDataStr
     }
     stLocktimeInfo.dLocktimeMilliseconds =
         (stMetaData_.dMilliseconds - stLocktimeInfo.dLastBitfieldChangeMilliseconds) + afTheRangeCmp4LockTimeValues[stLocktimeInfo.ucLocktimeBits];
-    return static_cast<float>(stLocktimeInfo.dLocktimeMilliseconds) / SEC_TO_MSEC;
+    return static_cast<float>(stLocktimeInfo.dLocktimeMilliseconds) / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
@@ -604,7 +630,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     stRangeData_.fDopplerFrequency =
         stBlock_.bValidDoppler ? static_cast<float>(MAGIC_NEGATE * (stBlock_.dDoppler / dSignalWavelength)) : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime = DetermineRangeCmp4ObservationLocktime(
+    stRangeData_.fLockTime = DetermineRangeCmp4ObservationLockTime(
         stMetaData_, stBlock_.ucLockTimeBitfield, stChannelTrackingStatus_.eSatelliteSystem, stChannelTrackingStatus_.eSignalType, uiPRN_);
     stRangeData_.uiChannelTrackingStatus = stChannelTrackingStatus_.GetAsWord();
 }
@@ -730,7 +756,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
             stRangeData.fDopplerFrequency = static_cast<float>(iDopplerBase + fScaledDopplerDiff) /
                                             static_cast<float>(mmTheRangeCmp2SignalScalingMapping[eSatelliteSystem][eSignalType]);
             stRangeData.fCNo = RC2_SIG_CNO_SCALE_OFFSET + static_cast<float>(stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_CNO_MASK);
-            stRangeData.fLockTime = DetermineRangeCmp2ObservationLocktime(stMetaData_, uiLocktimeBits, stChannelTrackingStatus.eSatelliteSystem,
+            stRangeData.fLockTime = DetermineRangeCmp2ObservationLockTime(stMetaData_, uiLocktimeBits, stChannelTrackingStatus.eSatelliteSystem,
                                                                           stChannelTrackingStatus.eSignalType, usPRN);
             stRangeData.uiChannelTrackingStatus = stChannelTrackingStatus.GetAsWord();
 
@@ -748,11 +774,11 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
     uint8_t* pucTempDataPointer = pucCompressedData_;
 
     MEASUREMENT_SOURCE eMeasurementSource = stMetaData_.eMeasurementSource;
-    double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MSEC) / SEC_TO_MSEC;
+    double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
     // Clear any dead reference blocks on the whole second.  We should be storing new ones.
     if (dSecondOffset == 0.0) { ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)].clear(); }
 
-    SYSTEM eCurrentSatelliteSystem = SYSTEM::UNKNOWN;
+    auto eCurrentSatelliteSystem = SYSTEM::UNKNOWN;
     std::vector<RangeCmp4::SIGNAL_TYPE> vSignals;  // All available signals
     std::vector<uint32_t> vPRNs;                   // All available PRNs
     std::map<uint32_t, uint64_t> mIncludedSignals; // IncludedSignal bitmasks for each PRN.
@@ -958,7 +984,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
 //------------------------------------------------------------------------------
 STATUS
 RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
-                              ENCODEFORMAT eFormat_)
+                              ENCODE_FORMAT eFormat_)
 {
     // Check for buffer validity
     if (!pucRangeMessageBuffer_) { return STATUS::NULL_PROVIDED; }
@@ -968,7 +994,7 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
     MessageDataStruct stMessageData;
     IntermediateHeader stHeader;
     IntermediateMessage stMessage;
-    STATUS eStatus = STATUS::UNKNOWN;
+    auto eStatus = STATUS::UNKNOWN;
 
     unsigned char* pucTempMessagePointer = pucRangeMessageBuffer_;
     eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stHeader, stMetaData_);
@@ -976,18 +1002,18 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
 
     if (!clMyRangeCmpFilter.DoFiltering(stMetaData_)) { return STATUS::UNSUPPORTED; }
 
-    HEADERFORMAT eInitialFormat = stMetaData_.eFormat;
+    HEADER_FORMAT eInitialFormat = stMetaData_.eFormat;
     pucTempMessagePointer += stMetaData_.uiHeaderLength;
     // If the message is already in binary format, we don't need to do anything.
     // If the message is not in binary format, we need to ensure that it is encoded to binary so
     // that it can be decompressed.
-    if (eInitialFormat != HEADERFORMAT::BINARY)
+    if (eInitialFormat != HEADER_FORMAT::BINARY)
     {
         eStatus = clMyMessageDecoder.Decode(pucTempMessagePointer, stMessage, stMetaData_);
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
         eStatus = clMyEncoder.Encode(&pucRangeMessageBuffer_, uiRangeMessageBufferSize_, stHeader, stMessage, stMessageData, stMetaData_,
-                                     ENCODEFORMAT::FLATTENED_BINARY);
+                                     ENCODE_FORMAT::FLATTENED_BINARY);
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
         pucTempMessagePointer = stMessageData.pucMessageBody;
@@ -997,7 +1023,7 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
     try
     {
         RangeStruct stRange;
-        switch (stMetaData_.usMessageID)
+        switch (stMetaData_.usMessageId)
         {
         case RANGECMP_MSG_ID: RangeCmpToRange(*reinterpret_cast<RangeCmpStruct*>(pucTempMessagePointer), stRange); break;
         case RANGECMP2_MSG_ID: RangeCmp2ToRange(*reinterpret_cast<RangeCmp2Struct*>(pucTempMessagePointer), stRange, stMetaData_); break;
@@ -1016,29 +1042,29 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
     }
 
     // Adjust metadata/header data
-    stHeader.usMessageID = RANGE_MSG_ID;
-    stMetaData_.usMessageID = RANGE_MSG_ID;
-    stMetaData_.uiMessageCRC = 0; // Use the first message definition
+    stHeader.usMessageId = RANGE_MSG_ID;
+    stMetaData_.usMessageId = RANGE_MSG_ID;
+    stMetaData_.uiMessageCrc = 0; // Use the first message definition
     memcpy(stMetaData_.acMessageName, "RANGE", 6);
 
     // The message should be returned in its original format
-    stMetaData_.eFormat = HEADERFORMAT::BINARY;
+    stMetaData_.eFormat = HEADER_FORMAT::BINARY;
     stMessage.clear();
     eStatus = clMyMessageDecoder.Decode(pucTempMessagePointer, stMessage, stMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     stMetaData_.eFormat = eInitialFormat;
     // Re-encode to the original format if a format was not specified.
-    if (eFormat_ == ENCODEFORMAT::UNSPECIFIED)
+    if (eFormat_ == ENCODE_FORMAT::UNSPECIFIED)
     {
         eFormat_ =
-            (eInitialFormat == HEADERFORMAT::BINARY || eInitialFormat == HEADERFORMAT::SHORT_BINARY ||
-             eInitialFormat == HEADERFORMAT::PROPRIETARY_BINARY)
-                ? ENCODEFORMAT::BINARY
-            : (eInitialFormat == HEADERFORMAT::ASCII || eInitialFormat == HEADERFORMAT::SHORT_ASCII || eInitialFormat == HEADERFORMAT::ABB_ASCII)
-                ? ENCODEFORMAT::ASCII
-            : (eInitialFormat == HEADERFORMAT::JSON) ? ENCODEFORMAT::JSON
-                                                     : ENCODEFORMAT::ASCII; // Default to ASCII
+            (eInitialFormat == HEADER_FORMAT::BINARY || eInitialFormat == HEADER_FORMAT::SHORT_BINARY ||
+             eInitialFormat == HEADER_FORMAT::PROPRIETARY_BINARY)
+                ? ENCODE_FORMAT::BINARY
+            : (eInitialFormat == HEADER_FORMAT::ASCII || eInitialFormat == HEADER_FORMAT::SHORT_ASCII || eInitialFormat == HEADER_FORMAT::ABB_ASCII)
+                ? ENCODE_FORMAT::ASCII
+            : (eInitialFormat == HEADER_FORMAT::JSON) ? ENCODE_FORMAT::JSON
+                                                      : ENCODE_FORMAT::ASCII; // Default to ASCII
     }
 
     // Re-encode the data back into the range message buffer.
