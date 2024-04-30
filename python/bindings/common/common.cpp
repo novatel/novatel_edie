@@ -1,14 +1,26 @@
 #include "novatel_edie/decoders/common/common.hpp"
 
 #include "bindings_core.h"
+#include "decoder_exception.hpp"
 #include "novatel_edie/version.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
+novatel::edie::DecoderException::DecoderException(STATUS status_) : status(status_)
+{
+    auto status_py = nb::cast(status);
+    std::string name = nb::cast<std::string>(repr(status_py).attr("rsplit")(".", 1)[1]);
+    msg = name + ": " + nb::cast<std::string>(status_py.doc());
+}
+
+const char* novatel::edie::DecoderException::what() const noexcept { return msg.c_str(); }
+
 void init_common_common(nb::module_& m)
 {
+    nb::exception<DecoderException>(m, "DecoderException");
+
     nb::enum_<STATUS>(m, "STATUS")
         .value("SUCCESS", STATUS::SUCCESS, "Successfully found a frame in the framer buffer.")
         .value("FAILURE", STATUS::FAILURE, "An unexpected failure occurred.")

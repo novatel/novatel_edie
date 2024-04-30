@@ -17,6 +17,7 @@ void init_novatel_framer(nb::module_& m)
             uint32_t buf_size = MESSAGE_SIZE_MAX;
             oem::MetaDataStruct metadata;
             STATUS status = framer.GetFrame((unsigned char*)buffer, buf_size, metadata);
-            return nb::make_tuple(nb::bytes(buffer, buf_size), status, metadata);
+            if (status != STATUS::SUCCESS) throw DecoderException(status);
+            return nb::make_tuple(nb::bytes(buffer, buf_size), metadata);
         });
 }

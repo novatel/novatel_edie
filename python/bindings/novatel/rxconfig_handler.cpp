@@ -19,7 +19,8 @@ void init_novatel_rxconfig_handler(nb::module_& m)
                 MessageDataStruct stRxConfigMessageData, stEmbeddedMessageData;
                 oem::MetaDataStruct stRxConfigMetaData, stEmbeddedMetaData;
                 STATUS status = self.Convert(stRxConfigMessageData, stRxConfigMetaData, stEmbeddedMessageData, stEmbeddedMetaData, encode_format);
-                return nb::make_tuple(status, stRxConfigMessageData, stRxConfigMetaData, stEmbeddedMessageData, stEmbeddedMetaData);
+                if (status != STATUS::SUCCESS) throw DecoderException(status);
+                return nb::make_tuple(stRxConfigMessageData, stRxConfigMetaData, stEmbeddedMessageData, stEmbeddedMetaData);
             },
             "encode_format"_a)
         .def(

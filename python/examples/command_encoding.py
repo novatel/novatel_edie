@@ -60,16 +60,12 @@ def main():
     t1 = timeit.default_timer()
     logger.info(f"Done in {(t1 - t0) * 1e3:.0f} ms")
 
-    logger.info(f'Converting "{sys.argv[2]}" to {encode_format_str}')
     command = sys.argv[2]
+    logger.info(f'Converting "{command}" to {encode_format_str}')
     commander = ne.Commander(json_db)
-    encoded_command, status = commander.encode(command, encode_format)
-    if status != ne.STATUS.SUCCESS:
-        logger.info(f"Failed to formulate a command ({status.value})")
-        exit(-1)
-
-    out_filename = f"COMMAND.{encode_format_str}"
-    Path(out_filename).write_bytes(encoded_command)
+    encoded_command = commander.encode(command, encode_format)
+    out_file = Path(f"COMMAND.{encode_format_str}")
+    out_file.write_bytes(encoded_command)
 
 
 if __name__ == "__main__":
