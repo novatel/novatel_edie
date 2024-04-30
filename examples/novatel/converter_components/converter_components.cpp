@@ -24,13 +24,10 @@
 // ! \file converter_components.cpp
 // ===============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <chrono>
 
 #include "logger/logger.hpp"
-#include "src/decoders/common/api/jsonreader.hpp"
+#include "src/decoders/common/api/json_reader.hpp"
 #include "src/decoders/novatel/api/encoder.hpp"
 #include "src/decoders/novatel/api/filter.hpp"
 #include "src/decoders/novatel/api/framer.hpp"
@@ -40,14 +37,13 @@
 #include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
 #include "src/version.h"
 
-using namespace std;
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-inline bool file_exists(const std::string& name)
+inline bool FileExists(const std::string& strName_)
 {
     struct stat buffer;
-    return (stat(name.c_str(), &buffer) == 0);
+    return stat(strName_.c_str(), &buffer) == 0;
 }
 
 int main(int argc, char* argv[])
@@ -67,30 +63,29 @@ int main(int argc, char* argv[])
     if (argc == 2 && strcmp(argv[1], "-V") == 0) { return 0; }
     if (argc < 3)
     {
-        pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output "
-                         "format.");
+        pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.");
         pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>");
         return 1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
     // Check command line arguments
-    std::string sJsonDB = argv[1];
-    if (!file_exists(sJsonDB))
+    std::string sJsonDb = argv[1];
+    if (!FileExists(sJsonDb))
     {
-        pclLogger->error("File \"{}\" does not exist", sJsonDB);
+        pclLogger->error("File \"{}\" does not exist", sJsonDb);
         return 1;
     }
 
     std::string sInFilename = argv[2];
-    if (!file_exists(sInFilename))
+    if (!FileExists(sInFilename))
     {
         pclLogger->error("File \"{}\" does not exist", sInFilename);
         return 1;
     }
 
-    ENCODEFORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
-    if (eEncodeFormat == ENCODEFORMAT::UNSPECIFIED)
+    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
+    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
     {
         pclLogger->error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY");
         return 1;
@@ -99,14 +94,12 @@ int main(int argc, char* argv[])
     // Load the database
     JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
-    auto tStart = chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(sJsonDB);
-    pclLogger->info("Done in {}ms", chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - tStart).count());
+    auto tStart = std::chrono::high_resolution_clock::now();
+    clJsonDb.LoadFile(sJsonDb);
+    pclLogger->info("Done in {}ms",
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
-    // Setup timers
-    auto tLoop = chrono::high_resolution_clock::now();
-
-    // Setup the EDIE components
+    // Set up the EDIE components
     Framer clFramer;
     clFramer.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clFramer.GetLogger());
@@ -135,16 +128,16 @@ int main(int argc, char* argv[])
     Logger::AddConsoleLogging(clFilter.GetLogger());
     Logger::AddRotatingFileLogger(clFilter.GetLogger());
 
-    // Setup buffers
+    // Set up buffers
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucFrameBuffer = acFrameBuffer;
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
     // Initialize structures and error codes
-    STATUS eFramerStatus = STATUS::UNKNOWN;
-    STATUS eDecoderStatus = STATUS::UNKNOWN;
-    STATUS eEncoderStatus = STATUS::UNKNOWN;
+    auto eFramerStatus = STATUS::UNKNOWN;
+    auto eDecoderStatus = STATUS::UNKNOWN;
+    auto eEncoderStatus = STATUS::UNKNOWN;
 
     IntermediateHeader stHeader;
     IntermediateMessage stMessage;
@@ -155,21 +148,20 @@ int main(int argc, char* argv[])
     // Initialize FS structures and buffers
     StreamReadStatus stReadStatus;
     ReadDataStructure stReadData;
-    unsigned char acIFSReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    stReadData.cData = reinterpret_cast<char*>(acIFSReadBuffer);
-    stReadData.uiDataSize = sizeof(acIFSReadBuffer);
+    unsigned char acIfsReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
+    stReadData.uiDataSize = sizeof(acIfsReadBuffer);
 
-    // Setup filestreams
-    InputFileStream clIFS(sInFilename.c_str());
-    OutputFileStream clConvertedLogsOFS(sInFilename.append(".").append(sEncodeFormat).c_str());
-    OutputFileStream clUnknownBytesOFS(sInFilename.append(".UNKNOWN").c_str());
+    // Setup file streams
+    InputFileStream clIfs(sInFilename.c_str());
+    OutputFileStream clConvertedLogsOfs(sInFilename.append(".").append(sEncodeFormat).c_str());
+    OutputFileStream clUnknownBytesOfs(sInFilename.append(".UNKNOWN").c_str());
 
-    tStart = chrono::high_resolution_clock::now();
-    tLoop = chrono::high_resolution_clock::now();
+    tStart = std::chrono::high_resolution_clock::now();
 
     while (!stReadStatus.bEOS)
     {
-        stReadStatus = clIFS.ReadData(stReadData);
+        stReadStatus = clIfs.ReadData(stReadData);
         clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
@@ -183,14 +175,14 @@ int main(int argc, char* argv[])
             {
                 if (stMetaData.bResponse)
                 {
-                    clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
                     continue;
                 }
 
                 pucFrameBuffer[stMetaData.uiLength] = '\0';
                 pclLogger->info("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
 
-                // Decode the header.  Get meta data here and populate the Intermediate header.
+                // Decode the header.  Get metadata here and populate the Intermediate header.
                 eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
 
                 if (eDecoderStatus == STATUS::SUCCESS)
@@ -199,7 +191,7 @@ int main(int argc, char* argv[])
                     if (!clFilter.DoFiltering(stMetaData)) { continue; }
 
                     pucFrameBuffer += stMetaData.uiHeaderLength;
-                    // Decode the Log, pass the meta data and populate the intermediate log.
+                    // Decode the Log, pass the metadata and populate the intermediate log.
                     eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
 
                     if (eDecoderStatus == STATUS::SUCCESS)
@@ -209,29 +201,29 @@ int main(int argc, char* argv[])
 
                         if (eEncoderStatus == STATUS::SUCCESS)
                         {
-                            clConvertedLogsOFS.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                            clConvertedLogsOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                             stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                             pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(pucEncodedMessageBuffer));
                         }
                         else
                         {
-                            clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                            clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
                             pclLogger->warn("Encoder returned with status code {}", static_cast<int>(eEncoderStatus));
                         }
                     }
                     else
                     {
-                        clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                        clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
                         pclLogger->warn("MessageDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
                     }
                 }
                 else
                 {
-                    clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
                     pclLogger->warn("HeaderDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
                 }
             }
-            else if (eFramerStatus == STATUS::UNKNOWN) { clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
+            else if (eFramerStatus == STATUS::UNKNOWN) { clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
             else { pclLogger->warn("Framer returned with status code {}", static_cast<int>(eFramerStatus)); }
         }
     }
@@ -239,7 +231,7 @@ int main(int argc, char* argv[])
     // Clean up
     pucFrameBuffer = acFrameBuffer;
     uint32_t uiBytes = clFramer.Flush(pucFrameBuffer, sizeof(acFrameBuffer));
-    clUnknownBytesOFS.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBytes);
+    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBytes);
 
     Logger::Shutdown();
     return 0;

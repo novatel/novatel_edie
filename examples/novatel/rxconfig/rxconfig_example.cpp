@@ -24,9 +24,6 @@
 // ! \file rxconfig_example.cpp
 // ===============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <chrono>
 
 #include "src/decoders/common/api/common.hpp"
@@ -35,14 +32,13 @@
 #include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
 #include "src/version.h"
 
-using namespace std;
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-inline bool file_exists(const std::string& name)
+inline bool FileExists(const std::string& strName_)
 {
     struct stat buffer;
-    return (stat(name.c_str(), &buffer) == 0);
+    return stat(strName_.c_str(), &buffer) == 0;
 }
 
 int main(int argc, char* argv[])
@@ -62,30 +58,29 @@ int main(int argc, char* argv[])
     if (argc == 2 && strcmp(argv[1], "-V") == 0) { return 0; }
     if (argc < 3)
     {
-        pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output "
-                         "format.");
+        pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.");
         pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>");
         return 1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
     // Check command line arguments
-    std::string sJsonDB = argv[1];
-    if (!file_exists(sJsonDB))
+    std::string sJsonDb = argv[1];
+    if (!FileExists(sJsonDb))
     {
-        pclLogger->error("File \"{}\" does not exist", sJsonDB);
+        pclLogger->error("File \"{}\" does not exist", sJsonDb);
         return 1;
     }
 
     std::string sInFilename = argv[2];
-    if (!file_exists(sInFilename))
+    if (!FileExists(sInFilename))
     {
         pclLogger->error("File \"{}\" does not exist", sInFilename);
         return 1;
     }
 
-    ENCODEFORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
-    if (eEncodeFormat == ENCODEFORMAT::UNSPECIFIED)
+    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
+    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
     {
         pclLogger->error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY");
         return 1;
@@ -94,21 +89,22 @@ int main(int argc, char* argv[])
     // Load the database
     JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
-    auto tStart = chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(sJsonDB);
-    pclLogger->info("Done in {}ms", chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - tStart).count());
+    auto tStart = std::chrono::high_resolution_clock::now();
+    clJsonDb.LoadFile(sJsonDb);
+    pclLogger->info("Done in {}ms",
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     // Initialize FS structures and buffers
     StreamReadStatus stReadStatus;
     ReadDataStructure stReadData;
-    unsigned char acIFSReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    stReadData.cData = reinterpret_cast<char*>(acIFSReadBuffer);
-    stReadData.uiDataSize = sizeof(acIFSReadBuffer);
+    unsigned char acIfsReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
+    stReadData.uiDataSize = sizeof(acIfsReadBuffer);
 
-    // Setup filestreams
-    InputFileStream clIFS(sInFilename.c_str());
-    OutputFileStream clConvertedRxConfigOFS((sInFilename + std::string(".").append(sEncodeFormat)).c_str());
-    OutputFileStream clStrippedRxConfigOFS((sInFilename + std::string(".STRIPPED.").append(sEncodeFormat)).c_str());
+    // Set up file streams
+    InputFileStream clIfs(sInFilename.c_str());
+    OutputFileStream clConvertedRxConfigOfs((sInFilename + std::string(".").append(sEncodeFormat)).c_str());
+    OutputFileStream clStrippedRxConfigOfs((sInFilename + std::string(".STRIPPED.").append(sEncodeFormat)).c_str());
 
     MetaDataStruct stMetaData;
     MetaDataStruct stEmbeddedMetaData;
@@ -116,12 +112,12 @@ int main(int argc, char* argv[])
     MessageDataStruct stEmbeddedMessageData;
 
     RxConfigHandler clRxConfigHandler(&clJsonDb);
-    STATUS eStatus = STATUS::UNKNOWN;
+    auto eStatus = STATUS::UNKNOWN;
 
     while (!stReadStatus.bEOS)
     {
-        stReadData.cData = reinterpret_cast<char*>(acIFSReadBuffer);
-        stReadStatus = clIFS.ReadData(stReadData);
+        stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
+        stReadStatus = clIfs.ReadData(stReadData);
         clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
 
         do {
@@ -130,34 +126,32 @@ int main(int argc, char* argv[])
             {
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
-                clConvertedRxConfigOFS.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                clConvertedRxConfigOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
 
                 // Make the embedded message valid by flipping the CRC.
-                if (eEncodeFormat == ENCODEFORMAT::ASCII)
+                if (eEncodeFormat == ENCODE_FORMAT::ASCII)
                 {
-                    // Flip the CRC at the end of the embedded message and add a CRLF so it becomes
-                    // a valid command.
-                    auto* pcCRCBegin =
+                    // Flip the CRC at the end of the embedded message and add a CRLF, so it becomes a valid command.
+                    auto* pcCrcBegin =
                         reinterpret_cast<char*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) - OEM4_ASCII_CRC_LENGTH);
-                    uint32_t uiFlippedCRC = strtoul(pcCRCBegin, NULL, 16) ^ 0xFFFFFFFF;
-                    snprintf(pcCRCBegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", uiFlippedCRC);
-                    clStrippedRxConfigOFS.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
-                    clStrippedRxConfigOFS.WriteData(const_cast<char*>("\r\n"), 2);
+                    uint32_t uiFlippedCrc = strtoul(pcCrcBegin, nullptr, 16) ^ 0xFFFFFFFF;
+                    snprintf(pcCrcBegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", uiFlippedCrc);
+                    clStrippedRxConfigOfs.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
+                    clStrippedRxConfigOfs.WriteData(const_cast<char*>("\r\n"), 2);
                 }
-                else if (eEncodeFormat == ENCODEFORMAT::BINARY)
+                else if (eEncodeFormat == ENCODE_FORMAT::BINARY)
                 {
-                    // Flip the CRC at the end of the embedded message so it becomes a valid
-                    // command.
-                    auto* puiCRCBegin = reinterpret_cast<uint32_t*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) -
+                    // Flip the CRC at the end of the embedded message, so it becomes a valid command.
+                    auto* puiCrcBegin = reinterpret_cast<uint32_t*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) -
                                                                     OEM4_BINARY_CRC_LENGTH);
-                    *puiCRCBegin ^= 0xFFFFFFFF;
-                    clStrippedRxConfigOFS.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
+                    *puiCrcBegin ^= 0xFFFFFFFF;
+                    clStrippedRxConfigOfs.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
                 }
-                else if (eEncodeFormat == ENCODEFORMAT::JSON)
+                else if (eEncodeFormat == ENCODE_FORMAT::JSON)
                 {
                     // Write in a comma and CRLF to make the files parse-able by JSON readers.
-                    clConvertedRxConfigOFS.WriteData(const_cast<char*>(",\r\n"), 3);
-                    clStrippedRxConfigOFS.WriteData(const_cast<char*>(",\r\n"), 3);
+                    clConvertedRxConfigOfs.WriteData(const_cast<char*>(",\r\n"), 3);
+                    clStrippedRxConfigOfs.WriteData(const_cast<char*>(",\r\n"), 3);
                 }
             }
         } while (eStatus != STATUS::BUFFER_EMPTY);
