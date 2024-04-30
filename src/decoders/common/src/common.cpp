@@ -25,13 +25,12 @@
 // ===============================================================================
 
 #include "common.hpp"
-
-#include "jsonreader.hpp"
+#include "json_reader.hpp"
 
 using namespace novatel::edie;
 
 //-----------------------------------------------------------------------
-bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_)
+bool IsEqual(const double dVal1_, const double dVal2_, const double dEpsilon_)
 {
     double dDiff = dVal1_ - dVal2_;
 
@@ -41,32 +40,32 @@ bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_)
 }
 
 //-----------------------------------------------------------------------
-uint32_t CreateMsgID(uint32_t uiMessageID_, uint32_t uiSiblingID_, uint32_t uiMsgFormat_, uint32_t uiResponse_)
+uint32_t CreateMsgId(const uint32_t uiMessageId_, const uint32_t uiSiblingId_, const uint32_t uiMsgFormat_, const uint32_t uiResponse_)
 {
-    return static_cast<uint16_t>(uiMessageID_) | (static_cast<uint32_t>(MESSAGEIDMASK::MEASSRC) & (uiSiblingID_ << 16)) |
-           (static_cast<uint32_t>(MESSAGEIDMASK::MSGFORMAT) & (uiMsgFormat_ << 21)) |
-           (static_cast<uint32_t>(MESSAGEIDMASK::RESPONSE) & (uiResponse_ << 23));
+    return static_cast<uint16_t>(uiMessageId_) | (static_cast<uint32_t>(MESSAGE_ID_MASK::MEASSRC) & (uiSiblingId_ << 16)) |
+           (static_cast<uint32_t>(MESSAGE_ID_MASK::MSGFORMAT) & (uiMsgFormat_ << 21)) |
+           (static_cast<uint32_t>(MESSAGE_ID_MASK::RESPONSE) & (uiResponse_ << 23));
 }
 
 //-----------------------------------------------------------------------
-void UnpackMsgID(const uint32_t uiMessageID_, uint16_t& usMessageID_, uint32_t& uiSiblingID_, uint32_t& uiMsgFormat_, uint32_t& uiResponse_)
+void UnpackMsgId(const uint32_t uiMessageId_, uint16_t& usMessageId_, uint32_t& uiSiblingId_, uint32_t& uiMsgFormat_, uint32_t& uiResponse_)
 {
-    usMessageID_ = (uiMessageID_ & static_cast<uint32_t>(MESSAGEIDMASK::LOGID));
-    uiSiblingID_ = (uiMessageID_ & static_cast<uint32_t>(MESSAGEIDMASK::MEASSRC)) >> 16;
-    uiMsgFormat_ = (uiMessageID_ & static_cast<uint32_t>(MESSAGEIDMASK::MSGFORMAT)) >> 21;
-    uiResponse_ = (uiMessageID_ & static_cast<uint32_t>(MESSAGEIDMASK::RESPONSE)) >> 23;
+    usMessageId_ = (uiMessageId_ & static_cast<uint32_t>(MESSAGE_ID_MASK::LOGID));
+    uiSiblingId_ = (uiMessageId_ & static_cast<uint32_t>(MESSAGE_ID_MASK::MEASSRC)) >> 16;
+    uiMsgFormat_ = (uiMessageId_ & static_cast<uint32_t>(MESSAGE_ID_MASK::MSGFORMAT)) >> 21;
+    uiResponse_ = (uiMessageId_ & static_cast<uint32_t>(MESSAGE_ID_MASK::RESPONSE)) >> 23;
 }
 
 //-----------------------------------------------------------------------
-unsigned char PackMsgType(const uint32_t uiSiblingID_, const uint32_t uiMsgFormat_, const uint32_t uiResponse_)
+unsigned char PackMsgType(const uint32_t uiSiblingId_, const uint32_t uiMsgFormat_, const uint32_t uiResponse_)
 {
-    return static_cast<uint8_t>(((uiResponse_ << 7) & static_cast<uint32_t>(MESSAGETYPEMASK::RESPONSE)) |
-                                ((uiMsgFormat_ << 5) & static_cast<uint32_t>(MESSAGETYPEMASK::MSGFORMAT)) |
-                                ((uiSiblingID_ << 0) & static_cast<uint32_t>(MESSAGETYPEMASK::MEASSRC)));
+    return static_cast<uint8_t>(((uiResponse_ << 7) & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) |
+                                ((uiMsgFormat_ << 5) & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MSGFORMAT)) |
+                                ((uiSiblingId_ << 0) & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC)));
 }
 
 //-----------------------------------------------------------------------
-std::string GetEnumString(const EnumDefinition* const stEnumDef_, uint32_t uiEnum_)
+std::string GetEnumString(const EnumDefinition* const stEnumDef_, const uint32_t uiEnum_)
 {
     if (stEnumDef_ != nullptr)
     {
@@ -76,11 +75,11 @@ std::string GetEnumString(const EnumDefinition* const stEnumDef_, uint32_t uiEnu
         }
     }
 
-    return std::string("UNKNOWN");
+    return "UNKNOWN";
 }
 
 //-----------------------------------------------------------------------
-int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, std::string strEnum_)
+int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, const std::string& strEnum_)
 {
     if (stEnumDef_ != nullptr)
     {
@@ -94,16 +93,14 @@ int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, std::string strEnum
 }
 
 //-----------------------------------------------------------------------
-int32_t GetResponseId(const EnumDefinition* const stRespDef_, std::string strResp_)
+int32_t GetResponseId(const EnumDefinition* const stRespDef_, const std::string& strResp_)
 {
     if (stRespDef_ != nullptr)
     {
         for (auto& e : stRespDef_->enumerators)
         {
-            if (e.description == strResp_) // response string is stored in description
-            {
-                return static_cast<int32_t>(e.value);
-            }
+            // response string is stored in description
+            if (e.description == strResp_) { return static_cast<int32_t>(e.value); }
         }
     }
 
@@ -111,29 +108,33 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, std::string strRes
 }
 
 //-----------------------------------------------------------------------
-int32_t ToDigit(char c) { return static_cast<int32_t>(c - '0'); }
+int32_t ToDigit(const char c_) { return c_ - '0'; }
 
 //-----------------------------------------------------------------------
-bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, char** ppucMessageBuffer_)
+bool ConsumeAbbrevFormatting(const uint64_t ullTokenLength_, char** ppcMessageBuffer_)
 {
     bool bIsAbbrev = false;
 
     if ((ullTokenLength_ == 0 || ullTokenLength_ == 1) &&
-        (static_cast<int8_t>(**ppucMessageBuffer_) == '\r' || static_cast<int8_t>(**ppucMessageBuffer_) == '\n' ||
-         static_cast<int8_t>(**ppucMessageBuffer_) == '<'))
+        (static_cast<int8_t>(**ppcMessageBuffer_) == '\r' || static_cast<int8_t>(**ppcMessageBuffer_) == '\n' ||
+         static_cast<int8_t>(**ppcMessageBuffer_) == '<'))
     {
         // Skip over '\r\n<     '
         while (true)
         {
-            char c = static_cast<char>(**ppucMessageBuffer_);
-            if (c == '\r' || c == '\n') { *ppucMessageBuffer_ += sizeof(int8_t); }
-            else if (c == '<')
+            switch (**ppcMessageBuffer_)
             {
-                *ppucMessageBuffer_ += sizeof(int8_t);
+            case '\r': [[fallthrough]];
+            case '\n': *ppcMessageBuffer_ += sizeof(int8_t); break;
+            case '<':
+                *ppcMessageBuffer_ += sizeof(int8_t);
                 bIsAbbrev = true;
+                break;
+            case ' ':
+                if (bIsAbbrev) { *ppcMessageBuffer_ += sizeof(int8_t); }
+                break;
+            default: return bIsAbbrev;
             }
-            else if (bIsAbbrev && c == ' ') { *ppucMessageBuffer_ += sizeof(int8_t); }
-            else { break; }
         }
     }
 

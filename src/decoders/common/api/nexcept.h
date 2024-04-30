@@ -27,18 +27,15 @@
 #ifndef NEXCEPT_H
 #define NEXCEPT_H
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
 //============================================================================
-//! \class JsonReaderFailure
-//! \brief Used for rasing exceptions with valid error message in the library.
+//! \class NExcept
+//! \brief Used for raising exceptions with valid error message in the library.
 //============================================================================
-class nExcept
+class NExcept
 {
   public:
     char buffer[256]{'\0'}; //!< Character buffer of 256 bytes to hold exception message
@@ -46,59 +43,58 @@ class nExcept
     //----------------------------------------------------------------------------
     //! \brief A constructor for the nExcept class.
     //----------------------------------------------------------------------------
-    nExcept() = default;
+    NExcept() = default;
 
     //----------------------------------------------------------------------------
     //! \brief Exception Class constructor.
     //
-    //! \param[in] clNew Another nExcept Class object.
+    //! \param[in] clNew_ Another nExcept Class object.
     //----------------------------------------------------------------------------
-    nExcept(const nExcept& clNew) { strncpy(buffer, clNew.buffer, 256); }
+    NExcept(const NExcept& clNew_) { strncpy(buffer, clNew_.buffer, 256); }
 
     //----------------------------------------------------------------------------
     //! \brief Exception class with variable number of arguments which included.
     //
-    //! \param[in] szFormat String formatting.
+    //! \param[in] szFormat_ String formatting.
+    //! \param[in] ...
     //----------------------------------------------------------------------------
-    nExcept(const char* szFormat, ...)
+    NExcept(const char* szFormat_, ...)
     {
-        va_list arg_ptr;
-
-        va_start(arg_ptr, szFormat);
-        vsprintf(buffer, szFormat, arg_ptr);
+        va_list argPtr;
+        va_start(argPtr, szFormat_);
+        vsprintf(buffer, szFormat_, argPtr);
         perror(buffer);
-        va_end(arg_ptr);
+        va_end(argPtr);
     }
 
     //----------------------------------------------------------------------------
     //! \brief Assignment operator for nExcept.
     //----------------------------------------------------------------------------
-    nExcept& operator=(const nExcept& clNew)
+    NExcept& operator=(const NExcept& clNew_)
     {
-        strncpy(buffer, clNew.buffer, 256);
-
+        strncpy(buffer, clNew_.buffer, 256);
         return *this;
     }
 
     //----------------------------------------------------------------------------
-    //! \brief Method to print exception with vatiable arguments which included.
+    //! \brief Method to print exception with variable arguments which included.
     //
-    //! \param[in] szFormat String formatting.
+    //! \param[in] szFormat_ String formatting.
+    //! \param[in] ...
     //----------------------------------------------------------------------------
-    void Printf(const char* szFormat, ...)
+    void Printf(const char* szFormat_, ...)
     {
-        va_list arg_ptr;
-
-        va_start(arg_ptr, szFormat);
-        vsprintf(buffer, szFormat, arg_ptr);
+        va_list argPtr;
+        va_start(argPtr, szFormat_);
+        vsprintf(buffer, szFormat_, argPtr);
         perror(buffer);
-        va_end(arg_ptr);
+        va_end(argPtr);
     }
 
     //----------------------------------------------------------------------------
     //! \brief Destructor for the nExcept class.
     //----------------------------------------------------------------------------
-    ~nExcept() = default;
+    ~NExcept() = default;
 };
 
 #endif
