@@ -29,21 +29,21 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-bool novatel_framer_set_logger_level(Framer* pclFramer_, uint32_t uiLogLevel_)
+bool NovatelFramerSetLoggerLevel(Framer* pclFramer_, uint32_t uiLogLevel_)
 {
     return pclFramer_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclFramer_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
 
-void novatel_framer_shutdown_logger(Framer* pclFramer_)
+void NovatelFramerShutdownLogger(Framer* pclFramer_)
 {
-    if (pclFramer_) { pclFramer_->ShutdownLogger(); }
+    if (pclFramer_) { pclFramer_->ShutdownLogger(); } // TODO: ShutdownLogger is static, this function signature should be changed
 }
 
-Framer* novatel_framer_init() { return new Framer(); }
+Framer* NovatelFramerInit() { return new Framer(); }
 
-void novatel_framer_delete(Framer* pclFramer_)
+void NovatelFramerDelete(Framer* pclFramer_)
 {
     if (pclFramer_ != nullptr)
     {
@@ -52,34 +52,34 @@ void novatel_framer_delete(Framer* pclFramer_)
     }
 }
 
-void novatel_framer_frame_json(Framer* pclFramer_, bool bFrameJson_)
+void NovatelFramerFrameJson(Framer* pclFramer_, bool bFrameJson_)
 {
     if (pclFramer_) { pclFramer_->SetFrameJson(bFrameJson_); }
 }
 
-void novatel_framer_payload_only(Framer* pclFramer_, bool bPayloadOnly_)
+void NovatelFramerPayloadOnly(Framer* pclFramer_, bool bPayloadOnly_)
 {
     if (pclFramer_) { pclFramer_->SetPayloadOnly(bPayloadOnly_); }
 }
 
-void novatel_framer_report_unknown_bytes(Framer* pclFramer_, bool bReportUnknownBytes_)
+void NovatelFramerReportUnknownBytes(Framer* pclFramer_, bool bReportUnknownBytes_)
 {
     if (pclFramer_) { pclFramer_->SetReportUnknownBytes(bReportUnknownBytes_); }
 }
 
-uint32_t novatel_framer_get_available_bytes(Framer* pclFramer_) { return pclFramer_ ? pclFramer_->GetBytesAvailableInBuffer() : UINT_MAX; }
+uint32_t NovatelFramerGetAvailableBytes(Framer* pclFramer_) { return pclFramer_ ? pclFramer_->GetBytesAvailableInBuffer() : UINT_MAX; }
 
-uint32_t novatel_framer_write(Framer* pclFramer_, unsigned char* pucBytes_, uint32_t uiByteCount_)
+uint32_t NovatelFramerWrite(Framer* pclFramer_, unsigned char* pucBytes_, uint32_t uiByteCount_)
 {
     return pclFramer_ ? pclFramer_->Write(pucBytes_, uiByteCount_) : UINT_MAX;
 }
 
-STATUS novatel_framer_read(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct* pstMetaData_)
+STATUS NovatelFramerRead(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct* pstMetaData_)
 {
     return pclFramer_ && pstMetaData_ ? pclFramer_->GetFrame(pucBuffer_, uiBufferSize_, *pstMetaData_) : STATUS::NULL_PROVIDED;
 }
 
-uint32_t novatel_framer_flush(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+uint32_t NovatelFramerFlush(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
     return pclFramer_ && pucBuffer_ ? pclFramer_->Flush(pucBuffer_, uiBufferSize_) : UINT_MAX;
 }

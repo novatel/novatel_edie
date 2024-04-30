@@ -24,26 +24,25 @@
 // ! \file common_logger.cpp
 // ===============================================================================
 
-#include "common_logger.hpp"
-
 #include <string>
 
+#include "common_logger.hpp"
 #include "logger/logger.hpp"
 
-void common_logger_setup() { Logger::InitLogger(); }
+void CommonLoggerSetup() { Logger::InitLogger(); }
 
-void common_logger_setup_from_file(char* pcLoggerConfigPath_) { Logger::InitLogger(std::string(pcLoggerConfigPath_)); }
+void CommonLoggerSetupFromFile(char* pcLoggerConfigPath_) { Logger::InitLogger(std::string(pcLoggerConfigPath_)); }
 
-bool common_logger_set_logger_level(int32_t iLogLevel_)
+bool CommonLoggerSetLoggerLevel(int32_t iLogLevel_)
 {
     return iLogLevel_ >= spdlog::level::level_enum::trace && iLogLevel_ < spdlog::level::level_enum::n_levels
            ? spdlog::set_level(static_cast<spdlog::level::level_enum>(iLogLevel_)),
            true : false;
 }
 
-void common_logger_shutdown_logger() { Logger::Shutdown(); }
+void CommonLoggerShutdownLogger() { Logger::Shutdown(); }
 
-bool common_logger_log(int32_t iLogLevel_, char* pucMessage_)
+bool CommonLoggerLog(int32_t iLogLevel_, char* pucMessage_)
 {
     std::shared_ptr<spdlog::logger> pclLogger = spdlog::get("logger_");
 
@@ -51,8 +50,7 @@ bool common_logger_log(int32_t iLogLevel_, char* pucMessage_)
 
     if (iLogLevel_ >= spdlog::level::level_enum::trace && iLogLevel_ < spdlog::level::level_enum::n_levels)
     {
-        auto eLevel = static_cast<spdlog::level::level_enum>(iLogLevel_);
-        switch (eLevel)
+        switch (static_cast<spdlog::level::level_enum>(iLogLevel_))
         {
         case SPDLOG_LEVEL_TRACE: pclLogger->trace(pucMessage_); break;
         case SPDLOG_LEVEL_DEBUG: pclLogger->debug(pucMessage_); break;
@@ -61,7 +59,7 @@ bool common_logger_log(int32_t iLogLevel_, char* pucMessage_)
         case SPDLOG_LEVEL_ERROR: pclLogger->error(pucMessage_); break;
         case SPDLOG_LEVEL_CRITICAL: pclLogger->critical(pucMessage_); break;
         case SPDLOG_LEVEL_OFF: break; // Do no logging
-        default: SPDLOG_LOGGER_ERROR(pclLogger, "Unknown log level {}", static_cast<uint32_t>(eLevel)); break;
+        default: SPDLOG_LOGGER_ERROR(pclLogger, "Unknown log level {}", iLogLevel_); break;
         }
         return true;
     }

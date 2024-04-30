@@ -28,21 +28,21 @@
 
 using namespace novatel::edie;
 
-bool novatel_message_decoder_set_logger_level(oem::MessageDecoder* pclMessageDecoder_, uint32_t uiLogLevel_)
+bool NovatelMessageDecoderSetLoggerLevel(oem::MessageDecoder* pclMessageDecoder_, uint32_t uiLogLevel_)
 {
     return pclMessageDecoder_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclMessageDecoder_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
 
-void novatel_message_decoder_shutdown_logger(oem::MessageDecoder* pclMessageDecoder_)
+void NovatelMessageDecoderShutdownLogger(oem::MessageDecoder* pclMessageDecoder_)
 {
     if (pclMessageDecoder_) { pclMessageDecoder_->ShutdownLogger(); }
 }
 
-oem::MessageDecoder* novatel_message_decoder_init(JsonReader* pclJsonDb_) { return new oem::MessageDecoder(pclJsonDb_); }
+oem::MessageDecoder* NovatelMessageDecoderInit(JsonReader* pclJsonDb_) { return new oem::MessageDecoder(pclJsonDb_); }
 
-void novatel_message_decoder_delete(oem::MessageDecoder* pclMessageDecoder_)
+void NovatelMessageDecoderDelete(oem::MessageDecoder* pclMessageDecoder_)
 {
     if (pclMessageDecoder_)
     {
@@ -51,21 +51,21 @@ void novatel_message_decoder_delete(oem::MessageDecoder* pclMessageDecoder_)
     }
 }
 
-void novatel_message_decoder_load_json(oem::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_)
+void NovatelMessageDecoderLoadJson(oem::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_)
 {
     if (pclMessageDecoder_ && pclJsonDb_) { pclMessageDecoder_->LoadJsonDb(pclJsonDb_); }
 }
 
-STATUS novatel_message_decoder_decode(oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_, IntermediateMessage* pstInterMessage_,
-                                      oem::MetaDataStruct* pstMetaData_)
+STATUS NovatelMessageDecoderDecode(oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_, IntermediateMessage* pstInterMessage_,
+                                   oem::MetaDataStruct* pstMetaData_)
 {
     return pclMessageDecoder_ && pstInterMessage_ && pstMetaData_ ? pclMessageDecoder_->Decode(pucLogBuf_, *pstInterMessage_, *pstMetaData_)
                                                                   : STATUS::NULL_PROVIDED;
 }
 
-IntermediateMessage* novatel_intermediate_message_init() { return new IntermediateMessage(); }
+IntermediateMessage* NovatelIntermediateMessageInit() { return new IntermediateMessage(); }
 
-void novatel_intermediate_message_delete(IntermediateMessage* pstInterMessage_)
+void NovatelIntermediateMessageDelete(IntermediateMessage* pstInterMessage_)
 {
     if (pstInterMessage_)
     {

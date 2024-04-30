@@ -27,10 +27,7 @@
 #ifndef DYNAMIC_LIBRARY_NOVATEL_COMMANDER_HPP
 #define DYNAMIC_LIBRARY_NOVATEL_COMMANDER_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include "decoders/common/api/jsonreader.hpp"
+#include "decoders/common/api/json_reader.hpp"
 #include "decoders/novatel/api/commander.hpp"
 #include "decoders/novatel/api/common.hpp"
 #include "decoders_export.h"
@@ -38,20 +35,20 @@
 extern "C"
 {
     // Logger
-    DECODERS_EXPORT bool novatel_commander_set_logger_level(novatel::edie::oem::Commander* pclCommander_, uint32_t iLogLevel_);
-    DECODERS_EXPORT void novatel_commander_shutdown_logger(novatel::edie::oem::Commander* pclCommander_);
+    DECODERS_EXPORT bool NovatelCommanderSetLoggerLevel(novatel::edie::oem::Commander* pclCommander_, uint32_t iLogLevel_);
+    DECODERS_EXPORT void NovatelCommanderShutdownLogger(novatel::edie::oem::Commander* pclCommander_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::Commander* novatel_commander_init(JsonReader* pclJsonDb_);
-    DECODERS_EXPORT void novatel_commander_delete(novatel::edie::oem::Commander* pclCommander_);
+    DECODERS_EXPORT novatel::edie::oem::Commander* NovatelCommanderInit(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void NovatelCommanderDelete(novatel::edie::oem::Commander* pclCommander_);
 
     // Config
-    DECODERS_EXPORT void novatel_commander_load_json(novatel::edie::oem::Commander* pclCommander_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void NovatelCommanderLoadJson(novatel::edie::oem::Commander* pclCommander_, JsonReader* pclJsonDb_);
 
     // R/W
-    DECODERS_EXPORT novatel::edie::STATUS novatel_commander_encode(novatel::edie::oem::Commander* pclCommander_, char* pcAbbrevAsciiCommand_,
-                                                                   uint32_t uicAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
-                                                                   uint32_t* puiEncodeBufferSize_, novatel::edie::ENCODEFORMAT eEncodeFormat_);
+    DECODERS_EXPORT novatel::edie::STATUS NovatelCommanderEncode(novatel::edie::oem::Commander* pclCommander_, char* pcAbbrevAsciiCommand_,
+                                                                 uint32_t uicAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                                                                 uint32_t* puiEncodeBufferSize_, novatel::edie::ENCODE_FORMAT eEncodeFormat_);
 }
 
 #endif // DYNAMIC_LIBRARY_NOVATEL_COMMANDER_HPP

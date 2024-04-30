@@ -29,21 +29,21 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-bool novatel_commander_set_logger_level(Commander* pclCommander_, uint32_t uiLogLevel_)
+bool NovatelCommanderSetLoggerLevel(Commander* pclCommander_, uint32_t uiLogLevel_)
 {
     return pclCommander_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclCommander_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
 
-void novatel_commander_shutdown_logger(Commander* pclCommander_)
+void NovatelCommanderShutdownLogger(Commander* pclCommander_)
 {
-    if (pclCommander_) { pclCommander_->ShutdownLogger(); }
+    if (pclCommander_) { pclCommander_->ShutdownLogger(); } // TODO: ShutdownLogger is static, this function signature should be changed
 }
 
-Commander* novatel_commander_init(JsonReader* pclJsonDb_) { return new Commander(pclJsonDb_); }
+Commander* NovatelCommanderInit(JsonReader* pclJsonDb_) { return new Commander(pclJsonDb_); }
 
-void novatel_commander_delete(Commander* pclCommander_)
+void NovatelCommanderDelete(Commander* pclCommander_)
 {
     if (pclCommander_)
     {
@@ -52,13 +52,13 @@ void novatel_commander_delete(Commander* pclCommander_)
     }
 }
 
-void novatel_commander_load_json(Commander* pclCommander_, JsonReader* pclJsonDb_)
+void NovatelCommanderLoadJson(Commander* pclCommander_, JsonReader* pclJsonDb_)
 {
     if (pclCommander_ && pclJsonDb_) { pclCommander_->LoadJsonDb(pclJsonDb_); }
 }
 
-STATUS novatel_commander_encode(Commander* pclCommander_, char* pcAbbrevAsciiCommand_, uint32_t uicAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
-                                uint32_t* puiEncodeBufferSize_, ENCODEFORMAT eEncodeFormat_)
+STATUS NovatelCommanderEncode(Commander* pclCommander_, char* pcAbbrevAsciiCommand_, uint32_t uicAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                              uint32_t* puiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_)
 {
     return pclCommander_ && pcAbbrevAsciiCommand_ && pcEncodeBuffer_ && puiEncodeBufferSize_
                ? pclCommander_->Encode(pcAbbrevAsciiCommand_, uicAbbrevAsciiCommandLength_, pcEncodeBuffer_, *puiEncodeBufferSize_, eEncodeFormat_)

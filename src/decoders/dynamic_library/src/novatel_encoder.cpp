@@ -29,21 +29,21 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-bool novatel_encoder_set_logger_level(Encoder* pclEncoder_, uint32_t uiLogLevel_)
+bool NovatelEncoderSetLoggerLevel(Encoder* pclEncoder_, uint32_t uiLogLevel_)
 {
     return pclEncoder_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclEncoder_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
 
-void novatel_encoder_shutdown_logger(Encoder* pclEncoder_)
+void NovatelEncoderShutdownLogger(Encoder* pclEncoder_)
 {
-    if (pclEncoder_) { pclEncoder_->ShutdownLogger(); }
+    if (pclEncoder_) { pclEncoder_->ShutdownLogger(); } // TODO: ShutdownLogger is static, this function signature should be changed
 }
 
-Encoder* novatel_encoder_init(JsonReader* pclJsonDb_) { return new Encoder(pclJsonDb_); }
+Encoder* NovatelEncoderInit(JsonReader* pclJsonDb_) { return new Encoder(pclJsonDb_); }
 
-void novatel_encoder_delete(Encoder* pclEncoder_)
+void NovatelEncoderDelete(Encoder* pclEncoder_)
 {
     if (pclEncoder_)
     {
@@ -52,14 +52,14 @@ void novatel_encoder_delete(Encoder* pclEncoder_)
     }
 }
 
-void novatel_encoder_load_json(Encoder* pclEncoder_, JsonReader* pclJsonDb_)
+void NovatelEncoderLoadJson(Encoder* pclEncoder_, JsonReader* pclJsonDb_)
 {
     if (pclEncoder_ && pclJsonDb_) { pclEncoder_->LoadJsonDb(pclJsonDb_); }
 }
 
-STATUS novatel_encoder_encode(Encoder* pclEncoder_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_,
-                              IntermediateHeader* pstInterHeader_, IntermediateMessage* pstInterMessage_, MessageDataStruct* pstMessageData_,
-                              MetaDataStruct* pstMetaData_, ENCODEFORMAT eEncodeFormat_)
+STATUS NovatelEncoderEncode(Encoder* pclEncoder_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateHeader* pstInterHeader_,
+                            IntermediateMessage* pstInterMessage_, MessageDataStruct* pstMessageData_, MetaDataStruct* pstMetaData_,
+                            ENCODE_FORMAT eEncodeFormat_)
 {
     return pclEncoder_ && pucEncodeBuffer_ && pstInterHeader_ && pstInterMessage_ && pstMessageData_ && pstMetaData_
                ? pclEncoder_->Encode(&pucEncodeBuffer_, uiEncodeBufferSize_, *pstInterHeader_, *pstInterMessage_, *pstMessageData_, *pstMetaData_,

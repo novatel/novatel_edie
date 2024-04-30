@@ -27,9 +27,6 @@
 #ifndef DYNAMIC_LIBRARY_NOVATEL_FRAMER_HPP
 #define DYNAMIC_LIBRARY_NOVATEL_FRAMER_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/filter.hpp"
 #include "decoders/novatel/api/framer.hpp"
@@ -38,24 +35,24 @@
 extern "C"
 {
     // Logger
-    DECODERS_EXPORT bool novatel_framer_set_logger_level(novatel::edie::oem::Framer* pclFramer_, uint32_t uiLogLevel_);
-    DECODERS_EXPORT void novatel_framer_shutdown_logger(novatel::edie::oem::Framer* pclFramer_);
+    DECODERS_EXPORT bool NovatelFramerSetLoggerLevel(novatel::edie::oem::Framer* pclFramer_, uint32_t uiLogLevel_);
+    DECODERS_EXPORT void NovatelFramerShutdownLogger(novatel::edie::oem::Framer* pclFramer_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::Framer* novatel_framer_init();
-    DECODERS_EXPORT void novatel_framer_delete(novatel::edie::oem::Framer* pclFramer_);
+    DECODERS_EXPORT novatel::edie::oem::Framer* NovatelFramerInit();
+    DECODERS_EXPORT void NovatelFramerDelete(novatel::edie::oem::Framer* pclFramer_);
 
     // Config
-    DECODERS_EXPORT void novatel_framer_frame_json(novatel::edie::oem::Framer* pclFramer_, bool bFrameJson_);
-    DECODERS_EXPORT void novatel_framer_payload_only(novatel::edie::oem::Framer* pclFramer_, bool bPayloadOnly_);
-    DECODERS_EXPORT void novatel_framer_report_unknown_bytes(novatel::edie::oem::Framer* pclFramer_, bool bReportUnknownBytes_);
+    DECODERS_EXPORT void NovatelFramerFrameJson(novatel::edie::oem::Framer* pclFramer_, bool bFrameJson_);
+    DECODERS_EXPORT void NovatelFramerPayloadOnly(novatel::edie::oem::Framer* pclFramer_, bool bPayloadOnly_);
+    DECODERS_EXPORT void NovatelFramerReportUnknownBytes(novatel::edie::oem::Framer* pclFramer_, bool bReportUnknownBytes_);
 
     // R/W
-    DECODERS_EXPORT uint32_t novatel_framer_get_available_bytes(novatel::edie::oem::Framer* pclFramer_);
-    DECODERS_EXPORT uint32_t novatel_framer_write(novatel::edie::oem::Framer* pclFramer_, unsigned char* pucBytes_, uint32_t uiByteCount_);
-    DECODERS_EXPORT novatel::edie::STATUS novatel_framer_read(novatel::edie::oem::Framer* pclFramer_, unsigned char* pucBuffer_,
-                                                              uint32_t uiBufferSize_, novatel::edie::oem::MetaDataStruct* pstMetaData_);
-    DECODERS_EXPORT uint32_t novatel_framer_flush(novatel::edie::oem::Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_);
+    DECODERS_EXPORT uint32_t NovatelFramerGetAvailableBytes(novatel::edie::oem::Framer* pclFramer_);
+    DECODERS_EXPORT uint32_t NovatelFramerWrite(novatel::edie::oem::Framer* pclFramer_, unsigned char* pucBytes_, uint32_t uiByteCount_);
+    DECODERS_EXPORT novatel::edie::STATUS NovatelFramerRead(novatel::edie::oem::Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_,
+                                                            novatel::edie::oem::MetaDataStruct* pstMetaData_);
+    DECODERS_EXPORT uint32_t NovatelFramerFlush(novatel::edie::oem::Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_);
 }
 
 #endif // DYNAMIC_LIBRARY_NOVATEL_FRAMER_HPP

@@ -27,15 +27,12 @@
 #ifndef DYNAMIC_LIBRARY_VERSION_HPP
 #define DYNAMIC_LIBRARY_VERSION_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include "decoders_export.h"
 
 extern "C"
 {
-    DECODERS_EXPORT const char* version();
-    DECODERS_EXPORT const char* pretty_version();
+    DECODERS_EXPORT const char* Version();
+    DECODERS_EXPORT const char* PrettyVersion();
 }
 
 #endif
