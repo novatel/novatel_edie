@@ -13,6 +13,6 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "decoders/tests")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../api)
 
-get_directory_property( DirDefs COMPILE_DEFINITIONS )
+get_directory_property(DirDefs COMPILE_DEFINITIONS)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 target_link_libraries(${PROJECT_NAME} PUBLIC novatel common stream_interface gtest)

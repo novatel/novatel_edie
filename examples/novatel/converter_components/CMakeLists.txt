@@ -30,6 +30,6 @@ include_directories(
 
 add_executable(${PROJECT_NAME} converter_components.cpp)
 add_dependencies(${PROJECT_NAME} common novatel stream_interface)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS} )
+target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "examples")
