@@ -111,10 +111,7 @@ message("CMAKE_CXX_COMPILER_TARGET " ${CMAKE_CXX_COMPILER_TARGET})
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Fetch the GoogleTest library
-FetchContent_Declare(
-  googletest
-   URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip
-)
+FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip)
 FetchContent_MakeAvailable(googletest)
 
 # Find Git package, if not need to install manually or through .yml file
@@ -142,12 +139,12 @@ add_subdirectory(src/decoders/novatel/test)
 add_subdirectory(src/hw_interface/stream_interface/test)
 
 add_subdirectory(examples/novatel/command_encoding)
-add_subdirectory(examples/novatel/converter_fileparser)
+add_subdirectory(examples/novatel/converter_file_parser)
 add_subdirectory(examples/novatel/converter_components)
 add_subdirectory(examples/novatel/converter_parser)
 add_subdirectory(examples/novatel/json_parser)
 add_subdirectory(examples/novatel/rangecmp)
 add_subdirectory(examples/novatel/rxconfig)
-add_subdirectory(examples/novatel/dynamic_fileparser)
+add_subdirectory(examples/novatel/dynamic_file_parser)
 add_subdirectory(examples/novatel/dynamic_components)
 add_subdirectory(examples/novatel/dynamic_parser)

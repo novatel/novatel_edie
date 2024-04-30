@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12.4)
-project(range_decompressor VERSION 1.0.0)
+project(Range_Decompressor VERSION 1.0.0)
 
 file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c*)
 set(RANGECMP_SOURCES)
