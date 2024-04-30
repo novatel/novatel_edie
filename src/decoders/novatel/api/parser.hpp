@@ -27,19 +27,12 @@
 #ifndef NOVATEL_PARSER_HPP
 #define NOVATEL_PARSER_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include <exception>
-
 #include "decoders/common/api/common.hpp"
-#include "decoders/common/api/message_decoder.hpp"
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/encoder.hpp"
 #include "decoders/novatel/api/filter.hpp"
 #include "decoders/novatel/api/framer.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"
-#include "decoders/novatel/api/rangecmp/common.hpp"
 #include "decoders/novatel/api/rangecmp/range_decompressor.hpp"
 #include "decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
 #include "logger/logger.hpp"
@@ -54,17 +47,6 @@ namespace novatel::edie::oem {
 //============================================================================
 class Parser
 {
-    //! TODO: Manage copy/move/assignment constructors better.
-    //! NOTE: The following constructors prevent this class from ever being
-    //! constructed from a copy, move or assignment.
-    Parser(const Parser&) = delete;
-    Parser(const Parser&&) = delete;
-    Parser& operator=(const Parser&) = delete;
-
-  public:
-    //! \brief uiPARSER_INTERNAL_BUFFER_SIZE: the size of the parser's internal buffer.
-    static constexpr uint32_t uiPARSER_INTERNAL_BUFFER_SIZE = MESSAGE_SIZE_MAX;
-
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_parser")};
 
@@ -91,23 +73,33 @@ class Parser
     // Configuration options
     bool bMyDecompressRangeCmp{true};
     bool bMyReturnUnknownBytes{true};
-    bool bMyIgnoreAbbreviatedASCIIResponse{true};
-    ENCODEFORMAT eMyEncodeFormat{ENCODEFORMAT::ASCII};
+    bool bMyIgnoreAbbreviatedAsciiResponse{true};
+    ENCODE_FORMAT eMyEncodeFormat{ENCODE_FORMAT::ASCII};
 
   public:
-    //----------------------------------------------------------------------------
-    //! \brief A constructor for the Parser class.
-    //
-    //! \param[in] sDbPath_ Filepath to a JSON message DB.
-    //----------------------------------------------------------------------------
-    Parser(const std::string sDbPath_);
+    //! \brief uiPARSER_INTERNAL_BUFFER_SIZE: the size of the parser's internal buffer.
+    static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX;
+
+    //! TODO: Manage copy/move/assignment constructors better.
+    //! NOTE: The following constructors prevent this class from ever being
+    //! constructed from a copy, move or assignment.
+    Parser(const Parser&) = delete;
+    Parser(const Parser&&) = delete;
+    Parser& operator=(const Parser&) = delete;
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    Parser(const std::u32string sDbPath_);
+    Parser(const std::string& sDbPath_);
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the Parser class.
+    //
+    //! \param[in] sDbPath_ Filepath to a JSON message DB.
+    //----------------------------------------------------------------------------
+    Parser(const std::u32string& sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.
@@ -142,34 +134,34 @@ class Parser
     //! \param [in] eLevel_ The logging level to enable.
     //! \param [in] sFileName_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, std::string sFileName_ = "edie.log");
+    void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log");
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_);
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
     //----------------------------------------------------------------------------
-    void ShutdownLogger();
+    static void ShutdownLogger();
 
     //----------------------------------------------------------------------------
     //! \brief Set the abbreviated ASCII response option.
     //
-    //! \param [in] bIgnoreAbbreivatedAsciiResponses_ true to ignore abbreivated
+    //! \param [in] bIgnoreAbbreviatedAsciiResponses_ true to ignore abbreviated
     //! ASCII responses.
     //----------------------------------------------------------------------------
-    void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreivatedAsciiResponses_);
+    void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the abbreviated ASCII response option.
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    bool GetIgnoreAbbreviatedAsciiResponses(void);
+    [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
@@ -183,7 +175,7 @@ class Parser
     //
     //! \return The current option for decompressing RANGECMP messages.
     //----------------------------------------------------------------------------
-    bool GetDecompressRangeCmp();
+    [[nodiscard]] bool GetDecompressRangeCmp() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the return option for unknown bytes.
@@ -197,22 +189,21 @@ class Parser
     //
     //! \return The current option for returning unknown bytes.
     //----------------------------------------------------------------------------
-    bool GetReturnUnknownBytes();
+    [[nodiscard]] bool GetReturnUnknownBytes() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the encode format for messages.
     //
     //! \param [in] eFormat_ the encode format for future messages.
     //----------------------------------------------------------------------------
-    void SetEncodeFormat(ENCODEFORMAT eFormat_);
+    void SetEncodeFormat(ENCODE_FORMAT eFormat_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the encode format for messages.
     //
     //! \return The current encode format for messages.
     //----------------------------------------------------------------------------
-    ENCODEFORMAT
-    GetEncodeFormat();
+    [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the Filter for the FileParser.
@@ -226,14 +217,14 @@ class Parser
     //
     //! \return A pointer to the FileParser's OEM message Filter object.
     //----------------------------------------------------------------------------
-    Filter* GetFilter();
+    [[nodiscard]] Filter* GetFilter() const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a pointer to the current framed log raw data.
     //
     //! \return A pointer to the Parser's internal encode buffer.
     //----------------------------------------------------------------------------
-    unsigned char* GetInternalBuffer();
+    [[nodiscard]] unsigned char* GetInternalBuffer() const;
 
     //----------------------------------------------------------------------------
     //! \brief Write bytes to the Parser to be parsed.
@@ -252,8 +243,8 @@ class Parser
     //! populated by the FileParser.
     //! \param [out] stMetaData_ A reference to a MetaDataStruct to be populated
     //! by the FileParser.
-    //! \param [out] bDecodeIncompleteAbbv If at the end of the datastream decode
-    //! last Abbv Ascii message if it's incomplete. Set to true when the data
+    //! \param [out] bDecodeIncompleteAbbreviated_ If at the end of the data stream decode
+    //! last Abbreviated Ascii message if it's incomplete. Set to true when the data
     //! stream is empty and the parser has returned BUFFER_EMPTY
     //
     //! \return An error code describing the result of parsing.
@@ -263,7 +254,7 @@ class Parser
     //! if requested in the ParserConfigStruct given to SetConfig().
     //!   BUFFER_EMPTY: There are no more bytes to parse in the Parser.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbv = false);
+    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Parser.
@@ -274,7 +265,9 @@ class Parser
     //
     //! \return The number of bytes flushed from the internal Parser.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiPARSER_INTERNAL_BUFFER_SIZE);
+    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiParserInternalBufferSize);
 };
+
 } // namespace novatel::edie::oem
+
 #endif // PARSER_H

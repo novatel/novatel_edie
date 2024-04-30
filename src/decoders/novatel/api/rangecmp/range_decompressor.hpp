@@ -24,19 +24,11 @@
 // ! \file range_decompressor.hpp
 // ===============================================================================
 
+#ifndef RANGE_DECOMPRESSOR_HPP
+#define RANGE_DECOMPRESSOR_HPP
 
-#ifndef RANGEDECOMPRESSOR_HPP
-#define RANGEDECOMPRESSOR_HPP
-
-#include <cmath>
-#include <cstring>
-#include <list>
-#include <vector>
-
-#include "decoders/common/api/crc32.hpp"
 #include "decoders/novatel/api/encoder.hpp"
 #include "decoders/novatel/api/filter.hpp"
-#include "decoders/novatel/api/framer.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"
 #include "decoders/novatel/api/message_decoder.hpp"
 #include "decoders/novatel/api/rangecmp/common.hpp"
@@ -69,11 +61,11 @@ class RangeDecompressor
     //----------------------------------------------------------------------------
     void Reset()
     {
-        ammmMyRangeCmp2Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp2Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-        ammmMyRangeCmp4Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp4Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-    };
+        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
+        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
+        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
+        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
@@ -81,7 +73,7 @@ class RangeDecompressor
     void ShutdownLogger();
 
     [[nodiscard]] STATUS Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
-                                    ENCODEFORMAT eFormat_ = ENCODEFORMAT::UNSPECIFIED);
+                                    ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
 
   private:
     Filter clMyRangeCmpFilter;
@@ -108,18 +100,18 @@ class RangeDecompressor
     // Protected members to be accessed by test child classes.
   protected:
     std::map<ChannelTrackingStatusStruct::SATELLITE_SYSTEM,
-             std::map<ChannelTrackingStatusStruct::SIGNAL_TYPE, std::map<uint32_t, RangeCmp2LocktimeInfoStruct>>>
-        ammmMyRangeCmp2Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+             std::map<ChannelTrackingStatusStruct::SIGNAL_TYPE, std::map<uint32_t, RangeCmp2LockTimeInfoStruct>>>
+        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
     std::map<ChannelTrackingStatusStruct::SATELLITE_SYSTEM,
              std::map<ChannelTrackingStatusStruct::SIGNAL_TYPE, std::map<uint32_t, RangeCmp4LocktimeInfoStruct>>>
-        ammmMyRangeCmp4Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
 
   private:
     double GetSignalWavelength(const ChannelTrackingStatusStruct& stChannelTrackingStatus_, int16_t sGLONASSFrequency_);
-    float DetermineRangeCmp2ObservationLocktime(const MetaDataStruct& stMetaData_, uint32_t uiLocktimeBits_,
+    float DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
                                                 ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                 ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_);
-    float DetermineRangeCmp4ObservationLocktime(const MetaDataStruct& stMetaData_, uint8_t ucLocktimeBits_,
+    float DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
                                                 ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                 ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
     template <bool bIsSecondary>
@@ -145,4 +137,4 @@ class RangeDecompressor
 
 } // namespace novatel::edie::oem
 
-#endif // RANGEDECOMPRESSOR_HPP
+#endif // RANGE_DECOMPRESSOR_HPP

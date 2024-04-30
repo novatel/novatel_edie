@@ -27,9 +27,6 @@
 #ifndef NOVATEL_FRAMER_HPP
 #define NOVATEL_FRAMER_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include "decoders/common/api/framer.hpp"
 #include "decoders/novatel/api/common.hpp"
 
@@ -54,10 +51,10 @@ class Framer : public FramerBase
     //! \param [in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
     //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
     //----------------------------------------------------------------------------
-    bool IsAsciiCRC(uint32_t uiDelimiterPosition_) const;
-    bool IsAbbrevSeparatorCRLF(uint32_t uiCircularBufferPosition_) const;
-    bool IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const;
-    bool IsAbbrevAsciiResponse() const;
+    [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
+    [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiCircularBufferPosition_) const;
+    [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const;
+    [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
   public:
     //----------------------------------------------------------------------------
@@ -86,5 +83,7 @@ class Framer : public FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
 };
+
 } // namespace novatel::edie::oem
+
 #endif // FRAMER_H

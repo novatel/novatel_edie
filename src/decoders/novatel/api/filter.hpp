@@ -27,14 +27,10 @@
 #ifndef NOVATEL_FILTER_HPP
 #define NOVATEL_FILTER_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include <memory>
 #include <tuple>
 
 #include "decoders/common/api/common.hpp"
-#include "decoders/common/api/jsonreader.hpp"
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"
 #include "logger/logger.hpp"
@@ -45,7 +41,7 @@ namespace novatel::edie::oem {
 //! \class Filter
 //! \brief Filter notifies the caller if a message should be accepted or
 //! rejected based on the Filter's configuration and the message's
-//! MetaData. An unconfigured filter will notify the caller to accept all
+//! MetaData. A non configured filter will notify the caller to accept all
 //! messages.
 //============================================================================
 class Filter
@@ -59,10 +55,10 @@ class Filter
     std::vector<TIME_STATUS> vMyTimeStatusFilters;
     bool bMyInvertTimeStatusFilter;
 
-    std::vector<std::tuple<uint32_t, HEADERFORMAT, MEASUREMENT_SOURCE>> vMyMessageIdFilters;
+    std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageIdFilters;
     bool bMyInvertMessageIdFilter;
 
-    std::vector<std::tuple<std::string, HEADERFORMAT, MEASUREMENT_SOURCE>> vMyMessageNameFilters;
+    std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageNameFilters;
     bool bMyInvertMessageNameFilter;
 
     uint32_t uiMyLowerWeek;
@@ -73,13 +69,13 @@ class Filter
     bool bMyFilterUpperTime;
     bool bMyInvertTimeFilter;
 
-    uint32_t uiMyDecimationPeriodMS;
+    uint32_t uiMyDecimationPeriodMilliSec;
     bool bMyDecimate;
     bool bMyInvertDecimation;
 
-    bool bMyIncludeNMEA_;
+    bool bMyIncludeNmea;
 
-    void PushUnique(bool (Filter::*filter)(const MetaDataStruct&));
+    void PushUnique(bool (Filter::*filter_)(const MetaDataStruct&));
 
     bool FilterTime(const MetaDataStruct& stMetaData_);
     bool FilterTimeStatus(const MetaDataStruct& stMetaData_);
@@ -105,12 +101,12 @@ class Filter
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_);
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
     //----------------------------------------------------------------------------
-    void ShutdownLogger();
+    static void ShutdownLogger();
 
     //----------------------------------------------------------------------------
     //! \brief Include messages at and above the lower time bound (inclusive).
@@ -174,7 +170,7 @@ class Filter
     //!
     //! For example, include messages with either the "COARSE" or "FINE" status.
     //
-    //! \param [in] eTimeStatus_  Multiple time statuses.
+    //! \param [in] vTimeStatuses_ Multiple time statuses.
     //----------------------------------------------------------------------------
     void IncludeTimeStatus(std::vector<TIME_STATUS> vTimeStatuses_);
 
@@ -192,7 +188,7 @@ class Filter
     //! \param [in] eFormat_  The message format.
     //! \param [in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageId(uint32_t uiId_, HEADERFORMAT eFormat_ = HEADERFORMAT::ALL, MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
+    void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message IDs.
@@ -200,7 +196,7 @@ class Filter
     //! \param [in] vIds_  Vector of tuples containing: message ID, message format,
     //! and antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageId(std::vector<std::tuple<uint32_t, HEADERFORMAT, MEASUREMENT_SOURCE>>& vIds_);
+    void IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vIds_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the message ID filter.
@@ -216,7 +212,7 @@ class Filter
     //! \param [in] eFormat_  The message format.
     //! \param [in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(std::string szMsgName_, HEADERFORMAT eFormat_ = HEADERFORMAT::ALL,
+    void IncludeMessageName(const std::string& szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL,
                             MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
 
     //----------------------------------------------------------------------------
@@ -225,7 +221,7 @@ class Filter
     //! \param [in] vNames_  Vector of tuples containing: message name,
     //! message format, and antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(std::vector<std::tuple<std::string, HEADERFORMAT, MEASUREMENT_SOURCE>>& vNames_);
+    void IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vNames_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the message name filter.
@@ -239,9 +235,9 @@ class Filter
     //!
     //! Defaults to false (exclude NMEA logs).
     //
-    //! \param [in] bIncludeNMEA_  True to keep/include NMEA logs.
+    //! \param [in] bIncludeNmea_  True to keep/include NMEA logs.
     //----------------------------------------------------------------------------
-    void IncludeNMEAMessages(bool bIncludeNMEA_);
+    void IncludeNmeaMessages(bool bIncludeNmea_);
 
     //----------------------------------------------------------------------------
     //! \brief Clear all current filter settings.
@@ -254,7 +250,9 @@ class Filter
     //
     //! \param [in] stMetaData_  The MetaDataStruct to filter.
     //----------------------------------------------------------------------------
-    bool DoFiltering(MetaDataStruct& stMetaData_);
+    bool DoFiltering(const MetaDataStruct& stMetaData_);
 };
+
 } // namespace novatel::edie::oem
+
 #endif // NOVATEL_FILTER_HPP

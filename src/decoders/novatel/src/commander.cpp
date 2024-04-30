@@ -26,8 +26,6 @@
 
 #include "decoders/novatel/api/commander.hpp"
 
-#include <bitset>
-
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -43,31 +41,30 @@ Commander::Commander(JsonReader* pclJsonDb_) : clMyMessageDecoder(pclJsonDb_), c
 void Commander::LoadJsonDb(JsonReader* pclJsonDb_)
 {
     pclMyMsgDb = pclJsonDb_;
-
-    InitEnumDefns();
-    CreateResponseMsgDefns();
+    InitEnumDefinitions();
+    CreateResponseMsgDefinitions();
 }
 
 // -------------------------------------------------------------------------------------------------------
 std::shared_ptr<spdlog::logger> Commander::GetLogger() const { return pclMyLogger; }
 
 // -------------------------------------------------------------------------------------------------------
-void Commander::SetLoggerLevel(spdlog::level::level_enum eLevel_) { pclMyLogger->set_level(eLevel_); }
+void Commander::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
 void Commander::ShutdownLogger() { Logger::Shutdown(); }
 
 // -------------------------------------------------------------------------------------------------------
-void Commander::InitEnumDefns()
+void Commander::InitEnumDefinitions()
 {
-    vMyRespDefns = pclMyMsgDb->GetEnumDefName("Responses");
-    vMyCommandDefns = pclMyMsgDb->GetEnumDefName("Commands");
-    vMyPortAddrDefns = pclMyMsgDb->GetEnumDefName("PortAddress");
-    vMyGPSTimeStatusDefns = pclMyMsgDb->GetEnumDefName("GPSTimeStatus");
+    vMyResponseDefinitions = pclMyMsgDb->GetEnumDefName("Responses");
+    vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
+    vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
+    vMyGpsTimeStatusDefinitions = pclMyMsgDb->GetEnumDefName("GPSTimeStatus");
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Commander::CreateResponseMsgDefns()
+void Commander::CreateResponseMsgDefinitions()
 {
     // Numerical response ID
     SimpleDataType stRespIdDataType;
@@ -79,8 +76,8 @@ void Commander::CreateResponseMsgDefns()
     stRespIdField.name = "response_id";
     stRespIdField.type = FIELD_TYPE::RESPONSE_ID;
     stRespIdField.dataType = stRespIdDataType;
-    if (vMyRespDefns != nullptr) stRespIdField.enumID = vMyRespDefns->_id;
-    stRespIdField.enumDef = vMyRespDefns;
+    if (vMyResponseDefinitions != nullptr) { stRespIdField.enumId = vMyResponseDefinitions->_id; }
+    stRespIdField.enumDef = vMyResponseDefinitions;
 
     // String response ID
     SimpleDataType stRespStrDataType;
@@ -96,22 +93,21 @@ void Commander::CreateResponseMsgDefns()
     // Message Definition
     stMyRespDef = MessageDefinition();
     stMyRespDef.name = std::string("response");
-    stMyRespDef.fields[0].emplace_back(stRespIdField.clone());
-    stMyRespDef.fields[0].emplace_back(stRespStrField.clone());
+    stMyRespDef.fields[0].emplace_back(stRespIdField.Clone());
+    stMyRespDef.fields[0].emplace_back(stRespStrField.Clone());
 }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS
-Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_, uint32_t& uiEncodeBufferSize_,
-                  const ENCODEFORMAT eEncodeFormat_)
+STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                         uint32_t& uiEncodeBufferSize_, const ENCODE_FORMAT eEncodeFormat_)
 {
     constexpr uint32_t thisPort = 0xC0;
 
     if (!pcAbbrevAsciiCommand_ || !pcEncodeBuffer_) { return STATUS::NULL_PROVIDED; }
 
-    if (eEncodeFormat_ != ENCODEFORMAT::ASCII && eEncodeFormat_ != ENCODEFORMAT::BINARY) { return STATUS::UNSUPPORTED; }
+    if (eEncodeFormat_ != ENCODE_FORMAT::ASCII && eEncodeFormat_ != ENCODE_FORMAT::BINARY) { return STATUS::UNSUPPORTED; }
 
-    const std::string strAbbrevAsciiCommand = std::string(pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_);
+    const auto strAbbrevAsciiCommand = std::string(pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_);
     const size_t ullPos = strAbbrevAsciiCommand.find_first_of(' ');
     const std::string strCmdName = strAbbrevAsciiCommand.substr(0, ullPos);
     const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1, strAbbrevAsciiCommand.length());
@@ -131,25 +127,77 @@ Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbbrevAsci
     IntermediateMessage stIntermediateMessage;
 
     // Prime the metadata with information we already know
-    stMetaData.eFormat = HEADERFORMAT::ABB_ASCII;
-    stMetaData.usMessageID = static_cast<uint16_t>(pclMessageDef->logID);
-    stMetaData.uiMessageCRC = static_cast<uint32_t>(pclMessageDef->fields.begin()->first);
+    stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
+    stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
+    stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fields.begin()->first);
 
     STATUS eStatus = clMyMessageDecoder.Decode(reinterpret_cast<unsigned char*>(pcCmdParams), stIntermediateMessage, stMetaData);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     // Prime the intermediate header with information we already know
     stIntermediateHeader.uiPortAddress = thisPort;
-    stIntermediateHeader.usMessageID = stMetaData.usMessageID;
-    stIntermediateHeader.uiMessageDefinitionCRC = stMetaData.uiMessageCRC;
+    stIntermediateHeader.usMessageId = stMetaData.usMessageId;
+    stIntermediateHeader.uiMessageDefinitionCrc = stMetaData.uiMessageCrc;
 
     eStatus = clMyEncoder.Encode(reinterpret_cast<unsigned char**>(&pcEncodeBuffer_), uiEncodeBufferSize_, stIntermediateHeader,
                                  stIntermediateMessage, stMessageData, stMetaData, eEncodeFormat_);
 
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-    // Null-terminate the command, if possible.  Otherwise the command will be the size of the
-    // buffer.
+    // Null-terminate the command, if possible. Otherwise, the command will be the size of the buffer.
+    if (stMessageData.uiMessageLength < uiEncodeBufferSize_) { stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0'; }
+    uiEncodeBufferSize_ = stMessageData.uiMessageLength;
+
+    return STATUS::SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------------
+STATUS Commander::Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_, const char* pcAbbrevAsciiCommand_,
+                         const uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_, uint32_t& uiEncodeBufferSize_,
+                         const ENCODE_FORMAT eEncodeFormat_)
+{
+    constexpr uint32_t thisPort = 0xC0;
+
+    if (!pcAbbrevAsciiCommand_ || !pcEncodeBuffer_) { return STATUS::NULL_PROVIDED; }
+
+    if (eEncodeFormat_ != ENCODE_FORMAT::ASCII && eEncodeFormat_ != ENCODE_FORMAT::BINARY) { return STATUS::UNSUPPORTED; }
+
+    const auto strAbbrevAsciiCommand = std::string(pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_);
+    const size_t ullPos = strAbbrevAsciiCommand.find_first_of(' ');
+    const std::string strCmdName = strAbbrevAsciiCommand.substr(0, ullPos);
+    const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1, strAbbrevAsciiCommand.length());
+
+    unsigned char acCmdParams[MAX_ASCII_MESSAGE_LENGTH];
+    unsigned char* pucCmdParams = acCmdParams;
+    strcpy(reinterpret_cast<char*>(acCmdParams), strCmdParams.c_str());
+
+    const MessageDefinition* pclMessageDef = clJsonDb_.GetMsgDef(strCmdName);
+    if (!pclMessageDef) { return STATUS::NO_DEFINITION; }
+
+    MessageDataStruct stMessageData;
+    MetaDataStruct stMetaData;
+    IntermediateHeader stIntermediateHeader;
+    IntermediateMessage stIntermediateMessage;
+
+    // Prime the metadata with information we already know
+    stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
+    stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
+    stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fields.begin()->first);
+
+    const STATUS eDecoderStatus = clMessageDecoder_.Decode(pucCmdParams, stIntermediateMessage, stMetaData);
+    if (eDecoderStatus != STATUS::SUCCESS) { return eDecoderStatus; }
+
+    // Prime the intermediate header with information we already know
+    stIntermediateHeader.uiPortAddress = thisPort;
+    stIntermediateHeader.usMessageId = stMetaData.usMessageId;
+    stIntermediateHeader.uiMessageDefinitionCrc = stMetaData.uiMessageCrc;
+
+    const STATUS eEncoderStatus = clEncoder_.Encode(reinterpret_cast<unsigned char**>(&pcEncodeBuffer_), uiEncodeBufferSize_, stIntermediateHeader,
+                                                    stIntermediateMessage, stMessageData, stMetaData, eEncodeFormat_);
+
+    if (eEncoderStatus != STATUS::SUCCESS) { return eEncoderStatus; }
+
+    // Null-terminate the command, if possible. Otherwise, the command will be the size of the buffer.
     if (stMessageData.uiMessageLength < uiEncodeBufferSize_) { stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0'; }
     uiEncodeBufferSize_ = stMessageData.uiMessageLength;
 

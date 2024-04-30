@@ -266,7 +266,7 @@ struct LOGLIST
 struct BESTSATS_satellite_entries
 {
     int32_t system_type;
-    SATELLITEID id;
+    SatelliteId id;
     int32_t status;
     uint32_t status_mask;
 

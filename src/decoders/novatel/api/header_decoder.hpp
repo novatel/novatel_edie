@@ -27,23 +27,11 @@
 #ifndef NOVATEL_HEADER_DECODER_HPP
 #define NOVATEL_HEADER_DECODER_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include <stdarg.h>
-
-#include <cassert>
-#include <fstream>
-#include <iostream>
 #include <logger/logger.hpp>
 #include <nlohmann/json.hpp>
-#include <sstream>
-#include <string>
-#include <variant>
 
 #include "decoders/common/api/common.hpp"
-#include "decoders/common/api/crc32.hpp"
-#include "decoders/common/api/jsonreader.hpp"
+#include "decoders/common/api/json_reader.hpp"
 #include "decoders/novatel/api/common.hpp"
 
 namespace novatel::edie::oem {
@@ -57,15 +45,15 @@ class HeaderDecoder
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_header_decoder")};
     JsonReader* pclMyMsgDb{nullptr};
-    EnumDefinition* vMyCommandDefns{nullptr};
-    EnumDefinition* vMyPortAddrDefns{nullptr};
-    EnumDefinition* vMyGPSTimeStatusDefns{nullptr};
-    MessageDefinition stMyRespDef;
+    EnumDefinition* vMyCommandDefinitions{nullptr};
+    EnumDefinition* vMyPortAddressDefinitions{nullptr};
+    EnumDefinition* vMyGpsTimeStatusDefinitions{nullptr};
+    MessageDefinition stMyResponseDefinition;
 
     // Decode novatel headers
-    template <ASCIIHEADER eField> [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, char** ppcLogBuf_);
-    template <ASCIIHEADER... eFields> [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, char** ppcLogBuf_);
-    void DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stInterHeader_);
+    template <ASCII_HEADER eField> [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const;
+    template <ASCII_HEADER... eFields> [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const;
+    void DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stInterHeader_) const;
 
   public:
     //----------------------------------------------------------------------------
@@ -94,17 +82,17 @@ class HeaderDecoder
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_);
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
     //----------------------------------------------------------------------------
-    void ShutdownLogger();
+    static void ShutdownLogger();
 
     //----------------------------------------------------------------------------
     //! \brief Decode an OEM message header from the provided frame.
     //
-    //! \param[in] pucHeader_ A pointer to an OEM message header.
+    //! \param[in] pucLogBuf_ A pointer to an OEM message header.
     //! \param[out] stInterHeader_ The IntermediateHeader to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
@@ -117,7 +105,9 @@ class HeaderDecoder
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(unsigned char* pucHeader_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] STATUS Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const;
 };
+
 } // namespace novatel::edie::oem
+
 #endif

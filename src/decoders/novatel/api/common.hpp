@@ -27,11 +27,7 @@
 #ifndef NOVATEL_COMMON_HPP
 #define NOVATEL_COMMON_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include <stdint.h>
-#include <string.h>
 
 #include "decoders/common/api/common.hpp"
 
@@ -99,15 +95,15 @@ enum class NovAtelFrameState
 };
 
 //-----------------------------------------------------------------------
-//! \enum ASCIIHEADER
+//! \enum ASCII_HEADER
 //! \brief Ascii Message header format sequence.
 //-----------------------------------------------------------------------
-enum class ASCIIHEADER
+enum class ASCII_HEADER
 {
     MESSAGE_NAME,        //!< Ascii log Name.
     PORT,                //!< Receiver logging port.
     SEQUENCE,            //!< Embedded log sequence number.
-    IDLETIME,            //!< Receiver Idle time.
+    IDLE_TIME,           //!< Receiver Idle time.
     TIME_STATUS,         //!< GPS reference time status.
     WEEK,                //!< GPS Week number.
     SECONDS,             //!< GPS week seconds.
@@ -129,9 +125,9 @@ struct MetaDataStruct : public MetaDataBase
 
     MetaDataStruct() = default;
 
-    MetaDataStruct(HEADERFORMAT eFormat_) { eFormat = eFormat_; }
+    MetaDataStruct(const HEADER_FORMAT eFormat_) { eFormat = eFormat_; }
 
-    MetaDataStruct(HEADERFORMAT eFormat_, uint32_t uiLength_)
+    MetaDataStruct(const HEADER_FORMAT eFormat_, const uint32_t uiLength_)
     {
         eFormat = eFormat_;
         uiLength = uiLength_;
@@ -139,12 +135,12 @@ struct MetaDataStruct : public MetaDataBase
 
     ~MetaDataStruct() override = default;
 
-    bool operator==(const MetaDataStruct& other) const
+    bool operator==(const MetaDataStruct& other_) const
     {
-        return eFormat == other.eFormat && eMeasurementSource == other.eMeasurementSource && eTimeStatus == other.eTimeStatus &&
-               bResponse == other.bResponse && usWeek == other.usWeek && dMilliseconds == other.dMilliseconds && uiLength == other.uiLength &&
-               uiHeaderLength == other.uiHeaderLength && usMessageID == other.usMessageID && uiMessageCRC == other.uiMessageCRC &&
-               MessageName() == other.MessageName();
+        return eFormat == other_.eFormat && eMeasurementSource == other_.eMeasurementSource && eTimeStatus == other_.eTimeStatus &&
+               bResponse == other_.bResponse && usWeek == other_.usWeek && IsEqual(dMilliseconds, other_.dMilliseconds) &&
+               uiLength == other_.uiLength && uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId &&
+               uiMessageCrc == other_.uiMessageCrc && MessageName() == other_.MessageName();
     }
 };
 
@@ -154,7 +150,7 @@ struct MetaDataStruct : public MetaDataBase
 //-----------------------------------------------------------------------
 struct IntermediateHeader
 {
-    uint16_t usMessageID{0};
+    uint16_t usMessageId{0};
     uint8_t ucMessageType{0};
     uint32_t uiPortAddress{0}; //  NOTE: This field is truncated in binary to uint8_t.
                                //  In ASCII, this field is a string, but binary truncates it.
@@ -166,7 +162,7 @@ struct IntermediateHeader
     uint16_t usWeek{0};
     double dMilliseconds{0.0};
     uint32_t uiReceiverStatus{0};
-    uint32_t uiMessageDefinitionCRC{0};
+    uint32_t uiMessageDefinitionCrc{0};
     uint16_t usReceiverSwVersion{0};
 
     IntermediateHeader() = default;
@@ -175,11 +171,11 @@ struct IntermediateHeader
 #pragma pack(push, 1)
 
 //-----------------------------------------------------------------------
-//! \struct OEM4BinaryShortHeader
+//! \struct Oem4BinaryShortHeader
 //! \brief Structure that represents an OEM Short Binary header and its
 //! various fields.
 //-----------------------------------------------------------------------
-struct OEM4BinaryShortHeader
+struct Oem4BinaryShortHeader
 {
     uint8_t ucSync1{0};      //!< First sync byte of Header.
     uint8_t ucSync2{0};      //!< Second sync byte of Header.
@@ -189,26 +185,26 @@ struct OEM4BinaryShortHeader
     uint16_t usWeekNo{0};    //!< GPS Week number.
     uint32_t uiWeekMSec{0};  //!< GPS Week seconds.
 
-    OEM4BinaryShortHeader() = default;
+    Oem4BinaryShortHeader() = default;
 
-    OEM4BinaryShortHeader(const IntermediateHeader& stInterHeader_)
+    Oem4BinaryShortHeader(const IntermediateHeader& stInterHeader_)
     {
         ucSync1 = OEM4_BINARY_SYNC1;
         ucSync2 = OEM4_BINARY_SYNC2;
         ucSync3 = OEM4_SHORT_BINARY_SYNC3;
         ucLength = 0; // Will be filled in following the body encoding
-        usMessageId = stInterHeader_.usMessageID;
+        usMessageId = stInterHeader_.usMessageId;
         usWeekNo = stInterHeader_.usWeek;
         uiWeekMSec = static_cast<uint32_t>(stInterHeader_.dMilliseconds);
     }
 };
 
 //-----------------------------------------------------------------------
-//! \struct OEM4BinaryHeader
+//! \struct Oem4BinaryHeader
 //! \brief Structure that represents an OEM Binary header and its
 //! various fields.
 //-----------------------------------------------------------------------
-struct OEM4BinaryHeader
+struct Oem4BinaryHeader
 {
     uint8_t ucSync1{0};              //!< First sync byte of Header.
     uint8_t ucSync2{0};              //!< Second sync byte of Header.
@@ -224,19 +220,19 @@ struct OEM4BinaryHeader
     uint16_t usWeekNo{0};            //!< GPS Week number.
     uint32_t uiWeekMSec{0};          //!< GPS week seconds.
     uint32_t uiStatus{0};            //!< Status of the log.
-    uint16_t usMsgDefCRC{0};         //!< Message def CRC of binary log.
-    uint16_t usReceiverSWVersion{0}; //!< Receiver Software version.
+    uint16_t usMsgDefCrc{0};         //!< Message def CRC of binary log.
+    uint16_t usReceiverSwVersion{0}; //!< Receiver Software version.
 
-    OEM4BinaryHeader() = default;
+    Oem4BinaryHeader() = default;
 
-    OEM4BinaryHeader(const IntermediateHeader& stInterHeader_)
+    Oem4BinaryHeader(const IntermediateHeader& stInterHeader_)
     {
         ucSync1 = OEM4_BINARY_SYNC1;
         ucSync2 = OEM4_BINARY_SYNC2;
         ucSync3 = OEM4_BINARY_SYNC3;
         ucHeaderLength = OEM4_BINARY_HEADER_LENGTH;
-        usMsgNumber = stInterHeader_.usMessageID;
-        ucMsgType = stInterHeader_.ucMessageType & (~static_cast<uint32_t>(MESSAGETYPEMASK::MSGFORMAT));
+        usMsgNumber = stInterHeader_.usMessageId;
+        ucMsgType = stInterHeader_.ucMessageType & (~static_cast<uint32_t>(MESSAGE_TYPE_MASK::MSGFORMAT));
         ucPort = static_cast<uint8_t>(stInterHeader_.uiPortAddress);
         usLength = stInterHeader_.usLength;
         usSequenceNumber = stInterHeader_.usSequence;
@@ -245,21 +241,22 @@ struct OEM4BinaryHeader
         usWeekNo = stInterHeader_.usWeek;
         uiWeekMSec = static_cast<uint32_t>(stInterHeader_.dMilliseconds);
         uiStatus = stInterHeader_.uiReceiverStatus;
-        usMsgDefCRC = static_cast<uint16_t>(stInterHeader_.uiMessageDefinitionCRC & 0xFFFF);
-        usReceiverSWVersion = stInterHeader_.usReceiverSwVersion;
+        usMsgDefCrc = static_cast<uint16_t>(stInterHeader_.uiMessageDefinitionCrc & 0xFFFF);
+        usReceiverSwVersion = stInterHeader_.usReceiverSwVersion;
     }
 
-    bool operator==(const OEM4BinaryHeader& other) const { return memcmp(this, &other, sizeof(*this)) == 0; }
+    bool operator==(const Oem4BinaryHeader& other_) const { return memcmp(this, &other_, sizeof(*this)) == 0; }
 
-    bool operator==(const OEM4BinaryShortHeader& stShortHeader) const
+    bool operator==(const Oem4BinaryShortHeader& stShortHeader_) const
     {
-        return ucSync1 == stShortHeader.ucSync1 && ucSync2 == stShortHeader.ucSync2 && ucSync3 + 1 == stShortHeader.ucSync3 &&
-               usMsgNumber + 1 == stShortHeader.usMessageId && usLength == stShortHeader.ucLength && usWeekNo == stShortHeader.usWeekNo &&
-               uiWeekMSec == stShortHeader.uiWeekMSec;
+        return ucSync1 == stShortHeader_.ucSync1 && ucSync2 == stShortHeader_.ucSync2 && ucSync3 + 1 == stShortHeader_.ucSync3 &&
+               usMsgNumber + 1 == stShortHeader_.usMessageId && usLength == stShortHeader_.ucLength && usWeekNo == stShortHeader_.usWeekNo &&
+               uiWeekMSec == stShortHeader_.uiWeekMSec;
     }
 };
 
 #pragma pack(pop)
 
 } // namespace novatel::edie::oem
+
 #endif // NOVATEL_COMMON_HPP
