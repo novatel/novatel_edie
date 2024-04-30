@@ -24,9 +24,8 @@
 // ! \file filestreamunittest.cpp
 // ===============================================================================
 
-#include <gtest/gtest.h>
-
 #include <filesystem>
+#include <gtest/gtest.h>
 #include <string>
 
 #include "decoders/common/api/nexcept.h"
@@ -39,9 +38,9 @@
 class FileStreamTest : public ::testing::Test
 {
   public:
-    virtual void SetUp() {}
+    void SetUp() override {}
 
-    virtual void TearDown() {}
+    void TearDown() override {}
 
   private:
   protected:
@@ -53,7 +52,7 @@ TEST_F(FileStreamTest, Constructors)
     FileStream* pMyTestCommand1 = nullptr;
 
     pMyTestCommand = new FileStream("filestream_file1.asc");
-    std::string testString = std::string("filestream_file1.asc");
+    auto testString = std::string("filestream_file1.asc");
     ASSERT_EQ(testString, pMyTestCommand->GetFileName());
 
     try
@@ -62,7 +61,7 @@ TEST_F(FileStreamTest, Constructors)
         delete pMyTestCommand;
         delete pMyTestCommand1;
     }
-    catch (nExcept ne)
+    catch (NExcept ne)
     {
         ASSERT_STREQ(ne.buffer, "file name is not valid");
         ASSERT_TRUE(pMyTestCommand1 == nullptr);
@@ -98,29 +97,29 @@ TEST_F(FileStreamTest, WideCharOpenFile)
     {
         pMyTestCommand = new FileStream(
             std::u32string((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / U"filestream不同语言的文件.gps").generic_u32string()));
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::OUTPUT);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::OUTPUT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::APPEND);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::APPEND);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::INPUT);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::INPUT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::INSERT);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::INSERT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::TRUNCATE);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::TRUNCATE);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
         delete pMyTestCommand;
     }
-    catch (nExcept ne)
+    catch (NExcept ne)
     {
         ASSERT_NE(std::string(ne.buffer).find("file  cannot open"), std::string::npos);
     }
@@ -137,29 +136,29 @@ TEST_F(FileStreamTest, OpenFile)
     {
         pMyTestCommand = new FileStream((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "filestream_file2.asc").string().c_str());
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::OUTPUT);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::OUTPUT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::APPEND);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::APPEND);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::INPUT);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::INPUT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::INSERT);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::INSERT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILEMODES::TRUNCATE);
+        pMyTestCommand->OpenFile(FileStream::FILE_MODES::TRUNCATE);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
         delete pMyTestCommand;
     }
-    catch (nExcept ne)
+    catch (NExcept ne)
     {
         ASSERT_NE(std::string(ne.buffer).find("file  cannot open"), std::string::npos);
     }

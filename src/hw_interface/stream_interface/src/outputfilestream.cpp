@@ -27,17 +27,17 @@
 #include "outputfilestream.hpp"
 
 // ---------------------------------------------------------
-OutputFileStream::OutputFileStream(const std::u32string s32FileName)
+OutputFileStream::OutputFileStream(const std::u32string& s32FileName)
 {
     pOutFileStream = new FileStream(s32FileName);
-    pOutFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
+    pOutFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
 }
 
 // ---------------------------------------------------------
 OutputFileStream::OutputFileStream(const char* pcFileName)
 {
     pOutFileStream = new FileStream(pcFileName);
-    pOutFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
+    pOutFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
 }
 
 // ---------------------------------------------------------

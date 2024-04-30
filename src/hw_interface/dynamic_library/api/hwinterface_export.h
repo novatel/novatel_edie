@@ -24,7 +24,6 @@
 // ! \file hwinterface_export.h
 // ===============================================================================
 
-
 #ifndef HWINTERFACE_EXPORT_H
 #define HWINTERFACE_EXPORT_H
 

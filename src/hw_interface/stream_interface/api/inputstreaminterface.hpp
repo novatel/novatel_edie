@@ -24,13 +24,8 @@
 // ! \file inputstreaminterface.hpp
 // ===============================================================================
 
-#ifndef INPUTSTREAMINTERFACE_HPP
-#define INPUTSTREAMINTERFACE_HPP
-
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include <iostream>
+#ifndef INPUT_STREAM_INTERFACE_HPP
+#define INPUT_STREAM_INTERFACE_HPP
 
 #include "common.hpp"
 
@@ -56,22 +51,12 @@ class InputStreamInterface
     virtual StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure) = 0;
 
     /** A virtual member.
-     *
-     * \sa Write()
-     * \param [in]  Data to be written the circullar buffer, will be used to decode.
-     * \param [in]  Number of bytes in data buffer.
-     * \return Number of bytes written to the stream
-     * \throws "dont have method" -if not have any concrete method derived.
-     */
-    virtual uint32_t Write(uint8_t*, uint32_t) { throw "dont have method"; }
-
-    /** A virtual member.
-     * \brief Checks whether the data in circullar buffer avaialble to decode or not.
+     * \brief Checks whether the data in circular buffer available to decode or not.
      * \sa IsStreamAvailable().
      * \return true or false.
      * \remark If no concrete derived method, It simply returns false.
      */
-    virtual bool IsStreamAvailable(void) { return false; }
+    virtual bool IsStreamAvailable() { return false; }
 
     /** A virtual member.
      * \brief Read one line from the file.
@@ -79,65 +64,63 @@ class InputStreamInterface
      * \return Returns Read statistics structure (StreamReadStatus)
      * \remark If no concrete derived method, It simply returns default StreamReadStatus value.
      */
-    virtual StreamReadStatus ReadLine(std::string&) { return StreamReadStatus(); };
+    virtual StreamReadStatus ReadLine(std::string&) { return {}; }
 
     /** A virtual member.
      * \brief Returns the extension of the input file to be decoded.
      * \sa GetFileExtension().
      * \return Returns the extension of the input file to be decoded.
-     * \remark If no concrete derived method, It simply returns NULL string.
+     * \remark If no concrete derived method, It simply returns an empty string.
      */
-    virtual std::string GetFileExtension() { return NULL; };
+    virtual std::string GetFileExtension() { return ""; }
 
-    virtual std::string GetFileName() { return NULL; };
+    virtual std::string GetFileName() { return ""; }
 
     /** A virtual member.
-     * \brief Waiting period on port for incoming data to be decode.
+     * \brief Waiting period on port for incoming data to be decoded.
      * \sa SetTimeOut().
      * \remark No default implementation.
      */
-    virtual void SetTimeOut(double){};
+    virtual void SetTimeOut(double) {}
 
     /** A virtual member.
      * \brief Set/Reset File Position from which next read will be done.
      * \sa Reset().
      * \remark No default implementation.
      */
-    virtual void Reset(std::streamoff, std::ios_base::seekdir){};
+    virtual void Reset(std::streamoff, std::ios_base::seekdir) {}
 
     /** A virtual member.
      * \brief Returns the current file position from which next read will be done.
      * \sa GetCurrentFilePosition().
      * \remark Default returns 0.
      */
-    virtual uint64_t GetCurrentFilePosition() { return 0; };
+    virtual uint64_t GetCurrentFilePosition() { return 0; }
 
     /** A virtual default destructor.
      */
-    virtual ~InputStreamInterface(){};
+    virtual ~InputStreamInterface() = default;
 
     /** A virtual member.
      * \brief Sets the current file offset. It could be read bytes so far.
      * \sa SetCurrentFileOffset().
      * \remark No default implementation.
      */
-    virtual void SetCurrentFileOffset(uint64_t){};
+    virtual void SetCurrentFileOffset(uint64_t) {}
 
     /** A virtual member.
-     * \brief Returns Cuurent file offset..
+     * \brief Returns Current file offset..
      * \sa GetCurrentFileOffset().
      * \remark returns 0, if no concrete derived method for it.
      */
-    virtual uint64_t GetCurrentFileOffset(void) const { return 0; };
+    virtual uint64_t GetCurrentFileOffset() const { return 0; }
 
     /** A virtual member.
-     * \brief Returns the class object which has interfacesed or derived from circuallar buffer.
+     * \brief Returns the class object which has interfaced or derived from circular buffer.
      * \sa GetMemoryStream().
-     * \remark MemoryStream* class Object to access circullar buffer.
+     * \remark MemoryStream* class Object to access circular buffer.
      */
-    virtual MemoryStream* GetMemoryStream() { return NULL; };
-
-  private:
+    virtual MemoryStream* GetMemoryStream() { return nullptr; }
 };
 
 #endif

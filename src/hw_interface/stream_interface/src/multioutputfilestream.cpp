@@ -24,10 +24,11 @@
 // ! \file multioutputfilestream.cpp
 // ===============================================================================
 
-#include "multioutputfilestream.hpp"
-
 #include <iterator>
 #include <map>
+
+#include "decoders/common/api/nexcept.h"
+#include "multioutputfilestream.hpp"
 
 // ---------------------------------------------------------
 MultiOutputFileStream::~MultiOutputFileStream()
@@ -40,29 +41,29 @@ MultiOutputFileStream::~MultiOutputFileStream()
 
 // ---------------------------------------------------------
 //#ifdef WIDE_CHAR_SUPPORT
-void MultiOutputFileStream::SelectFileStream(std::u32string s32FileName_)
+void MultiOutputFileStream::SelectFileStream(const std::u32string& s32FileName_)
 {
     bEnableWideCharSupport = true;
-    WCFstreamMap::iterator itFstreamMapIterator = wmMyFstreamMap.find(s32FileName_);
+    auto itFstreamMapIterator = wmMyFstreamMap.find(s32FileName_);
     if (itFstreamMapIterator != wmMyFstreamMap.end()) { pLocalFileStream = itFstreamMapIterator->second; }
     else
     {
         pLocalFileStream = new FileStream(s32FileName_);
-        pLocalFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
-        wmMyFstreamMap.emplace(std::pair<std::u32string, FileStream*>(s32FileName_, pLocalFileStream));
+        pLocalFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
+        wmMyFstreamMap.emplace(std::pair(s32FileName_, pLocalFileStream));
     }
 }
 //#endif
 
-void MultiOutputFileStream::SelectFileStream(std::string stFileName)
+void MultiOutputFileStream::SelectFileStream(const std::string& stFileName)
 {
-    FstreamMap::iterator itFstreamMapIterator = mMyFstreamMap.find(stFileName);
+    auto itFstreamMapIterator = mMyFstreamMap.find(stFileName);
     if (itFstreamMapIterator != mMyFstreamMap.end()) { pLocalFileStream = itFstreamMapIterator->second; }
     else
     {
         pLocalFileStream = new FileStream(stFileName.c_str());
-        pLocalFileStream->OpenFile(FileStream::FILEMODES::OUTPUT);
-        mMyFstreamMap.emplace(std::pair<std::string, FileStream*>(stFileName, pLocalFileStream));
+        pLocalFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
+        mMyFstreamMap.emplace(std::pair(stFileName, pLocalFileStream));
     }
 }
 
@@ -70,9 +71,9 @@ void MultiOutputFileStream::SelectFileStream(std::string stFileName)
 // ---------------------------------------------------------
 void MultiOutputFileStream::ClearWCFileStreamMap()
 {
-    for (WCFstreamMap::iterator itFstreamMapIterator = wmMyFstreamMap.begin(); itFstreamMapIterator != wmMyFstreamMap.end();)
+    for (auto itFstreamMapIterator = wmMyFstreamMap.begin(); itFstreamMapIterator != wmMyFstreamMap.end();)
     {
-        if (itFstreamMapIterator->second) { delete itFstreamMapIterator->second; }
+        delete itFstreamMapIterator->second;
         itFstreamMapIterator = wmMyFstreamMap.erase(itFstreamMapIterator);
     }
 }
@@ -81,9 +82,9 @@ void MultiOutputFileStream::ClearWCFileStreamMap()
 // ---------------------------------------------------------
 void MultiOutputFileStream::ClearFileStreamMap()
 {
-    for (FstreamMap::iterator itFstreamMapIterator = mMyFstreamMap.begin(); itFstreamMapIterator != mMyFstreamMap.end();)
+    for (auto itFstreamMapIterator = mMyFstreamMap.begin(); itFstreamMapIterator != mMyFstreamMap.end();)
     {
-        if (itFstreamMapIterator->second) { delete itFstreamMapIterator->second; }
+        delete itFstreamMapIterator->second;
         itFstreamMapIterator = mMyFstreamMap.erase(itFstreamMapIterator);
     }
 }
@@ -104,25 +105,25 @@ void MultiOutputFileStream::ConfigureSplitByLog(bool bStatus)
 }
 
 // ---------------------------------------------------------
-void MultiOutputFileStream::ConfigureBaseFileName(std::u32string s32FileName_)
+void MultiOutputFileStream::ConfigureBaseFileName(const std::u32string& s32FileName_)
 {
     bEnableWideCharSupport = true;
-    size_t BaseNameLength = s32FileName_.find_last_of(U".");
+    size_t BaseNameLength = s32FileName_.find_last_of(U'.');
     if (BaseNameLength != std::u32string::npos)
     {
         s32MyBaseName = s32FileName_.substr(0, BaseNameLength);
-        s32MyExtentionName = s32FileName_.substr(BaseNameLength + 1);
+        s32MyExtensionName = s32FileName_.substr(BaseNameLength + 1);
     }
     else { s32MyBaseName = s32FileName_; }
 }
 
-void MultiOutputFileStream::ConfigureBaseFileName(std::string stFileName)
+void MultiOutputFileStream::ConfigureBaseFileName(const std::string& stFileName)
 {
-    size_t BaseNameLength = stFileName.find_last_of(".");
+    size_t BaseNameLength = stFileName.find_last_of('.');
     if (BaseNameLength != std::string::npos)
     {
         stMyBaseName = stFileName.substr(0, BaseNameLength);
-        stMyExtentionName = stFileName.substr(BaseNameLength + 1);
+        stMyExtensionName = stFileName.substr(BaseNameLength + 1);
     }
     else { stMyBaseName = stFileName; }
 }
@@ -133,17 +134,17 @@ void MultiOutputFileStream::SelectWCLogFile(std::string strMsgName_)
     bEnableWideCharSupport = true;
     std::u32string wstMessageName(strMsgName_.begin(), strMsgName_.end());
     std::u32string wstLocalBaseName = s32MyBaseName;
-    std::u32string wstLocalExtensionName = s32MyExtentionName;
-    if (s32MyExtentionName != U"DefaultExt") { SelectFileStream(wstLocalBaseName + U"_" + wstMessageName + U"." + wstLocalExtensionName); }
+    std::u32string wstLocalExtensionName = s32MyExtensionName;
+    if (s32MyExtensionName != U"DefaultExt") { SelectFileStream(wstLocalBaseName + U"_" + wstMessageName + U"." + wstLocalExtensionName); }
     else { SelectFileStream(s32MyBaseName + U"_" + wstMessageName); }
 }
 
 // ---------------------------------------------------------
-void MultiOutputFileStream::SelectLogFile(std::string strMsgName_)
+void MultiOutputFileStream::SelectLogFile(const std::string& strMsgName_)
 {
     std::string stLocalBaseName = stMyBaseName;
-    std::string stLocalExtensionName = stMyExtentionName;
-    if (stMyExtentionName != "DefaultExt") { SelectFileStream(stLocalBaseName + "_" + strMsgName_ + "." + stLocalExtensionName); }
+    std::string stLocalExtensionName = stMyExtensionName;
+    if (stMyExtensionName != "DefaultExt") { SelectFileStream(stLocalBaseName + "_" + strMsgName_ + "." + stLocalExtensionName); }
     else { SelectFileStream(stMyBaseName + "_" + strMsgName_); }
 }
 
@@ -154,7 +155,7 @@ void MultiOutputFileStream::ConfigureSplitBySize(uint64_t ullFileSplitSize)
     eMyFileSplitMethodEnum = FileSplitMethodEnum::SPLIT_SIZE;
 
     if (ullFileSplitSize >= MIN_FILE_SPLIT_SIZE) { ullMyFileSplitSize = ullFileSplitSize; }
-    else { throw nExcept("File Split by Size not valid"); }
+    else { throw NExcept("File Split by Size not valid"); }
 }
 
 // ---------------------------------------------------------
@@ -171,9 +172,9 @@ void MultiOutputFileStream::SelectWCSizeFile(uint32_t uiSize_)
         if (ullMyFileSize == 0)
         {
             std::string sSplitNum = std::to_string(uiMyFileCount);
-            if (s32MyExtentionName != U"DefaultExt")
+            if (s32MyExtensionName != U"DefaultExt")
             {
-                SelectFileStream(s32MyBaseName + U"_Part" + std::u32string(sSplitNum.begin(), sSplitNum.end()) + U"." + s32MyExtentionName);
+                SelectFileStream(s32MyBaseName + U"_Part" + std::u32string(sSplitNum.begin(), sSplitNum.end()) + U"." + s32MyExtensionName);
             }
             else { SelectFileStream(s32MyBaseName + U"_Part" + std::u32string(sSplitNum.begin(), sSplitNum.end())); }
         }
@@ -194,11 +195,11 @@ void MultiOutputFileStream::SelectSizeFile(uint32_t uiSize_)
         }
         if (ullMyFileSize == 0)
         {
-            if (stMyExtentionName != "DefaultExt")
+            if (stMyExtensionName != "DefaultExt")
             {
-                SelectFileStream(stMyBaseName + "_Part" + std::to_string(uiMyFileCount).c_str() + "." + stMyExtentionName);
+                SelectFileStream(stMyBaseName + "_Part" + std::to_string(uiMyFileCount) + "." + stMyExtensionName);
             }
-            else { SelectFileStream(stMyBaseName + "_Part" + std::to_string(uiMyFileCount).c_str()); }
+            else { SelectFileStream(stMyBaseName + "_Part" + std::to_string(uiMyFileCount)); }
         }
         ullMyFileSize = ullMyFileSize + uiSize_;
     }
@@ -211,7 +212,7 @@ void MultiOutputFileStream::ConfigureSplitByTime(double FileSplitTime)
     eMyFileSplitMethodEnum = FileSplitMethodEnum::SPLIT_TIME;
 
     if (FileSplitTime * HR_TO_SEC >= MIN_TIME_SPLIT_SEC) { dMyTimeSplitSize = FileSplitTime; }
-    else { throw nExcept("File Split by time not valid"); }
+    else { throw NExcept("File Split by time not valid"); }
 }
 
 // ---------------------------------------------------------
@@ -219,9 +220,9 @@ void MultiOutputFileStream::SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_
 {
     // If a file already exist, write the UNKNOWN and SATTIME log into that.
     // Dont consider these time status for calculation.
-    if (pLocalFileStream != NULL)
+    if (pLocalFileStream != nullptr)
     {
-        if ((eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN) || (eStatus_ == novatel::edie::TIME_STATUS::SATTIME)) return;
+        if ((eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN) || (eStatus_ == novatel::edie::TIME_STATUS::SATTIME)) { return; }
     }
     if (dMyTimeSplitSize * HR_TO_SEC >= MIN_TIME_SPLIT_SEC)
     {
@@ -243,9 +244,9 @@ void MultiOutputFileStream::SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_
         if (dMyStartTimeInSeconds == 0.0)
         {
             std::string sSplitNum = std::to_string(uiMyFileCount);
-            if (s32MyExtentionName != U"DefaultExt")
+            if (s32MyExtensionName != U"DefaultExt")
             {
-                SelectFileStream(s32MyBaseName + U"_Part" + std::u32string(sSplitNum.begin(), sSplitNum.end()) + U"." + s32MyExtentionName);
+                SelectFileStream(s32MyBaseName + U"_Part" + std::u32string(sSplitNum.begin(), sSplitNum.end()) + U"." + s32MyExtensionName);
             }
             else { SelectFileStream(s32MyBaseName + U"_Part" + std::u32string(sSplitNum.begin(), sSplitNum.end())); }
             dMyStartTimeInSeconds = dMilliseconds_ / 1000.0;
@@ -260,10 +261,10 @@ void MultiOutputFileStream::SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_
 void MultiOutputFileStream::SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
 {
     // If a file already exist, write the UNKNOWN and SATTIME log into that.
-    // Dont consider these time stutus for calculation.
-    if (pLocalFileStream != NULL)
+    // Don't consider these time status for calculation.
+    if (pLocalFileStream != nullptr)
     {
-        if (eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN || eStatus_ == novatel::edie::TIME_STATUS::SATTIME) return;
+        if (eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN || eStatus_ == novatel::edie::TIME_STATUS::SATTIME) { return; }
     }
     if (dMyTimeSplitSize * HR_TO_SEC >= MIN_TIME_SPLIT_SEC)
     {
@@ -284,11 +285,11 @@ void MultiOutputFileStream::SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, 
         }
         if (dMyStartTimeInSeconds == 0.0)
         {
-            if (stMyExtentionName != "DefaultExt")
+            if (stMyExtensionName != "DefaultExt")
             {
-                SelectFileStream(stMyBaseName + "_Part" + std::to_string(uiMyFileCount).c_str() + "." + stMyExtentionName);
+                SelectFileStream(stMyBaseName + "_Part" + std::to_string(uiMyFileCount) + "." + stMyExtensionName);
             }
-            else { SelectFileStream(stMyBaseName + "_Part" + std::to_string(uiMyFileCount).c_str()); }
+            else { SelectFileStream(stMyBaseName + "_Part" + std::to_string(uiMyFileCount)); }
             dMyStartTimeInSeconds = dMilliseconds_ / 1000.0;
             ulMyStartWeek = static_cast<uint32_t>(usWeek_);
         }
@@ -298,7 +299,7 @@ void MultiOutputFileStream::SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, 
 }
 
 // ---------------------------------------------------------
-uint32_t MultiOutputFileStream::WriteData(char* pcData_, uint32_t uiDataLength_, std::string strMsgName_, uint32_t uiSize_,
+uint32_t MultiOutputFileStream::WriteData(char* pcData_, uint32_t uiDataLength_, const std::string& strMsgName_, uint32_t uiSize_,
                                           novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
 {
     if (bMyFileSplit)
@@ -306,24 +307,18 @@ uint32_t MultiOutputFileStream::WriteData(char* pcData_, uint32_t uiDataLength_,
         switch (eMyFileSplitMethodEnum)
         {
         case SPLIT_LOG:
-            if (bEnableWideCharSupport)
-                SelectWCLogFile(strMsgName_);
-            else
-                SelectLogFile(strMsgName_);
+            if (bEnableWideCharSupport) { SelectWCLogFile(strMsgName_); }
+            else { SelectLogFile(strMsgName_); }
             break;
 
         case SPLIT_SIZE:
-            if (bEnableWideCharSupport)
-                SelectWCSizeFile(uiSize_);
-            else
-                SelectSizeFile(uiSize_);
+            if (bEnableWideCharSupport) { SelectWCSizeFile(uiSize_); }
+            else { SelectSizeFile(uiSize_); }
             break;
 
         case SPLIT_TIME:
-            if (bEnableWideCharSupport)
-                SelectWCTimeFile(eStatus_, usWeek_, dMilliseconds_);
-            else
-                SelectTimeFile(eStatus_, usWeek_, dMilliseconds_);
+            if (bEnableWideCharSupport) { SelectWCTimeFile(eStatus_, usWeek_, dMilliseconds_); }
+            else { SelectTimeFile(eStatus_, usWeek_, dMilliseconds_); }
             break;
         default: break;
         }

@@ -24,9 +24,8 @@
 // ! \file inputfilestreamunittest.cpp
 // ===============================================================================
 
-#include <gtest/gtest.h>
-
 #include <filesystem>
+#include <gtest/gtest.h>
 #include <string>
 
 #include "hw_interface/stream_interface/api/inputfilestream.hpp"
@@ -38,9 +37,9 @@
 class InputFileStreamTest : public ::testing::Test
 {
   public:
-    virtual void SetUp() {}
+    void SetUp() override {}
 
-    virtual void TearDown() {}
+    void TearDown() override {}
 
   private:
   protected:

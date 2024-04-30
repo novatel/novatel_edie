@@ -24,21 +24,21 @@
 // ! \file multioutputfilestreamunittest.cpp
 // ===============================================================================
 
-#include <gtest/gtest.h>
-
 #include <filesystem>
+#include <gtest/gtest.h>
+#include <string>
 
 #include "hw_interface/stream_interface/api/multioutputfilestream.hpp"
-#include "string"
+#include "nexcept.h"
 
 class MultiOutputFileStreamTest : public ::testing::Test
 {
   public:
-    virtual void SetUp() {}
+    void SetUp() override {}
 
-    virtual void TearDown() {}
+    void TearDown() override {}
 
-    typedef std::map<std::string, FileStream*> FstreamMap;
+    using FstreamMap = std::map<std::string, FileStream*>;
     MultiOutputFileStream::FstreamMap::iterator itFstreamMapIterator;
     MultiOutputFileStream::WCFstreamMap::iterator itWFstreamMapIterator;
 
@@ -46,9 +46,9 @@ class MultiOutputFileStreamTest : public ::testing::Test
     FileStream* GetLocalFileStream() { return pMyTestCommand->pLocalFileStream; }
     FileSplitMethodEnum GetFileSplitMethodEnum() { return pMyTestCommand->eMyFileSplitMethodEnum; }
     std::string GetBaseFileName() { return pMyTestCommand->stMyBaseName; }
-    std::string GetExtensionName() { return pMyTestCommand->stMyExtentionName; }
+    std::string GetExtensionName() { return pMyTestCommand->stMyExtensionName; }
     std::u32string GetBase32FileName() { return pMyTestCommand->s32MyBaseName; }
-    std::u32string Get32ExtensionName() { return pMyTestCommand->s32MyExtentionName; }
+    std::u32string Get32ExtensionName() { return pMyTestCommand->s32MyExtensionName; }
     uint64_t GetFileSplitSize() { return pMyTestCommand->ullMyFileSplitSize; }
     uint64_t GetFileSize() { return pMyTestCommand->ullMyFileSize; }
     uint32_t GetFileCount() { return pMyTestCommand->uiMyFileCount; }
@@ -114,7 +114,7 @@ TEST_F(MultiOutputFileStreamTest, ConfigureBase32StringFileName)
 // Test the SelectLogFile method.
 TEST_F(MultiOutputFileStreamTest, SelectLogFile)
 {
-    typedef std::map<std::string, FileStream*> FstreamMap;
+    using FstreamMap = std::map<std::string, FileStream*>;
     FstreamMap myMap;
 
     pMyTestCommand = new MultiOutputFileStream();
@@ -146,7 +146,7 @@ TEST_F(MultiOutputFileStreamTest, SelectLogFile)
 // Test the SelectLogFile method.
 TEST_F(MultiOutputFileStreamTest, Select32StringLogFile)
 {
-    typedef std::map<std::u32string, FileStream*> WCFstreamMap;
+    using WCFstreamMap = std::map<std::u32string, FileStream*>;
     WCFstreamMap myMap;
 
     pMyTestCommand = new MultiOutputFileStream();
@@ -191,7 +191,9 @@ TEST_F(MultiOutputFileStreamTest, WriteData)
         // The file exists, and is open for input
     }
     else
+    {
         ASSERT_TRUE(4 == 5); // Simple fails
+    }
 
     ifile.close();
 
@@ -216,7 +218,9 @@ TEST_F(MultiOutputFileStreamTest, WriteDataWideFile)
         // The file exists, and is open for input
     }
     else
+    {
         ASSERT_TRUE(4 == 5); // Simple fails
+    }
 
     ifile.close();
 
@@ -242,7 +246,9 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitBySize)
         // The file exists, and is open for input
     }
     else
+    {
         ASSERT_TRUE(4 == 5); // Simple fails
+    }
 
     ifile.close();
 
@@ -253,7 +259,7 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitBySize)
         pMyTestCommand->ConfigureSplitBySize(MIN_FILE_SPLIT_SIZE - 1); // 0
         ASSERT_TRUE(4 == 1);                                           // Should not execute
     }
-    catch (nExcept e)
+    catch (NExcept e)
     {
         ASSERT_STREQ("File Split by Size not valid", e.buffer);
     }
@@ -277,7 +283,9 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitByTime)
         // The file exists, and is open for input
     }
     else
+    {
         ASSERT_TRUE(4 == 5); // Simpley fails
+    }
 
     ifile.close();
 
@@ -288,7 +296,7 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitByTime)
         pMyTestCommand->ConfigureSplitByTime(0.0); // 0
         ASSERT_TRUE(4 == 1);                       // Should not execute
     }
-    catch (nExcept e)
+    catch (NExcept e)
     {
         ASSERT_STREQ("File Split by time not valid", e.buffer);
     }

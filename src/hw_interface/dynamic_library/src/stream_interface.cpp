@@ -28,7 +28,7 @@
 
 InputFileStream* ifs_init(char* pcInputFilePath_)
 {
-    InputFileStream* pclIFS = new InputFileStream(pcInputFilePath_);
+    auto pclIFS = new InputFileStream(pcInputFilePath_);
     return pclIFS;
 }
 
@@ -37,18 +37,17 @@ void ifs_del(InputStreamInterface* pclIFS_)
     if (pclIFS_)
     {
         delete pclIFS_;
-        pclIFS_ = NULL;
+        pclIFS_ = nullptr;
     }
 }
 
 void ifs_read(InputFileStream* pclIFS_, StreamReadStatus* pstReadStatus_, char* pcReadBuf_, int iBufSize_)
 {
-    StreamReadStatus stReadStatus;
     ReadDataStructure stReadData;
     stReadData.cData = pcReadBuf_;
     stReadData.uiDataSize = iBufSize_;
-    stReadStatus = pclIFS_->ReadData(stReadData);
-
+    StreamReadStatus stReadStatus = pclIFS_->ReadData(stReadData);
+    // TODO: why make the temporary object if we're just going to copy over all the members?
     pstReadStatus_->bEOS = stReadStatus.bEOS;
     pstReadStatus_->uiCurrentStreamRead = stReadStatus.uiCurrentStreamRead;
     pstReadStatus_->uiPercentStreamRead = stReadStatus.uiPercentStreamRead;

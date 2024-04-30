@@ -24,17 +24,14 @@
 // ! \file common.hpp
 // ===============================================================================
 
-#ifndef STREAMINTERFACE_COMMON_HPP
-#define STREAMINTERFACE_COMMON_HPP
+#ifndef STREAM_INTERFACE_COMMON_HPP
+#define STREAM_INTERFACE_COMMON_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include "decoders/common/api/common.hpp"
 
 /*! An Enum.
  *
- * Splitting type of log enumaration while writing to different output files.
+ * Splitting type of log enumeration while writing to different output files.
  */
 typedef enum
 {
@@ -53,11 +50,11 @@ struct ReadDataStructure
     uint32_t uiDataSize; /*!< Size of decoded log */
     char* cData;         /*!< Memory pointer*/
 
-    /*! Default Intializer */
+    /*! Default Initializer */
     ReadDataStructure()
     {
         uiDataSize = 0;
-        cData = NULL;
+        cData = nullptr;
     }
 };
 
@@ -72,7 +69,7 @@ struct StreamReadStatus
     uint64_t ullStreamLength{0};     /*!< Length of the bytes of decoded log */
     bool bEOS{false};                /*!< IS EOF of file reached or not? */
 
-    /*! Default Intializer */
+    /*! Default Initializer */
     constexpr StreamReadStatus() = default;
 };
 

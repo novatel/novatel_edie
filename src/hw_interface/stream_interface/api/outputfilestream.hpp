@@ -24,19 +24,16 @@
 // ! \file outputfilestream.hpp
 // ===============================================================================
 
-#ifndef OUTPUTFILESTREAM_HPP
-#define OUTPUTFILESTREAM_HPP
+#ifndef OUTPUT_FILE_STREAM_HPP
+#define OUTPUT_FILE_STREAM_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include "filestream.hpp"
 #include "outputstreaminterface.hpp"
 
 /*! \class OutputFileStream
  *  \brief A Derived class from parent interface class OutputStreamInterface.
  *
- *  More detailed FileStream class description. It will also supports
+ *  More detailed FileStream class description. It will also support
  *  File names with Wide characters.
  */
 class OutputFileStream : public OutputStreamInterface
@@ -44,15 +41,15 @@ class OutputFileStream : public OutputStreamInterface
   public:
     /*! A Constructor.
      *  \brief  Creates FileStream Object with wide character file name for writing output.
-     *  And intializes MessageDataFilter object to NULL.
-     *  \param [in] pcFileName Output file name with wide characters.
+     *  And initializes MessageDataFilter object to NULL.
+     *  \param [in] s32FileName_ Output file name with wide characters.
      *
      */
-    OutputFileStream(const std::u32string ps32FileName_);
+    OutputFileStream(const std::u32string& s32FileName_);
 
     /*! A Constructor.
-     *  \brief  Creates FileStream Object for writing output. And intializes MessageDataFilter
-     * object to NULL. \param [in] pcFileName Output file name.
+     *  \brief  Creates FileStream Object for writing output. And initializes MessageDataFilter
+     * object to nullptr. \param [in] pcFileName Output file name.
      *
      */
     OutputFileStream(const char* pcFileName);
@@ -61,7 +58,7 @@ class OutputFileStream : public OutputStreamInterface
      *  \brief  Clears MessageDataFilter and FileStream objects.
      *
      */
-    virtual ~OutputFileStream();
+    ~OutputFileStream() override;
 
     /*! FileStream Class object.
      * \sa FileStream
@@ -76,7 +73,7 @@ class OutputFileStream : public OutputStreamInterface
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
      */
-    uint32_t WriteData(char* cData, uint32_t uiSize);
+    uint32_t WriteData(char* cData, uint32_t uiSize) override;
 
   private:
     /*! Private Copy Constructor

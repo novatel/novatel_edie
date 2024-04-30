@@ -27,21 +27,14 @@
 #ifndef FILESTREAM_HPP
 #define FILESTREAM_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
-#include <limits>
 
 #include "common.hpp"
 
 /*! \class FileStream
  *   \brief A class will provide file operation handlers.
- *  More detailed FileStream class description. It will also supports
- *  File names with Wide characters.
+ *  More detailed FileStream class description. It will also support file names with wide characters.
  */
 class FileStream
 {
@@ -50,14 +43,13 @@ class FileStream
 
     uint64_t ullMyFileLength;        /**< Total File Length */
     uint64_t ullMyCurrentFileSize;   /**< Read size so far from the file */
-    uint64_t ullMyCurrentFileOffset; /**< Current File offset pointer from which next read will
-                                        commense */
+    uint64_t ullMyCurrentFileOffset; /**< Current File offset pointer from which next read will commence */
     /*! \var MyStream
      *
      *  Input/output stream class to operate on files.
-     *  Objects of this class maintain a filebuf object as their internal stream buffer, which
+     *  Objects of this class maintain a file buf object as their internal stream buffer, which
      * performs input/output operations on the file they are associated with (if any). File streams
-     * are associated with files on construction itself in this calss.
+     * are associated with files on construction itself in this class.
      */
     std::fstream MyStream;
 
@@ -92,9 +84,9 @@ class FileStream
   public:
     /*! An enum.
      *
-     *   File Operations Enumaration.
+     *   File Operations Enumeration.
      */
-    enum class FILEMODES
+    enum class FILE_MODES
     {
         APPEND,  /*!< Append may refer to the process of attaching or combining data with another
                     file or set of data.*/
@@ -106,18 +98,18 @@ class FileStream
 
     /*! A Constructor
      *  \brief  Create U32 String character filename string with name provided as argument.
-     *          And intializes File offsets and length of it.
+     *          And initializes File offsets and length of it.
      *
-     *  \param [in] s32FileName_ 32 bit String Characer file name as Character pointer.
+     *  \param [in] s32FileName_ 32 bit String character file name as character pointer.
      *
      *  \remark If s32FileName is an empty u32string, then exception "Filename name not valid" will
      * be thrown.
      */
-    FileStream(const std::u32string s32FileName_);
+    FileStream(const std::u32string& s32FileName_);
 
     /*! A Constructor
      *  \brief  Create filename string with name provided as argument.
-     *          And intializes File offsets and length of it.
+     *          And initializes File offsets and length of it.
      *
      *  \param [in] pcFileName File name as Character pointer.
      *
@@ -137,21 +129,21 @@ class FileStream
      */
     friend class FileStreamUnitTest;
 
-    /*! \fn void OpenFile(FILEMODES eMode)
+    /*! \fn void OpenFile(FILE_MODES eMode)
      *  \brief Open File to read/write/truncate in different modes of open.
      *
-     *  \param [in] eMode File mode enumaration
+     *  \param [in] eMode File mode enumeration
      *  \return "Does not return a value"
-     *  \remark If eMode is not valid exception ("") will thrown.
-     *          If open fails exception("File mode not valid") will thrown.
+     *  \remark If eMode is not valid exception ("") will be thrown.
+     *          If open fails exception("File mode not valid") will be thrown.
      */
-    void OpenFile(FILEMODES eMode);
+    void OpenFile(FILE_MODES eMode);
 
     /*! \fn void CloseFile()
      *  \brief Close the file.
      *
      *  \remark This function may not be required, Because fstream closes
-     *  the files when out of scope. This may be helpuful if somebody wants to check the close
+     *  the files when out of scope. This may be helpful if somebody wants to check the close
      * status.
      */
     void CloseFile();
@@ -159,12 +151,12 @@ class FileStream
     /*! \fn uint32_t CalculatePercentage(uint64_t  ullCurrentFileRead);
      *  \brief Calculates the percentage of current file read.
      *
-     *  \param [in] ullCurrentFileRead uint64_t  currentfile read length
+     *  \param [in] ullCurrentFileRead uint64_t current file read length
      *
      *  \return Percentage of Read.
-     *  \remark If file length is '0', Then exception"...file  size not valid" will thrown.
+     *  \remark If file length is '0', Then exception"...file  size not valid" will be thrown.
      */
-    uint32_t CalculatePercentage(uint64_t);
+    uint32_t CalculatePercentage(uint64_t ullCurrentFileRead) const;
 
     /*! \fn StreamReadStatus ReadFile(char* cData, uint32_t );
      *  \brief Reads uiSize characters of data from fstream file and stores
@@ -174,18 +166,18 @@ class FileStream
      *  \param [in] uiSize Size of the data to be read data from file.
      *
      *  \return StreamReadStatus, Read statistics structure
-     *  \remark If read fails, then exception"... file  read failed" will thrown.
+     *  \remark If read fails, then exception"... file  read failed" will be thrown.
      */
     StreamReadStatus ReadFile(char* cData, uint32_t uiSize);
 
     /*! \fn uint32_t WriteFile(char* cData, uint32_t uiSize)
-     *  \brief Writes the first uiSize character poited by cData into fstream
+     *  \brief Writes the first uiSize character pointed by cData into fstream
      *
      *  \param [in] cData Data to be written to the fstream.
-     *  \param [in] uiSize Size of the data to be write to the file.
+     *  \param [in] uiSize Size of the data to be written to the file.
      *
      *  \return Number of bytes written into the file
-     *  \remark If write fails, then exception"... file  write failed" will thrown.
+     *  \remark If write fails, then exception"... file  write failed" will be thrown.
      */
     uint32_t WriteFile(char* cData, uint32_t uiSize);
 
@@ -209,9 +201,9 @@ class FileStream
      *  \brief Set File Position from which next read will be done.
      *
      *  \param [in] offset the position of the file pointer to read.
-     *  \param [in] dir Seeking direction from begining or end.
+     *  \param [in] dir Seeking direction from beginning or end.
      *
-     *  \remark After seeking the current file size will be changed accrdingly.
+     *  \remark After seeking the current file size will be changed accordingly.
      */
     void SetFilePosition(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg);
 
@@ -220,28 +212,28 @@ class FileStream
      *
      *  \return Total file length.
      */
-    uint64_t GetFileLength() { return ullMyFileLength; };
+    uint64_t GetFileLength() const { return ullMyFileLength; }
 
     /*! \fn const char* GetFileName()
      *  \brief Returns File Name.
      *
      *  \return Name of the File which currently operating.
      */
-    const std::string GetFileName() { return clFilePath.string(); };
+    std::string GetFileName() const { return clFilePath.string(); }
 
     /*! \fn uint64_t  GetCurrentFileSize()
-     *  \brief Returns Cuurent file size which user has read so far.
+     *  \brief Returns current file size which user has read so far.
      *
-     *  \return Cuurent file size which user has read so far.
+     *  \return current file size which user has read so far.
      */
-    uint64_t GetCurrentFileSize() { return ullMyCurrentFileSize; };
+    uint64_t GetCurrentFileSize() const { return ullMyCurrentFileSize; }
 
     /*! \fn std::fstream* GetMyFileStream()
      *  \brief Returns file stream pointer.
      *
      *  \return fstream Pointer of the file stream.
      */
-    std::fstream* GetMyFileStream() { return &MyStream; };
+    std::fstream* GetMyFileStream() { return &MyStream; }
 
     /*! \fn StreamReadStatus ReadLine
      *  \brief Read one line from the file.
@@ -255,22 +247,22 @@ class FileStream
      *  \brief Sets the current file offset. It could be read bytes so far.
      *
      *  \param [in] ullCurrentFileOffset Size of the data from one read size,
-     *  Will be append to calculate read bytes so far
+     *  Will be appended to calculate read bytes so far
      */
     void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
 
     /*! \fn uint64_t  GetCurrentFileOffset(void)
-     *  \brief Returns Cuurent file offset.
+     *  \brief Returns current file offset.
      *
-     *  \return Cuurent file offset.
+     *  \return Current file offset.
      */
-    uint64_t GetCurrentFileOffset(void) const { return ullMyCurrentFileOffset; };
+    uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; }
 
     /*! \fn std::u32string Get32StringFileName()
      *  \brief Returns u32string filename.
      *
      */
-    const std::u32string Get32StringFileName() { return clFilePath.generic_u32string(); };
+    std::u32string Get32StringFileName() const { return clFilePath.generic_u32string(); }
 };
 
 #endif
