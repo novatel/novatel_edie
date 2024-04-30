@@ -21,7 +21,7 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file crc32unittest.cpp
+// ! \file crc32_unit_test.cpp
 // ===============================================================================
 
 #include <gtest/gtest.h>
@@ -33,8 +33,8 @@
 class CRC32Test : public testing::Test
 {
   public:
-    virtual void SetUp() {}
-    virtual void TearDown() {}
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 // -------------------------------------------------------------------------------------------------------
@@ -49,12 +49,12 @@ TEST_F(CRC32Test, CalculateBlockCRC32)
     uint32_t uiCalculatedCRC = 0;
     uint64_t uiTerminatorIndex = sMessage.length() - (novatel::edie::oem::OEM4_ASCII_CRC_LENGTH + 3);
 
-    if (uiTerminatorIndex == 0) return;
+    if (uiTerminatorIndex == 0) { return; }
 
     for (uint64_t i = 1ULL; i < uiTerminatorIndex; i++)
     {
-        if (sMessage[i] == '\0') break;
-        CalculateCharacterCRC32(uiCalculatedCRC, sMessage[i]);
+        if (sMessage[i] == '\0') { break; }
+        CalculateCharacterCrc32(uiCalculatedCRC, sMessage[i]);
     }
 
     ASSERT_EQ(uiCalculatedCRC, 0x42d4f5ccUL);

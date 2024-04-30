@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12.4)
-project(NovAtelDynamic_FileParser VERSION 1.0.0)
+project(NovAtelDynamic_File_Parser VERSION 1.0.0)
 
 file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c*)
 set(NOVATEL_SOURCES)
@@ -30,7 +30,7 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../src
 )
 
-add_executable(${PROJECT_NAME} dynamic_fileparser.cpp)
+add_executable(${PROJECT_NAME} dynamic_file_parser.cpp)
 add_dependencies(${PROJECT_NAME} common novatel decoders_dynamic_library stream_interface)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS} )
 

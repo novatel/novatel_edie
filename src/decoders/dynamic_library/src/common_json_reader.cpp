@@ -21,58 +21,62 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file jsonreaderunittest.cpp
+// ! \file common_json_reader.cpp
 // ===============================================================================
 
-#include <gtest/gtest.h>
+#include "common_json_reader.hpp"
 
-#include <filesystem>
-
-#include "decoders/common/api/common.hpp"
-#include "decoders/common/api/jsonreader.hpp"
-
-class JsonReaderTest : public testing::Test
+JsonReader* CommonJsonReaderInit()
 {
-  public:
-    virtual void SetUp() {}
-    virtual void TearDown() {}
-};
-
-// -------------------------------------------------------------------------------------------------------
-// JsonReader Unit Tests
-// -------------------------------------------------------------------------------------------------------
-TEST_F(JsonReaderTest, JsonReaderFailure)
-{
-    JsonReader clJson;
-    ASSERT_THROW(clJson.LoadFile<std::string>(""), novatel::edie::JsonReaderFailure);
+    auto pclJsonDb = new JsonReader();
+    return pclJsonDb;
 }
 
-TEST_F(JsonReaderTest, AppendEnumerations)
+bool CommonJsonReaderLoadFile(JsonReader* pclJsonDb_, const char* pcJsonDbFilepath_)
 {
-    const std::string strID = "008451a05e1e7aa32c75119df950d405265e0904";
+    if (!pclJsonDb_) { return false; }
 
-    JsonReader clJson;
-    clJson.AppendEnumerations(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")).string());
+    try
+    {
+        pclJsonDb_->LoadFile(pcJsonDbFilepath_);
+    }
+    catch (...)
+    {
+        return false;
+    }
 
-    const novatel::edie::EnumDefinition* pstEnumDef = clJson.GetEnumDefID(strID);
-    ASSERT_NE(pstEnumDef, nullptr);
-    ASSERT_EQ(pstEnumDef->name, "Datum");
-
-    clJson.RemoveEnumeration("Datum", true);
-    ASSERT_EQ(clJson.GetEnumDefID(strID), nullptr);
+    return true;
 }
 
-TEST_F(JsonReaderTest, AppendMessages)
+bool CommonJsonReaderParseJson(JsonReader* pclJsonDb_, const char* pcJsonData_)
 {
-    const uint32_t uiMsgID = 690;
+    if (!pclJsonDb_) { return false; }
 
-    JsonReader clJson;
-    clJson.AppendMessages(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")).string());
+    try
+    {
+        pclJsonDb_->ParseJson(pcJsonData_);
+    }
+    catch (...)
+    {
+        return false;
+    }
 
-    const novatel::edie::MessageDefinition* pstMsgDef = clJson.GetMsgDef(uiMsgID);
-    ASSERT_NE(pstMsgDef, nullptr);
-    ASSERT_EQ(pstMsgDef->name, "PASSAUX");
+    return true;
+}
 
-    clJson.RemoveMessage(uiMsgID, true);
-    ASSERT_EQ(clJson.GetMsgDef(uiMsgID), nullptr);
+bool CommonJsonReaderDelete(JsonReader* pclJsonDb_)
+{
+    if (!pclJsonDb_) { return false; }
+
+    try
+    {
+        delete pclJsonDb_;
+        pclJsonDb_ = nullptr;
+    }
+    catch (...)
+    {
+        return false;
+    }
+
+    return true;
 }

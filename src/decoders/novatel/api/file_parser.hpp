@@ -21,21 +21,15 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file fileparser.hpp
+// ! \file file_parser.hpp
 // ===============================================================================
 
-#ifndef NOVATEL_FILEPARSER_HPP
-#define NOVATEL_FILEPARSER_HPP
-
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include <unordered_map>
+#ifndef NOVATEL_FILE_PARSER_HPP
+#define NOVATEL_FILE_PARSER_HPP
 
 #include "decoders/common/api/common.hpp"
 #include "decoders/novatel/api/parser.hpp"
 #include "hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "hw_interface/stream_interface/api/outputfilestream.hpp"
 
 namespace novatel::edie::oem {
 
@@ -45,15 +39,8 @@ namespace novatel::edie::oem {
 //============================================================================
 class FileParser
 {
-    //! TODO: Manage copy/move/assignment constructors better.
-    //! NOTE: The following constructors prevent this class from ever being
-    //! constructed from a copy, move or assignment.
-    FileParser(const FileParser&) = delete;
-    FileParser(const FileParser&&) = delete;
-    FileParser& operator=(const FileParser&) = delete;
-
   private:
-    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_fileparser")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
 
     Parser clMyParser;
     InputFileStream* pclMyInputStream;
@@ -64,19 +51,26 @@ class FileParser
     [[nodiscard]] bool ReadStream();
 
   public:
-    //----------------------------------------------------------------------------
-    //! \brief A constructor for the FileParser class.
-    //
-    //! \param[in] sDbPath_ Filepath to a JSON message DB.
-    //----------------------------------------------------------------------------
-    FileParser(const std::string sDbPath_);
+    //! TODO: Manage copy/move/assignment constructors better.
+    //! NOTE: The following constructors prevent this class from ever being
+    //! constructed from a copy, move or assignment.
+    FileParser(const FileParser&) = delete;
+    FileParser(const FileParser&&) = delete;
+    FileParser& operator=(const FileParser&) = delete;
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    FileParser(const std::u32string sDbPath_);
+    FileParser(const std::string& sDbPath_);
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the FileParser class.
+    //
+    //! \param[in] sDbPath_ Filepath to a JSON message DB.
+    //----------------------------------------------------------------------------
+    FileParser(const std::u32string& sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
@@ -102,7 +96,7 @@ class FileParser
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger();
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal components'
@@ -111,41 +105,41 @@ class FileParser
     //! \param [in] eLevel_ The logging level to enable.
     //! \param [in] sFileName_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, std::string sFileName_ = "edie.log");
+    void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log");
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_);
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
     //----------------------------------------------------------------------------
-    void ShutdownLogger();
+    static void ShutdownLogger();
 
     //----------------------------------------------------------------------------
     //! \brief Set the abbreviated ASCII response option.
     //
-    //! \param [in] bIgnoreAbbreivatedAsciiResponses_ true to ignore abbreivated
+    //! \param [in] bIgnoreAbbreviatedAsciiResponses_ true to ignore abbreviated
     //! ASCII responses.
     //----------------------------------------------------------------------------
-    void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreivatedAsciiResponses_);
+    void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the abbreviated ASCII response option.
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    bool GetIgnoreAbbreviatedAsciiResponses(void);
+    [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const;
 
     //----------------------------------------------------------------------------
     //! \brief Get the percent of the InputFileStream that has been parsed.
     //
     //! \return An integer percentage.
     //----------------------------------------------------------------------------
-    uint32_t GetPercentRead();
+    [[nodiscard]] uint32_t GetPercentRead() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
@@ -159,7 +153,7 @@ class FileParser
     //
     //! \return The current option for decompressing RANGECMP messages.
     //----------------------------------------------------------------------------
-    bool GetDecompressRangeCmp();
+    [[nodiscard]] bool GetDecompressRangeCmp() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the return option for unknown bytes.
@@ -173,22 +167,21 @@ class FileParser
     //
     //! \return The current option for returning unknown bytes.
     //----------------------------------------------------------------------------
-    bool GetReturnUnknownBytes();
+    [[nodiscard]] bool GetReturnUnknownBytes() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the encode format for messages.
     //
     //! \param [in] eFormat_ the encode format for future messages.
     //----------------------------------------------------------------------------
-    void SetEncodeFormat(ENCODEFORMAT eFormat_);
+    void SetEncodeFormat(ENCODE_FORMAT eFormat_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the encode format for messages.
     //
     //! \return The current encode format for messages.
     //----------------------------------------------------------------------------
-    ENCODEFORMAT
-    GetEncodeFormat();
+    [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the Filter for the FileParser.
@@ -202,7 +195,7 @@ class FileParser
     //
     //! \return A pointer to the FileParser's OEM message Filter object.
     //----------------------------------------------------------------------------
-    Filter* GetFilter();
+    [[nodiscard]] Filter* GetFilter() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the InputFileStream for the FileParser.
@@ -241,21 +234,22 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Parser.
     //
-    //! \param [in] pcBuffer_ A buffer to contain flushed bytes, if desired.
+    //! \param [in] pucBuffer_ A buffer to contain flushed bytes, if desired.
     //! Defaults to nullptr.
-    //! \param [in] ulBufferSize_ The length of ulBufferSize_, if provided.
+    //! \param [in] uiBufferSize_ The length of ulBufferSize_, if provided.
     //
     //! \return The number of bytes flushed from the internal Parser.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = Parser::uiPARSER_INTERNAL_BUFFER_SIZE);
+    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = Parser::uiParserInternalBufferSize);
 
     //----------------------------------------------------------------------------
     //! \brief Get a pointer to the current framed log raw data.
     //
     //! \return A pointer to the internal Parser's internal encode buffer.
     //----------------------------------------------------------------------------
-    unsigned char* GetInternalBuffer();
+    [[nodiscard]] unsigned char* GetInternalBuffer() const;
 };
 
 } // namespace novatel::edie::oem
-#endif // NOVATEL_FILEPARSER_HPP
+
+#endif // NOVATEL_FILE_PARSER_HPP

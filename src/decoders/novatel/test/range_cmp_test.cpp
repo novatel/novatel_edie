@@ -21,7 +21,7 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file rangecmptest.cpp
+// ! \file range_cmp_test.cpp
 // ===============================================================================
 
 #include <gtest/gtest.h>
@@ -39,7 +39,7 @@ class RangeCmpTest : public ::testing::Test
         RangeDecompressorTester(JsonReader* pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
 
         // Access protected member of RangeDecompressor
-        void SetBitoffset(uint32_t uiBitOffset_) { uiMyBitOffset = uiBitOffset_; }
+        void SetBitOffset(uint32_t uiBitOffset_) { uiMyBitOffset = uiBitOffset_; }
 
         // Access protected member of RangeDecompressor
         void SetBytesRemaining(uint32_t uiByteCount_) { uiMyBytesRemaining = uiByteCount_; }
@@ -50,12 +50,12 @@ class RangeCmpTest : public ::testing::Test
         // Access protected member of RangeDecompressor
         uint64_t GetBitfield(uint8_t** ppucBytes_, uint32_t uiBitfieldSize_) { return GetBitfieldFromBuffer(ppucBytes_, uiBitfieldSize_); }
 
-        void ResetLocktimes()
+        void ResetLockTimes()
         {
-            ammmMyRangeCmp2Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-            ammmMyRangeCmp2Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-            ammmMyRangeCmp4Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-            ammmMyRangeCmp4Locktimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
+            ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
+            ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
+            ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
+            ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
         }
     };
 
@@ -74,7 +74,7 @@ class RangeCmpTest : public ::testing::Test
     // Per-test-suite teardown
     static void TearDownTestSuite() { pclMyRangeDecompressor->ShutdownLogger(); }
 
-    void SetUp() { pclMyRangeDecompressor->ResetLocktimes(); }
+    void SetUp() override { pclMyRangeDecompressor->ResetLockTimes(); }
 };
 
 std::unique_ptr<RangeCmpTest::RangeDecompressorTester> RangeCmpTest::pclMyRangeDecompressor = nullptr;
@@ -101,19 +101,19 @@ TEST_F(RangeCmpTest, LOGGER)
 // -------------------------------------------------------------------------------------------------------
 TEST_F(RangeCmpTest, CHANNEL_TRACKING_STATUS_WORD_1)
 {
-   const uint32_t uiCTS = 0x1810BC04;
+   constexpr uint32_t uiCTS = 0x1810BC04;
    ASSERT_EQ(uiCTS, ChannelTrackingStatusStruct(uiCTS).GetAsWord());
 }
 
 TEST_F(RangeCmpTest, CHANNEL_TRACKING_STATUS_WORD_2)
 {
-   const uint32_t uiCTS = 0x69129D54;
+   constexpr uint32_t uiCTS = 0x69129D54;
    ASSERT_EQ(uiCTS, ChannelTrackingStatusStruct(uiCTS).GetAsWord());
 }
 
 TEST_F(RangeCmpTest, CHANNEL_TRACKING_STATUS_WORD_3)
 {
-   const uint32_t uiCTS = 0xFBF7FFFF;
+   constexpr uint32_t uiCTS = 0xFBF7FFFF;
    ASSERT_EQ(uiCTS, ChannelTrackingStatusStruct(uiCTS).GetAsWord());
 }
 
@@ -131,7 +131,7 @@ TEST_F(RangeCmpTest, BITFIELD_1)
    uint8_t aucBytes[] = {0xDF, 0x76, 0x88};
    uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 
-   pclMyRangeDecompressor->SetBitoffset(0);
+   pclMyRangeDecompressor->SetBitOffset(0);
    pclMyRangeDecompressor->SetBytesRemaining(sizeof(aucBytes));
    ASSERT_EQ(0x76DF, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, 15));
    ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, 4));
@@ -147,7 +147,7 @@ TEST_F(RangeCmpTest, BITFIELD_2)
    uint8_t aucBytes[] = {0x61, 0x1F, 0xD8, 0x7C, 0xA0, 0xB0};
    uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 
-   pclMyRangeDecompressor->SetBitoffset(4);
+   pclMyRangeDecompressor->SetBitOffset(4);
    pclMyRangeDecompressor->SetBytesRemaining(sizeof(aucBytes));
    ASSERT_EQ(0xA07CD81F6ULL, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, 37));
 }
@@ -158,7 +158,7 @@ TEST_F(RangeCmpTest, BITFIELD_3)
    uint8_t aucBytes[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
    uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 
-   pclMyRangeDecompressor->SetBitoffset(0);
+   pclMyRangeDecompressor->SetBitOffset(0);
    pclMyRangeDecompressor->SetBytesRemaining(sizeof(aucBytes));
    ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, 65));
 }
@@ -187,7 +187,7 @@ TEST_F(RangeCmpTest, BITFIELD_4)
    uint8_t aucBytes[] = {0xAA, 0xAA};
    uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 
-   pclMyRangeDecompressor->SetBitoffset(0);
+   pclMyRangeDecompressor->SetBitOffset(0);
    pclMyRangeDecompressor->SetBytesRemaining(sizeof(aucBytes));
    ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, 1));
    ASSERT_EQ(2U, pclMyRangeDecompressor->GetBytesRemaining());
@@ -237,7 +237,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA_1)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -255,7 +255,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA_2)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -273,7 +273,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA_3)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -295,7 +295,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA2_1)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP2_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP2_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -313,7 +313,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA2_2)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP2_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP2_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -331,7 +331,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA2_3)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP2_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP2_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -352,7 +352,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA4_1)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -370,7 +370,7 @@ TEST_F(RangeCmpTest, DECOMPRESS_RANGECMPA4_2)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -388,7 +388,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA4_3)
 
    // Setup the results of the framer as if it had just framed aucCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -409,7 +409,7 @@ TEST_F(RangeCmpTest, DECOMPRESS_RANGECMPA4_DIFF_1)
 
    // Setup the results of the framer as if it had just framed aucReferenceCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucReferenceCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -420,7 +420,7 @@ TEST_F(RangeCmpTest, DECOMPRESS_RANGECMPA4_DIFF_1)
    memcpy(aucCompressionBuffer, aucDifferentialCompressedData, sizeof(aucDifferentialCompressedData)-1);
 
    // Setup the results of the framer as if it had just framed aucDifferentialCompressedData.
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucDifferentialCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -441,7 +441,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA4_DIFF_2)
 
    // Setup the results of the framer as if it had just framed aucReferenceCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucReferenceCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -452,7 +452,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA4_DIFF_2)
    memcpy(aucCompressionBuffer, aucDifferentialCompressedData, sizeof(aucDifferentialCompressedData)-1);
 
    // Setup the results of the framer as if it had just framed aucDifferentialCompressedData.
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucDifferentialCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -473,7 +473,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA4_DIFF_3)
 
    // Setup the results of the framer as if it had just framed aucReferenceCompressedData.
    MetaDataStruct stMetaData;
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucReferenceCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
@@ -484,7 +484,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA4_DIFF_3)
    memcpy(aucCompressionBuffer, aucDifferentialCompressedData, sizeof(aucDifferentialCompressedData)-1);
 
    // Setup the results of the framer as if it had just framed aucDifferentialCompressedData.
-   stMetaData.usMessageID = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+   stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
    stMetaData.uiLength = sizeof(aucDifferentialCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));

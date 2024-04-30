@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12.4)
-project(Converter_FileParser VERSION 1.0.0)
+project(Converter_File_Parser VERSION 1.0.0)
 
 file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c*)
 set(NOVATEL_SOURCES)
@@ -28,7 +28,7 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../src
 )
 
-add_executable(${PROJECT_NAME} converter_fileparser.cpp)
+add_executable(${PROJECT_NAME} converter_file_parser.cpp)
 add_dependencies(${PROJECT_NAME} common novatel stream_interface)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS} )
 
