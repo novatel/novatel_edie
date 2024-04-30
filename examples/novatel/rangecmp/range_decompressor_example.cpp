@@ -174,9 +174,9 @@ int main(int argc, char* argv[])
             if (eDecoderStatus == STATUS::SUCCESS)
             {
                 // Unknown PRNs are, by default, excluded from the range data.
-                bool bAllowUnknownObs = true;
+                bool bAllowInvalidObs = true;
                 eDecompressStatus =
-                    clRangeDecompressor.Decompress(pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat, bAllowUnknownObs);
+                    clRangeDecompressor.Decompress(pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat, bAllowInvalidObs);
                 if (eDecompressStatus == STATUS::SUCCESS)
                 {
                     uiCompletedMessages++;
