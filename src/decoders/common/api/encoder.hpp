@@ -134,7 +134,7 @@ class EncoderBase
     [[nodiscard]] virtual uint32_t IndentationLengthAbbAscii() const { return 5; }
 
     // Encode binary
-    template <bool Flatten>
+    template <bool Flatten, bool Align>
     [[nodiscard]] bool EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_);
     [[nodiscard]] virtual bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 

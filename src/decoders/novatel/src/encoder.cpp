@@ -452,11 +452,14 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const I
         break;
 
     case ENCODE_FORMAT::FLATTENED_BINARY:
-        if (!EncodeBinaryBody<true>(stMessage_, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        if (!EncodeBinaryBody<true, true>(stMessage_, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         [[fallthrough]];
 
     case ENCODE_FORMAT::BINARY: {
-        if (eFormat_ == ENCODE_FORMAT::BINARY && !EncodeBinaryBody<false>(stMessage_, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        if (eFormat_ == ENCODE_FORMAT::BINARY && !EncodeBinaryBody<false, true>(stMessage_, &pucTempBuffer, uiBufferSize_))
+        {
+            return STATUS::BUFFER_FULL;
+        }
         // MessageData must have a valid MessageHeader pointer to populate the length field.
         if (stMessageData_.pucMessageHeader == nullptr) { return STATUS::FAILURE; }
         // Go back and set the length field in the header.

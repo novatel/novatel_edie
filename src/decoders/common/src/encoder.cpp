@@ -82,19 +82,23 @@ void EncoderBase::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const 
 void EncoderBase::ShutdownLogger() { Logger::Shutdown(); }
 
 // -------------------------------------------------------------------------------------------------------
-template <bool Flatten>
+template <bool Flatten, bool Align>
 bool EncoderBase::EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
 {
     unsigned char* pucTempStart;
 
     for (const auto& field : stInterMessage_)
     {
-        // Realign to type byte boundary if needed
-        const uint32_t uiAlign = std::min(4U, static_cast<uint32_t>(field.fieldDef->dataType.length));
-        if (const auto ullRem = reinterpret_cast<uint64_t>(*ppucOutBuf_) % uiAlign;
-            ullRem && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, uiAlign - ullRem))
+        if constexpr (Align)
         {
-            return false;
+            // Realign to type byte boundary if needed
+            const uint32_t uiAlign = std::min(4U, static_cast<uint32_t>(field.fieldDef->dataType.length));
+            const auto ullRem = reinterpret_cast<uint64_t>(*ppucOutBuf_) % uiAlign;
+
+            if (ullRem && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, uiAlign - ullRem))
+            {
+                return false;
+            }
         }
 
         if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
@@ -113,7 +117,7 @@ bool EncoderBase::EncodeBinaryBody(const IntermediateMessage& stInterMessage_, u
 
                 for (const auto& clFieldArray : vCurrentFieldArrayField)
                 {
-                    if (!EncodeBinaryBody<Flatten>(std::get<std::vector<FieldContainer>>(clFieldArray.fieldValue), ppucOutBuf_, uiBytesLeft_))
+                    if (!EncodeBinaryBody<Flatten, Align>(std::get<std::vector<FieldContainer>>(clFieldArray.fieldValue), ppucOutBuf_, uiBytesLeft_))
                     {
                         return false;
                     }
@@ -212,8 +216,10 @@ bool EncoderBase::EncodeBinaryBody(const IntermediateMessage& stInterMessage_, u
 }
 
 // explicit template instantiations
-template bool EncoderBase::EncodeBinaryBody<true>(const IntermediateMessage&, unsigned char**, uint32_t&);
-template bool EncoderBase::EncodeBinaryBody<false>(const IntermediateMessage&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<false, false>(const IntermediateMessage&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<false, true>(const IntermediateMessage&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<true, false>(const IntermediateMessage&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<true, true>(const IntermediateMessage&, unsigned char**, uint32_t&);
 
 // -------------------------------------------------------------------------------------------------------
 bool EncoderBase::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
