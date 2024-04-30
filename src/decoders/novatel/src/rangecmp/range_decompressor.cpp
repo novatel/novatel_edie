@@ -561,12 +561,11 @@ void RangeDecompressor::DecompressDifferentialBlock(uint8_t** ppucDataPointer_, 
 //! Populates a provided RangeData structure from the RANGECMP4 blocks
 //! provided.
 //------------------------------------------------------------------------------
-observation_status RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, const RangeCmp4MeasurementSignalBlockStruct& stBlock_,
-                                                            const MetaDataStruct& stMetaData_,
-                                                            const ChannelTrackingStatusStruct& stChannelTrackingStatus_, uint32_t uiPRN_,
-                                                            char cGLONASSFrequencyNumber_, bool bAllowUnknownObs)
+bool RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, const RangeCmp4MeasurementSignalBlockStruct& stBlock_,
+                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatusStruct& stChannelTrackingStatus_,
+                                              uint32_t uiPRN_, char cGLONASSFrequencyNumber_, bool bAllowInvalidObs)
 {
-    observation_status obsStatus = observation_status::valid;
+    bool bHasValidObsStatus = true;
 
     double dSignalWavelength =
         GetSignalWavelength(stChannelTrackingStatus_, static_cast<int16_t>(cGLONASSFrequencyNumber_ - GLONASS_FREQUENCY_NUMBER_OFFSET));
@@ -580,7 +579,7 @@ observation_status RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stR
         // [ https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=rangecmp4 - Measurement Block Header ]
         // It is important to note however, that this would output the PRN as an actual valid Slot ID, which is not true.
         // If we allow Unknown obs, then we do the calculation, otherwise, we default to 0
-        if (bAllowUnknownObs)
+        if (bAllowInvalidObs)
         {
             stRangeData_.usPRN = (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT)
                                      ? 63 - static_cast<int16_t>(cGLONASSFrequencyNumber_)
@@ -591,7 +590,7 @@ observation_status RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stR
             stRangeData_.usPRN = (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT)
                                      ? 0
                                      : static_cast<uint16_t>(uiPRN_) + GLONASS_SLOT_OFFSET - 1;
-            if (stRangeData_.usPRN == 0) { obsStatus = observation_status::invalid; }
+            if (stRangeData_.usPRN == 0) { bHasValidObsStatus = false; }
         }
 
         break;
@@ -619,7 +618,7 @@ observation_status RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stR
     stRangeData_.fLockTime = DetermineRangeCmp4ObservationLocktime(
         stMetaData_, stBlock_.ucLockTimeBitfield, stChannelTrackingStatus_.eSatelliteSystem, stChannelTrackingStatus_.eSignalType, uiPRN_);
     stRangeData_.uiChannelTrackingStatus = stChannelTrackingStatus_.GetAsWord();
-    return obsStatus;
+    return bHasValidObsStatus;
 }
 
 //------------------------------------------------------------------------------
@@ -757,7 +756,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
 //! a RANGE message.
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& stMetaData_,
-                                         bool bAllowUnknownObs)
+                                         bool bAllowInvalidObs)
 {
     uint8_t* pucTempDataPointer = pucCompressedData_;
 
@@ -803,7 +802,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
         vSignals.clear();
         vPRNs.clear();
 
-        observation_status obsStatus = observation_status::invalid;
+        bool bHasValidObsStatus = false;
 
         // Does this message have any data for this satellite system?
         if (usSatelliteSystems & (1UL << static_cast<uint16_t>(eCurrentSatelliteSystem)))
@@ -884,11 +883,11 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                             else { DecompressReferenceBlock<true>(&pucTempDataPointer, stMeasurementBlock, eMeasurementSource); }
 
                             stChannelTrackingStatus = ChannelTrackingStatusStruct(eCurrentSatelliteSystem, eCurrentSignalType, stMeasurementBlock);
-                            obsStatus = PopulateNextRangeData((stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations]),
-                                                              stMeasurementBlock, stMetaData_, stChannelTrackingStatus, uiPRN,
-                                                              stMeasurementBlockHeader.cGLONASSFrequencyNumber, bAllowUnknownObs);
+                            bHasValidObsStatus = PopulateNextRangeData((stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations]),
+                                                                       stMeasurementBlock, stMetaData_, stChannelTrackingStatus, uiPRN,
+                                                                       stMeasurementBlockHeader.cGLONASSFrequencyNumber, bAllowInvalidObs);
 
-                            if (obsStatus) { stRangeMessage_.uiNumberOfObservations++; }
+                            if (bHasValidObsStatus) { stRangeMessage_.uiNumberOfObservations++; }
 
                             // Always store reference blocks.
                             ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)][eCurrentSatelliteSystem][eCurrentSignalType][uiPRN] =
@@ -939,7 +938,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                                         ChannelTrackingStatusStruct(eCurrentSatelliteSystem, eCurrentSignalType, stMeasurementBlock);
                                     PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stMeasurementBlock,
                                                           stMetaData_, stChannelTrackingStatus, uiPRN,
-                                                          pstReferenceBlockHeader->cGLONASSFrequencyNumber, bAllowUnknownObs);
+                                                          pstReferenceBlockHeader->cGLONASSFrequencyNumber, bAllowInvalidObs);
                                 }
                                 else
                                 {
@@ -977,7 +976,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
 //------------------------------------------------------------------------------
 STATUS
 RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
-                              ENCODEFORMAT eFormat_, bool bAllowUnknownObs)
+                              ENCODEFORMAT eFormat_, bool bAllowInvalidObs)
 {
     // Check for buffer validity
     if (!pucRangeMessageBuffer_) { return STATUS::NULL_PROVIDED; }
@@ -1021,7 +1020,7 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
         case RANGECMP_MSG_ID: RangeCmpToRange(*reinterpret_cast<RangeCmpStruct*>(pucTempMessagePointer), stRange); break;
         case RANGECMP2_MSG_ID: RangeCmp2ToRange(*reinterpret_cast<RangeCmp2Struct*>(pucTempMessagePointer), stRange, stMetaData_); break;
         case RANGECMP3_MSG_ID: [[fallthrough]];
-        case RANGECMP4_MSG_ID: RangeCmp4ToRange(pucTempMessagePointer, stRange, stMetaData_, bAllowUnknownObs); break;
+        case RANGECMP4_MSG_ID: RangeCmp4ToRange(pucTempMessagePointer, stRange, stMetaData_, bAllowInvalidObs); break;
         default: return STATUS::UNSUPPORTED;
         }
 

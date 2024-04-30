@@ -144,10 +144,10 @@ int main(int argc, char* argv[])
     OutputFileStream clUnknownBytesOFS(sInFilename.append(".UNKNOWN").c_str());
     StreamReadStatus stReadStatus;
 
-    STATUS eFramerStatus = STATUS::UNKNOWN;     // Framer Status
-    STATUS eDecompressStatus = STATUS::UNKNOWN; // Decompressor Status
-    STATUS eDecoderStatus = STATUS::UNKNOWN;    // Decoder Status
-    STATUS eEncoderStatus = STATUS::UNKNOWN;    // Encoder Status
+    auto eFramerStatus = STATUS::UNKNOWN;     // Framer Status
+    auto eDecompressStatus = STATUS::UNKNOWN; // Decompressor Status
+    auto eDecoderStatus = STATUS::UNKNOWN;    // Decoder Status
+    auto eEncoderStatus = STATUS::UNKNOWN;    // Encoder Status
 
     IntermediateHeader stHeader;
     IntermediateMessage stMessage;
@@ -174,9 +174,9 @@ int main(int argc, char* argv[])
             if (eDecoderStatus == STATUS::SUCCESS)
             {
                 // Unknown PRNs are, by default, excluded from the range data.
-                bool bAllowUnknownObs = true;
+                bool bAllowInvalidObs = true;
                 eDecompressStatus =
-                    clRangeDecompressor.Decompress(pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat, bAllowUnknownObs);
+                    clRangeDecompressor.Decompress(pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat, bAllowInvalidObs);
                 if (eDecompressStatus == STATUS::SUCCESS)
                 {
                     uiCompletedMessages++;
