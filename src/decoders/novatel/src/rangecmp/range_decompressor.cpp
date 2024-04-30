@@ -6,13 +6,13 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // todo: should we just get rid of the template arg if all the arrays have 16 indices?
-template <size_t N> constexpr auto StandardDeviation(float base_, float factor_, bool bLeadingZero_, bool bEndingRepeat_)
+constexpr auto StandardDeviation(float base_, float factor_, bool bLeadingZero_, bool bEndingRepeat_)
 {
-    std::array<float, N> arr{};
+    std::array<float, 16> arr{};
 
-    for (size_t sz = bLeadingZero_ ? 1 : 0; sz < N; ++sz)
+    for (size_t sz = bLeadingZero_ ? 1 : 0; sz < 16; ++sz)
     {
-        arr[sz] = bEndingRepeat_ && sz == N - 1 ? arr[sz - 1] : base_;
+        arr[sz] = bEndingRepeat_ && sz == 15 ? arr[sz - 1] : base_;
         base_ *= factor_;
     }
 
@@ -23,20 +23,43 @@ template <size_t N> constexpr auto StandardDeviation(float base_, float factor_,
 //! Table used to expand the scaled Pseudorange STDs.  This is defined
 //! in the RANGECMP documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP.htm?Highlight=rangecmp#StdDevPSRValues
-constexpr std::array<float, 16> afTheRangeCmpPSRStdDevValues = StandardDeviation<16>(0.050f, 1.5f, false, false);
+//-----------------------------------------------------------------------
+constexpr auto afTheRangeCmpPSRStdDevValues = [] {
+    std::array<float, 16> arr{};
+
+    float base = 0.050f;
+    float factor = 1.5f;
+
+    for (size_t sz = 0; sz < 16; ++sz)
+    {
+        if (sz == 9) // formula changes here for some reason
+        {
+            base = 2.375f;
+            factor = 2.0f;
+        }
+
+        arr[sz] = base;
+        base *= factor;
+    }
+
+    return arr;
+}();
 
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Pseudorange STDs.  This is defined
 //! in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevPSRScaling
 //-----------------------------------------------------------------------
-constexpr std::array<float, 16> afTheRangeCmp2PSRStdDevValues = StandardDeviation<16>(0.020f, 1.5f, false, true);
+// TODO: weird factor on this one, it would be beneficial to see the sources of where these values come from and compare to the formula here
+constexpr std::array<float, 16> afTheRangeCmp2PSRStdDevValues = StandardDeviation(0.020f, 1.49184f, false, true);
 
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Accumulated Doppler Range STDs.  This
 //!  is defined in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevADRScaling
-constexpr std::array<float, 16> afTheRangeCmp2ADRStdDevValues = StandardDeviation<16>(0.00391f, 4.0f / 3.0f, false, true);
+//-----------------------------------------------------------------------
+//  TODO: weird factor on this one, it would be beneficial to see the sources of where these values come from and compare to the formula here
+constexpr std::array<float, 16> afTheRangeCmp2ADRStdDevValues = StandardDeviation(0.00391f, 1.3346f, false, true);
 
 //-----------------------------------------------------------------------
 //! Two-dimensional map to look up L1/E1/B1 Scaling for RANGECMP2 signals
@@ -129,7 +152,8 @@ static std::map<SYSTEM, std::vector<RangeCmp4::SIGNAL_TYPE>> mvTheRangeCmp4Syste
 //! standard deviation values defined in the RANGECMP4 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Pseudora
 //-----------------------------------------------------------------------
-constexpr std::array<float, 16> afTheRangeCmp4PSRStdDevValues = StandardDeviation<16>(0.020f, 1.5f, false, true);
+// TODO: weird factor on this one, it would be beneficial to see the sources of where these values come from and compare to the formula here
+constexpr std::array<float, 16> afTheRangeCmp4PSRStdDevValues = StandardDeviation(0.020f, 1.49184f, false, true);
 
 //-----------------------------------------------------------------------
 //! List of pre-defined floats used as translations for RANGECMP4 ADR
@@ -153,7 +177,7 @@ constexpr float afTheRangeCmp4ADRStdDevValues[] = {
 //! For more information on decompressing locktime bitfields, see the
 //! comment block above RangeDecompressor::DetermineRangeCmp4ObservationLocktime().
 //-----------------------------------------------------------------------
-constexpr std::array<float, 16> afTheRangeCmp4LockTimeValues = StandardDeviation<16>(16.0f, 2.0f, true, false);
+constexpr std::array<float, 16> afTheRangeCmp4LockTimeValues = StandardDeviation(16.0f, 2.0f, true, false);
 
 //------------------------------------------------------------------------------
 RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_)
