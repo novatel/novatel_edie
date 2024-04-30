@@ -1,0 +1,14 @@
+.. _exhale_function_common_8hpp_1ab7447feb6362d666e7de59212c91e91a:
+
+Function GetResponseId
+======================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: GetResponseId(const novatel::edie::EnumDefinition *, std::string)
+   :project: handlerfactory

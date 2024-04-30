@@ -1,0 +1,111 @@
+
+.. _file_api_message_decoder.hpp:
+
+File message_decoder.hpp
+========================
+
+|exhale_lsh| :ref:`Parent directory <dir_api>` (``api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+
+Decode message bodies. 
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``api/message_decoder.hpp``)
+----------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_api_message_decoder.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``cassert``
+
+- ``decoders/common/api/common.hpp``
+
+- ``decoders/common/api/crc32.hpp``
+
+- ``decoders/common/api/jsonreader.hpp``
+
+- ``decoders/common/api/message_decoder.hpp``
+
+- ``fstream``
+
+- ``iostream``
+
+- ``logger/logger.hpp``
+
+- ``map``
+
+- ``nlohmann/json.hpp``
+
+- ``sstream``
+
+- ``stdarg.h``
+
+- ``string``
+
+- ``variant``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_api_encoder.hpp`
+
+- :ref:`file_api_message_decoder.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1FieldContainer`
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1MessageDecoderBase`
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_message__decoder_8hpp_1a982b99d63121d8513114bf335e3aef8d`
+
+- :ref:`exhale_define_message__decoder_8hpp_1a0470f42d5bac380da1cbad86f695dc72`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_message__decoder_8hpp_1a001b56f665b07c27a54158921b031127`
+

@@ -1,0 +1,56 @@
+
+.. _file_api_framer.hpp:
+
+File framer.hpp
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_api>` (``api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+
+Frame messages. 
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``api/framer.hpp``)
+-------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_api_framer.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``circularbuffer.hpp`` (:ref:`file_api_circularbuffer.hpp`)
+
+- ``logger/logger.hpp``
+
+- ``memory``
+
+
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classFramer`
+
+- :ref:`exhale_class_classFramerBase`
+

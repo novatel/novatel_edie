@@ -1,0 +1,82 @@
+
+.. _file_api_encoder.hpp:
+
+File encoder.hpp
+================
+
+|exhale_lsh| :ref:`Parent directory <dir_api>` (``api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+
+Encode messages. 
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``api/encoder.hpp``)
+--------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_api_encoder.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders/common/api/common.hpp``
+
+- ``decoders/common/api/jsonreader.hpp``
+
+- ``decoders/common/api/message_decoder.hpp``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1EncoderBase`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_encoder_8hpp_1a80e75398d1f9a3407512eeec51e54643`
+
+- :ref:`exhale_function_encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756`
+
+- :ref:`exhale_function_encoder_8hpp_1a6ea3541127df07cbe37c1d9f3049065b`
+
+- :ref:`exhale_function_encoder_8hpp_1a1688897d3880d47f804f1360547768fa`
+
+- :ref:`exhale_function_encoder_8hpp_1acf33bc815c816eda40e8bb8e6686af48`
+
+- :ref:`exhale_function_encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf`
+
+- :ref:`exhale_function_encoder_8hpp_1adb76891b87a7e504f1a4d0e104421bad`
+

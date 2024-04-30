@@ -1,0 +1,17 @@
+.. _exhale_class_classnovatel_1_1edie_1_1EncoderBase:
+
+Class EncoderBase
+=================
+
+- Defined in :ref:`file_api_encoder.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: novatel::edie::EncoderBase
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

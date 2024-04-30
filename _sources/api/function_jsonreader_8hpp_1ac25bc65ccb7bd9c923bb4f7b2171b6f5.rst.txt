@@ -1,0 +1,14 @@
+.. _exhale_function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5:
+
+Function novatel::edie::DataTypeConversion
+==========================================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::DataTypeConversion(DATA_TYPE)
+   :project: handlerfactory

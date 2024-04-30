@@ -1,0 +1,28 @@
+.. _exhale_struct_structnovatel_1_1edie_1_1BaseField:
+
+Struct BaseField
+================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Types
+*************
+
+- ``public novatel::edie::ArrayField`` (:ref:`exhale_struct_structnovatel_1_1edie_1_1ArrayField`)
+- ``public novatel::edie::EnumField`` (:ref:`exhale_struct_structnovatel_1_1edie_1_1EnumField`)
+- ``public novatel::edie::FieldArrayField`` (:ref:`exhale_struct_structnovatel_1_1edie_1_1FieldArrayField`)
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: novatel::edie::BaseField
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

@@ -1,0 +1,146 @@
+
+.. _namespace_novatel__edie:
+
+Namespace novatel::edie
+=======================
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1ArrayField`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1BaseDataType`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1BaseField`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1EnumDataType`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1EnumDefinition`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1EnumField`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1FieldArrayField`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1FieldContainer`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1MessageDataStruct`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1MessageDefinition`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1SimpleDataType`
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1EncoderBase`
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1JsonReaderFailure`
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1MessageDecoderBase`
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1MetaDataBase`
+
+
+Enums
+-----
+
+
+- :ref:`exhale_enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0`
+
+- :ref:`exhale_enum_common_8hpp_1a9fd78211ce54ca94de8d7f3f70968672`
+
+- :ref:`exhale_enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694`
+
+- :ref:`exhale_enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f`
+
+- :ref:`exhale_enum_common_8hpp_1af935215bd726d6179b622df2f0e0f88f`
+
+- :ref:`exhale_enum_common_8hpp_1a17d1039b7274b431a86382b141dc6b09`
+
+- :ref:`exhale_enum_common_8hpp_1a0076c4cb48227f162680743cfa73f21b`
+
+- :ref:`exhale_enum_common_8hpp_1aa94608c65d49406b2f4b3d1ad14b86af`
+
+- :ref:`exhale_enum_common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b`
+
+- :ref:`exhale_enum_common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_encoder_8hpp_1a80e75398d1f9a3407512eeec51e54643`
+
+- :ref:`exhale_function_encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756`
+
+- :ref:`exhale_function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f`
+
+- :ref:`exhale_function_common_8hpp_1ae1a615c0fd4e3c710de24ef9e98de297`
+
+- :ref:`exhale_function_jsonreader_8hpp_1aaa44b0d2b52f02b9b9b9a58388bc91d0`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a50304a69348356fbd990529f3503fd08`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a72801e64e7afc62cf96cdd5c93d9983a`
+
+- :ref:`exhale_function_jsonreader_8hpp_1aa321775574547a0130c5d10a80465eb7`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a5d3c94e68862c9ce18384300519ea373`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a08916570b2caed1bd93b7c1081ea6d0d`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a3b8e71fbbdd1eaed976d75788893f934`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a9084fe0fe62af31a0e14256f4f4c9f4f`
+
+- :ref:`exhale_function_encoder_8hpp_1a6ea3541127df07cbe37c1d9f3049065b`
+
+- :ref:`exhale_function_common_8hpp_1a68b380ea5eaded99ba8871508b8dacb8`
+
+- :ref:`exhale_function_encoder_8hpp_1a1688897d3880d47f804f1360547768fa`
+
+- :ref:`exhale_function_common_8hpp_1a810ac542cd59f4836834708014f80d59`
+
+- :ref:`exhale_function_common_8hpp_1a34fc12fa6c0fe96b202985ec474d3a5f`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1`
+
+- :ref:`exhale_function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b`
+
+- :ref:`exhale_function_encoder_8hpp_1acf33bc815c816eda40e8bb8e6686af48`
+
+- :ref:`exhale_function_encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf`
+
+- :ref:`exhale_function_encoder_8hpp_1adb76891b87a7e504f1a4d0e104421bad`
+
+- :ref:`exhale_function_common_8hpp_1a5aaa0e5e4b61fb8b926b985d3a11cf95`
+
+- :ref:`exhale_function_common_8hpp_1ae1ede00eea76fa6f2e6a0f006dd67cea`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_message__decoder_8hpp_1a001b56f665b07c27a54158921b031127`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_jsonreader_8hpp_1a10c72e4c1bbd03d1fa34bc59edcc2e3b`
+
+- :ref:`exhale_variable_jsonreader_8hpp_1a3a32510c01175587c27430e7f0acd272`

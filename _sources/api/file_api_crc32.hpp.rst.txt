@@ -1,0 +1,71 @@
+
+.. _file_api_crc32.hpp:
+
+File crc32.hpp
+==============
+
+|exhale_lsh| :ref:`Parent directory <dir_api>` (``api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+
+Functions to Calculate the CRC32 of a message. 
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``api/crc32.hpp``)
+------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_api_crc32.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``array``
+
+- ``cstdint``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_api_jsonreader.hpp`
+
+- :ref:`file_api_message_decoder.hpp`
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_crc32_8hpp_1a6e5ed51ad5b493d6e25943b8a876929c`
+
+- :ref:`exhale_function_crc32_8hpp_1a0d268989f8e9420305faa37e960f83ee`
+
+- :ref:`exhale_function_crc32_8hpp_1ae90e16b30fa940638a383e06f930a05d`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_crc32_8hpp_1ad0e79da8033f57bd7ce9bceed2bdbe42`
+

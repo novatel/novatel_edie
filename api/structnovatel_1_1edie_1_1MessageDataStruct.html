@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Struct MessageDataStruct &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Struct MessageDefinition" href="structnovatel_1_1edie_1_1MessageDefinition.html" />
+    <link rel="prev" title="Struct FieldContainer" href="structnovatel_1_1edie_1_1FieldContainer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSATELLITEID.html">Struct SATELLITEID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnExcept.html">Class nExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Struct MessageDataStruct</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/structnovatel_1_1edie_1_1MessageDataStruct.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="struct-messagedatastruct">
+<span id="exhale-struct-structnovatel-1-1edie-1-1messagedatastruct"></span><h1>Struct MessageDataStruct<a class="headerlink" href="#struct-messagedatastruct" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_api_common.hpp.html#file-api-common-hpp"><span class="std std-ref">File common.hpp</span></a></p></li>
+</ul>
+<section id="struct-documentation">
+<h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Permalink to this heading"></a></h2>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStructE">
+<span id="_CPPv3N7novatel4edie17MessageDataStructE"></span><span id="_CPPv2N7novatel4edie17MessageDataStructE"></span><span id="novatel::edie::MessageDataStruct"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MessageDataStruct</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStructE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Structure containing pointers and length information about a message and its various parts. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStruct17MessageDataStructEv">
+<span id="_CPPv3N7novatel4edie17MessageDataStruct17MessageDataStructEv"></span><span id="_CPPv2N7novatel4edie17MessageDataStruct17MessageDataStructEv"></span><span id="novatel::edie::MessageDataStruct::MessageDataStructCE"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1a1525aa23d5fad67c33ee6c05048d8e51"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MessageDataStruct</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStruct17MessageDataStructEv" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStruct17MessageDataStructEPhK8uint32_tK8uint32_t">
+<span id="_CPPv3N7novatel4edie17MessageDataStruct17MessageDataStructEPhK8uint32_tK8uint32_t"></span><span id="_CPPv2N7novatel4edie17MessageDataStruct17MessageDataStructEPhK8uint32_tK8uint32_t"></span><span id="novatel::edie::MessageDataStruct::MessageDataStruct__unsigned-cP.uint32_tC.uint32_tC"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1a91aae7348b85956e9ff9836db0e1ea18"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MessageDataStruct</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">message</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">length</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">headerLength</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStruct17MessageDataStructEPhK8uint32_tK8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie17MessageDataStructeqERK17MessageDataStruct">
+<span id="_CPPv3NK7novatel4edie17MessageDataStructeqERK17MessageDataStruct"></span><span id="_CPPv2NK7novatel4edie17MessageDataStructeqERK17MessageDataStruct"></span><span id="novatel::edie::MessageDataStruct::eq-operator__MessageDataStructCRC"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1a42778e74df07e8096ef57c40f6bafb05"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie17MessageDataStructE" title="novatel::edie::MessageDataStruct"><span class="n"><span class="pre">MessageDataStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">other</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie17MessageDataStructeqERK17MessageDataStruct" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie17MessageDataStructneERK17MessageDataStruct">
+<span id="_CPPv3NK7novatel4edie17MessageDataStructneERK17MessageDataStruct"></span><span id="_CPPv2NK7novatel4edie17MessageDataStructneERK17MessageDataStruct"></span><span id="novatel::edie::MessageDataStruct::neq-operator__MessageDataStructCRC"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1ac8580284ebedf7296e4ec89fa54edb33"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">!=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie17MessageDataStructE" title="novatel::edie::MessageDataStruct"><span class="n"><span class="pre">MessageDataStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">other</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie17MessageDataStructneERK17MessageDataStruct" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStruct16pucMessageHeaderE">
+<span id="_CPPv3N7novatel4edie17MessageDataStruct16pucMessageHeaderE"></span><span id="_CPPv2N7novatel4edie17MessageDataStruct16pucMessageHeaderE"></span><span id="novatel::edie::MessageDataStruct::pucMessageHeader__unsigned-cP"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1a5a968ee2c89f7eb7bcc1a68e6b762b36"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">pucMessageHeader</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">nullptr</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStruct16pucMessageHeaderE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStruct21uiMessageHeaderLengthE">
+<span id="_CPPv3N7novatel4edie17MessageDataStruct21uiMessageHeaderLengthE"></span><span id="_CPPv2N7novatel4edie17MessageDataStruct21uiMessageHeaderLengthE"></span><span id="novatel::edie::MessageDataStruct::uiMessageHeaderLength__uint32_t"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1ab0afb0bcde252e6d46b55ca7f2f1e594"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiMessageHeaderLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStruct21uiMessageHeaderLengthE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStruct14pucMessageBodyE">
+<span id="_CPPv3N7novatel4edie17MessageDataStruct14pucMessageBodyE"></span><span id="_CPPv2N7novatel4edie17MessageDataStruct14pucMessageBodyE"></span><span id="novatel::edie::MessageDataStruct::pucMessageBody__unsigned-cP"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1ad89f82f492ad88dcf2f369a1bbcffa71"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">pucMessageBody</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">nullptr</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStruct14pucMessageBodyE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStruct19uiMessageBodyLengthE">
+<span id="_CPPv3N7novatel4edie17MessageDataStruct19uiMessageBodyLengthE"></span><span id="_CPPv2N7novatel4edie17MessageDataStruct19uiMessageBodyLengthE"></span><span id="novatel::edie::MessageDataStruct::uiMessageBodyLength__uint32_t"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1a64397b24afbbade29507a4a522b3a7be"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiMessageBodyLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStruct19uiMessageBodyLengthE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStruct10pucMessageE">
+<span id="_CPPv3N7novatel4edie17MessageDataStruct10pucMessageE"></span><span id="_CPPv2N7novatel4edie17MessageDataStruct10pucMessageE"></span><span id="novatel::edie::MessageDataStruct::pucMessage__unsigned-cP"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1a82cbcc3fe19ea236aeaa6b4d3c4b86d0"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">pucMessage</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">nullptr</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStruct10pucMessageE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie17MessageDataStruct15uiMessageLengthE">
+<span id="_CPPv3N7novatel4edie17MessageDataStruct15uiMessageLengthE"></span><span id="_CPPv2N7novatel4edie17MessageDataStruct15uiMessageLengthE"></span><span id="novatel::edie::MessageDataStruct::uiMessageLength__uint32_t"></span><span class="target" id="structnovatel_1_1edie_1_1MessageDataStruct_1abb45a6ed9dd119093cecfb05774cbc80"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiMessageLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie17MessageDataStruct15uiMessageLengthE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="structnovatel_1_1edie_1_1FieldContainer.html" class="btn btn-neutral float-left" title="Struct FieldContainer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="structnovatel_1_1edie_1_1MessageDefinition.html" class="btn btn-neutral float-right" title="Struct MessageDefinition" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

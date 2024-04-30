@@ -1,0 +1,23 @@
+.. _dir_api:
+
+
+Directory api
+=============
+
+
+*Directory path:* ``api``
+
+
+Files
+-----
+
+- :ref:`file_api_circularbuffer.hpp`
+- :ref:`file_api_common.hpp`
+- :ref:`file_api_crc32.hpp`
+- :ref:`file_api_encoder.hpp`
+- :ref:`file_api_framer.hpp`
+- :ref:`file_api_jsonreader.hpp`
+- :ref:`file_api_message_decoder.hpp`
+- :ref:`file_api_nexcept.h`
+
+

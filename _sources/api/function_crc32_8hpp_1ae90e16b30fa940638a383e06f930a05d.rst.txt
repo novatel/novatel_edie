@@ -1,0 +1,14 @@
+.. _exhale_function_crc32_8hpp_1ae90e16b30fa940638a383e06f930a05d:
+
+Function CalculateCharacterCRC32
+================================
+
+- Defined in :ref:`file_api_crc32.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CalculateCharacterCRC32(uint32_t&, unsigned char)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_crc32_8hpp_1a6e5ed51ad5b493d6e25943b8a876929c:
+
+Function CalculateBlockCRC32(uint32_t, uint32_t, const unsigned char \*)
+========================================================================
+
+- Defined in :ref:`file_api_crc32.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CalculateBlockCRC32(uint32_t, uint32_t, const unsigned char *)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_define_common_8hpp_1a2cdd5d9cd1c26e275a94247dc23a9a6b:
+
+Define MAX_NMEA_MESSAGE_LENGTH
+==============================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: MAX_NMEA_MESSAGE_LENGTH
+   :project: handlerfactory

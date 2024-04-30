@@ -1,0 +1,145 @@
+
+.. _program_listing_file_api_circularbuffer.hpp:
+
+Program Listing for File circularbuffer.hpp
+===========================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_api_circularbuffer.hpp>` (``api/circularbuffer.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   //
+   // COPYRIGHT NovAtel Inc, 2022. All rights reserved.
+   //
+   // Permission is hereby granted, free of charge, to any person obtaining a copy
+   // of this software and associated documentation files (the "Software"), to deal
+   // in the Software without restriction, including without limitation the rights
+   // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   // copies of the Software, and to permit persons to whom the Software is
+   // furnished to do so, subject to the following conditions:
+   //
+   // The above copyright notice and this permission notice shall be included in all
+   // copies or substantial portions of the Software.
+   //
+   // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   // SOFTWARE.
+   //
+   //                            DESCRIPTION
+   //
+   
+   //-----------------------------------------------------------------------
+   // Recursive Inclusion
+   //-----------------------------------------------------------------------
+   #ifndef CIRCULARBUFFER_HPP
+   #define CIRCULARBUFFER_HPP
+   
+   //-----------------------------------------------------------------------
+   // Includes
+   //-----------------------------------------------------------------------
+   #include <cstdint>
+   
+   //============================================================================
+   //============================================================================
+   class CircularBuffer
+   {
+     private:
+       unsigned char* pucMyBuffer{nullptr}; 
+       uint32_t uiMyCapacity{0};            
+       uint32_t uiMyLength{0};              
+       unsigned char* pucMyHead{nullptr};   
+       unsigned char* pucMyTail{nullptr};   
+   
+     public:
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       CircularBuffer() = default;
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       ~CircularBuffer() = default;
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       void SetCapacity(uint32_t uiCapacity_);
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       inline uint32_t GetCapacity() const;
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       inline uint32_t GetLength() const;
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       inline unsigned char* GetBuffer() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       uint32_t Append(const unsigned char* pucData_, uint32_t uiBytes_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       void Discard(uint32_t uiBytes_);
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       inline void Clear();
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       uint32_t Copy(unsigned char* pucTarget_, uint32_t uiBytes_) const;
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       inline unsigned char operator[](int32_t iIndex_) const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       unsigned char GetByte(int32_t iIndex_) const;
+   };
+   
+   //-----------------------------------------------------------------------
+   // Inline Functions
+   //-----------------------------------------------------------------------
+   
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   inline uint32_t CircularBuffer::GetCapacity() const { return uiMyCapacity; }
+   
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   inline uint32_t CircularBuffer::GetLength() const { return uiMyLength; }
+   
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   inline void CircularBuffer::Clear() { Discard(uiMyLength); }
+   
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   inline unsigned char* CircularBuffer::GetBuffer() const { return pucMyBuffer; }
+   
+   //----------------------------------------------------------------------------
+   //
+   //
+   //----------------------------------------------------------------------------
+   inline unsigned char CircularBuffer::operator[](int32_t iIndex_) const { return GetByte(iIndex_); }
+   
+   #endif // CIRCULARBUFFER_HPP

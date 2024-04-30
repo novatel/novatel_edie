@@ -1,0 +1,14 @@
+.. _exhale_enum_common_8hpp_1a17d1039b7274b431a86382b141dc6b09:
+
+Enum MESSAGEFORMAT
+==================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::MESSAGEFORMAT
+   :project: handlerfactory

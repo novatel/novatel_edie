@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class CircularBuffer &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class Framer" href="classFramer.html" />
+    <link rel="prev" title="Struct SATELLITEID" href="structSATELLITEID.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSATELLITEID.html">Struct SATELLITEID</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnExcept.html">Class nExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Class CircularBuffer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classCircularBuffer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-circularbuffer">
+<span id="exhale-class-classcircularbuffer"></span><h1>Class CircularBuffer<a class="headerlink" href="#class-circularbuffer" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_api_circularbuffer.hpp.html#file-api-circularbuffer-hpp"><span class="std std-ref">File circularbuffer.hpp</span></a></p></li>
+</ul>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv414CircularBuffer">
+<span id="_CPPv314CircularBuffer"></span><span id="_CPPv214CircularBuffer"></span><span id="CircularBuffer"></span><span class="target" id="classCircularBuffer"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CircularBuffer</span></span></span><a class="headerlink" href="#_CPPv414CircularBuffer" title="Permalink to this definition"></a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14CircularBuffer14CircularBufferEv">
+<span id="_CPPv3N14CircularBuffer14CircularBufferEv"></span><span id="_CPPv2N14CircularBuffer14CircularBufferEv"></span><span id="CircularBuffer::CircularBuffer"></span><span class="target" id="classCircularBuffer_1a4c7505533973296726beff086741c84c"></span><span class="sig-name descname"><span class="n"><span class="pre">CircularBuffer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N14CircularBuffer14CircularBufferEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>A constructor for the <a class="reference internal" href="#classCircularBuffer"><span class="std std-ref">CircularBuffer</span></a> class. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>Circular Buffer Head, Tail, Buffer will be initialized to nullptr. And Capacity of Buffer and current length of data will be set to 0. </p>
+</div>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14CircularBufferD0Ev">
+<span id="_CPPv3N14CircularBufferD0Ev"></span><span id="_CPPv2N14CircularBufferD0Ev"></span><span id="CircularBuffer::~CircularBuffer"></span><span class="target" id="classCircularBuffer_1aa767f8f30cbe211ece281e7f606f3214"></span><span class="sig-name descname"><span class="n"><span class="pre">~CircularBuffer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N14CircularBufferD0Ev" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Default circular buffer class Destructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14CircularBuffer11SetCapacityE8uint32_t">
+<span id="_CPPv3N14CircularBuffer11SetCapacityE8uint32_t"></span><span id="_CPPv2N14CircularBuffer11SetCapacityE8uint32_t"></span><span id="CircularBuffer::SetCapacity__uint32_t"></span><span class="target" id="classCircularBuffer_1a1c22d410b938ccf6ebf2cdfc49bcb87a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetCapacity</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiCapacity_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14CircularBuffer11SetCapacityE8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Sets the size of the circular buffer (bytes) </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If uiCapacity_, smaller than current capacity, no effect.. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>uiCapacity_</strong> – <strong>[in]</strong> Size of buffer (bytes). </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14CircularBuffer11GetCapacityEv">
+<span id="_CPPv3NK14CircularBuffer11GetCapacityEv"></span><span id="_CPPv2NK14CircularBuffer11GetCapacityEv"></span><span id="CircularBuffer::GetCapacityC"></span><span class="target" id="classCircularBuffer_1a7a638a25308102f70dba04e3bb90a857"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCapacity</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14CircularBuffer11GetCapacityEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns current capacity of buffer. </p>
+<p>Returns the current capacity of buffer. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14CircularBuffer9GetLengthEv">
+<span id="_CPPv3NK14CircularBuffer9GetLengthEv"></span><span id="_CPPv2NK14CircularBuffer9GetLengthEv"></span><span id="CircularBuffer::GetLengthC"></span><span class="target" id="classCircularBuffer_1a219057c23d917cca4fe412b9abd5c53a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLength</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14CircularBuffer9GetLengthEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns number of bytes of data in buffer. Number of bytes between beginning of buffer and write cursor. </p>
+<p>Returns number of bytes of data in buffer. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14CircularBuffer9GetBufferEv">
+<span id="_CPPv3NK14CircularBuffer9GetBufferEv"></span><span id="_CPPv2NK14CircularBuffer9GetBufferEv"></span><span id="CircularBuffer::GetBufferC"></span><span class="target" id="classCircularBuffer_1a6ed657847e7aec469a39e02eb0c9117a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetBuffer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14CircularBuffer9GetBufferEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Returns the current buffer. </p>
+<p>Returns entire circular buffer. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14CircularBuffer6AppendEPKh8uint32_t">
+<span id="_CPPv3N14CircularBuffer6AppendEPKh8uint32_t"></span><span id="_CPPv2N14CircularBuffer6AppendEPKh8uint32_t"></span><span id="CircularBuffer::Append__unsigned-cCP.uint32_t"></span><span class="target" id="classCircularBuffer_1ab8f9822389bfa47395458f9f883f503b"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Append</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pucData_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiBytes_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14CircularBuffer6AppendEPKh8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Append data to end of buffer. Will increase buffer size if needed. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If size of data is more than the capacity of buffer, heap will be created on time. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pucData_</strong> – <strong>[in]</strong> unsigned char buffer pointer from which data to append to the queue. </p></li>
+<li><p><strong>uiBytes_</strong> – <strong>[in]</strong> Size of data (in bytes) to append from above address. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>AReturn number of bytes actually appended </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14CircularBuffer7DiscardE8uint32_t">
+<span id="_CPPv3N14CircularBuffer7DiscardE8uint32_t"></span><span id="_CPPv2N14CircularBuffer7DiscardE8uint32_t"></span><span id="CircularBuffer::Discard__uint32_t"></span><span class="target" id="classCircularBuffer_1aeb7c964926928e00691d968f505e33df"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Discard</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiBytes_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14CircularBuffer7DiscardE8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Remove data from beginning of buffer. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If data is not avail in circular buffer nothing to be done here. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>uiBytes_</strong> – <strong>[in]</strong> Size of data (in bytes) to be removed from buffer. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14CircularBuffer5ClearEv">
+<span id="_CPPv3N14CircularBuffer5ClearEv"></span><span id="_CPPv2N14CircularBuffer5ClearEv"></span><span id="CircularBuffer::Clear"></span><span class="target" id="classCircularBuffer_1af57d4f979d0229aa7c150229aa5e7b3e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Clear</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14CircularBuffer5ClearEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Remove all data from buffer, Buffer will be clear after this call. </p>
+<p>Delete contents of buffer, internally called Discard method. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14CircularBuffer4CopyEPh8uint32_t">
+<span id="_CPPv3NK14CircularBuffer4CopyEPh8uint32_t"></span><span id="_CPPv2NK14CircularBuffer4CopyEPh8uint32_t"></span><span id="CircularBuffer::Copy__unsigned-cP.uint32_tC"></span><span class="target" id="classCircularBuffer_1a0186b54f27255336ff2200484db1e8b3"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Copy</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pucTarget_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiBytes_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14CircularBuffer4CopyEPh8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Copy buffer from circular buffer to target. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pucTarget_</strong> – <strong>[in]</strong> Destination of copy data from circular buffer </p></li>
+<li><p><strong>uiBytes_</strong> – <strong>[in]</strong> Amount of data (in bytes) to copy </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Number of bytes copied to destination </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14CircularBufferixE7int32_t">
+<span id="_CPPv3NK14CircularBufferixE7int32_t"></span><span id="_CPPv2NK14CircularBufferixE7int32_t"></span><span id="CircularBuffer::subscript-operator__int32_tC"></span><span class="target" id="classCircularBuffer_1a95364ae6f570c83255b9f6615a536fdd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">[]</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">iIndex_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14CircularBufferixE7int32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Overloading Subscript or array index operator []. </p>
+<p>Returns copy of byte at iIndex_ (throw exception if iIndex_ out of bounds)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iIndex_</strong> – <strong>[in]</strong> integer value </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>unsigned character </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14CircularBuffer7GetByteE7int32_t">
+<span id="_CPPv3NK14CircularBuffer7GetByteE7int32_t"></span><span id="_CPPv2NK14CircularBuffer7GetByteE7int32_t"></span><span id="CircularBuffer::GetByte__int32_tC"></span><span class="target" id="classCircularBuffer_1a1aa7f935b3d940b6e5334bca0427996d"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetByte</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">iIndex_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14CircularBuffer7GetByteE7int32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Return copy of byte at iIndex_ (throw exception if iIndex_ out of bounds) </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iIndex_</strong> – <strong>[in]</strong> integer value </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The byte at the provided index. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="structSATELLITEID.html" class="btn btn-neutral float-left" title="Struct SATELLITEID" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classFramer.html" class="btn btn-neutral float-right" title="Class Framer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

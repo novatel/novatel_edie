@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class JsonReader &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class JsonReaderFailure" href="classJsonReaderFailure.html" />
+    <link rel="prev" title="Class FramerBase" href="classFramerBase.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSATELLITEID.html">Struct SATELLITEID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnExcept.html">Class nExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Class JsonReader</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classJsonReader.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-jsonreader">
+<span id="exhale-class-classjsonreader"></span><h1>Class JsonReader<a class="headerlink" href="#class-jsonreader" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_api_jsonreader.hpp.html#file-api-jsonreader-hpp"><span class="std std-ref">File jsonreader.hpp</span></a></p></li>
+</ul>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv410JsonReader">
+<span id="_CPPv310JsonReader"></span><span id="_CPPv210JsonReader"></span><span id="JsonReader"></span><span class="target" id="classJsonReader"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">JsonReader</span></span></span><a class="headerlink" href="#_CPPv410JsonReader" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Responsible for translating the Json representation of the NovAtel UI DB. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10JsonReader10JsonReaderEv">
+<span id="_CPPv3N10JsonReader10JsonReaderEv"></span><span id="_CPPv2N10JsonReader10JsonReaderEv"></span><span id="JsonReader::JsonReader"></span><span class="target" id="classJsonReader_1a2858c4667713bdf694aa221429c7cee4"></span><span class="sig-name descname"><span class="n"><span class="pre">JsonReader</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10JsonReader10JsonReaderEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>A constructor for the <a class="reference internal" href="#classJsonReader"><span class="std std-ref">JsonReader</span></a> class. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10JsonReader10JsonReaderERK10JsonReader">
+<span id="_CPPv3N10JsonReader10JsonReaderERK10JsonReader"></span><span id="_CPPv2N10JsonReader10JsonReaderERK10JsonReader"></span><span id="JsonReader::JsonReader__JsonReaderCR"></span><span class="target" id="classJsonReader_1a1ce587517e30eebb3a85a5b7ad81a705"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">JsonReader</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N10JsonReader10JsonReaderERK10JsonReader" title="JsonReader::JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">that</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10JsonReader10JsonReaderERK10JsonReader" title="Permalink to this definition"></a><br /></dt>
+<dd><p>A copy constructor for the <a class="reference internal" href="#classJsonReader"><span class="std std-ref">JsonReader</span></a> class. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>that</strong> – <strong>[in]</strong> The <a class="reference internal" href="#classJsonReader"><span class="std std-ref">JsonReader</span></a> object to copy. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10JsonReaderaSE10JsonReader">
+<span id="_CPPv3N10JsonReaderaSE10JsonReader"></span><span id="_CPPv2N10JsonReaderaSE10JsonReader"></span><span id="JsonReader::assign-operator__JsonReader"></span><span class="target" id="classJsonReader_1ac6da7c37faf0321bec27f93dcb6182a2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv410JsonReader" title="JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv410JsonReader" title="JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">that</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10JsonReaderaSE10JsonReader" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Overloaded assignment operator for the <a class="reference internal" href="#classJsonReader"><span class="std std-ref">JsonReader</span></a> class. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>that</strong> – <strong>[in]</strong> The <a class="reference internal" href="#classJsonReader"><span class="std std-ref">JsonReader</span></a> object to assign. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10JsonReaderD0Ev">
+<span id="_CPPv3N10JsonReaderD0Ev"></span><span id="_CPPv2N10JsonReaderD0Ev"></span><span id="JsonReader::~JsonReader"></span><span class="target" id="classJsonReader_1a0b479218111fa51708bbbcbc8f2f9889"></span><span class="sig-name descname"><span class="n"><span class="pre">~JsonReader</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N10JsonReaderD0Ev" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Destructor for the <a class="reference internal" href="#classJsonReader"><span class="std std-ref">JsonReader</span></a> class. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN10JsonReader8LoadFileEv1T">
+<span id="_CPPv3I0EN10JsonReader8LoadFileE1T"></span><span id="_CPPv2I0EN10JsonReader8LoadFileE1T"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classJsonReader_1aae3add097d6bfe3598ad881ea4cadeef"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LoadFile</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN10JsonReader8LoadFileEv1T" title="JsonReader::LoadFile::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">filePath_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN10JsonReader8LoadFileEv1T" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Load a Json DB from the provided filepath. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filePath_</strong> – <strong>[in]</strong> The filepath to the Json file. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN10JsonReader14AppendMessagesEv1T">
+<span id="_CPPv3I0EN10JsonReader14AppendMessagesE1T"></span><span id="_CPPv2I0EN10JsonReader14AppendMessagesE1T"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classJsonReader_1a9a4198db8b3ef4887148d9a79805c491"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendMessages</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN10JsonReader14AppendMessagesEv1T" title="JsonReader::AppendMessages::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">filePath_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN10JsonReader14AppendMessagesEv1T" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Append a message Json DB from the provided filepath. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filePath_</strong> – <strong>[in]</strong> The filepath to the Json file. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN10JsonReader18AppendEnumerationsEv1T">
+<span id="_CPPv3I0EN10JsonReader18AppendEnumerationsE1T"></span><span id="_CPPv2I0EN10JsonReader18AppendEnumerationsE1T"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classJsonReader_1a78769fd2980d2de24de860aeae3f2da5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AppendEnumerations</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN10JsonReader18AppendEnumerationsEv1T" title="JsonReader::AppendEnumerations::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">filePath_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN10JsonReader18AppendEnumerationsEv1T" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Append an enumeration Json DB from the provided filepath. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filePath_</strong> – <strong>[in]</strong> The filepath to the Json file. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10JsonReader13RemoveMessageE8uint32_tb">
+<span id="_CPPv3N10JsonReader13RemoveMessageE8uint32_tb"></span><span id="_CPPv2N10JsonReader13RemoveMessageE8uint32_tb"></span><span id="JsonReader::RemoveMessage__uint32_t.b"></span><span class="target" id="classJsonReader_1ab472f1970e965c2de334e0162ca0f19c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RemoveMessage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">iMsgId_</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">bGenerateMappings_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10JsonReader13RemoveMessageE8uint32_tb" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Append an message Json DB from the provided filepath. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iMsgId_</strong> – <strong>[in]</strong> The message Id </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10JsonReader17RemoveEnumerationENSt6stringEb">
+<span id="_CPPv3N10JsonReader17RemoveEnumerationENSt6stringEb"></span><span id="_CPPv2N10JsonReader17RemoveEnumerationENSt6stringEb"></span><span id="JsonReader::RemoveEnumeration__ss.b"></span><span class="target" id="classJsonReader_1a48a408cbb0feb02f102f53dee4fa88ab"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RemoveEnumeration</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">strEnumeration_</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">bGenerateMappings_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10JsonReader17RemoveEnumerationENSt6stringEb" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Append an enumeration Json DB from the provided filepath. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>strEnumeration_</strong> – <strong>[in]</strong> The enumeration name </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10JsonReader9ParseJsonERKNSt6stringE">
+<span id="_CPPv3N10JsonReader9ParseJsonERKNSt6stringE"></span><span id="_CPPv2N10JsonReader9ParseJsonERKNSt6stringE"></span><span id="JsonReader::ParseJson__ssCR"></span><span class="target" id="classJsonReader_1ae887f2c600ad38248c25fc03ea3f2212"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ParseJson</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">strJsonData_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10JsonReader9ParseJsonERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Parse the Json string provided. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>strJsonData_</strong> – <strong>[in]</strong> A string containing Json objects. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10JsonReader9GetMsgDefERKNSt6stringE">
+<span id="_CPPv3NK10JsonReader9GetMsgDefERKNSt6stringE"></span><span id="_CPPv2NK10JsonReader9GetMsgDefERKNSt6stringE"></span><span id="JsonReader::GetMsgDef__ssCRC"></span><span class="target" id="classJsonReader_1abb29717529adb5827636c292488224f2"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">novatel</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">edie</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html#_CPPv4N7novatel4edie17MessageDefinitionE" title="novatel::edie::MessageDefinition"><span class="n"><span class="pre">MessageDefinition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetMsgDef</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">strMsgName_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10JsonReader9GetMsgDefERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get a UI DB message definition for the provided message name. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>strMsgName_</strong> – <strong>[in]</strong> A string containing the message name. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10JsonReader9GetMsgDefE7int32_t">
+<span id="_CPPv3NK10JsonReader9GetMsgDefE7int32_t"></span><span id="_CPPv2NK10JsonReader9GetMsgDefE7int32_t"></span><span id="JsonReader::GetMsgDef__int32_tC"></span><span class="target" id="classJsonReader_1a8f18d1559e2939b2b5ec887ee1367f5b"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">novatel</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">edie</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html#_CPPv4N7novatel4edie17MessageDefinitionE" title="novatel::edie::MessageDefinition"><span class="n"><span class="pre">MessageDefinition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetMsgDef</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">iMsgID_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10JsonReader9GetMsgDefE7int32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get a UI DB message definition for the provided message ID. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iMsgID_</strong> – <strong>[in]</strong> The message ID. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10JsonReader14MsgNameToMsgIdENSt6stringE">
+<span id="_CPPv3NK10JsonReader14MsgNameToMsgIdENSt6stringE"></span><span id="_CPPv2NK10JsonReader14MsgNameToMsgIdENSt6stringE"></span><span id="JsonReader::MsgNameToMsgId__ssC"></span><span class="target" id="classJsonReader_1a8767d0a43d679b25a74098c8a0073d1a"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MsgNameToMsgId</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sMsgName_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10JsonReader14MsgNameToMsgIdENSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Convert a message name string to an message ID number. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sMsgName_</strong> – <strong>[in]</strong> The message name string </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10JsonReader14MsgIdToMsgNameEK8uint32_t">
+<span id="_CPPv3NK10JsonReader14MsgIdToMsgNameEK8uint32_t"></span><span id="_CPPv2NK10JsonReader14MsgIdToMsgNameEK8uint32_t"></span><span id="JsonReader::MsgIdToMsgName__uint32_tCC"></span><span class="target" id="classJsonReader_1a56c45170943ace9ee97507e3ede0575d"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MsgIdToMsgName</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiMessageID_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10JsonReader14MsgIdToMsgNameEK8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Convert a message ID number to a message name string. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>uiMessageID_</strong> – <strong>[in]</strong> The message ID number </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10JsonReader12GetEnumDefIDERKNSt6stringE">
+<span id="_CPPv3NK10JsonReader12GetEnumDefIDERKNSt6stringE"></span><span id="_CPPv2NK10JsonReader12GetEnumDefIDERKNSt6stringE"></span><span id="JsonReader::GetEnumDefID__ssCRC"></span><span class="target" id="classJsonReader_1a9eae0f7bf5ab5df0628e543023de189e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">novatel</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">edie</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html#_CPPv4N7novatel4edie14EnumDefinitionE" title="novatel::edie::EnumDefinition"><span class="n"><span class="pre">EnumDefinition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetEnumDefID</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sEnumID</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10JsonReader12GetEnumDefIDERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get a UI DB enum definition for the provided enum ID. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sEnumNameOrID_</strong> – <strong>[in]</strong> The enum ID. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10JsonReader14GetEnumDefNameERKNSt6stringE">
+<span id="_CPPv3NK10JsonReader14GetEnumDefNameERKNSt6stringE"></span><span id="_CPPv2NK10JsonReader14GetEnumDefNameERKNSt6stringE"></span><span id="JsonReader::GetEnumDefName__ssCRC"></span><span class="target" id="classJsonReader_1ae33a2f68353848bac05ee710be641848"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">novatel</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">edie</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html#_CPPv4N7novatel4edie14EnumDefinitionE" title="novatel::edie::EnumDefinition"><span class="n"><span class="pre">EnumDefinition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetEnumDefName</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sEnumName</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10JsonReader14GetEnumDefNameERKNSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get a UI DB enum definition for the provided enum name. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sEnumNameOrID_</strong> – <strong>[in]</strong> The enum name. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classFramerBase.html" class="btn btn-neutral float-left" title="Class FramerBase" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classJsonReaderFailure.html" class="btn btn-neutral float-right" title="Class JsonReaderFailure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

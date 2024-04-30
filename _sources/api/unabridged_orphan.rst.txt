@@ -1,0 +1,58 @@
+:orphan:
+
+
+Full API
+========
+
+Directories
+***********
+
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_api.rst
+
+Files
+*****
+
+
+.. toctree::
+   :maxdepth: 5
+
+   file_api_circularbuffer.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_api_common.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_api_crc32.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_api_encoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_api_framer.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_api_jsonreader.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_api_message_decoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_api_nexcept.h.rst

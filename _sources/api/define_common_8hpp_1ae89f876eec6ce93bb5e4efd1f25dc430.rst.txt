@@ -1,0 +1,14 @@
+.. _exhale_define_common_8hpp_1ae89f876eec6ce93bb5e4efd1f25dc430:
+
+Define SEC_TO_MSEC
+==================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: SEC_TO_MSEC
+   :project: handlerfactory

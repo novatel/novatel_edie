@@ -1,0 +1,26 @@
+.. _exhale_class_classnovatel_1_1edie_1_1JsonReaderFailure:
+
+Class JsonReaderFailure
+=======================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public std::exception``
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: novatel::edie::JsonReaderFailure
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

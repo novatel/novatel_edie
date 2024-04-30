@@ -1,0 +1,14 @@
+.. _exhale_function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1:
+
+Function novatel::edie::parse_enumerators
+=========================================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::parse_enumerators(const json&, std::vector<novatel::edie::EnumDataType>&)
+   :project: handlerfactory

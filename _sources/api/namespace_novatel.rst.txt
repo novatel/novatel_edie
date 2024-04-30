@@ -1,0 +1,20 @@
+
+.. _namespace_novatel:
+
+Namespace novatel
+=================
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel__edie`

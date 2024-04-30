@@ -1,0 +1,154 @@
+
+.. _file_api_jsonreader.hpp:
+
+File jsonreader.hpp
+===================
+
+|exhale_lsh| :ref:`Parent directory <dir_api>` (``api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+
+Class to read a JSON UI DB. 
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``api/jsonreader.hpp``)
+-----------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_api_jsonreader.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``common.hpp`` (:ref:`file_api_common.hpp`)
+
+- ``crc32.hpp`` (:ref:`file_api_crc32.hpp`)
+
+- ``filesystem``
+
+- ``fstream``
+
+- ``iostream``
+
+- ``logger/logger.hpp``
+
+- ``map``
+
+- ``nlohmann/json.hpp``
+
+- ``string``
+
+- ``unordered_map``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_api_encoder.hpp`
+
+- :ref:`file_api_message_decoder.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1ArrayField`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1BaseDataType`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1BaseField`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1EnumDataType`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1EnumDefinition`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1EnumField`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1FieldArrayField`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1MessageDefinition`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1SimpleDataType`
+
+- :ref:`exhale_class_classJsonReader`
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1JsonReaderFailure`
+
+
+Enums
+-----
+
+
+- :ref:`exhale_enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0`
+
+- :ref:`exhale_enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a08916570b2caed1bd93b7c1081ea6d0d`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a3b8e71fbbdd1eaed976d75788893f934`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a9084fe0fe62af31a0e14256f4f4c9f4f`
+
+- :ref:`exhale_function_jsonreader_8hpp_1aaa44b0d2b52f02b9b9b9a58388bc91d0`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a50304a69348356fbd990529f3503fd08`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a72801e64e7afc62cf96cdd5c93d9983a`
+
+- :ref:`exhale_function_jsonreader_8hpp_1aa321775574547a0130c5d10a80465eb7`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a5d3c94e68862c9ce18384300519ea373`
+
+- :ref:`exhale_function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1`
+
+- :ref:`exhale_function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_jsonreader_8hpp_1a10c72e4c1bbd03d1fa34bc59edcc2e3b`
+
+- :ref:`exhale_variable_jsonreader_8hpp_1a3a32510c01175587c27430e7f0acd272`
+

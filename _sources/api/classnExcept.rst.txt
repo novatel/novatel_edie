@@ -1,0 +1,17 @@
+.. _exhale_class_classnExcept:
+
+Class nExcept
+=============
+
+- Defined in :ref:`file_api_nexcept.h`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: nExcept
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

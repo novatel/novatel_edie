@@ -1,0 +1,14 @@
+.. _exhale_function_encoder_8hpp_1a1688897d3880d47f804f1360547768fa:
+
+Template Function novatel::edie::MakeConversionString
+=====================================================
+
+- Defined in :ref:`file_api_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::MakeConversionString(const FieldContainer&)
+   :project: handlerfactory

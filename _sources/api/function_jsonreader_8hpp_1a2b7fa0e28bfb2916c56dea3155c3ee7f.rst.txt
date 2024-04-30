@@ -1,0 +1,14 @@
+.. _exhale_function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f:
+
+Function novatel::edie::DataTypeSize
+====================================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::DataTypeSize(DATA_TYPE)
+   :project: handlerfactory

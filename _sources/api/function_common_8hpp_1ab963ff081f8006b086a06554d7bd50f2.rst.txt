@@ -1,0 +1,14 @@
+.. _exhale_function_common_8hpp_1ab963ff081f8006b086a06554d7bd50f2:
+
+Function ToDigit
+================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ToDigit(char)
+   :project: handlerfactory

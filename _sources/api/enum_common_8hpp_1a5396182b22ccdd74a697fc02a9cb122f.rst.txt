@@ -1,0 +1,14 @@
+.. _exhale_enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f:
+
+Enum HEADERFORMAT
+=================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::HEADERFORMAT
+   :project: handlerfactory

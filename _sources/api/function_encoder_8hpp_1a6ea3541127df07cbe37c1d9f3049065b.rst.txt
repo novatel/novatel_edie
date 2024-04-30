@@ -1,0 +1,14 @@
+.. _exhale_function_encoder_8hpp_1a6ea3541127df07cbe37c1d9f3049065b:
+
+Function novatel::edie::IsCommaSeparated
+========================================
+
+- Defined in :ref:`file_api_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::IsCommaSeparated(const BaseField *)
+   :project: handlerfactory

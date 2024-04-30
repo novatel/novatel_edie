@@ -1,0 +1,56 @@
+
+.. _file_api_circularbuffer.hpp:
+
+File circularbuffer.hpp
+=======================
+
+|exhale_lsh| :ref:`Parent directory <dir_api>` (``api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+
+Circular buffer class to hold data read from file or port used by parser. 
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``api/circularbuffer.hpp``)
+---------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_api_circularbuffer.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``cstdint``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_api_framer.hpp`
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classCircularBuffer`
+

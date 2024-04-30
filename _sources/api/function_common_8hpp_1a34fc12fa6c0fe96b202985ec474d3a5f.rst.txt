@@ -1,0 +1,14 @@
+.. _exhale_function_common_8hpp_1a34fc12fa6c0fe96b202985ec474d3a5f:
+
+Function novatel::edie::operator<<(std::ostream&, ENCODEFORMAT)
+===============================================================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::operator<<(std::ostream&, ENCODEFORMAT)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_enum_common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4:
+
+Enum TIME_STATUS
+================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::TIME_STATUS
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_common_8hpp_1ae1ede00eea76fa6f2e6a0f006dd67cea:
+
+Function novatel::edie::StringToEncodeFormat
+============================================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::StringToEncodeFormat(std::string)
+   :project: handlerfactory

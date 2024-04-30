@@ -1,0 +1,17 @@
+.. _exhale_class_classnovatel_1_1edie_1_1MetaDataBase:
+
+Class MetaDataBase
+==================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: novatel::edie::MetaDataBase
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

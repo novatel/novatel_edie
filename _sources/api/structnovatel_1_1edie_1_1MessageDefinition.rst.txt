@@ -1,0 +1,17 @@
+.. _exhale_struct_structnovatel_1_1edie_1_1MessageDefinition:
+
+Struct MessageDefinition
+========================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: novatel::edie::MessageDefinition
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

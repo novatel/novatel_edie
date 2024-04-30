@@ -1,0 +1,14 @@
+.. _exhale_function_encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756:
+
+Template Function novatel::edie::CopyToBuffer
+=============================================
+
+- Defined in :ref:`file_api_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::CopyToBuffer(unsigned char **, uint32_t&, T *)
+   :project: handlerfactory

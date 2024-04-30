@@ -1,0 +1,14 @@
+.. _exhale_define_common_8hpp_1a97cf1bb6f72896e40b102e34d098bc01:
+
+Define MAX_SHORT_BINARY_MESSAGE_LENGTH
+======================================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: MAX_SHORT_BINARY_MESSAGE_LENGTH
+   :project: handlerfactory

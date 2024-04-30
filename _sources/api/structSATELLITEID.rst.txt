@@ -1,0 +1,17 @@
+.. _exhale_struct_structSATELLITEID:
+
+Struct SATELLITEID
+==================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: SATELLITEID
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

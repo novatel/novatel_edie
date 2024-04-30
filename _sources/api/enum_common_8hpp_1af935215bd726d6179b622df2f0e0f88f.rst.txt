@@ -1,0 +1,14 @@
+.. _exhale_enum_common_8hpp_1af935215bd726d6179b622df2f0e0f88f:
+
+Enum MEASUREMENT_SOURCE
+=======================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::MEASUREMENT_SOURCE
+   :project: handlerfactory

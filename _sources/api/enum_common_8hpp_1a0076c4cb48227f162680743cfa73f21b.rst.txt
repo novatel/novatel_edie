@@ -1,0 +1,14 @@
+.. _exhale_enum_common_8hpp_1a0076c4cb48227f162680743cfa73f21b:
+
+Enum MESSAGEIDMASK
+==================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::MESSAGEIDMASK
+   :project: handlerfactory

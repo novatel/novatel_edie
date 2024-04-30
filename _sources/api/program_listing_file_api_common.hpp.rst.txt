@@ -1,0 +1,370 @@
+
+.. _program_listing_file_api_common.hpp:
+
+Program Listing for File common.hpp
+===================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_api_common.hpp>` (``api/common.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   //
+   // COPYRIGHT NovAtel Inc, 2022. All rights reserved.
+   //
+   // Permission is hereby granted, free of charge, to any person obtaining a copy
+   // of this software and associated documentation files (the "Software"), to deal
+   // in the Software without restriction, including without limitation the rights
+   // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   // copies of the Software, and to permit persons to whom the Software is
+   // furnished to do so, subject to the following conditions:
+   //
+   // The above copyright notice and this permission notice shall be included in all
+   // copies or substantial portions of the Software.
+   //
+   // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   // SOFTWARE.
+   //
+   //                            DESCRIPTION
+   //
+   
+   //-----------------------------------------------------------------------
+   // Recursive Inclusion
+   //-----------------------------------------------------------------------
+   #ifndef COMMON_HPP
+   #define COMMON_HPP
+   
+   //-----------------------------------------------------------------------
+   // Includes
+   //-----------------------------------------------------------------------
+   #include <cstdint>
+   #include <cstring>
+   #include <string>
+   
+   namespace novatel::edie {
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   enum class STATUS
+   {
+       SUCCESS,                
+       FAILURE,                
+       UNKNOWN,                
+       INCOMPLETE,             
+       INCOMPLETE_MORE_DATA,   
+       NULL_PROVIDED,          
+       NO_DATABASE,            
+       NO_DEFINITION,          
+       NO_DEFINITION_EMBEDDED, 
+       BUFFER_FULL,            
+       BUFFER_EMPTY,           
+       STREAM_EMPTY,           
+       UNSUPPORTED,            
+       MALFORMED_INPUT,        
+       DECOMPRESSION_FAILURE   
+   };
+   
+   inline std::string StatusToString(STATUS eStatus_)
+   {
+       return eStatus_ == STATUS::SUCCESS                  ? "SUCCESS"
+              : eStatus_ == STATUS::FAILURE                ? "FAILURE"
+              : eStatus_ == STATUS::INCOMPLETE             ? "INCOMPLETE"
+              : eStatus_ == STATUS::INCOMPLETE_MORE_DATA   ? "INCOMPLETE_MORE_DATA"
+              : eStatus_ == STATUS::NULL_PROVIDED          ? "NULL_PROVIDED"
+              : eStatus_ == STATUS::NO_DATABASE            ? "NO_DATABASE"
+              : eStatus_ == STATUS::NO_DEFINITION          ? "NO_DEFINITION"
+              : eStatus_ == STATUS::NO_DEFINITION_EMBEDDED ? "NO_DEFINITION_EMBEDDED"
+              : eStatus_ == STATUS::BUFFER_FULL            ? "BUFFER_FULL"
+              : eStatus_ == STATUS::BUFFER_EMPTY           ? "BUFFER_EMPTY"
+              : eStatus_ == STATUS::STREAM_EMPTY           ? "STREAM_EMPTY"
+              : eStatus_ == STATUS::UNSUPPORTED            ? "UNSUPPORTED"
+              : eStatus_ == STATUS::MALFORMED_INPUT        ? "MALFORMED_INPUT"
+              : eStatus_ == STATUS::DECOMPRESSION_FAILURE  ? "DECOMPRESSION_FAILURE"
+                                                           : "UNKNOWN";
+   }
+   
+   inline std::ostream& operator<<(std::ostream& os_, STATUS eStatus_)
+   {
+       os_ << StatusToString(eStatus_);
+       return os_;
+   }
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   enum class ENCODEFORMAT
+   {
+       FLATTENED_BINARY, 
+       ASCII,            
+       ABBREV_ASCII,     
+       BINARY,           
+       JSON,             
+       UNSPECIFIED       
+   };
+   
+   inline ENCODEFORMAT StringToEncodeFormat(std::string sEnumName_)
+   {
+       return sEnumName_ == "FLATTENED_BINARY" ? ENCODEFORMAT::FLATTENED_BINARY
+              : sEnumName_ == "ASCII"          ? ENCODEFORMAT::ASCII
+              : sEnumName_ == "BINARY"         ? ENCODEFORMAT::BINARY
+              : sEnumName_ == "JSON"           ? ENCODEFORMAT::JSON
+              : sEnumName_ == "ABBREV_ASCII"   ? ENCODEFORMAT::ABBREV_ASCII
+                                               : ENCODEFORMAT::UNSPECIFIED;
+   }
+   
+   inline std::string EncodeFormatToString(ENCODEFORMAT eFormat_)
+   {
+       return eFormat_ == ENCODEFORMAT::FLATTENED_BINARY ? "FLATTENED_BINARY"
+              : eFormat_ == ENCODEFORMAT::ASCII          ? "ASCII"
+              : eFormat_ == ENCODEFORMAT::ABBREV_ASCII   ? "ABBREV_ASCII"
+              : eFormat_ == ENCODEFORMAT::BINARY         ? "BINARY"
+              : eFormat_ == ENCODEFORMAT::JSON           ? "JSON"
+                                                         : "UNSPECIFIED";
+   }
+   
+   inline std::ostream& operator<<(std::ostream& os_, ENCODEFORMAT eFormat_)
+   {
+       os_ << EncodeFormatToString(eFormat_);
+       return os_;
+   }
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   enum class TIME_STATUS
+   {
+       UNKNOWN = 20,             
+       APPROXIMATE = 60,         
+       COARSEADJUSTING = 80,     
+       COARSE = 100,             
+       COARSESTEERING = 120,     
+       FREEWHEELING = 130,       
+       FINEADJUSTING = 140,      
+       FINE = 160,               
+       FINEBACKUPSTEERING = 170, 
+       FINESTEERING = 180,       
+       SATTIME = 200,            
+       EXTERN = 220,             
+       EXACT = 240               
+   };
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   enum class HEADERFORMAT
+   {
+       UNKNOWN = 1,
+       BINARY,
+       SHORT_BINARY,
+       PROPRIETARY_BINARY,
+       ASCII,
+       SHORT_ASCII,
+       ABB_ASCII,
+       NMEA,
+       JSON,
+       SHORT_ABB_ASCII,
+       ALL // Used in filters to indicate all filter types : all new enums should be added before this value
+   };
+   
+   constexpr bool isShortHeaderFormat(HEADERFORMAT eFormat)
+   {
+       return eFormat == HEADERFORMAT::SHORT_ASCII || eFormat == HEADERFORMAT::SHORT_BINARY || eFormat == HEADERFORMAT::SHORT_ABB_ASCII;
+   }
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   enum class MESSAGEFORMAT
+   {
+       BINARY = 0b00,
+       ASCII = 0b01,
+       ABBREV = 0b10,
+       RSRVD = 0b11
+   };
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   enum class MESSAGETYPEMASK
+   {
+       MEASSRC = 0b00011111,
+       MSGFORMAT = 0b01100000,
+       RESPONSE = 0b10000000
+   };
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   enum class MESSAGEIDMASK
+   {
+       LOGID = 0x00FFFF,
+       MEASSRC = (static_cast<uint32_t>(MESSAGETYPEMASK::MEASSRC) << 16),
+       MSGFORMAT = (static_cast<uint32_t>(MESSAGETYPEMASK::MSGFORMAT) << 16),
+       RESPONSE = (static_cast<uint32_t>(MESSAGETYPEMASK::RESPONSE) << 16)
+   };
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   enum class MEASUREMENT_SOURCE
+   {
+       PRIMARY,
+       SECONDARY,
+       MAX
+   };
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   struct MessageDataStruct
+   {
+       unsigned char* pucMessageHeader{nullptr};
+       uint32_t uiMessageHeaderLength{0};
+       unsigned char* pucMessageBody{nullptr};
+       uint32_t uiMessageBodyLength{0};
+       unsigned char* pucMessage{nullptr};
+       uint32_t uiMessageLength{0};
+   
+       constexpr MessageDataStruct() = default;
+   
+       MessageDataStruct(unsigned char* message, const uint32_t length, const uint32_t headerLength)
+           : pucMessageHeader(message), uiMessageHeaderLength(headerLength), pucMessageBody(message + uiMessageHeaderLength),
+             uiMessageBodyLength(length - headerLength), pucMessage(message), uiMessageLength(length)
+       {
+       }
+   
+       bool operator==(const MessageDataStruct& other) const
+       {
+           return uiMessageHeaderLength == other.uiMessageHeaderLength && uiMessageBodyLength == other.uiMessageBodyLength &&
+                  uiMessageLength == other.uiMessageLength && memcmp(pucMessageHeader, other.pucMessageHeader, uiMessageHeaderLength) == 0 &&
+                  memcmp(pucMessageBody, other.pucMessageBody, uiMessageBodyLength) == 0 && memcmp(pucMessage, other.pucMessage, uiMessageLength) == 0;
+       }
+   
+       bool operator!=(const MessageDataStruct& other) const { return !(*this == other); }
+   };
+   
+   struct EnumDefinition;
+   
+   class MetaDataBase
+   {
+     private:
+       static constexpr uint32_t uiMessageNameMax = 40;
+   
+     public:
+       MetaDataBase() = default;
+       virtual ~MetaDataBase() = 0;
+       bool bResponse{false};
+       HEADERFORMAT eFormat{HEADERFORMAT::UNKNOWN};
+       uint16_t usWeek{0};
+       double dMilliseconds{0.0};
+       uint32_t uiLength{0};
+       uint32_t uiBinaryMsgLength{0}; 
+       uint32_t uiHeaderLength{0};
+       uint16_t usMessageID{0};
+       uint32_t uiMessageCRC{0};
+       char acMessageName[uiMessageNameMax + 1]{'\0'};
+   
+       // Message Name helper functions
+       std::string MessageName() const { return std::string(acMessageName); }
+   
+       void MessageName(std::string strMessageName_)
+       {
+           memcpy(acMessageName, strMessageName_.c_str(), strMessageName_.length());
+           acMessageName[strMessageName_.length()] = '\0';
+       }
+   };
+   
+   inline MetaDataBase::~MetaDataBase() = default;
+   
+   } // namespace novatel::edie
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_ = 0.001);
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   uint32_t CreateMsgID(uint32_t uiMessageID_, uint32_t uiSiblingID_, uint32_t uiMsgFormat_, uint32_t uiResponse_);
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   void UnpackMsgID(uint32_t uiMessageID_, uint16_t& usMessageID_, uint32_t& uiSiblingID_, uint32_t& uiMsgFormat_, uint32_t& uiResponse_);
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   unsigned char PackMsgType(uint32_t uiSiblingID_, uint32_t uiMsgFormat_, uint32_t uiResponse_);
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   std::string GetEnumString(const novatel::edie::EnumDefinition* stEnumDef_, uint32_t uiEnum_);
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   int32_t GetEnumValue(const novatel::edie::EnumDefinition* stEnumDef_, std::string strEnum_);
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, std::string strResp_);
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   int32_t ToDigit(char c);
+   
+   //-----------------------------------------------------------------------
+   //
+   //
+   //-----------------------------------------------------------------------
+   bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, char** ppucMessageBuffer_);
+   
+   //-----------------------------------------------------------------------
+   //-----------------------------------------------------------------------
+   struct SATELLITEID
+   {
+       uint16_t usPrnOrSlot{0};      
+       int16_t sFrequencyChannel{0}; 
+   
+       constexpr SATELLITEID() = default;
+   
+       bool operator==(const SATELLITEID& other) const { return usPrnOrSlot == other.usPrnOrSlot && sFrequencyChannel == other.sFrequencyChannel; }
+   };
+   
+   //-----------------------------------------------------------------------
+   // Common miscellaneous defines
+   //-----------------------------------------------------------------------
+   #define SEC_TO_MSEC (1000U)    
+   #define SECS_IN_WEEK (604800U) 
+   
+   //-----------------------------------------------------------------------
+   // NovAtel message length defines
+   //-----------------------------------------------------------------------
+   #define MESSAGE_SIZE_MAX (0x8000) 
+   #define MAX_ASCII_MESSAGE_LENGTH                                                                                                                     \
+       (MESSAGE_SIZE_MAX) 
+   #define MAX_BINARY_MESSAGE_LENGTH                                                                                                                    \
+       (MESSAGE_SIZE_MAX) 
+   #define MAX_SHORT_ASCII_MESSAGE_LENGTH                                                                                                               \
+       (MESSAGE_SIZE_MAX) 
+   #define MAX_SHORT_BINARY_MESSAGE_LENGTH                                                                                                              \
+       (12 + 255 + 4) 
+   #define MAX_ABB_ASCII_RESPONSE_LENGTH                                                                                                                \
+       (MESSAGE_SIZE_MAX) 
+   #define MAX_NMEA_MESSAGE_LENGTH                                                                                                                      \
+       (256) //(82)         //!< NovAtel Docs - NMEA Standard Logs: Explicitly states that the maximum
+             // allowable is 82 chars.  Numerous internal logs break that standard, so we will use 256
+             // here as a safety measure.
+   
+   #endif

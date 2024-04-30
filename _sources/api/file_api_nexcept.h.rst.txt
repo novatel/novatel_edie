@@ -1,0 +1,56 @@
+
+.. _file_api_nexcept.h:
+
+File nexcept.h
+==============
+
+|exhale_lsh| :ref:`Parent directory <dir_api>` (``api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+
+Used for rasing exceptions with valid error message. 
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``api/nexcept.h``)
+------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_api_nexcept.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``stdarg.h``
+
+- ``stdio.h``
+
+- ``string.h``
+
+
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classJsonReaderFailure`
+
+- :ref:`exhale_class_classnExcept`
+

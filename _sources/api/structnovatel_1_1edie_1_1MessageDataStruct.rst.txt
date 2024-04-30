@@ -1,0 +1,17 @@
+.. _exhale_struct_structnovatel_1_1edie_1_1MessageDataStruct:
+
+Struct MessageDataStruct
+========================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: novatel::edie::MessageDataStruct
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

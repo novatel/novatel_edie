@@ -1,0 +1,14 @@
+.. _exhale_define_common_8hpp_1a4ea48910054bd47997fdf9b9004914b7:
+
+Define MESSAGE_SIZE_MAX
+=======================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: MESSAGE_SIZE_MAX
+   :project: handlerfactory

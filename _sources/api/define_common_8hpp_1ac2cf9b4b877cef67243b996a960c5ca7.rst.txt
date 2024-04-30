@@ -1,0 +1,14 @@
+.. _exhale_define_common_8hpp_1ac2cf9b4b877cef67243b996a960c5ca7:
+
+Define MAX_ABB_ASCII_RESPONSE_LENGTH
+====================================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: MAX_ABB_ASCII_RESPONSE_LENGTH
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_common_8hpp_1a6c54ecb047585d78d40c9dec64c32578:
+
+Function CreateMsgID
+====================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CreateMsgID(uint32_t, uint32_t, uint32_t, uint32_t)
+   :project: handlerfactory

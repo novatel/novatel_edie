@@ -1,0 +1,14 @@
+.. _exhale_define_message__decoder_8hpp_1a0470f42d5bac380da1cbad86f695dc72:
+
+Define novatel_types
+====================
+
+- Defined in :ref:`file_api_message_decoder.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: novatel_types
+   :project: handlerfactory

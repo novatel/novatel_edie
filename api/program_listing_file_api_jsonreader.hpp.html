@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File jsonreader.hpp &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File jsonreader.hpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_api_jsonreader.hpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-jsonreader-hpp">
+<span id="program-listing-file-api-jsonreader-hpp"></span><h1>Program Listing for File jsonreader.hpp<a class="headerlink" href="#program-listing-for-file-jsonreader-hpp" title="Permalink to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_api_jsonreader.hpp.html#file-api-jsonreader-hpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">api/jsonreader.hpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">//</span>
+<span class="c1">// COPYRIGHT NovAtel Inc, 2022. All rights reserved.</span>
+<span class="c1">//</span>
+<span class="c1">// Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1">// of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1">// in the Software without restriction, including without limitation the rights</span>
+<span class="c1">// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1">// copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1">// furnished to do so, subject to the following conditions:</span>
+<span class="c1">//</span>
+<span class="c1">// The above copyright notice and this permission notice shall be included in all</span>
+<span class="c1">// copies or substantial portions of the Software.</span>
+<span class="c1">//</span>
+<span class="c1">// THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1">// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1">// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1">// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1">// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1">// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1">// SOFTWARE.</span>
+<span class="c1">//</span>
+<span class="c1">//                            DESCRIPTION</span>
+<span class="c1">//</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">// Recursive Inclusion</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="cp">#ifndef JSONREADER_HPP</span>
+<span class="cp">#define JSONREADER_HPP</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">// Includes</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;filesystem&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;fstream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;logger/logger.hpp&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;map&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nlohmann/json.hpp&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;unordered_map&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;common.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;crc32.hpp&quot;</span><span class="cp"></span>
+
+<span class="k">using</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">;</span><span class="w"></span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">novatel</span><span class="o">::</span><span class="nn">edie</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+
+<span class="c1">//============================================================================</span>
+<span class="c1">//============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">JsonReaderFailure</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">private</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">func</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">file</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int32_t</span><span class="w"> </span><span class="n">line</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">filesystem</span><span class="o">::</span><span class="n">path</span><span class="w"> </span><span class="n">clFilePath</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">failure</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">acWhatString</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="n">JsonReaderFailure</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">func_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">file_</span><span class="p">,</span><span class="w"> </span><span class="kt">int32_t</span><span class="w"> </span><span class="n">line_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">filesystem</span><span class="o">::</span><span class="n">path</span><span class="o">&amp;</span><span class="w"> </span><span class="n">json_file_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">failure_</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="n">func</span><span class="p">(</span><span class="n">func_</span><span class="p">),</span><span class="w"> </span><span class="n">file</span><span class="p">(</span><span class="n">file_</span><span class="p">),</span><span class="w"> </span><span class="n">line</span><span class="p">(</span><span class="n">line_</span><span class="p">),</span><span class="w"> </span><span class="n">clFilePath</span><span class="p">(</span><span class="n">json_file_</span><span class="p">),</span><span class="w"> </span><span class="n">failure</span><span class="p">(</span><span class="n">failure_</span><span class="p">),</span><span class="w"> </span><span class="n">acWhatString</span><span class="p">{}</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">what</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">throw</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">sprintf</span><span class="p">(</span><span class="k">const_cast</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">acWhatString</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;In file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s"> : %s() (Line %d)</span><span class="se">\n\t\&quot;</span><span class="s">%s: %s.</span><span class="se">\&quot;</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="p">,</span><span class="w"> </span><span class="n">func</span><span class="p">,</span><span class="w"> </span><span class="n">line</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="n">clFilePath</span><span class="p">.</span><span class="n">generic_string</span><span class="p">().</span><span class="n">c_str</span><span class="p">(),</span><span class="w"> </span><span class="n">failure</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">acWhatString</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">DATA_TYPE</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">BOOL</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">CHAR</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">UCHAR</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">SHORT</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">USHORT</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">INT</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">UINT</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">LONG</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">ULONG</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">LONGLONG</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">ULONGLONG</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">FLOAT</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">DOUBLE</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">HEXBYTE</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">SATELLITEID</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">UNKNOWN</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="nf">DataTypeSize</span><span class="p">(</span><span class="n">DATA_TYPE</span><span class="w"> </span><span class="n">eType</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">BOOL</span><span class="w">          </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int32_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">HEXBYTE</span><span class="w">     </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">CHAR</span><span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int8_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">UCHAR</span><span class="w">       </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">SHORT</span><span class="w">       </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int16_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">USHORT</span><span class="w">      </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint16_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">INT</span><span class="w">         </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int32_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">UINT</span><span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">LONG</span><span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int32_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">ULONG</span><span class="w">       </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">LONGLONG</span><span class="w">    </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int64_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">ULONGLONG</span><span class="w">   </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">FLOAT</span><span class="w">       </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">DOUBLE</span><span class="w">      </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">SATELLITEID</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">)</span><span class="w"></span>
+<span class="w">                                             </span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="c1">// TODO: this table is misleading, as one DATA_TYPE may correspond to many different conversion strings</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">DataTypeConversion</span><span class="p">(</span><span class="n">DATA_TYPE</span><span class="w"> </span><span class="n">eType</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">BOOL</span><span class="w">          </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%d&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">CHAR</span><span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%c&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">UCHAR</span><span class="w">       </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%uc&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">SHORT</span><span class="w">       </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%hd&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">USHORT</span><span class="w">      </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%hu&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">INT</span><span class="w">         </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%d&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">UINT</span><span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%u&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">LONG</span><span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%ld&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">ULONG</span><span class="w">       </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%lu&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">LONGLONG</span><span class="w">    </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%lld&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">ULONGLONG</span><span class="w">   </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%llu&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">FLOAT</span><span class="w">       </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%f&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">DOUBLE</span><span class="w">      </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%lf&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">HEXBYTE</span><span class="w">     </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%Z&quot;</span><span class="w"> </span><span class="c1">// these are not valid default conversion strings</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eType</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">SATELLITEID</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;%id&quot;</span><span class="w"></span>
+<span class="w">                                             </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">DataTypeEnumLookup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="s">&quot;BOOL&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">BOOL</span><span class="p">},</span><span class="w">      </span><span class="p">{</span><span class="s">&quot;HEXBYTE&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">HEXBYTE</span><span class="p">},</span><span class="w">   </span><span class="p">{</span><span class="s">&quot;CHAR&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">CHAR</span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="s">&quot;UCHAR&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">UCHAR</span><span class="p">},</span><span class="w">    </span><span class="p">{</span><span class="s">&quot;SHORT&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">SHORT</span><span class="p">},</span><span class="w">       </span><span class="p">{</span><span class="s">&quot;USHORT&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">USHORT</span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="s">&quot;INT&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">INT</span><span class="p">},</span><span class="w">        </span><span class="p">{</span><span class="s">&quot;UINT&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">UINT</span><span class="p">},</span><span class="w">         </span><span class="p">{</span><span class="s">&quot;LONG&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">LONG</span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="s">&quot;ULONG&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">ULONG</span><span class="p">},</span><span class="w">    </span><span class="p">{</span><span class="s">&quot;LONGLONG&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">LONGLONG</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="s">&quot;ULONGLONG&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">ULONGLONG</span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="s">&quot;FLOAT&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">FLOAT</span><span class="p">},</span><span class="w">    </span><span class="p">{</span><span class="s">&quot;DOUBLE&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">DOUBLE</span><span class="p">},</span><span class="w">     </span><span class="p">{</span><span class="s">&quot;SATELLITEID&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">SATELLITEID</span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="s">&quot;UNKNOWN&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">UNKNOWN</span><span class="p">}};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">FIELD_TYPE</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">SIMPLE</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">ENUM</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">BITFIELD</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">FIXED_LENGTH_ARRAY</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">VARIABLE_LENGTH_ARRAY</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">STRING</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">FIELD_ARRAY</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">RESPONSE_ID</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">RESPONSE_STR</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">RXCONFIG_HEADER</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">RXCONFIG_BODY</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">UNKNOWN</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">&gt;</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">FieldTypeEnumLookup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{{</span><span class="s">&quot;SIMPLE&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">SIMPLE</span><span class="p">},</span><span class="w"></span>
+<span class="w">                                                                                </span><span class="p">{</span><span class="s">&quot;ENUM&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">ENUM</span><span class="p">},</span><span class="w"></span>
+<span class="w">                                                                                </span><span class="p">{</span><span class="s">&quot;BITFIELD&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">BITFIELD</span><span class="p">},</span><span class="w"></span>
+<span class="w">                                                                                </span><span class="p">{</span><span class="s">&quot;FIXED_LENGTH_ARRAY&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">FIXED_LENGTH_ARRAY</span><span class="p">},</span><span class="w"></span>
+<span class="w">                                                                                </span><span class="p">{</span><span class="s">&quot;VARIABLE_LENGTH_ARRAY&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">VARIABLE_LENGTH_ARRAY</span><span class="p">},</span><span class="w"></span>
+<span class="w">                                                                                </span><span class="p">{</span><span class="s">&quot;STRING&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">STRING</span><span class="p">},</span><span class="w"></span>
+<span class="w">                                                                                </span><span class="p">{</span><span class="s">&quot;FIELD_ARRAY&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">FIELD_ARRAY</span><span class="p">},</span><span class="w"></span>
+<span class="w">                                                                                </span><span class="p">{</span><span class="s">&quot;UNKNOWN&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">UNKNOWN</span><span class="p">}};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">EnumDataType</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">value</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">{};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">description</span><span class="p">{};</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="n">EnumDataType</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">EnumDefinition</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">_id</span><span class="p">{};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">{};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDataType</span><span class="o">&gt;</span><span class="w"> </span><span class="n">enumerators</span><span class="p">{};</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="n">EnumDefinition</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">BaseDataType</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">DATA_TYPE</span><span class="w"> </span><span class="n">name</span><span class="p">{</span><span class="n">DATA_TYPE</span><span class="o">::</span><span class="n">UNKNOWN</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">length</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">description</span><span class="p">{};</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="n">BaseDataType</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">SimpleDataType</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">BaseDataType</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int32_t</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDataType</span><span class="o">&gt;</span><span class="w"> </span><span class="n">enums</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">BaseField</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">FIELD_TYPE</span><span class="w"> </span><span class="n">type</span><span class="p">{</span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">UNKNOWN</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">description</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">conversion</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">sConversionStripped</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">conversionHash</span><span class="p">{</span><span class="mi">0ULL</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int32_t</span><span class="w"> </span><span class="n">conversionBeforePoint</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int32_t</span><span class="w"> </span><span class="n">conversionAfterPoint</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="n">SimpleDataType</span><span class="w"> </span><span class="n">dataType</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">BaseField</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">BaseField</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name_</span><span class="p">,</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="w"> </span><span class="n">type_</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">sConversion_</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">length_</span><span class="p">,</span><span class="w"> </span><span class="n">DATA_TYPE</span><span class="w"> </span><span class="n">eDataTypeName_</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="n">name</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">name_</span><span class="p">)),</span><span class="w"> </span><span class="n">type</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">setConversion</span><span class="p">(</span><span class="n">sConversion_</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">dataType</span><span class="p">.</span><span class="n">length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint16_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">length_</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">dataType</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eDataTypeName_</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">BaseField</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="w"> </span><span class="nf">clone</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">setConversion</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sConversion</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">conversion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sConversion</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">parseConversion</span><span class="p">(</span><span class="n">sConversionStripped</span><span class="p">,</span><span class="w"> </span><span class="n">conversionBeforePoint</span><span class="p">,</span><span class="w"> </span><span class="n">conversionAfterPoint</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">conversionHash</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CalculateBlockCRC32</span><span class="p">(</span><span class="n">sConversionStripped</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">parseConversion</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">strStrippedConversionString_</span><span class="p">,</span><span class="w"> </span><span class="kt">int32_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">iBeforePoint_</span><span class="p">,</span><span class="w"> </span><span class="kt">int32_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">iAfterPoint_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">sConvertString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">conversion</span><span class="p">.</span><span class="n">c_str</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int32_t</span><span class="o">*</span><span class="w"> </span><span class="n">iSelectedPoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iBeforePoint_</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">sConvertString</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="c1">// &quot;0x&quot; could be a prefix on a hex field (0x%...) or a valid conversion string (%0x).</span>
+<span class="w">            </span><span class="c1">// Prevent these two cases from occurring at the same time.</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="mi">0</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">memcmp</span><span class="p">(</span><span class="n">sConvertString</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0x&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">strcmp</span><span class="p">(</span><span class="n">sConvertString</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;0x&quot;</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">sConvertString</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">            </span><span class="c1">// If the value &quot;10&quot; or greater is found from the conversion string, two bytes would</span>
+<span class="w">            </span><span class="c1">// need to be consumed from the string to move past that value. Otherwise only one byte</span>
+<span class="w">            </span><span class="c1">// is necessary to consume.</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">sConvertString</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="sc">&#39;0&#39;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">*</span><span class="n">sConvertString</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="sc">&#39;9&#39;</span><span class="p">)</span><span class="w"></span>
+<span class="w">            </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="n">sscanf</span><span class="p">(</span><span class="n">sConvertString</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%d.&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">iSelectedPoint</span><span class="p">);</span><span class="w"></span>
+<span class="w">                </span><span class="n">sConvertString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sConvertString</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">iSelectedPoint</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">9</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"> </span><span class="c1">// Skip the numerals</span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">isalpha</span><span class="p">(</span><span class="o">*</span><span class="n">sConvertString</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">*</span><span class="n">sConvertString</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39;%&#39;</span><span class="p">)</span><span class="w"></span>
+<span class="w">            </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="n">strStrippedConversionString_</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">sConvertString</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"></span>
+<span class="w">                </span><span class="n">sConvertString</span><span class="o">++</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">sConvertString</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39;.&#39;</span><span class="p">)</span><span class="w"></span>
+<span class="w">            </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="n">iSelectedPoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iAfterPoint_</span><span class="p">;</span><span class="w"></span>
+<span class="w">                </span><span class="n">sConvertString</span><span class="o">++</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isString</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">STRING</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">conversionHash</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CalculateBlockCRC32</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">conversionHash</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CalculateBlockCRC32</span><span class="p">(</span><span class="s">&quot;%S&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">isCSV</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="o">!</span><span class="p">(</span><span class="n">isString</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">conversionHash</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CalculateBlockCRC32</span><span class="p">(</span><span class="s">&quot;%Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">conversionHash</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CalculateBlockCRC32</span><span class="p">(</span><span class="s">&quot;%P&quot;</span><span class="p">));</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">EnumField</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">enumID</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="n">enumDef</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">length</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">EnumField</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="o">~</span><span class="n">EnumField</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">EnumField</span><span class="o">*</span><span class="w"> </span><span class="nf">clone</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumField</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">ArrayField</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">arrayLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">ArrayField</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="o">~</span><span class="n">ArrayField</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">ArrayField</span><span class="o">*</span><span class="w"> </span><span class="nf">clone</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">ArrayField</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">FieldArrayField</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">arrayLength</span><span class="p">{</span><span class="mi">0</span><span class="p">},</span><span class="w"> </span><span class="n">fieldSize</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">fields</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">FieldArrayField</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="o">~</span><span class="n">FieldArrayField</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">field</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">fields</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">delete</span><span class="w"> </span><span class="n">field</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">FieldArrayField</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FieldArrayField</span><span class="o">&amp;</span><span class="w"> </span><span class="n">that</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">BaseField</span><span class="p">(</span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">field</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">fields</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">fields</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">field</span><span class="o">-&gt;</span><span class="n">clone</span><span class="p">());</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">        </span><span class="n">arrayLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">arrayLength</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">fieldSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">fieldSize</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">FieldArrayField</span><span class="o">&amp;</span><span class="w"> </span><span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">FieldArrayField</span><span class="w"> </span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">BaseField</span><span class="o">::</span><span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">that</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">            </span><span class="n">fields</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">field</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">fields</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">fields</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">field</span><span class="o">-&gt;</span><span class="n">clone</span><span class="p">());</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">            </span><span class="n">arrayLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">arrayLength</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">fieldSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">fieldSize</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">*</span><span class="k">this</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">FieldArrayField</span><span class="o">*</span><span class="w"> </span><span class="n">clone</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FieldArrayField</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">MessageDefinition</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">_id</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">logID</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">description</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="o">*&gt;&gt;</span><span class="w"> </span><span class="n">fields</span><span class="p">;</span><span class="w"> </span><span class="c1">// map of crc keys to field defs</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">latestMessageCrc</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">MessageDefinition</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">MessageDefinition</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MessageDefinition</span><span class="o">&amp;</span><span class="w"> </span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fielddefs</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">fields</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fielddefs</span><span class="p">.</span><span class="n">first</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="c1">// Ensure a 0-length vector exists for this key in the case the message has no fields.</span>
+<span class="w">            </span><span class="n">fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="o">*&gt;</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">field</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">fielddefs</span><span class="p">.</span><span class="n">second</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">fields</span><span class="p">[</span><span class="n">key</span><span class="p">].</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">field</span><span class="o">-&gt;</span><span class="n">clone</span><span class="p">());</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">        </span><span class="n">_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">_id</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">logID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">logID</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">name</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">description</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">latestMessageCrc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">latestMessageCrc</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="o">~</span><span class="n">MessageDefinition</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">field</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">fields</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">field</span><span class="p">.</span><span class="n">second</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">delete</span><span class="w"> </span><span class="n">f</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">MessageDefinition</span><span class="o">&amp;</span><span class="w"> </span><span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">MessageDefinition</span><span class="w"> </span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">fields</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fielddefs</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">fields</span><span class="p">)</span><span class="w"></span>
+<span class="w">            </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fielddefs</span><span class="p">.</span><span class="n">first</span><span class="p">;</span><span class="w"></span>
+<span class="w">                </span><span class="c1">// Ensure a 0-length vector exists for this key in the case the message has no fields.</span>
+<span class="w">                </span><span class="n">fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="o">*&gt;</span><span class="p">();</span><span class="w"></span>
+<span class="w">                </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">field</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">fielddefs</span><span class="p">.</span><span class="n">second</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">fields</span><span class="p">[</span><span class="n">key</span><span class="p">].</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">field</span><span class="o">-&gt;</span><span class="n">clone</span><span class="p">());</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">            </span><span class="n">_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">_id</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">logID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">logID</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">name</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">description</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">latestMessageCrc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">latestMessageCrc</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">*</span><span class="k">this</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">BaseField</span><span class="o">*&gt;</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">GetMsgDefFromCRC</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pclLogger_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">uiMsgDefCRC_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="c1">// Forward declaration of from_json</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDataType</span><span class="o">&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseDataType</span><span class="o">&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">SimpleDataType</span><span class="o">&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="o">&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumField</span><span class="o">&amp;</span><span class="w"> </span><span class="n">f</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">ArrayField</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">FieldArrayField</span><span class="o">&amp;</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">MessageDefinition</span><span class="o">&amp;</span><span class="w"> </span><span class="n">md</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">EnumDefinition</span><span class="o">&amp;</span><span class="w"> </span><span class="n">ed</span><span class="p">);</span><span class="w"></span>
+
+<span class="c1">// Forward declaration of parse_fields and parse_enumerators</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="nf">parse_fields</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">vFields</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">parse_enumerators</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDataType</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vEnumerators</span><span class="p">);</span><span class="w"></span>
+
+<span class="p">}</span><span class="w"> </span><span class="c1">// namespace novatel::edie</span>
+
+<span class="c1">//============================================================================</span>
+<span class="c1">//============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">JsonReader</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vMessageDefinitions</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vEnumDefinitions</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">mMessageName</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">int32_t</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">mMessageID</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">mEnumName</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">mEnumID</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">JsonReader</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">JsonReader</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">JsonReader</span><span class="o">&amp;</span><span class="w"> </span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// TODO Verify it&#39;s calling the copy constructor for the messages</span>
+<span class="w">        </span><span class="n">vEnumDefinitions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">vEnumDefinitions</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">vMessageDefinitions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">vMessageDefinitions</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">GenerateMappings</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">JsonReader</span><span class="o">&amp;</span><span class="w"> </span><span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">JsonReader</span><span class="w"> </span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">that</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">vEnumDefinitions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">vEnumDefinitions</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">vMessageDefinitions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">that</span><span class="p">.</span><span class="n">vMessageDefinitions</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">GenerateMappings</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">*</span><span class="k">this</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="o">~</span><span class="n">JsonReader</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">LoadFile</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="n">filePath_</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">AppendMessages</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="n">filePath_</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">AppendEnumerations</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="n">filePath_</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">RemoveMessage</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">iMsgId_</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">bGenerateMappings_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">RemoveEnumeration</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">strEnumeration_</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">bGenerateMappings_</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">ParseJson</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">strJsonData_</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">*</span><span class="w"> </span><span class="nf">GetMsgDef</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">strMsgName_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">*</span><span class="w"> </span><span class="nf">GetMsgDef</span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="n">iMsgID_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">MsgNameToMsgId</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">sMsgName_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">MsgIdToMsgName</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageID_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="nf">GetEnumDefID</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sEnumID</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mEnumID</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">sEnumID</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">mEnumID</span><span class="p">.</span><span class="n">end</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="nf">GetEnumDefName</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sEnumName</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mEnumName</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">sEnumName</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">mEnumName</span><span class="p">.</span><span class="n">end</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">it</span><span class="o">-&gt;</span><span class="n">second</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="k">private</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">GenerateMappings</span><span class="p">()</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">&amp;</span><span class="w"> </span><span class="n">enm</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">vEnumDefinitions</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">mEnumName</span><span class="p">[</span><span class="n">enm</span><span class="p">.</span><span class="n">name</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">enm</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">mEnumID</span><span class="p">[</span><span class="n">enm</span><span class="p">.</span><span class="n">_id</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">enm</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">&amp;</span><span class="w"> </span><span class="n">msg</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">vMessageDefinitions</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">mMessageName</span><span class="p">[</span><span class="n">msg</span><span class="p">.</span><span class="n">name</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">msg</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="n">mMessageID</span><span class="p">[</span><span class="n">msg</span><span class="p">.</span><span class="n">logID</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">msg</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">field</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">msg</span><span class="p">.</span><span class="n">fields</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">MapMessageEnumFields</span><span class="p">(</span><span class="n">field</span><span class="p">.</span><span class="n">second</span><span class="p">);</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">MapMessageEnumFields</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">BaseField</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">vMsgDefFields_</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">field</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">vMsgDefFields_</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">field</span><span class="o">-&gt;</span><span class="n">type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">ENUM</span><span class="p">)</span><span class="w"></span>
+<span class="w">            </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumField</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">field</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">enumDef</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetEnumDefID</span><span class="p">(</span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumField</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">field</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">enumID</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">field</span><span class="o">-&gt;</span><span class="n">type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">FIELD_TYPE</span><span class="o">::</span><span class="n">FIELD_ARRAY</span><span class="p">)</span><span class="w"></span>
+<span class="w">            </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="n">MapMessageEnumFields</span><span class="p">(</span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">FieldArrayField</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">field</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">fields</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">RemoveMessageMapping</span><span class="p">(</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">&amp;</span><span class="w"> </span><span class="n">msg</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Check string against name map</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">itName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mMessageName</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">itName</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">mMessageName</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="n">mMessageName</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">itName</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">itId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mMessageID</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">logID</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">itId</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">mMessageID</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="n">mMessageID</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">itId</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">RemoveEnumerationMapping</span><span class="p">(</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">&amp;</span><span class="w"> </span><span class="n">enm</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Check string against name map</span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">itName</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mEnumName</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">enm</span><span class="p">.</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">itName</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">mEnumName</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="n">mEnumName</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">itName</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">itId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mEnumID</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">enm</span><span class="p">.</span><span class="n">_id</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">itId</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">mEnumID</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="n">mEnumID</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">itId</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">&gt;::</span><span class="n">iterator</span><span class="w"> </span><span class="n">GetMessageIt</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">iMsgId_</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">find_if</span><span class="p">(</span><span class="n">vMessageDefinitions</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vMessageDefinitions</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"></span>
+<span class="w">                       </span><span class="p">[</span><span class="n">iMsgId_</span><span class="p">](</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="w"> </span><span class="n">elem</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">elem</span><span class="p">.</span><span class="n">logID</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">iMsgId_</span><span class="p">);</span><span class="w"> </span><span class="p">});</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="o">&gt;::</span><span class="n">iterator</span><span class="w"> </span><span class="n">GetMessageIt</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">strMessage_</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">find_if</span><span class="p">(</span><span class="n">vMessageDefinitions</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vMessageDefinitions</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"></span>
+<span class="w">                       </span><span class="p">[</span><span class="n">strMessage_</span><span class="p">](</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">MessageDefinition</span><span class="w"> </span><span class="n">elem</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">elem</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">strMessage_</span><span class="p">);</span><span class="w"> </span><span class="p">});</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">&gt;::</span><span class="n">iterator</span><span class="w"> </span><span class="n">GetEnumIt</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">strEnumeration_</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">find_if</span><span class="p">(</span><span class="n">vEnumDefinitions</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">vEnumDefinitions</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"></span>
+<span class="w">                       </span><span class="p">[</span><span class="n">strEnumeration_</span><span class="p">](</span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="w"> </span><span class="n">elem</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="n">elem</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">strEnumeration_</span><span class="p">);</span><span class="w"> </span><span class="p">});</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+.. _exhale_define_message__decoder_8hpp_1a982b99d63121d8513114bf335e3aef8d:
+
+Define container_types
+======================
+
+- Defined in :ref:`file_api_message_decoder.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: container_types
+   :project: handlerfactory

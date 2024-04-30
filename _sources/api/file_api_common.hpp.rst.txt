@@ -1,0 +1,156 @@
+
+.. _file_api_common.hpp:
+
+File common.hpp
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_api>` (``api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+
+Header file containing the common structs, enums and defines used throughout the EDIE source code. 
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``api/common.hpp``)
+-------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_api_common.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``cstdint``
+
+- ``cstring``
+
+- ``string``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_api_encoder.hpp`
+
+- :ref:`file_api_jsonreader.hpp`
+
+- :ref:`file_api_message_decoder.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1MessageDataStruct`
+
+- :ref:`exhale_struct_structSATELLITEID`
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1MetaDataBase`
+
+
+Enums
+-----
+
+
+- :ref:`exhale_enum_common_8hpp_1a9fd78211ce54ca94de8d7f3f70968672`
+
+- :ref:`exhale_enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f`
+
+- :ref:`exhale_enum_common_8hpp_1af935215bd726d6179b622df2f0e0f88f`
+
+- :ref:`exhale_enum_common_8hpp_1a17d1039b7274b431a86382b141dc6b09`
+
+- :ref:`exhale_enum_common_8hpp_1a0076c4cb48227f162680743cfa73f21b`
+
+- :ref:`exhale_enum_common_8hpp_1aa94608c65d49406b2f4b3d1ad14b86af`
+
+- :ref:`exhale_enum_common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b`
+
+- :ref:`exhale_enum_common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_common_8hpp_1af8191c179d66b7dfe57dc50e4af3c37d`
+
+- :ref:`exhale_function_common_8hpp_1a6c54ecb047585d78d40c9dec64c32578`
+
+- :ref:`exhale_function_common_8hpp_1a2fff03c8982e3b9ebd5cdf70a7a31b3b`
+
+- :ref:`exhale_function_common_8hpp_1aa69e6b39966d5bf9ea1eca2b2496d0c6`
+
+- :ref:`exhale_function_common_8hpp_1ab7447feb6362d666e7de59212c91e91a`
+
+- :ref:`exhale_function_common_8hpp_1a8918a252aac1ba227378167a800f72a0`
+
+- :ref:`exhale_function_common_8hpp_1ae1a615c0fd4e3c710de24ef9e98de297`
+
+- :ref:`exhale_function_common_8hpp_1a68b380ea5eaded99ba8871508b8dacb8`
+
+- :ref:`exhale_function_common_8hpp_1a810ac542cd59f4836834708014f80d59`
+
+- :ref:`exhale_function_common_8hpp_1a34fc12fa6c0fe96b202985ec474d3a5f`
+
+- :ref:`exhale_function_common_8hpp_1a5aaa0e5e4b61fb8b926b985d3a11cf95`
+
+- :ref:`exhale_function_common_8hpp_1ae1ede00eea76fa6f2e6a0f006dd67cea`
+
+- :ref:`exhale_function_common_8hpp_1a37cd8818f3ff201dcf4c31638400e1f3`
+
+- :ref:`exhale_function_common_8hpp_1ab963ff081f8006b086a06554d7bd50f2`
+
+- :ref:`exhale_function_common_8hpp_1acd2b34cccca058fcf37f420cf5a78450`
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_common_8hpp_1ac2cf9b4b877cef67243b996a960c5ca7`
+
+- :ref:`exhale_define_common_8hpp_1acd2f580552cb902ae566c7b42691bfdc`
+
+- :ref:`exhale_define_common_8hpp_1adc0b3ba12400361a6940c465ee2ea1ee`
+
+- :ref:`exhale_define_common_8hpp_1a2cdd5d9cd1c26e275a94247dc23a9a6b`
+
+- :ref:`exhale_define_common_8hpp_1af2edd2d1888fbdab2e43c2f688a9bdd6`
+
+- :ref:`exhale_define_common_8hpp_1a97cf1bb6f72896e40b102e34d098bc01`
+
+- :ref:`exhale_define_common_8hpp_1a4ea48910054bd47997fdf9b9004914b7`
+
+- :ref:`exhale_define_common_8hpp_1ae89f876eec6ce93bb5e4efd1f25dc430`
+
+- :ref:`exhale_define_common_8hpp_1a8534e60e74c02076901e721531d53c06`
+

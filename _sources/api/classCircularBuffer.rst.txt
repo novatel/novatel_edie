@@ -1,0 +1,17 @@
+.. _exhale_class_classCircularBuffer:
+
+Class CircularBuffer
+====================
+
+- Defined in :ref:`file_api_circularbuffer.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: CircularBuffer
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

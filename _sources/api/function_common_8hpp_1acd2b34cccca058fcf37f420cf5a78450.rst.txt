@@ -1,0 +1,14 @@
+.. _exhale_function_common_8hpp_1acd2b34cccca058fcf37f420cf5a78450:
+
+Function UnpackMsgID
+====================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: UnpackMsgID(uint32_t, uint16_t&, uint32_t&, uint32_t&, uint32_t&)
+   :project: handlerfactory

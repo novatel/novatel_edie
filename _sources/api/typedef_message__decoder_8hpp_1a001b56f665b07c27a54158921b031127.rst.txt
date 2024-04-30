@@ -1,0 +1,14 @@
+.. _exhale_typedef_message__decoder_8hpp_1a001b56f665b07c27a54158921b031127:
+
+Typedef novatel::edie::IntermediateMessage
+==========================================
+
+- Defined in :ref:`file_api_message_decoder.hpp`
+
+
+Typedef Documentation
+---------------------
+
+
+.. doxygentypedef:: novatel::edie::IntermediateMessage
+   :project: handlerfactory

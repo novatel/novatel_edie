@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File jsonreader.hpp &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">File jsonreader.hpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/file_api_jsonreader.hpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="file-jsonreader-hpp">
+<span id="file-api-jsonreader-hpp"></span><h1>File jsonreader.hpp<a class="headerlink" href="#file-jsonreader-hpp" title="Permalink to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="dir_api.html#dir-api"><span class="std std-ref">Parent directory</span></a> (<code class="docutils literal notranslate"><span class="pre">api</span></code>)</p>
+<p>Class to read a JSON UI DB.</p>
+<div class="contents local topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#definition-api-jsonreader-hpp" id="id1">Definition (<code class="docutils literal notranslate"><span class="pre">api/jsonreader.hpp</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#includes" id="id2">Includes</a></p></li>
+<li><p><a class="reference internal" href="#included-by" id="id3">Included By</a></p></li>
+<li><p><a class="reference internal" href="#namespaces" id="id4">Namespaces</a></p></li>
+<li><p><a class="reference internal" href="#classes" id="id5">Classes</a></p></li>
+<li><p><a class="reference internal" href="#enums" id="id6">Enums</a></p></li>
+<li><p><a class="reference internal" href="#functions" id="id7">Functions</a></p></li>
+<li><p><a class="reference internal" href="#variables" id="id8">Variables</a></p></li>
+</ul>
+</div>
+<section id="definition-api-jsonreader-hpp">
+<h2>Definition (<code class="docutils literal notranslate"><span class="pre">api/jsonreader.hpp</span></code>)<a class="headerlink" href="#definition-api-jsonreader-hpp" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="program_listing_file_api_jsonreader.hpp.html">Program Listing for File jsonreader.hpp</a></li>
+</ul>
+</div>
+</section>
+<section id="includes">
+<h2>Includes<a class="headerlink" href="#includes" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">common.hpp</span></code> (<a class="reference internal" href="file_api_common.hpp.html#file-api-common-hpp"><span class="std std-ref">File common.hpp</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">crc32.hpp</span></code> (<a class="reference internal" href="file_api_crc32.hpp.html#file-api-crc32-hpp"><span class="std std-ref">File crc32.hpp</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filesystem</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fstream</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iostream</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">logger/logger.hpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">map</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nlohmann/json.hpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unordered_map</span></code></p></li>
+</ul>
+</section>
+<section id="included-by">
+<h2>Included By<a class="headerlink" href="#included-by" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="file_api_encoder.hpp.html#file-api-encoder-hpp"><span class="std std-ref">File encoder.hpp</span></a></p></li>
+<li><p><a class="reference internal" href="file_api_message_decoder.hpp.html#file-api-message-decoder-hpp"><span class="std std-ref">File message_decoder.hpp</span></a></p></li>
+</ul>
+</section>
+<section id="namespaces">
+<h2>Namespaces<a class="headerlink" href="#namespaces" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="namespace_novatel.html#namespace-novatel"><span class="std std-ref">Namespace novatel</span></a></p></li>
+<li><p><a class="reference internal" href="namespace_novatel__edie.html#namespace-novatel-edie"><span class="std std-ref">Namespace novatel::edie</span></a></p></li>
+</ul>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html#exhale-struct-structnovatel-1-1edie-1-1arrayfield"><span class="std std-ref">Struct ArrayField</span></a></p></li>
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html#exhale-struct-structnovatel-1-1edie-1-1basedatatype"><span class="std std-ref">Struct BaseDataType</span></a></p></li>
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#exhale-struct-structnovatel-1-1edie-1-1basefield"><span class="std std-ref">Struct BaseField</span></a></p></li>
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html#exhale-struct-structnovatel-1-1edie-1-1enumdatatype"><span class="std std-ref">Struct EnumDataType</span></a></p></li>
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html#exhale-struct-structnovatel-1-1edie-1-1enumdefinition"><span class="std std-ref">Struct EnumDefinition</span></a></p></li>
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html#exhale-struct-structnovatel-1-1edie-1-1enumfield"><span class="std std-ref">Struct EnumField</span></a></p></li>
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html#exhale-struct-structnovatel-1-1edie-1-1fieldarrayfield"><span class="std std-ref">Struct FieldArrayField</span></a></p></li>
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html#exhale-struct-structnovatel-1-1edie-1-1messagedefinition"><span class="std std-ref">Struct MessageDefinition</span></a></p></li>
+<li><p><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html#exhale-struct-structnovatel-1-1edie-1-1simpledatatype"><span class="std std-ref">Struct SimpleDataType</span></a></p></li>
+<li><p><a class="reference internal" href="classJsonReader.html#exhale-class-classjsonreader"><span class="std std-ref">Class JsonReader</span></a></p></li>
+<li><p><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html#exhale-class-classnovatel-1-1edie-1-1jsonreaderfailure"><span class="std std-ref">Class JsonReaderFailure</span></a></p></li>
+</ul>
+</section>
+<section id="enums">
+<h2>Enums<a class="headerlink" href="#enums" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0.html#exhale-enum-jsonreader-8hpp-1a1b481bfbefcc7e058c22cf7c5e82dce0"><span class="std std-ref">Enum DATA_TYPE</span></a></p></li>
+<li><p><a class="reference internal" href="enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694.html#exhale-enum-jsonreader-8hpp-1a85ae70f4901fa4c5211e530a5f521694"><span class="std std-ref">Enum FIELD_TYPE</span></a></p></li>
+</ul>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5.html#exhale-function-jsonreader-8hpp-1ac25bc65ccb7bd9c923bb4f7b2171b6f5"><span class="std std-ref">Function novatel::edie::DataTypeConversion</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f.html#exhale-function-jsonreader-8hpp-1a2b7fa0e28bfb2916c56dea3155c3ee7f"><span class="std std-ref">Function novatel::edie::DataTypeSize</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a08916570b2caed1bd93b7c1081ea6d0d.html#exhale-function-jsonreader-8hpp-1a08916570b2caed1bd93b7c1081ea6d0d"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, novatel::edie::ArrayField&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a3b8e71fbbdd1eaed976d75788893f934.html#exhale-function-jsonreader-8hpp-1a3b8e71fbbdd1eaed976d75788893f934"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, novatel::edie::FieldArrayField&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7.html#exhale-function-jsonreader-8hpp-1a9f253eab9fa2e53e104b44f8f6160ec7"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, MessageDefinition&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a9084fe0fe62af31a0e14256f4f4c9f4f.html#exhale-function-jsonreader-8hpp-1a9084fe0fe62af31a0e14256f4f4c9f4f"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, EnumDefinition&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1aaa44b0d2b52f02b9b9b9a58388bc91d0.html#exhale-function-jsonreader-8hpp-1aaa44b0d2b52f02b9b9b9a58388bc91d0"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, novatel::edie::EnumDataType&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a50304a69348356fbd990529f3503fd08.html#exhale-function-jsonreader-8hpp-1a50304a69348356fbd990529f3503fd08"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, novatel::edie::BaseDataType&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a72801e64e7afc62cf96cdd5c93d9983a.html#exhale-function-jsonreader-8hpp-1a72801e64e7afc62cf96cdd5c93d9983a"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, novatel::edie::SimpleDataType&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1aa321775574547a0130c5d10a80465eb7.html#exhale-function-jsonreader-8hpp-1aa321775574547a0130c5d10a80465eb7"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, novatel::edie::BaseField&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a5d3c94e68862c9ce18384300519ea373.html#exhale-function-jsonreader-8hpp-1a5d3c94e68862c9ce18384300519ea373"><span class="std std-ref">Function novatel::edie::from_json(const json&amp;, novatel::edie::EnumField&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1.html#exhale-function-jsonreader-8hpp-1a683ae7d1e4dd2053d6f5d62c881b5bf1"><span class="std std-ref">Function novatel::edie::parse_enumerators</span></a></p></li>
+<li><p><a class="reference internal" href="function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b.html#exhale-function-jsonreader-8hpp-1af8c0615cf5ac56f204a9ad9150eb3a1b"><span class="std std-ref">Function novatel::edie::parse_fields</span></a></p></li>
+</ul>
+</section>
+<section id="variables">
+<h2>Variables<a class="headerlink" href="#variables" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="variable_jsonreader_8hpp_1a10c72e4c1bbd03d1fa34bc59edcc2e3b.html#exhale-variable-jsonreader-8hpp-1a10c72e4c1bbd03d1fa34bc59edcc2e3b"><span class="std std-ref">Variable novatel::edie::DataTypeEnumLookup</span></a></p></li>
+<li><p><a class="reference internal" href="variable_jsonreader_8hpp_1a3a32510c01175587c27430e7f0acd272.html#exhale-variable-jsonreader-8hpp-1a3a32510c01175587c27430e7f0acd272"><span class="std std-ref">Variable novatel::edie::FieldTypeEnumLookup</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

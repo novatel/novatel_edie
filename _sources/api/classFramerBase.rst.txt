@@ -1,0 +1,17 @@
+.. _exhale_class_classFramerBase:
+
+Class FramerBase
+================
+
+- Defined in :ref:`file_api_framer.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: FramerBase
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

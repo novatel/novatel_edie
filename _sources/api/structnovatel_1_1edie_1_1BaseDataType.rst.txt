@@ -1,0 +1,26 @@
+.. _exhale_struct_structnovatel_1_1edie_1_1BaseDataType:
+
+Struct BaseDataType
+===================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Type
+************
+
+- ``public novatel::edie::SimpleDataType`` (:ref:`exhale_struct_structnovatel_1_1edie_1_1SimpleDataType`)
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: novatel::edie::BaseDataType
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

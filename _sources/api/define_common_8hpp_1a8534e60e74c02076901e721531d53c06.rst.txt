@@ -1,0 +1,14 @@
+.. _exhale_define_common_8hpp_1a8534e60e74c02076901e721531d53c06:
+
+Define SECS_IN_WEEK
+===================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: SECS_IN_WEEK
+   :project: handlerfactory

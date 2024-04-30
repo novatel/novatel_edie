@@ -1,0 +1,17 @@
+.. _exhale_class_classJsonReader:
+
+Class JsonReader
+================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: JsonReader
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

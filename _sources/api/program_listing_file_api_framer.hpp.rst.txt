@@ -1,0 +1,158 @@
+
+.. _program_listing_file_api_framer.hpp:
+
+Program Listing for File framer.hpp
+===================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_api_framer.hpp>` (``api/framer.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   //
+   // COPYRIGHT NovAtel Inc, 2022. All rights reserved.
+   //
+   // Permission is hereby granted, free of charge, to any person obtaining a copy
+   // of this software and associated documentation files (the "Software"), to deal
+   // in the Software without restriction, including without limitation the rights
+   // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   // copies of the Software, and to permit persons to whom the Software is
+   // furnished to do so, subject to the following conditions:
+   //
+   // The above copyright notice and this permission notice shall be included in all
+   // copies or substantial portions of the Software.
+   //
+   // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   // SOFTWARE.
+   //
+   //                            DESCRIPTION
+   //
+   
+   //-----------------------------------------------------------------------
+   // Recursive Inclusion
+   //-----------------------------------------------------------------------
+   #ifndef FRAMER_HPP
+   #define FRAMER_HPP
+   
+   //-----------------------------------------------------------------------
+   // Includes
+   //-----------------------------------------------------------------------
+   #include <memory>
+   
+   #include "circularbuffer.hpp"
+   #include "logger/logger.hpp"
+   
+   //============================================================================
+   //============================================================================
+   class FramerBase
+   {
+     protected:
+       std::shared_ptr<spdlog::logger> pclMyLogger;
+       CircularBuffer clMyCircularDataBuffer;
+   
+       uint32_t uiMyCalculatedCRC32{0U};
+       uint32_t uiMyByteCount{0U};
+       uint32_t uiMyExpectedPayloadLength{0U};
+       uint32_t uiMyExpectedMessageLength{0U};
+   
+       bool bMyReportUnknownBytes{true};
+       bool bMyPayloadOnly{false};
+       bool bMyFrameJson{false};
+   
+       virtual void ResetState() = 0;
+   
+       bool IsCRLF(const uint32_t uiPosition_) const
+       {
+           return uiPosition_ + 1 < clMyCircularDataBuffer.GetLength() && clMyCircularDataBuffer[uiPosition_] == '\r' &&
+                  clMyCircularDataBuffer[uiPosition_ + 1] == '\n';
+       }
+   
+       void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
+       {
+           if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { clMyCircularDataBuffer.Copy(pucBuffer_, uiUnknownBytes_); }
+           clMyCircularDataBuffer.Discard(uiUnknownBytes_);
+   
+           uiMyByteCount = 0;
+           uiMyExpectedMessageLength = 0;
+           uiMyExpectedPayloadLength = 0;
+   
+           ResetState();
+       }
+   
+     public:
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       FramerBase(const std::string& strLoggerName_) : pclMyLogger(Logger::RegisterLogger(strLoggerName_))
+       {
+           clMyCircularDataBuffer.Clear();
+           pclMyLogger->debug("Framer initialized");
+       }
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       virtual ~FramerBase() = default;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       static void ShutdownLogger() { Logger::Shutdown(); }
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetFrameJson(bool bFrameJson_) { bMyFrameJson = bFrameJson_; }
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetPayloadOnly(bool bPayloadOnly_) { bMyPayloadOnly = bPayloadOnly_; }
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       virtual void SetReportUnknownBytes(bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       virtual uint32_t GetBytesAvailableInBuffer() const { return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength(); }
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       virtual uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
+       {
+           return clMyCircularDataBuffer.Append(pucDataBuffer_, uiDataBytes_);
+       }
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       virtual uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+       {
+           const uint32_t uiBytesToFlush = std::min(clMyCircularDataBuffer.GetLength(), uiBufferSize_);
+   
+           HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
+           return uiBytesToFlush;
+       }
+   };
+   
+   #endif // FRAMER_HPP

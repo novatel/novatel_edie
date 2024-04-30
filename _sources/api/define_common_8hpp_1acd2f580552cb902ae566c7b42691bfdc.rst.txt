@@ -1,0 +1,14 @@
+.. _exhale_define_common_8hpp_1acd2f580552cb902ae566c7b42691bfdc:
+
+Define MAX_ASCII_MESSAGE_LENGTH
+===============================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: MAX_ASCII_MESSAGE_LENGTH
+   :project: handlerfactory

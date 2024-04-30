@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Function CalculateBlockCRC32(const char *) &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Function CalculateCharacterCRC32" href="function_crc32_8hpp_1ae90e16b30fa940638a383e06f930a05d.html" />
+    <link rel="prev" title="Function CalculateBlockCRC32(uint32_t, uint32_t, const unsigned char *)" href="function_crc32_8hpp_1a6e5ed51ad5b493d6e25943b8a876929c.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#functions">Functions</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="function_crc32_8hpp_1a6e5ed51ad5b493d6e25943b8a876929c.html">Function CalculateBlockCRC32(uint32_t, uint32_t, const unsigned char *)</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Function CalculateBlockCRC32(const char *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_crc32_8hpp_1ae90e16b30fa940638a383e06f930a05d.html">Function CalculateCharacterCRC32</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1af8191c179d66b7dfe57dc50e4af3c37d.html">Function ConsumeAbbrevFormatting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a6c54ecb047585d78d40c9dec64c32578.html">Function CreateMsgID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a2fff03c8982e3b9ebd5cdf70a7a31b3b.html">Function GetEnumString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1aa69e6b39966d5bf9ea1eca2b2496d0c6.html">Function GetEnumValue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1ab7447feb6362d666e7de59212c91e91a.html">Function GetResponseId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a8918a252aac1ba227378167a800f72a0.html">Function IsEqual</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a80e75398d1f9a3407512eeec51e54643.html">Template Function novatel::edie::BasicMapEntry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756.html">Template Function novatel::edie::CopyToBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5.html">Function novatel::edie::DataTypeConversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f.html">Function novatel::edie::DataTypeSize</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1ae1a615c0fd4e3c710de24ef9e98de297.html">Function novatel::edie::EncodeFormatToString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1aaa44b0d2b52f02b9b9b9a58388bc91d0.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::EnumDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a50304a69348356fbd990529f3503fd08.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::BaseDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a72801e64e7afc62cf96cdd5c93d9983a.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::SimpleDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1aa321775574547a0130c5d10a80465eb7.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::BaseField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a5d3c94e68862c9ce18384300519ea373.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::EnumField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a08916570b2caed1bd93b7c1081ea6d0d.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::ArrayField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a3b8e71fbbdd1eaed976d75788893f934.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::FieldArrayField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7.html">Function novatel::edie::from_json(const json&amp;, MessageDefinition&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a9084fe0fe62af31a0e14256f4f4c9f4f.html">Function novatel::edie::from_json(const json&amp;, EnumDefinition&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a6ea3541127df07cbe37c1d9f3049065b.html">Function novatel::edie::IsCommaSeparated</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a68b380ea5eaded99ba8871508b8dacb8.html">Function novatel::edie::isShortHeaderFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a1688897d3880d47f804f1360547768fa.html">Template Function novatel::edie::MakeConversionString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a810ac542cd59f4836834708014f80d59.html">Function novatel::edie::operator&lt;&lt;(std::ostream&amp;, STATUS)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a34fc12fa6c0fe96b202985ec474d3a5f.html">Function novatel::edie::operator&lt;&lt;(std::ostream&amp;, ENCODEFORMAT)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1.html">Function novatel::edie::parse_enumerators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b.html">Function novatel::edie::parse_fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1acf33bc815c816eda40e8bb8e6686af48.html">Function novatel::edie::PrintAsString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf.html">Function novatel::edie::PrintToBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1adb76891b87a7e504f1a4d0e104421bad.html">Function novatel::edie::SetInBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a5aaa0e5e4b61fb8b926b985d3a11cf95.html">Function novatel::edie::StatusToString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1ae1ede00eea76fa6f2e6a0f006dd67cea.html">Function novatel::edie::StringToEncodeFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a37cd8818f3ff201dcf4c31638400e1f3.html">Function PackMsgType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1ab963ff081f8006b086a06554d7bd50f2.html">Function ToDigit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1acd2b34cccca058fcf37f420cf5a78450.html">Function UnpackMsgID</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Function CalculateBlockCRC32(const char *)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/function_crc32_8hpp_1a0d268989f8e9420305faa37e960f83ee.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="function-calculateblockcrc32-const-char">
+<span id="exhale-function-crc32-8hpp-1a0d268989f8e9420305faa37e960f83ee"></span><h1>Function CalculateBlockCRC32(const char *)<a class="headerlink" href="#function-calculateblockcrc32-const-char" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_api_crc32.hpp.html#file-api-crc32-hpp"><span class="std std-ref">File crc32.hpp</span></a></p></li>
+</ul>
+<section id="function-documentation">
+<h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Permalink to this heading"></a></h2>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv419CalculateBlockCRC32PKc">
+<span id="_CPPv319CalculateBlockCRC32PKc"></span><span id="_CPPv219CalculateBlockCRC32PKc"></span><span id="CalculateBlockCRC32__cCPCE"></span><span class="target" id="crc32_8hpp_1a0d268989f8e9420305faa37e960f83ee"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CalculateBlockCRC32</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ucBuffer</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419CalculateBlockCRC32PKc" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="function_crc32_8hpp_1a6e5ed51ad5b493d6e25943b8a876929c.html" class="btn btn-neutral float-left" title="Function CalculateBlockCRC32(uint32_t, uint32_t, const unsigned char *)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="function_crc32_8hpp_1ae90e16b30fa940638a383e06f930a05d.html" class="btn btn-neutral float-right" title="Function CalculateCharacterCRC32" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+.. _exhale_enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694:
+
+Enum FIELD_TYPE
+===============
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::FIELD_TYPE
+   :project: handlerfactory

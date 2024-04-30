@@ -1,0 +1,14 @@
+.. _exhale_function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b:
+
+Function novatel::edie::parse_fields
+====================================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::parse_fields(const json&, std::vector<novatel::edie::BaseField *>&)
+   :project: handlerfactory

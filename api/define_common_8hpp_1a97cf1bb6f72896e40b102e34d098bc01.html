@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Define MAX_SHORT_BINARY_MESSAGE_LENGTH &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Define MESSAGE_SIZE_MAX" href="define_common_8hpp_1a4ea48910054bd47997fdf9b9004914b7.html" />
+    <link rel="prev" title="Define MAX_SHORT_ASCII_MESSAGE_LENGTH" href="define_common_8hpp_1af2edd2d1888fbdab2e43c2f688a9bdd6.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#defines">Defines</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="define_message__decoder_8hpp_1a982b99d63121d8513114bf335e3aef8d.html">Define container_types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1ac2cf9b4b877cef67243b996a960c5ca7.html">Define MAX_ABB_ASCII_RESPONSE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1acd2f580552cb902ae566c7b42691bfdc.html">Define MAX_ASCII_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1adc0b3ba12400361a6940c465ee2ea1ee.html">Define MAX_BINARY_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1a2cdd5d9cd1c26e275a94247dc23a9a6b.html">Define MAX_NMEA_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1af2edd2d1888fbdab2e43c2f688a9bdd6.html">Define MAX_SHORT_ASCII_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Define MAX_SHORT_BINARY_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1a4ea48910054bd47997fdf9b9004914b7.html">Define MESSAGE_SIZE_MAX</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_message__decoder_8hpp_1a0470f42d5bac380da1cbad86f695dc72.html">Define novatel_types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1ae89f876eec6ce93bb5e4efd1f25dc430.html">Define SEC_TO_MSEC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1a8534e60e74c02076901e721531d53c06.html">Define SECS_IN_WEEK</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Define MAX_SHORT_BINARY_MESSAGE_LENGTH</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/define_common_8hpp_1a97cf1bb6f72896e40b102e34d098bc01.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="define-max-short-binary-message-length">
+<span id="exhale-define-common-8hpp-1a97cf1bb6f72896e40b102e34d098bc01"></span><h1>Define MAX_SHORT_BINARY_MESSAGE_LENGTH<a class="headerlink" href="#define-max-short-binary-message-length" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_api_common.hpp.html#file-api-common-hpp"><span class="std std-ref">File common.hpp</span></a></p></li>
+</ul>
+<section id="define-documentation">
+<h2>Define Documentation<a class="headerlink" href="#define-documentation" title="Permalink to this heading"></a></h2>
+<dl class="cpp macro">
+<dt class="sig sig-object cpp" id="c.MAX_SHORT_BINARY_MESSAGE_LENGTH">
+<span class="target" id="common_8hpp_1a97cf1bb6f72896e40b102e34d098bc01"></span><span class="sig-name descname"><span class="n"><span class="pre">MAX_SHORT_BINARY_MESSAGE_LENGTH</span></span></span><a class="headerlink" href="#c.MAX_SHORT_BINARY_MESSAGE_LENGTH" title="Permalink to this definition"></a><br /></dt>
+<dd><p>representation defined by the header. </p>
+<p>Short Binary message length cannot exceed the log length max value </p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="define_common_8hpp_1af2edd2d1888fbdab2e43c2f688a9bdd6.html" class="btn btn-neutral float-left" title="Define MAX_SHORT_ASCII_MESSAGE_LENGTH" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="define_common_8hpp_1a4ea48910054bd47997fdf9b9004914b7.html" class="btn btn-neutral float-right" title="Define MESSAGE_SIZE_MAX" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

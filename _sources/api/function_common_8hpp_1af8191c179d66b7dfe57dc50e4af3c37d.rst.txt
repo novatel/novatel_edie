@@ -1,0 +1,14 @@
+.. _exhale_function_common_8hpp_1af8191c179d66b7dfe57dc50e4af3c37d:
+
+Function ConsumeAbbrevFormatting
+================================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ConsumeAbbrevFormatting(uint64_t, char **)
+   :project: handlerfactory

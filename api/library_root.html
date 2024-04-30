@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library API &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Namespace novatel" href="namespace_novatel.html" />
+    <link rel="prev" title="Welcome to ToolsLib’s documentation!" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Library API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#full-api">Full API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#namespaces">Namespaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="namespace_novatel.html">Namespace novatel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="namespace_novatel__edie.html">Namespace novatel::edie</a></li>
+<li class="toctree-l4"><a class="reference internal" href="namespace_std.html">Namespace std</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#classes-and-structs">Classes and Structs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSATELLITEID.html">Struct SATELLITEID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnExcept.html">Class nExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#enums">Enums</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0.html">Enum DATA_TYPE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_common_8hpp_1a9fd78211ce54ca94de8d7f3f70968672.html">Enum ENCODEFORMAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694.html">Enum FIELD_TYPE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f.html">Enum HEADERFORMAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_common_8hpp_1af935215bd726d6179b622df2f0e0f88f.html">Enum MEASUREMENT_SOURCE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_common_8hpp_1a17d1039b7274b431a86382b141dc6b09.html">Enum MESSAGEFORMAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_common_8hpp_1a0076c4cb48227f162680743cfa73f21b.html">Enum MESSAGEIDMASK</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_common_8hpp_1aa94608c65d49406b2f4b3d1ad14b86af.html">Enum MESSAGETYPEMASK</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b.html">Enum STATUS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enum_common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4.html">Enum TIME_STATUS</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="function_crc32_8hpp_1a6e5ed51ad5b493d6e25943b8a876929c.html">Function CalculateBlockCRC32(uint32_t, uint32_t, const unsigned char *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_crc32_8hpp_1a0d268989f8e9420305faa37e960f83ee.html">Function CalculateBlockCRC32(const char *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_crc32_8hpp_1ae90e16b30fa940638a383e06f930a05d.html">Function CalculateCharacterCRC32</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1af8191c179d66b7dfe57dc50e4af3c37d.html">Function ConsumeAbbrevFormatting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a6c54ecb047585d78d40c9dec64c32578.html">Function CreateMsgID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a2fff03c8982e3b9ebd5cdf70a7a31b3b.html">Function GetEnumString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1aa69e6b39966d5bf9ea1eca2b2496d0c6.html">Function GetEnumValue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1ab7447feb6362d666e7de59212c91e91a.html">Function GetResponseId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a8918a252aac1ba227378167a800f72a0.html">Function IsEqual</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a80e75398d1f9a3407512eeec51e54643.html">Template Function novatel::edie::BasicMapEntry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756.html">Template Function novatel::edie::CopyToBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5.html">Function novatel::edie::DataTypeConversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f.html">Function novatel::edie::DataTypeSize</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1ae1a615c0fd4e3c710de24ef9e98de297.html">Function novatel::edie::EncodeFormatToString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1aaa44b0d2b52f02b9b9b9a58388bc91d0.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::EnumDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a50304a69348356fbd990529f3503fd08.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::BaseDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a72801e64e7afc62cf96cdd5c93d9983a.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::SimpleDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1aa321775574547a0130c5d10a80465eb7.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::BaseField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a5d3c94e68862c9ce18384300519ea373.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::EnumField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a08916570b2caed1bd93b7c1081ea6d0d.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::ArrayField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a3b8e71fbbdd1eaed976d75788893f934.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::FieldArrayField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7.html">Function novatel::edie::from_json(const json&amp;, MessageDefinition&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a9084fe0fe62af31a0e14256f4f4c9f4f.html">Function novatel::edie::from_json(const json&amp;, EnumDefinition&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a6ea3541127df07cbe37c1d9f3049065b.html">Function novatel::edie::IsCommaSeparated</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a68b380ea5eaded99ba8871508b8dacb8.html">Function novatel::edie::isShortHeaderFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a1688897d3880d47f804f1360547768fa.html">Template Function novatel::edie::MakeConversionString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a810ac542cd59f4836834708014f80d59.html">Function novatel::edie::operator&lt;&lt;(std::ostream&amp;, STATUS)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a34fc12fa6c0fe96b202985ec474d3a5f.html">Function novatel::edie::operator&lt;&lt;(std::ostream&amp;, ENCODEFORMAT)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1.html">Function novatel::edie::parse_enumerators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b.html">Function novatel::edie::parse_fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1acf33bc815c816eda40e8bb8e6686af48.html">Function novatel::edie::PrintAsString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf.html">Function novatel::edie::PrintToBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_encoder_8hpp_1adb76891b87a7e504f1a4d0e104421bad.html">Function novatel::edie::SetInBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a5aaa0e5e4b61fb8b926b985d3a11cf95.html">Function novatel::edie::StatusToString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1ae1ede00eea76fa6f2e6a0f006dd67cea.html">Function novatel::edie::StringToEncodeFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1a37cd8818f3ff201dcf4c31638400e1f3.html">Function PackMsgType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1ab963ff081f8006b086a06554d7bd50f2.html">Function ToDigit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_8hpp_1acd2b34cccca058fcf37f420cf5a78450.html">Function UnpackMsgID</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#variables">Variables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="variable_jsonreader_8hpp_1a10c72e4c1bbd03d1fa34bc59edcc2e3b.html">Variable novatel::edie::DataTypeEnumLookup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_jsonreader_8hpp_1a3a32510c01175587c27430e7f0acd272.html">Variable novatel::edie::FieldTypeEnumLookup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variable_crc32_8hpp_1ad0e79da8033f57bd7ce9bceed2bdbe42.html">Variable uiCRCTable</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#defines">Defines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="define_message__decoder_8hpp_1a982b99d63121d8513114bf335e3aef8d.html">Define container_types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1ac2cf9b4b877cef67243b996a960c5ca7.html">Define MAX_ABB_ASCII_RESPONSE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1acd2f580552cb902ae566c7b42691bfdc.html">Define MAX_ASCII_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1adc0b3ba12400361a6940c465ee2ea1ee.html">Define MAX_BINARY_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1a2cdd5d9cd1c26e275a94247dc23a9a6b.html">Define MAX_NMEA_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1af2edd2d1888fbdab2e43c2f688a9bdd6.html">Define MAX_SHORT_ASCII_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1a97cf1bb6f72896e40b102e34d098bc01.html">Define MAX_SHORT_BINARY_MESSAGE_LENGTH</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1a4ea48910054bd47997fdf9b9004914b7.html">Define MESSAGE_SIZE_MAX</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_message__decoder_8hpp_1a0470f42d5bac380da1cbad86f695dc72.html">Define novatel_types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1ae89f876eec6ce93bb5e4efd1f25dc430.html">Define SEC_TO_MSEC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="define_common_8hpp_1a8534e60e74c02076901e721531d53c06.html">Define SECS_IN_WEEK</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#typedefs">Typedefs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="typedef_message__decoder_8hpp_1a001b56f665b07c27a54158921b031127.html">Typedef novatel::edie::IntermediateMessage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Library API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/library_root.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="library-api">
+<h1>Library API<a class="headerlink" href="#library-api" title="Permalink to this heading"></a></h1>
+<section id="class-hierarchy">
+<h2>Class Hierarchy<a class="headerlink" href="#class-hierarchy" title="Permalink to this heading"></a></h2>
+<ul class="treeView" id="class-treeView">
+  <li>
+    <ul class="collapsibleList">
+      <li>Namespace <a href="namespace_novatel.html#namespace-novatel">novatel</a><ul><li class="lastChild">Namespace <a href="namespace_novatel__edie.html#namespace-novatel-edie">novatel::edie</a><ul><li>Enum <a href="enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694.html#exhale-enum-jsonreader-8hpp-1a85ae70f4901fa4c5211e530a5f521694">FIELD_TYPE</a></li><li>Enum <a href="enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f.html#exhale-enum-common-8hpp-1a5396182b22ccdd74a697fc02a9cb122f">HEADERFORMAT</a></li><li>Enum <a href="enum_common_8hpp_1af935215bd726d6179b622df2f0e0f88f.html#exhale-enum-common-8hpp-1af935215bd726d6179b622df2f0e0f88f">MEASUREMENT_SOURCE</a></li><li>Enum <a href="enum_common_8hpp_1a17d1039b7274b431a86382b141dc6b09.html#exhale-enum-common-8hpp-1a17d1039b7274b431a86382b141dc6b09">MESSAGEFORMAT</a></li><li>Enum <a href="enum_common_8hpp_1a0076c4cb48227f162680743cfa73f21b.html#exhale-enum-common-8hpp-1a0076c4cb48227f162680743cfa73f21b">MESSAGEIDMASK</a></li><li>Enum <a href="enum_common_8hpp_1aa94608c65d49406b2f4b3d1ad14b86af.html#exhale-enum-common-8hpp-1aa94608c65d49406b2f4b3d1ad14b86af">MESSAGETYPEMASK</a></li><li>Struct <a href="structnovatel_1_1edie_1_1ArrayField.html#exhale-struct-structnovatel-1-1edie-1-1ArrayField">ArrayField</a></li><li>Struct <a href="structnovatel_1_1edie_1_1BaseDataType.html#exhale-struct-structnovatel-1-1edie-1-1BaseDataType">BaseDataType</a></li><li>Struct <a href="structnovatel_1_1edie_1_1BaseField.html#exhale-struct-structnovatel-1-1edie-1-1BaseField">BaseField</a></li><li>Struct <a href="structnovatel_1_1edie_1_1EnumDataType.html#exhale-struct-structnovatel-1-1edie-1-1EnumDataType">EnumDataType</a></li><li>Struct <a href="structnovatel_1_1edie_1_1EnumDefinition.html#exhale-struct-structnovatel-1-1edie-1-1EnumDefinition">EnumDefinition</a></li><li>Struct <a href="structnovatel_1_1edie_1_1EnumField.html#exhale-struct-structnovatel-1-1edie-1-1EnumField">EnumField</a></li><li>Struct <a href="structnovatel_1_1edie_1_1FieldArrayField.html#exhale-struct-structnovatel-1-1edie-1-1FieldArrayField">FieldArrayField</a></li><li>Struct <a href="structnovatel_1_1edie_1_1FieldContainer.html#exhale-struct-structnovatel-1-1edie-1-1FieldContainer">FieldContainer</a></li><li>Struct <a href="structnovatel_1_1edie_1_1MessageDataStruct.html#exhale-struct-structnovatel-1-1edie-1-1MessageDataStruct">MessageDataStruct</a></li><li>Struct <a href="structnovatel_1_1edie_1_1MessageDefinition.html#exhale-struct-structnovatel-1-1edie-1-1MessageDefinition">MessageDefinition</a></li><li>Struct <a href="structnovatel_1_1edie_1_1SimpleDataType.html#exhale-struct-structnovatel-1-1edie-1-1SimpleDataType">SimpleDataType</a></li><li>Class <a href="classnovatel_1_1edie_1_1EncoderBase.html#exhale-class-classnovatel-1-1edie-1-1EncoderBase">EncoderBase</a></li><li>Class <a href="classnovatel_1_1edie_1_1JsonReaderFailure.html#exhale-class-classnovatel-1-1edie-1-1JsonReaderFailure">JsonReaderFailure</a></li><li>Class <a href="classnovatel_1_1edie_1_1MessageDecoderBase.html#exhale-class-classnovatel-1-1edie-1-1MessageDecoderBase">MessageDecoderBase</a></li><li>Class <a href="classnovatel_1_1edie_1_1MetaDataBase.html#exhale-class-classnovatel-1-1edie-1-1MetaDataBase">MetaDataBase</a></li><li>Enum <a href="enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0.html#exhale-enum-jsonreader-8hpp-1a1b481bfbefcc7e058c22cf7c5e82dce0">DATA_TYPE</a></li><li>Enum <a href="enum_common_8hpp_1a9fd78211ce54ca94de8d7f3f70968672.html#exhale-enum-common-8hpp-1a9fd78211ce54ca94de8d7f3f70968672">ENCODEFORMAT</a></li><li>Enum <a href="enum_common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b.html#exhale-enum-common-8hpp-1a2eb7083135c914ec660aff64dcc8bc7b">STATUS</a></li><li class="lastChild">Enum <a href="enum_common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4.html#exhale-enum-common-8hpp-1ad3998b3f23123f6e900dfe940f7afdc4">TIME_STATUS</a></li></ul></li></ul></li><li>Struct <a href="structSATELLITEID.html#exhale-struct-structSATELLITEID">SATELLITEID</a></li><li>Class <a href="classCircularBuffer.html#exhale-class-classCircularBuffer">CircularBuffer</a></li><li>Class <a href="classFramer.html#exhale-class-classFramer">Framer</a></li><li>Class <a href="classFramerBase.html#exhale-class-classFramerBase">FramerBase</a></li><li>Class <a href="classJsonReader.html#exhale-class-classJsonReader">JsonReader</a></li><li>Class <a href="classJsonReaderFailure.html#exhale-class-classJsonReaderFailure">JsonReaderFailure</a></li><li class="lastChild">Class <a href="classnExcept.html#exhale-class-classnExcept">nExcept</a></li>
+    </ul>
+  </li><!-- only tree view element -->
+</ul><!-- /treeView class-treeView --></section>
+<section id="file-hierarchy">
+<h2>File Hierarchy<a class="headerlink" href="#file-hierarchy" title="Permalink to this heading"></a></h2>
+<ul class="treeView" id="file-treeView">
+  <li>
+    <ul class="collapsibleList">
+      <li class="lastChild">Directory <a href="dir_api.html#dir-api">api</a><ul><li>File <a href="file_api_circularbuffer.hpp.html#file-api-circularbuffer.hpp">circularbuffer.hpp</a></li><li>File <a href="file_api_common.hpp.html#file-api-common.hpp">common.hpp</a></li><li>File <a href="file_api_crc32.hpp.html#file-api-crc32.hpp">crc32.hpp</a></li><li>File <a href="file_api_encoder.hpp.html#file-api-encoder.hpp">encoder.hpp</a></li><li>File <a href="file_api_framer.hpp.html#file-api-framer.hpp">framer.hpp</a></li><li>File <a href="file_api_jsonreader.hpp.html#file-api-jsonreader.hpp">jsonreader.hpp</a></li><li>File <a href="file_api_message_decoder.hpp.html#file-api-message-decoder.hpp">message_decoder.hpp</a></li><li class="lastChild">File <a href="file_api_nexcept.h.html#file-api-nexcept.h">nexcept.h</a></li></ul></li>
+    </ul>
+  </li><!-- only tree view element -->
+</ul><!-- /treeView file-treeView --></section>
+<section id="full-api">
+<h2>Full API<a class="headerlink" href="#full-api" title="Permalink to this heading"></a></h2>
+<section id="namespaces">
+<h3>Namespaces<a class="headerlink" href="#namespaces" title="Permalink to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="namespace_novatel.html">Namespace novatel</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="namespace_novatel.html#namespaces">Namespaces</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="namespace_novatel__edie.html">Namespace novatel::edie</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="namespace_novatel__edie.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespace_novatel__edie.html#enums">Enums</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespace_novatel__edie.html#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespace_novatel__edie.html#typedefs">Typedefs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespace_novatel__edie.html#variables">Variables</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="namespace_std.html">Namespace std</a></li>
+</ul>
+</div>
+</section>
+<section id="classes-and-structs">
+<h3>Classes and Structs<a class="headerlink" href="#classes-and-structs" title="Permalink to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html#derived-type">Derived Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#derived-types">Derived Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="structSATELLITEID.html">Struct SATELLITEID</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="structSATELLITEID.html#struct-documentation">Struct Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classCircularBuffer.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classFramer.html">Class Framer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classFramer.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classFramerBase.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classJsonReader.html">Class JsonReader</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classJsonReader.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classJsonReaderFailure.html">Class JsonReaderFailure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classJsonReaderFailure.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classnExcept.html">Class nExcept</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classnExcept.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html#inheritance-relationships">Inheritance Relationships</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html#base-type">Base Type</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html#class-documentation">Class Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="enums">
+<h3>Enums<a class="headerlink" href="#enums" title="Permalink to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0.html">Enum DATA_TYPE</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_common_8hpp_1a9fd78211ce54ca94de8d7f3f70968672.html">Enum ENCODEFORMAT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_common_8hpp_1a9fd78211ce54ca94de8d7f3f70968672.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694.html">Enum FIELD_TYPE</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f.html">Enum HEADERFORMAT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_common_8hpp_1af935215bd726d6179b622df2f0e0f88f.html">Enum MEASUREMENT_SOURCE</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_common_8hpp_1af935215bd726d6179b622df2f0e0f88f.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_common_8hpp_1a17d1039b7274b431a86382b141dc6b09.html">Enum MESSAGEFORMAT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_common_8hpp_1a17d1039b7274b431a86382b141dc6b09.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_common_8hpp_1a0076c4cb48227f162680743cfa73f21b.html">Enum MESSAGEIDMASK</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_common_8hpp_1a0076c4cb48227f162680743cfa73f21b.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_common_8hpp_1aa94608c65d49406b2f4b3d1ad14b86af.html">Enum MESSAGETYPEMASK</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_common_8hpp_1aa94608c65d49406b2f4b3d1ad14b86af.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b.html">Enum STATUS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enum_common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4.html">Enum TIME_STATUS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enum_common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4.html#enum-documentation">Enum Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_crc32_8hpp_1a6e5ed51ad5b493d6e25943b8a876929c.html">Function CalculateBlockCRC32(uint32_t, uint32_t, const unsigned char *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_crc32_8hpp_1a6e5ed51ad5b493d6e25943b8a876929c.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_crc32_8hpp_1a0d268989f8e9420305faa37e960f83ee.html">Function CalculateBlockCRC32(const char *)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_crc32_8hpp_1a0d268989f8e9420305faa37e960f83ee.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_crc32_8hpp_1ae90e16b30fa940638a383e06f930a05d.html">Function CalculateCharacterCRC32</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_crc32_8hpp_1ae90e16b30fa940638a383e06f930a05d.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1af8191c179d66b7dfe57dc50e4af3c37d.html">Function ConsumeAbbrevFormatting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1af8191c179d66b7dfe57dc50e4af3c37d.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1a6c54ecb047585d78d40c9dec64c32578.html">Function CreateMsgID</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1a6c54ecb047585d78d40c9dec64c32578.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1a2fff03c8982e3b9ebd5cdf70a7a31b3b.html">Function GetEnumString</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1a2fff03c8982e3b9ebd5cdf70a7a31b3b.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1aa69e6b39966d5bf9ea1eca2b2496d0c6.html">Function GetEnumValue</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1aa69e6b39966d5bf9ea1eca2b2496d0c6.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1ab7447feb6362d666e7de59212c91e91a.html">Function GetResponseId</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1ab7447feb6362d666e7de59212c91e91a.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1a8918a252aac1ba227378167a800f72a0.html">Function IsEqual</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1a8918a252aac1ba227378167a800f72a0.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_encoder_8hpp_1a80e75398d1f9a3407512eeec51e54643.html">Template Function novatel::edie::BasicMapEntry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_encoder_8hpp_1a80e75398d1f9a3407512eeec51e54643.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756.html">Template Function novatel::edie::CopyToBuffer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5.html">Function novatel::edie::DataTypeConversion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f.html">Function novatel::edie::DataTypeSize</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1ae1a615c0fd4e3c710de24ef9e98de297.html">Function novatel::edie::EncodeFormatToString</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1ae1a615c0fd4e3c710de24ef9e98de297.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1aaa44b0d2b52f02b9b9b9a58388bc91d0.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::EnumDataType&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1aaa44b0d2b52f02b9b9b9a58388bc91d0.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a50304a69348356fbd990529f3503fd08.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::BaseDataType&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a50304a69348356fbd990529f3503fd08.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a72801e64e7afc62cf96cdd5c93d9983a.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::SimpleDataType&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a72801e64e7afc62cf96cdd5c93d9983a.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1aa321775574547a0130c5d10a80465eb7.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::BaseField&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1aa321775574547a0130c5d10a80465eb7.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a5d3c94e68862c9ce18384300519ea373.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::EnumField&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a5d3c94e68862c9ce18384300519ea373.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a08916570b2caed1bd93b7c1081ea6d0d.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::ArrayField&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a08916570b2caed1bd93b7c1081ea6d0d.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a3b8e71fbbdd1eaed976d75788893f934.html">Function novatel::edie::from_json(const json&amp;, novatel::edie::FieldArrayField&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a3b8e71fbbdd1eaed976d75788893f934.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7.html">Function novatel::edie::from_json(const json&amp;, MessageDefinition&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a9084fe0fe62af31a0e14256f4f4c9f4f.html">Function novatel::edie::from_json(const json&amp;, EnumDefinition&amp;)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a9084fe0fe62af31a0e14256f4f4c9f4f.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_encoder_8hpp_1a6ea3541127df07cbe37c1d9f3049065b.html">Function novatel::edie::IsCommaSeparated</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_encoder_8hpp_1a6ea3541127df07cbe37c1d9f3049065b.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1a68b380ea5eaded99ba8871508b8dacb8.html">Function novatel::edie::isShortHeaderFormat</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1a68b380ea5eaded99ba8871508b8dacb8.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_encoder_8hpp_1a1688897d3880d47f804f1360547768fa.html">Template Function novatel::edie::MakeConversionString</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_encoder_8hpp_1a1688897d3880d47f804f1360547768fa.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1a810ac542cd59f4836834708014f80d59.html">Function novatel::edie::operator&lt;&lt;(std::ostream&amp;, STATUS)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1a810ac542cd59f4836834708014f80d59.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1a34fc12fa6c0fe96b202985ec474d3a5f.html">Function novatel::edie::operator&lt;&lt;(std::ostream&amp;, ENCODEFORMAT)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1a34fc12fa6c0fe96b202985ec474d3a5f.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1.html">Function novatel::edie::parse_enumerators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b.html">Function novatel::edie::parse_fields</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_encoder_8hpp_1acf33bc815c816eda40e8bb8e6686af48.html">Function novatel::edie::PrintAsString</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_encoder_8hpp_1acf33bc815c816eda40e8bb8e6686af48.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf.html">Function novatel::edie::PrintToBuffer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_encoder_8hpp_1adb76891b87a7e504f1a4d0e104421bad.html">Function novatel::edie::SetInBuffer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_encoder_8hpp_1adb76891b87a7e504f1a4d0e104421bad.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1a5aaa0e5e4b61fb8b926b985d3a11cf95.html">Function novatel::edie::StatusToString</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1a5aaa0e5e4b61fb8b926b985d3a11cf95.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1ae1ede00eea76fa6f2e6a0f006dd67cea.html">Function novatel::edie::StringToEncodeFormat</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1ae1ede00eea76fa6f2e6a0f006dd67cea.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1a37cd8818f3ff201dcf4c31638400e1f3.html">Function PackMsgType</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1a37cd8818f3ff201dcf4c31638400e1f3.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1ab963ff081f8006b086a06554d7bd50f2.html">Function ToDigit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1ab963ff081f8006b086a06554d7bd50f2.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="function_common_8hpp_1acd2b34cccca058fcf37f420cf5a78450.html">Function UnpackMsgID</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="function_common_8hpp_1acd2b34cccca058fcf37f420cf5a78450.html#function-documentation">Function Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="variables">
+<h3>Variables<a class="headerlink" href="#variables" title="Permalink to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_jsonreader_8hpp_1a10c72e4c1bbd03d1fa34bc59edcc2e3b.html">Variable novatel::edie::DataTypeEnumLookup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_jsonreader_8hpp_1a10c72e4c1bbd03d1fa34bc59edcc2e3b.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_jsonreader_8hpp_1a3a32510c01175587c27430e7f0acd272.html">Variable novatel::edie::FieldTypeEnumLookup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_jsonreader_8hpp_1a3a32510c01175587c27430e7f0acd272.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="variable_crc32_8hpp_1ad0e79da8033f57bd7ce9bceed2bdbe42.html">Variable uiCRCTable</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="variable_crc32_8hpp_1ad0e79da8033f57bd7ce9bceed2bdbe42.html#variable-documentation">Variable Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="defines">
+<h3>Defines<a class="headerlink" href="#defines" title="Permalink to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_message__decoder_8hpp_1a982b99d63121d8513114bf335e3aef8d.html">Define container_types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_message__decoder_8hpp_1a982b99d63121d8513114bf335e3aef8d.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1ac2cf9b4b877cef67243b996a960c5ca7.html">Define MAX_ABB_ASCII_RESPONSE_LENGTH</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1ac2cf9b4b877cef67243b996a960c5ca7.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1acd2f580552cb902ae566c7b42691bfdc.html">Define MAX_ASCII_MESSAGE_LENGTH</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1acd2f580552cb902ae566c7b42691bfdc.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1adc0b3ba12400361a6940c465ee2ea1ee.html">Define MAX_BINARY_MESSAGE_LENGTH</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1adc0b3ba12400361a6940c465ee2ea1ee.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1a2cdd5d9cd1c26e275a94247dc23a9a6b.html">Define MAX_NMEA_MESSAGE_LENGTH</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1a2cdd5d9cd1c26e275a94247dc23a9a6b.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1af2edd2d1888fbdab2e43c2f688a9bdd6.html">Define MAX_SHORT_ASCII_MESSAGE_LENGTH</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1af2edd2d1888fbdab2e43c2f688a9bdd6.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1a97cf1bb6f72896e40b102e34d098bc01.html">Define MAX_SHORT_BINARY_MESSAGE_LENGTH</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1a97cf1bb6f72896e40b102e34d098bc01.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1a4ea48910054bd47997fdf9b9004914b7.html">Define MESSAGE_SIZE_MAX</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1a4ea48910054bd47997fdf9b9004914b7.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_message__decoder_8hpp_1a0470f42d5bac380da1cbad86f695dc72.html">Define novatel_types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_message__decoder_8hpp_1a0470f42d5bac380da1cbad86f695dc72.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1ae89f876eec6ce93bb5e4efd1f25dc430.html">Define SEC_TO_MSEC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1ae89f876eec6ce93bb5e4efd1f25dc430.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="define_common_8hpp_1a8534e60e74c02076901e721531d53c06.html">Define SECS_IN_WEEK</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="define_common_8hpp_1a8534e60e74c02076901e721531d53c06.html#define-documentation">Define Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="typedefs">
+<h3>Typedefs<a class="headerlink" href="#typedefs" title="Permalink to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typedef_message__decoder_8hpp_1a001b56f665b07c27a54158921b031127.html">Typedef novatel::edie::IntermediateMessage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typedef_message__decoder_8hpp_1a001b56f665b07c27a54158921b031127.html#typedef-documentation">Typedef Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to ToolsLib’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="namespace_novatel.html" class="btn btn-neutral float-right" title="Namespace novatel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

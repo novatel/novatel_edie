@@ -1,0 +1,14 @@
+.. _exhale_variable_crc32_8hpp_1ad0e79da8033f57bd7ce9bceed2bdbe42:
+
+Variable uiCRCTable
+===================
+
+- Defined in :ref:`file_api_crc32.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: uiCRCTable
+   :project: handlerfactory

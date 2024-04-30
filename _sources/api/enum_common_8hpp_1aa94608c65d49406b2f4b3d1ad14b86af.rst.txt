@@ -1,0 +1,14 @@
+.. _exhale_enum_common_8hpp_1aa94608c65d49406b2f4b3d1ad14b86af:
+
+Enum MESSAGETYPEMASK
+====================
+
+- Defined in :ref:`file_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::MESSAGETYPEMASK
+   :project: handlerfactory

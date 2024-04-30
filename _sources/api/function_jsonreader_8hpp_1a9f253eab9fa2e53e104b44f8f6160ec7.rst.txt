@@ -1,0 +1,14 @@
+.. _exhale_function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7:
+
+Function novatel::edie::from_json(const json&, MessageDefinition&)
+==================================================================
+
+- Defined in :ref:`file_api_jsonreader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::from_json(const json&, MessageDefinition&)
+   :project: handlerfactory

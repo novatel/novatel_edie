@@ -1,0 +1,14 @@
+.. _exhale_function_encoder_8hpp_1a80e75398d1f9a3407512eeec51e54643:
+
+Template Function novatel::edie::BasicMapEntry
+==============================================
+
+- Defined in :ref:`file_api_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::BasicMapEntry(const char *)
+   :project: handlerfactory

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class EncoderBase &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class JsonReaderFailure" href="classnovatel_1_1edie_1_1JsonReaderFailure.html" />
+    <link rel="prev" title="Class nExcept" href="classnExcept.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSATELLITEID.html">Struct SATELLITEID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classJsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnExcept.html">Class nExcept</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Class EncoderBase</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classnovatel_1_1edie_1_1EncoderBase.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-encoderbase">
+<span id="exhale-class-classnovatel-1-1edie-1-1encoderbase"></span><h1>Class EncoderBase<a class="headerlink" href="#class-encoderbase" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_api_encoder.hpp.html#file-api-encoder-hpp"><span class="std std-ref">File encoder.hpp</span></a></p></li>
+</ul>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBaseE">
+<span id="_CPPv3N7novatel4edie11EncoderBaseE"></span><span id="_CPPv2N7novatel4edie11EncoderBaseE"></span><span id="novatel::edie::EncoderBase"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EncoderBase</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBaseE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Class to encode messages. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase11EncoderBaseEP10JsonReader">
+<span id="_CPPv3N7novatel4edie11EncoderBase11EncoderBaseEP10JsonReader"></span><span id="_CPPv2N7novatel4edie11EncoderBase11EncoderBaseEP10JsonReader"></span><span id="novatel::edie::EncoderBase::EncoderBase__JsonReaderP"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1adc9e40ab3c1cd078a375d3e672677ca2"></span><span class="sig-name descname"><span class="n"><span class="pre">EncoderBase</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classJsonReader.html#_CPPv410JsonReader" title="JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pclJsonDb_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">nullptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase11EncoderBaseEP10JsonReader" title="Permalink to this definition"></a><br /></dt>
+<dd><p>A constructor for the Encoder class. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pclJsonDb_</strong> – <strong>[in]</strong> A pointer to a <a class="reference internal" href="classJsonReader.html#classJsonReader"><span class="std std-ref">JsonReader</span></a> object. Defaults to nullptr. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBaseD0Ev">
+<span id="_CPPv3N7novatel4edie11EncoderBaseD0Ev"></span><span id="_CPPv2N7novatel4edie11EncoderBaseD0Ev"></span><span id="novatel::edie::EncoderBase::~EncoderBase"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1acc42decb854e9f4bf7b10f223bf8997c"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~EncoderBase</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBaseD0Ev" title="Permalink to this definition"></a><br /></dt>
+<dd><p>A destructor for the Encoder class. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase10LoadJsonDbEP10JsonReader">
+<span id="_CPPv3N7novatel4edie11EncoderBase10LoadJsonDbEP10JsonReader"></span><span id="_CPPv2N7novatel4edie11EncoderBase10LoadJsonDbEP10JsonReader"></span><span id="novatel::edie::EncoderBase::LoadJsonDb__JsonReaderP"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a97654e97d177c3cf0a6ad18edb1e0248"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LoadJsonDb</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classJsonReader.html#_CPPv410JsonReader" title="JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pclJsonDb_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase10LoadJsonDbEP10JsonReader" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Load a <a class="reference internal" href="classJsonReader.html#classJsonReader"><span class="std std-ref">JsonReader</span></a> object. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pclJsonDb_</strong> – <strong>[in]</strong> A pointer to a <a class="reference internal" href="classJsonReader.html#classJsonReader"><span class="std std-ref">JsonReader</span></a> object. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie11EncoderBase9GetLoggerEv">
+<span id="_CPPv3NK7novatel4edie11EncoderBase9GetLoggerEv"></span><span id="_CPPv2NK7novatel4edie11EncoderBase9GetLoggerEv"></span><span id="novatel::edie::EncoderBase::GetLoggerC"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a1dbda74a6d5a4b5dda2747ebb8235e69"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLogger</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie11EncoderBase9GetLoggerEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Get the internal logger. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A shared_ptr to the spdlog::logger. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase14SetLoggerLevelEN6spdlog5level10level_enumE">
+<span id="_CPPv3N7novatel4edie11EncoderBase14SetLoggerLevelEN6spdlog5level10level_enumE"></span><span id="_CPPv2N7novatel4edie11EncoderBase14SetLoggerLevelEN6spdlog5level10level_enumE"></span><span id="novatel::edie::EncoderBase::SetLoggerLevel__spdlog::level::level_enum"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a3a92635764c702d9546afa20a23d1fcc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetLoggerLevel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level_enum</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">eLevel_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase14SetLoggerLevelEN6spdlog5level10level_enumE" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Set the level of detail produced by the internal logger. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>eLevel_</strong> – <strong>[in]</strong> The logging level to enable. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase14ShutdownLoggerEv">
+<span id="_CPPv3N7novatel4edie11EncoderBase14ShutdownLoggerEv"></span><span id="_CPPv2N7novatel4edie11EncoderBase14ShutdownLoggerEv"></span><span id="novatel::edie::EncoderBase::ShutdownLogger"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a033dffb676ea1a1fbc99e94ac5b41d8d"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShutdownLogger</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase14ShutdownLoggerEv" title="Permalink to this definition"></a><br /></dt>
+<dd><p>Shutdown the internal logger. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-protected-functions">Protected Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie11EncoderBase14separatorASCIIEv">
+<span id="_CPPv3NK7novatel4edie11EncoderBase14separatorASCIIEv"></span><span id="_CPPv2NK7novatel4edie11EncoderBase14separatorASCIIEv"></span><span id="novatel::edie::EncoderBase::separatorASCIIC"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a922050f19a828456bae4d5b3a039619d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">separatorASCII</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie11EncoderBase14separatorASCIIEv" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie11EncoderBase17separatorAbbASCIIEv">
+<span id="_CPPv3NK7novatel4edie11EncoderBase17separatorAbbASCIIEv"></span><span id="_CPPv2NK7novatel4edie11EncoderBase17separatorAbbASCIIEv"></span><span id="novatel::edie::EncoderBase::separatorAbbASCIIC"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1ae84ab752558cc3fb955977629cc98be1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">separatorAbbASCII</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie11EncoderBase17separatorAbbASCIIEv" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie11EncoderBase25indentationLengthAbbASCIIEv">
+<span id="_CPPv3NK7novatel4edie11EncoderBase25indentationLengthAbbASCIIEv"></span><span id="_CPPv2NK7novatel4edie11EncoderBase25indentationLengthAbbASCIIEv"></span><span id="novatel::edie::EncoderBase::indentationLengthAbbASCIIC"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a5c2e0428a91dfad72d136f243d35c38a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">indentationLengthAbbASCII</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie11EncoderBase25indentationLengthAbbASCIIEv" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_b_bEN7novatel4edie11EncoderBase16EncodeBinaryBodyEbRK19IntermediateMessagePPhR8uint32_t">
+<span id="_CPPv3I_b_bEN7novatel4edie11EncoderBase16EncodeBinaryBodyERK19IntermediateMessagePPhR8uint32_t"></span><span id="_CPPv2I_b_bEN7novatel4edie11EncoderBase16EncodeBinaryBodyERK19IntermediateMessagePPhR8uint32_t"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FLATTEN</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ALIGN</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a3a188ea4b71de6a3e9efcf3eba99f439"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EncodeBinaryBody</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="typedef_message__decoder_8hpp_1a001b56f665b07c27a54158921b031127.html#_CPPv4N7novatel4edie19IntermediateMessageE" title="novatel::edie::IntermediateMessage"><span class="n"><span class="pre">IntermediateMessage</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stInterMessage_</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ppcOutBuf_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">uiBytesLeft_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I_b_bEN7novatel4edie11EncoderBase16EncodeBinaryBodyEbRK19IntermediateMessagePPhR8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase13FieldToBinaryERK14FieldContainerPPhR8uint32_t">
+<span id="_CPPv3N7novatel4edie11EncoderBase13FieldToBinaryERK14FieldContainerPPhR8uint32_t"></span><span id="_CPPv2N7novatel4edie11EncoderBase13FieldToBinaryERK14FieldContainerPPhR8uint32_t"></span><span id="novatel::edie::EncoderBase::FieldToBinary__FieldContainerCR.unsigned-cPP.uint32_tR"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a2a495c73b9176690e7e951a44a3f7659"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldToBinary</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fc_</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ppcOutBuf_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">uiBytesLeft_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase13FieldToBinaryERK14FieldContainerPPhR8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_bEN7novatel4edie11EncoderBase15EncodeAsciiBodyEbRKNSt6vectorI14FieldContainerEEPPcR8uint32_t8uint32_t">
+<span id="_CPPv3I_bEN7novatel4edie11EncoderBase15EncodeAsciiBodyERKNSt6vectorI14FieldContainerEEPPcR8uint32_t8uint32_t"></span><span id="_CPPv2I_bEN7novatel4edie11EncoderBase15EncodeAsciiBodyERKNSt6vectorI14FieldContainerEEPPcR8uint32_t8uint32_t"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ABBREVIATED</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a4b90fd4081b4862c488783fbd4c889ad"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EncodeAsciiBody</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vInterFormat_</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ppcOutBuf_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">uiBytesLeft_</span></span>, <span class="p"><span class="pre">[[</span></span><span class="pre">maybe_unused</span><span class="p"><span class="pre">]]</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiIndentationLevel</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I_bEN7novatel4edie11EncoderBase15EncodeAsciiBodyEbRKNSt6vectorI14FieldContainerEEPPcR8uint32_t8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase12FieldToAsciiERK14FieldContainerPPcR8uint32_t">
+<span id="_CPPv3N7novatel4edie11EncoderBase12FieldToAsciiERK14FieldContainerPPcR8uint32_t"></span><span id="_CPPv2N7novatel4edie11EncoderBase12FieldToAsciiERK14FieldContainerPPcR8uint32_t"></span><span id="novatel::edie::EncoderBase::FieldToAscii__FieldContainerCR.cPP.uint32_tR"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1aec82cb200b3524a382f7e6d2383239f1"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldToAscii</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fc_</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ppcOutBuf_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">uiBytesLeft_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase12FieldToAsciiERK14FieldContainerPPcR8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase11FieldToJsonERK14FieldContainerPPcR8uint32_t">
+<span id="_CPPv3N7novatel4edie11EncoderBase11FieldToJsonERK14FieldContainerPPcR8uint32_t"></span><span id="_CPPv2N7novatel4edie11EncoderBase11FieldToJsonERK14FieldContainerPPcR8uint32_t"></span><span id="novatel::edie::EncoderBase::FieldToJson__FieldContainerCR.cPP.uint32_tR"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a3dae6e138eb5663b661c7e44ac17aaf1"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldToJson</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fc_</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ppcOutBuf_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">uiBytesLeft_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase11FieldToJsonERK14FieldContainerPPcR8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase14EncodeJsonBodyERKNSt6vectorI14FieldContainerEEPPcR8uint32_t">
+<span id="_CPPv3N7novatel4edie11EncoderBase14EncodeJsonBodyERKNSt6vectorI14FieldContainerEEPPcR8uint32_t"></span><span id="_CPPv2N7novatel4edie11EncoderBase14EncodeJsonBodyERKNSt6vectorI14FieldContainerEEPPcR8uint32_t"></span><span id="novatel::edie::EncoderBase::EncodeJsonBody__std::vector:FieldContainer:CR.cPP.uint32_tR"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a1cbeb99a119f93d91992b9ac78ae41b4"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EncodeJsonBody</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vInterFormat_</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ppcOutBuf_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">uiBytesLeft_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase14EncodeJsonBodyERKNSt6vectorI14FieldContainerEEPPcR8uint32_t" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase13InitEnumDefnsEv">
+<span id="_CPPv3N7novatel4edie11EncoderBase13InitEnumDefnsEv"></span><span id="_CPPv2N7novatel4edie11EncoderBase13InitEnumDefnsEv"></span><span id="novatel::edie::EncoderBase::InitEnumDefns"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a9c97deb8b965f80d53f57900dd8dcbca"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitEnumDefns</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase13InitEnumDefnsEv" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase13InitFieldMapsEv">
+<span id="_CPPv3N7novatel4edie11EncoderBase13InitFieldMapsEv"></span><span id="_CPPv2N7novatel4edie11EncoderBase13InitFieldMapsEv"></span><span id="novatel::edie::EncoderBase::InitFieldMaps"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a0c20b0b899fd1726f98443173495a546"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitFieldMaps</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase13InitFieldMapsEv" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-protected-attributes">Protected Attributes</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase11pclMyLoggerE">
+<span id="_CPPv3N7novatel4edie11EncoderBase11pclMyLoggerE"></span><span id="_CPPv2N7novatel4edie11EncoderBase11pclMyLoggerE"></span><span id="novatel::edie::EncoderBase::pclMyLogger__std::shared_ptr:spdlog::logger:"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1af1921c672a2b85b18d966876642a28da"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pclMyLogger</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="n"><span class="pre">Logger</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RegisterLogger</span></span><span class="p"><span class="pre">(</span></span><span class="s"><span class="pre">&quot;encoder&quot;</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase11pclMyLoggerE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase10pclMyMsgDbE">
+<span id="_CPPv3N7novatel4edie11EncoderBase10pclMyMsgDbE"></span><span id="_CPPv2N7novatel4edie11EncoderBase10pclMyMsgDbE"></span><span id="novatel::edie::EncoderBase::pclMyMsgDb__JsonReaderP"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a427fadb8843116a4c021cff9a841ec5a"></span><a class="reference internal" href="classJsonReader.html#_CPPv410JsonReader" title="JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">pclMyMsgDb</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">nullptr</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase10pclMyMsgDbE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase15vMyCommandDefnsE">
+<span id="_CPPv3N7novatel4edie11EncoderBase15vMyCommandDefnsE"></span><span id="_CPPv2N7novatel4edie11EncoderBase15vMyCommandDefnsE"></span><span id="novatel::edie::EncoderBase::vMyCommandDefns__EnumDefinitionP"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a06d18c8eb75a8616a02136d34c75e7f1"></span><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html#_CPPv4N7novatel4edie14EnumDefinitionE" title="novatel::edie::EnumDefinition"><span class="n"><span class="pre">EnumDefinition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">vMyCommandDefns</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">nullptr</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase15vMyCommandDefnsE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase16vMyPortAddrDefnsE">
+<span id="_CPPv3N7novatel4edie11EncoderBase16vMyPortAddrDefnsE"></span><span id="_CPPv2N7novatel4edie11EncoderBase16vMyPortAddrDefnsE"></span><span id="novatel::edie::EncoderBase::vMyPortAddrDefns__EnumDefinitionP"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1a0c59237275ce584f7e2a642453db9643"></span><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html#_CPPv4N7novatel4edie14EnumDefinitionE" title="novatel::edie::EnumDefinition"><span class="n"><span class="pre">EnumDefinition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">vMyPortAddrDefns</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">nullptr</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase16vMyPortAddrDefnsE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase21vMyGPSTimeStatusDefnsE">
+<span id="_CPPv3N7novatel4edie11EncoderBase21vMyGPSTimeStatusDefnsE"></span><span id="_CPPv2N7novatel4edie11EncoderBase21vMyGPSTimeStatusDefnsE"></span><span id="novatel::edie::EncoderBase::vMyGPSTimeStatusDefns__EnumDefinitionP"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1aa07a05aa16aa22d67def1611f48a01a8"></span><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html#_CPPv4N7novatel4edie14EnumDefinitionE" title="novatel::edie::EnumDefinition"><span class="n"><span class="pre">EnumDefinition</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">vMyGPSTimeStatusDefns</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">nullptr</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase21vMyGPSTimeStatusDefnsE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-protected-static-attributes">Protected Static Attributes</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase13asciiFieldMapE">
+<span id="_CPPv3N7novatel4edie11EncoderBase13asciiFieldMapE"></span><span id="_CPPv2N7novatel4edie11EncoderBase13asciiFieldMapE"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1ac4e28a7d1f0099a05e8351d5d43bf9a7"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unordered_map</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="classJsonReader.html#_CPPv410JsonReader" title="JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">asciiFieldMap</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase13asciiFieldMapE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11EncoderBase12jsonFieldMapE">
+<span id="_CPPv3N7novatel4edie11EncoderBase12jsonFieldMapE"></span><span id="_CPPv2N7novatel4edie11EncoderBase12jsonFieldMapE"></span><span class="target" id="classnovatel_1_1edie_1_1EncoderBase_1aa15a4b58b1d506912a283951b16950d1"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">unordered_map</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="classJsonReader.html#_CPPv410JsonReader" title="JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">jsonFieldMap</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie11EncoderBase12jsonFieldMapE" title="Permalink to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classnExcept.html" class="btn btn-neutral float-left" title="Class nExcept" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classnovatel_1_1edie_1_1JsonReaderFailure.html" class="btn btn-neutral float-right" title="Class JsonReaderFailure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, rdoris.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
