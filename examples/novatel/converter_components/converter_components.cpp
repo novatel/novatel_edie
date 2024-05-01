@@ -130,7 +130,6 @@ int main(int argc, char* argv[])
 
     // Set up buffers
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucFrameBuffer = acFrameBuffer;
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
@@ -168,7 +167,7 @@ int main(int argc, char* argv[])
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
-            pucFrameBuffer = acFrameBuffer;
+            unsigned char* pucFrameBuffer = acFrameBuffer;
             eFramerStatus = clFramer.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaData);
 
             if (eFramerStatus == STATUS::SUCCESS)
@@ -229,9 +228,8 @@ int main(int argc, char* argv[])
     }
 
     // Clean up
-    pucFrameBuffer = acFrameBuffer;
-    uint32_t uiBytes = clFramer.Flush(pucFrameBuffer, sizeof(acFrameBuffer));
-    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBytes);
+    uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
+    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
 
     Logger::Shutdown();
     return 0;
