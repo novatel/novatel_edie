@@ -29,7 +29,7 @@
 #include <cstring>
 
 #include "circular_buffer.hpp"
-#include "nexcept.h"
+#include "nexcept.hpp"
 
 //---------------------------------------------------------------------------
 void CircularBuffer::SetCapacity(const uint32_t uiCapacity_)

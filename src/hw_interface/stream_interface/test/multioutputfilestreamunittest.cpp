@@ -29,7 +29,7 @@
 #include <string>
 
 #include "hw_interface/stream_interface/api/multioutputfilestream.hpp"
-#include "nexcept.h"
+#include "nexcept.hpp"
 
 class MultiOutputFileStreamTest : public ::testing::Test
 {
