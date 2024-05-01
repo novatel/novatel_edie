@@ -148,6 +148,7 @@ class EncoderBase
     [[nodiscard]] bool FieldToJson(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
     [[nodiscard]] bool EncodeJsonBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
+    virtual void InitEnumDefinitions();
     void InitFieldMaps();
 
   public:
