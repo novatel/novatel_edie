@@ -115,7 +115,7 @@ TEST_F(InputFileStreamTest, ReadLine)
 TEST_F(InputFileStreamTest, Reset)
 {
     ReadDataStructure stReadDataStructure;
-    InputFileStream* pMyTestCommand = NULL;
+    InputFileStream* pMyTestCommand = nullptr;
     pMyTestCommand =
         new InputFileStream((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "streaminterface_testread.asc").string().c_str());
     stReadDataStructure.uiDataSize = 20;
