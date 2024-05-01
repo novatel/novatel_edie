@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 
     auto start = std::chrono::system_clock::now();
     uint32_t uiCompletedMessages = 0;
-    do {
+    while (true) {
         unsigned char* pucReadBuffer = acFrameBuffer;
 
         // Get frame, null-terminate.
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
 
             clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
         }
-    } while (true);
+    }
 
     std::chrono::duration<double> elapsedSeconds = std::chrono::system_clock::now() - start;
     pclLogger->info("Decoded {} messages in {}s. ({}msg/s)", uiCompletedMessages, elapsedSeconds.count(),
