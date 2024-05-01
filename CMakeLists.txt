@@ -48,7 +48,7 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-truncation -Wno-error=format -Wno-format -Wno-format-extra-args -Wno-error=restrict -Wno-restrict")
     endif()
     if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unqualified-std-cast-call")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unqualified-std-cast-call -Wno-unknown-pragmas")
     endif()
 else()
     message(FATAL_ERROR "Unable to identify compiler.")
