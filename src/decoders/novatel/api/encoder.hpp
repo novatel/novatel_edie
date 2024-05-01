@@ -47,7 +47,7 @@ class Encoder : public EncoderBase
 {
   private:
     // Enum util functions
-    void InitEnumDefinitions() override;
+    void InitEnumDefinitions();
     static void InitFieldMaps();
     [[nodiscard]] std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
 
