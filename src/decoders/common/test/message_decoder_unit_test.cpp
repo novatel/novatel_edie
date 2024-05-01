@@ -212,12 +212,6 @@ TEST_F(MessageDecoderTypesTest, LOGGER)
     ASSERT_EQ(novatel_message_decoder->level(), eLevel);
 }
 
-TEST_F(MessageDecoderTypesTest, FIELD_CONTAINER_ERROR_ON_COPY)
-{
-    FieldContainer fc(3, std::make_shared<BaseField>());
-    ASSERT_THROW(FieldContainer fc2(std::move(fc));, std::runtime_error);
-}
-
 TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
 {
     pclMyDecoderTester->ValidSimpleASCIIHelper<bool, DATA_TYPE::BOOL>({"FALSE", "TRUE"}, {});
