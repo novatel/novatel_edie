@@ -74,9 +74,9 @@ jobs:
           for FORMAT in "ASCII" "ABBREV_ASCII" "BINARY" "FLATTENED_BINARY" "JSON"; do
               # TODO: this is dumb, these linux folders probably shouldnt include OS version in their names
               if [ "$OPERATING_SYSTEM" == "linux" ]; then
-                  ./bin/$BUILD_TYPE-x64-Ubuntu-22.04/examples/Converter_Components/Converter_Components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
+                  ./bin/$BUILD_TYPE-x64-Ubuntu-22.04/examples/converter_components/converter_components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
               else
-                  ./bin/$BUILD_TYPE-x64-Windows/examples/Converter_Components/Converter_Components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
+                  ./bin/$BUILD_TYPE-x64-Windows/examples/converter_components/converter_components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
               fi
               
               if ! cmp -s regression/BESTUTMBIN.GPS.$FORMAT regression/targets/BESTUTMBIN.GPS.$FORMAT; then
