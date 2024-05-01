@@ -30,7 +30,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../src
 )
 
-add_executable(${PROJECT_NAME} rxconfig_example.cpp)
+add_executable(${PROJECT_NAME} rxconfig_handler.cpp)
 add_dependencies(${PROJECT_NAME} common novatel stream_interface)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
 
