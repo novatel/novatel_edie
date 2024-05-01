@@ -1,2 +1,2 @@
-Checks: '-*'
+Checks: '-*, portability-*'
 HeaderFilterRegex: 'src/.*'
