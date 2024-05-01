@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSIONset(TARGET_NAME "hw_interface_dynamic_library")
+set(TARGET_NAME "hw_interface_dynamic_library")
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(obj${TARGET_NAME} OBJECT ${SOURCES})
 add_library(${TARGET_NAME} SHARED $<TARGET_OBJECTS:obj${TARGET_NAME}> $<TARGET_OBJECTS:objstream_interface> $<TARGET_OBJECTS:objcommon>)
