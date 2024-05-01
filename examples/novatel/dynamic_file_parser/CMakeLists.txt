@@ -1,3 +1,4 @@
-add_executable(dynamic_file_parser dynamic_file_parser.cpp)
-target_link_libraries(dynamic_file_parser common decoders_dynamic_library novatel stream_interface)
-set_property(TARGET dynamic_file_parser PROPERTY FOLDER "examples")
+set(TARGET_NAME "dynamic_file_parser")
+add_executable(${TARGET_NAME} ${TARGET_NAME}.cpp)
+target_link_libraries(${TARGET_NAME} common decoders_dynamic_library novatel stream_interface)
+set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "examples")

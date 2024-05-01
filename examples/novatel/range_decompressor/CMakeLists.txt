@@ -1,3 +1,4 @@
-add_executable(range_decompressor range_decompressor.cpp)
-target_link_libraries(range_decompressor common novatel stream_interface)
-set_property(TARGET range_decompressor PROPERTY FOLDER "examples")
+set(TARGET_NAME "range_decompressor")
+add_executable(${TARGET_NAME} ${TARGET_NAME}.cpp)
+target_link_libraries(${TARGET_NAME} common novatel stream_interface)
+set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "examples")

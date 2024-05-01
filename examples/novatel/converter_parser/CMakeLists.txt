@@ -1,3 +1,4 @@
-add_executable(converter_parser converter_parser.cpp)
-target_link_libraries(converter_parser common decoders_dynamic_library novatel stream_interface)
-set_property(TARGET converter_parser PROPERTY FOLDER "examples")
+set(TARGET_NAME "converter_parser")
+add_executable(${TARGET_NAME} ${TARGET_NAME}.cpp)
+target_link_libraries(${TARGET_NAME} common novatel stream_interface)
+set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "examples")
