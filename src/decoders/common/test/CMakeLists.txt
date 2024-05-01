@@ -1,19 +1,7 @@
-cmake_minimum_required(VERSION 3.12.4)
-
-project(CommonTest VERSION 1.0.0)
-
+set(TARGET_NAME "common_test")
 file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-set(COMMONTEST_SOURCES)
-LIST(APPEND COMMONTEST_SOURCES ${SOURCES})
-
-add_executable(${PROJECT_NAME} ${COMMONTEST_SOURCES})
-
-add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR})
-set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "decoders/tests")
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../api)
-
-get_directory_property(DirDefs COMPILE_DEFINITIONS)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
-
-target_link_libraries(${PROJECT_NAME} PUBLIC common gtest)
+add_executable(${TARGET_NAME} ${SOURCES})
+set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "decoders/tests")
+target_include_directories(${TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
+target_link_libraries(${TARGET_NAME} PUBLIC common gtest)
+add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME} ${CMAKE_SOURCE_DIR})
