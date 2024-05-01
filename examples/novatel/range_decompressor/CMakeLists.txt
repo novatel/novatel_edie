@@ -1,30 +1,3 @@
-file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c*)
-set(RANGECMP_SOURCES)
-LIST(APPEND RANGECMP_SOURCES ${SOURCES})
-
-if(MSVC)
-    source_group("src" FILES ${RANGECMP_SOURCES})
-endif()
-
-set(PROJECT_LINK_LIBS common novatel stream_interface)
-
-link_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/${CMAKE_BUILD_TYPE}-${ARCH}-${DISTRIB_NAME}/decoders/common
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/${CMAKE_BUILD_TYPE}-${ARCH}-${DISTRIB_NAME}/decoders/novatel
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/${CMAKE_BUILD_TYPE}-${ARCH}-${DISTRIB_NAME}/hw_interface/stream_interface
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/${CMAKE_BUILD_TYPE}-${ARCH}-${DISTRIB_NAME}/range_cmp
-)
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../extensions/rangecmp/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/decoders/common/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/decoders/novatel/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/hw_interface/stream_interface/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src
-)
-
-add_executable(${PROJECT_NAME} range_decompressor.cpp)
-add_dependencies(${PROJECT_NAME} common novatel stream_interface)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
-
-set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "examples")
+add_executable(range_decompressor range_decompressor.cpp)
+target_link_libraries(range_decompressor common novatel stream_interface)
+set_property(TARGET range_decompressor PROPERTY FOLDER "examples")

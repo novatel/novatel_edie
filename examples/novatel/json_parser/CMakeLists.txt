@@ -1,28 +1,3 @@
-file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c*)
-set(NOVATEL_SOURCES)
-LIST(APPEND NOVATEL_SOURCES ${SOURCES})
-
-if(MSVC)
-    source_group("src" FILES ${NOVATEL_SOURCES})
-endif()
-
-set(PROJECT_LINK_LIBS common novatel stream_interface)
-
-link_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/${CMAKE_BUILD_TYPE}-${ARCH}-${DISTRIB_NAME}/decoders/common
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/${CMAKE_BUILD_TYPE}-${ARCH}-${DISTRIB_NAME}/decoders/novatel
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/${CMAKE_BUILD_TYPE}-${ARCH}-${DISTRIB_NAME}/hw_interface/stream_interface
-)
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/decoders/common/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/decoders/novatel/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/hw_interface/stream_interface/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../src
-)
-
-add_executable(${PROJECT_NAME} json_parser.cpp)
-add_dependencies(${PROJECT_NAME} common novatel stream_interface)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LINK_LIBS})
-
-set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "examples")
+add_executable(json_parser json_parser.cpp)
+target_link_libraries(json_parser common novatel stream_interface)
+set_property(TARGET json_parser PROPERTY FOLDER "examples")
