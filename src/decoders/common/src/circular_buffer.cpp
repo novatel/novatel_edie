@@ -28,8 +28,8 @@
 #include <cassert>
 #include <cstring>
 
-#include "circular_buffer.hpp"
-#include "nexcept.hpp"
+#include "decoders/common/api/circular_buffer.hpp"
+#include "decoders/common/api/nexcept.hpp"
 
 //---------------------------------------------------------------------------
 void CircularBuffer::SetCapacity(const uint32_t uiCapacity_)
