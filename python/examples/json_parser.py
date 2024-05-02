@@ -47,7 +47,7 @@ def main():
     # Get command line arguments
     logger.info(f"Decoder library information:\n{ne.pretty_version}")
 
-    encode_format = ne.ENCODEFORMAT.ASCII
+    encode_format = ne.ENCODE_FORMAT.ASCII
     if "-V" in sys.argv:
         exit(0)
     if len(sys.argv) < 3:

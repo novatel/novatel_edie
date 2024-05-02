@@ -29,7 +29,7 @@
 
 import novatel_edie as ne
 import pytest
-from novatel_edie import HEADERFORMAT, STATUS
+from novatel_edie import HEADER_FORMAT, STATUS
 
 
 class Helper:
@@ -109,13 +109,13 @@ def test_PROPRIETARY_BINARY_COMPLETE(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 12
-    expected_meta_data.format = HEADERFORMAT.UNKNOWN
+    expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     expected_meta_data.length = 76
-    expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
     status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
@@ -131,7 +131,7 @@ def test_PROPRIETARY_BINARY_INCOMPLETE(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 59
-    expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.INCOMPLETE
     assert compare_metadata(test_meta_data, expected_meta_data)
@@ -141,7 +141,7 @@ def test_PROPRIETARY_BINARY_SYNC_ERROR(helper):
     helper.write_file_to_framer("proprietary_binary_sync_error.BIN")
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = ne.MAX_BINARY_MESSAGE_LENGTH
-    expected_meta_data.format = HEADERFORMAT.UNKNOWN
+    expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
@@ -158,7 +158,7 @@ def test_PROPRIETARY_BINARY_BAD_CRC(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 30  # Unknown bytes up to 0x24 ('$') should be returned (NMEA sync was found mid-log)
-    expected_meta_data.format = HEADERFORMAT.UNKNOWN
+    expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     status, frame, test_meta_data = helper.framer.get_frame()
     assert status == STATUS.UNKNOWN
     assert compare_metadata(test_meta_data, expected_meta_data)
@@ -175,7 +175,7 @@ def test_PROPRIETARY_BINARY_RUN_ON_CRC(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 76
-    expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
     status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)
@@ -192,7 +192,7 @@ def test_PROPRIETARY_BINARY_INADEQUATE_BUFFER(helper):
     helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = 76
-    expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
     test_meta_data = ne.MetaData()
     status, frame = helper.framer.get_frame(test_meta_data, buffer_size=38)
     assert status == STATUS.BUFFER_FULL
@@ -214,14 +214,14 @@ def test_PROPRIETARY_BINARY_BYTE_BY_BYTE(helper):
     log_size = len(data)
     remaining_bytes = log_size
     expected_meta_data = ne.MetaData()
-    expected_meta_data.format = HEADERFORMAT.UNKNOWN
+    expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     test_meta_data = ne.MetaData()
     while True:
         helper.write_bytes_to_framer(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
         if expected_meta_data.length == ne.OEM4_BINARY_SYNC_LENGTH - 1:
-            expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+            expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
 
         if remaining_bytes > 0:
             status, frame = helper.framer.get_frame(test_meta_data)
@@ -245,7 +245,7 @@ def test_PROPRIETARY_BINARY_SEGMENTED(helper):
          0x6F, 0x8E, 0x0B, 0xCC])
     bytes_written = 0
     expected_meta_data = ne.MetaData()
-    expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
     test_meta_data = ne.MetaData()
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
     bytes_written += ne.OEM4_BINARY_SYNC_LENGTH
@@ -287,7 +287,7 @@ def test_PROPRIETARY_BINARY_TRICK(helper):
          0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91,
          0x27, 0x6F, 0x8E, 0x0B, 0xCC])
     expected_meta_data = ne.MetaData()
-    expected_meta_data.format = HEADERFORMAT.UNKNOWN
+    expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     helper.write_bytes_to_framer(data)
     expected_meta_data.length = 3
     status, frame, test_meta_data = helper.framer.get_frame()
@@ -305,7 +305,7 @@ def test_PROPRIETARY_BINARY_TRICK(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
     expected_meta_data.length = 76
-    expected_meta_data.format = HEADERFORMAT.PROPRIETARY_BINARY
+    expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
     status, frame, test_meta_data = helper.framer.get_frame()
     status.raise_on_error()
     assert compare_metadata(test_meta_data, expected_meta_data)

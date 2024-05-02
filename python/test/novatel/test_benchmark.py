@@ -31,7 +31,7 @@
 import timeit
 
 import novatel_edie as ne
-from novatel_edie import STATUS, ENCODEFORMAT
+from novatel_edie import STATUS, ENCODE_FORMAT
 import pytest
 
 # -------------------------------------------------------------------------------------------------------
@@ -87,17 +87,17 @@ def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS(benchmarker):
          0x4F, 0xF1, 0xD5, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x53, 0xDF, 0xFF, 0x3E,
          0x31, 0x89, 0x03, 0x3F, 0xA3, 0xBF, 0x89, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x1A, 0x18, 0x18, 0x00, 0x00, 0x00, 0x11, 0x01, 0x9F, 0x1F, 0x1A, 0xC9])
-    benchmarker.run(log, ENCODEFORMAT.BINARY)
+    benchmarker.run(log, ENCODE_FORMAT.BINARY)
 
 
 def test_BENCHMARK_ASCII_TO_ASCII_BESTPOS(benchmarker):
     log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
-    benchmarker.run(log, ENCODEFORMAT.ASCII)
+    benchmarker.run(log, ENCODE_FORMAT.ASCII)
 
 
 def test_BENCHMARK_ASCII_TO_BINARY_BESTPOS(benchmarker):
     log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
-    benchmarker.run(log, ENCODEFORMAT.BINARY)
+    benchmarker.run(log, ENCODE_FORMAT.BINARY)
 
 
 def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS(benchmarker):
@@ -108,12 +108,12 @@ def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS(benchmarker):
          0x4F, 0xF1, 0xD5, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x53, 0xDF, 0xFF, 0x3E,
          0x31, 0x89, 0x03, 0x3F, 0xA3, 0xBF, 0x89, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x1A, 0x18, 0x18, 0x00, 0x00, 0x00, 0x11, 0x01, 0x9F, 0x1F, 0x1A, 0xC9])
-    benchmarker.run(log, ENCODEFORMAT.ASCII)
+    benchmarker.run(log, ENCODE_FORMAT.ASCII)
 
 
 def test_BENCHMARK_ASCII_TO_FLAT_BINARY_BESTPOS(benchmarker):
     log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
-    benchmarker.run(log, ENCODEFORMAT.FLATTENED_BINARY)
+    benchmarker.run(log, ENCODE_FORMAT.FLATTENED_BINARY)
 
 
 def test_BENCHMARK_BINARY_TO_FLAT_BINARY_BESTPOS(benchmarker):
@@ -124,4 +124,4 @@ def test_BENCHMARK_BINARY_TO_FLAT_BINARY_BESTPOS(benchmarker):
          0x4F, 0xF1, 0xD5, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x53, 0xDF, 0xFF, 0x3E,
          0x31, 0x89, 0x03, 0x3F, 0xA3, 0xBF, 0x89, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x1A, 0x18, 0x18, 0x00, 0x00, 0x00, 0x11, 0x01, 0x9F, 0x1F, 0x1A, 0xC9])
-    benchmarker.run(log, ENCODEFORMAT.FLATTENED_BINARY)
+    benchmarker.run(log, ENCODE_FORMAT.FLATTENED_BINARY)

@@ -30,7 +30,7 @@
 
 import novatel_edie as ne
 import pytest
-from novatel_edie import STATUS, ENCODEFORMAT
+from novatel_edie import STATUS, ENCODE_FORMAT
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -93,8 +93,8 @@ def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
     expected_message_length = [213, 195]
 
     status = STATUS.UNKNOWN
-    fp.encode_format = ENCODEFORMAT.ASCII
-    assert fp.encode_format == ENCODEFORMAT.ASCII
+    fp.encode_format = ENCODE_FORMAT.ASCII
+    assert fp.encode_format == ENCODE_FORMAT.ASCII
 
     while status != STATUS.STREAM_EMPTY:
         status, message_data, meta_data = fp.read()

@@ -15,7 +15,7 @@
 
 
 import novatel_edie as ne
-from novatel_edie import HEADERFORMAT, STATUS, ENCODEFORMAT
+from novatel_edie import HEADER_FORMAT, STATUS, ENCODE_FORMAT
 import pytest
 
 
@@ -73,7 +73,7 @@ def test_RXCONFIG_ROUNDTRIP_ASCII(rx_config_handler):
     expected_rx_config_message_data = (log[:192], log[:72], log[72:][:120])
     expected_embedded_message_data = (log[72:][:109], log[72:][:77], log[149:][:32])
     write_bytes_to_handler(rx_config_handler, log)
-    assert TestSameFormatCompare(rx_config_handler, ENCODEFORMAT.ASCII, expected_rx_config_message_data, expected_embedded_message_data)
+    assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.ASCII, expected_rx_config_message_data, expected_embedded_message_data)
 
 def test_RXCONFIG_ROUNDTRIP_ABBREV(rx_config_handler):
     # NOTE: This RXCONFIG message is NOT what an OEM7 receiver would produce.  The space after the embedded header is added intentionally by RxConfigHandler to make it decodeable.
@@ -81,7 +81,7 @@ def test_RXCONFIG_ROUNDTRIP_ABBREV(rx_config_handler):
     expected_rx_config_message_data = (log[:144], log[:61], log[61:][:83])
     expected_embedded_message_data = (log[61:][:83], log[61:][:68], log[129:][:15])
     write_bytes_to_handler(rx_config_handler, log)
-    assert TestSameFormatCompare(rx_config_handler, ENCODEFORMAT.ABBREV_ASCII, expected_rx_config_message_data, expected_embedded_message_data)
+    assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.ABBREV_ASCII, expected_rx_config_message_data, expected_embedded_message_data)
 
 def test_RXCONFIG_ROUNDTRIP_BINARY(rx_config_handler):
    # RXCONFIG
@@ -89,7 +89,7 @@ def test_RXCONFIG_ROUNDTRIP_BINARY(rx_config_handler):
     expected_rx_config_message_data = (log[:80], log[:ne.OEM4_BINARY_HEADER_LENGTH], log[ne.OEM4_BINARY_HEADER_LENGTH:][:52])
     expected_embedded_message_data = (log[ne.OEM4_BINARY_HEADER_LENGTH:][:48], log[ne.OEM4_BINARY_HEADER_LENGTH:][:ne.OEM4_BINARY_HEADER_LENGTH], log[ne.OEM4_BINARY_HEADER_LENGTH*2:][:20])
     write_bytes_to_handler(rx_config_handler, log)
-    assert TestSameFormatCompare(rx_config_handler, ENCODEFORMAT.BINARY, expected_rx_config_message_data, expected_embedded_message_data)
+    assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.BINARY, expected_rx_config_message_data, expected_embedded_message_data)
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ def test_RXCONFIG_CONVERT_ASCII_TO_JSON(rx_config_handler):
     expected_rx_config_message_data = (json_log[0:][:531], json_log[10:][:229], json_log[247:][:283])
     expected_embedded_message_data = (json_log[247:][:283], json_log[266:][:231], json_log[514:][:15])
     write_bytes_to_handler(rx_config_handler, log)
-    assert TestSameFormatCompare(rx_config_handler, ENCODEFORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)
+    assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)
 
 def test_RXCONFIG_CONVERT_ABBREV_TO_JSON(rx_config_handler):
     log = b"<RXCONFIG COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002\r\n<     SBASECUTOFF COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002 \r\n<     -5.0\r\n[PISSCOM1]"
@@ -109,7 +109,7 @@ def test_RXCONFIG_CONVERT_ABBREV_TO_JSON(rx_config_handler):
     expected_rx_config_message_data = (json_log[0:][:550], json_log[10:][:229], json_log[247:][:302])
     expected_embedded_message_data = (json_log[247:][:302], json_log[266:][:233], json_log[516:][:32])
     write_bytes_to_handler(rx_config_handler, log)
-    assert TestSameFormatCompare(rx_config_handler, ENCODEFORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)
+    assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)
 
 def test_RXCONFIG_CONVERT_BINARY_TO_JSON(rx_config_handler):
     log = bytes([0xAA, 0x44, 0x12, 0x1C, 0x80, 0x00, 0x00, 0x40, 0x3C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0xAA, 0x44, 0x12, 0x1C, 0xDE, 0x04, 0x00, 0x40, 0x1C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0x02, 0x00, 0x00, 0x00, 0x00, 0x08, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF4, 0xD7, 0x46, 0x65, 0x5D, 0x3D, 0xED, 0xF6])
@@ -117,4 +117,4 @@ def test_RXCONFIG_CONVERT_BINARY_TO_JSON(rx_config_handler):
     expected_rx_config_message_data = (json_log[0:][:656], json_log[10:][:240], json_log[258:][:397])
     expected_embedded_message_data = (json_log[258:][:397], json_log[277:][:245], json_log[539:][:115])
     write_bytes_to_handler(rx_config_handler, log)
-    assert TestSameFormatCompare(rx_config_handler, ENCODEFORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)
+    assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)

@@ -38,10 +38,10 @@ def test_constructors():
         ne.FileStream(None)
 
 
-@pytest.mark.parametrize("mode", [ne.FILEMODES.OUTPUT, ne.FILEMODES.APPEND, ne.FILEMODES.INPUT,
-                                  ne.FILEMODES.INSERT, ne.FILEMODES.TRUNCATE])
-def test_wide_char_open_file(hw_interface_test_resources, mode):
-    test_stream = ne.FileStream(str(hw_interface_test_resources / "filestream不同语言的文件.gps"))
+@pytest.mark.parametrize("mode", [ne.FILE_MODES.OUTPUT, ne.FILE_MODES.APPEND, ne.FILE_MODES.INPUT,
+                                  ne.FILE_MODES.INSERT, ne.FILE_MODES.TRUNCATE])
+def test_wide_char_open_file(stream_interface_test_resources, mode):
+    test_stream = ne.FileStream(str(stream_interface_test_resources / "filestream不同语言的文件.gps"))
     test_stream.open(mode)
     assert not test_stream.stream_failed
     test_stream.close()

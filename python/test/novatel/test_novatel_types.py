@@ -30,7 +30,7 @@
 
 import novatel_edie as ne
 import pytest
-from novatel_edie import STATUS, FIELD_TYPE, CONVERSION_STRING, DATA_TYPE
+from novatel_edie import STATUS, FIELD_TYPE, DATA_TYPE
 from pytest import approx
 
 # -------------------------------------------------------------------------------------------------------
@@ -89,6 +89,11 @@ class Helper:
 @pytest.fixture(scope="function")
 def helper(min_json_db):
     return Helper(min_json_db)
+
+
+def test_get_default_database():
+    db = ne.get_default_database()
+    assert isinstance(db, ne.JsonReader)
 
 
 def test_LOGGER():

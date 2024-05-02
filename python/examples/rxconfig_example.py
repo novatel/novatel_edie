@@ -33,7 +33,7 @@ import atexit
 import os
 
 import novatel_edie as ne
-from novatel_edie import Logging, LogLevel, ENCODEFORMAT
+from novatel_edie import Logging, LogLevel, ENCODE_FORMAT
 
 
 def _configure_logging(logger):

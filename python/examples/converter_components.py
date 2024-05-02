@@ -62,8 +62,8 @@ def read_frames(input_file, framer):
     unknown_bytes_stream.write(framer.flush())
 
 def format_frame(frame, frame_format):
-    if frame_format in [ne.HEADERFORMAT.BINARY, ne.HEADERFORMAT.SHORT_BINARY, ne.HEADERFORMAT.PROPRIETARY_BINARY,
-                        ne.ENCODEFORMAT.BINARY, ne.ENCODEFORMAT.FLATTENED_BINARY]:
+    if frame_format in [ne.HEADER_FORMAT.BINARY, ne.HEADER_FORMAT.SHORT_BINARY, ne.HEADER_FORMAT.PROPRIETARY_BINARY,
+                        ne.ENCODE_FORMAT.BINARY, ne.ENCODE_FORMAT.FLATTENED_BINARY]:
         return hexlify(frame, sep=" ").decode("ascii").upper()
     return frame
 
