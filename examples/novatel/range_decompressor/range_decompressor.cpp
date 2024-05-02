@@ -144,7 +144,8 @@ int main(int argc, char* argv[])
 
     auto start = std::chrono::system_clock::now();
     uint32_t uiCompletedMessages = 0;
-    while (true) {
+    while (true)
+    {
         unsigned char* pucReadBuffer = acFrameBuffer;
 
         // Get frame, null-terminate.
