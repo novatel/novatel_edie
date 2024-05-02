@@ -38,9 +38,9 @@ InputFileStream::InputFileStream(const std::u32string& s32FileName_)
 }
 
 // ---------------------------------------------------------
-InputFileStream::InputFileStream(const char* pName) : stFileName(pName)
+InputFileStream::InputFileStream(const char* pFileName) : stFileName(pFileName)
 {
-    pInFileStream = new FileStream(pName);
+    pInFileStream = new FileStream(pFileName);
     pInFileStream->OpenFile(FileStream::FILE_MODES::INPUT);
     pInFileStream->GetFileSize();
 
