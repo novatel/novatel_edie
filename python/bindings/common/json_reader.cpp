@@ -52,6 +52,7 @@ void init_common_json_reader(nb::module_& m)
 
     nb::class_<EnumDataType>(m, "EnumDataType", "Enum Data Type representing contents of UI DB")
         .def(nb::init<>())
+        .def(nb::init<std::string, uint32_t, std::string>(), "name"_a, "value"_a, "description"_a = "")
         .def_rw("value", &EnumDataType::value)
         .def_rw("name", &EnumDataType::name)
         .def_rw("description", &EnumDataType::description)
@@ -83,6 +84,7 @@ void init_common_json_reader(nb::module_& m)
 
     nb::class_<BaseField>(m, "BaseField", "Struct containing elements of basic fields in the UI DB")
         .def(nb::init<>())
+        .def(nb::init<std::string, FIELD_TYPE, std::string, size_t, DATA_TYPE>(), "name"_a, "type"_a, "conversion"_a, "length"_a, "data_type"_a)
         .def_rw("name", &BaseField::name)
         .def_rw("type", &BaseField::type)
         .def_rw("description", &BaseField::description)
@@ -104,6 +106,18 @@ void init_common_json_reader(nb::module_& m)
 
     nb::class_<EnumField, BaseField>(m, "EnumField", "Struct containing elements of enum fields in the UI DB")
         .def(nb::init<>())
+        .def(
+            "__init__",
+            [](EnumField* t, std::string name, std::vector<EnumDataType> enumerators) {
+                auto enum_def = std::make_shared<EnumDefinition>();
+                enum_def->name = name;
+                enum_def->enumerators = std::move(enumerators);
+                auto* field = new (t) EnumField;
+                field->name = name;
+                field->enumDef = std::move(enum_def);
+                field->type = FIELD_TYPE::ENUM;
+            },
+            "name"_a, "enumerators"_a)
         .def_rw("enum_id", &EnumField::enumId)
         .def_rw("enum_def", &EnumField::enumDef)
         .def_rw("length", &EnumField::length)
