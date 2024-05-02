@@ -48,7 +48,8 @@ extern "C"
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS NovatelMessageDecoderDecode(novatel::edie::oem::MessageDecoder* pclMessageDecoder_,
-                                                                      unsigned char* pucLogBuf_, std::vector<novatel::edie::FieldContainer>* pstInterMessage_,
+                                                                      unsigned char* pucLogBuf_,
+                                                                      std::vector<novatel::edie::FieldContainer>* pstInterMessage_,
                                                                       novatel::edie::oem::MetaDataStruct* pstMetaData_);
 
     // Intermediate Log handling.
