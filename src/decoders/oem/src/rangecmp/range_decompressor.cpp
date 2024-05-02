@@ -36,33 +36,33 @@ using namespace novatel::edie::oem;
 //! in the RANGECMP documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP.htm?Highlight=rangecmp#StdDevPSRValues
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmpPSRStdDevValues[] = {
-    // 0       1       2       3       4       5       6       7
-    0.050F, 0.075F, 0.113F, 0.169F, 0.253F, 0.380F, 0.570F, 0.854F,
-    // 8       9       10      11      12       13       14       15
-    1.281F, 2.375F, 4.750F, 9.500F, 19.000F, 38.000F, 76.000F, 152.000F};
+constexpr double afTheRangeCmpPSRStdDevValues[] = {
+    // 0      1      2      3      4      5      6     7
+    0.050, 0.075, 0.113, 0.169, 0.253, 0.380, 0.570, 0.854,
+    // 8      9     10     11      12      13      14       15
+    1.281, 2.375, 4.750, 9.500, 19.000, 38.000, 76.000, 152.000};
 
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Pseudorange STDs. This is defined
 //! in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevPSRScaling
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmp2PSRStdDevValues[] = {
-    // 0       1       2       3       4       5       6       7
-    0.020F, 0.030F, 0.045F, 0.066F, 0.099F, 0.148F, 0.220F, 0.329F,
-    // 8       9       10      11      12      13      14      15 (>5.409)
-    0.491F, 0.732F, 1.092F, 1.629F, 2.430F, 3.625F, 5.409F, 5.409F};
+constexpr double afTheRangeCmp2PSRStdDevValues[] = {
+    // 0      1      2      3      4      5      6      7
+    0.020, 0.030, 0.045, 0.066, 0.099, 0.148, 0.220, 0.329,
+    // 8      9     10     11     12     13     14     15(>5.409)
+    0.491, 0.732, 1.092, 1.629, 2.430, 3.625, 5.409, 5.409};
 
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Accumulated Doppler Range STDs. This
 //!  is defined in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevADRScaling
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmp2ADRStdDevValues[] = {
-    // 0         1         2         3         4         5         6         7
-    0.00391F, 0.00521F, 0.00696F, 0.00929F, 0.01239F, 0.01654F, 0.02208F, 0.02947F,
-    // 8         9         10        11        12        13        14        15 (>0.22230)
-    0.03933F, 0.05249F, 0.07006F, 0.09350F, 0.12480F, 0.16656F, 0.22230F, 0.22230F};
+constexpr double afTheRangeCmp2ADRStdDevValues[] = {
+    // 0        1        2        3        4        5        6        7
+    0.00391, 0.00521, 0.00696, 0.00929, 0.01239, 0.01654, 0.02208, 0.02947,
+    // 8        9        10       11       12       13       14       15(>0.22230)
+    0.03933, 0.05249, 0.07006, 0.09350, 0.12480, 0.16656, 0.22230, 0.22230};
 
 //-----------------------------------------------------------------------
 //! Two-dimensional map to look up L1/E1/B1 Scaling for RANGECMP2 signals
@@ -156,11 +156,11 @@ static std::map<SYSTEM, std::vector<RangeCmp4::SIGNAL_TYPE>> mvTheRangeCmp4Syste
 //! standard deviation values defined in the RANGECMP4 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Pseudora
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmp4PSRStdDevValues[] = {
-    // 0         1         2         3         4         5         6         7
-    0.020F, 0.030F, 0.045F, 0.066F, 0.099F, 0.148F, 0.220F, 0.329F,
-    // 8         9         10        11        12        13        14        15 (>5.410)
-    0.491F, 0.732F, 1.092F, 1.629F, 2.430F, 3.625F, 5.409F, 5.409F};
+constexpr double afTheRangeCmp4PSRStdDevValues[] = {
+    // 0        1        2        3        4        5        6        7
+    0.020, 0.030, 0.045, 0.066, 0.099, 0.148, 0.220, 0.329,
+    // 8        9        10       11       12       13       14       15(>5.410)
+    0.491, 0.732, 1.092, 1.629, 2.430, 3.625, 5.409, 5.409};
 
 //-----------------------------------------------------------------------
 //! List of pre-defined floats used as translations for RANGECMP4 ADR
@@ -170,11 +170,11 @@ constexpr float afTheRangeCmp4PSRStdDevValues[] = {
 //!       ADR STD is only 3 decimal places and could round up causing values
 //!       to be greater than values in the table.
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmp4ADRStdDevValues[] = {
-    // 0         1         2         3         4         5         6         7
-    0.003F, 0.005F, 0.007F, 0.009F, 0.012F, 0.016F, 0.022F, 0.029F,
-    // 8         9         10        11        12        13        14        15 (>0.2223)
-    0.039F, 0.052F, 0.070F, 0.093F, 0.124F, 0.166F, 0.222F, 0.222F};
+constexpr double afTheRangeCmp4ADRStdDevValues[] = {
+    // 0        1        2        3        4        5        6        7
+    0.003, 0.005, 0.007, 0.009, 0.012, 0.016, 0.022, 0.029,
+    // 8        9        10       11       12       13       14       15(>0.2223)
+    0.039, 0.052, 0.070, 0.093, 0.124, 0.166, 0.222, 0.222};
 
 //-----------------------------------------------------------------------
 //! List of pre-defined floats used as translations for RANGECMP4 lock
@@ -184,11 +184,11 @@ constexpr float afTheRangeCmp4ADRStdDevValues[] = {
 //! For more information on decompressing locktime bitfields, see the
 //! comment block above RangeDecompressor::DetermineRangeCmp4ObservationLocktime().
 //-----------------------------------------------------------------------
-constexpr float afTheRangeCmp4LockTimeValues[] = {
-    // 0         1         2         3         4         5         6         7
-    0.0F, 16.0F, 32.0F, 64.0F, 128.0F, 256.0F, 512.0F, 1024.0F,
-    // 8         9         10        11        12        13        14         15
-    2048.0F, 4096.0F, 8192.0F, 16384.0F, 32768.0F, 65536.0F, 131072.0F, 262144.0F};
+constexpr double afTheRangeCmp4LockTimeValues[] = {
+    // 0       1       2       3       4       5       6       7
+    0.0, 16.0, 32.0, 64.0, 128.0, 256.0, 512.0, 1024.0,
+    // 8       9       10      11      12      13      14       15
+    2048.0, 4096.0, 8192.0, 16384.0, 32768.0, 65536.0, 131072.0, 262144.0};
 
 //------------------------------------------------------------------------------
 RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_)
@@ -351,11 +351,11 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
 //! observation, and may not be a true representation of the time the
 //! observation has actually been locked.
 //------------------------------------------------------------------------------
-float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
-                                                               ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                               ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_)
+double RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
+                                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
+                                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_)
 {
-    auto fLocktimeMilliseconds = static_cast<float>(uiLockTimeBits_);
+    double fLocktimeMilliseconds = static_cast<double>(uiLockTimeBits_);
 
     RangeCmp2LockTimeInfoStruct& stLocktimeInfo =
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
@@ -364,7 +364,7 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStr
         // If the locktime was already saturated, use the stored time to add the missing offset.
         if (stLocktimeInfo.bLockTimeSaturated)
         {
-            fLocktimeMilliseconds += static_cast<float>(stMetaData_.dMilliseconds - stLocktimeInfo.dLockTimeSaturatedMilliseconds);
+            fLocktimeMilliseconds += static_cast<double>(stMetaData_.dMilliseconds - stLocktimeInfo.dLockTimeSaturatedMilliseconds);
         }
         else // If the locktime is not already saturated, store this information if this
              // observation is seen again.
@@ -441,9 +441,9 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStr
 //!   +-------------------------------------------------------------------->
 //!                   Header time (t)
 //------------------------------------------------------------------------------
-float RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
-                                                               ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                               ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_)
+double RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
+                                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
+                                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_)
 {
     // Store the locktime if it is different then the once we have currently.
     RangeCmp4LocktimeInfoStruct& stLocktimeInfo =
@@ -502,7 +502,7 @@ float RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataStr
     }
     stLocktimeInfo.dLocktimeMilliseconds =
         (stMetaData_.dMilliseconds - stLocktimeInfo.dLastBitfieldChangeMilliseconds) + afTheRangeCmp4LockTimeValues[stLocktimeInfo.ucLocktimeBits];
-    return static_cast<float>(stLocktimeInfo.dLocktimeMilliseconds) / SEC_TO_MILLI_SEC;
+    return static_cast<double>(stLocktimeInfo.dLocktimeMilliseconds) / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
@@ -516,7 +516,7 @@ void RangeDecompressor::DecompressReferenceBlock(uint8_t** ppucDataPointer_, Ran
     // These fields are the same size regardless of the reference block being primary or secondary.
     stReferenceBlock_.bParityKnown = static_cast<bool>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_PARITY_FLAG_BITS));
     stReferenceBlock_.bHalfCycleAdded = static_cast<bool>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_HALF_CYCLE_BITS));
-    stReferenceBlock_.fCNo = static_cast<float>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_CNO_BITS)) * RC4_SIG_BLK_CNO_SCALE_FACTOR;
+    stReferenceBlock_.fCNo = static_cast<double>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_CNO_BITS)) * RC4_SIG_BLK_CNO_SCALE_FACTOR;
     stReferenceBlock_.ucLockTimeBitfield = static_cast<uint8_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_LOCK_TIME_BITS));
     stReferenceBlock_.ucPSRBitfield = static_cast<uint8_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_PSR_STDDEV_BITS));
     stReferenceBlock_.ucADRBitfield = static_cast<uint8_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_ADR_STDDEV_BITS));
@@ -559,7 +559,7 @@ void RangeDecompressor::DecompressDifferentialBlock(uint8_t** ppucDataPointer_, 
     // These fields are the same size regardless of the reference block being primary or secondary.
     stDifferentialBlock_.bParityKnown = static_cast<bool>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_PARITY_FLAG_BITS));
     stDifferentialBlock_.bHalfCycleAdded = static_cast<bool>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_HALF_CYCLE_BITS));
-    stDifferentialBlock_.fCNo = static_cast<float>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_CNO_BITS)) * RC4_SIG_BLK_CNO_SCALE_FACTOR;
+    stDifferentialBlock_.fCNo = static_cast<double>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_CNO_BITS)) * RC4_SIG_BLK_CNO_SCALE_FACTOR;
     stDifferentialBlock_.ucLockTimeBitfield = static_cast<uint8_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_LOCK_TIME_BITS));
     stDifferentialBlock_.ucPSRBitfield = static_cast<uint8_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_PSR_STDDEV_BITS));
     stDifferentialBlock_.ucADRBitfield = static_cast<uint8_t>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_ADR_STDDEV_BITS));
@@ -625,8 +625,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     stRangeData_.dADR =
         stBlock_.bValidPhaseRange ? MAGIC_NEGATE * (stBlock_.dPhaseRange / dSignalWavelength) : std::numeric_limits<double>::quiet_NaN();
     stRangeData_.fADRStdDev = afTheRangeCmp4ADRStdDevValues[stBlock_.ucADRBitfield];
-    stRangeData_.fDopplerFrequency =
-        stBlock_.bValidDoppler ? static_cast<float>(MAGIC_NEGATE * (stBlock_.dDoppler / dSignalWavelength)) : std::numeric_limits<float>::quiet_NaN();
+    stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? static_cast<double>(MAGIC_NEGATE * (stBlock_.dDoppler / dSignalWavelength))
+                                                            : std::numeric_limits<double>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
     stRangeData_.fLockTime = DetermineRangeCmp4ObservationLockTime(
         stMetaData_, stBlock_.ucLockTimeBitfield, stChannelTrackingStatus_.eSatelliteSystem, stChannelTrackingStatus_.eSignalType, uiPRN_);
@@ -657,16 +657,16 @@ void RangeDecompressor::RangeCmpToRange(const RangeCmpStruct& stRangeCmpMessage_
         // Extend the sign
         auto iTempDoppler = static_cast<int32_t>(stRangeCmpData.ulDopplerFrequencyPSRField & RC_DOPPLER_FREQUENCY_MASK);
         if ((iTempDoppler & RC_DOPPLER_FREQUENCY_SIGNBIT_MASK) != 0U) { iTempDoppler |= RC_DOPPLER_FREQUENCY_SIGNEXT_MASK; }
-        stRangeData.fDopplerFrequency = static_cast<float>(iTempDoppler / RC_DOPPLER_FREQUENCY_SCALE_FACTOR);
+        stRangeData.fDopplerFrequency = static_cast<double>(iTempDoppler / RC_DOPPLER_FREQUENCY_SCALE_FACTOR);
 
         stRangeData.dPSR = static_cast<double>(((stRangeCmpData.ulDopplerFrequencyPSRField & RC_PSR_MEASUREMENT_MASK) >> RC_PSR_MEASUREMENT_SHIFT) /
                                                RC_PSR_MEASUREMENT_SCALE_FACTOR);
         stRangeData.fPSRStdDev = afTheRangeCmpPSRStdDevValues[static_cast<uint8_t>(stRangeCmpData.ucStdDevPSRStdDevADR & RC_PSR_STDDEV_MASK)];
         stRangeData.fADRStdDev =
-            static_cast<float>((RC_ADR_STDDEV_SCALE_OFFSET + ((stRangeCmpData.ucStdDevPSRStdDevADR & RC_ADR_STDDEV_MASK) >> RC_ADR_STDDEV_SHIFT)) /
-                               RC_ADR_STDDEV_SCALE_FACTOR);
-        stRangeData.fLockTime = static_cast<float>((stRangeCmpData.uiLockTimeCNoGLOFreq & RC_LOCK_TIME_MASK) / RC_LOCK_TIME_SCALE_FACTOR);
-        stRangeData.fCNo = static_cast<float>(RC_CNO_SCALE_OFFSET + ((stRangeCmpData.uiLockTimeCNoGLOFreq & RC_CNO_MASK) >> RC_CNO_SHIFT));
+            static_cast<double>((RC_ADR_STDDEV_SCALE_OFFSET + ((stRangeCmpData.ucStdDevPSRStdDevADR & RC_ADR_STDDEV_MASK) >> RC_ADR_STDDEV_SHIFT)) /
+                                RC_ADR_STDDEV_SCALE_FACTOR);
+        stRangeData.fLockTime = static_cast<double>((stRangeCmpData.uiLockTimeCNoGLOFreq & RC_LOCK_TIME_MASK) / RC_LOCK_TIME_SCALE_FACTOR);
+        stRangeData.fCNo = static_cast<double>(RC_CNO_SCALE_OFFSET + ((stRangeCmpData.uiLockTimeCNoGLOFreq & RC_CNO_MASK) >> RC_CNO_SHIFT));
         stRangeData.sGLONASSFrequency =
             static_cast<int16_t>((stRangeCmpData.uiLockTimeCNoGLOFreq & RC_GLONASS_FREQUENCY_MASK) >> RC_GLONASS_FREQUENCY_SHIFT);
 
@@ -733,10 +733,10 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
                                                          RC2_SIG_DOPPLER_DIFF_SHIFT);
             if ((iDopplerBitfield & RC2_SIG_DOPPLER_DIFF_SIGNBIT_MASK) != 0U) { iDopplerBitfield |= RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK; }
 
-            const auto fPSRDiff = static_cast<float>((stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_PSR_DIFF_MASK) >> RC2_SIG_PSR_DIFF_SHIFT);
-            const auto fPhaseRangeDiff = static_cast<float>(
+            const auto fPSRDiff = static_cast<double>((stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_PSR_DIFF_MASK) >> RC2_SIG_PSR_DIFF_SHIFT);
+            const auto fPhaseRangeDiff = static_cast<double>(
                 static_cast<uint64_t>(stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_PHASERANGE_DIFF_MASK) >> RC2_SIG_PHASERANGE_DIFF_SHIFT);
-            const auto fScaledDopplerDiff = static_cast<float>(static_cast<float>(iDopplerBitfield) / RC2_SIG_DOPPLER_DIFF_SCALE_FACTOR);
+            const auto fScaledDopplerDiff = static_cast<double>(static_cast<double>(iDopplerBitfield) / RC2_SIG_DOPPLER_DIFF_SCALE_FACTOR);
 
             // Construct the ChannelTrackingStatus word
             ChannelTrackingStatusStruct stChannelTrackingStatus(stRangeCmp2SatBlock, stRangeCmp2SigBlock);
@@ -751,9 +751,9 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
                                (static_cast<double>(iPSRBase) + static_cast<double>(fPhaseRangeDiff / RC2_SIG_PHASERANGE_DIFF_SCALE_FACTOR)) /
                                (GetSignalWavelength(stChannelTrackingStatus, (stRangeData.sGLONASSFrequency - GLONASS_FREQUENCY_NUMBER_OFFSET)));
             stRangeData.fADRStdDev = afTheRangeCmp2ADRStdDevValues[ucADRBitfield];
-            stRangeData.fDopplerFrequency = static_cast<float>(iDopplerBase + fScaledDopplerDiff) /
-                                            static_cast<float>(mmTheRangeCmp2SignalScalingMapping[eSatelliteSystem][eSignalType]);
-            stRangeData.fCNo = RC2_SIG_CNO_SCALE_OFFSET + static_cast<float>(stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_CNO_MASK);
+            stRangeData.fDopplerFrequency = static_cast<double>(iDopplerBase + fScaledDopplerDiff) /
+                                            static_cast<double>(mmTheRangeCmp2SignalScalingMapping[eSatelliteSystem][eSignalType]);
+            stRangeData.fCNo = RC2_SIG_CNO_SCALE_OFFSET + static_cast<double>(stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_CNO_MASK);
             stRangeData.fLockTime = DetermineRangeCmp2ObservationLockTime(stMetaData_, uiLocktimeBits, stChannelTrackingStatus.eSatelliteSystem,
                                                                           stChannelTrackingStatus.eSignalType, usPRN);
             stRangeData.uiChannelTrackingStatus = stChannelTrackingStatus.GetAsWord();
