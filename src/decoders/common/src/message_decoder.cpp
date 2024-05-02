@@ -337,7 +337,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, 
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            auto uiArraySize = *reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
+            const uint32_t uiArraySize = *reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
             *ppucLogBuf_ += sizeof(uint32_t);
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
@@ -356,14 +356,14 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, 
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
-            auto* puiArraySize = reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
+            const uint32_t uiArraySize = *reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
             *ppucLogBuf_ += sizeof(int32_t);
             auto* subFieldDefinitions = dynamic_cast<FieldArrayField*>(field);
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
-            pvFieldArrayContainer.reserve(*puiArraySize);
+            pvFieldArrayContainer.reserve(uiArraySize);
 
-            for (uint32_t i = 0; i < *puiArraySize; ++i)
+            for (uint32_t i = 0; i < uiArraySize; ++i)
             {
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().fieldValue);
@@ -473,7 +473,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
             uint32_t uiArraySize = 0;
             if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = dynamic_cast<const ArrayField*>(field)->arrayLength; }
-            if (field->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+            else
             {
                 uiArraySize = strtoul(*ppcLogBuf_, nullptr, 10);
 
