@@ -108,12 +108,12 @@ class RangeDecompressor
 
   private:
     double GetSignalWavelength(const ChannelTrackingStatusStruct& stChannelTrackingStatus_, int16_t sGLONASSFrequency_);
-    float DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
-                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_);
-    float DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
-                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
+    double DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
+                                                 ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
+                                                 ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_);
+    double DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
+                                                 ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
+                                                 ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
     template <bool bIsSecondary>
     void DecompressReferenceBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_,
                                   MEASUREMENT_SOURCE eMeasurementSource_);
