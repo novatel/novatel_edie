@@ -11,8 +11,10 @@ void init_novatel_framer(nb::module_& m)
     nb::class_<oem::Framer>(m, "Framer")
         .def(nb::init<>())
         .def_prop_ro("logger", [](oem::Framer& self) { return self.GetLogger(); })
-        .def("set_frame_json", &oem::Framer::SetFrameJson, "frame_json"_a)
-        .def("set_payload_only", &oem::Framer::SetPayloadOnly, "payload_only"_a)
+        .def(
+            "set_frame_json", [](oem::Framer& self, bool frame_json) { self.SetFrameJson(frame_json); }, "frame_json"_a)
+        .def(
+            "set_payload_only", [](oem::Framer& self, bool payload_only) { self.SetPayloadOnly(payload_only); }, "payload_only"_a)
         .def(
             "set_report_unknown_bytes", [](oem::Framer& self, bool report_unknown_bytes) { self.SetReportUnknownBytes(report_unknown_bytes); },
             "report_unknown_bytes"_a)
