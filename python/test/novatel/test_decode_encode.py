@@ -138,55 +138,55 @@ def helper():
     return Helper()
 
 
-def compare_binary_headers(from_binary_header: "ne.OEM4BinaryHeader", from_ascii_header: "ne.OEM4BinaryHeader"):
+def compare_binary_headers(from_binary_header: "ne.Oem4BinaryHeader", from_ascii_header: "ne.Oem4BinaryHeader"):
     result = True
     if from_binary_header.sync1 != from_ascii_header.sync1:
-        print(f"OEM4BinaryHeader.sync1 (expected {from_binary_header.sync1}, got {from_ascii_header.sync1})")
+        print(f"Oem4BinaryHeader.sync1 (expected {from_binary_header.sync1}, got {from_ascii_header.sync1})")
         result = False
     if from_binary_header.sync2 != from_ascii_header.sync2:
-        print(f"OEM4BinaryHeader.sync2 (expected {from_binary_header.sync2}, got {from_ascii_header.sync2})")
+        print(f"Oem4BinaryHeader.sync2 (expected {from_binary_header.sync2}, got {from_ascii_header.sync2})")
         result = False
     if from_binary_header.sync3 != from_ascii_header.sync3:
-        print(f"OEM4BinaryHeader.sync3 (expected {from_binary_header.sync3}, got {from_ascii_header.sync3})")
+        print(f"Oem4BinaryHeader.sync3 (expected {from_binary_header.sync3}, got {from_ascii_header.sync3})")
         result = False
     if from_binary_header.header_length != from_ascii_header.header_length:
-        print(f"OEM4BinaryHeader.header_length (expected {from_binary_header.header_length}, got {from_ascii_header.header_length})")
+        print(f"Oem4BinaryHeader.header_length (expected {from_binary_header.header_length}, got {from_ascii_header.header_length})")
         result = False
     if from_binary_header.msg_number != from_ascii_header.msg_number:
-        print(f"OEM4BinaryHeader.msg_number (expected {from_binary_header.msg_number}, got {from_ascii_header.msg_number})")
+        print(f"Oem4BinaryHeader.msg_number (expected {from_binary_header.msg_number}, got {from_ascii_header.msg_number})")
         result = False
     if from_binary_header.msg_type != from_ascii_header.msg_type:
-        print(f"OEM4BinaryHeader.msg_type (expected {from_binary_header.msg_type}, got {from_ascii_header.msg_type})")
+        print(f"Oem4BinaryHeader.msg_type (expected {from_binary_header.msg_type}, got {from_ascii_header.msg_type})")
         result = False
     if from_binary_header.port != from_ascii_header.port:
-        print(f"OEM4BinaryHeader.port (expected {from_binary_header.port}, got {from_ascii_header.port})")
+        print(f"Oem4BinaryHeader.port (expected {from_binary_header.port}, got {from_ascii_header.port})")
         result = False
     if from_binary_header.length != from_ascii_header.length:
-        print(f"OEM4BinaryHeader.length (expected {from_binary_header.length}, got {from_ascii_header.length})")
+        print(f"Oem4BinaryHeader.length (expected {from_binary_header.length}, got {from_ascii_header.length})")
         result = False
     if from_binary_header.sequence_number != from_ascii_header.sequence_number:
-        print(f"OEM4BinaryHeader.sequence_number (expected {from_binary_header.sequence_number}, got {from_ascii_header.sequence_number})")
+        print(f"Oem4BinaryHeader.sequence_number (expected {from_binary_header.sequence_number}, got {from_ascii_header.sequence_number})")
         result = False
     if from_binary_header.idle_time != from_ascii_header.idle_time:
-        print(f"OEM4BinaryHeader.idle_time (expected {from_binary_header.idle_time}, got {from_ascii_header.idle_time})")
+        print(f"Oem4BinaryHeader.idle_time (expected {from_binary_header.idle_time}, got {from_ascii_header.idle_time})")
         result = False
     if from_binary_header.time_status != from_ascii_header.time_status:
-        print(f"OEM4BinaryHeader.time_status (expected {from_binary_header.time_status}, got {from_ascii_header.time_status})")
+        print(f"Oem4BinaryHeader.time_status (expected {from_binary_header.time_status}, got {from_ascii_header.time_status})")
         result = False
     if from_binary_header.week_no != from_ascii_header.week_no:
-        print(f"OEM4BinaryHeader.week_no (expected {from_binary_header.week_no}, got {from_ascii_header.week_no})")
+        print(f"Oem4BinaryHeader.week_no (expected {from_binary_header.week_no}, got {from_ascii_header.week_no})")
         result = False
     if from_binary_header.week_msec != from_ascii_header.week_msec:
-        print(f"OEM4BinaryHeader.weekMSec (expected {from_binary_header.week_msec}, got {from_ascii_header.week_msec})")
+        print(f"Oem4BinaryHeader.weekMSec (expected {from_binary_header.week_msec}, got {from_ascii_header.week_msec})")
         result = False
     if from_binary_header.status != from_ascii_header.status:
-        print(f"OEM4BinaryHeader.status (expected {from_binary_header.status}, got {from_ascii_header.status})")
+        print(f"Oem4BinaryHeader.status (expected {from_binary_header.status}, got {from_ascii_header.status})")
         result = False
     if from_binary_header.msg_def_crc != from_ascii_header.msg_def_crc:
-        print(f"OEM4BinaryHeader.msg_defCRC (expected {from_binary_header.msg_def_crc}, got {from_ascii_header.msg_def_crc})")
+        print(f"Oem4BinaryHeader.msg_defCrc (expected {from_binary_header.msg_def_crc}, got {from_ascii_header.msg_def_crc})")
         result = False
     if from_binary_header.receiver_sw_version != from_ascii_header.receiver_sw_version:
-        print(f"OEM4BinaryHeader.receiverSWVersion (expected {from_binary_header.receiver_sw_version}, got {from_ascii_header.receiver_sw_version})")
+        print(f"Oem4BinaryHeader.receiverSwVersion (expected {from_binary_header.receiver_sw_version}, got {from_ascii_header.receiver_sw_version})")
         result = False
     return result
 
@@ -244,12 +244,12 @@ def compare_message_data(test_md: ne.MessageData, expected_md: ExpectedMessageDa
 
 
 # -------------------------------------------------------------------------------------------------------
-# Logging Decode/Encode Unit Tests
+# Logger Decode/Encode Unit Tests
 # -------------------------------------------------------------------------------------------------------
 @pytest.mark.parametrize(("ne_class", "logger_name"), [
     (ne.HeaderDecoder, "novatel_header_decoder"),
-    (ne.MessageDecoder, "novatel_message_decoder"),
-    (ne.Encoder, "novatel_encoder"),
+    (ne.MessageDecoder, "message_decoder"),
+    (ne.Encoder, "encoder"),
 ])
 def test_LOGGER(ne_class, logger_name):
     level = ne.LogLevel.OFF
@@ -289,38 +289,38 @@ def test_ASCII_LOG_ROUNDTRIP_GLOALMANAC(helper):
 
 def test_ASCII_LOG_ROUNDTRIP_GLOEPHEM(helper):
     log = b"#GLOEPHEMERISA,COM1,11,67.0,SATTIME,2168,160218.000,02000820,8d29,32768;51,0,1,80,2168,161118000,10782,573,0,0,95,0,-2.3917966796875000e+07,4.8163881835937500e+06,7.4258510742187500e+06,-1.0062713623046875e+03,1.8321990966796875e+02,-3.3695755004882813e+03,1.86264514923095700e-06,-9.31322574615478510e-07,-0.00000000000000000,-6.69313594698905940e-05,5.587935448e-09,0.00000000000000000,84600,3,2,0,13*ad20fc5f\r\n"
-    ret_code, message_data, glo_ephpemeris = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
+    ret_code, message_data, glo_ephemeris = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
     assert ret_code == Result.SUCCESS
 
-    assert glo_ephpemeris.sloto == 51
-    assert glo_ephpemeris.freqo == 0
-    assert glo_ephpemeris.sat_type == 1
-    assert glo_ephpemeris.false_iod == 80
-    assert glo_ephpemeris.ephem_week == 2168
-    assert glo_ephpemeris.ephem_time == 161118000
-    assert glo_ephpemeris.time_offset == 10782
-    assert glo_ephpemeris.nt == 573
-    assert glo_ephpemeris.GLOEPHEMERIS_reserved == 0
-    assert glo_ephpemeris.GLOEPHEMERIS_reserved_9 == 0
-    assert glo_ephpemeris.issue == 95
-    assert glo_ephpemeris.broadcast_health == 0
-    assert glo_ephpemeris.pos_x == -2.3917966796875000e+07
-    assert glo_ephpemeris.pos_y == 4.8163881835937500e+06
-    assert glo_ephpemeris.pos_z == 7.4258510742187500e+06
-    assert glo_ephpemeris.vel_x == -1.0062713623046875e+03
-    assert glo_ephpemeris.vel_y == 1.8321990966796875e+02
-    assert glo_ephpemeris.vel_z == -3.3695755004882813e+03
-    assert glo_ephpemeris.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
-    assert glo_ephpemeris.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
-    assert glo_ephpemeris.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
-    assert glo_ephpemeris.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
-    assert glo_ephpemeris.delta_tau == 5.587935448e-09
-    assert glo_ephpemeris.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
-    assert glo_ephpemeris.tk == 84600
-    assert glo_ephpemeris.p == 3
-    assert glo_ephpemeris.ft == 2
-    assert glo_ephpemeris.age == 0
-    assert glo_ephpemeris.flags == 13
+    assert glo_ephemeris.sloto == 51
+    assert glo_ephemeris.freqo == 0
+    assert glo_ephemeris.sat_type == 1
+    assert glo_ephemeris.false_iod == 80
+    assert glo_ephemeris.ephem_week == 2168
+    assert glo_ephemeris.ephem_time == 161118000
+    assert glo_ephemeris.time_offset == 10782
+    assert glo_ephemeris.nt == 573
+    assert glo_ephemeris.GLOEPHEMERIS_reserved == 0
+    assert glo_ephemeris.GLOEPHEMERIS_reserved_9 == 0
+    assert glo_ephemeris.issue == 95
+    assert glo_ephemeris.broadcast_health == 0
+    assert glo_ephemeris.pos_x == -2.3917966796875000e+07
+    assert glo_ephemeris.pos_y == 4.8163881835937500e+06
+    assert glo_ephemeris.pos_z == 7.4258510742187500e+06
+    assert glo_ephemeris.vel_x == -1.0062713623046875e+03
+    assert glo_ephemeris.vel_y == 1.8321990966796875e+02
+    assert glo_ephemeris.vel_z == -3.3695755004882813e+03
+    assert glo_ephemeris.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
+    assert glo_ephemeris.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
+    assert glo_ephemeris.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
+    assert glo_ephemeris.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
+    assert glo_ephemeris.delta_tau == 5.587935448e-09
+    assert glo_ephemeris.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
+    assert glo_ephemeris.tk == 84600
+    assert glo_ephemeris.p == 3
+    assert glo_ephemeris.ft == 2
+    assert glo_ephemeris.age == 0
+    assert glo_ephemeris.flags == 13
 
 
 def test_ASCII_LOG_ROUNDTRIP_LOGLIST(helper):
@@ -483,7 +483,7 @@ def test_FLAT_BINARY_LOG_DECODE_BESTPOS(helper):
     ret_code, message_data, bestpos = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
     assert ret_code == Result.SUCCESS
 
-    log_header = ne.OEM4BinaryHeader(message_data.header)
+    log_header = ne.Oem4BinaryHeader(message_data.header)
     assert log_header.sync1 == ne.OEM4_BINARY_SYNC1
     assert log_header.sync2 == ne.OEM4_BINARY_SYNC2
     assert log_header.sync3 == ne.OEM4_BINARY_SYNC3
@@ -530,7 +530,7 @@ def test_FLAT_BINARY_LOG_DECODE_GLOEPHEMA(helper):
     ret_code, message_data, gloephemeris = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
     assert ret_code == Result.SUCCESS
 
-    log_header = ne.OEM4BinaryHeader(message_data.header)
+    log_header = ne.Oem4BinaryHeader(message_data.header)
     assert log_header.sync1 == ne.OEM4_BINARY_SYNC1
     assert log_header.sync2 == ne.OEM4_BINARY_SYNC2
     assert log_header.sync3 == ne.OEM4_BINARY_SYNC3
@@ -587,8 +587,8 @@ def test_FLAT_BINARY_LOG_DECODE_PORTSTATSB(helper):
     assert ret_code == Result.SUCCESS
     assert 1356 == len(message_data.message)
 
-    log_header = ne.OEM4BinaryHeader(message_data.header)
-    test_log_header = ne.OEM4BinaryHeader(log)
+    log_header = ne.Oem4BinaryHeader(message_data.header)
+    test_log_header = ne.Oem4BinaryHeader(log)
     test_log_header.length = 1356 - (ne.OEM4_BINARY_HEADER_LENGTH + ne.OEM4_BINARY_CRC_LENGTH)  # Change the length so header comparison passes
     assert compare_binary_headers(test_log_header, log_header)
 
@@ -606,8 +606,8 @@ def test_FLAT_BINARY_LOG_DECODE_PSRDOPB(helper):
     assert ret_code == Result.SUCCESS
     assert 1360 == len(message_data.message)
 
-    log_header = ne.OEM4BinaryHeader(message_data.header)
-    test_log_header = ne.OEM4BinaryHeader(log)
+    log_header = ne.Oem4BinaryHeader(message_data.header)
+    test_log_header = ne.Oem4BinaryHeader(log)
     test_log_header.length = 1360 - (ne.OEM4_BINARY_HEADER_LENGTH + ne.OEM4_BINARY_CRC_LENGTH)  # Change the length so header comparison passes
     assert compare_binary_headers(test_log_header, log_header)
 
@@ -623,8 +623,8 @@ def test_FLAT_BINARY_LOG_DECODE_VALIDMODELSB(helper):
     assert ret_code == Result.SUCCESS
     assert 708 == len(message_data.message)
 
-    log_header = ne.OEM4BinaryHeader(message_data.header)
-    test_log_header = ne.OEM4BinaryHeader(log)
+    log_header = ne.Oem4BinaryHeader(message_data.header)
+    test_log_header = ne.Oem4BinaryHeader(log)
     test_log_header.length = 708 - (ne.OEM4_BINARY_HEADER_LENGTH + ne.OEM4_BINARY_CRC_LENGTH)  # Change the length so header comparison passes
     assert compare_binary_headers(test_log_header, log_header)
 
@@ -645,7 +645,7 @@ def test_FLAT_BINARY_LOG_DECODE_VERSION(helper):
     assert ret_code == Result.SUCCESS
     assert 2196 == len(message_data.message)
 
-    log_header = ne.OEM4BinaryHeader(message_data.header)
+    log_header = ne.Oem4BinaryHeader(message_data.header)
     assert log_header.sync1 == ne.OEM4_BINARY_SYNC1
     assert log_header.sync2 == ne.OEM4_BINARY_SYNC2
     assert log_header.sync3 == ne.OEM4_BINARY_SYNC3
@@ -714,7 +714,7 @@ def test_FLAT_BINARY_LOG_DECODE_VERSIONA(helper):
     assert ret_code == Result.SUCCESS
     assert 2196 == len(message_data.message)
 
-    log_header = ne.OEM4BinaryHeader(message_data.header)
+    log_header = ne.Oem4BinaryHeader(message_data.header)
     assert log_header.sync1 == ne.OEM4_BINARY_SYNC1
     assert log_header.sync2 == ne.OEM4_BINARY_SYNC2
     assert log_header.sync3 == ne.OEM4_BINARY_SYNC3
@@ -777,8 +777,8 @@ def test_FLAT_BINARY_LOG_DECODE_VERSIONB(helper):
     assert ret_code == Result.SUCCESS
     assert 2196 == len(message_data.message)
 
-    log_header = ne.OEM4BinaryHeader(message_data.header)
-    test_log_header = ne.OEM4BinaryHeader(log)
+    log_header = ne.Oem4BinaryHeader(message_data.header)
+    test_log_header = ne.Oem4BinaryHeader(log)
     test_log_header.length = 2196 - (ne.OEM4_BINARY_HEADER_LENGTH + ne.OEM4_BINARY_CRC_LENGTH)  # Change the length so header comparison passes
     assert compare_binary_headers(test_log_header, log_header)
 
@@ -993,8 +993,8 @@ def test_CONVERSION_ASC_TO_ABB_FIELDS_AFTER_ARRAY(helper):
 # To FLATTENED_BINARY Conversion Decode/Encode Assertion Functions.
 # -------------------------------------------------------------------------------------------------------
 def ASSERT_HEADER_EQ(header1_, header2_):
-    header1 = ne.OEM4BinaryHeader(header1_)
-    header2 = ne.OEM4BinaryHeader(header2_)
+    header1 = ne.Oem4BinaryHeader(header1_)
+    header2 = ne.Oem4BinaryHeader(header2_)
     assert header1.sync1 == header2.sync1
     assert header1.sync2 == header2.sync2
     assert header1.sync3 == header2.sync3
@@ -1014,8 +1014,8 @@ def ASSERT_HEADER_EQ(header1_, header2_):
 
 
 def ASSERT_SHORT_HEADER_EQ(short_header_, header_):
-    short_header = ne.OEM4BinaryShortHeader(short_header_)
-    header = ne.OEM4BinaryHeader(header_)
+    short_header = ne.Oem4BinaryShortHeader(short_header_)
+    header = ne.Oem4BinaryHeader(header_)
     assert short_header.sync1 == header.sync1
     assert short_header.sync2 == header.sync2
     assert short_header.sync3 == header.sync3 + 1

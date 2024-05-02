@@ -13,7 +13,7 @@ void init_novatel_header_decoder(nb::module_& m)
         .def(nb::init<JsonReader::Ptr&>(), "json_db"_a)
         .def("__init__", [](oem::HeaderDecoder* t) { new (t) oem::HeaderDecoder(JsonDbSingleton::get()); })
         .def("load_json_db", &oem::HeaderDecoder::LoadJsonDb, "json_db"_a)
-        .def_prop_ro("logger", &oem::HeaderDecoder::GetLogger)
+        .def_prop_ro("logger", [](oem::HeaderDecoder& decoder) { return decoder.GetLogger(); })
         .def(
             "decode",
             [](oem::HeaderDecoder& decoder, nb::bytes raw_header, oem::MetaDataStruct& metadata) {

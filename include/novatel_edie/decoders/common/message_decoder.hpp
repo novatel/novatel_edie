@@ -55,8 +55,6 @@ struct FieldContainer
 
     template <class T> FieldContainer(T tFieldValue_, BaseField::ConstPtr pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_) {}
 
-    FieldContainer([[maybe_unused]] const FieldContainer& obj_) {}
-
     // [[deprecated("Avoid copying of FieldContainer objects")]]
     // FieldContainer([[maybe_unused]] const FieldContainer& obj) = default;
     // [[deprecated("Avoid copying of FieldContainer objects")]]
