@@ -41,7 +41,7 @@ def commander():
     return ne.Commander()
 
 # -------------------------------------------------------------------------------------------------------
-# Logging Command Encoding Unit Tests
+# Logger Command Encoding Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_LOGGER():
     name = "novatel_commander"
@@ -80,7 +80,7 @@ def test_COMMAND_ENCODE_BINARY_CONFIGCODE(commander):
     assert encoded_command == expected_command
 
 def test_COMMAND_ENCODE_BINARY_LOG_PARTIAL(commander):
-    command_to_encode = b"LOG THISPORT BESTPOSA ONCE"
+    command_to_encode = b"LOG THISPORT BESTPOSA ONCE\r\n"
     status, encoded_command = commander.encode(command_to_encode, ENCODE_FORMAT.BINARY)
     assert status == STATUS.MALFORMED_INPUT
 
