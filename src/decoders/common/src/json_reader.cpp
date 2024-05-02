@@ -26,6 +26,7 @@
 
 #include "json_reader.hpp"
 #include "common.hpp"
+#include "crc32.hpp"
 
 namespace novatel::edie {
 
@@ -137,36 +138,41 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField*>& vFields_)
         const auto sFieldType = field.at("type").get<std::string>();
         const auto stDataType = field.at("dataType").get<BaseDataType>();
 
-        if (sFieldType == "SIMPLE")
+        switch (CalculateBlockCrc32(sFieldType.c_str()))
         {
+        case CalculateBlockCrc32("SIMPLE"): {
             auto pstField = new BaseField;
             *pstField = field;
             vFields_.push_back(pstField);
             uiFieldSize += stDataType.length;
+            break;
         }
-        else if (sFieldType == "ENUM")
-        {
+        case CalculateBlockCrc32("ENUM"): {
             auto pstField = new EnumField;
             *pstField = field;
             pstField->length = stDataType.length;
             vFields_.push_back(pstField);
             uiFieldSize += stDataType.length;
+            break;
         }
-        else if (sFieldType == "FIXED_LENGTH_ARRAY" || sFieldType == "VARIABLE_LENGTH_ARRAY" || sFieldType == "STRING")
-        {
+        case CalculateBlockCrc32("FIXED_LENGTH_ARRAY"): [[fallthrough]];
+        case CalculateBlockCrc32("VARIABLE_LENGTH_ARRAY"): [[fallthrough]];
+        case CalculateBlockCrc32("STRING"): {
             auto pstField = new ArrayField;
             *pstField = field;
             vFields_.push_back(pstField);
             uint32_t uiArrayLength = field.at("arrayLength").get<uint32_t>();
             uiFieldSize += (stDataType.length * uiArrayLength);
+            break;
         }
-        else if (sFieldType == "FIELD_ARRAY")
-        {
+        case CalculateBlockCrc32("FIELD_ARRAY"): {
             auto pstField = new FieldArrayField;
             *pstField = field;
             vFields_.push_back(pstField);
+            break;
         }
-        else { throw std::runtime_error("Could not find field type"); }
+        default: throw std::runtime_error("Could not find field type");
+        }
     }
     return uiFieldSize;
 }
