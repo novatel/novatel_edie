@@ -43,14 +43,14 @@ def fp():
 
 
 def test_LOGGER():
-    assert ne.Logging.get("novatel_fileparser") is None
+    assert ne.Logging.get("novatel_file_parser") is None
     assert ne.Logging.get("novatel_parser") is None
     # FileParser logger
     level = ne.LogLevel.OFF
     file_parser = ne.FileParser()
     logger = file_parser.logger
     logger.set_level(level)
-    assert logger.name == "novatel_fileparser"
+    assert logger.name == "novatel_file_parser"
     assert logger.level == level
     # Parser logger
     file_parser.enable_framer_decoder_logging(level, "novatel_parser.log")
@@ -79,7 +79,7 @@ def test_UNKNOWN_BYTES(fp):
 
 
 def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
-    # Reset the with the database because a previous test assigns it to the nullptr
+    # Reset the FileParser with the database because a previous test assigns it to the nullptr
     fp.filter = ne.Filter()
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
 
