@@ -1,2 +1,6 @@
-Checks: '-*, portability-*'
-HeaderFilterRegex: 'src/.*'
+Checks: '-*,
+modernize-*, 
+	-modernize-avoid-c-arrays,
+HeaderFilterRegex: 'src/.*|examples/.*'
+WarningsAsErrors: '*'
+ExtraArgs: - -Wno-unknown-pragmas # TODO: remove this after switch to clang-tidy-18
