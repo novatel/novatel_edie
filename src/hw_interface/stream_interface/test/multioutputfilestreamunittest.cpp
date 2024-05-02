@@ -28,8 +28,8 @@
 #include <gtest/gtest.h>
 #include <string>
 
+#include "decoders/common/api/nexcept.hpp"
 #include "hw_interface/stream_interface/api/multioutputfilestream.hpp"
-#include "nexcept.h"
 
 class MultiOutputFileStreamTest : public ::testing::Test
 {

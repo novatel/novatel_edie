@@ -27,7 +27,7 @@
 #include <iterator>
 #include <map>
 
-#include "decoders/common/api/nexcept.h"
+#include "decoders/common/api/nexcept.hpp"
 #include "multioutputfilestream.hpp"
 
 // ---------------------------------------------------------

@@ -26,7 +26,7 @@
 
 #include <string>
 
-#include "decoders/common/api/nexcept.h"
+#include "decoders/common/api/nexcept.hpp"
 #include "filestream.hpp"
 
 // ---------------------------------------------------------

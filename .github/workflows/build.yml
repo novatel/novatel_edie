@@ -14,16 +14,16 @@ jobs:
     strategy:
       matrix:
         platform:
-          - [windows, windows-latest, msvc, debug]
-          - [windows, windows-latest, msvc, release]
-          - [windows, windows-latest, gcc, debug]
-          - [windows, windows-latest, gcc, release]
-          - [windows, windows-latest, clang, debug]
-          - [windows, windows-latest, clang, release]
-          - [linux, ubuntu-latest, gcc, debug]
-          - [linux, ubuntu-latest, gcc, release]
-          - [linux, ubuntu-latest, clang, debug]
-          - [linux, ubuntu-latest, clang, release]
+          - [windows, windows-latest, msvc, Debug]
+          - [windows, windows-latest, msvc, Release]
+          - [windows, windows-latest, gcc, Debug]
+          - [windows, windows-latest, gcc, Release]
+          - [windows, windows-latest, clang, Debug]
+          - [windows, windows-latest, clang, Release]
+          - [linux, ubuntu-latest, gcc, Debug]
+          - [linux, ubuntu-latest, gcc, Release]
+          - [linux, ubuntu-latest, clang, Debug]
+          - [linux, ubuntu-latest, clang, Release]
     env:
       OPERATING_SYSTEM: ${{ matrix.platform[0] }}
       DISTRIBUTION: ${{ matrix.platform[1] }}
@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Install Clang
-        if: matrix.platform[2] == 'clang'
+        if: env.COMPILER == 'clang'
         uses: KyleMayes/install-llvm-action@v1
         with:
           version: "17.0"
@@ -45,40 +45,35 @@ jobs:
       - name: Configure
         shell: bash
         run: |
-          if [ "${{ matrix.platform[2] }}" == "msvc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.platform[3] }} -G "Visual Studio 17 2022" -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-${{ matrix.platform[0] }}-msvc -DCMAKE_C_COMPILER_TARGET=x86_64-pc-${{ matrix.platform[0] }}-msvc
-          elif [ "${{ matrix.platform[2] }}" == "clang" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.platform[3] }} -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-${{ matrix.platform[0] }}-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-${{ matrix.platform[0] }}-gnu
-          elif [ "${{ matrix.platform[2] }}" == "gcc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.platform[3] }} -G Ninja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-${{ matrix.platform[0] }}-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-${{ matrix.platform[0] }}-gnu
+          if [ "${{ env.COMPILER }}" == "msvc" ]; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-msvc -DCMAKE_C_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-msvc
+          elif [ "${{ env.COMPILER }}" == "clang" ]; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu
+          elif [ "${{ env.COMPILER }}" == "gcc" ]; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu
           fi
 
       - name: Build
-        run: cmake --build build --parallel --config ${{ matrix.platform[3] }}
+        run: cmake --build build --parallel --config ${{ env.BUILD_TYPE }}
 
       - name: Test
         # TODO: figure out why unit testing doesn't work on windows clang
         if: |
-            !(matrix.platform[0] == 'windows' && matrix.platform[2] == 'clang')
-        run: ctest --test-dir build --build-config ${{ matrix.platform[3] }} --output-on-failure
+            !(env.OPERATING_SYSTEM == 'windows' && env.COMPILER == 'clang')
+        run: ctest --test-dir build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
       - name: Regression
         # TODO: figure out why regression testing doesn't work on windows gnu or windows clang
         if: |
-            !(matrix.platform[0] == 'windows' && (matrix.platform[2] == 'gcc' || matrix.platform[2] == 'clang'))
+            !(env.OPERATING_SYSTEM == 'windows' && (env.COMPILER == 'gcc' || env.COMPILER == 'clang'))
         shell: bash
         run: |
           echo "Starting regression tests for $OPERATING_SYSTEM $BUILD_TYPE"
           failures=()
 
           for FORMAT in "ASCII" "ABBREV_ASCII" "BINARY" "FLATTENED_BINARY" "JSON"; do
-              # TODO: this is dumb, these linux folders probably shouldnt include OS version in their names
-              if [ "$OPERATING_SYSTEM" == "linux" ]; then
-                  ./bin/$BUILD_TYPE-x64-Ubuntu-22.04/examples/Converter_Components/Converter_Components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
-              else
-                  ./bin/$BUILD_TYPE-x64-Windows/examples/Converter_Components/Converter_Components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
-              fi
-              
+              ./build/bin/$BUILD_TYPE/converter_components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
+
               if ! cmp -s regression/BESTUTMBIN.GPS.$FORMAT regression/targets/BESTUTMBIN.GPS.$FORMAT; then
                   failures+=("OEM-$FORMAT")
               fi
@@ -99,7 +94,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4.3.0
         with:
-          name: ${{ matrix.platform[0] }}-${{ matrix.platform[2] }}-${{ matrix.platform[3] }}-artifacts
+          name: $OPERATING_SYSTEM-$COMPILER-$BUILD_TYPE-artifacts
           path: |
              regression/
   
@@ -160,7 +155,7 @@ jobs:
 
       - name: Static code analysis
         run: |
-          cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY="clang-tidy" -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu
+          cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu
           cmake --build build --parallel --config Debug
 
   # =========================================================
@@ -182,16 +177,13 @@ jobs:
         sudo apt-get install -y gcovr
 
     - name: Configure
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=debug -G "Ninja" -DCOVERAGE=ON
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=debug -G Ninja -DCOVERAGE=ON
 
     - name: Build
       run: cmake --build build --parallel --config debug
 
     - name: Run Tests
-      run: |
-        cd build
-        ctest
-        cd ..
+      run: cd build && ctest && cd ..
 
     - name: Generate HTML code coverage reports
       run: | 
