@@ -58,7 +58,7 @@ void NovatelEncoderLoadJson(Encoder* pclEncoder_, JsonReader* pclJsonDb_)
 }
 
 STATUS NovatelEncoderEncode(Encoder* pclEncoder_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateHeader* pstInterHeader_,
-                            IntermediateMessage* pstInterMessage_, MessageDataStruct* pstMessageData_, MetaDataStruct* pstMetaData_,
+                            std::vector<FieldContainer>* pstInterMessage_, MessageDataStruct* pstMessageData_, MetaDataStruct* pstMetaData_,
                             ENCODE_FORMAT eEncodeFormat_)
 {
     return pclEncoder_ && pucEncodeBuffer_ && pstInterHeader_ && pstInterMessage_ && pstMessageData_ && pstMetaData_

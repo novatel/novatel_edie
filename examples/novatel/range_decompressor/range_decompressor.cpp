@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
     auto eStatus = STATUS::UNKNOWN;
 
     IntermediateHeader stHeader;
-    IntermediateMessage stMessage;
+    std::vector<FieldContainer> stMessage;
 
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;

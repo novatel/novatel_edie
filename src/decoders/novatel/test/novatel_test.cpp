@@ -27,6 +27,7 @@
 #include <chrono>
 #include <codecvt>
 #include <filesystem>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <locale>
 #include <nlohmann/json.hpp>
@@ -42,7 +43,6 @@
 #include "hw_interface/stream_interface/api/inputfilestream.hpp"
 #include "hw_interface/stream_interface/api/inputstreaminterface.hpp"
 #include "resources/novatel_message_definitions.hpp"
-#include <gtest/gtest.h>
 
 using json = nlohmann::json;
 
@@ -964,7 +964,7 @@ public:
    int32_t DecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
    {
       IntermediateHeader stHeader;
-      IntermediateMessage stMessage;
+      std::vector<FieldContainer> stMessage;
 
       unsigned char* pucTempPtr = pucMessageBuffer_;
       STATUS eStatus = pclMyHeaderDecoder->Decode(pucTempPtr, stHeader, stMetaData_);
@@ -1847,7 +1847,7 @@ TEST_F(DecodeEncodeTest, ENCODEFORMAT_UNSPECIFIED)
    MessageDataStruct stMessageData;
 
    IntermediateHeader stHeader;
-   IntermediateMessage stMessage;
+   std::vector<FieldContainer> stMessage;
 
    unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
    unsigned char* pucEncodeBuffer = acEncodeBuffer;
@@ -2284,7 +2284,7 @@ void BenchmarkHelper(BenchmarkTest& test, unsigned char* aucLog)
       unsigned char* pucEncodeBuffer = aucEncodeBuffer;
 
       IntermediateHeader stHeader;
-      IntermediateMessage stMessage;
+      std::vector<FieldContainer> stMessage;
 
       MetaDataStruct stMetaData;
       MessageDataStruct stMessageData;
@@ -2936,7 +2936,7 @@ protected:
    public:
       EncoderTester(JsonReader* pclJsonDb_) : Encoder(pclJsonDb_) {}
 
-      bool TestEncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
+      bool TestEncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
       {
          return EncodeBinaryBody<false, true>(stInterMessage_, ppcOutBuf_, uiBytes);
       }

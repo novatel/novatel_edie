@@ -46,12 +46,12 @@ extern "C"
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS NovatelMessageDecoderDecode(novatel::edie::oem::MessageDecoder* pclMessageDecoder_,
-                                                                      unsigned char* pucLogBuf_, novatel::edie::IntermediateMessage* pstInterMessage_,
+                                                                      unsigned char* pucLogBuf_, novatel::edie::std::vector<FieldContainer>* pstInterMessage_,
                                                                       novatel::edie::oem::MetaDataStruct* pstMetaData_);
 
     // Intermediate Log handling.
-    DECODERS_EXPORT novatel::edie::IntermediateMessage* NovatelIntermediateMessageInit();
-    DECODERS_EXPORT void NovatelIntermediateMessageDelete(novatel::edie::IntermediateMessage* pstInterMessage_);
+    DECODERS_EXPORT novatel::edie::std::vector<FieldContainer>* NovatelIntermediateMessageInit();
+    DECODERS_EXPORT void NovatelIntermediateMessageDelete(novatel::edie::std::vector<FieldContainer>* pstInterMessage_);
 }
 
 #endif // DYNAMIC_LIBRARY_NOVATEL_MESSAGE_DECODER_HPP

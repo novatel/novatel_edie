@@ -332,8 +332,9 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_, const IntermediateMessage& stMessage_,
-                MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, const ENCODE_FORMAT eFormat_)
+Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
+                const ENCODE_FORMAT eFormat_)
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
@@ -426,8 +427,8 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateMessage& stMessage_, MessageDataStruct& stMessageData_,
-                    const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_)
+Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
+                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_)
 {
     // TODO: this entire function should be in common, only header stuff and map redefinitions belong in this file
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }

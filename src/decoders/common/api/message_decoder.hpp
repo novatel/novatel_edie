@@ -62,8 +62,6 @@ struct FieldContainer
     }
 };
 
-using IntermediateMessage = std::vector<FieldContainer>;
-
 //============================================================================
 //! \class MessageDecoderBase
 //! \brief Class to decode messages.
@@ -191,7 +189,7 @@ class MessageDecoderBase
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(unsigned char* pucMessage_, IntermediateMessage& stInterMessage_, MetaDataBase& stMetaData_) const;
+    [[nodiscard]] STATUS Decode(unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataBase& stMetaData_) const;
 };
 
 } // namespace novatel::edie

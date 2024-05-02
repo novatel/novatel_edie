@@ -48,7 +48,7 @@ extern "C"
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS NovatelEncoderEncode(novatel::edie::oem::Encoder* pclEncoder_, unsigned char* pucEncodeBuffer_,
                                                                uint32_t uiEncodeBufferSize_, novatel::edie::oem::IntermediateHeader* pstInterHeader_,
-                                                               novatel::edie::IntermediateMessage* pstInterMessage_,
+                                                               novatel::edie::std::vector<FieldContainer>* pstInterMessage_,
                                                                novatel::edie::MessageDataStruct* pstMessageData_,
                                                                novatel::edie::oem::MetaDataStruct* pstMetaData_,
                                                                novatel::edie::ENCODE_FORMAT uiEncodeFormat_);

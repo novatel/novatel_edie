@@ -687,7 +687,7 @@ void MessageDecoderBase::DecodeJsonField(const BaseField* pstMessageDataType_, c
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-MessageDecoderBase::Decode(unsigned char* pucMessage_, IntermediateMessage& stInterMessage_, MetaDataBase& stMetaData_) const
+MessageDecoderBase::Decode(unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataBase& stMetaData_) const
 {
     if (pucMessage_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
