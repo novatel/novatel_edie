@@ -1,15 +1,11 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs
-/.vscode/
-/build/
-/out/build/
+﻿.vs/
+.vscode/
+.idea/
+build/
+bin/
+venv/
+CMakeSettings.json
+CMakeUserPresets.json
 /src/version.h
-/CMakeSettings.json
-**/bin/
-**/venv/
-/.idea
-**/edie.*.log
-**/edie.log
+edie.*.log
+edie.log

@@ -1,0 +1,4 @@
+The package spdlog_setup provides CMake targets:
+
+    find_package(spdlog_setup CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE spdlog_setup::spdlog_setup)

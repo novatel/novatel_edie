@@ -27,10 +27,10 @@
 #ifndef NOVATEL_HEADER_DECODER_HPP
 #define NOVATEL_HEADER_DECODER_HPP
 
-#include <logger/logger.hpp>
 #include <nlohmann/json.hpp>
 
 #include "decoders/common/api/common.hpp"
+#include "decoders/common/api/logger.hpp"
 #include "decoders/common/api/json_reader.hpp"
 #include "decoders/novatel/api/common.hpp"
 

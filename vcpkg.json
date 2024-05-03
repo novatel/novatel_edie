@@ -1,0 +1,14 @@
+{
+  "name": "novatel-edie",
+  "version-string": "3.2.24",
+  "builtin-baseline": "213c01f8719e0f8bd48ec6285074a22a7fe5e5a3",
+  "dependencies": [
+    "nlohmann-json",
+    "spdlog",
+    "spdlog-setup",
+    {
+      "name": "gtest",
+      "host": true
+    }
+  ]
+}

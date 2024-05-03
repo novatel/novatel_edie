@@ -26,7 +26,7 @@
 
 #include <chrono>
 
-#include "logger/logger.hpp"
+#include "src/decoders/common/api/logger.hpp"
 #include "src/decoders/common/api/json_reader.hpp"
 #include "src/decoders/novatel/api/encoder.hpp"
 #include "src/decoders/novatel/api/filter.hpp"

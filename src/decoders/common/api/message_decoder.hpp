@@ -27,12 +27,12 @@
 #ifndef MESSAGE_DECODER_HPP
 #define MESSAGE_DECODER_HPP
 
-#include <logger/logger.hpp>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <variant>
 
 #include "decoders/common/api/common.hpp"
+#include "decoders/common/api/logger.hpp"
 #include "decoders/common/api/json_reader.hpp"
 #include "decoders/common/api/message_decoder.hpp"
 

@@ -28,7 +28,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "logger/logger.hpp"
+#include "decoders/common/api/logger.hpp"
 
 int main(int argc, char** argv)
 {

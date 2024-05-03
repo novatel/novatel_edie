@@ -30,7 +30,7 @@
 #include <memory>
 
 #include "circular_buffer.hpp"
-#include "logger/logger.hpp"
+#include "logger.hpp"
 
 //============================================================================
 //! \class Framer
