@@ -406,8 +406,13 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
     constexpr char acDelimiter3[4] = {cDelimiter1, cDelimiter2, cDelimiter3, '\0'};
     constexpr char acDelimiterResponse[2] = {cDelimiter2, '\0'};
 
+    char* pcBufEnd = *ppcLogBuf_ + strlen(*ppcLogBuf_);
+
     for (auto& field : vMsgDefFields_)
     {
+        if (*ppcLogBuf_ >= pcBufEnd) // We encountered the end of the buffer unexpectedly
+            return STATUS::MALFORMED_INPUT;
+
         size_t tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); // TODO: do we need to use acDelimiter3?
         if (Abbreviated && ConsumeAbbrevFormatting(tokenLength, ppcLogBuf_)) { tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); }
 
