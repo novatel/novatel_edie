@@ -25,25 +25,22 @@
 // ===============================================================================
 
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <filesystem>
 
-#include "src/decoders/common/api/message_decoder.hpp"
-#include "src/decoders/novatel/api/encoder.hpp"
-#include "src/decoders/novatel/api/filter.hpp"
-#include "src/decoders/novatel/api/framer.hpp"
-#include "src/decoders/novatel/api/header_decoder.hpp"
-#include "src/decoders/novatel/api/rangecmp/range_decompressor.hpp"
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "src/version.h"
+#include <decoders/common/api/message_decoder.hpp>
+#include <decoders/novatel/api/encoder.hpp>
+#include <decoders/novatel/api/filter.hpp>
+#include <decoders/novatel/api/framer.hpp>
+#include <decoders/novatel/api/header_decoder.hpp>
+#include <decoders/novatel/api/rangecmp/range_decompressor.hpp>
+#include <hw_interface/stream_interface/api/inputfilestream.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <version.h>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-inline bool FileExists(const std::string& strName_)
-{
-    struct stat buffer;
-    return stat(strName_.c_str(), &buffer) == 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -66,17 +63,17 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         pclLogger->info("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.\n");
-        pclLogger->info("Example: converter.exe <path to Json DB> <path to input file> <output format>\n");
+        pclLogger->info("Example: converter <path to Json DB> <path to input file> <output format>\n");
         return -1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
-    if (!FileExists(argv[1]))
+    if (!std::filesystem::exists(argv[1]))
     {
         pclLogger->error("File \"{}\" does not exist", argv[1]);
         return 1;
     }
-    if (!FileExists(argv[2]))
+    if (!std::filesystem::exists(argv[2]))
     {
         pclLogger->error("File \"{}\" does not exist", argv[2]);
         return 1;

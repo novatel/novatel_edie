@@ -24,24 +24,20 @@
 // ! \file dynamic_components.cpp
 // ===============================================================================
 
-#include "src/decoders/dynamic_library/api/common_json_reader.hpp"
-#include "src/decoders/dynamic_library/api/novatel_encoder.hpp"
-#include "src/decoders/dynamic_library/api/novatel_filter.hpp"
-#include "src/decoders/dynamic_library/api/novatel_framer.hpp"
-#include "src/decoders/dynamic_library/api/novatel_header_decoder.hpp"
-#include "src/decoders/dynamic_library/api/novatel_message_decoder.hpp"
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "src/version.h"
+#include <filesystem>
+
+#include <decoders/dynamic_library/api/common_json_reader.hpp>
+#include <decoders/dynamic_library/api/novatel_encoder.hpp>
+#include <decoders/dynamic_library/api/novatel_filter.hpp>
+#include <decoders/dynamic_library/api/novatel_framer.hpp>
+#include <decoders/dynamic_library/api/novatel_header_decoder.hpp>
+#include <decoders/dynamic_library/api/novatel_message_decoder.hpp>
+#include <hw_interface/stream_interface/api/inputfilestream.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <version.h>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-inline bool FileExists(const std::string& strName_)
-{
-    struct stat buffer;
-    return stat(strName_.c_str(), &buffer) == 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -61,21 +57,21 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.");
-        pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>");
+        pclLogger->error("Example: converter <path to Json DB> <path to input file> <output format>");
         return 1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
     // Check command line arguments
     std::string sJsonDb = argv[1];
-    if (!FileExists(sJsonDb))
+    if (!std::filesystem::exists(sJsonDb))
     {
         pclLogger->error("File \"{}\" does not exist", sJsonDb);
         return 1;
     }
 
     std::string sInFilename = argv[2];
-    if (!FileExists(sInFilename))
+    if (!std::filesystem::exists(sInFilename))
     {
         pclLogger->error("File \"{}\" does not exist", sInFilename);
         return 1;
@@ -177,6 +173,7 @@ int main(int argc, char* argv[])
                     if (!NovatelFilterDoFiltering(pclFilter, &stMetaData)) { continue; }
 
                     pucFrameBuffer += stMetaData.uiHeaderLength;
+                    uint32_t uiBodyLength = stMetaData.uiLength - stMetaData.uiHeaderLength;
                     // Decode the Log, pass the metadata and populate the intermediate log.
                     eDecoderStatus = NovatelMessageDecoderDecode(pclMessageDecoder, pucFrameBuffer, &stMessage, &stMetaData);
 
@@ -193,13 +190,13 @@ int main(int argc, char* argv[])
                         }
                         else
                         {
-                            clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                            clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                             pclLogger->warn("Encoder returned with status code {}", static_cast<int32_t>(eEncoderStatus));
                         }
                     }
                     else
                     {
-                        clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                        clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                         pclLogger->warn("MessageDecoder returned with status code {}", static_cast<int32_t>(eDecoderStatus));
                     }
                 }
