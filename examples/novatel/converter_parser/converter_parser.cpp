@@ -25,20 +25,15 @@
 // ===============================================================================
 
 #include <chrono>
+#include <filesystem>
 
-#include "src/decoders/novatel/api/parser.hpp"
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "src/version.h"
+#include <decoders/novatel/api/parser.hpp>
+#include <hw_interface/stream_interface/api/inputfilestream.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <version.h>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-inline bool FileExists(const std::string& strName_)
-{
-    struct stat buffer;
-    return stat(strName_.c_str(), &buffer) == 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -58,21 +53,21 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.");
-        pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>");
+        pclLogger->error("Example: converter <path to Json DB> <path to input file> <output format>");
         return 1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
     // Check command line arguments
     std::string sJsonDb = argv[1];
-    if (!FileExists(sJsonDb))
+    if (!std::filesystem::exists(sJsonDb))
     {
         pclLogger->error("File \"{}\" does not exist", sJsonDb);
         return 1;
     }
 
     std::string sInFilename = argv[2];
-    if (!FileExists(sInFilename))
+    if (!std::filesystem::exists(sInFilename))
     {
         pclLogger->error("File \"{}\" does not exist", sInFilename);
         return 1;

@@ -25,20 +25,17 @@
 // ===============================================================================
 
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <filesystem>
 
-#include "src/decoders/novatel/api/file_parser.hpp"
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "src/version.h"
+#include <decoders/novatel/api/file_parser.hpp>
+#include <hw_interface/stream_interface/api/inputfilestream.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <version.h>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-inline bool FileExists(const std::string& strName_)
-{
-    struct stat buffer;
-    return stat(strName_.c_str(), &buffer) == 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -58,17 +55,17 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.");
-        pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>");
+        pclLogger->error("Example: converter <path to Json DB> <path to input file> <output format>");
         return 1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
-    if (!FileExists(argv[1]))
+    if (!std::filesystem::exists(argv[1]))
     {
         pclLogger->error("File \"{}\" does not exist", argv[1]);
         return 1;
     }
-    if (!FileExists(argv[2]))
+    if (!std::filesystem::exists(argv[2]))
     {
         pclLogger->error("File \"{}\" does not exist", argv[2]);
         return 1;
@@ -76,14 +73,14 @@ int main(int argc, char* argv[])
 
     // Check command line arguments
     std::string sJsonDb = argv[1];
-    if (!FileExists(sJsonDb))
+    if (!std::filesystem::exists(sJsonDb))
     {
         pclLogger->error("File \"{}\" does not exist", sJsonDb);
         return 1;
     }
 
     std::string sInFilename = argv[2];
-    if (!FileExists(sInFilename))
+    if (!std::filesystem::exists(sInFilename))
     {
         pclLogger->error("File \"{}\" does not exist", sInFilename);
         return 1;
@@ -178,6 +175,7 @@ int main(int argc, char* argv[])
     pclLogger->info("Converted {} logs in {}ms from {}", uiCompleteMessages,
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count(),
                     sInFilename.c_str());
+
     Logger::Shutdown();
     return 0;
 }

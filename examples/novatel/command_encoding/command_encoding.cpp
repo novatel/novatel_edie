@@ -25,18 +25,15 @@
 // ===============================================================================
 
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <filesystem>
 
-#include "src/decoders/novatel/api/commander.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
+#include <decoders/novatel/api/commander.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-inline bool FileExists(const std::string& strName_)
-{
-    struct stat buffer;
-    return stat(strName_.c_str(), &buffer) == 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -50,14 +47,14 @@ int main(int argc, char* argv[])
 
     if (argc < 3)
     {
-        logger->error("Format: command_encoding.exe <path to Json DB> <output format> <abbreviated ascii command>\n");
-        logger->error("Example: command_encoding.exe database/messages_public.json ASCII \"RTKTIMEOUT 30\"\n");
+        logger->error("Format: command_encoding <path to Json DB> <output format> <abbreviated ascii command>\n");
+        logger->error("Example: command_encoding database/messages_public.json ASCII \"RTKTIMEOUT 30\"\n");
         return 1;
     }
 
     // Json DB
-    std::string strJsonDb = argv[1];
-    if (!FileExists(strJsonDb))
+    std::string sJsonDb = argv[1];
+    if (!std::filesystem::exists(sJsonDb))
     {
         logger->error("File \"{}\" does not exist", argv[1]);
         return 1;
@@ -75,7 +72,7 @@ int main(int argc, char* argv[])
     JsonReader clJsonDb;
     auto tStart = std::chrono::high_resolution_clock::now();
     logger->info("Loading Database... ");
-    clJsonDb.LoadFile(strJsonDb);
+    clJsonDb.LoadFile(sJsonDb);
     logger->info("Done in {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     Commander clCommander(&clJsonDb);
