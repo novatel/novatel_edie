@@ -93,8 +93,8 @@ class InputFileStream : public InputStreamInterface
      *
      *  \return  std::string - File Extension name
      */
-    std::string GetFileExtension() override;
-    std::string GetFileName() override;
+    std::string GetFileExtension() const override;
+    std::string GetFileName() const override;
 
     /*! \n uint64_t  GetCurrentFilePosition()
      *  \brief Returns the current file position from which next read will be done.
@@ -157,12 +157,6 @@ class InputFileStream : public InputStreamInterface
      *  Boolean variable to disable/enable wide char files.
      */
     bool bEnableWideCharSupport;
-
-    /*! \var stFileName
-     *
-     *  File name.
-     */
-    std::string stFileName;
 };
 
 #endif
