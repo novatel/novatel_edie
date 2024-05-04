@@ -25,6 +25,7 @@
 // ===============================================================================
 
 #include <filesystem>
+
 #include <gtest/gtest.h>
 
 #include "decoders/common/api/common.hpp"

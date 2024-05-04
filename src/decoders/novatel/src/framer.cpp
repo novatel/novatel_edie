@@ -25,6 +25,7 @@
 // ===============================================================================
 
 #include "framer.hpp"
+
 #include "src/decoders/common/api/crc32.hpp"
 
 using namespace novatel::edie;

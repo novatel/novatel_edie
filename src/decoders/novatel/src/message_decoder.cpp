@@ -24,9 +24,9 @@
 // ! \file message_decoder.cpp
 // ===============================================================================
 
-#include <bitset>
-
 #include "decoders/novatel/api/message_decoder.hpp"
+
+#include <bitset>
 
 using namespace novatel::edie::oem;
 

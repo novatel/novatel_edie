@@ -29,6 +29,8 @@
 #include <filesystem>
 #include <iostream>
 #include <locale>
+
+#include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
 #include "decoders/common/api/json_reader.hpp"
@@ -42,7 +44,6 @@
 #include "hw_interface/stream_interface/api/inputfilestream.hpp"
 #include "hw_interface/stream_interface/api/inputstreaminterface.hpp"
 #include "resources/novatel_message_definitions.hpp"
-#include <gtest/gtest.h>
 
 using json = nlohmann::json;
 

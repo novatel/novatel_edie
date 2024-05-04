@@ -27,8 +27,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "logger/logger.hpp"
 #include "gtest/gtest.h"
+#include "logger/logger.hpp"
 
 int main(int argc, char** argv)
 {

@@ -24,10 +24,11 @@
 // ! \file rxconfig_example.cpp
 // ===============================================================================
 
+#include "src/decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
+
 #include <chrono>
 
 #include "src/decoders/common/api/common.hpp"
-#include "src/decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
 #include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
 #include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
 #include "src/version.h"

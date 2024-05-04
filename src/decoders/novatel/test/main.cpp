@@ -24,9 +24,10 @@
 // ! \file main.cpp
 // ===============================================================================
 
-#include <gtest/gtest.h>
 #include <stdexcept>
 #include <string>
+
+#include <gtest/gtest.h>
 
 #include "logger/logger.hpp"
 

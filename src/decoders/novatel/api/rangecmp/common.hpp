@@ -28,6 +28,7 @@
 #define RANGECMP_COMMON_HPP
 
 #include <array>
+
 #include <stdint.h>
 
 namespace novatel::edie::oem {
