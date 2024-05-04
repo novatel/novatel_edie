@@ -332,7 +332,7 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
         {
             uiMyBitOffset = 0;
             uiByteOffset++;
-            if (uiBitsConsumed + 1 < uiBitsInBitfield_) ucCurrentByte = *(*ppucDataBuffer_ + uiByteOffset);
+            if (uiBitsConsumed + 1 < uiBitsInBitfield_) { ucCurrentByte = *(*ppucDataBuffer_ + uiByteOffset); }
         }
     }
 
