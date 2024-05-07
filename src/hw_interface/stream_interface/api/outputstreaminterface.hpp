@@ -106,7 +106,7 @@ class OutputStreamInterface
      */
     virtual MemoryStream* GetMemoryStream() { return nullptr; }
 
-    //#ifdef WIDE_CHAR_SUPPORT
+    // #ifdef WIDE_CHAR_SUPPORT
     /** A virtual member.
      *  \sa SelectFileStream
      *  \brief Sets the output file in which to be decoded output will be written.
@@ -123,7 +123,7 @@ class OutputStreamInterface
      *          Sets Extension of the file.
      */
     virtual void ConfigureBaseFileName(const std::u32string&) {}
-    //#endif
+    // #endif
 
   private:
 };

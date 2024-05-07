@@ -30,8 +30,8 @@
 #include <nlohmann/json.hpp>
 
 #include "decoders/common/api/common.hpp"
-#include "decoders/common/api/logger.hpp"
 #include "decoders/common/api/json_reader.hpp"
+#include "decoders/common/api/logger.hpp"
 #include "decoders/novatel/api/common.hpp"
 
 namespace novatel::edie::oem {
