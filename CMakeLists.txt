@@ -71,6 +71,7 @@ else()
     if(COVERAGE)
         message("Coverage is On")
         add_compile_options(--coverage)
+        add_link_options(--coverage)
     endif()
 endif()
 
