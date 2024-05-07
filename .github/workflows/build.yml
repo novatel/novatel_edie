@@ -39,6 +39,10 @@ jobs:
         with:
           version: "17.0"
 
+      - name: Install Conan
+        id: conan
+        uses: turtlebrowser/get-conan@main
+
       - name: Install CMake
         uses: lukka/get-cmake@latest
         
@@ -150,6 +154,10 @@ jobs:
         with:
           version: "17.0"
 
+      - name: Install Conan
+        id: conan
+        uses: turtlebrowser/get-conan@main
+
       - name: Install CMake
         uses: lukka/get-cmake@latest
 
@@ -168,6 +176,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install Conan
+      id: conan
+      uses: turtlebrowser/get-conan@main
+
     - name: Install CMake
       uses: lukka/get-cmake@latest
 
@@ -177,7 +189,7 @@ jobs:
         sudo apt-get install -y gcovr
 
     - name: Configure
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=debug -G Ninja -DCOVERAGE=ON
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON
 
     - name: Build
       run: cmake --build build --parallel --config debug
