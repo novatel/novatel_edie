@@ -60,16 +60,13 @@ jobs:
       - name: Build
         run: cmake --build build --parallel --config ${{ env.BUILD_TYPE }}
 
-      - name: Test
+      - name: Unit Tests
         # TODO: figure out why unit testing doesn't work on windows clang
         if: |
             !(env.OPERATING_SYSTEM == 'windows' && env.COMPILER == 'clang')
         run: ctest --test-dir build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
-      - name: Regression
-        # TODO: figure out why regression testing doesn't work on windows gnu or windows clang
-        if: |
-            !(env.OPERATING_SYSTEM == 'windows' && (env.COMPILER == 'gcc' || env.COMPILER == 'clang'))
+      - name: Regression Tests
         shell: bash
         run: |
           echo "Starting regression tests for $OPERATING_SYSTEM $BUILD_TYPE"
