@@ -74,9 +74,9 @@ endif()
 # Output all binaries in the same directory for easier testing
 foreach(config ${CMAKE_BUILD_TYPE} ${CMAKE_CONFIGURATION_TYPES})
     string(TOUPPER ${config} BUILD_TYPE)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${config})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${config})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${config})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${config}")
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${config}")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${config}")
 endforeach()
 
 # Find Git package, if not need to install manually or through .yml file
@@ -120,6 +120,22 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(WIN32)
-    # Copy third-party library DLLs to build dir for tests
+    # Copy third-party library DLLs to for tests
     copy_third_party_dlls()
+    # Copy C++ runtime DLL for non-MSVC compilers
+    if(NOT MSVC)
+        if(NOT EXISTS CMAKE_CXX_COMPILER)
+            find_program(CXX_COMPILER_PATH NAMES "${CMAKE_CXX_COMPILER}")
+        else()
+            set(CXX_COMPILER_PATH "${CMAKE_CXX_COMPILER}")
+        endif()
+        get_filename_component(COMPILER_BIN_DIR "${CXX_COMPILER_PATH}" DIRECTORY)
+        foreach(stdcpp_library libstdc++-6.dll libc++.dll)
+            if(EXISTS "${COMPILER_BIN_DIR}/${stdcpp_library}")
+                foreach(config ${CMAKE_BUILD_TYPE} ${CMAKE_CONFIGURATION_TYPES})
+                    file(COPY "${COMPILER_BIN_DIR}/${stdcpp_library}" DESTINATION "${CMAKE_BINARY_DIR}/bin/${config}")
+                endforeach()
+            endif()
+        endforeach()
+    endif()
 endif()
