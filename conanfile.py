@@ -46,6 +46,7 @@ class NovatelEdieConan(ConanFile):
     def configure(self):
         if self.options.shared:
             self.options.rm_safe("fPIC")
+        self.options["spdlog"].shared = True
 
     def layout(self):
         cmake_layout(self)

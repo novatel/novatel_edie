@@ -4,18 +4,6 @@ endif()
 
 option(USE_CONAN "Use Conan to automatically manage dependencies" TRUE)
 
-set(CONAN_INSTALL_ARGS
-    # Deploy the installed dependencies in the build dir for easier installation
-    --build=missing --deployer=full_deploy --deployer-folder=${CMAKE_BINARY_DIR}
-)
-if(BUILD_SHARED_LIBS)
-    # Statically linking against spdlog causes its singleton logger registry to be
-    # re-instantiated in each shared library and executable that links against it.
-    list(APPEND CONAN_INSTALL_ARGS
-        -o spdlog/*:shared=True -o fmt/*:shared=True
-    )
-endif()
-
 if(USE_CONAN AND NOT DEFINED VCPKG_TOOLCHAIN AND NOT CMAKE_TOOLCHAIN_FILE MATCHES "conan_toolchain.cmake")
     if(CMAKE_VERSION GREATER_EQUAL 3.24)
         list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/conan_provider.cmake)
