@@ -117,3 +117,8 @@ endif()
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+if(WIN32)
+    # Copy third-party library DLLs to build dir for tests
+    copy_third_party_dlls()
+endif()
