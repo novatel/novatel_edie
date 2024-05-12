@@ -72,11 +72,12 @@ else()
 endif()
 
 # Output all binaries in the same directory for easier testing
-string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
-
+foreach(config ${CMAKE_BUILD_TYPE} ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${config} BUILD_TYPE)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${config})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${config})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} ${CMAKE_BINARY_DIR}/bin/${config})
+endforeach()
 
 # Find Git package, if not need to install manually or through .yml file
 find_package(Git)
