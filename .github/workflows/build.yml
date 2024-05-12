@@ -70,25 +70,7 @@ jobs:
         shell: bash
         run: |
           echo "Starting regression tests for $OPERATING_SYSTEM $BUILD_TYPE"
-          failures=()
-
-          for FORMAT in "ASCII" "ABBREV_ASCII" "BINARY" "FLATTENED_BINARY" "JSON"; do
-              ./build/bin/$BUILD_TYPE/converter_components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
-
-              if ! cmp -s regression/BESTUTMBIN.GPS.$FORMAT regression/targets/BESTUTMBIN.GPS.$FORMAT; then
-                  failures+=("OEM-$FORMAT")
-              fi
-              
-              if ! cmp -s regression/BESTUTMBIN.GPS.$FORMAT.UNKNOWN regression/targets/BESTUTMBIN.GPS.$FORMAT.UNKNOWN; then
-                  failures+=("OEM-$FORMAT.UNKNOWN")
-              fi
-          done
-          
-          if [ ${#failures[@]} -gt 0 ]; then
-              echo "One or more regression tests failed! ${failures[@]}"
-              exit 1
-          fi
-          
+          bash regression/run_tests.sh ./build/bin/$BUILD_TYPE/converter_components
           echo "Regression tests for $OPERATING_SYSTEM $BUILD_TYPE done!"
 
       - name: Upload Artifacts
