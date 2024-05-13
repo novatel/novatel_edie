@@ -173,7 +173,7 @@ function(detect_lib_cxx LIB_CXX)
         set(${LIB_CXX} "libstdc++${_CONAN_GNU_LIBSTDCXX_SUFFIX}" PARENT_SCOPE)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
         set(${LIB_CXX} "libc++" PARENT_SCOPE)
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC)
         # Check for libc++
         detect_libcxx()
         if(_CONAN_IS_LIBCXX)

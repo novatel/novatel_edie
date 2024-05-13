@@ -18,8 +18,8 @@ jobs:
           - [windows, windows-latest, msvc, Release]
           - [windows, windows-latest, gcc, Debug]
           - [windows, windows-latest, gcc, Release]
-          # - [windows, windows-latest, clang, Debug]
-          # - [windows, windows-latest, clang, Release]
+          - [windows, windows-latest, clang, Debug]
+          - [windows, windows-latest, clang, Release]
           - [linux, ubuntu-latest, gcc, Debug]
           - [linux, ubuntu-latest, gcc, Release]
           - [linux, ubuntu-latest, clang, Debug]
@@ -50,20 +50,17 @@ jobs:
         shell: bash
         run: |
           if [ "${{ env.COMPILER }}" == "msvc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-msvc -DCMAKE_C_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-msvc
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022"
           elif [ "${{ env.COMPILER }}" == "clang" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu
           elif [ "${{ env.COMPILER }}" == "gcc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-$OPERATING_SYSTEM-gnu
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++
           fi
 
       - name: Build
         run: cmake --build build --parallel --config ${{ env.BUILD_TYPE }}
 
       - name: Unit Tests
-        # TODO: figure out why unit testing doesn't work on windows clang
-        if: |
-            !(env.OPERATING_SYSTEM == 'windows' && env.COMPILER == 'clang')
         run: ctest --test-dir build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
       - name: Regression Tests
