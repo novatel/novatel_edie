@@ -30,6 +30,8 @@
 #include "decoders/common/api/common.hpp"
 #include "decoders/common/api/json_reader.hpp"
 
+using namespace novatel::edie;
+
 class JsonReaderTest : public testing::Test
 {
   public:
@@ -43,35 +45,35 @@ class JsonReaderTest : public testing::Test
 TEST_F(JsonReaderTest, JsonReaderFailure)
 {
     JsonReader clJson;
-    ASSERT_THROW(clJson.LoadFile<std::string>(""), novatel::edie::JsonReaderFailure);
+    ASSERT_THROW(clJson.LoadFile<std::string>(""), JsonReaderFailure);
 }
 
 TEST_F(JsonReaderTest, AppendEnumerations)
 {
-    const std::string strID = "008451a05e1e7aa32c75119df950d405265e0904";
+    const std::string strId = "008451a05e1e7aa32c75119df950d405265e0904";
 
     JsonReader clJson;
     clJson.AppendEnumerations(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")).string());
 
-    const novatel::edie::EnumDefinition* pstEnumDef = clJson.GetEnumDefId(strID);
+    const EnumDefinition* pstEnumDef = clJson.GetEnumDefId(strId);
     ASSERT_NE(pstEnumDef, nullptr);
     ASSERT_EQ(pstEnumDef->name, "Datum");
 
     clJson.RemoveEnumeration("Datum", true);
-    ASSERT_EQ(clJson.GetEnumDefId(strID), nullptr);
+    ASSERT_EQ(clJson.GetEnumDefId(strId), nullptr);
 }
 
 TEST_F(JsonReaderTest, AppendMessages)
 {
-    const uint32_t uiMsgID = 690;
+    constexpr uint32_t uiMsgId = 690;
 
     JsonReader clJson;
     clJson.AppendMessages(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")).string());
 
-    const novatel::edie::MessageDefinition* pstMsgDef = clJson.GetMsgDef(uiMsgID);
+    const MessageDefinition* pstMsgDef = clJson.GetMsgDef(uiMsgId);
     ASSERT_NE(pstMsgDef, nullptr);
     ASSERT_EQ(pstMsgDef->name, "PASSAUX");
 
-    clJson.RemoveMessage(uiMsgID, true);
-    ASSERT_EQ(clJson.GetMsgDef(uiMsgID), nullptr);
+    clJson.RemoveMessage(uiMsgId, true);
+    ASSERT_EQ(clJson.GetMsgDef(uiMsgId), nullptr);
 }
