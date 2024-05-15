@@ -417,7 +417,7 @@ std::string JsonReader::MsgIdToMsgName(const uint32_t uiMessageId_) const
     const MessageDefinition* pstMessageDefinition = GetMsgDef(usLogId);
     std::string strMessageName = pstMessageDefinition ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions.data(), usLogId);
 
-    std::string strMessageFormatSuffix = uiResponse                                                                        ? "R"
+    std::string strMessageFormatSuffix = uiResponse                                                         ? "R"
                                          : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY) ? "B"
                                          : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)
                                              ? "A"
@@ -444,8 +444,7 @@ const MessageDefinition* JsonReader::GetMsgDef(const int32_t iMsgId_) const
 }
 
 // -------------------------------------------------------------------------------------------------------
-const std::vector<BaseField*>* MessageDefinition::GetMsgDefFromCrc(const std::shared_ptr<spdlog::logger>& pclLogger_,
-                                                                                                 uint32_t& uiMsgDefCrc_) const
+const std::vector<BaseField*>* MessageDefinition::GetMsgDefFromCrc(const std::shared_ptr<spdlog::logger>& pclLogger_, uint32_t& uiMsgDefCrc_) const
 {
     // If we can't find the correct CRC just default to the latest.
     if (!fields.contains(uiMsgDefCrc_))

@@ -638,10 +638,7 @@ class JsonReader
             {
                 dynamic_cast<EnumField*>(field)->enumDef = GetEnumDefId(dynamic_cast<const EnumField*>(field)->enumId);
             }
-            else if (field->type == FIELD_TYPE::FIELD_ARRAY)
-            {
-                MapMessageEnumFields(dynamic_cast<FieldArrayField*>(field)->fields);
-            }
+            else if (field->type == FIELD_TYPE::FIELD_ARRAY) { MapMessageEnumFields(dynamic_cast<FieldArrayField*>(field)->fields); }
         }
     }
 
