@@ -196,7 +196,7 @@ struct EnumDefinition
 {
     std::string _id{};
     std::string name{};
-    std::vector<novatel::edie::EnumDataType> enumerators{};
+    std::vector<EnumDataType> enumerators{};
 
     constexpr EnumDefinition() = default;
 };
@@ -222,7 +222,7 @@ struct BaseDataType
 //-----------------------------------------------------------------------
 struct SimpleDataType : BaseDataType
 {
-    std::unordered_map<int32_t, novatel::edie::EnumDataType> enums;
+    std::unordered_map<int32_t, EnumDataType> enums;
 };
 
 //-----------------------------------------------------------------------
@@ -463,8 +463,6 @@ void from_json(const json& j_, EnumDefinition& ed_);
 uint32_t ParseFields(const json& j_, std::vector<BaseField*>& vFields_);
 void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
 
-} // namespace novatel::edie
-
 //============================================================================
 //! \class JsonReader
 //! \brief Responsible for translating the Json representation of the
@@ -472,12 +470,12 @@ void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
 //============================================================================
 class JsonReader
 {
-    std::vector<novatel::edie::MessageDefinition> vMessageDefinitions;
-    std::vector<novatel::edie::EnumDefinition> vEnumDefinitions;
-    std::unordered_map<std::string, novatel::edie::MessageDefinition*> mMessageName;
-    std::unordered_map<int32_t, novatel::edie::MessageDefinition*> mMessageId;
-    std::unordered_map<std::string, novatel::edie::EnumDefinition*> mEnumName;
-    std::unordered_map<std::string, novatel::edie::EnumDefinition*> mEnumId;
+    std::vector<MessageDefinition> vMessageDefinitions;
+    std::vector<EnumDefinition> vEnumDefinitions;
+    std::unordered_map<std::string, MessageDefinition*> mMessageName;
+    std::unordered_map<int32_t, MessageDefinition*> mMessageId;
+    std::unordered_map<std::string, EnumDefinition*> mEnumName;
+    std::unordered_map<std::string, EnumDefinition*> mEnumId;
 
   public:
     //----------------------------------------------------------------------------
@@ -569,14 +567,14 @@ class JsonReader
     //
     //! \param [in] strMsgName_ A string containing the message name.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const novatel::edie::MessageDefinition* GetMsgDef(const std::string& strMsgName_) const;
+    [[nodiscard]] const MessageDefinition* GetMsgDef(const std::string& strMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message ID.
     //
     //! \param [in] iMsgId_ The message ID.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const novatel::edie::MessageDefinition* GetMsgDef(int32_t iMsgId_) const;
+    [[nodiscard]] const MessageDefinition* GetMsgDef(int32_t iMsgId_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Convert a message name string to a message ID number.
@@ -597,7 +595,7 @@ class JsonReader
     //
     //! \param [in] sEnumId_ The enum ID.
     //----------------------------------------------------------------------------
-    [[nodiscard]] novatel::edie::EnumDefinition* GetEnumDefId(const std::string& sEnumId_) const
+    [[nodiscard]] EnumDefinition* GetEnumDefId(const std::string& sEnumId_) const
     {
         const auto it = mEnumId.find(sEnumId_);
         return it != mEnumId.end() ? it->second : nullptr;
@@ -608,7 +606,7 @@ class JsonReader
     //
     //! \param [in] sEnumName_ The enum name.
     //----------------------------------------------------------------------------
-    [[nodiscard]] novatel::edie::EnumDefinition* GetEnumDefName(const std::string& sEnumName_) const
+    [[nodiscard]] EnumDefinition* GetEnumDefName(const std::string& sEnumName_) const
     {
         auto it = mEnumName.find(sEnumName_);
         return it != mEnumName.end() ? it->second : nullptr;
@@ -617,13 +615,13 @@ class JsonReader
   private:
     void GenerateMappings()
     {
-        for (novatel::edie::EnumDefinition& enm : vEnumDefinitions)
+        for (EnumDefinition& enm : vEnumDefinitions)
         {
             mEnumName[enm.name] = &enm;
             mEnumId[enm._id] = &enm;
         }
 
-        for (novatel::edie::MessageDefinition& msg : vMessageDefinitions)
+        for (MessageDefinition& msg : vMessageDefinitions)
         {
             mMessageName[msg.name] = &msg;
             mMessageId[msg.logID] = &msg;
@@ -632,22 +630,19 @@ class JsonReader
         }
     }
 
-    void MapMessageEnumFields(const std::vector<novatel::edie::BaseField*>& vMsgDefFields_)
+    void MapMessageEnumFields(const std::vector<BaseField*>& vMsgDefFields_)
     {
         for (const auto& field : vMsgDefFields_)
         {
-            if (field->type == novatel::edie::FIELD_TYPE::ENUM)
+            if (field->type == FIELD_TYPE::ENUM)
             {
-                dynamic_cast<novatel::edie::EnumField*>(field)->enumDef = GetEnumDefId(dynamic_cast<const novatel::edie::EnumField*>(field)->enumId);
+                dynamic_cast<EnumField*>(field)->enumDef = GetEnumDefId(dynamic_cast<const EnumField*>(field)->enumId);
             }
-            else if (field->type == novatel::edie::FIELD_TYPE::FIELD_ARRAY)
-            {
-                MapMessageEnumFields(dynamic_cast<novatel::edie::FieldArrayField*>(field)->fields);
-            }
+            else if (field->type == FIELD_TYPE::FIELD_ARRAY) { MapMessageEnumFields(dynamic_cast<FieldArrayField*>(field)->fields); }
         }
     }
 
-    void RemoveMessageMapping(const novatel::edie::MessageDefinition& msg_)
+    void RemoveMessageMapping(const MessageDefinition& msg_)
     {
         // Check string against name map
         const auto itName = mMessageName.find(msg_.name);
@@ -657,7 +652,7 @@ class JsonReader
         if (itId != mMessageId.end()) { mMessageId.erase(itId); }
     }
 
-    void RemoveEnumerationMapping(const novatel::edie::EnumDefinition& enm_)
+    void RemoveEnumerationMapping(const EnumDefinition& enm_)
     {
         // Check string against name map
         const auto itName = mEnumName.find(enm_.name);
@@ -667,23 +662,25 @@ class JsonReader
         if (itId != mEnumId.end()) { mEnumId.erase(itId); }
     }
 
-    std::vector<novatel::edie::MessageDefinition>::iterator GetMessageIt(uint32_t iMsgId_)
+    std::vector<MessageDefinition>::iterator GetMessageIt(uint32_t iMsgId_)
     {
         return std::ranges::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                                    [iMsgId_](const novatel::edie::MessageDefinition& elem_) { return (elem_.logID == iMsgId_); });
+                                    [iMsgId_](const MessageDefinition& elem_) { return (elem_.logID == iMsgId_); });
     }
 
-    std::vector<novatel::edie::MessageDefinition>::iterator GetMessageIt(const std::string& strMessage_)
+    std::vector<MessageDefinition>::iterator GetMessageIt(const std::string& strMessage_)
     {
         return std::ranges::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                                    [strMessage_](const novatel::edie::MessageDefinition& elem_) { return (elem_.name == strMessage_); });
+                                    [strMessage_](const MessageDefinition& elem_) { return (elem_.name == strMessage_); });
     }
 
-    std::vector<novatel::edie::EnumDefinition>::iterator GetEnumIt(const std::string& strEnumeration_)
+    std::vector<EnumDefinition>::iterator GetEnumIt(const std::string& strEnumeration_)
     {
         return std::ranges::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
-                                    [strEnumeration_](const novatel::edie::EnumDefinition& elem_) { return (elem_.name == strEnumeration_); });
+                                    [strEnumeration_](const EnumDefinition& elem_) { return (elem_.name == strEnumeration_); });
     }
 };
+
+} // namespace novatel::edie
 
 #endif
