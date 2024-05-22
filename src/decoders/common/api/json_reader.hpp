@@ -29,13 +29,13 @@
 
 #include <filesystem>
 #include <fstream>
-#include <logger/logger.hpp>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_map>
 
 #include "crc32.hpp"
+#include "logger.hpp"
 
 using nlohmann::json;
 

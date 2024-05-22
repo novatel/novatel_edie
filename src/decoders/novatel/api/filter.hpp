@@ -31,9 +31,9 @@
 #include <tuple>
 
 #include "decoders/common/api/common.hpp"
+#include "decoders/common/api/logger.hpp"
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"
-#include "logger/logger.hpp"
 
 namespace novatel::edie::oem {
 
