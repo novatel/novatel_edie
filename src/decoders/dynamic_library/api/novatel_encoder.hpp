@@ -51,7 +51,7 @@ extern "C"
                                                                novatel::edie::IntermediateMessage* pstInterMessage_,
                                                                novatel::edie::MessageDataStruct* pstMessageData_,
                                                                novatel::edie::oem::MetaDataStruct* pstMetaData_,
-                                                               novatel::edie::ENCODE_FORMAT uiEncodeFormat_);
+                                                               novatel::edie::ENCODE_FORMAT eEncodeFormat_);
 }
 
 #endif // DYNAMIC_LIBRARY_NOVATEL_ENCODER_HPP

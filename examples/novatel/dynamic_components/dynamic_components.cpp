@@ -116,7 +116,6 @@ int main(int argc, char* argv[])
 
     // Set up buffers
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucFrameBuffer = acFrameBuffer;
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
@@ -154,7 +153,7 @@ int main(int argc, char* argv[])
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
-            pucFrameBuffer = acFrameBuffer;
+            unsigned char* pucFrameBuffer = acFrameBuffer;
             eFramerStatus = NovatelFramerRead(pclFramer, pucFrameBuffer, MAX_ASCII_MESSAGE_LENGTH, &stMetaData);
 
             if (eFramerStatus == STATUS::SUCCESS)
@@ -215,8 +214,6 @@ int main(int argc, char* argv[])
     }
 
     // Clean up
-    pucFrameBuffer = acFrameBuffer;
-
     NovatelFramerShutdownLogger(pclFramer);
     NovatelHeaderDecoderShutdownLogger(pclHeaderDecoder);
     NovatelMessageDecoderShutdownLogger(pclMessageDecoder);

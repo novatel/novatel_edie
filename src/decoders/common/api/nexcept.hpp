@@ -72,7 +72,7 @@ class NExcept
     //----------------------------------------------------------------------------
     NExcept& operator=(const NExcept& clNew_)
     {
-        strncpy(buffer, clNew_.buffer, 256);
+        if (this != &clNew_) { strncpy(buffer, clNew_.buffer, 256); }
         return *this;
     }
 
