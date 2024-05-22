@@ -85,6 +85,7 @@ jobs:
           
           if [ ${#failures[@]} -gt 0 ]; then
               echo "One or more regression tests failed! ${failures[@]}"
+              echo "See the README if you don't know how to fix this."
               exit 1
           fi
           
