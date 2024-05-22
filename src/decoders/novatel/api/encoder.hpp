@@ -111,7 +111,7 @@ class Encoder : public EncoderBase
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const IntermediateMessage& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
                                 ENCODE_FORMAT eFormat_);
 
     //----------------------------------------------------------------------------
@@ -174,7 +174,7 @@ class Encoder : public EncoderBase
     //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateMessage& stMessage_,
+    [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
                                     MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_);
 };
 
