@@ -139,6 +139,7 @@ class Logger
      */
     static std::shared_ptr<spdlog::logger> RegisterLogger(std::string sLoggerName_)
     {
+        if (!pclMyRootLogger) { InitLogger(); }
         std::lock_guard<std::mutex> lock(mLoggerMutex);
         pclMyRootLogger->debug("Logger::RegisterLogger(\"{}\")", sLoggerName_);
         std::shared_ptr<spdlog::logger> pclLogger = spdlog::get(sLoggerName_);

@@ -122,7 +122,7 @@ void MessageDecoder::InitOemFieldMaps()
         if (sDelimiter != std::string::npos)
         {
             usSlot = static_cast<uint16_t>(strtoul(sTemp.substr(0, sDelimiter).c_str(), nullptr, 10));
-            sFreq = static_cast<int16_t>(strtol(sTemp.substr(sDelimiter, sTemp.length()).c_str(), nullptr, 10));
+            sFreq = static_cast<int16_t>(strtol(sTemp.substr(sDelimiter).c_str(), nullptr, 10));
         }
         else
         {
