@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
     // Setup file streams
     InputFileStream clIfs(pathInFilename.string().c_str());
     OutputFileStream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str());
-    OutputFileStream clUnknownBytesOfs(pathInFilename.string().append(".UNKNOWN").c_str());
+    OutputFileStream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str());
 
     tStart = std::chrono::high_resolution_clock::now();
 
