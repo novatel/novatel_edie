@@ -25,6 +25,7 @@
 // ===============================================================================
 
 #include <chrono>
+#include <filesystem>
 
 #include "src/decoders/common/api/message_decoder.hpp"
 #include "src/decoders/novatel/api/encoder.hpp"
@@ -36,14 +37,10 @@
 #include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
 #include "src/version.h"
 
+namespace fs = std::filesystem;
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-inline bool FileExists(const std::string& strName_)
-{
-    struct stat buffer;
-    return stat(strName_.c_str(), &buffer) == 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -71,19 +68,18 @@ int main(int argc, char* argv[])
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
-    if (!FileExists(argv[1]))
+    const fs::path pathJsonDb = argv[1];
+    if (!fs::exists(pathJsonDb))
     {
-        pclLogger->error("File \"{}\" does not exist", argv[1]);
+        pclLogger->error("File \"{}\" does not exist", pathJsonDb.string());
         return 1;
     }
-    if (!FileExists(argv[2]))
+    const fs::path pathInFilename = argv[2];
+    if (!fs::exists(pathInFilename))
     {
-        pclLogger->error("File \"{}\" does not exist", argv[2]);
+        pclLogger->error("File \"{}\" does not exist", pathInFilename.string());
         return 1;
     }
-
-    std::string sJsonDb = argv[1];
-    std::string sInFilename = argv[2];
 
     ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
     if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
@@ -97,7 +93,7 @@ int main(int argc, char* argv[])
     JsonReader clJsonDb;
     pclLogger->info("Loading Database... ");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(sJsonDb);
+    clJsonDb.LoadFile(pathJsonDb.string());
     pclLogger->info("DONE ({}ms)", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     Framer clFramer;
@@ -130,8 +126,8 @@ int main(int argc, char* argv[])
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
-    InputFileStream clIfs(sInFilename.c_str());
-    OutputFileStream clOfs(sInFilename.append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
+    InputFileStream clIfs(pathInFilename.string().c_str());
+    OutputFileStream clOfs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
     StreamReadStatus stReadStatus;
 
     auto eStatus = STATUS::UNKNOWN;

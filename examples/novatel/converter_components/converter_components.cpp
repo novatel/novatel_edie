@@ -25,6 +25,7 @@
 // ===============================================================================
 
 #include <chrono>
+#include <filesystem>
 
 #include "src/decoders/common/api/json_reader.hpp"
 #include "src/decoders/common/api/logger.hpp"
@@ -37,14 +38,10 @@
 #include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
 #include "src/version.h"
 
+namespace fs = std::filesystem;
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-inline bool FileExists(const std::string& strName_)
-{
-    struct stat buffer;
-    return stat(strName_.c_str(), &buffer) == 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -70,17 +67,16 @@ int main(int argc, char* argv[])
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
     // Check command line arguments
-    std::string sJsonDb = argv[1];
-    if (!FileExists(sJsonDb))
+    const fs::path pathJsonDb = argv[1];
+    if (!fs::exists(pathJsonDb))
     {
-        pclLogger->error("File \"{}\" does not exist", sJsonDb);
+        pclLogger->error("File \"{}\" does not exist", pathJsonDb.string());
         return 1;
     }
-
-    std::string sInFilename = argv[2];
-    if (!FileExists(sInFilename))
+    const fs::path pathInFilename = argv[2];
+    if (!fs::exists(pathInFilename))
     {
-        pclLogger->error("File \"{}\" does not exist", sInFilename);
+        pclLogger->error("File \"{}\" does not exist", pathInFilename.string());
         return 1;
     }
 
@@ -95,7 +91,7 @@ int main(int argc, char* argv[])
     JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(sJsonDb);
+    clJsonDb.LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
@@ -152,9 +148,9 @@ int main(int argc, char* argv[])
     stReadData.uiDataSize = sizeof(acIfsReadBuffer);
 
     // Setup file streams
-    InputFileStream clIfs(sInFilename.c_str());
-    OutputFileStream clConvertedLogsOfs(sInFilename.append(".").append(sEncodeFormat).c_str());
-    OutputFileStream clUnknownBytesOfs(sInFilename.append(".UNKNOWN").c_str());
+    InputFileStream clIfs(pathInFilename.string().c_str());
+    OutputFileStream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str());
+    OutputFileStream clUnknownBytesOfs(pathInFilename.string().append(".UNKNOWN").c_str());
 
     tStart = std::chrono::high_resolution_clock::now();
 
