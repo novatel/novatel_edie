@@ -76,10 +76,20 @@ void MessageDecoderBase::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("%UB")] = SimpleAsciiMapEntry<uint8_t>();
     asciiFieldMap[CalculateBlockCrc32("%XB")] = SimpleAsciiMapEntry<uint8_t, 16>();
     asciiFieldMap[CalculateBlockCrc32("%lf")] = SimpleAsciiMapEntry<double>();
-    asciiFieldMap[CalculateBlockCrc32("%e")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("%le")] = SimpleAsciiMapEntry<double>();
-    asciiFieldMap[CalculateBlockCrc32("%g%")] = SimpleAsciiMapEntry<float>();
+    asciiFieldMap[CalculateBlockCrc32("%g")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("%lg")] = SimpleAsciiMapEntry<double>();
+
+    asciiFieldMap[CalculateBlockCrc32("%e")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
+        switch (pstMessageDataType_->dataType.length)
+        {
+        case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
+        case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), pstMessageDataType_); return;
+        default: throw std::runtime_error("%e: invalid float length");
+        }
+    };
 
     asciiFieldMap[CalculateBlockCrc32("%f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
                                                   char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
@@ -88,7 +98,7 @@ void MessageDecoderBase::InitFieldMaps()
         {
         case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
         case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), pstMessageDataType_); return;
-        default: throw std::runtime_error("invalid float length");
+        default: throw std::runtime_error("%f: invalid float length");
         }
     };
 
