@@ -294,6 +294,3 @@ struct BESTSATS
 } // namespace novatel::edie::oem
 
 #endif // NOVATEL_MESSAGE_DEFINITIONS_HPP
-
-// clang-format on
-
