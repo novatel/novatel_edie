@@ -25,20 +25,17 @@
 // ===============================================================================
 
 #include <chrono>
+#include <filesystem>
 
 #include "src/decoders/novatel/api/file_parser.hpp"
 #include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
 #include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
 #include "src/version.h"
 
+namespace fs = std::filesystem;
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-inline bool FileExists(const std::string& strName_)
-{
-    struct stat buffer;
-    return stat(strName_.c_str(), &buffer) == 0;
-}
 
 int main(int argc, char* argv[])
 {
@@ -63,29 +60,17 @@ int main(int argc, char* argv[])
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
-    if (!FileExists(argv[1]))
-    {
-        pclLogger->error("File \"{}\" does not exist", argv[1]);
-        return 1;
-    }
-    if (!FileExists(argv[2]))
-    {
-        pclLogger->error("File \"{}\" does not exist", argv[2]);
-        return 1;
-    }
-
     // Check command line arguments
-    std::string sJsonDb = argv[1];
-    if (!FileExists(sJsonDb))
+    const fs::path pathJsonDb = argv[1];
+    if (!fs::exists(pathJsonDb))
     {
-        pclLogger->error("File \"{}\" does not exist", sJsonDb);
+        pclLogger->error("File \"{}\" does not exist", pathJsonDb.string());
         return 1;
     }
-
-    std::string sInFilename = argv[2];
-    if (!FileExists(sInFilename))
+    const fs::path pathInFilename = argv[2];
+    if (!fs::exists(pathInFilename))
     {
-        pclLogger->error("File \"{}\" does not exist", sInFilename);
+        pclLogger->error("File \"{}\" does not exist", pathInFilename.string());
         return 1;
     }
 
@@ -100,7 +85,7 @@ int main(int argc, char* argv[])
     JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(sJsonDb);
+    clJsonDb.LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
@@ -133,9 +118,9 @@ int main(int argc, char* argv[])
     stReadData.uiDataSize = sizeof(acIfsReadBuffer);
 
     // Set up file streams
-    InputFileStream clIfs(sInFilename.c_str());
-    OutputFileStream clConvertedLogsOfs(sInFilename.append(".").append(sEncodeFormat).c_str());
-    OutputFileStream clUnknownBytesOfs(sInFilename.append(".UNKNOWN").c_str());
+    InputFileStream clIfs(pathInFilename.string().c_str());
+    OutputFileStream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str());
+    OutputFileStream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str());
 
     if (!clFileParser.SetStream(&clIfs))
     {
@@ -177,7 +162,7 @@ int main(int argc, char* argv[])
 
     pclLogger->info("Converted {} logs in {}ms from {}", uiCompleteMessages,
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count(),
-                    sInFilename.c_str());
+                    pathInFilename.string().c_str());
     Logger::Shutdown();
     return 0;
 }
