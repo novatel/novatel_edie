@@ -25,6 +25,8 @@
 // ! \file novatel_message_definitions.hpp
 // ===============================================================================
 
+// clang-format off
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
