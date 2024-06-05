@@ -1,6 +1,7 @@
+// clang-format off
 // ===============================================================================
 // |                                                                             |
-// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |  COPYRIGHT NovAtel Inc, 2024. All rights reserved.                          |
 // |                                                                             |
 // |  Permission is hereby granted, free of charge, to any person obtaining a    |
 // |  copy of this software and associated documentation files (the "Software"), |
@@ -292,3 +293,4 @@ struct BESTSATS
 } // namespace novatel::edie::oem
 
 #endif // NOVATEL_MESSAGE_DEFINITIONS_HPP
+// clang-format on
