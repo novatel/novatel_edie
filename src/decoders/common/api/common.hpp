@@ -1,42 +1,32 @@
-////////////////////////////////////////////////////////////////////////
-//
-// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////
-//                            DESCRIPTION
-//
-//! \file common.hpp
-//! \brief Header file containing the common structs, enums and defines
-//! used throughout the EDIE source code.
-////////////////////////////////////////////////////////////////////////
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file common.hpp
+// ===============================================================================
 
-//-----------------------------------------------------------------------
-// Recursive Inclusion
-//-----------------------------------------------------------------------
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -65,10 +55,10 @@ enum class STATUS
     STREAM_EMPTY,           //!< The input stream is empty.
     UNSUPPORTED,            //!< An attempted operation is unsupported by this component.
     MALFORMED_INPUT,        //!< The input is recognizable, but has unexpected formatting.
-    DECOMPRESSION_FAILURE   //!< The RANGECMPx log could not be decompressed.
+    DECOMPRESSION_FAILURE   //!< The RANGECMP log could not be decompressed.
 };
 
-inline std::string StatusToString(STATUS eStatus_)
+inline std::string StatusToString(const STATUS eStatus_)
 {
     return eStatus_ == STATUS::SUCCESS                  ? "SUCCESS"
            : eStatus_ == STATUS::FAILURE                ? "FAILURE"
@@ -87,18 +77,18 @@ inline std::string StatusToString(STATUS eStatus_)
                                                         : "UNKNOWN";
 }
 
-inline std::ostream& operator<<(std::ostream& os_, STATUS eStatus_)
+inline std::ostream& operator<<(std::ostream& os_, const STATUS eStatus_)
 {
     os_ << StatusToString(eStatus_);
     return os_;
 }
 
 //-----------------------------------------------------------------------
-//! \enum ENCODEFORMAT
+//! \enum ENCODE_FORMAT
 //! \brief Used to specify the kind of format to re-encode a decoded
 //! message to.  Not every encoder supports these types.
 //-----------------------------------------------------------------------
-enum class ENCODEFORMAT
+enum class ENCODE_FORMAT
 {
     FLATTENED_BINARY, //!< NovAtel EDIE "Flattened" binary format.  All strings/arrays are padded to
                       //!< maximum length to allow programmatic access.
@@ -107,31 +97,31 @@ enum class ENCODEFORMAT
     ABBREV_ASCII,     //!< NovAtel Abbreviated ASCII.
     BINARY,           //!< NovAtel Binary.  If the log was decoded from a SHORT/compressed format, it will be
                       //!< encoded to the respective SHORT/compressed format.
-    JSON,             //!< A JSON object.  See HTML documentation for information on fields.
+    JSON,             //!< A JSON object. See HTML documentation for information on fields.
     UNSPECIFIED       //!< No encode format was specified.
 };
 
-inline ENCODEFORMAT StringToEncodeFormat(std::string sEnumName_)
+inline ENCODE_FORMAT StringToEncodeFormat(const std::string& sEnumName_)
 {
-    return sEnumName_ == "FLATTENED_BINARY" ? ENCODEFORMAT::FLATTENED_BINARY
-           : sEnumName_ == "ASCII"          ? ENCODEFORMAT::ASCII
-           : sEnumName_ == "BINARY"         ? ENCODEFORMAT::BINARY
-           : sEnumName_ == "JSON"           ? ENCODEFORMAT::JSON
-           : sEnumName_ == "ABBREV_ASCII"   ? ENCODEFORMAT::ABBREV_ASCII
-                                            : ENCODEFORMAT::UNSPECIFIED;
+    return sEnumName_ == "FLATTENED_BINARY" ? ENCODE_FORMAT::FLATTENED_BINARY
+           : sEnumName_ == "ASCII"          ? ENCODE_FORMAT::ASCII
+           : sEnumName_ == "BINARY"         ? ENCODE_FORMAT::BINARY
+           : sEnumName_ == "JSON"           ? ENCODE_FORMAT::JSON
+           : sEnumName_ == "ABBREV_ASCII"   ? ENCODE_FORMAT::ABBREV_ASCII
+                                            : ENCODE_FORMAT::UNSPECIFIED;
 }
 
-inline std::string EncodeFormatToString(ENCODEFORMAT eFormat_)
+inline std::string EncodeFormatToString(const ENCODE_FORMAT eFormat_)
 {
-    return eFormat_ == ENCODEFORMAT::FLATTENED_BINARY ? "FLATTENED_BINARY"
-           : eFormat_ == ENCODEFORMAT::ASCII          ? "ASCII"
-           : eFormat_ == ENCODEFORMAT::ABBREV_ASCII   ? "ABBREV_ASCII"
-           : eFormat_ == ENCODEFORMAT::BINARY         ? "BINARY"
-           : eFormat_ == ENCODEFORMAT::JSON           ? "JSON"
-                                                      : "UNSPECIFIED";
+    return eFormat_ == ENCODE_FORMAT::FLATTENED_BINARY ? "FLATTENED_BINARY"
+           : eFormat_ == ENCODE_FORMAT::ASCII          ? "ASCII"
+           : eFormat_ == ENCODE_FORMAT::ABBREV_ASCII   ? "ABBREV_ASCII"
+           : eFormat_ == ENCODE_FORMAT::BINARY         ? "BINARY"
+           : eFormat_ == ENCODE_FORMAT::JSON           ? "JSON"
+                                                       : "UNSPECIFIED";
 }
 
-inline std::ostream& operator<<(std::ostream& os_, ENCODEFORMAT eFormat_)
+inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
 {
     os_ << EncodeFormatToString(eFormat_);
     return os_;
@@ -140,7 +130,7 @@ inline std::ostream& operator<<(std::ostream& os_, ENCODEFORMAT eFormat_)
 //-----------------------------------------------------------------------
 //! \enum TIME_STATUS
 //! \brief Enumeration describing the time status on a NovAtel receiver
-//! when a log is produced.  See GPS Reference Time Status.
+//! when a log is produced. See GPS Reference Time Status.
 //-----------------------------------------------------------------------
 enum class TIME_STATUS
 {
@@ -154,17 +144,16 @@ enum class TIME_STATUS
     FINE = 160,               //!< Time has fine precision.
     FINEBACKUPSTEERING = 170, //!< Time is fine set and is being steered by the backup system.
     FINESTEERING = 180,       //!< Time is fine set and is being steered.
-    SATTIME = 200,            //!< Time from satellite. Only used in logs containing satellite data such as
-                              //!< ephemeris and almanac.
+    SATTIME = 200,            //!< Time from satellite. Only used in logs containing satellite data such as ephemeris and almanac.
     EXTERN = 220,             //!< Time source is external to the Receiver.
     EXACT = 240               //!< Time is exact.
 };
 
 //-----------------------------------------------------------------------
-//! \enum HEADERFORMAT
+//! \enum HEADER_FORMAT
 //! \brief Header formats of messages.
 //-----------------------------------------------------------------------
-enum class HEADERFORMAT
+enum class HEADER_FORMAT
 {
     UNKNOWN = 1,
     BINARY,
@@ -179,17 +168,17 @@ enum class HEADERFORMAT
     ALL // Used in filters to indicate all filter types : all new enums should be added before this value
 };
 
-constexpr bool isShortHeaderFormat(HEADERFORMAT eFormat)
+constexpr bool IsShortHeaderFormat(const HEADER_FORMAT eFormat_)
 {
-    return eFormat == HEADERFORMAT::SHORT_ASCII || eFormat == HEADERFORMAT::SHORT_BINARY || eFormat == HEADERFORMAT::SHORT_ABB_ASCII;
+    return eFormat_ == HEADER_FORMAT::SHORT_ASCII || eFormat_ == HEADER_FORMAT::SHORT_BINARY || eFormat_ == HEADER_FORMAT::SHORT_ABB_ASCII;
 }
 
 //-----------------------------------------------------------------------
-//! \enum MESSAGEFORMAT
-//! \brief Bit fields to describe message type.  See Binary Message
+//! \enum MESSAGE_FORMAT
+//! \brief Bit fields to describe message type. See Binary Message
 //! Header Structure.
 //-----------------------------------------------------------------------
-enum class MESSAGEFORMAT
+enum class MESSAGE_FORMAT
 {
     BINARY = 0b00,
     ASCII = 0b01,
@@ -198,11 +187,11 @@ enum class MESSAGEFORMAT
 };
 
 //-----------------------------------------------------------------------
-//! \enum MESSAGETYPEMASK
-//! \brief Bitmask for Message Type field in Binary logs.  See Binary
+//! \enum MESSAGE_TYPE_MASK
+//! \brief Bitmask for Message Type field in Binary logs. See Binary
 //! Message Header Structure.
 //-----------------------------------------------------------------------
-enum class MESSAGETYPEMASK
+enum class MESSAGE_TYPE_MASK
 {
     MEASSRC = 0b00011111,
     MSGFORMAT = 0b01100000,
@@ -210,16 +199,16 @@ enum class MESSAGETYPEMASK
 };
 
 //-----------------------------------------------------------------------
-//! \enum MESSAGEIDMASK
-//! \brief Bitmask for Message ID field in Binary logs.  See Binary
+//! \enum MESSAGE_ID_MASK
+//! \brief Bitmask for Message ID field in Binary logs. See Binary
 //! Message Header Structure.
 //-----------------------------------------------------------------------
-enum class MESSAGEIDMASK
+enum class MESSAGE_ID_MASK
 {
     LOGID = 0x00FFFF,
-    MEASSRC = (static_cast<uint32_t>(MESSAGETYPEMASK::MEASSRC) << 16),
-    MSGFORMAT = (static_cast<uint32_t>(MESSAGETYPEMASK::MSGFORMAT) << 16),
-    RESPONSE = (static_cast<uint32_t>(MESSAGETYPEMASK::RESPONSE) << 16)
+    MEASSRC = static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC) << 16,
+    MSGFORMAT = static_cast<uint32_t>(MESSAGE_TYPE_MASK::MSGFORMAT) << 16,
+    RESPONSE = static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE) << 16
 };
 
 //-----------------------------------------------------------------------
@@ -249,20 +238,21 @@ struct MessageDataStruct
 
     constexpr MessageDataStruct() = default;
 
-    MessageDataStruct(unsigned char* message, const uint32_t length, const uint32_t headerLength)
-        : pucMessageHeader(message), uiMessageHeaderLength(headerLength), pucMessageBody(message + uiMessageHeaderLength),
-          uiMessageBodyLength(length - headerLength), pucMessage(message), uiMessageLength(length)
+    MessageDataStruct(unsigned char* pucMessage_, const uint32_t uiLength_, const uint32_t uiHeaderLength_)
+        : pucMessageHeader(pucMessage_), uiMessageHeaderLength(uiHeaderLength_), pucMessageBody(pucMessage_ + uiMessageHeaderLength),
+          uiMessageBodyLength(uiLength_ - uiHeaderLength_), pucMessage(pucMessage_), uiMessageLength(uiLength_)
     {
     }
 
-    bool operator==(const MessageDataStruct& other) const
+    bool operator==(const MessageDataStruct& stOther_) const
     {
-        return uiMessageHeaderLength == other.uiMessageHeaderLength && uiMessageBodyLength == other.uiMessageBodyLength &&
-               uiMessageLength == other.uiMessageLength && memcmp(pucMessageHeader, other.pucMessageHeader, uiMessageHeaderLength) == 0 &&
-               memcmp(pucMessageBody, other.pucMessageBody, uiMessageBodyLength) == 0 && memcmp(pucMessage, other.pucMessage, uiMessageLength) == 0;
+        return uiMessageHeaderLength == stOther_.uiMessageHeaderLength && uiMessageBodyLength == stOther_.uiMessageBodyLength &&
+               uiMessageLength == stOther_.uiMessageLength && memcmp(pucMessageHeader, stOther_.pucMessageHeader, uiMessageHeaderLength) == 0 &&
+               memcmp(pucMessageBody, stOther_.pucMessageBody, uiMessageBodyLength) == 0 &&
+               memcmp(pucMessage, stOther_.pucMessage, uiMessageLength) == 0;
     }
 
-    bool operator!=(const MessageDataStruct& other) const { return !(*this == other); }
+    bool operator!=(const MessageDataStruct& stOther_) const { return !(*this == stOther_); }
 };
 
 //! Forward declaration for common function headers.
@@ -277,20 +267,19 @@ class MetaDataBase
     MetaDataBase() = default;
     virtual ~MetaDataBase() = 0;
     bool bResponse{false};
-    HEADERFORMAT eFormat{HEADERFORMAT::UNKNOWN};
+    HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
     uint16_t usWeek{0};
     double dMilliseconds{0.0};
     uint32_t uiLength{0};
     uint32_t uiBinaryMsgLength{0}; //!< Message length according to the binary header. If ASCII, this field is not used.
     uint32_t uiHeaderLength{0};
-    uint16_t usMessageID{0};
-    uint32_t uiMessageCRC{0};
+    uint16_t usMessageId{0};
+    uint32_t uiMessageCrc{0};
     char acMessageName[uiMessageNameMax + 1]{'\0'};
 
-    // Message Name helper functions
-    std::string MessageName() const { return std::string(acMessageName); }
+    [[nodiscard]] std::string MessageName() const { return {acMessageName}; }
 
-    void MessageName(std::string strMessageName_)
+    void MessageName(const std::string& strMessageName_)
     {
         memcpy(acMessageName, strMessageName_.c_str(), strMessageName_.length());
         acMessageName[strMessageName_.length()] = '\0';
@@ -304,9 +293,9 @@ inline MetaDataBase::~MetaDataBase() = default;
 //-----------------------------------------------------------------------
 //! \brief Compare two double values.
 //
-//! \param[in] dVal1 First double type Value.
-//! \param[in] dVal2 Second double type value.
-//! \param[in] dEpsilon The tolerance with which to justify "equal".
+//! \param[in] dVal1_ First double type Value.
+//! \param[in] dVal2_ Second double type value.
+//! \param[in] dEpsilon_ The tolerance with which to justify "equal".
 //
 //! \return Boolean Value - Returns both values are equal or not?
 //-----------------------------------------------------------------------
@@ -315,39 +304,39 @@ bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_ = 0.001);
 //-----------------------------------------------------------------------
 //! \brief Construct a full message ID from its parts.
 //
-//! \param[in] uiMessageID_ The base message ID.
-//! \param[in] uiSiblingID_ The sibling ID.
+//! \param[in] uiMessageId_ The base message ID.
+//! \param[in] uiSiblingId_ The sibling ID.
 //! \param[in] uiMsgFormat_ The message format.
 //! \param[in] uiResponse_ If the message is a response.
 //
 //! \return The constructed message ID.
 //! \remark See OEM7 User Documentation on "Binary".
 //-----------------------------------------------------------------------
-uint32_t CreateMsgID(uint32_t uiMessageID_, uint32_t uiSiblingID_, uint32_t uiMsgFormat_, uint32_t uiResponse_);
+uint32_t CreateMsgId(uint32_t uiMessageId_, uint32_t uiSiblingId_, uint32_t uiMsgFormat_, uint32_t uiResponse_);
 
 //-----------------------------------------------------------------------
 //! \brief Unpack a full message ID into its parts.
 //
-//! \param[in] uiMessageID_ The full message ID to be unpacked.
-//! \param[out] usMessageID_ The base message ID.
-//! \param[out] uiSiblingID_ The sibling ID.
+//! \param[in] uiMessageId_ The full message ID to be unpacked.
+//! \param[out] usMessageId_ The base message ID.
+//! \param[out] uiSiblingId_ The sibling ID.
 //! \param[out] uiMsgFormat_ The message format.
 //! \param[out] uiResponse_ If the message is a response.
 //
 //! \remark See OEM7 User Documentation on "Binary".
 //-----------------------------------------------------------------------
-void UnpackMsgID(uint32_t uiMessageID_, uint16_t& usMessageID_, uint32_t& uiSiblingID_, uint32_t& uiMsgFormat_, uint32_t& uiResponse_);
+void UnpackMsgId(uint32_t uiMessageId_, uint16_t& usMessageId_, uint32_t& uiSiblingId_, uint32_t& uiMsgFormat_, uint32_t& uiResponse_);
 
 //-----------------------------------------------------------------------
 //! \brief Pack a message type from its parts into an unsigned char.
 //
-//! \param[in] uiSiblingID_ The sibling ID.
+//! \param[in] uiSiblingId_ The sibling ID.
 //! \param[in] uiMsgFormat_ The message format.
 //! \param[in] uiResponse_ If the message is a response.
 //
 //! \return A packed message type.
 //-----------------------------------------------------------------------
-unsigned char PackMsgType(uint32_t uiSiblingID_, uint32_t uiMsgFormat_, uint32_t uiResponse_);
+unsigned char PackMsgType(uint32_t uiSiblingId_, uint32_t uiMsgFormat_, uint32_t uiResponse_);
 
 //-----------------------------------------------------------------------
 //! \brief Get the name of an enum value in string form.
@@ -367,84 +356,82 @@ std::string GetEnumString(const novatel::edie::EnumDefinition* stEnumDef_, uint3
 //
 //! \return The enum in integer form.
 //-----------------------------------------------------------------------
-int32_t GetEnumValue(const novatel::edie::EnumDefinition* stEnumDef_, std::string strEnum_);
+int32_t GetEnumValue(const novatel::edie::EnumDefinition* stEnumDef_, const std::string& strEnum_);
 
 //-----------------------------------------------------------------------
-//! \brief Get the value of an response string in integer form.
+//! \brief Get the value of a response string in integer form.
 //
 //! \param[in] stRespDef_ A pointer to the response definition.
 //! \param[in] strResp_ The response name.
 //
 //! \return The response in integer form.
 //-----------------------------------------------------------------------
-int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, std::string strResp_);
+int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, const std::string& strResp_);
 
 //-----------------------------------------------------------------------
 //! \brief Get the char as an integer.
 //
-//! \param[in] c The char to get as an integer.
+//! \param[in] c_ The char to get as an integer.
 //
 //! \return The char as an integer.
 //-----------------------------------------------------------------------
-int32_t ToDigit(char c);
+int32_t ToDigit(char c_);
 
 //-----------------------------------------------------------------------
-//! \brief Strip a abbreviated ASCII formatting from the front of the
+//! \brief Strip abbreviated ASCII formatting from the front of the
 //! log buffer.
 //
 //! \param[in] ullTokenLength_ The length of the message contained in
-//! ppucMessageBuffer_
-//! \param[in] ppucMessageBuffer_ A pointer to the buffer containing the
+//! ppcMessageBuffer_
+//! \param[in] ppcMessageBuffer_ A pointer to the buffer containing the
 //! message to have abbreviated ASCII formatting stripped.
 //
 //! \return A boolean describing if the formatting found was abbreviated
-//! ASCII or not.  Regardless of this return, the function will attempt
+//! ASCII or not. Regardless of this return, the function will attempt
 //! to strip any abbreviated ASCII bytes.
 //-----------------------------------------------------------------------
-bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, char** ppucMessageBuffer_);
+bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, char** ppcMessageBuffer_);
 
 //-----------------------------------------------------------------------
-//! \struct SATELLITEID
+//! \struct SatelliteId
 //! \brief Provides Satellite number and frequency channel.
 //-----------------------------------------------------------------------
-struct SATELLITEID
+struct SatelliteId
 {
     uint16_t usPrnOrSlot{0};      //!< PRN/Slot number of satellite.
     int16_t sFrequencyChannel{0}; //!< Frequency channel number.
 
-    constexpr SATELLITEID() = default;
+    constexpr SatelliteId() = default;
 
-    bool operator==(const SATELLITEID& other) const { return usPrnOrSlot == other.usPrnOrSlot && sFrequencyChannel == other.sFrequencyChannel; }
+    bool operator==(const SatelliteId& stOther_) const
+    {
+        return usPrnOrSlot == stOther_.usPrnOrSlot && sFrequencyChannel == stOther_.sFrequencyChannel;
+    }
 };
 
 //-----------------------------------------------------------------------
 // Common miscellaneous defines
 //-----------------------------------------------------------------------
-#define SEC_TO_MSEC (1000U)    //!< A Macro definition for number of milliseconds in a second.
-#define SECS_IN_WEEK (604800U) //!< A Macro definition for number of milliseconds in a week.
+constexpr uint32_t SEC_TO_MILLI_SEC = 1000; //!< A Macro definition for number of milliseconds in a second.
+constexpr uint32_t SECS_IN_WEEK = 604800;   //!< A Macro definition for number of milliseconds in a week.
 
 //-----------------------------------------------------------------------
 // NovAtel message length defines
 //-----------------------------------------------------------------------
-#define MESSAGE_SIZE_MAX (0x8000) //!< FW-defined maximum transmittable message length. (32kB)
-#define MAX_ASCII_MESSAGE_LENGTH                                                                                                                     \
-    (MESSAGE_SIZE_MAX) //!< Undefined message length assumes that the max log size for this format
-                       //!< is the maximum message length allowed to be transmitted by the FW.
-#define MAX_BINARY_MESSAGE_LENGTH                                                                                                                    \
-    (MESSAGE_SIZE_MAX) //!< Undefined message length assumes that the max log size for this format
-                       //!< is the maximum message length allowed to be transmitted by the FW.
-#define MAX_SHORT_ASCII_MESSAGE_LENGTH                                                                                                               \
-    (MESSAGE_SIZE_MAX) //!< Undefined message length assumes that the max log size for this format
-                       //!< is the maximum message length allowed to be transmitted by the FW.
-#define MAX_SHORT_BINARY_MESSAGE_LENGTH                                                                                                              \
-    (12 + 255 + 4) //!< Short Binary message length cannot exceed the log length max value
-                   //!< representation defined by the header.
-#define MAX_ABB_ASCII_RESPONSE_LENGTH                                                                                                                \
-    (MESSAGE_SIZE_MAX) //!< Undefined message length assumes that the max log size for this format
-                       //!< is the maximum message length allowed to be transmitted by the FW.
-#define MAX_NMEA_MESSAGE_LENGTH                                                                                                                      \
-    (256) //(82)         //!< NovAtel Docs - NMEA Standard Logs: Explicitly states that the maximum
-          // allowable is 82 chars.  Numerous internal logs break that standard, so we will use 256
-          // here as a safety measure.
+//!< FW-defined maximum transmittable message length. (32kB)
+constexpr uint32_t MESSAGE_SIZE_MAX = 0x8000;
+//!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
+constexpr uint32_t MAX_ASCII_MESSAGE_LENGTH = MESSAGE_SIZE_MAX;
+//!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
+constexpr uint32_t MAX_BINARY_MESSAGE_LENGTH = MESSAGE_SIZE_MAX;
+//!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
+constexpr uint32_t MAX_SHORT_ASCII_MESSAGE_LENGTH = MESSAGE_SIZE_MAX;
+//!< Short Binary message length cannot exceed the log length max value representation defined by the header.
+constexpr uint32_t MAX_SHORT_BINARY_MESSAGE_LENGTH = 12 + 255 + 4;
+//!< Undefined message length assumes that the max log size for this format is the maximum message length allowed to be transmitted by the FW.
+constexpr uint32_t MAX_ABB_ASCII_RESPONSE_LENGTH = MESSAGE_SIZE_MAX;
+//!< NovAtel Docs - NMEA Standard Logs: Explicitly states that the maximum allowable is 82 chars.
+//!< Numerous internal logs break that standard, so we will use 256here as a safety measure.
+constexpr uint32_t MAX_NMEA_MESSAGE_LENGTH = 256; //(82)
 
 #endif

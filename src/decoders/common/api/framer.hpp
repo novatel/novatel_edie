@@ -1,45 +1,36 @@
-////////////////////////////////////////////////////////////////////////
-//
-// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////
-//                            DESCRIPTION
-//
-//! \file framer.hpp
-//! \brief Frame messages
-////////////////////////////////////////////////////////////////////////
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file framer.hpp
+// ===============================================================================
 
-//-----------------------------------------------------------------------
-// Recursive Inclusion
-//-----------------------------------------------------------------------
 #ifndef FRAMER_HPP
 #define FRAMER_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include <memory>
 
-#include "circularbuffer.hpp"
-#include "logger/logger.hpp"
+#include "circular_buffer.hpp"
+#include "logger.hpp"
 
 //============================================================================
 //! \class Framer
@@ -52,7 +43,7 @@ class FramerBase
     std::shared_ptr<spdlog::logger> pclMyLogger;
     CircularBuffer clMyCircularDataBuffer;
 
-    uint32_t uiMyCalculatedCRC32{0U};
+    uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
     uint32_t uiMyExpectedPayloadLength{0U};
     uint32_t uiMyExpectedMessageLength{0U};
@@ -63,7 +54,7 @@ class FramerBase
 
     virtual void ResetState() = 0;
 
-    bool IsCRLF(const uint32_t uiPosition_) const
+    [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
         return uiPosition_ + 1 < clMyCircularDataBuffer.GetLength() && clMyCircularDataBuffer[uiPosition_] == '\r' &&
                clMyCircularDataBuffer[uiPosition_ + 1] == '\n';
@@ -103,14 +94,14 @@ class FramerBase
     //
     //! \return Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
     //
     //! \param[in] eLevel_ Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
+    void SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
@@ -119,12 +110,12 @@ class FramerBase
 
     //----------------------------------------------------------------------------
     //! \brief Should the Framer look for JSON objects in provided bytes?
-    //! This setting can be extremely error prone, as there is no CRC search or
+    //! This setting can be extremely error-prone, as there is no CRC search or
     //! sync bytes, just direct comparisons to '{' and '}' characters.
     //
     //! \param[in] bFrameJson_ true if the Framer should search for JSON objects.
     //----------------------------------------------------------------------------
-    void SetFrameJson(bool bFrameJson_) { bMyFrameJson = bFrameJson_; }
+    void SetFrameJson(const bool bFrameJson_) { bMyFrameJson = bFrameJson_; }
 
     //----------------------------------------------------------------------------
     //! \brief Should the Framer return only the message body of messages and
@@ -133,7 +124,7 @@ class FramerBase
     //! \param[in] bPayloadOnly_ true if the Framer should discard message
     //! headers.
     //----------------------------------------------------------------------------
-    void SetPayloadOnly(bool bPayloadOnly_) { bMyPayloadOnly = bPayloadOnly_; }
+    void SetPayloadOnly(const bool bPayloadOnly_) { bMyPayloadOnly = bPayloadOnly_; }
 
     //----------------------------------------------------------------------------
     //! \brief Configure the framer to return unknown bytes in the provided
@@ -141,14 +132,17 @@ class FramerBase
     //
     //! \param[in] bReportUnknownBytes_ Set to true to return unknown bytes.
     //----------------------------------------------------------------------------
-    virtual void SetReportUnknownBytes(bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
+    virtual void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the number of bytes available in the internal circular buffer.
     //
     //! \return The number of bytes available in the internal circular buffer.
     //----------------------------------------------------------------------------
-    virtual uint32_t GetBytesAvailableInBuffer() const { return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength(); }
+    [[nodiscard]] virtual uint32_t GetBytesAvailableInBuffer() const
+    {
+        return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength();
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -175,7 +169,6 @@ class FramerBase
     virtual uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
         const uint32_t uiBytesToFlush = std::min(clMyCircularDataBuffer.GetLength(), uiBufferSize_);
-
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }

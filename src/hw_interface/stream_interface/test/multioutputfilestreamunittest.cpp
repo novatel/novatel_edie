@@ -1,48 +1,44 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Copyright (c) 2020 NovAtel Inc.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////////////
-//
-//  DESCRIPTION: Multi Output File Stream Unit Test.
-//
-//
-////////////////////////////////////////////////////////////////////////////////
-
-// Includes
-#include <gtest/gtest.h>
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file multioutputfilestreamunittest.cpp
+// ===============================================================================
 
 #include <filesystem>
+#include <gtest/gtest.h>
+#include <string>
 
+#include "decoders/common/api/nexcept.hpp"
 #include "hw_interface/stream_interface/api/multioutputfilestream.hpp"
-#include "string"
 
 class MultiOutputFileStreamTest : public ::testing::Test
 {
   public:
-    virtual void SetUp() {}
+    void SetUp() override {}
 
-    virtual void TearDown() {}
+    void TearDown() override {}
 
-    typedef std::map<std::string, FileStream*> FstreamMap;
+    using FstreamMap = std::map<std::string, FileStream*>;
     MultiOutputFileStream::FstreamMap::iterator itFstreamMapIterator;
     MultiOutputFileStream::WCFstreamMap::iterator itWFstreamMapIterator;
 
@@ -50,9 +46,9 @@ class MultiOutputFileStreamTest : public ::testing::Test
     FileStream* GetLocalFileStream() { return pMyTestCommand->pLocalFileStream; }
     FileSplitMethodEnum GetFileSplitMethodEnum() { return pMyTestCommand->eMyFileSplitMethodEnum; }
     std::string GetBaseFileName() { return pMyTestCommand->stMyBaseName; }
-    std::string GetExtensionName() { return pMyTestCommand->stMyExtentionName; }
+    std::string GetExtensionName() { return pMyTestCommand->stMyExtensionName; }
     std::u32string GetBase32FileName() { return pMyTestCommand->s32MyBaseName; }
-    std::u32string Get32ExtensionName() { return pMyTestCommand->s32MyExtentionName; }
+    std::u32string Get32ExtensionName() { return pMyTestCommand->s32MyExtensionName; }
     uint64_t GetFileSplitSize() { return pMyTestCommand->ullMyFileSplitSize; }
     uint64_t GetFileSize() { return pMyTestCommand->ullMyFileSize; }
     uint32_t GetFileCount() { return pMyTestCommand->uiMyFileCount; }
@@ -66,7 +62,7 @@ class MultiOutputFileStreamTest : public ::testing::Test
 
   private:
   protected:
-    MultiOutputFileStream* pMyTestCommand = NULL;
+    MultiOutputFileStream* pMyTestCommand = nullptr;
     // typedef std::map<std::string, FileStream* > FstreamMap;
     // FstreamMap mMyFstreamMap;
 };
@@ -118,7 +114,7 @@ TEST_F(MultiOutputFileStreamTest, ConfigureBase32StringFileName)
 // Test the SelectLogFile method.
 TEST_F(MultiOutputFileStreamTest, SelectLogFile)
 {
-    typedef std::map<std::string, FileStream*> FstreamMap;
+    using FstreamMap = std::map<std::string, FileStream*>;
     FstreamMap myMap;
 
     pMyTestCommand = new MultiOutputFileStream();
@@ -150,7 +146,7 @@ TEST_F(MultiOutputFileStreamTest, SelectLogFile)
 // Test the SelectLogFile method.
 TEST_F(MultiOutputFileStreamTest, Select32StringLogFile)
 {
-    typedef std::map<std::u32string, FileStream*> WCFstreamMap;
+    using WCFstreamMap = std::map<std::u32string, FileStream*>;
     WCFstreamMap myMap;
 
     pMyTestCommand = new MultiOutputFileStream();
@@ -195,7 +191,9 @@ TEST_F(MultiOutputFileStreamTest, WriteData)
         // The file exists, and is open for input
     }
     else
+    {
         ASSERT_TRUE(4 == 5); // Simple fails
+    }
 
     ifile.close();
 
@@ -220,7 +218,9 @@ TEST_F(MultiOutputFileStreamTest, WriteDataWideFile)
         // The file exists, and is open for input
     }
     else
+    {
         ASSERT_TRUE(4 == 5); // Simple fails
+    }
 
     ifile.close();
 
@@ -246,7 +246,9 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitBySize)
         // The file exists, and is open for input
     }
     else
+    {
         ASSERT_TRUE(4 == 5); // Simple fails
+    }
 
     ifile.close();
 
@@ -257,7 +259,7 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitBySize)
         pMyTestCommand->ConfigureSplitBySize(MIN_FILE_SPLIT_SIZE - 1); // 0
         ASSERT_TRUE(4 == 1);                                           // Should not execute
     }
-    catch (nExcept e)
+    catch (NExcept e)
     {
         ASSERT_STREQ("File Split by Size not valid", e.buffer);
     }
@@ -281,7 +283,9 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitByTime)
         // The file exists, and is open for input
     }
     else
+    {
         ASSERT_TRUE(4 == 5); // Simpley fails
+    }
 
     ifile.close();
 
@@ -292,7 +296,7 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitByTime)
         pMyTestCommand->ConfigureSplitByTime(0.0); // 0
         ASSERT_TRUE(4 == 1);                       // Should not execute
     }
-    catch (nExcept e)
+    catch (NExcept e)
     {
         ASSERT_STREQ("File Split by time not valid", e.buffer);
     }

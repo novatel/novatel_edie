@@ -1,48 +1,39 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Copyright (c) 2020 NovAtel Inc.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////////////
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file inputfilestream.hpp
+// ===============================================================================
 
-/*! \file inputfilestream.hpp
- *  \brief It is a Derived class from main InputStream. Input to the decoder is file.
- *
- */
+#ifndef INPUT_FILE_STREAM_HPP
+#define INPUT_FILE_STREAM_HPP
 
-//-----------------------------------------------------------------------
-// Recursive Inclusion
-//-----------------------------------------------------------------------
-#ifndef INPUTFILESTREAM_HPP
-#define INPUTFILESTREAM_HPP
-
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
 #include "filestream.hpp"
 #include "inputstreaminterface.hpp"
 
 /*! \class InputFileStream
  *   \brief A Derived class will be used by decoder, if the decoded input is file.
  *
- *  Derived from base class InputStreamInterface. And will also supports
+ *  Derived from base class InputStreamInterface. Will also support
  *  File names with Wide characters.
  */
 class InputFileStream : public InputStreamInterface
@@ -51,23 +42,23 @@ class InputFileStream : public InputStreamInterface
     /*! A Constructor
      *  \brief  Creates FileStream class object with wide character filename string.
      *
-     *  \param [in] pwcFileName Wide Characer file name as Character pointer.
+     *  \param [in] s32FileName_ Wide Character file name as Character pointer.
      *
      *  \remark If pwcFileName is NULL, then exception "Filename name not valid" will be thrown.
      */
-    InputFileStream(const std::u32string p32sFileName);
+    InputFileStream(const std::u32string& s32FileName_);
 
     /*! A Constructor
      *  \brief  Creates FileStream class object with filename string.
      *
-     *  \param [in] pFileName file name as Character pointer.
+     *  \param [in] pFileName_ file name as Character pointer.
      *
      *  \remark If pFileName is NULL, then exception "Filename name not valid" will be thrown.
      */
-    InputFileStream(const char* pFileName);
+    InputFileStream(const char* pFileName_);
 
     /*! A default destructor */
-    virtual ~InputFileStream();
+    ~InputFileStream() override;
 
     /*! FileStream pointer to hold created FileStream object in constructor */
     FileStream* pInFileStream;
@@ -78,54 +69,54 @@ class InputFileStream : public InputStreamInterface
      *  \param [in] pReadDataStructure ReadDataStructure pointer to hold decoded log
      *  \return StreamReadStatus read data statistics
      */
-    StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure);
+    StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure) override;
     /*! \fn StreamReadStatus ReadLine
      *  \brief Read one line from the file.
      *
      *  \param [in] szLine String pointer to hold one line dats read from the file.
      *  \return Returns Read statistics structure (StreamReadStatus)
      */
-    StreamReadStatus ReadLine(std::string& szLine);
+    StreamReadStatus ReadLine(std::string& szLine) override;
 
     /*! \fn void Reset(std::streamoff = 0, std::ios_base::seekdir = std::ios::beg)
      *  \brief Set/Reset File Position from which next read will be done.
      *
      *  \param [in] offset the position of the file pointer to read.
-     *  \param [in] dir Seeking direction from begining or end.
+     *  \param [in] dir Seeking direction from beginning or end.
      *
-     *  \remark After reset, the current file size will be changed accrdingly.
+     *  \remark After reset, the current file size will be changed accordingly.
      */
-    void Reset(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg);
+    void Reset(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg) override;
 
     /*! \n std::string GetFileExtension()
      *  \brief Returns the extension of the input file to be decoded.
      *
      *  \return  std::string - File Extension name
      */
-    std::string GetFileExtension();
-    std::string GetFileName();
+    std::string GetFileExtension() const override;
+    std::string GetFileName() const override;
 
     /*! \n uint64_t  GetCurrentFilePosition()
      *  \brief Returns the current file position from which next read will be done.
      *
      *  \return uint64_t  - File current offset
      */
-    uint64_t GetCurrentFilePosition();
+    uint64_t GetCurrentFilePosition() override;
 
     /*! \fn void SetCurrentFileOffset(uint64_t  ullCurrentFileOffset)
      *  \brief Sets the current file offset. It could be read bytes so far.
      *
      *  \param [in] ullCurrentFileOffset Size of the data from one read size,
-     *  Will be append to calculate read bytes so far
+     *  Will be appended to calculate read bytes so far
      */
-    void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
+    void SetCurrentFileOffset(uint64_t ullCurrentFileOffset) override;
 
-    /*! \fn uint64_t  GetCurrentFileOffset(void)
-     *  \brief Returns Cuurent file offset.
+    /*! \fn uint64_t GetCurrentFileOffset()
+     *  \brief Returns Current file offset.
      *
-     *  \return Cuurent file offset.
+     *  \return Current file offset.
      */
-    uint64_t GetCurrentFileOffset(void) const;
+    uint64_t GetCurrentFileOffset() const override;
 
   private:
     /*! Private Copy Constructor
@@ -147,18 +138,18 @@ class InputFileStream : public InputStreamInterface
      *
      *  \return Returns the file extension name.
      */
-    std::string FileExtension();
+    std::string FileExtension() const;
 
     /*! \fn std::string WCFileExtension()
      *  \brief Provides wide character file extension name.
      *
      *  \return Returns wide character file extension name.
      */
-    std::string WCFileExtension();
+    std::string WCFileExtension() const;
 
     /*! \var stwFileName
      *
-     *  File with Wide charater name.
+     *  File with Wide character name.
      */
     std::wstring stwFileName;
     /*! \var bEnableWideCharSupport
@@ -166,12 +157,6 @@ class InputFileStream : public InputStreamInterface
      *  Boolean variable to disable/enable wide char files.
      */
     bool bEnableWideCharSupport;
-
-    /*! \var stFileName
-     *
-     *  File name.
-     */
-    std::string stFileName;
 };
 
 #endif

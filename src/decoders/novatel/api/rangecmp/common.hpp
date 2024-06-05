@@ -1,48 +1,34 @@
-////////////////////////////////////////////////////////////////////////
-//
-// COPYRIGHT NovAtel Inc, 2022. All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-//
-////////////////////////////////////////////////////////////////////////
-//                            DESCRIPTION
-//
-//! \file common.hpp
-//! \brief Header file containing the common structs, enums and defines
-//! used across the NovAtel range decompressor.
-//! \note Generally, any *_SIGNBIT_MASK or *_SIGNEXT_MASK macros are
-//! sized for the minimum-sized type that the field can be contained in.
-////////////////////////////////////////////////////////////////////////
+// ===============================================================================
+// |                                                                             |
+// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+// |                                                                             |
+// |  Permission is hereby granted, free of charge, to any person obtaining a    |
+// |  copy of this software and associated documentation files (the "Software"), |
+// |  to deal in the Software without restriction, including without limitation  |
+// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+// |  and/or sell copies of the Software, and to permit persons to whom the      |
+// |  Software is furnished to do so, subject to the following conditions:       |
+// |                                                                             |
+// |  The above copyright notice and this permission notice shall be included    |
+// |  in all copies or substantial portions of the Software.                     |
+// |                                                                             |
+// |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+// |  DEALINGS IN THE SOFTWARE.                                                  |
+// |                                                                             |
+// ===============================================================================
+// ! \file common.hpp
+// ===============================================================================
 
-//-----------------------------------------------------------------------
-// Recursive Inclusion
-//-----------------------------------------------------------------------
 #ifndef RANGECMP_COMMON_HPP
 #define RANGECMP_COMMON_HPP
 
-//-----------------------------------------------------------------------
-// Includes
-//-----------------------------------------------------------------------
-#include <stdint.h>
-#include <string.h>
-
 #include <array>
+#include <stdint.h>
 
 namespace novatel::edie::oem {
 
@@ -56,7 +42,7 @@ constexpr int32_t MAGIC_NEGATE = -1; //!< Some fields are magically negated in R
                                      //!< translating from a compressed version.
 
 //! NOTE: See documentation on slot/PRN offsets for specific satellite systems:
-//! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Satellit
+//! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm
 constexpr uint32_t SBAS_PRN_OFFSET_120 = 120; //!< PRN offset for SBAS (if the PRN is indicated as 1 to 39).
 constexpr uint32_t SBAS_PRN_OFFSET_120_LOWER_LIMIT = 1;
 constexpr uint32_t SBAS_PRN_OFFSET_120_UPPER_LIMIT = 39;
@@ -450,14 +436,14 @@ struct RangeCmp2SignalBlockStruct
 };
 
 //-----------------------------------------------------------------------
-//! \struct RangeCmp2LocktimeInfoStruct
-//! \brief Store persistent data for RANGECMP2 locktime extension.
-struct RangeCmp2LocktimeInfoStruct
+//! \struct RangeCmp2LockTimeInfoStruct
+//! \brief Store persistent data for RANGECMP2 lock time extension.
+struct RangeCmp2LockTimeInfoStruct
 {
-    double dLocktimeSaturatedMilliseconds{0.0}; // The time (milliseconds from OEM header) at which the locktime became saturated.
-    bool bLocktimeSaturated{false};             // A flag to verify if dLocktimeSaturatedMilliseconds has been set.
+    double dLockTimeSaturatedMilliseconds{0.0}; // The time (milliseconds from OEM header) at which the locktime became saturated.
+    bool bLockTimeSaturated{false};             // A flag to verify if dLockTimeSaturatedMilliseconds has been set.
 
-    constexpr RangeCmp2LocktimeInfoStruct() = default;
+    constexpr RangeCmp2LockTimeInfoStruct() = default;
 };
 
 namespace RangeCmp2 {
@@ -686,9 +672,9 @@ struct ChannelTrackingStatusStruct
         STANDARD = 1,
         NARROW = 2,
         RESERVED = 3,
-        PULSE_APERATURE = 4,
-        NARROW_PULSE_APERATURE = 5,
-        MULTIPATH_ESTIMATION_AND_CORRECTION = 6
+        PULSE_APERTURE = 4,
+        NARROW_PULSE_APERTURE = 5,
+        MULTI_PATH_ESTIMATION_AND_CORRECTION = 6
     };
 
     //-----------------------------------------------------------------------
@@ -812,8 +798,7 @@ struct ChannelTrackingStatusStruct
         bChannelAssignmentForced = false;
         bPRNLocked = false;
         uiSVChannelNumber = static_cast<uint32_t>(stRangeCmp2SatBlock_.ucSVChanNumber);
-        eTrackingState = bPrimaryL1Channel ? ChannelTrackingStatusStruct::TRACKING_STATE::PHASE_LOCK_LOOP
-                                           : ChannelTrackingStatusStruct::TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
+        eTrackingState = bPrimaryL1Channel ? TRACKING_STATE::PHASE_LOCK_LOOP : TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
         eCorrelatorType =
             static_cast<CORRELATOR_TYPE>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_CORRELATOR_TYPE_MASK) >> RC2_SIG_CORRELATOR_TYPE_SHIFT);
         eSatelliteSystem = SystemToSatelliteSystem(
@@ -828,7 +813,7 @@ struct ChannelTrackingStatusStruct
                                 const RangeCmp4MeasurementSignalBlockStruct& stMeasurementBlock_)
     {
         // Defaults that cannot be determined:
-        eCorrelatorType = ChannelTrackingStatusStruct::CORRELATOR_TYPE::NONE;
+        eCorrelatorType = CORRELATOR_TYPE::NONE;
         uiSVChannelNumber = 0;
         bPRNLocked = false;
         bChannelAssignmentForced = false;
@@ -849,12 +834,12 @@ struct ChannelTrackingStatusStruct
             (eSatelliteSystem == SATELLITE_SYSTEM::BEIDOU && eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B1GEO))
         {
             bPrimaryL1Channel = true;
-            eTrackingState = ChannelTrackingStatusStruct::TRACKING_STATE::PHASE_LOCK_LOOP;
+            eTrackingState = TRACKING_STATE::PHASE_LOCK_LOOP;
         }
         else
         {
             bPrimaryL1Channel = false;
-            eTrackingState = ChannelTrackingStatusStruct::TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
+            eTrackingState = TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
         }
     }
 
@@ -995,15 +980,15 @@ struct ChannelTrackingStatusStruct
                           ((static_cast<uint32_t>(eSignalType) << CTS_SIGNAL_TYPE_SHIFT) & CTS_SIGNAL_TYPE_MASK) |
                           ((static_cast<uint32_t>(uiSVChannelNumber) << CTS_SV_CHANNEL_NUMBER_SHIFT) & CTS_SV_CHANNEL_NUMBER_MASK);
 
-        if (bPhaseLocked) uiWord |= CTS_PHASE_LOCK_MASK;
-        if (bParityKnown) uiWord |= CTS_PARITY_KNOWN_MASK;
-        if (bCodeLocked) uiWord |= CTS_CODE_LOCKED_MASK;
-        if (bGrouped) uiWord |= CTS_GROUPING_MASK;
-        if (bPrimaryL1Channel) uiWord |= CTS_PRIMARY_L1_CHANNEL_MASK;
-        if (bHalfCycleAdded) uiWord |= CTS_CARRIER_PHASE_MASK;
-        if (bDigitalFilteringOnSignal) uiWord |= CTS_DIGITAL_FILTERING_MASK;
-        if (bPRNLocked) uiWord |= CTS_PRN_LOCK_MASK;
-        if (bChannelAssignmentForced) uiWord |= CTS_CHANNEL_ASSIGNMENT_MASK;
+        if (bPhaseLocked) { uiWord |= CTS_PHASE_LOCK_MASK; }
+        if (bParityKnown) { uiWord |= CTS_PARITY_KNOWN_MASK; }
+        if (bCodeLocked) { uiWord |= CTS_CODE_LOCKED_MASK; }
+        if (bGrouped) { uiWord |= CTS_GROUPING_MASK; }
+        if (bPrimaryL1Channel) { uiWord |= CTS_PRIMARY_L1_CHANNEL_MASK; }
+        if (bHalfCycleAdded) { uiWord |= CTS_CARRIER_PHASE_MASK; }
+        if (bDigitalFilteringOnSignal) { uiWord |= CTS_DIGITAL_FILTERING_MASK; }
+        if (bPRNLocked) { uiWord |= CTS_PRN_LOCK_MASK; }
+        if (bChannelAssignmentForced) { uiWord |= CTS_CHANNEL_ASSIGNMENT_MASK; }
 
         return uiWord;
     }
