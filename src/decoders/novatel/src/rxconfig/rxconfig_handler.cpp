@@ -82,7 +82,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 {
     IntermediateHeader stRxConfigHeader;
     IntermediateHeader stEmbeddedHeader;
-    IntermediateMessage stEmbeddedMessage;
+    std::vector<FieldContainer> stEmbeddedMessage;
 
     unsigned char* pucTempMessagePointer = pcMyFrameBuffer.get();
 
@@ -113,7 +113,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     if (eStatus == STATUS::NO_DEFINITION) { return STATUS::NO_DEFINITION_EMBEDDED; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-    // Put an IntermediateMessage struct into the RXCONFIG IntermediateMessage, then
+    // Put a std::vector<FieldContainer> into the RXCONFIG IntermediateMessage, then
     // pass it to the message decoder as a destination for the embedded message.
     eStatus = clMyMessageDecoder.Decode((pucTempMessagePointer + stEmbeddedMetaData_.uiHeaderLength), stEmbeddedMessage, stEmbeddedMetaData_);
     if (eStatus == STATUS::NO_DEFINITION) { return STATUS::NO_DEFINITION_EMBEDDED; }

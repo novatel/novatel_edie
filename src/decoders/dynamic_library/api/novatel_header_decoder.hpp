@@ -38,11 +38,11 @@ extern "C"
     DECODERS_EXPORT void NovatelHeaderDecoderShutdownLogger(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::HeaderDecoder* NovatelHeaderDecoderInit(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::oem::HeaderDecoder* NovatelHeaderDecoderInit(novatel::edie::JsonReader* pclJsonDb_);
     DECODERS_EXPORT void NovatelHeaderDecoderDelete(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_);
 
     // Config
-    DECODERS_EXPORT void NovatelHeaderDecoderLoadJson(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void NovatelHeaderDecoderLoadJson(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, novatel::edie::JsonReader* pclJsonDb_);
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS NovatelHeaderDecoderDecode(novatel::edie::oem::HeaderDecoder* pclHeaderDecoder_, unsigned char* pucLogBuf_,

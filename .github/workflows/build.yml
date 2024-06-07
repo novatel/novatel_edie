@@ -85,6 +85,7 @@ jobs:
           
           if [ ${#failures[@]} -gt 0 ]; then
               echo "One or more regression tests failed! ${failures[@]}"
+              echo "See the README if you don't know how to fix this."
               exit 1
           fi
           
@@ -94,7 +95,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4.3.0
         with:
-          name: $OPERATING_SYSTEM-$COMPILER-$BUILD_TYPE-artifacts
+          name: ${{ env.OPERATING_SYSTEM }}-${{ env.COMPILER }}-${{ env.BUILD_TYPE }}-artifacts
           path: |
              regression/
   

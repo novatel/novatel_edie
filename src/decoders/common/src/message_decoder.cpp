@@ -76,10 +76,20 @@ void MessageDecoderBase::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("%UB")] = SimpleAsciiMapEntry<uint8_t>();
     asciiFieldMap[CalculateBlockCrc32("%XB")] = SimpleAsciiMapEntry<uint8_t, 16>();
     asciiFieldMap[CalculateBlockCrc32("%lf")] = SimpleAsciiMapEntry<double>();
-    asciiFieldMap[CalculateBlockCrc32("%e")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("%le")] = SimpleAsciiMapEntry<double>();
-    asciiFieldMap[CalculateBlockCrc32("%g%")] = SimpleAsciiMapEntry<float>();
+    asciiFieldMap[CalculateBlockCrc32("%g")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("%lg")] = SimpleAsciiMapEntry<double>();
+
+    asciiFieldMap[CalculateBlockCrc32("%e")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
+        switch (pstMessageDataType_->dataType.length)
+        {
+        case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
+        case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), pstMessageDataType_); return;
+        default: throw std::runtime_error("%e: invalid float length");
+        }
+    };
 
     asciiFieldMap[CalculateBlockCrc32("%f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
                                                   char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
@@ -88,7 +98,7 @@ void MessageDecoderBase::InitFieldMaps()
         {
         case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
         case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), pstMessageDataType_); return;
-        default: throw std::runtime_error("invalid float length");
+        default: throw std::runtime_error("%f: invalid float length");
         }
     };
 
@@ -335,7 +345,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, 
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            auto uiArraySize = *reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
+            const uint32_t uiArraySize = *reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
             *ppucLogBuf_ += sizeof(uint32_t);
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
@@ -354,14 +364,14 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, 
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
-            auto* puiArraySize = reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
+            const uint32_t uiArraySize = *reinterpret_cast<std::uint32_t*>(*ppucLogBuf_);
             *ppucLogBuf_ += sizeof(int32_t);
             auto* subFieldDefinitions = dynamic_cast<FieldArrayField*>(field);
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
-            pvFieldArrayContainer.reserve(*puiArraySize);
+            pvFieldArrayContainer.reserve(uiArraySize);
 
-            for (uint32_t i = 0; i < *puiArraySize; ++i)
+            for (uint32_t i = 0; i < uiArraySize; ++i)
             {
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().fieldValue);
@@ -471,7 +481,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
             uint32_t uiArraySize = 0;
             if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = dynamic_cast<const ArrayField*>(field)->arrayLength; }
-            if (field->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+            else
             {
                 uiArraySize = strtoul(*ppcLogBuf_, nullptr, 10);
 
@@ -685,7 +695,7 @@ void MessageDecoderBase::DecodeJsonField(const BaseField* pstMessageDataType_, c
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-MessageDecoderBase::Decode(unsigned char* pucMessage_, IntermediateMessage& stInterMessage_, MetaDataBase& stMetaData_) const
+MessageDecoderBase::Decode(unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataBase& stMetaData_) const
 {
     if (pucMessage_ == nullptr) { return STATUS::NULL_PROVIDED; }
 

@@ -46,7 +46,7 @@ void Filter::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogg
 void Filter::ShutdownLogger() { Logger::Shutdown(); }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::PushUnique(bool (Filter::*filter_)(const MetaDataStruct&))
+void Filter::PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const)
 {
     if (std::ranges::find(vMyFilterFunctions.begin(), vMyFilterFunctions.end(), filter_) == vMyFilterFunctions.end())
     {
@@ -169,7 +169,7 @@ void Filter::ClearFilters()
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Filter::FilterTime(const MetaDataStruct& stMetaData_)
+bool Filter::FilterTime(const MetaDataStruct& stMetaData_) const
 {
     const auto usMetaDataWeek = static_cast<uint32_t>(stMetaData_.usWeek);
     const auto usMetaDataMilliseconds = static_cast<uint32_t>(stMetaData_.dMilliseconds);
@@ -190,7 +190,7 @@ bool Filter::FilterTime(const MetaDataStruct& stMetaData_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Filter::FilterTimeStatus(const MetaDataStruct& stMetaData_)
+bool Filter::FilterTimeStatus(const MetaDataStruct& stMetaData_) const
 {
     return vMyTimeStatusFilters.empty() ||
            bMyInvertTimeStatusFilter ==
@@ -198,7 +198,7 @@ bool Filter::FilterTimeStatus(const MetaDataStruct& stMetaData_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Filter::FilterMessageId(const MetaDataStruct& stMetaData_)
+bool Filter::FilterMessageId(const MetaDataStruct& stMetaData_) const
 {
     if (vMyMessageIdFilters.empty()) { return true; }
 
@@ -217,7 +217,7 @@ bool Filter::FilterMessageId(const MetaDataStruct& stMetaData_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Filter::FilterMessage(const MetaDataStruct& stMetaData_)
+bool Filter::FilterMessage(const MetaDataStruct& stMetaData_) const
 {
     if (vMyMessageNameFilters.empty()) { return true; }
 
@@ -236,7 +236,7 @@ bool Filter::FilterMessage(const MetaDataStruct& stMetaData_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Filter::FilterDecimation(const MetaDataStruct& stMetaData_)
+bool Filter::FilterDecimation(const MetaDataStruct& stMetaData_) const
 {
     return !bMyDecimate || bMyInvertDecimation == static_cast<bool>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % uiMyDecimationPeriodMilliSec);
 }

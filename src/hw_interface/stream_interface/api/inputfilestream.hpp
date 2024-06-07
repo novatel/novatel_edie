@@ -51,11 +51,11 @@ class InputFileStream : public InputStreamInterface
     /*! A Constructor
      *  \brief  Creates FileStream class object with filename string.
      *
-     *  \param [in] pFileName file name as Character pointer.
+     *  \param [in] pFileName_ file name as Character pointer.
      *
      *  \remark If pFileName is NULL, then exception "Filename name not valid" will be thrown.
      */
-    InputFileStream(const char* pFileName);
+    InputFileStream(const char* pFileName_);
 
     /*! A default destructor */
     ~InputFileStream() override;

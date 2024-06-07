@@ -34,11 +34,11 @@
 extern "C"
 {
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::Parser* NovatelParserInit(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::oem::Parser* NovatelParserInit(novatel::edie::JsonReader* pclJsonDb_);
     DECODERS_EXPORT void NovatelParserDelete(novatel::edie::oem::Parser* pclParser_);
 
     // Config
-    DECODERS_EXPORT void NovatelParserLoadJsonDb(novatel::edie::oem::Parser* pclParser_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void NovatelParserLoadJsonDb(novatel::edie::oem::Parser* pclParser_, novatel::edie::JsonReader* pclJsonDb_);
 
     DECODERS_EXPORT void NovatelParserSetIgnoreAbbrevAsciiResponses(novatel::edie::oem::Parser* pclParser_, bool bIgnoreAbbrevAsciiResponsesCmp_);
     DECODERS_EXPORT bool NovatelParserGetIgnoreAbbrevAsciiResponses(novatel::edie::oem::Parser* pclParser_);
