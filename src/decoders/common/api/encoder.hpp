@@ -27,6 +27,8 @@
 #ifndef ENCODER_HPP
 #define ENCODER_HPP
 
+#include <cstdarg>
+
 #include "decoders/common/api/json_reader.hpp"
 #include "decoders/common/api/message_decoder.hpp"
 

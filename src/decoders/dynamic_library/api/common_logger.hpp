@@ -29,6 +29,7 @@
 
 #include <cstdint>
 
+#include "decoders/common/api/logger.hpp"
 #include "decoders_export.h"
 
 extern "C"
