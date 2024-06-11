@@ -38,9 +38,9 @@ InputFileStream::InputFileStream(const std::u32string& s32FileName_)
 }
 
 // ---------------------------------------------------------
-InputFileStream::InputFileStream(const char* pName) : stFileName(pName)
+InputFileStream::InputFileStream(const char* pFileName_)
 {
-    pInFileStream = new FileStream(pName);
+    pInFileStream = new FileStream(pFileName_);
     pInFileStream->OpenFile(FileStream::FILE_MODES::INPUT);
     pInFileStream->GetFileSize();
 
@@ -72,6 +72,7 @@ uint64_t InputFileStream::GetCurrentFileOffset() const { return pInFileStream->G
 // ---------------------------------------------------------
 std::string InputFileStream::FileExtension() const
 {
+    std::string stFileName = GetFileName();
     size_t baseNameLength = stFileName.find_last_of('.');
     return baseNameLength != std::string::npos ? stFileName.substr(baseNameLength + 1) : "";
 }
@@ -89,7 +90,7 @@ std::string InputFileStream::WCFileExtension() const
 }
 
 // ---------------------------------------------------------
-std::string InputFileStream::GetFileExtension() { return bEnableWideCharSupport ? WCFileExtension() : FileExtension(); }
+std::string InputFileStream::GetFileExtension() const { return bEnableWideCharSupport ? WCFileExtension() : FileExtension(); }
 
 // ---------------------------------------------------------
-std::string InputFileStream::GetFileName() { return stFileName; }
+std::string InputFileStream::GetFileName() const { return pInFileStream->GetFileName(); }

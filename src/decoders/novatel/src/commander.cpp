@@ -110,7 +110,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     const auto strAbbrevAsciiCommand = std::string(pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_);
     const size_t ullPos = strAbbrevAsciiCommand.find_first_of(' ');
     const std::string strCmdName = strAbbrevAsciiCommand.substr(0, ullPos);
-    const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1, strAbbrevAsciiCommand.length());
+    const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1);
 
     char acCmdParams[MAX_ASCII_MESSAGE_LENGTH];
     char* pcCmdParams = acCmdParams;
@@ -124,7 +124,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;
     IntermediateHeader stIntermediateHeader;
-    IntermediateMessage stIntermediateMessage;
+    std::vector<FieldContainer> stIntermediateMessage;
 
     // Prime the metadata with information we already know
     stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
@@ -165,7 +165,7 @@ STATUS Commander::Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMe
     const auto strAbbrevAsciiCommand = std::string(pcAbbrevAsciiCommand_, uiAbbrevAsciiCommandLength_);
     const size_t ullPos = strAbbrevAsciiCommand.find_first_of(' ');
     const std::string strCmdName = strAbbrevAsciiCommand.substr(0, ullPos);
-    const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1, strAbbrevAsciiCommand.length());
+    const std::string strCmdParams = strAbbrevAsciiCommand.substr(ullPos + 1);
 
     unsigned char acCmdParams[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucCmdParams = acCmdParams;
@@ -177,7 +177,7 @@ STATUS Commander::Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMe
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;
     IntermediateHeader stIntermediateHeader;
-    IntermediateMessage stIntermediateMessage;
+    std::vector<FieldContainer> stIntermediateMessage;
 
     // Prime the metadata with information we already know
     stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;

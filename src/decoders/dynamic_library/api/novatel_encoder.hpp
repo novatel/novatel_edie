@@ -39,19 +39,19 @@ extern "C"
     DECODERS_EXPORT void NovatelEncoderShutdownLogger(novatel::edie::oem::Encoder* pclEncoder_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::Encoder* NovatelEncoderInit(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::oem::Encoder* NovatelEncoderInit(novatel::edie::JsonReader* pclJsonDb_);
     DECODERS_EXPORT void NovatelEncoderDelete(novatel::edie::oem::Encoder* pclEncoder_);
 
     // Config
-    DECODERS_EXPORT void NovatelEncoderLoadJson(novatel::edie::oem::Encoder* pclEncoder_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void NovatelEncoderLoadJson(novatel::edie::oem::Encoder* pclEncoder_, novatel::edie::JsonReader* pclJsonDb_);
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS NovatelEncoderEncode(novatel::edie::oem::Encoder* pclEncoder_, unsigned char* pucEncodeBuffer_,
                                                                uint32_t uiEncodeBufferSize_, novatel::edie::oem::IntermediateHeader* pstInterHeader_,
-                                                               novatel::edie::IntermediateMessage* pstInterMessage_,
+                                                               std::vector<novatel::edie::FieldContainer>* pstInterMessage_,
                                                                novatel::edie::MessageDataStruct* pstMessageData_,
                                                                novatel::edie::oem::MetaDataStruct* pstMetaData_,
-                                                               novatel::edie::ENCODE_FORMAT uiEncodeFormat_);
+                                                               novatel::edie::ENCODE_FORMAT eEncodeFormat_);
 }
 
 #endif // DYNAMIC_LIBRARY_NOVATEL_ENCODER_HPP

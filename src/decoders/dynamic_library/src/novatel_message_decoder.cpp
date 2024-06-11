@@ -56,16 +56,16 @@ void NovatelMessageDecoderLoadJson(oem::MessageDecoder* pclMessageDecoder_, Json
     if (pclMessageDecoder_ && pclJsonDb_) { pclMessageDecoder_->LoadJsonDb(pclJsonDb_); }
 }
 
-STATUS NovatelMessageDecoderDecode(oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_, IntermediateMessage* pstInterMessage_,
+STATUS NovatelMessageDecoderDecode(oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_, std::vector<FieldContainer>* pstInterMessage_,
                                    oem::MetaDataStruct* pstMetaData_)
 {
     return pclMessageDecoder_ && pstInterMessage_ && pstMetaData_ ? pclMessageDecoder_->Decode(pucLogBuf_, *pstInterMessage_, *pstMetaData_)
                                                                   : STATUS::NULL_PROVIDED;
 }
 
-IntermediateMessage* NovatelIntermediateMessageInit() { return new IntermediateMessage(); }
+std::vector<FieldContainer>* NovatelIntermediateMessageInit() { return new std::vector<FieldContainer>(); }
 
-void NovatelIntermediateMessageDelete(IntermediateMessage* pstInterMessage_)
+void NovatelIntermediateMessageDelete(std::vector<FieldContainer>* pstInterMessage_)
 {
     if (pstInterMessage_)
     {
