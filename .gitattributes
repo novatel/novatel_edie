@@ -1,5 +1,3 @@
-# Check out as LF or CRLF based on your OS, store in Git index as LF
-* text=auto
 # These are unit test files and should use crlf
 *.ASC text eol=crlf
 *.asc text eol=crlf
