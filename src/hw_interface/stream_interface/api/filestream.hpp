@@ -170,7 +170,7 @@ class FileStream
      */
     StreamReadStatus ReadFile(char* cData, uint32_t uiSize);
 
-    /*! \fn uint32_t WriteFile(char* cData, uint32_t uiSize)
+    /*! \fn uint32_t WriteFile(const char* cData, uint32_t uiSize)
      *  \brief Writes the first uiSize character pointed by cData into fstream
      *
      *  \param [in] cData Data to be written to the fstream.
@@ -179,7 +179,7 @@ class FileStream
      *  \return Number of bytes written into the file
      *  \remark If write fails, then exception"... file  write failed" will be thrown.
      */
-    uint32_t WriteFile(char* cData, uint32_t uiSize);
+    uint32_t WriteFile(const char* cData, uint32_t uiSize);
 
     /*! \fn void GetFileSize()
      *  \brief Calculates the File size and update it in MyFileLength private variable.
