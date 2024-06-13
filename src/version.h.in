@@ -1,45 +1,24 @@
-#include <string>
-#include <string.h>
-
-#define RELEASE_VERSION "3.3.7"
+#define RELEASE_VERSION "@PROJECT_VERSION@"
 #define GIT_SHA "@GIT_SHA@"
 #define GIT_BRANCH "@GIT_BRANCH@"
 #define GIT_IS_DIRTY @GIT_IS_DIRTY@
 #define BUILD_TIMESTAMP "@BUILD_TIMESTAMP@"
 
-constexpr const char* get_version()
-{
-   return RELEASE_VERSION;
-}
+constexpr const char* get_version() { return RELEASE_VERSION; }
 
-constexpr const char* get_git_sha()
-{
-   return GIT_SHA;
-}
+constexpr const char* get_git_sha() { return GIT_SHA; }
 
-constexpr const char* get_git_branch()
-{
-   return GIT_BRANCH;
-}
+constexpr const char* get_git_branch() { return GIT_BRANCH; }
 
-constexpr bool get_git_is_dirty()
-{
-   return GIT_IS_DIRTY;
-}
+constexpr bool get_git_is_dirty() { return GIT_IS_DIRTY; }
 
-constexpr const char* get_build_timestamp()
-{
-   return BUILD_TIMESTAMP;
-}
+constexpr const char* get_build_timestamp() { return BUILD_TIMESTAMP; }
 
-constexpr const char* caPrettyPrint = []
-{
-   return GIT_IS_DIRTY 
-      ? "Version: " RELEASE_VERSION "-Dirty\nBranch: " GIT_BRANCH "\nSHA: " GIT_SHA
-      : "Version: " RELEASE_VERSION "\nBranch: " GIT_BRANCH "\nSHA: " GIT_SHA;
+constexpr const char* caPrettyPrint = [] {
+    bool git_is_available = get_git_branch()[0] != '\0';
+    return git_is_available ? "Version: " RELEASE_VERSION
+           : GIT_IS_DIRTY   ? "Version: " RELEASE_VERSION "-Dirty\nBranch: " GIT_BRANCH "\nSHA: " GIT_SHA
+                            : "Version: " RELEASE_VERSION "\nBranch: " GIT_BRANCH "\nSHA: " GIT_SHA;
 }();
 
-constexpr const char* get_pretty_version()
-{
-   return caPrettyPrint;
-}
+constexpr const char* get_pretty_version() { return caPrettyPrint; }

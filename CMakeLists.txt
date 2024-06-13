@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(novatel-edie)
+project(novatel-edie VERSION 3.3.7)
 
 enable_testing()
 
@@ -69,25 +69,13 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip)
 FetchContent_MakeAvailable(googletest)
 
-# Find Git package, if not need to install manually or through .yml file
-find_package(Git)
-if(NOT Git_FOUND)
-    message(FATAL_ERROR "Git was not found. Install Git and make sure it is in your PATH.")
-endif()
-
-if(NOT DEFINED GIT_BRANCH)
-    set(GIT_BRANCH "main")
-endif()
-
-# Build version of EDIE through cmake
-if(GIT_EXECUTABLE)
-    execute_process(COMMAND ${CMAKE_COMMAND}
-        -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
-        -D DST=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h
-        -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
-        -D GIT_BRANCH=${GIT_BRANCH}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
-endif()
+# Create src/version.h based on CMake project and git versions
+execute_process(COMMAND ${CMAKE_COMMAND}
+    -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
+    -D DST=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h
+    -D PROJECT_VERSION=${PROJECT_VERSION}
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
+)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
