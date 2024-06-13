@@ -76,7 +76,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4.3.0
         with:
-          name: $OPERATING_SYSTEM-$COMPILER-$BUILD_TYPE-artifacts
+          name: ${{ env.OPERATING_SYSTEM }}-${{ env.COMPILER }}-${{ env.BUILD_TYPE }}-artifacts
           path: |
              regression/
   

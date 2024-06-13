@@ -35,6 +35,8 @@
 #include <hw_interface/stream_interface/api/outputfilestream.hpp>
 #include <version.h>
 
+namespace fs = std::filesystem;
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -62,17 +64,16 @@ int main(int argc, char* argv[])
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
     // Check command line arguments
-    std::string sJsonDb = argv[1];
-    if (!std::filesystem::exists(sJsonDb))
+    const fs::path pathJsonDb = argv[1];
+    if (!fs::exists(pathJsonDb))
     {
-        pclLogger->error("File \"{}\" does not exist", sJsonDb);
+        pclLogger->error("File \"{}\" does not exist", pathJsonDb.string());
         return 1;
     }
-
-    std::string sInFilename = argv[2];
-    if (!std::filesystem::exists(sInFilename))
+    const fs::path pathInFilename = argv[2];
+    if (!fs::exists(pathInFilename))
     {
-        pclLogger->error("File \"{}\" does not exist", sInFilename);
+        pclLogger->error("File \"{}\" does not exist", pathInFilename.string());
         return 1;
     }
 
@@ -87,7 +88,7 @@ int main(int argc, char* argv[])
     JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(sJsonDb);
+    clJsonDb.LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
@@ -99,9 +100,9 @@ int main(int argc, char* argv[])
     stReadData.uiDataSize = sizeof(acIfsReadBuffer);
 
     // Set up file streams
-    InputFileStream clIfs(sInFilename.c_str());
-    OutputFileStream clConvertedRxConfigOfs((sInFilename + std::string(".").append(sEncodeFormat)).c_str());
-    OutputFileStream clStrippedRxConfigOfs((sInFilename + std::string(".STRIPPED.").append(sEncodeFormat)).c_str());
+    InputFileStream clIfs(pathInFilename.string().c_str());
+    OutputFileStream clConvertedRxConfigOfs((pathInFilename.string() + std::string(".").append(sEncodeFormat)).c_str());
+    OutputFileStream clStrippedRxConfigOfs((pathInFilename.string() + std::string(".STRIPPED.").append(sEncodeFormat)).c_str());
 
     MetaDataStruct stMetaData;
     MetaDataStruct stEmbeddedMetaData;

@@ -83,7 +83,7 @@ void EncoderBase::ShutdownLogger() { Logger::Shutdown(); }
 
 // -------------------------------------------------------------------------------------------------------
 template <bool Flatten, bool Align>
-bool EncoderBase::EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
+bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
 {
     unsigned char* pucTempStart;
 
@@ -213,10 +213,10 @@ bool EncoderBase::EncodeBinaryBody(const IntermediateMessage& stInterMessage_, u
 }
 
 // explicit template instantiations
-template bool EncoderBase::EncodeBinaryBody<false, false>(const IntermediateMessage&, unsigned char**, uint32_t&);
-template bool EncoderBase::EncodeBinaryBody<false, true>(const IntermediateMessage&, unsigned char**, uint32_t&);
-template bool EncoderBase::EncodeBinaryBody<true, false>(const IntermediateMessage&, unsigned char**, uint32_t&);
-template bool EncoderBase::EncodeBinaryBody<true, true>(const IntermediateMessage&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<false, false>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<false, true>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<true, false>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<true, true>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&);
 
 // -------------------------------------------------------------------------------------------------------
 bool EncoderBase::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)

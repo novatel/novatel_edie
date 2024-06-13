@@ -385,7 +385,7 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%f", 4, DATA_TYPE::FLOAT));
     MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lf", 8, DATA_TYPE::DOUBLE));
 
-    IntermediateMessage vIntermediateFormat;
+    std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(MsgDefFields.size());
 
     auto testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";

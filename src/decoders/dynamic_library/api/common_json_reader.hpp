@@ -32,10 +32,10 @@
 
 extern "C"
 {
-    DECODERS_EXPORT JsonReader* CommonJsonReaderInit();
-    DECODERS_EXPORT bool CommonJsonReaderLoadFile(JsonReader* pclJsonDb_, const char* pcJsonDbFilepath_);
-    DECODERS_EXPORT bool CommonJsonReaderParseJson(JsonReader* pclJsonDb_, const char* pcJsonData_);
-    DECODERS_EXPORT bool CommonJsonReaderDelete(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::JsonReader* CommonJsonReaderInit();
+    DECODERS_EXPORT bool CommonJsonReaderLoadFile(novatel::edie::JsonReader* pclJsonDb_, const char* pcJsonDbFilepath_);
+    DECODERS_EXPORT bool CommonJsonReaderParseJson(novatel::edie::JsonReader* pclJsonDb_, const char* pcJsonData_);
+    DECODERS_EXPORT bool CommonJsonReaderDelete(novatel::edie::JsonReader* pclJsonDb_);
 }
 
 #endif // DYNAMIC_LIBRARY_COMMON_JSON_READER_HPP

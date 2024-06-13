@@ -40,6 +40,8 @@
 #include <hw_interface/stream_interface/api/outputfilestream.hpp>
 #include <version.h>
 
+namespace fs = std::filesystem;
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -67,17 +69,16 @@ int main(int argc, char* argv[])
     if (argc == 4) { sEncodeFormat = argv[3]; }
 
     // Check command line arguments
-    std::string sJsonDb = argv[1];
-    if (!std::filesystem::exists(sJsonDb))
+    const fs::path pathJsonDb = argv[1];
+    if (!fs::exists(pathJsonDb))
     {
-        pclLogger->error("File \"{}\" does not exist", sJsonDb);
+        pclLogger->error("File \"{}\" does not exist", pathJsonDb.string());
         return 1;
     }
-
-    std::string sInFilename = argv[2];
-    if (!std::filesystem::exists(sInFilename))
+    const fs::path pathInFilename = argv[2];
+    if (!fs::exists(pathInFilename))
     {
-        pclLogger->error("File \"{}\" does not exist", sInFilename);
+        pclLogger->error("File \"{}\" does not exist", pathInFilename.string());
         return 1;
     }
 
@@ -92,7 +93,7 @@ int main(int argc, char* argv[])
     JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(sJsonDb);
+    clJsonDb.LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
@@ -127,7 +128,6 @@ int main(int argc, char* argv[])
 
     // Set up buffers
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucFrameBuffer = acFrameBuffer;
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
     auto eEncoderStatus = STATUS::UNKNOWN;
 
     IntermediateHeader stHeader;
-    IntermediateMessage stMessage;
+    std::vector<FieldContainer> stMessage;
 
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
@@ -150,9 +150,9 @@ int main(int argc, char* argv[])
     stReadData.uiDataSize = sizeof(acIfsReadBuffer);
 
     // Setup file streams
-    InputFileStream clIfs(sInFilename.c_str());
-    OutputFileStream clConvertedLogsOfs(sInFilename.append(".").append(sEncodeFormat).c_str());
-    OutputFileStream clUnknownBytesOfs(sInFilename.append(".UNKNOWN").c_str());
+    InputFileStream clIfs(pathInFilename.string().c_str());
+    OutputFileStream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str());
+    OutputFileStream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str());
 
     tStart = std::chrono::high_resolution_clock::now();
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
-            pucFrameBuffer = acFrameBuffer;
+            unsigned char* pucFrameBuffer = acFrameBuffer;
             eFramerStatus = clFramer.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaData);
 
             if (eFramerStatus == STATUS::SUCCESS)
@@ -227,9 +227,8 @@ int main(int argc, char* argv[])
     }
 
     // Clean up
-    pucFrameBuffer = acFrameBuffer;
-    uint32_t uiBytes = clFramer.Flush(pucFrameBuffer, sizeof(acFrameBuffer));
-    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBytes);
+    uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
+    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
 
     Logger::Shutdown();
     return 0;

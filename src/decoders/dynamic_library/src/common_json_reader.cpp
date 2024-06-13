@@ -26,6 +26,8 @@
 
 #include "common_json_reader.hpp"
 
+using namespace novatel::edie;
+
 JsonReader* CommonJsonReaderInit()
 {
     auto pclJsonDb = new JsonReader();
