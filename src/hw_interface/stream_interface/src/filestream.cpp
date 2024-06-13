@@ -24,10 +24,11 @@
 // ! \file filestream.cpp
 // ===============================================================================
 
+#include "filestream.hpp"
+
 #include <string>
 
 #include "decoders/common/api/nexcept.hpp"
-#include "filestream.hpp"
 
 // ---------------------------------------------------------
 FileStream::FileStream(const std::u32string& s32FileName_)

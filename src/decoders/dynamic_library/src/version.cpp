@@ -25,6 +25,7 @@
 // ===============================================================================
 
 #include "version.hpp"
+
 #include "src/version.h" // this refers to the EDIE version.h
 
 const char* Version() { return get_version(); }

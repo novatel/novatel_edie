@@ -30,13 +30,13 @@
 // Set the default logging level for SPDLOG_XXX macros
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
 
+#include <iostream>
+#include <map>
+
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 #include "spdlog_setup/conf.h"
-
-#include <iostream>
-#include <map>
 
 // TODO: this class is mostly obsolete now, would be best to find a way to make the functions standalone
 class Logger
