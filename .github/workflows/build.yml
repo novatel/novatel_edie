@@ -47,7 +47,7 @@ jobs:
         shell: bash
         run: |
           conan profile detect --force
-          conan install . -pr profiles/$OPERATING_SYSTEM/$BUILD_TYPE/$COMPILER --build=missing
+          conan install . -pr profiles/$OPERATING_SYSTEM/$COMPILER --build=missing -s build_type=$BUILD_TYPE
 
       - name: Install CMake
         uses: lukka/get-cmake@latest
@@ -163,7 +163,7 @@ jobs:
         shell: bash
         run: |
           conan profile detect --force
-          conan install . -pr profiles/linux/Debug/clang --build=missing
+          conan install . -pr profiles/linux/Debug/clang --build=missing -s build_type=Debug
 
       - name: Install CMake
         uses: lukka/get-cmake@latest
@@ -191,7 +191,7 @@ jobs:
       shell: bash
       run: |
         conan profile detect --force
-        conan install . -pr profiles/linux/Debug/gcc --build=missing
+        conan install . -pr profiles/linux/Debug/gcc --build=missing -s build_type=Debug
 
     - name: Install CMake
       uses: lukka/get-cmake@latest
