@@ -40,7 +40,7 @@ if(MSVC)
     if(WARNINGS_AS_ERRORS)
         add_compile_options(/WX)
     endif()
-elseif(CMAKE_CXX_COMPILER_ID IN_LIST "GNU;Clang;AppleClang")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
     add_compile_options(-Wall -Wextra -pedantic -Wold-style-cast)
     add_compile_options("$<$<CONFIG:Release>:-O3>")
 
