@@ -26,6 +26,8 @@
 
 #include "novatel_parser.hpp"
 
+#include <limits>
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -84,7 +86,7 @@ unsigned char* NovatelParserGetBuffer(Parser* pclParser_) { return pclParser_ ? 
 
 uint32_t NovatelParserWrite(Parser* pclParser_, unsigned char* pucBytes_, uint32_t uiByteCount_)
 {
-    return pclParser_ && pucBytes_ ? pclParser_->Write(pucBytes_, uiByteCount_) : UINT_MAX;
+    return pclParser_ && pucBytes_ ? pclParser_->Write(pucBytes_, uiByteCount_) : std::numeric_limits<uint32_t>::max();
 }
 
 STATUS NovatelParserRead(Parser* pclParser_, MessageDataStruct* pstMessageData_, MetaDataStruct* pstMetaData_)
@@ -94,5 +96,5 @@ STATUS NovatelParserRead(Parser* pclParser_, MessageDataStruct* pstMessageData_,
 
 uint32_t NovatelParserFlush(Parser* pclParser_, unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
-    return pclParser_ && pucBuffer_ ? pclParser_->Flush(pucBuffer_, uiBufferSize_) : UINT_MAX;
+    return pclParser_ && pucBuffer_ ? pclParser_->Flush(pucBuffer_, uiBufferSize_) : std::numeric_limits<uint32_t>::max();
 }

@@ -26,6 +26,8 @@
 
 #include "novatel_framer.hpp"
 
+#include <limits>
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -67,11 +69,14 @@ void NovatelFramerReportUnknownBytes(Framer* pclFramer_, bool bReportUnknownByte
     if (pclFramer_) { pclFramer_->SetReportUnknownBytes(bReportUnknownBytes_); }
 }
 
-uint32_t NovatelFramerGetAvailableBytes(Framer* pclFramer_) { return pclFramer_ ? pclFramer_->GetBytesAvailableInBuffer() : UINT_MAX; }
+uint32_t NovatelFramerGetAvailableBytes(Framer* pclFramer_)
+{
+    return pclFramer_ ? pclFramer_->GetBytesAvailableInBuffer() : std::numeric_limits<uint32_t>::max();
+}
 
 uint32_t NovatelFramerWrite(Framer* pclFramer_, unsigned char* pucBytes_, uint32_t uiByteCount_)
 {
-    return pclFramer_ ? pclFramer_->Write(pucBytes_, uiByteCount_) : UINT_MAX;
+    return pclFramer_ ? pclFramer_->Write(pucBytes_, uiByteCount_) : std::numeric_limits<uint32_t>::max();
 }
 
 STATUS NovatelFramerRead(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct* pstMetaData_)
@@ -81,5 +86,5 @@ STATUS NovatelFramerRead(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t
 
 uint32_t NovatelFramerFlush(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
-    return pclFramer_ && pucBuffer_ ? pclFramer_->Flush(pucBuffer_, uiBufferSize_) : UINT_MAX;
+    return pclFramer_ && pucBuffer_ ? pclFramer_->Flush(pucBuffer_, uiBufferSize_) : std::numeric_limits<uint32_t>::max();
 }
