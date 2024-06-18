@@ -34,6 +34,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "common.hpp"
 #include "crc32.hpp"
 #include "logger.hpp"
 

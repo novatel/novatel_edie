@@ -30,13 +30,12 @@
 // Set the default logging level for SPDLOG_XXX macros
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
 
+#include <iostream>
+#include <map>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 #include <spdlog_setup/spdlog_setup.hpp>
-
-#include <iostream>
-#include <map>
 
 // TODO: this class is mostly obsolete now, would be best to find a way to make the functions standalone
 class Logger
@@ -61,7 +60,7 @@ class Logger
 
                 spdlog::set_default_logger(pclMyRootLogger);
                 pclMyRootLogger->flush_on(spdlog::level::debug);
-                pclMyRootLogger->debug("Default Logger intialized");
+                pclMyRootLogger->debug("Default Logger initialized");
             }
         }
         catch (const spdlog::spdlog_ex& ex)
@@ -92,7 +91,7 @@ class Logger
 
                 spdlog::set_default_logger(pclMyRootLogger);
                 pclMyRootLogger->flush_on(spdlog::level::debug);
-                pclMyRootLogger->debug("Logger intialized from file: {}", sLoggerConfigPath_);
+                pclMyRootLogger->debug("Logger initialized from file: {}", sLoggerConfigPath_);
             }
         }
         catch (const spdlog::spdlog_ex& ex)
@@ -131,9 +130,11 @@ class Logger
         if (!pclMyRootLogger) { InitLogger(); }
         std::lock_guard<std::mutex> lock(mLoggerMutex);
         pclMyRootLogger->debug("Logger::RegisterLogger(\"{}\")", sLoggerName_);
-        std::shared_ptr<spdlog::logger> pclLogger = spdlog::get(sLoggerName_);
+        std::shared_ptr<spdlog::logger> pclLogger;
         try
         {
+            pclLogger = spdlog::get(sLoggerName_);
+
             if (pclLogger == nullptr)
             {
                 // Get the root logger sinks
@@ -146,6 +147,8 @@ class Logger
         }
         catch (const spdlog::spdlog_ex& ex)
         {
+            // TODO: why does deleting this line break the pipeline?
+            std::cout << (spdlog::get(sLoggerName_) == nullptr ? "null" : "not null") << std::endl;
             std::cout << "Logger::RegisterLogger() init failed: " << ex.what() << std::endl;
             SPDLOG_ERROR("Logger::RegisterLogger(\"{}\") init failed: {}", sLoggerName_, ex.what());
         }
@@ -168,7 +171,7 @@ class Logger
     }
 
     /** \brief Add file output to the logger
-     *  \param [in] eLoggingLevel_  Logging level to enable.
+     *  \param [in] eLevel_  Logging level to enable.
      *  \param [in] sFileName_  Logger output file name.
      *  \param [in] uiFileSize_  Max file size.
      *  \param [in] uiMaxFiles_  Max number of rotating files.
