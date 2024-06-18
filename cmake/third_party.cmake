@@ -6,8 +6,11 @@ option(USE_CONAN "Use Conan to automatically manage dependencies" TRUE)
 
 if(NOT DEFINED CONAN_INSTALL_ARGS)
     set(CONAN_INSTALL_ARGS
+        --build=missing
         # Deploy the installed dependencies in the build dir for easier installation
-        --build=missing --deployer=full_deploy "--deployer-folder=${CMAKE_BINARY_DIR}"
+        --deployer=full_deploy "--deployer-folder=${CMAKE_BINARY_DIR}"
+        # Set cppstd without relying on CMAKE_CXX_STANDARD
+        --settings compiler.cppstd=17
     )
     if(WIN32)
         list(APPEND CONAN_INSTALL_ARGS -c tools.deployer:symlinks=False)
