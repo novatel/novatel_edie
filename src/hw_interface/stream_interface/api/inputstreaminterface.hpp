@@ -113,7 +113,7 @@ class InputStreamInterface
      * \sa GetCurrentFileOffset().
      * \remark returns 0, if no concrete derived method for it.
      */
-    [[nodsicard]] virtual uint64_t GetCurrentFileOffset() const { return 0; }
+    [[nodiscard]] virtual uint64_t GetCurrentFileOffset() const { return 0; }
 
     /** A virtual member.
      * \brief Returns the class object which has interfaced or derived from circular buffer.
