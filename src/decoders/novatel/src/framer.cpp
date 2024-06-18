@@ -171,7 +171,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 HandleUnknownBytes(pucFrameBuffer_, uiMyByteCount - 1);
                 return STATUS::UNKNOWN;
             }
-            else if (uiMyByteCount > uiFrameBufferSize_)
+            if (uiMyByteCount > uiFrameBufferSize_)
             {
                 stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
                 stMetaData_.uiLength = uiMyByteCount - 1;
