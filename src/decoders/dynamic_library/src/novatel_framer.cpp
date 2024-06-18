@@ -24,9 +24,9 @@
 // ! \file novatel_framer.cpp
 // ===============================================================================
 
-#include "novatel_framer.hpp"
-
 #include <limits>
+
+#include "novatel_framer.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
