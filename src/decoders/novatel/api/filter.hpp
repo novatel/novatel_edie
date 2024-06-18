@@ -77,11 +77,11 @@ class Filter
 
     void PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const);
 
-    bool FilterTime(const MetaDataStruct& stMetaData_) const;
-    bool FilterTimeStatus(const MetaDataStruct& stMetaData_) const;
-    bool FilterMessageId(const MetaDataStruct& stMetaData_) const;
-    bool FilterMessage(const MetaDataStruct& stMetaData_) const;
-    bool FilterDecimation(const MetaDataStruct& stMetaData_) const;
+    [[nodiscard]] bool FilterTime(const MetaDataStruct& stMetaData_) const;
+    [[nodiscard]] bool FilterTimeStatus(const MetaDataStruct& stMetaData_) const;
+    [[nodiscard]] bool FilterMessageId(const MetaDataStruct& stMetaData_) const;
+    [[nodiscard]] bool FilterMessage(const MetaDataStruct& stMetaData_) const;
+    [[nodiscard]] bool FilterDecimation(const MetaDataStruct& stMetaData_) const;
 
   public:
     //----------------------------------------------------------------------------

@@ -93,8 +93,8 @@ class InputFileStream : public InputStreamInterface
      *
      *  \return  std::string - File Extension name
      */
-    std::string GetFileExtension() const override;
-    std::string GetFileName() const override;
+    [[nodiscard]] std::string GetFileExtension() const override;
+    [[nodiscard]] std::string GetFileName() const override;
 
     /*! \n uint64_t  GetCurrentFilePosition()
      *  \brief Returns the current file position from which next read will be done.
@@ -116,7 +116,7 @@ class InputFileStream : public InputStreamInterface
      *
      *  \return Current file offset.
      */
-    uint64_t GetCurrentFileOffset() const override;
+    [[nodiscard]] uint64_t GetCurrentFileOffset() const override;
 
   private:
     /*! Private Copy Constructor
@@ -138,14 +138,14 @@ class InputFileStream : public InputStreamInterface
      *
      *  \return Returns the file extension name.
      */
-    std::string FileExtension() const;
+    [[nodiscard]] std::string FileExtension() const;
 
     /*! \fn std::string WCFileExtension()
      *  \brief Provides wide character file extension name.
      *
      *  \return Returns wide character file extension name.
      */
-    std::string WCFileExtension() const;
+    [[nodiscard]] std::string WCFileExtension() const;
 
     /*! \var stwFileName
      *
