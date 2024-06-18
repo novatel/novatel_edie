@@ -5,6 +5,8 @@ add_custom_command(TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E 
 set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "decoders")
 target_include_directories(${TARGET_NAME} PUBLIC api)
 
+target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
+
 find_package(nlohmann_json REQUIRED CONFIG)
 find_package(spdlog REQUIRED CONFIG)
 find_package(spdlog_setup REQUIRED CONFIG)

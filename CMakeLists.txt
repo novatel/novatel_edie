@@ -10,8 +10,6 @@ option(CMAKE_POSITION_INDEPENDENT_CODE "Set -fPIC" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
 
-set(CMAKE_CXX_STANDARD 20)
-
 if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
