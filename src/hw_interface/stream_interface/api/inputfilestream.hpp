@@ -57,6 +57,20 @@ class InputFileStream : public InputStreamInterface
      */
     InputFileStream(const char* pFileName_);
 
+    /*! Disabled Copy Constructor
+     *
+     *  A copy constructor is a member function which initializes an InputFileStream object
+     *  using another object of the same class.
+     */
+    InputFileStream(const InputFileStream& clTemp_) = delete;
+
+    /*! Disabled assignment operator
+     *
+     *  The copy assignment operator is called whenever selected by overload resolution,
+     *  e.g. when an object appears on the left side of an assignment expression.
+     */
+    const InputFileStream& operator=(const InputFileStream& clTemp_) = delete;
+
     /*! A default destructor */
     ~InputFileStream() override;
 
@@ -119,20 +133,6 @@ class InputFileStream : public InputStreamInterface
     [[nodiscard]] uint64_t GetCurrentFileOffset() const override;
 
   private:
-    /*! Private Copy Constructor
-     *
-     *  A copy constructor is a member function which initializes an InputFileStream object
-     *  using another object of the same class.
-     */
-    InputFileStream(const InputFileStream& clTemp);
-
-    /*! Private assignment operator
-     *
-     *  The copy assignment operator is called whenever selected by overload resolution,
-     *  e.g. when an object appears on the left side of an assignment expression.
-     */
-    const InputFileStream& operator=(const InputFileStream& clTemp);
-
     /*! \fn std::string FileExtension()
      *  \brief Provides file extension name.
      *

@@ -109,9 +109,19 @@ class FileStream
      */
     FileStream(const char* pcFileName);
 
-    FileStream(const FileStream& clOther) = delete;
+    /*! Disabled Copy Constructor
+     *
+     *  A copy constructor is a member function which initializes an object
+     *  using another object of the same class.
+     */
+    FileStream(const FileStream& clOther_) = delete;
 
-    const FileStream& operator=(const FileStream& clOther) = delete;
+    /*! Disabled assignment operator
+     *
+     *  The copy assignment operator is called whenever selected by overload resolution,
+     *  e.g. when an object appears on the left side of an assignment expression.
+     */
+    const FileStream& operator=(const FileStream& clOther_) = delete;
 
     /*! A default Destructor
      *
