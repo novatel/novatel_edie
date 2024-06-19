@@ -51,6 +51,7 @@ TEST_F(OutputFileStreamTest, Constructor)
 // Constructor Wide Char
 TEST_F(OutputFileStreamTest, ConstructorWideChar)
 {
-    OutputFileStream pMyTestCommand(std::u32string((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / U"不同语言的文件.gps").generic_u32string()));
+    OutputFileStream pMyTestCommand(
+        std::u32string((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / U"不同语言的文件.gps").generic_u32string()));
     ASSERT_TRUE(pMyTestCommand.pOutFileStream != nullptr);
 }
