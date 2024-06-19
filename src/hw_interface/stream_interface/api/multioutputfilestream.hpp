@@ -79,14 +79,14 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  A copy constructor is a member function which initializes an object using another object of
      * the same class.
      */
-    MultiOutputFileStream(const MultiOutputFileStream& clTemp_);
+    MultiOutputFileStream(const MultiOutputFileStream& clTemp_) = delete;
 
     /*! Disabled assignment operator
      *
      *  The copy assignment operator is called whenever selected by overload resolution,
      *  e.g. when an object appears on the left side of an assignment expression.
      */
-    const MultiOutputFileStream& operator=(const MultiOutputFileStream& clTemp_);
+    const MultiOutputFileStream& operator=(const MultiOutputFileStream& clTemp_) = delete;
 
     /*! A virtual Destructor
      *  \brief  Class destructor.
