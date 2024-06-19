@@ -112,10 +112,7 @@ class FramerTest : public ::testing::Test
 
     void FlushFramer()
     {
-        uint32_t uiBytes = 0;
-        do {
-            uiBytes = pclMyFramer->Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH);
-        } while (uiBytes > 0);
+        while (pclMyFramer->Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
     }
 };
 
