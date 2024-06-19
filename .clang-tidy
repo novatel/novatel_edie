@@ -88,9 +88,7 @@ modernize-*,
 	-modernize-loop-convert, 
 	-modernize-use-trailing-return-type, 
 	-modernize-type-traits,  
-	-modernize-use-default-member-init, 
-	-modernize-concat-nested-namespaces, 
-	-modernize-make-unique'
+	-modernize-use-default-member-init'
 HeaderFilterRegex: 'src/.*|examples/.*'
 WarningsAsErrors: '*'
 ExtraArgs: - -Wno-unknown-pragmas # TODO: remove this after switch to clang-tidy-18
