@@ -2869,11 +2869,10 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
    pclFp->SetEncodeFormat(ENCODE_FORMAT::ASCII);
    ASSERT_EQ(pclFp->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
 
-   STATUS eStatus;
+   STATUS eStatus = pclFp->Read(stMessageData, stMetaData);
 
-   do 
+   while (eStatus != STATUS::STREAM_EMPTY)
    {
-      eStatus = pclFp->Read(stMessageData, stMetaData);
       if (eStatus == STATUS::SUCCESS)
       {
          ASSERT_EQ(stMetaData.uiLength, uiExpectedMetaDataLength[numSuccess]);
@@ -2881,7 +2880,9 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
          ASSERT_EQ(stMessageData.uiMessageLength, uiExpectedMessageLength[numSuccess]);
          numSuccess++;
       }
-   } while (eStatus != STATUS::STREAM_EMPTY);
+
+       eStatus = pclFp->Read(stMessageData, stMetaData);
+   }
 
    ASSERT_EQ(pclFp->GetPercentRead(), 100U);
    ASSERT_EQ(numSuccess, 2);
