@@ -1,7 +1,6 @@
 Checks: '-*,
 portability-*,
 readability-*,
-	-readability-braces-around-statements,
 	-readability-identifier-length,
 	-readability-named-parameter,
 	-readability-container-size-empty,

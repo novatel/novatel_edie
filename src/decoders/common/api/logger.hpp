@@ -112,7 +112,7 @@ class Logger
      */
     static void Shutdown()
     {
-        if (pclMyRootLogger) pclMyRootLogger->flush();
+        if (pclMyRootLogger) { pclMyRootLogger->flush(); }
         spdlog::shutdown();
     }
 
