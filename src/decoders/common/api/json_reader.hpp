@@ -304,7 +304,7 @@ struct BaseField
 
     [[nodiscard]] bool IsCsv() const
     {
-        return !(IsString() || conversionHash == CalculateBlockCrc32("%Z") || conversionHash == CalculateBlockCrc32("%P"));
+        return !IsString() && conversionHash != CalculateBlockCrc32("%Z") && conversionHash != CalculateBlockCrc32("%P");
     }
 };
 

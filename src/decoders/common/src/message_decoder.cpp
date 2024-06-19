@@ -603,7 +603,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
         }
 
         // TODO: previously, we didn't check for early end in abbreviated ascii, but I assume this was a bug
-        if (Abbreviated == false && bEarlyEndOfMessage) { break; }
+        if (!Abbreviated && bEarlyEndOfMessage) { break; }
     }
 
     return STATUS::SUCCESS;
