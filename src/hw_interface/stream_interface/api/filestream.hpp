@@ -65,14 +65,14 @@ class FileStream
                                *  A copy constructor is a member function which initializes an object using another object of
                                * the same class.
                                */
-    FileStream(const FileStream& clOther);
+    FileStream(const FileStream& clOther) = delete;
 
     /*! Private assignment operator
      *
      *  The copy assignment operator is called whenever selected by overload resolution,
      *  e.g. when an object appears on the left side of an assignment expression.
      */
-    const FileStream& operator=(const FileStream& clOther);
+    const FileStream& operator=(const FileStream& clOther) = delete;
 
     /*! \fn void CalculateFileSize()
      *  \brief Calculate Total file size
