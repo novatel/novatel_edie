@@ -82,6 +82,12 @@ bugprone-*,
 modernize-*, 
 	-modernize-avoid-c-arrays, 
 	-modernize-use-auto, 
+	-modernize-loop-convert, 
+	-modernize-use-trailing-return-type, 
+	-modernize-type-traits,  
+	-modernize-concat-nested-namespaces, 
+	-modernize-make-unique, 
+	-modernize-use-emplace, 
 HeaderFilterRegex: 'src/.*|examples/.*'
 WarningsAsErrors: '*'
 ExtraArgs: - -Wno-unknown-pragmas # TODO: remove this after switch to clang-tidy-18
