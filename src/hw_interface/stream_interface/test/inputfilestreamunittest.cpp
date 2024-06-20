@@ -70,12 +70,12 @@ TEST_F(InputFileStreamTest, ReadDataWideCharPath)
     stReadDataStructure.cData = new char[stReadDataStructure.uiDataSize + 1];
     stReadDataStructure.cData[stReadDataStructure.uiDataSize] = 0;
     pMyTestCommand->ReadData(stReadDataStructure);
-    std::cout << "Made it past READ. Input Stream Test, Read Data WC" << std::endl;
+    std::cout << "Made it past READ. Input Stream Test, Read Data WC\n";
     ASSERT_STREQ("#RANGEA,COM1,0,77.5,FINESTEERING,2195,512277.000,02000020,9691,16696;", stReadDataStructure.cData);
     delete[] stReadDataStructure.cData;
-    std::cout << "Made it past 1st delete. Input Stream Test, Read Data WC" << std::endl;
+    std::cout << "Made it past 1st delete. Input Stream Test, Read Data WC\n";
     delete pMyTestCommand;
-    std::cout << "Made it past 2nd delete. Input Stream Test, Read Data WC" << std::endl;
+    std::cout << "Made it past 2nd delete. Input Stream Test, Read Data WC\n";
 }
 
 // ReadLine

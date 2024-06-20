@@ -932,7 +932,7 @@ protected:
       }
       catch (JsonReaderFailure& e)
       {
-         std::cout << e.what() << std::endl;
+         std::cout << e.what() << '\n';
       }
    }
 
@@ -967,7 +967,7 @@ public:
       STATUS eStatus = pclMyHeaderDecoder->Decode(pucTempPtr, stHeader, stMetaData_);
       if (STATUS::SUCCESS != eStatus)
       {
-         std::cout << "HeaderDecoder error " << eStatus << std::endl;
+         std::cout << "HeaderDecoder error " << eStatus << '\n';
          return HEADER_DECODER_ERROR;
       }
 
@@ -975,14 +975,14 @@ public:
       eStatus = pclMyMessageDecoder->Decode(pucTempPtr, stMessage, stMetaData_);
       if (STATUS::SUCCESS != eStatus)
       {
-         std::cout << "MessageDecoder error " << eStatus << std::endl;
+         std::cout << "MessageDecoder error " << eStatus << '\n';
          return MESSAGE_DECODER_ERROR;
       }
 
       eStatus = pclMyEncoder->Encode(&pucEncodeBuffer_, uiEncodeBufferSize_, stHeader, stMessage, stMessageData_, stMetaData_, eFormat_);
       if (STATUS::SUCCESS != eStatus)
       {
-         std::cout << "Encoder error " << eStatus << std::endl;
+         std::cout << "Encoder error " << eStatus << '\n';
          return ENCODER_ERROR;
       }
 
@@ -2163,7 +2163,7 @@ protected:
       }
       catch (const JsonReaderFailure& e)
       {
-         std::cout << e.what() << std::endl;
+         std::cout << e.what() << '\n';
       }
    }
 
@@ -2269,7 +2269,7 @@ protected:
       }
       catch (JsonReaderFailure& e)
       {
-         std::cout << e.what() << std::endl;
+         std::cout << e.what() << '\n';
       }
    }
 };
@@ -2363,7 +2363,7 @@ protected:
       }
       catch (JsonReaderFailure& e)
       {
-         std::cout << e.what() << std::endl;
+         std::cout << e.what() << '\n';
       }
    }
 
@@ -2761,7 +2761,7 @@ protected:
       }
       catch (JsonReaderFailure& e)
       {
-         std::cout << e.what() << std::endl;
+         std::cout << e.what() << '\n';
       }
    }
 
@@ -2977,7 +2977,7 @@ public:
       }
       catch (JsonReaderFailure& e)
       {
-         std::cout << e.what() << std::endl;
+         std::cout << e.what() << '\n';
          for (auto it : MsgDefFields) { delete it; }
          MsgDefFields.clear();
       }
