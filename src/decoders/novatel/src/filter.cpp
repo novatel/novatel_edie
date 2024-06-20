@@ -247,9 +247,9 @@ bool Filter::DoFiltering(const MetaDataStruct& stMetaData_)
     if (stMetaData_.eFormat == HEADER_FORMAT::UNKNOWN) { return false; }
     if (stMetaData_.eFormat == HEADER_FORMAT::NMEA) { return bMyIncludeNmea; }
 
-    for (uint64_t ullIndex = 0; ullIndex < vMyFilterFunctions.size(); ullIndex++)
+    for (const auto& filterFunction : vMyFilterFunctions)
     {
-        if (!(this->*vMyFilterFunctions.at(ullIndex))(stMetaData_)) { return false; }
+        if (!(this->*filterFunction)(stMetaData_)) { return false; }
     }
 
     return true;
