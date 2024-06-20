@@ -419,7 +419,7 @@ struct MessageDefinition
     {
         for (auto& item : fields)
         {
-            for (auto f : item.second) { delete f; }
+            for (auto* f : item.second) { delete f; }
         }
     }
 

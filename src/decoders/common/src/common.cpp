@@ -69,7 +69,7 @@ std::string GetEnumString(const EnumDefinition* const stEnumDef_, const uint32_t
 {
     if (stEnumDef_ != nullptr)
     {
-        for (auto& e : stEnumDef_->enumerators)
+        for (const auto& e : stEnumDef_->enumerators)
         {
             if (e.value == uiEnum_) { return e.name; }
         }
@@ -83,7 +83,7 @@ int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, const std::string& 
 {
     if (stEnumDef_ != nullptr)
     {
-        for (auto& e : stEnumDef_->enumerators)
+        for (const auto& e : stEnumDef_->enumerators)
         {
             if (e.name == strEnum_) { return static_cast<int32_t>(e.value); }
         }
@@ -97,7 +97,7 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, const std::string&
 {
     if (stRespDef_ != nullptr)
     {
-        for (auto& e : stRespDef_->enumerators)
+        for (const auto& e : stRespDef_->enumerators)
         {
             // response string is stored in description
             if (e.description == strResp_) { return static_cast<int32_t>(e.value); }

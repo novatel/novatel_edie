@@ -173,7 +173,7 @@ class MessageDecoderTypesTest : public ::testing::Test
         {
             std::cout << e.what() << '\n';
 
-            for (auto it : MsgDefFields) { delete it; }
+            for (auto* it : MsgDefFields) { delete it; }
 
             MsgDefFields.clear();
         }
@@ -183,16 +183,16 @@ class MessageDecoderTypesTest : public ::testing::Test
     {
         pclMyDecoderTester->ShutdownLogger();
 
-        for (auto it : MsgDefFields) { delete it; }
+        for (auto* it : MsgDefFields) { delete it; }
 
         MsgDefFields.clear();
     }
 
     void CreateEnumField(std::string name, std::string description, int32_t value)
     {
-        auto stField = new EnumField();
-        auto enumDef = new EnumDefinition();
-        auto enumDT = new EnumDataType();
+        auto* stField = new EnumField();
+        auto* enumDef = new EnumDefinition();
+        auto* enumDT = new EnumDataType();
         enumDT->name = name;
         enumDT->description = description;
         enumDT->value = value;
@@ -263,7 +263,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    auto testInput = "4";
+    const auto* testInput = "4";
     pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
     ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_[0].fieldValue), '4');
@@ -275,7 +275,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    auto testInput = "True";
+    const auto* testInput = "True";
     pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
     ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), false);
@@ -293,7 +293,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(vTestInput.size());
 
-    auto testInput = "UNKNOWN,APPROXIMATE,SATTIME";
+    const auto* testInput = "UNKNOWN,APPROXIMATE,SATTIME";
 
     ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat), STATUS::SUCCESS);
     ASSERT_EQ(vIntermediateFormat.size(), vTestInput.size());
@@ -328,7 +328,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    auto testInput = "garbage";
+    const auto* testInput = "garbage";
 
     ASSERT_THROW(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
 }
@@ -388,7 +388,7 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(MsgDefFields.size());
 
-    auto testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
+    const auto* testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
 
     ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat));
     // TODO: Keep this here or make a file for testing common encoder?

@@ -73,7 +73,7 @@ void MessageDecoder::InitOemFieldMaps()
         auto* pcDelimiter = static_cast<char*>(memchr(*ppcToken_, '+', tokenLength_));
         if (pcDelimiter == nullptr) { pcDelimiter = static_cast<char*>(memchr(*ppcToken_, '-', tokenLength_)); }
 
-        uint16_t usSlot = static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 10));
+        auto usSlot = static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 10));
         int16_t sFreq = pcDelimiter != nullptr ? static_cast<int16_t>(strtol(pcDelimiter, nullptr, 10)) : 0;
 
         const uint32_t uiSatId = usSlot | (sFreq << 16);

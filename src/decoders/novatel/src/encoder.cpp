@@ -383,7 +383,7 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
     if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
 
     unsigned char* pucTempBuffer = *ppucBuffer_;
-    auto ppcTempBuffer = reinterpret_cast<char**>(&pucTempBuffer);
+    auto** ppcTempBuffer = reinterpret_cast<char**>(&pucTempBuffer);
 
     switch (eFormat_)
     {

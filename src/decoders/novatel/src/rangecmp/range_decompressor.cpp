@@ -359,7 +359,7 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStr
                                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_)
 {
-    float fLocktimeMilliseconds = static_cast<float>(uiLockTimeBits_);
+    auto fLocktimeMilliseconds = static_cast<float>(uiLockTimeBits_);
 
     RangeCmp2LockTimeInfoStruct& stLocktimeInfo =
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
