@@ -898,8 +898,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
 
                             // Always store reference blocks.
                             ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)][aeTheRangeCmp4SatelliteSystem][eCurrentSignalType]
-                                                 [uiPRN] =
-                                std::pair(stMeasurementBlockHeader, stMeasurementBlock);
+                                                 [uiPRN] = std::pair(stMeasurementBlockHeader, stMeasurementBlock);
                         }
                         else // This is a differential block.
                         {
@@ -923,8 +922,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                                 pclMyLogger->warn("No reference data exists for SATELLITE_SYSTEM {}, SIGNAL_TYPE "
                                                   "{}, PRN {}, ID {}",
                                                   static_cast<int32_t>(aeTheRangeCmp4SatelliteSystem), static_cast<int32_t>(eCurrentSignalType),
-                                                  uiPRN,
-                                                  stMeasurementBlockHeader.ucReferenceDataBlockID);
+                                                  uiPRN, stMeasurementBlockHeader.ucReferenceDataBlockID);
                             }
 
                             // Do nothing if we can't find reference data.
