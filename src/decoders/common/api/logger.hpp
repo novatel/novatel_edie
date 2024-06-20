@@ -65,15 +65,15 @@ class Logger
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            std::cout << "Logger spdlog init failed: " << ex.what() << std::endl;
+            std::cout << "Logger spdlog init failed: " << ex.what() << '\n';
         }
         catch (const spdlog_setup::setup_error& ex)
         {
-            std::cout << "Logger spdlog_setup failed: " << ex.what() << std::endl;
+            std::cout << "Logger spdlog_setup failed: " << ex.what() << '\n';
         }
         catch (const std::exception& ex)
         {
-            std::cout << "Logger failed: " << ex.what() << std::endl;
+            std::cout << "Logger failed: " << ex.what() << '\n';
         }
     }
 
@@ -96,15 +96,15 @@ class Logger
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            std::cout << "Logger spdlog init failed: " << ex.what() << std::endl;
+            std::cout << "Logger spdlog init failed: " << ex.what() << '\n';
         }
         catch (const spdlog_setup::setup_error& ex)
         {
-            std::cout << "Logger spdlog_setup failed: " << ex.what() << std::endl;
+            std::cout << "Logger spdlog_setup failed: " << ex.what() << '\n';
         }
         catch (const std::exception& ex)
         {
-            std::cout << "Logger failed: " << ex.what() << std::endl;
+            std::cout << "Logger failed: " << ex.what() << '\n';
         }
     }
 
@@ -148,8 +148,8 @@ class Logger
         catch (const spdlog::spdlog_ex& ex)
         {
             // TODO: why does deleting this line break the pipeline?
-            std::cout << (spdlog::get(sLoggerName_) == nullptr ? "null" : "not null") << std::endl;
-            std::cout << "Logger::RegisterLogger() init failed: " << ex.what() << std::endl;
+            std::cout << (spdlog::get(sLoggerName_) == nullptr ? "null" : "not null") << '\n';
+            std::cout << "Logger::RegisterLogger() init failed: " << ex.what() << '\n';
             SPDLOG_ERROR("Logger::RegisterLogger(\"{}\") init failed: {}", sLoggerName_, ex.what());
         }
 
