@@ -621,7 +621,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     if (stRangeData_.usPRN == 0) { throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits"); }
 
     // any fields flagged as invalid are set to NaN and appear in the log as such
-    stRangeData_.sGLONASSFrequency = static_cast<int16_t>(cGLONASSFrequencyNumber_);
+    stRangeData_.sGLONASSFrequency = static_cast<int16_t>(static_cast<unsigned char>(cGLONASSFrequencyNumber_));
     stRangeData_.dPSR = stBlock_.bValidPSR ? stBlock_.dPSR : std::numeric_limits<double>::quiet_NaN();
     stRangeData_.fPSRStdDev = afTheRangeCmp4PSRStdDevValues[stBlock_.ucPSRBitfield];
     stRangeData_.dADR =
