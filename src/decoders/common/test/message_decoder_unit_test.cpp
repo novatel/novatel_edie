@@ -219,7 +219,7 @@ TEST_F(MessageDecoderTypesTest, LOGGER)
 TEST_F(MessageDecoderTypesTest, FIELD_CONTAINER_ERROR_ON_COPY)
 {
     FieldContainer fc(3, new BaseField());
-    ASSERT_THROW(FieldContainer fc2(fc), std::runtime_error);
+    ASSERT_THROW(FieldContainer(fc), std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
