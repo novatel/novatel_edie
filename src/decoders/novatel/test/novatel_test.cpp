@@ -2978,7 +2978,7 @@ public:
       catch (JsonReaderFailure& e)
       {
          std::cout << e.what() << '\n';
-         for (auto it : MsgDefFields) { delete it; }
+         for (auto* it : MsgDefFields) { delete it; }
          MsgDefFields.clear();
       }
    }
@@ -2986,15 +2986,15 @@ public:
    void TearDown() override
    {
       pclMyDecoderTester->ShutdownLogger();
-      for (auto it : MsgDefFields) { delete it; }
+      for (auto* it : MsgDefFields) { delete it; }
       MsgDefFields.clear();
    }
 
    void CreateEnumField(const std::string& strName, const std::string& strDescription, int32_t iValue)
    {
-       auto stField = new EnumField();
-       auto enumDef = new EnumDefinition();
-       auto enumDT = new EnumDataType();
+       auto* stField = new EnumField();
+       auto* enumDef = new EnumDefinition();
+       auto* enumDT = new EnumDataType();
       enumDT->name = strName;
       enumDT->description = strDescription;
       enumDT->value = iValue;
@@ -3014,7 +3014,7 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(4);
 
-    auto testInput = "-1.000,0.000,604800.000,4294967295.000";
+    const auto* testInput = "-1.000,0.000,604800.000,4294967295.000";
 
     STATUS stDecoderStatus = pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
