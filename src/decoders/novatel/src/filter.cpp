@@ -48,7 +48,7 @@ void Filter::ShutdownLogger() { Logger::Shutdown(); }
 // -------------------------------------------------------------------------------------------------------
 void Filter::PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const)
 {
-    if (std::ranges::find(vMyFilterFunctions.begin(), vMyFilterFunctions.end(), filter_) == vMyFilterFunctions.end())
+    if (std::find(vMyFilterFunctions.begin(), vMyFilterFunctions.end(), filter_) == vMyFilterFunctions.end())
     {
         vMyFilterFunctions.push_back(filter_);
     }
@@ -194,7 +194,7 @@ bool Filter::FilterTimeStatus(const MetaDataStruct& stMetaData_) const
 {
     return vMyTimeStatusFilters.empty() ||
            bMyInvertTimeStatusFilter ==
-               (vMyTimeStatusFilters.end() == std::ranges::find(vMyTimeStatusFilters.begin(), vMyTimeStatusFilters.end(), stMetaData_.eTimeStatus));
+               (vMyTimeStatusFilters.end() == std::find(vMyTimeStatusFilters.begin(), vMyTimeStatusFilters.end(), stMetaData_.eTimeStatus));
 }
 
 // -------------------------------------------------------------------------------------------------------
