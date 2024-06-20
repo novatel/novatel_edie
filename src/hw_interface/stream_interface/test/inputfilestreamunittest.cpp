@@ -104,8 +104,8 @@ TEST_F(InputFileStreamTest, ReadLine)
     ASSERT_FALSE(stReadStatus.bEOS);
 
     stReadStatus = pMyTestCommand->ReadLine(linestring);
-    ASSERT_TRUE(linestring.size() == 0);
-    ASSERT_TRUE(linestring.size() == stReadStatus.uiCurrentStreamRead);
+    ASSERT_TRUE(linestring.empty());
+    ASSERT_TRUE(stReadStatus.uiCurrentStreamRead == 0);
     ASSERT_TRUE(stReadStatus.bEOS);
 
     delete pMyTestCommand;
