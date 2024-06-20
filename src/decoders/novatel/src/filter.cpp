@@ -24,6 +24,8 @@
 // ! \file filter.cpp
 // ===============================================================================
 
+#include <algorithm>
+
 #include "decoders/novatel/api/filter.hpp"
 
 using namespace novatel::edie;
@@ -247,10 +249,6 @@ bool Filter::DoFiltering(const MetaDataStruct& stMetaData_)
     if (stMetaData_.eFormat == HEADER_FORMAT::UNKNOWN) { return false; }
     if (stMetaData_.eFormat == HEADER_FORMAT::NMEA) { return bMyIncludeNmea; }
 
-    for (const auto& filterFunction : vMyFilterFunctions)
-    {
-        if (!(this->*filterFunction)(stMetaData_)) { return false; }
-    }
-
-    return true;
+    return std::all_of(vMyFilterFunctions.begin(), vMyFilterFunctions.end(),
+                       [this, &stMetaData_](const auto& filterFunction) { return (this->*filterFunction)(stMetaData_); });
 }
