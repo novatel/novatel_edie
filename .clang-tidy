@@ -56,10 +56,8 @@ bugprone-*,
 modernize-*, 
 	-modernize-avoid-c-arrays, 
 	-modernize-use-using, 
-	-modernize-pass-by-value, 
 	-modernize-loop-convert, 
 	-modernize-use-trailing-return-type, 
-	-modernize-type-traits,  
 	-modernize-use-default-member-init'
 HeaderFilterRegex: 'src/.*|examples/.*'
 WarningsAsErrors: '*'
