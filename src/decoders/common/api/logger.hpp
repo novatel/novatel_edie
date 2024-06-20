@@ -181,7 +181,7 @@ class Logger
                                       std::string sFileName_ = "edie.log", uint32_t uiFileSize_ = 5 * 1024 * 1024, uint32_t uiMaxFiles_ = 2,
                                       bool bRotateOnOpen_ = true)
     {
-        if (mRotatingFiles.contains(sFileName_)) { lgr->sinks().push_back(mRotatingFiles.at(sFileName_)); }
+        if (mRotatingFiles.find(sFileName_) != mRotatingFiles.end()) { lgr->sinks().push_back(mRotatingFiles.at(sFileName_)); }
         else
         {
             // Rotating file sink, with default formatting/metadata, max 3 files (2 previous + 1 current) of 5MB each
