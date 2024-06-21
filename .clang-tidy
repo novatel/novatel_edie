@@ -1,6 +1,5 @@
 # TODO: the indented lines below starting with a '-' indicate disabled checks. We want to have as few of these as possible.
 Checks: '-*,
-misc-include-cleaner,
 portability-*,
 readability-*,
 	-readability-identifier-length,
