@@ -77,7 +77,8 @@ class FramerTest : public ::testing::Test
   public:
     template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
     {
-        MetaDataStruct stExpectedMetaData(F, uiLength_), stTestMetaData;
+        MetaDataStruct stExpectedMetaData(F, uiLength_);
+        MetaDataStruct stTestMetaData;
         ASSERT_EQ(S, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, stTestMetaData));
         ASSERT_EQ(stTestMetaData, stExpectedMetaData);
     }
@@ -187,7 +188,8 @@ TEST_F(FramerTest, ASCII_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData) - 1;
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ASCII), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ASCII);
+    MetaDataStruct stTestMetaData;
 
    while (true)
    {
@@ -255,7 +257,8 @@ TEST_F(FramerTest, ABBREV_ASCII_SEGMENTED)
    constexpr unsigned char aucData[] = "<RAWIMUX ICOM7 0 68.5 FINESTEERING 2222 136132.845 02040120 0dc5 16860\r\n< 04 41 2222 136132.844765 edb7fe00 327412165 - 7829932 13988218 - 498546 213188 - 987039\r\n[COM1]";
    uint32_t uiLogSize = sizeof(aucData) - 1 - 6;  // Remove the [ICOM] from the log size
    uint32_t uiBytesWritten = 0;
-   MetaDataStruct stExpectedFrameData, stTestMetaData;
+   MetaDataStruct stExpectedFrameData;
+    MetaDataStruct stTestMetaData;
 
    WriteBytesToFramer(&aucData[uiBytesWritten], 1); // Sync Byte
    uiBytesWritten += 1;
@@ -369,7 +372,8 @@ TEST_F(FramerTest, BINARY_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData);
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN);
+    MetaDataStruct stTestMetaData;
 
    while (true)
    {
@@ -485,7 +489,8 @@ TEST_F(FramerTest, SHORT_ASCII_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData) - 1;
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::SHORT_ASCII), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::SHORT_ASCII);
+    MetaDataStruct stTestMetaData;
 
    while (true)
    {
@@ -615,7 +620,8 @@ TEST_F(FramerTest, SHORT_BINARY_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData);
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN);
+    MetaDataStruct stTestMetaData;
 
    while (true)
    {
@@ -729,7 +735,8 @@ TEST_F(FramerTest, NMEA_BYTE_BY_BYTE)
    uint32_t uiLogSize = sizeof(aucData) - 1;
    uint32_t uiRemainingBytes = uiLogSize;
 
-   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::NMEA), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::NMEA);
+    MetaDataStruct stTestMetaData;
 
    while (true)
    {
@@ -856,7 +863,8 @@ TEST_F(FramerTest, ABBREV_ASCII_MULTILINE)
 TEST_F(FramerTest, ABBREV_ASCII_RESPONSE)
 {
    constexpr unsigned char aucData[] = "<ERROR:Message is invalid for this model\r\n";
-   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ABB_ASCII), stTestMetaData;
+   MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ABB_ASCII);
+    MetaDataStruct stTestMetaData;
    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
    stExpectedMetaData.bResponse = true;
    stExpectedMetaData.uiLength = sizeof(aucData) - 1;
@@ -994,7 +1002,8 @@ public:
    {
       uint8_t aucLog1EncodeBuffer[MAX_BINARY_MESSAGE_LENGTH], aucLog2EncodeBuffer[MAX_BINARY_MESSAGE_LENGTH];
       MessageDataStruct stMessageData1, stMessageData2;
-      MetaDataStruct stMetaData1, stMetaData2;
+      MetaDataStruct stMetaData1;
+       MetaDataStruct stMetaData2;
 
       ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, pucLog1, aucLog1EncodeBuffer, sizeof(aucLog1EncodeBuffer), stMetaData1, stMessageData1));
       ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, pucLog2, aucLog2EncodeBuffer, sizeof(aucLog2EncodeBuffer), stMetaData2, stMessageData2));
