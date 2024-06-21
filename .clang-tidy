@@ -48,7 +48,15 @@ modernize-*,
 	-modernize-avoid-c-arrays, 
 	-modernize-use-using, 
 	-modernize-use-trailing-return-type, 
-	-modernize-use-default-member-init'
+	-modernize-use-default-member-init,
+readability-identifier-naming'
 HeaderFilterRegex: 'src/.*|examples/.*'
 WarningsAsErrors: '*'
 ExtraArgs: - -Wno-unknown-pragmas # TODO: remove this after switch to clang-tidy-18
+CheckOptions:
+  - key: readability-identifier-naming.ArgumentCase
+    value: CamelCase
+  - key: readability-identifier-naming.ArgumentSuffix
+    value: '_'
+  - key: readability-identifier-naming.ArgumentIgnoredRegexp
+    value: '^_$'
