@@ -306,17 +306,17 @@ uint32_t MultiOutputFileStream::WriteData(char* pcData_, uint32_t uiDataLength_,
     {
         switch (eMyFileSplitMethodEnum)
         {
-        case SPLIT_LOG:
+        case FileSplitMethodEnum::SPLIT_LOG:
             if (bEnableWideCharSupport) { SelectWCLogFile(strMsgName_); }
             else { SelectLogFile(strMsgName_); }
             break;
 
-        case SPLIT_SIZE:
+        case FileSplitMethodEnum::SPLIT_SIZE:
             if (bEnableWideCharSupport) { SelectWCSizeFile(uiSize_); }
             else { SelectSizeFile(uiSize_); }
             break;
 
-        case SPLIT_TIME:
+        case FileSplitMethodEnum::SPLIT_TIME:
             if (bEnableWideCharSupport) { SelectWCTimeFile(eStatus_, usWeek_, dMilliseconds_); }
             else { SelectTimeFile(eStatus_, usWeek_, dMilliseconds_); }
             break;

@@ -47,7 +47,6 @@ bugprone-*,
 	-bugprone-implicit-widening-of-multiplication-result,
 modernize-*, 
 	-modernize-avoid-c-arrays, 
-	-modernize-use-using, 
 	-modernize-use-trailing-return-type, 
 	-modernize-use-default-member-init'
 

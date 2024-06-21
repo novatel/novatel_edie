@@ -33,13 +33,13 @@
  *
  * Splitting type of log enumeration while writing to different output files.
  */
-typedef enum
+enum class FileSplitMethodEnum
 {
     SPLIT_SIZE, /*!< Split based on Size of log */
     SPLIT_LOG,  /*!< Split based on Log name */
     SPLIT_TIME, /*!< Split based on time of log */
     SPLIT_NONE  /*!< Do not split */
-} FileSplitMethodEnum;
+};
 
 /*! A Structure
  *

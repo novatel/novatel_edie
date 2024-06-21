@@ -273,7 +273,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *
      * An enumeration variable
      */
-    FileSplitMethodEnum eMyFileSplitMethodEnum{SPLIT_NONE};
+    FileSplitMethodEnum eMyFileSplitMethodEnum{FileSplitMethodEnum::SPLIT_NONE};
 
     /*! \var bMyFileSplit
      *  \remark Values can be true or false.
