@@ -84,7 +84,9 @@ template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(Interm
     {
     case ASCII_HEADER::MESSAGE_NAME: {
         uint16_t usLogId = 0;
-        uint32_t uiSiblingId = 0, uiMsgFormat = 0, uiResponse = 0;
+        uint32_t uiSiblingId = 0;
+        uint32_t uiMsgFormat = 0;
+        uint32_t uiResponse = 0;
         UnpackMsgId(pclMyMsgDb->MsgNameToMsgId(std::string(*ppcLogBuf_, ullTokenLength)), usLogId, uiSiblingId, uiMsgFormat, uiResponse);
         stInterHeader_.usMessageId = usLogId;
         stInterHeader_.ucMessageType = PackMsgType(uiSiblingId, uiMsgFormat, uiResponse);
