@@ -1001,8 +1001,10 @@ class DecodeEncodeTest : public ::testing::Test
     template <typename T, typename T2 = Oem4BinaryHeader>
     void ConversionFlatBinaryHelper(uint8_t* pucLog1, uint8_t* pucLog2)
     {
-        uint8_t aucLog1EncodeBuffer[MAX_BINARY_MESSAGE_LENGTH], aucLog2EncodeBuffer[MAX_BINARY_MESSAGE_LENGTH];
-        MessageDataStruct stMessageData1, stMessageData2;
+        uint8_t aucLog1EncodeBuffer[MAX_BINARY_MESSAGE_LENGTH];
+        uint8_t aucLog2EncodeBuffer[MAX_BINARY_MESSAGE_LENGTH];
+        MessageDataStruct stMessageData1;
+        MessageDataStruct stMessageData2;
         MetaDataStruct stMetaData1;
         MetaDataStruct stMetaData2;
 
