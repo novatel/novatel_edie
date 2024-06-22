@@ -63,8 +63,6 @@ class MultiOutputFileStreamTest : public ::testing::Test
   private:
   protected:
     MultiOutputFileStream* pMyTestCommand = nullptr;
-    // typedef std::map<std::string, FileStream* > FstreamMap;
-    // FstreamMap mMyFstreamMap;
 };
 
 TEST_F(MultiOutputFileStreamTest, ConfigureSplitByLog)

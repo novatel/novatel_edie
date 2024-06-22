@@ -72,9 +72,9 @@ class InputStreamInterface
      * \return Returns the extension of the input file to be decoded.
      * \remark If no concrete derived method, It simply returns an empty string.
      */
-    virtual std::string GetFileExtension() const { return ""; }
+    [[nodiscard]] virtual std::string GetFileExtension() const { return ""; }
 
-    virtual std::string GetFileName() const { return ""; }
+    [[nodiscard]] virtual std::string GetFileName() const { return ""; }
 
     /** A virtual member.
      * \brief Waiting period on port for incoming data to be decoded.
@@ -113,7 +113,7 @@ class InputStreamInterface
      * \sa GetCurrentFileOffset().
      * \remark returns 0, if no concrete derived method for it.
      */
-    virtual uint64_t GetCurrentFileOffset() const { return 0; }
+    [[nodiscard]] virtual uint64_t GetCurrentFileOffset() const { return 0; }
 
     /** A virtual member.
      * \brief Returns the class object which has interfaced or derived from circular buffer.

@@ -24,6 +24,8 @@
 // ! \file filter.cpp
 // ===============================================================================
 
+#include <algorithm>
+
 #include "decoders/novatel/api/filter.hpp"
 
 using namespace novatel::edie;
@@ -202,7 +204,7 @@ bool Filter::FilterMessageId(const MetaDataStruct& stMetaData_) const
 {
     if (vMyMessageIdFilters.empty()) { return true; }
 
-    uint32_t uiMessageId = static_cast<uint32_t>(stMetaData_.usMessageId);
+    auto uiMessageId = static_cast<uint32_t>(stMetaData_.usMessageId);
     HEADER_FORMAT eFormat = stMetaData_.eFormat;
     MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
 
@@ -247,10 +249,6 @@ bool Filter::DoFiltering(const MetaDataStruct& stMetaData_)
     if (stMetaData_.eFormat == HEADER_FORMAT::UNKNOWN) { return false; }
     if (stMetaData_.eFormat == HEADER_FORMAT::NMEA) { return bMyIncludeNmea; }
 
-    for (uint64_t ullIndex = 0; ullIndex < vMyFilterFunctions.size(); ullIndex++)
-    {
-        if (!(this->*vMyFilterFunctions.at(ullIndex))(stMetaData_)) { return false; }
-    }
-
-    return true;
+    return std::all_of(vMyFilterFunctions.begin(), vMyFilterFunctions.end(),
+                       [this, &stMetaData_](const auto& filterFunction) { return (this->*filterFunction)(stMetaData_); });
 }

@@ -30,7 +30,7 @@ using namespace novatel::edie;
 
 JsonReader* CommonJsonReaderInit()
 {
-    auto pclJsonDb = new JsonReader();
+    auto* pclJsonDb = new JsonReader();
     return pclJsonDb;
 }
 

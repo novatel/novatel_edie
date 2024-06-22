@@ -62,7 +62,7 @@ class JsonReaderFailure : public std::exception
     {
     }
 
-    const char* what() const noexcept override
+    [[nodiscard]] const char* what() const noexcept override
     {
         sprintf(const_cast<char*>(acWhatString), "In file \"%s\" : %s() (Line %d)\n\t\"%s: %s.\"", file, func, line,
                 clFilePath.generic_string().c_str(), failure);
@@ -304,7 +304,7 @@ struct BaseField
 
     [[nodiscard]] bool IsCsv() const
     {
-        return !(IsString() || conversionHash == CalculateBlockCrc32("%Z") || conversionHash == CalculateBlockCrc32("%P"));
+        return !IsString() && conversionHash != CalculateBlockCrc32("%Z") && conversionHash != CalculateBlockCrc32("%P");
     }
 };
 
@@ -419,7 +419,7 @@ struct MessageDefinition
     {
         for (auto& item : fields)
         {
-            for (auto f : item.second) { delete f; }
+            for (auto* f : item.second) { delete f; }
         }
     }
 

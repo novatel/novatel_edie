@@ -277,7 +277,7 @@ TEST_F(RangeCmpTest, DISABLED_DECOMPRESS_RANGECMPA_3)
    stMetaData.uiLength = sizeof(aucCompressedData)-1;
 
    ASSERT_EQ(STATUS::SUCCESS, pclMyRangeDecompressor->Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData));
-   std::cout << "DECOMPRESS_RANGECMPA4_DIFF_2" << aucCompressionBuffer << std::endl;
+   std::cout << "DECOMPRESS_RANGECMPA4_DIFF_2" << aucCompressionBuffer << '\n';
    ASSERT_EQ(sizeof(aucDecompressedData)-1, stMetaData.uiLength);
    ASSERT_EQ(0, memcmp(aucCompressionBuffer, aucDecompressedData, stMetaData.uiLength));
 }

@@ -175,7 +175,7 @@ constexpr uint32_t CTS_CHANNEL_ASSIGNMENT_SHIFT = 31;
 constexpr uint64_t RC_DOPPLER_FREQUENCY_MASK = 0x000000000FFFFFFF;
 constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNBIT_MASK = 0x08000000;
 constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNEXT_MASK = 0xF0000000;
-constexpr float RC_DOPPLER_FREQUENCY_SCALE_FACTOR = 256.0f;
+constexpr float RC_DOPPLER_FREQUENCY_SCALE_FACTOR = 256.0F;
 constexpr uint64_t RC_PSR_MEASUREMENT_MASK = 0xFFFFFFFFF0000000;
 constexpr uint32_t RC_PSR_MEASUREMENT_SHIFT = 28;
 constexpr double RC_PSR_MEASUREMENT_SCALE_FACTOR = 128.0;
@@ -292,7 +292,7 @@ constexpr uint32_t RC4_SIG_BLK_CNO_BITS = 11;
 constexpr uint32_t RC4_SIG_BLK_LOCK_TIME_BITS = 4;
 constexpr uint32_t RC4_SIG_BLK_PSR_STDDEV_BITS = 4;
 constexpr uint32_t RC4_SIG_BLK_ADR_STDDEV_BITS = 4;
-constexpr float RC4_SIG_BLK_CNO_SCALE_FACTOR = 0.05f;
+constexpr float RC4_SIG_BLK_CNO_SCALE_FACTOR = 0.05F;
 constexpr double RC4_SIG_BLK_PSR_SCALE_FACTOR = 0.0005;
 constexpr double RC4_SIG_BLK_PHASERANGE_SCALE_FACTOR = 0.0001;
 constexpr double RC4_SIG_BLK_DOPPLER_SCALE_FACTOR = 0.0001;
@@ -543,7 +543,7 @@ struct RangeCmp4MeasurementSignalBlockStruct
 {
     bool bParityKnown{false};
     bool bHalfCycleAdded{false};
-    float fCNo{0.0f};
+    float fCNo{0.0F};
     uint8_t ucLockTimeBitfield{0};
     uint8_t ucPSRBitfield{0};
     uint8_t ucADRBitfield{0};
@@ -972,7 +972,7 @@ struct ChannelTrackingStatusStruct
     //! Combine the channel tracking status fields into a single 4-byte value according to
     //! documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus
-    uint32_t GetAsWord() const
+    [[nodiscard]] uint32_t GetAsWord() const
     {
         uint32_t uiWord = (static_cast<uint32_t>(eTrackingState) & CTS_TRACKING_STATE_MASK) |
                           ((static_cast<uint32_t>(eCorrelatorType) << CTS_CORRELATOR_SHIFT) & CTS_CORRELATOR_MASK) |
