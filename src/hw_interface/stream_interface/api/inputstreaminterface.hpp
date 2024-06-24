@@ -69,7 +69,7 @@ class InputStreamInterface
     virtual StreamReadStatus ReadLine(std::string&) { return {}; }
 
     /** A virtual member.
-     * \brief Returns the extension of the input file to be decoded.
+     * \return the extension of the input file to be decoded.
      * \sa GetFileExtension().
      * \return Returns the extension of the input file to be decoded.
      */
@@ -92,7 +92,7 @@ class InputStreamInterface
     virtual void Reset(std::streamoff, std::ios_base::seekdir) {}
 
     /** A virtual member.
-     * \brief Returns the current file position from which next read will be done.
+     * \return the current file position from which next read will be done.
      * \sa GetCurrentFilePosition().
      * \remark Default returns 0.
      */
@@ -110,14 +110,14 @@ class InputStreamInterface
     virtual void SetCurrentFileOffset(uint64_t) {}
 
     /** A virtual member.
-     * \brief Returns Current file offset..
+     * \return Current file offset..
      * \sa GetCurrentFileOffset().
      * \remark returns 0, if no concrete derived method for it.
      */
     virtual uint64_t GetCurrentFileOffset() const { return 0; }
 
     /** A virtual member.
-     * \brief Returns the class object which has interfaced or derived from circular buffer.
+     * \return the class object which has interfaced or derived from circular buffer.
      * \sa GetMemoryStream().
      * \remark MemoryStream* class Object to access circular buffer.
      */

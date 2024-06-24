@@ -64,18 +64,18 @@ class CircularBuffer
     void SetCapacity(uint32_t uiCapacity_);
 
     //----------------------------------------------------------------------------
-    //! \brief Returns current capacity of buffer.
+    //! \return current capacity of buffer.
     //----------------------------------------------------------------------------
     [[nodiscard]] inline uint32_t GetCapacity() const;
 
     //----------------------------------------------------------------------------
-    //! \brief Returns number of bytes of data in buffer. Number of bytes between
+    //! \return number of bytes of data in buffer. Number of bytes between
     //! beginning of buffer and write cursor.
     //----------------------------------------------------------------------------
     [[nodiscard]] inline uint32_t GetLength() const;
 
     //----------------------------------------------------------------------------
-    //! \brief Returns the current buffer.
+    //! \return the current buffer.
     //----------------------------------------------------------------------------
     [[nodiscard]] inline unsigned char* GetBuffer() const;
 
@@ -86,7 +86,7 @@ class CircularBuffer
     //! append to the queue.
     //! \param[in] uiBytes_ Size of data (in bytes) to append from above address.
     //
-    //! \return AReturn number of bytes actually appended
+    //! \return Number of bytes actually appended
     //! \remark If size of data is more than the capacity of buffer, heap will be
     //! created on time.
     //----------------------------------------------------------------------------
