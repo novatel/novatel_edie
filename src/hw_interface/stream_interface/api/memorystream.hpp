@@ -69,7 +69,7 @@ class MemoryStream : public CircularBuffer
     ~MemoryStream();
 
     /*! \fn int32_t Available()
-     *  \brief Returns the actual content size, this is not the memory allocated size
+     *  \return the actual content size, this is not the memory allocated size
      *  The size increases when we write and it decreases when read.
      *
      *  \return Available data in buffer to decode.

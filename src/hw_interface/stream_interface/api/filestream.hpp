@@ -208,28 +208,28 @@ class FileStream
     void SetFilePosition(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg);
 
     /*! \fn uint64_t  GetFileLength()
-     *  \brief Returns Total file length.
+     *  \return Total file length.
      *
      *  \return Total file length.
      */
     uint64_t GetFileLength() const { return ullMyFileLength; }
 
     /*! \fn const char* GetFileName()
-     *  \brief Returns File Name.
+     *  \return File Name.
      *
      *  \return Name of the File which currently operating.
      */
     std::string GetFileName() const { return clFilePath.string(); }
 
     /*! \fn uint64_t  GetCurrentFileSize()
-     *  \brief Returns current file size which user has read so far.
+     *  \return current file size which user has read so far.
      *
      *  \return current file size which user has read so far.
      */
     uint64_t GetCurrentFileSize() const { return ullMyCurrentFileSize; }
 
     /*! \fn std::fstream* GetMyFileStream()
-     *  \brief Returns file stream pointer.
+     *  \return file stream pointer.
      *
      *  \return fstream Pointer of the file stream.
      */
@@ -252,14 +252,14 @@ class FileStream
     void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
 
     /*! \fn uint64_t  GetCurrentFileOffset(void)
-     *  \brief Returns current file offset.
+     *  \return current file offset.
      *
      *  \return Current file offset.
      */
     uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; }
 
     /*! \fn std::u32string Get32StringFileName()
-     *  \brief Returns u32string filename.
+     *  \return u32string filename.
      *
      */
     std::u32string Get32StringFileName() const { return clFilePath.generic_u32string(); }

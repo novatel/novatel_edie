@@ -100,7 +100,7 @@ class InputMemoryStream : public InputStreamInterface
     bool IsStreamAvailable();
 
     /*! \fn MemoryStream* GetMemoryStream()
-     *  \brief Returns the class object which has interfacesed or derived from circuallar buffer.
+     *  \return the class object which has interfacesed or derived from circuallar buffer.
      *
      *  \return MemoryStream class Object to access circullar buffer.
      *  \sa MemoryStream

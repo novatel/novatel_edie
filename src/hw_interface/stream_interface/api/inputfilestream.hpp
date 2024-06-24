@@ -89,7 +89,7 @@ class InputFileStream : public InputStreamInterface
     void Reset(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg) override;
 
     /*! \n std::string GetFileExtension()
-     *  \brief Returns the extension of the input file to be decoded.
+     *  \return the extension of the input file to be decoded.
      *
      *  \return  std::string - File Extension name
      */
@@ -97,7 +97,7 @@ class InputFileStream : public InputStreamInterface
     std::string GetFileName() const override;
 
     /*! \n uint64_t  GetCurrentFilePosition()
-     *  \brief Returns the current file position from which next read will be done.
+     *  \return the current file position from which next read will be done.
      *
      *  \return uint64_t  - File current offset
      */
@@ -112,7 +112,7 @@ class InputFileStream : public InputStreamInterface
     void SetCurrentFileOffset(uint64_t ullCurrentFileOffset) override;
 
     /*! \fn uint64_t GetCurrentFileOffset()
-     *  \brief Returns Current file offset.
+     *  \return Current file offset.
      *
      *  \return Current file offset.
      */
