@@ -240,16 +240,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y doxygen=1.9.1-2ubuntu2
-          pip3 install 'exhale==0.3.6'
-          pip3 install 'sphinx==5.0.0'
-          pip3 install 'sphinx_rtd_theme==1.2.2'
+          pip3 install 'exhale==0.3.7'
+          pip3 install 'sphinx==7.3.7'
+          pip3 install 'sphinx_rtd_theme==2.0.0'
           pip3 install 'json2html==1.3.0'
 
       - name: Generate documentation for EDIE
         run: |
-          sphinx-build src/decoders/common/doc doc/decoders/common/doc/html
-          sphinx-build src/decoders/novatel/doc doc/decoders/novatel/doc/html
-          sphinx-build src/hw_interface/stream_interface/doc doc/hw_interface/stream_interface/doc/html
+          sphinx-build docs docs/build
           python3 scripts/database_to_html.py database/messages_public.json
 
       - name: Archive documentation artifacts
