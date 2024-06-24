@@ -18,8 +18,8 @@ import textwrap
 # -- Project information -----------------------------------------------------
 
 project = 'EDIE'
-copyright = '2020, rdoris'
-author = 'rdoris'
+copyright = '2024, NovAtel'
+author = 'NovAtel'
 
 
 # -- General configuration ---------------------------------------------------
@@ -81,9 +81,6 @@ exhale_args = {
     "exhaleExecutesDoxygen": True,
     "exhaleDoxygenStdin":    textwrap.dedent('''
       INPUT = ../api
-      EXCLUDE_PATTERNS       = */libgen/*
-      EXCLUDE_PATTERNS       += */nov-decoder/tests/*
-      EXCLUDE_PATTERNS       += */nov-decoder/lib/*
     ''')
 }
 
