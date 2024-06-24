@@ -37,7 +37,10 @@ constexpr auto UI_CRC_TABLE = [] {
     {
         uint32_t uiCrc = i;
 
-        for (uint32_t j = 0; j < 8; ++j) { uiCrc = (uiCrc & 1) ? (uiCrc >> 1) ^ 0xEDB88320L : uiCrc >> 1; }
+        for (uint32_t j = 0; j < 8; ++j) 
+        { 
+            uiCrc = (uiCrc & 1) ? (uiCrc >> 1) ^ 0xEDB88320L : uiCrc >> 1; 
+        }
 
         uiPreCalcCrcTable[i] = uiCrc;
     }
