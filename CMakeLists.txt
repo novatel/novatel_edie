@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15)
+cmake_policy(SET CMP0091 NEW)
 project(novatel-edie)
 
 enable_testing()
@@ -7,7 +8,7 @@ option(COVERAGE "Coverage" OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(ARCH "x64")
 
 include(FetchContent)
@@ -35,23 +36,23 @@ if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS_DEBUG "/MTd /Zi /Ob0 /Od /RTC1 /Zi")
     set(CMAKE_CXX_FLAGS_RELEASE "/MT /Ox /Ob2 /DNDEBUG")
 
-elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "-Wall -Werror -fPIC -Wfatal-errors -Wold-style-cast -Wextra -pedantic")
+else()
+    set(CMAKE_CXX_FLAGS "-Wall -Werror -Wfatal-errors -Wold-style-cast -Wextra -pedantic")
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-    add_link_options("$<$<CONFIG:Release>:-s>")
 
     if(WINDOWS)
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1") # TODO: we shouldn't have to do this, something is bloating an object file
     endif()
+    if(LINUX)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    endif()
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-truncation -Wno-error=format -Wno-format -Wno-format-extra-args -Wno-error=restrict -Wno-restrict")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-truncation -Wno-error=restrict -Wno-restrict")
     endif()
     if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wno-unqualified-std-cast-call -Wno-unknown-pragmas")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas -Wno-deprecated-declarations")
     endif()
-else()
-    message(FATAL_ERROR "Unable to identify compiler.")
 endif()
 
 if(COVERAGE)
@@ -64,10 +65,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYP
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}>)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
-
-# Fetch the GoogleTest library
-FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip)
-FetchContent_MakeAvailable(googletest)
 
 # Find Git package, if not need to install manually or through .yml file
 find_package(Git)
@@ -92,8 +89,12 @@ endif()
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib
 )
+
+find_package(nlohmann_json REQUIRED)
+find_package(spdlog_setup REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(GTest REQUIRED)
 
 # build EDIE components
 add_subdirectory(examples)
@@ -102,3 +103,22 @@ add_subdirectory(src/hw_interface)
 add_subdirectory(src/decoders/common/test)
 add_subdirectory(src/decoders/novatel/test)
 add_subdirectory(src/hw_interface/stream_interface/test)
+
+if(WIN32)
+    # Copy C++ runtime DLL for non-MSVC compilers
+    if(NOT MSVC)
+        if(NOT EXISTS CMAKE_CXX_COMPILER)
+            find_program(CXX_COMPILER_PATH NAMES "${CMAKE_CXX_COMPILER}")
+        else()
+            set(CXX_COMPILER_PATH "${CMAKE_CXX_COMPILER}")
+        endif()
+        get_filename_component(COMPILER_BIN_DIR "${CXX_COMPILER_PATH}" DIRECTORY)
+        foreach(stdcpp_library libstdc++-6.dll libc++.dll)
+            if(EXISTS "${COMPILER_BIN_DIR}/${stdcpp_library}")
+                foreach(config ${CMAKE_BUILD_TYPE} ${CMAKE_CONFIGURATION_TYPES})
+                    file(COPY "${COMPILER_BIN_DIR}/${stdcpp_library}" DESTINATION "${CMAKE_BINARY_DIR}/bin/${config}")
+                endforeach()
+            endif()
+        endforeach()
+    endif()
+endif()

@@ -417,9 +417,9 @@ struct MessageDefinition
 
     ~MessageDefinition()
     {
-        for (auto& value : fields | std::views::values)
+        for (auto& item : fields)
         {
-            for (auto f : value) { delete f; }
+            for (auto f : item.second) { delete f; }
         }
     }
 
@@ -627,7 +627,7 @@ class JsonReader
             mMessageName[msg.name] = &msg;
             mMessageId[msg.logID] = &msg;
 
-            for (const auto& value : msg.fields | std::views::values) { MapMessageEnumFields(value); }
+            for (const auto& item : msg.fields) { MapMessageEnumFields(item.second); }
         }
     }
 
@@ -665,20 +665,20 @@ class JsonReader
 
     std::vector<MessageDefinition>::iterator GetMessageIt(uint32_t iMsgId_)
     {
-        return std::ranges::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                                    [iMsgId_](const MessageDefinition& elem_) { return (elem_.logID == iMsgId_); });
+        return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
+                            [iMsgId_](const MessageDefinition& elem_) { return (elem_.logID == iMsgId_); });
     }
 
     std::vector<MessageDefinition>::iterator GetMessageIt(const std::string& strMessage_)
     {
-        return std::ranges::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                                    [strMessage_](const MessageDefinition& elem_) { return (elem_.name == strMessage_); });
+        return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
+                            [strMessage_](const MessageDefinition& elem_) { return (elem_.name == strMessage_); });
     }
 
     std::vector<EnumDefinition>::iterator GetEnumIt(const std::string& strEnumeration_)
     {
-        return std::ranges::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
-                                    [strEnumeration_](const EnumDefinition& elem_) { return (elem_.name == strEnumeration_); });
+        return std::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
+                            [strEnumeration_](const EnumDefinition& elem_) { return (elem_.name == strEnumeration_); });
     }
 };
 
