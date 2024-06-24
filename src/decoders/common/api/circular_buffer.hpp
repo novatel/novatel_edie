@@ -136,34 +136,14 @@ class CircularBuffer
 // Inline Functions
 //-----------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
-//! \brief Returns the current capacity of buffer.
-//----------------------------------------------------------------------------
 inline uint32_t CircularBuffer::GetCapacity() const { return uiMyCapacity; }
 
-//----------------------------------------------------------------------------
-//! \brief Returns number of bytes of data in buffer.
-//----------------------------------------------------------------------------
 inline uint32_t CircularBuffer::GetLength() const { return uiMyLength; }
 
-//----------------------------------------------------------------------------
-//! \brief Delete contents of buffer, internally called Discard method.
-//----------------------------------------------------------------------------
 inline void CircularBuffer::Clear() { Discard(uiMyLength); }
 
-//----------------------------------------------------------------------------
-//! \brief Returns entire circular buffer.
-//----------------------------------------------------------------------------
 inline unsigned char* CircularBuffer::GetBuffer() const { return pucMyBuffer; }
 
-//----------------------------------------------------------------------------
-//! \brief Returns copy of byte at iIndex_ (throw exception if iIndex_ out of
-//! bounds)
-//
-//! \param [in] iIndex_ integer value
-//
-//! \return unsigned character
-//----------------------------------------------------------------------------
 inline unsigned char CircularBuffer::operator[](const int32_t iIndex_) const { return GetByte(iIndex_); }
 
 #endif // CIRCULAR_BUFFER_HPP
