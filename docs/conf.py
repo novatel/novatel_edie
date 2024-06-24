@@ -80,7 +80,10 @@ exhale_args = {
     # "treeViewIsBootstrap": True,
     "exhaleExecutesDoxygen": True,
     "exhaleDoxygenStdin":    textwrap.dedent('''
-      INPUT = ../api
+      INPUT = ../src/decoders/common/api
+      INPUT += ../src/decoders/dynamic_library/api
+      INPUT += ../src/decoders/novatel/api
+      INPUT += ../src/hw_interface/dynamic_library/api
+      INPUT += ../src/hw_interface/stream_interface/api
     ''')
 }
-
