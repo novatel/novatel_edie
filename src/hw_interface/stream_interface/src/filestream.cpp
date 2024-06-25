@@ -161,7 +161,7 @@ StreamReadStatus FileStream::ReadLine(std::string& szLine)
 // ---------------------------------------------------------
 // Writes the first uiSize character pointed to by cData into
 // fstream
-uint32_t FileStream::WriteFile(char* cData, uint32_t uiSize)
+uint32_t FileStream::WriteFile(const char* cData, uint32_t uiSize)
 {
     MyStream.write(cData, uiSize);
     if (MyStream.bad()) { throw NExcept("\"%s\" file  write failed", clFilePath.generic_u32string().c_str()); }
