@@ -29,14 +29,14 @@
 #include <chrono>
 #include <filesystem>
 
-#include "src/decoders/common/api/message_decoder.hpp"
-#include "src/decoders/novatel/api/encoder.hpp"
-#include "src/decoders/novatel/api/filter.hpp"
-#include "src/decoders/novatel/api/framer.hpp"
-#include "src/decoders/novatel/api/header_decoder.hpp"
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "src/version.h"
+#include <decoders/common/api/message_decoder.hpp>
+#include <decoders/novatel/api/encoder.hpp>
+#include <decoders/novatel/api/filter.hpp>
+#include <decoders/novatel/api/framer.hpp>
+#include <decoders/novatel/api/header_decoder.hpp>
+#include <hw_interface/stream_interface/api/inputfilestream.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <version.h>
 
 namespace fs = std::filesystem;
 
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         pclLogger->info("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.\n");
-        pclLogger->info("Example: converter.exe <path to Json DB> <path to input file> <output format>\n");
+        pclLogger->info("Example: converter <path to Json DB> <path to input file> <output format>\n");
         return -1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }

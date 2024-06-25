@@ -25,12 +25,14 @@
 // ===============================================================================
 
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 
-#include "src/decoders/novatel/api/file_parser.hpp"
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "src/version.h"
+#include <decoders/novatel/api/file_parser.hpp>
+#include <hw_interface/stream_interface/api/inputfilestream.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <version.h>
 
 namespace fs = std::filesystem;
 
@@ -55,7 +57,7 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.");
-        pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>");
+        pclLogger->error("Example: converter <path to Json DB> <path to input file> <output format>");
         return 1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }

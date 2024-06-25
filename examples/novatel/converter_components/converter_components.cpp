@@ -25,18 +25,20 @@
 // ===============================================================================
 
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 
-#include "src/decoders/common/api/json_reader.hpp"
-#include "src/decoders/common/api/logger.hpp"
-#include "src/decoders/novatel/api/encoder.hpp"
-#include "src/decoders/novatel/api/filter.hpp"
-#include "src/decoders/novatel/api/framer.hpp"
-#include "src/decoders/novatel/api/header_decoder.hpp"
-#include "src/decoders/novatel/api/message_decoder.hpp"
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "src/version.h"
+#include <decoders/common/api/json_reader.hpp>
+#include <decoders/common/api/logger.hpp>
+#include <decoders/novatel/api/encoder.hpp>
+#include <decoders/novatel/api/filter.hpp>
+#include <decoders/novatel/api/framer.hpp>
+#include <decoders/novatel/api/header_decoder.hpp>
+#include <decoders/novatel/api/message_decoder.hpp>
+#include <hw_interface/stream_interface/api/inputfilestream.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <version.h>
 
 namespace fs = std::filesystem;
 
@@ -61,7 +63,7 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.");
-        pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>");
+        pclLogger->error("Example: converter <path to Json DB> <path to input file> <output format>");
         return 1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
@@ -186,6 +188,7 @@ int main(int argc, char* argv[])
                     if (!clFilter.DoFiltering(stMetaData)) { continue; }
 
                     pucFrameBuffer += stMetaData.uiHeaderLength;
+                    uint32_t uiBodyLength = stMetaData.uiLength - stMetaData.uiHeaderLength;
                     // Decode the Log, pass the metadata and populate the intermediate log.
                     eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
 
@@ -202,13 +205,13 @@ int main(int argc, char* argv[])
                         }
                         else
                         {
-                            clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                            clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                             pclLogger->warn("Encoder returned with status code {}", static_cast<int>(eEncoderStatus));
                         }
                     }
                     else
                     {
-                        clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                        clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                         pclLogger->warn("MessageDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
                     }
                 }

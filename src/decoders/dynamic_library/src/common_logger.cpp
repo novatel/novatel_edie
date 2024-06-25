@@ -28,6 +28,8 @@
 
 #include <string>
 
+#include "decoders/common/api/logger.hpp"
+
 void CommonLoggerSetup() { Logger::InitLogger(); }
 
 void CommonLoggerSetupFromFile(char* pcLoggerConfigPath_) { Logger::InitLogger(std::string(pcLoggerConfigPath_)); }

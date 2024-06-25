@@ -18,8 +18,8 @@ jobs:
           - [windows, windows-latest, msvc, Release]
           - [windows, windows-latest, gcc, Debug]
           - [windows, windows-latest, gcc, Release]
-          - [windows, windows-latest, clang, Debug]
-          - [windows, windows-latest, clang, Release]
+          - [windows, windows-latest, clang-cl, Debug]
+          - [windows, windows-latest, clang-cl, Release]
           - [linux, ubuntu-latest, gcc, Debug]
           - [linux, ubuntu-latest, gcc, Release]
           - [linux, ubuntu-latest, clang, Debug]
@@ -43,12 +43,6 @@ jobs:
         id: conan
         uses: turtlebrowser/get-conan@main
 
-      - name: Setup Conan Packages
-        shell: bash
-        run: |
-          conan profile detect --force
-          conan install . -pr profiles/$OPERATING_SYSTEM/$BUILD_TYPE/$COMPILER --build=missing
-
       - name: Install CMake
         uses: lukka/get-cmake@latest
         
@@ -56,43 +50,26 @@ jobs:
         shell: bash
         run: |
           if [ "${{ env.COMPILER }}" == "msvc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=build/generators/conan_toolchain.cmake
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022"
+          elif [ "${{ env.COMPILER }}" == "clang-cl" ]; then
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL
           elif [ "${{ env.COMPILER }}" == "clang" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_TOOLCHAIN_FILE=build/$BUILD_TYPE/generators/conan_toolchain.cmake
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++
           elif [ "${{ env.COMPILER }}" == "gcc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_TOOLCHAIN_FILE=build/$BUILD_TYPE/generators/conan_toolchain.cmake
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++
           fi
 
       - name: Build
         run: cmake --build build --parallel --config ${{ env.BUILD_TYPE }}
 
-      - name: Test
+      - name: Unit Tests
         run: ctest --test-dir build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
-      - name: Regression
+      - name: Regression Tests
         shell: bash
         run: |
           echo "Starting regression tests for $OPERATING_SYSTEM $BUILD_TYPE"
-          failures=()
-
-          for FORMAT in "ASCII" "ABBREV_ASCII" "BINARY" "FLATTENED_BINARY" "JSON"; do
-              ./build/bin/$BUILD_TYPE/converter_components database/messages_public.json regression/BESTUTMBIN.GPS $FORMAT > /dev/null
-
-              if ! cmp -s regression/BESTUTMBIN.GPS.$FORMAT regression/targets/BESTUTMBIN.GPS.$FORMAT; then
-                  failures+=("OEM-$FORMAT")
-              fi
-              
-              if ! cmp -s regression/BESTUTMBIN.GPS.$FORMAT.UNKNOWN regression/targets/BESTUTMBIN.GPS.$FORMAT.UNKNOWN; then
-                  failures+=("OEM-$FORMAT.UNKNOWN")
-              fi
-          done
-          
-          if [ ${#failures[@]} -gt 0 ]; then
-              echo "One or more regression tests failed! ${failures[@]}"
-              echo "See the README if you don't know how to fix this."
-              exit 1
-          fi
-          
+          bash regression/run_tests.sh ./build/bin/$BUILD_TYPE/converter_components
           echo "Regression tests for $OPERATING_SYSTEM $BUILD_TYPE done!"
 
       - name: Upload Artifacts
@@ -159,18 +136,12 @@ jobs:
         id: conan
         uses: turtlebrowser/get-conan@main
 
-      - name: Setup Conan Packages
-        shell: bash
-        run: |
-          conan profile detect --force
-          conan install . -pr profiles/linux/Debug/clang --build=missing
-
       - name: Install CMake
         uses: lukka/get-cmake@latest
 
       - name: Static code analysis
         run: |
-          cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_TOOLCHAIN_FILE=build/Debug/generators/conan_toolchain.cmake
+          cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu
           cmake --build build --parallel --config Debug
 
   # =========================================================
@@ -187,12 +158,6 @@ jobs:
       id: conan
       uses: turtlebrowser/get-conan@main
 
-    - name: Setup Conan Packages
-      shell: bash
-      run: |
-        conan profile detect --force
-        conan install . -pr profiles/linux/Debug/gcc --build=missing
-
     - name: Install CMake
       uses: lukka/get-cmake@latest
 
@@ -202,7 +167,7 @@ jobs:
         sudo apt-get install -y gcovr
 
     - name: Configure
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON -DCMAKE_TOOLCHAIN_FILE=build/Debug/generators/conan_toolchain.cmake
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON
 
     - name: Build
       run: cmake --build build --parallel --config debug

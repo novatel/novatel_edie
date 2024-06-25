@@ -26,15 +26,15 @@
 
 #include <filesystem>
 
-#include "src/decoders/dynamic_library/api/common_json_reader.hpp"
-#include "src/decoders/dynamic_library/api/novatel_encoder.hpp"
-#include "src/decoders/dynamic_library/api/novatel_filter.hpp"
-#include "src/decoders/dynamic_library/api/novatel_framer.hpp"
-#include "src/decoders/dynamic_library/api/novatel_header_decoder.hpp"
-#include "src/decoders/dynamic_library/api/novatel_message_decoder.hpp"
-#include "src/hw_interface/stream_interface/api/inputfilestream.hpp"
-#include "src/hw_interface/stream_interface/api/outputfilestream.hpp"
-#include "src/version.h"
+#include <decoders/dynamic_library/api/common_json_reader.hpp>
+#include <decoders/dynamic_library/api/novatel_encoder.hpp>
+#include <decoders/dynamic_library/api/novatel_filter.hpp>
+#include <decoders/dynamic_library/api/novatel_framer.hpp>
+#include <decoders/dynamic_library/api/novatel_header_decoder.hpp>
+#include <decoders/dynamic_library/api/novatel_message_decoder.hpp>
+#include <hw_interface/stream_interface/api/inputfilestream.hpp>
+#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <version.h>
 
 namespace fs = std::filesystem;
 
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     if (argc < 3)
     {
         pclLogger->error("ERROR: Need to specify a JSON message definitions DB, an input file and an output format.");
-        pclLogger->error("Example: converter.exe <path to Json DB> <path to input file> <output format>");
+        pclLogger->error("Example: converter <path to Json DB> <path to input file> <output format>");
         return 1;
     }
     if (argc == 4) { sEncodeFormat = argv[3]; }
@@ -173,6 +173,7 @@ int main(int argc, char* argv[])
                     if (!NovatelFilterDoFiltering(pclFilter, &stMetaData)) { continue; }
 
                     pucFrameBuffer += stMetaData.uiHeaderLength;
+                    uint32_t uiBodyLength = stMetaData.uiLength - stMetaData.uiHeaderLength;
                     // Decode the Log, pass the metadata and populate the intermediate log.
                     eDecoderStatus = NovatelMessageDecoderDecode(pclMessageDecoder, pucFrameBuffer, &stMessage, &stMetaData);
 
@@ -189,13 +190,13 @@ int main(int argc, char* argv[])
                         }
                         else
                         {
-                            clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                            clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                             pclLogger->warn("Encoder returned with status code {}", static_cast<int32_t>(eEncoderStatus));
                         }
                     }
                     else
                     {
-                        clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                        clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                         pclLogger->warn("MessageDecoder returned with status code {}", static_cast<int32_t>(eDecoderStatus));
                     }
                 }

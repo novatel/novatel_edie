@@ -6,6 +6,12 @@ spdlog/[>=1.13 <2]
 [test_requires]
 gtest/[>=1.14 <1.15]
 
+[options]
+# Statically linking against spdlog causes its singleton registry to be
+# re-instantiated in each shared library or executable that links against it.
+spdlog/*:shared=True
+fmt/*:shared=True
+
 [layout]
 cmake_layout
 

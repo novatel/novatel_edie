@@ -1,17 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
-cmake_policy(SET CMP0091 NEW)
-project(novatel-edie)
+include(cmake/third_party.cmake)
 
-enable_testing()
+project(novatel-edie VERSION 3.3.7 LANGUAGES CXX)
 
+option(BUILD_TESTS "Build tests" ON)
+option(BUILD_EXAMPLES "Build examples" ON)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(CMAKE_POSITION_INDEPENDENT_CODE "Set -fPIC" ON)
+option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_VERBOSE_MAKEFILE OFF)
-set(CMAKE_CXX_STANDARD 17)
-set(ARCH "x64")
-
-include(FetchContent)
 
 if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -28,43 +25,56 @@ elseif(CMAKE_HOST_UNIX)
     cmake_host_system_information(RESULT DISTRIB_VERSION_ID QUERY DISTRIB_VERSION_ID)
     set(DISTRIB_NAME "${DISTRIB_NAME}-${DISTRIB_VERSION_ID}")
 else()
-    message(FATAL_ERROR "Unable to identify OS. Update script to support distribution or OS")
+    message(WARNING "Unable to identify OS. Update script to support distribution or OS")
 endif()
 
-if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-    set(CMAKE_CXX_FLAGS "/WX /W4 /DWIN32 /D_WINDOWS /GR /EHsc /utf-8 /wd4244 /wd4996 /wd4127")
-    set(CMAKE_CXX_FLAGS_DEBUG "/MTd /Zi /Ob0 /Od /RTC1 /Zi")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MT /Ox /Ob2 /DNDEBUG")
-
-else()
-    set(CMAKE_CXX_FLAGS "-Wall -Werror -Wfatal-errors -Wold-style-cast -Wextra -pedantic")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+if(MSVC)
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+    if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+        # shared spdlog requires MultiThreadedDLL
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    endif()
+    add_definitions(-DWIN32 -D_WINDOWS)
+    add_compile_options(/W4 /GR /EHsc /utf-8 /wd4244 /wd4996 /wd4127)
+    add_compile_options("$<$<CONFIG:Release>:/Ox;/Ob2>")
+    if(WARNINGS_AS_ERRORS)
+        add_compile_options(/WX)
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+    add_compile_options(-Wall -Wextra -pedantic -Wold-style-cast)
+    add_compile_options("$<$<CONFIG:Release>:-O3>")
 
     if(WINDOWS)
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1") # TODO: we shouldn't have to do this, something is bloating an object file
+        # TODO: we shouldn't have to do this, something is bloating an object file
+        add_compile_options($<$<CONFIG:Debug>:-O1>)
     endif()
-    if(LINUX)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-    endif()
-    if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-truncation -Wno-error=restrict -Wno-restrict")
-    endif()
-    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas -Wno-deprecated-declarations")
-    endif()
-endif()
 
-if(COVERAGE)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        add_compile_options(-Wno-format-truncation -Wno-restrict)
+    else()
+        add_compile_options(-Wno-unknown-pragmas -Wno-deprecated-declarations)
+    endif()
+
+    if(WARNINGS_AS_ERRORS)
+        add_compile_options(-Werror)
+    endif()
+
+    if(COVERAGE)
+        message("Coverage is On")
+        add_compile_options(--coverage)
+        add_link_options(--coverage)
+    endif()
+else()
+    message(WARNING "Unable to identify compiler.")
 endif()
 
 # Output all binaries in the same directory for easier testing
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}>)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}>)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}>)
-
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
+foreach(config ${CMAKE_BUILD_TYPE} ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${config} BUILD_TYPE)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${config}")
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${config}")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${config}")
+endforeach()
 
 # Find Git package, if not need to install manually or through .yml file
 find_package(Git)
@@ -91,20 +101,24 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-find_package(nlohmann_json REQUIRED)
-find_package(spdlog_setup REQUIRED)
-find_package(spdlog REQUIRED)
-find_package(GTest REQUIRED)
-
-# build EDIE components
-add_subdirectory(examples)
-add_subdirectory(src/decoders)
+# Build EDIE components
 add_subdirectory(src/hw_interface)
-add_subdirectory(src/decoders/common/test)
-add_subdirectory(src/decoders/novatel/test)
-add_subdirectory(src/hw_interface/stream_interface/test)
+add_subdirectory(src/decoders)
+
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(src/decoders/common/test)
+    add_subdirectory(src/decoders/novatel/test)
+    add_subdirectory(src/hw_interface/stream_interface/test)
+endif()
+
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
 
 if(WIN32)
+    # Copy third-party DLLs to the build directory for tests
+    copy_third_party_dlls()
     # Copy C++ runtime DLL for non-MSVC compilers
     if(NOT MSVC)
         if(NOT EXISTS CMAKE_CXX_COMPILER)
