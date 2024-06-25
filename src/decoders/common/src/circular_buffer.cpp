@@ -24,12 +24,13 @@
 // ! \file circular_buffer.cpp
 // ===============================================================================
 
+#include "decoders/common/api/circular_buffer.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <new>
 
-#include "decoders/common/api/circular_buffer.hpp"
 #include "decoders/common/api/nexcept.hpp"
 
 //---------------------------------------------------------------------------

@@ -24,11 +24,12 @@
 // ! \file multioutputfilestream.cpp
 // ===============================================================================
 
+#include "multioutputfilestream.hpp"
+
 #include <iterator>
 #include <map>
 
 #include "decoders/common/api/nexcept.hpp"
-#include "multioutputfilestream.hpp"
 
 // ---------------------------------------------------------
 MultiOutputFileStream::~MultiOutputFileStream()
@@ -40,7 +41,7 @@ MultiOutputFileStream::~MultiOutputFileStream()
 }
 
 // ---------------------------------------------------------
-//#ifdef WIDE_CHAR_SUPPORT
+// #ifdef WIDE_CHAR_SUPPORT
 void MultiOutputFileStream::SelectFileStream(const std::u32string& s32FileName_)
 {
     bEnableWideCharSupport = true;
@@ -53,7 +54,7 @@ void MultiOutputFileStream::SelectFileStream(const std::u32string& s32FileName_)
         wmMyFstreamMap.emplace(std::pair(s32FileName_, pLocalFileStream));
     }
 }
-//#endif
+// #endif
 
 void MultiOutputFileStream::SelectFileStream(const std::string& stFileName)
 {
@@ -67,8 +68,8 @@ void MultiOutputFileStream::SelectFileStream(const std::string& stFileName)
     }
 }
 
-//#ifdef WIDE_CHAR_SUPPORT
-// ---------------------------------------------------------
+// #ifdef WIDE_CHAR_SUPPORT
+//  ---------------------------------------------------------
 void MultiOutputFileStream::ClearWCFileStreamMap()
 {
     for (auto itFstreamMapIterator = wmMyFstreamMap.begin(); itFstreamMapIterator != wmMyFstreamMap.end();)
@@ -77,7 +78,7 @@ void MultiOutputFileStream::ClearWCFileStreamMap()
         itFstreamMapIterator = wmMyFstreamMap.erase(itFstreamMapIterator);
     }
 }
-//#endif
+// #endif
 
 // ---------------------------------------------------------
 void MultiOutputFileStream::ClearFileStreamMap()

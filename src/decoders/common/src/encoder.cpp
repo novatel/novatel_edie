@@ -24,9 +24,9 @@
 // ! \file encoder.cpp
 // ===============================================================================
 
-#include <bitset>
-
 #include "decoders/common/api/encoder.hpp"
+
+#include <bitset>
 
 using namespace novatel::edie;
 

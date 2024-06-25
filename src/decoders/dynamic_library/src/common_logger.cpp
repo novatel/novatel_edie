@@ -24,9 +24,9 @@
 // ! \file common_logger.cpp
 // ===============================================================================
 
-#include <string>
-
 #include "common_logger.hpp"
+
+#include <string>
 
 void CommonLoggerSetup() { Logger::InitLogger(); }
 

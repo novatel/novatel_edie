@@ -24,9 +24,9 @@
 // ! \file novatel_parser.cpp
 // ===============================================================================
 
-#include <limits>
-
 #include "novatel_parser.hpp"
+
+#include <limits>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
