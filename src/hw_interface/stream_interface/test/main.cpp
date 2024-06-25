@@ -24,8 +24,9 @@
 // ! \file main.cpp
 // ===============================================================================
 
-#include <gtest/gtest.h>
 #include <string>
+
+#include <gtest/gtest.h>
 
 int main(int argc, char** argv)
 {

@@ -25,6 +25,7 @@
 // ===============================================================================
 
 #include "decoders/dynamic_library/api/version.hpp"
+
 #include "version.h" // this refers to the EDIE version.h
 
 const char* Version() { return get_version(); }

@@ -54,7 +54,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
     else()
         add_compile_options(-Wno-unknown-pragmas -Wno-deprecated-declarations)
     endif()
-    
+
     if(WARNINGS_AS_ERRORS)
         add_compile_options(-Werror)
     endif()

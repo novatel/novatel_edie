@@ -24,9 +24,9 @@
 // ! \file message_decoder.cpp
 // ===============================================================================
 
-#include <bitset>
-
 #include "decoders/common/api/message_decoder.hpp"
+
+#include <bitset>
 
 using namespace novatel::edie;
 
@@ -406,8 +406,12 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
     constexpr char acDelimiter3[4] = {cDelimiter1, cDelimiter2, cDelimiter3, '\0'};
     constexpr char acDelimiterResponse[2] = {cDelimiter2, '\0'};
 
+    char* pcBufEnd = *ppcLogBuf_ + strlen(*ppcLogBuf_);
+
     for (auto& field : vMsgDefFields_)
     {
+        if (*ppcLogBuf_ >= pcBufEnd) { return STATUS::MALFORMED_INPUT; } // We encountered the end of the buffer unexpectedly
+
         size_t tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); // TODO: do we need to use acDelimiter3?
         if (Abbreviated && ConsumeAbbrevFormatting(tokenLength, ppcLogBuf_)) { tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); }
 

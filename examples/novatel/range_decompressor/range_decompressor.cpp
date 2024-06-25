@@ -24,9 +24,9 @@
 // ! \file range_decompressor_example.cpp
 // ===============================================================================
 
+#include "src/decoders/novatel/api/rangecmp/range_decompressor.hpp"
+
 #include <chrono>
-#include <cstdio>
-#include <cstdlib>
 #include <filesystem>
 
 #include <decoders/common/api/message_decoder.hpp>
@@ -34,7 +34,6 @@
 #include <decoders/novatel/api/filter.hpp>
 #include <decoders/novatel/api/framer.hpp>
 #include <decoders/novatel/api/header_decoder.hpp>
-#include <decoders/novatel/api/rangecmp/range_decompressor.hpp>
 #include <hw_interface/stream_interface/api/inputfilestream.hpp>
 #include <hw_interface/stream_interface/api/outputfilestream.hpp>
 #include <version.h>

@@ -27,6 +27,8 @@
 #ifndef INPUT_STREAM_INTERFACE_HPP
 #define INPUT_STREAM_INTERFACE_HPP
 
+#include <stdexcept>
+
 #include "common.hpp"
 
 //-----------------------------------------------------------------------
@@ -70,11 +72,10 @@ class InputStreamInterface
      * \brief Returns the extension of the input file to be decoded.
      * \sa GetFileExtension().
      * \return Returns the extension of the input file to be decoded.
-     * \remark If no concrete derived method, It simply returns an empty string.
      */
-    virtual std::string GetFileExtension() const { return ""; }
+    virtual std::string GetFileExtension() const { throw std::logic_error("Unsupported method"); };
 
-    virtual std::string GetFileName() const { return ""; }
+    virtual std::string GetFileName() const { throw std::logic_error("Unsupported method"); };
 
     /** A virtual member.
      * \brief Waiting period on port for incoming data to be decoded.

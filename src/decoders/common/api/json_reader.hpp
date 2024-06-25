@@ -30,11 +30,11 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_map>
 
-#include "common.hpp"
+#include <nlohmann/json.hpp>
+
 #include "crc32.hpp"
 #include "logger.hpp"
 

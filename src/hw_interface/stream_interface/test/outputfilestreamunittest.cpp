@@ -25,8 +25,9 @@
 // ===============================================================================
 
 #include <filesystem>
-#include <gtest/gtest.h>
 #include <string>
+
+#include <gtest/gtest.h>
 
 #include "hw_interface/stream_interface/api/outputfilestream.hpp"
 

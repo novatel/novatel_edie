@@ -27,9 +27,10 @@
 #include <chrono>
 #include <codecvt>
 #include <filesystem>
-#include <gtest/gtest.h>
 #include <iostream>
 #include <locale>
+
+#include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
 #include "decoders/common/api/json_reader.hpp"

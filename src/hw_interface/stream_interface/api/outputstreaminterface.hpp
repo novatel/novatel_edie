@@ -47,7 +47,7 @@ class OutputStreamInterface
   public:
     /** A virtual member.
      *
-     *  \fn uint32_t WriteData(char* pcData_, uint32_t uiDataLength_)
+     *  \fn uint32_t WriteData(const char* pcData_, uint32_t uiDataLength_)
      *  \brief Write data to the buffer
      *  \param [in] pcData_ Buffer pointer.
      *  \param [in] uiDataLength_ size of the buffer.
@@ -55,7 +55,7 @@ class OutputStreamInterface
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
      */
-    virtual uint32_t WriteData(char* pcData_, uint32_t uiDataLength_) = 0;
+    virtual uint32_t WriteData(const char* pcData_, uint32_t uiDataLength_) = 0;
 
     /*! a virtual destructor. */
     virtual ~OutputStreamInterface() = default;
