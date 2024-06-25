@@ -117,7 +117,7 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(WIN32)
-    # Copy third-party library DLLs to for tests
+    # Copy third-party DLLs to the build directory for tests
     copy_third_party_dlls()
     # Copy C++ runtime DLL for non-MSVC compilers
     if(NOT MSVC)
