@@ -27,6 +27,8 @@
 #ifndef DYNAMIC_LIBRARY_NOVATEL_MESSAGE_DECODER_HPP
 #define DYNAMIC_LIBRARY_NOVATEL_MESSAGE_DECODER_HPP
 
+#include <vector>
+
 #include "decoders/novatel/api/common.hpp"
 #include "decoders/novatel/api/message_decoder.hpp"
 #include "decoders_export.h"
@@ -38,20 +40,21 @@ extern "C"
     DECODERS_EXPORT void NovatelMessageDecoderShutdownLogger(novatel::edie::oem::MessageDecoder* pclMessageDecoder_);
 
     // Construct/Destruct
-    DECODERS_EXPORT novatel::edie::oem::MessageDecoder* NovatelMessageDecoderInit(JsonReader* pclJsonDb_);
+    DECODERS_EXPORT novatel::edie::oem::MessageDecoder* NovatelMessageDecoderInit(novatel::edie::JsonReader* pclJsonDb_);
     DECODERS_EXPORT void NovatelMessageDecoderDelete(novatel::edie::oem::MessageDecoder* pclMessageDecoder_);
 
     // Config
-    DECODERS_EXPORT void NovatelMessageDecoderLoadJson(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_);
+    DECODERS_EXPORT void NovatelMessageDecoderLoadJson(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, novatel::edie::JsonReader* pclJsonDb_);
 
     // R/W
     DECODERS_EXPORT novatel::edie::STATUS NovatelMessageDecoderDecode(novatel::edie::oem::MessageDecoder* pclMessageDecoder_,
-                                                                      unsigned char* pucLogBuf_, novatel::edie::IntermediateMessage* pstInterMessage_,
+                                                                      unsigned char* pucLogBuf_,
+                                                                      std::vector<novatel::edie::FieldContainer>* pstInterMessage_,
                                                                       novatel::edie::oem::MetaDataStruct* pstMetaData_);
 
     // Intermediate Log handling.
-    DECODERS_EXPORT novatel::edie::IntermediateMessage* NovatelIntermediateMessageInit();
-    DECODERS_EXPORT void NovatelIntermediateMessageDelete(novatel::edie::IntermediateMessage* pstInterMessage_);
+    DECODERS_EXPORT std::vector<novatel::edie::FieldContainer>* NovatelIntermediateMessageInit();
+    DECODERS_EXPORT void NovatelIntermediateMessageDelete(std::vector<novatel::edie::FieldContainer>* pstInterMessage_);
 }
 
 #endif // DYNAMIC_LIBRARY_NOVATEL_MESSAGE_DECODER_HPP

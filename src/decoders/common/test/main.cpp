@@ -27,8 +27,9 @@
 #include <stdexcept>
 #include <string>
 
-#include "gtest/gtest.h"
-#include "logger/logger.hpp"
+#include <gtest/gtest.h>
+
+#include "src/decoders/common/api/logger.hpp"
 
 int main(int argc, char** argv)
 {

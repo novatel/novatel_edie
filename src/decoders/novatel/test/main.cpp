@@ -29,7 +29,7 @@
 
 #include <gtest/gtest.h>
 
-#include "logger/logger.hpp"
+#include "src/decoders/common/api/logger.hpp"
 
 int main(int argc, char** argv)
 {

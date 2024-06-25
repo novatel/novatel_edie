@@ -195,7 +195,7 @@ STATUS
 Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_)
 {
     IntermediateHeader stHeader;
-    IntermediateMessage stMessage;
+    std::vector<FieldContainer> stMessage;
 
     while (true)
     {

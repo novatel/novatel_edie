@@ -63,7 +63,7 @@ class MultiOutputFileStreamTest : public ::testing::Test
 
   private:
   protected:
-    MultiOutputFileStream* pMyTestCommand = NULL;
+    MultiOutputFileStream* pMyTestCommand = nullptr;
     // typedef std::map<std::string, FileStream* > FstreamMap;
     // FstreamMap mMyFstreamMap;
 };

@@ -27,6 +27,8 @@
 #include "decoders/novatel/api/message_decoder.hpp"
 
 #include <bitset>
+#include <cmath>
+#include <sstream>
 
 using namespace novatel::edie::oem;
 
@@ -56,7 +58,7 @@ void MessageDecoder::InitOemFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("%T")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
                                                   char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                   [[maybe_unused]] JsonReader* pclMsgDb_) {
-        vIntermediateFormat_.emplace_back(static_cast<uint32_t>(strtod(*ppcToken_, nullptr) * SEC_TO_MILLI_SEC), pstMessageDataType_);
+        vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::llround(strtod(*ppcToken_, nullptr) * SEC_TO_MILLI_SEC)), pstMessageDataType_);
     };
 
     asciiFieldMap[CalculateBlockCrc32("%m")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
@@ -106,7 +108,7 @@ void MessageDecoder::InitOemFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("%T")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
                                                  json clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
-        vIntermediateFormat_.emplace_back(static_cast<uint32_t>(clJsonField_.get<double>() * SEC_TO_MILLI_SEC), pstMessageDataType_);
+        vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::llround(clJsonField_.get<double>() * SEC_TO_MILLI_SEC)), pstMessageDataType_);
     };
 
     jsonFieldMap[CalculateBlockCrc32("%id")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,

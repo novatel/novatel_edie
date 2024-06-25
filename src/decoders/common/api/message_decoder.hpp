@@ -30,11 +30,11 @@
 #include <string>
 #include <variant>
 
-#include <logger/logger.hpp>
 #include <nlohmann/json.hpp>
 
 #include "decoders/common/api/common.hpp"
 #include "decoders/common/api/json_reader.hpp"
+#include "decoders/common/api/logger.hpp"
 #include "decoders/common/api/message_decoder.hpp"
 
 namespace novatel::edie {
@@ -62,8 +62,6 @@ struct FieldContainer
         throw std::runtime_error("FieldContainer: I'm being copied. Implement a proper copy constructor.");
     }
 };
-
-using IntermediateMessage = std::vector<FieldContainer>;
 
 //============================================================================
 //! \class MessageDecoderBase
@@ -192,7 +190,7 @@ class MessageDecoderBase
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(unsigned char* pucMessage_, IntermediateMessage& stInterMessage_, MetaDataBase& stMetaData_) const;
+    [[nodiscard]] STATUS Decode(unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataBase& stMetaData_) const;
 };
 
 } // namespace novatel::edie

@@ -27,6 +27,8 @@
 #ifndef ENCODER_HPP
 #define ENCODER_HPP
 
+#include <cstdarg>
+
 #include "decoders/common/api/json_reader.hpp"
 #include "decoders/common/api/message_decoder.hpp"
 
@@ -135,7 +137,7 @@ class EncoderBase
 
     // Encode binary
     template <bool Flatten, bool Align>
-    [[nodiscard]] bool EncodeBinaryBody(const IntermediateMessage& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_);
     [[nodiscard]] virtual bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
     // Encode ascii

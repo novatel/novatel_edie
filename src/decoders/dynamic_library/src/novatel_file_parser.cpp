@@ -24,6 +24,8 @@
 // ! \file novatel_file_parser.cpp
 // ===============================================================================
 
+#include <limits>
+
 #include "novatel_file_parser.hpp"
 
 using namespace novatel::edie;
@@ -93,7 +95,10 @@ bool NovatelFileParserSetStream(FileParser* pclFileParser_, InputFileStream* pcl
     return pclFileParser_ && pclIfs_ ? pclFileParser_->SetStream(pclIfs_) : false;
 }
 
-uint32_t NovatelFileParserGetPercentRead(FileParser* pclFileParser_) { return pclFileParser_ ? pclFileParser_->GetPercentRead() : UINT_MAX; }
+uint32_t NovatelFileParserGetPercentRead(FileParser* pclFileParser_)
+{
+    return pclFileParser_ ? pclFileParser_->GetPercentRead() : std::numeric_limits<uint32_t>::max();
+}
 
 STATUS NovatelFileParserRead(FileParser* pclFileParser_, MessageDataStruct* pstMessageData_, MetaDataStruct* pstMetaData_)
 {
@@ -104,5 +109,5 @@ bool NovatelFileParserReset(FileParser* pclFileParser_) { return pclFileParser_ 
 
 uint32_t NovatelFileParserFlush(FileParser* pclFileParser_, unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
-    return pclFileParser_ && pucBuffer_ ? pclFileParser_->Flush(pucBuffer_, uiBufferSize_) : UINT_MAX;
+    return pclFileParser_ && pucBuffer_ ? pclFileParser_->Flush(pucBuffer_, uiBufferSize_) : std::numeric_limits<uint32_t>::max();
 }

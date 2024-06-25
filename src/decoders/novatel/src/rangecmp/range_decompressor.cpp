@@ -993,7 +993,7 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
 
     MessageDataStruct stMessageData;
     IntermediateHeader stHeader;
-    IntermediateMessage stMessage;
+    std::vector<FieldContainer> stMessage;
     auto eStatus = STATUS::UNKNOWN;
 
     unsigned char* pucTempMessagePointer = pucRangeMessageBuffer_;
