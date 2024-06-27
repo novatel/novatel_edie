@@ -212,9 +212,9 @@ jobs:
 
       - name: Generate documentation for EDIE
         run: |
-          sphinx-build src/decoders/common/doc doc/decoders/common/doc/html
-          sphinx-build src/decoders/novatel/doc doc/decoders/novatel/doc/html
-          sphinx-build src/hw_interface/stream_interface/doc doc/hw_interface/stream_interface/doc/html
+          sphinx-build src/common/doc doc/common/doc/html
+          sphinx-build src/decoders/doc doc/decoders/doc/html
+          sphinx-build src/stream_interface/doc doc/stream_interface/doc/html
           python3 scripts/database_to_html.py database/messages_public.json
 
       - name: Archive documentation artifacts
