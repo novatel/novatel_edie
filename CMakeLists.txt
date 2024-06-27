@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 include(cmake/third_party.cmake)
 
-project(novatel-edie VERSION 3.3.7 LANGUAGES CXX)
+project(novatel_edie VERSION 3.3.7 LANGUAGES CXX)
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
@@ -90,26 +90,28 @@ endif()
 if(GIT_EXECUTABLE)
     execute_process(COMMAND ${CMAKE_COMMAND}
         -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
-        -D DST=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h
+        -D DST=${CMAKE_CURRENT_SOURCE_DIR}/src/common/include/novatel_edie/version.h
         -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
         -D GIT_BRANCH=${GIT_BRANCH}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
 endif()
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-
 # Build EDIE components
-add_subdirectory(src/hw_interface)
-add_subdirectory(src/decoders)
+add_subdirectory(src)
+
+add_library(novatel_edie INTERFACE)
+add_library(novatel_edie::novatel_edie ALIAS novatel_edie)
+target_link_libraries(novatel_edie INTERFACE
+    novatel_edie::common
+    novatel_edie::decoders
+    novatel_edie::stream_interface
+)
 
 if(BUILD_TESTS)
     enable_testing()
-    add_subdirectory(src/decoders/common/test)
-    add_subdirectory(src/decoders/novatel/test)
-    add_subdirectory(src/hw_interface/stream_interface/test)
+    add_subdirectory(src/common/test)
+    add_subdirectory(src/decoders/test)
+    add_subdirectory(src/stream_interface/test)
 endif()
 
 if(BUILD_EXAMPLES)

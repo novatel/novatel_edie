@@ -29,10 +29,10 @@
 #include <cstdlib>
 #include <filesystem>
 
-#include <decoders/novatel/api/file_parser.hpp>
-#include <hw_interface/stream_interface/api/inputfilestream.hpp>
-#include <hw_interface/stream_interface/api/outputfilestream.hpp>
-#include <version.h>
+#include <novatel_edie/decoders/file_parser.hpp>
+#include <novatel_edie/stream_interface/inputfilestream.hpp>
+#include <novatel_edie/stream_interface/outputfilestream.hpp>
+#include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
 

@@ -24,15 +24,15 @@
 // ! \file rxconfig_example.cpp
 // ===============================================================================
 
-#include "src/decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
+#include "novatel_edie/decoders/rxconfig/rxconfig_handler.hpp"
 
 #include <chrono>
 #include <filesystem>
 
-#include <decoders/common/api/common.hpp>
-#include <hw_interface/stream_interface/api/inputfilestream.hpp>
-#include <hw_interface/stream_interface/api/outputfilestream.hpp>
-#include <version.h>
+#include <novatel_edie/common/common.hpp>
+#include <novatel_edie/stream_interface/inputfilestream.hpp>
+#include <novatel_edie/stream_interface/outputfilestream.hpp>
+#include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
 
