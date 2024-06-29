@@ -29,7 +29,7 @@
 
 #include <array>
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace novatel::edie::oem {
 

@@ -27,7 +27,7 @@
 #ifndef NEXCEPT_H
 #define NEXCEPT_H
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <cstdio>
 #include <string>
 
