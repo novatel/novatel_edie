@@ -24,19 +24,19 @@
 // ! \file range_decompressor_example.cpp
 // ===============================================================================
 
-#include "src/decoders/novatel/api/rangecmp/range_decompressor.hpp"
+#include "novatel_edie/decoders/rangecmp/range_decompressor.hpp"
 
 #include <chrono>
 #include <filesystem>
 
-#include <decoders/common/api/message_decoder.hpp>
-#include <decoders/novatel/api/encoder.hpp>
-#include <decoders/novatel/api/filter.hpp>
-#include <decoders/novatel/api/framer.hpp>
-#include <decoders/novatel/api/header_decoder.hpp>
-#include <hw_interface/stream_interface/api/inputfilestream.hpp>
-#include <hw_interface/stream_interface/api/outputfilestream.hpp>
-#include <version.h>
+#include <novatel_edie/common/message_decoder.hpp>
+#include <novatel_edie/decoders/encoder.hpp>
+#include <novatel_edie/decoders/filter.hpp>
+#include <novatel_edie/decoders/framer.hpp>
+#include <novatel_edie/decoders/header_decoder.hpp>
+#include <novatel_edie/stream_interface/inputfilestream.hpp>
+#include <novatel_edie/stream_interface/outputfilestream.hpp>
+#include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
 

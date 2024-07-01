@@ -178,10 +178,10 @@ jobs:
     - name: Generate HTML code coverage reports
       run: | 
         mkdir build/code-coverage
-        gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --html --html-details -o ./build/code-coverage/index.html
+        gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/version.h' --html --html-details -o ./build/code-coverage/index.html
     
     - name: Coverage visualization in pipeline summary
-      run: gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --exclude-unreachable-branches --print-summary -o ./build/coverage.xml
+      run: gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/version.h' --exclude-unreachable-branches --print-summary -o ./build/coverage.xml
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4.3.0
@@ -212,9 +212,9 @@ jobs:
 
       - name: Generate documentation for EDIE
         run: |
-          sphinx-build src/decoders/common/doc doc/decoders/common/doc/html
-          sphinx-build src/decoders/novatel/doc doc/decoders/novatel/doc/html
-          sphinx-build src/hw_interface/stream_interface/doc doc/hw_interface/stream_interface/doc/html
+          sphinx-build src/common/doc doc/common/doc/html
+          sphinx-build src/decoders/doc doc/decoders/doc/html
+          sphinx-build src/stream_interface/doc doc/stream_interface/doc/html
           python3 scripts/database_to_html.py database/messages_public.json
 
       - name: Archive documentation artifacts

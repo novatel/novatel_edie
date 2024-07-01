@@ -1,7 +1,0 @@
-set(TARGET_NAME "novatel")
-file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-add_library(${TARGET_NAME} STATIC ${SOURCES})
-add_custom_command(TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/api/ ${CMAKE_SOURCE_DIR}/bin/api/decoders/${TARGET_NAME}/api/)
-set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "decoders")
-target_link_libraries(${TARGET_NAME} PUBLIC stream_interface common)
-target_include_directories(${TARGET_NAME} PUBLIC api)

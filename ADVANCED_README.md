@@ -19,14 +19,14 @@
 ### Windows
 
 1. Install exhale and sphinx_rtd_theme: `pip3 install exhale sphinx_rtd_theme`
-2. Run Sphinx on each component. For example: `sphinx-build src/decoders/common/doc doc/decoders/common/doc/html`
+2. Run Sphinx on each component. For example: `sphinx-build src/common/doc doc/common/doc/html`
 
 ### Linux
 
 1. Update the system: `apt-get update`
 2. Install tzdata, doxygen, and python3-pip: `apt-get install -y tzdata doxygen python3-pip`
 3. Install exhale and sphinx_rtd_theme: `pip3 install exhale sphinx_rtd_theme`
-4. Run Sphinx on each component. For example: `sphinx-build src/decoders/common/doc doc/decoders/common/doc/html`
+4. Run Sphinx on each component. For example: `sphinx-build src/common/doc doc/common/doc/html`
 
 ## Decoding Chain
 
