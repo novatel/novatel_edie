@@ -1,7 +1,8 @@
-﻿.vs/
+.vs/
 .vscode/
 .idea/
 build/
+docs/build
 bin/
 venv/
 CMakeSettings.json
