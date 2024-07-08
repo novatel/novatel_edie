@@ -220,5 +220,5 @@ jobs:
         with:
           name: documentation
           path: |
-            doc
+            docs/build
             database/messages_public.html
