@@ -46,7 +46,6 @@ class InputStreamInterface
   public:
     /** A pure virtual member.
      *
-     * \sa ReadData()
      * \param[in] pReadDataStructure ReadDataStructure variable to hold decoded log
      * \return StreamReadStatus structure - Read data statistics
      */
@@ -54,7 +53,7 @@ class InputStreamInterface
 
     /** A virtual member.
      * \brief Checks whether the data in circular buffer available to decode or not.
-     * \sa IsStreamAvailable().
+     * 
      * \return true or false.
      * \remark If no concrete derived method, It simply returns false.
      */
@@ -62,7 +61,7 @@ class InputStreamInterface
 
     /** A virtual member.
      * \brief Read one line from the file.
-     * \sa ReadLine().
+     * 
      * \return Returns Read statistics structure (StreamReadStatus)
      * \remark If no concrete derived method, It simply returns default StreamReadStatus value.
      */
@@ -70,7 +69,7 @@ class InputStreamInterface
 
     /** A virtual member.
      * \return the extension of the input file to be decoded.
-     * \sa GetFileExtension().
+     * 
      * \return Returns the extension of the input file to be decoded.
      */
     virtual std::string GetFileExtension() const { throw std::logic_error("Unsupported method"); };
@@ -79,21 +78,21 @@ class InputStreamInterface
 
     /** A virtual member.
      * \brief Waiting period on port for incoming data to be decoded.
-     * \sa SetTimeOut().
+     * 
      * \remark No default implementation.
      */
     virtual void SetTimeOut(double) {}
 
     /** A virtual member.
      * \brief Set/Reset File Position from which next read will be done.
-     * \sa Reset().
+     * 
      * \remark No default implementation.
      */
     virtual void Reset(std::streamoff, std::ios_base::seekdir) {}
 
     /** A virtual member.
      * \return the current file position from which next read will be done.
-     * \sa GetCurrentFilePosition().
+     * 
      * \remark Default returns 0.
      */
     virtual uint64_t GetCurrentFilePosition() { return 0; }
@@ -104,21 +103,21 @@ class InputStreamInterface
 
     /** A virtual member.
      * \brief Sets the current file offset. It could be read bytes so far.
-     * \sa SetCurrentFileOffset().
+     * 
      * \remark No default implementation.
      */
     virtual void SetCurrentFileOffset(uint64_t) {}
 
     /** A virtual member.
-     * \return Current file offset..
-     * \sa GetCurrentFileOffset().
+     * \return Current file offset.
+     * 
      * \remark returns 0, if no concrete derived method for it.
      */
     virtual uint64_t GetCurrentFileOffset() const { return 0; }
 
     /** A virtual member.
      * \return the class object which has interfaced or derived from circular buffer.
-     * \sa GetMemoryStream().
+     * 
      * \remark MemoryStream* class Object to access circular buffer.
      */
     virtual MemoryStream* GetMemoryStream() { return nullptr; }

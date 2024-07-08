@@ -101,8 +101,8 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     if (stRxConfigMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII)
     {
-        // Abbreviated ASCII RXCONFIG logs have indentations on the embedded header.  The
-        // HeaderDecoder does not expect this and the spaces must be removed.  Remove "<     ", then
+        // Abbreviated ASCII RXCONFIG logs have indentations on the embedded header. The
+        // HeaderDecoder does not expect this and the spaces must be removed. Remove "<     ", then
         // put '<' back at the beginning so the header is treated correctly.
         ConsumeAbbrevFormatting(0, reinterpret_cast<char**>(&pucTempMessagePointer));
         pucTempMessagePointer -= OEM4_ASCII_SYNC_LENGTH;
@@ -145,7 +145,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     stEmbeddedMessageData_.pucMessage = pucTempEncodeBuffer;
     stRxConfigMessageData_.pucMessageBody = pucTempEncodeBuffer;
 
-    // This is just dummy args that we must pass to the encoder.  They will not be used.
+    // This is just dummy args that we must pass to the encoder. They will not be used.
     uint32_t uiCRC = 0;
 
     switch (eEncodeFormat_)
@@ -190,7 +190,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(strlen(szAbbrevAsciiEmbeddedHeaderPrefix));
         // A normal abbreviated ASCII log would remove the final ' ' delimiter, however since
         // this is part of a message body, we should encode it to follow the standard of
-        // trailing spaces in the message body.  EncodeHeader() would have removed this, so add
+        // trailing spaces in the message body. EncodeHeader() would have removed this, so add
         // it back in the message MessageHeaderLength count.
         stEmbeddedMessageData_.uiMessageHeaderLength++;
 
@@ -209,7 +209,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     uiMyBufferBytesRemaining -= stEmbeddedMessageData_.uiMessageBodyLength;
     pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageBodyLength;
 
-    // The last CRC would have been written correctly.  Pull it out, flip it, put it back in.
+    // The last CRC would have been written correctly. Pull it out, flip it, put it back in.
     // This will be done differently depending on how we encoded the message.
     switch (eEncodeFormat_)
     {

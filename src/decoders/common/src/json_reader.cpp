@@ -81,7 +81,7 @@ void from_json(const json& j_, EnumField& f_)
 {
     from_json(j_, static_cast<BaseField&>(f_));
 
-    if (j_.at("enumID").is_null()) { throw std::runtime_error("Invalid enum ID - cannot be NULL.  JsonDB file is likely corrupted."); }
+    if (j_.at("enumID").is_null()) { throw std::runtime_error("Invalid enum ID - cannot be NULL. JsonDB file is likely corrupted."); }
 
     f_.enumId = j_.at("enumID");
 }
@@ -450,7 +450,7 @@ const std::vector<BaseField*>* MessageDefinition::GetMsgDefFromCrc(const std::sh
     // If we can't find the correct CRC just default to the latest.
     if (fields.find(uiMsgDefCrc_) == fields.end())
     {
-        pclLogger_->info("Log DB is missing the log definition {} - {}.  Defaulting to newest version of the log definition.", name, uiMsgDefCrc_);
+        pclLogger_->info("Log DB is missing the log definition {} - {}. Defaulting to newest version of the log definition.", name, uiMsgDefCrc_);
         uiMsgDefCrc_ = latestMessageCrc;
     }
 

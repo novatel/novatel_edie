@@ -31,6 +31,7 @@
 
 //============================================================================
 //! \class CircularBuffer
+//! \brief Used for maintaining a continuous/rotating buffer of set capacity.
 //============================================================================
 class CircularBuffer
 {
@@ -80,7 +81,7 @@ class CircularBuffer
     [[nodiscard]] inline unsigned char* GetBuffer() const;
 
     //----------------------------------------------------------------------------
-    //! \brief Append data to end of buffer.  Will increase buffer size if needed.
+    //! \brief Append data to end of buffer. Will increase buffer size if needed.
     //
     //! \param[in] pucData_ unsigned char buffer pointer from which data to
     //! append to the queue.

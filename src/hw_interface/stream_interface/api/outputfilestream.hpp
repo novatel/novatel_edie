@@ -49,7 +49,8 @@ class OutputFileStream : public OutputStreamInterface
 
     /*! A Constructor.
      *  \brief  Creates FileStream Object for writing output. And initializes MessageDataFilter
-     * object to nullptr. \param[in] pcFileName Output file name.
+     *  object to nullptr. 
+     *  \param[in] pcFileName Output file name.
      *
      */
     OutputFileStream(const char* pcFileName);
@@ -61,12 +62,11 @@ class OutputFileStream : public OutputStreamInterface
     ~OutputFileStream() override;
 
     /*! FileStream Class object.
-     * \sa FileStream
      */
     FileStream* pOutFileStream;
 
-    /*! \fn uint32_t WriteData(const char* cData, uint32_t uiSize)
-     *  \brief Write data to output file.
+    /*! \brief Write data to output file.
+    * 
      *  \param[in] cData Buffer pointer.
      *  \param[in] uiSize size of the buffer.
      *  \return Number of bytes written to output file.

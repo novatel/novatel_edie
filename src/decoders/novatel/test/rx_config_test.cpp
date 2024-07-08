@@ -129,7 +129,7 @@ TEST_F(RxConfigTest, DISABLED_RXCONFIG_ROUNDTRIP_ASCII)
 
 TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ABBREV)
 {
-    // NOTE: This RXCONFIG message is NOT what an OEM7 receiver would produce.  The space after the
+    // NOTE: This RXCONFIG message is NOT what an OEM7 receiver would produce. The space after the
     // embedded header is added intentionally by RxConfigHandler to make it decodeable.
     unsigned char aucLog[] = "<RXCONFIG COM2 78 33.0 UNKNOWN 0 12.468 024c0000 f702 32768\r\n<     PDPFILTER COM2 78 "
                              "33.0 UNKNOWN 0 12.468 024c0000 dab4 32768 \r\n<     DISABLE\r\nMore bytes...";

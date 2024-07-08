@@ -38,7 +38,11 @@
 #include <spdlog/spdlog.h>
 #include <spdlog_setup/spdlog_setup.hpp>
 
-// TODO: this class is mostly obsolete now, would be best to find a way to make the functions standalone
+//============================================================================
+//! \class Logger
+//! \brief Custom logger class.
+//! TODO: this class is mostly obsolete now, would be best to find a way to make the functions standalone
+//============================================================================
 class Logger
 {
   private:

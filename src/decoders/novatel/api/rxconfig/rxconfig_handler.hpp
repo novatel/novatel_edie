@@ -43,7 +43,7 @@ constexpr uint16_t US_RX_CONFIG_USER_MSG_ID = 2474;
 //============================================================================
 //! \class RxConfigHandler
 //! \brief Class to handle RXCONFIGA and RXCONFIGB messages, which are
-//! outliers with regard to OEM message protocol.  This class should have
+//! outliers with regard to OEM message protocol. This class should have
 //! bytes containing RXCONFIG messages written to it with calls to Write()
 //! and the converted data should be retrieved with calls to Convert().
 //============================================================================

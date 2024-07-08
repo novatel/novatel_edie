@@ -50,22 +50,21 @@ class InputMemoryStream : public InputStreamInterface
 {
   public:
     /*! A Constructor
-     *  \brief  Creates New MemoryStream class object. This will be used for writing data to buffer
-     *  \sa MemoryStream
+     *  \brief Creates New MemoryStream class object. This will be used for writing data to buffer
      *
      */
     InputMemoryStream();
 
     /*! A Constructor
      *  \brief  Created MemoryStream object with default buffer with size 1024 bytes.
-     *  \sa MemoryStream
+     * 
      *  \param[in] uiBufferSize Buffer size
      */
     InputMemoryStream(uint32_t uiBufferSize);
 
     /*! A Constructor
      *  \brief  Created buffer of given size and append provided data.
-     *  \sa MemoryStream
+     * 
      *  \param[in] pucBuffer Data to be append to the buffer
      *  \param[in] uiContentSize size of the data
      *
@@ -75,16 +74,14 @@ class InputMemoryStream : public InputStreamInterface
     /*! a default destructor */
     virtual ~InputMemoryStream();
 
-    /*! \fn StreamReadStatus ReadData(ReadDataStructure&)
-     *  \brief Hold/copy decoded log and size of it in ReadDataStructure
+    /*! \brief Hold/copy decoded log and size of it in ReadDataStructure
      *
      *  \param[in] pReadDataStructure ReadDataStructure variable to hold decoded log
      *  \return StreamReadStatus read data statistics
      */
     StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure);
 
-    /*! \fn uint32_t Write(uint8_t* pcData_, uint32_t uiBytes_ )
-     *  \brief Write buffer data with desired size uiBytes_.
+    /*! \brief Write buffer data with desired size uiBytes_.
      *
      *  \param[in] pcData_ Data to be written the circullar buffer, will be used to decode.
      *  \param[in] uiBytes_ Number of bytes in data buffer.
@@ -92,18 +89,13 @@ class InputMemoryStream : public InputStreamInterface
      */
     uint32_t Write(uint8_t* pcData_, uint32_t uiBytes_);
 
-    /*! \fn bool IsStreamAvailable()
-     *  \brief Checks whether the data in circullar buffer avaialble to decode or not.
+    /*! \brief Checks whether the data in circullar buffer avaialble to decode or not.
      *
      *  \return true or false.
      */
     bool IsStreamAvailable();
 
-    /*! \fn MemoryStream* GetMemoryStream()
-     *  \return the class object which has interfacesed or derived from circuallar buffer.
-     *
-     *  \return MemoryStream class Object to access circullar buffer.
-     *  \sa MemoryStream
+    /*! \return the class object which has interfacesed or derived from circuallar buffer.
      */
     MemoryStream* GetMemoryStream() { return pMyInMemoryStream; }
 

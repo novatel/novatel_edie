@@ -32,7 +32,7 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 //-----------------------------------------------------------------------
-//! Table used to expand the scaled Pseudorange STDs.  This is defined
+//! Table used to expand the scaled Pseudorange STDs. This is defined
 //! in the RANGECMP documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP.htm?Highlight=rangecmp#StdDevPSRValues
 //-----------------------------------------------------------------------
@@ -43,7 +43,7 @@ constexpr float afTheRangeCmpPSRStdDevValues[] = {
     1.281f, 2.375f, 4.750f, 9.500f, 19.000f, 38.000f, 76.000f, 152.000f};
 
 //-----------------------------------------------------------------------
-//! Table used to expand the scaled Pseudorange STDs.  This is defined
+//! Table used to expand the scaled Pseudorange STDs. This is defined
 //! in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevPSRScaling
 //-----------------------------------------------------------------------
@@ -54,7 +54,7 @@ constexpr float afTheRangeCmp2PSRStdDevValues[] = {
     0.491f, 0.732f, 1.092f, 1.629f, 2.430f, 3.625f, 5.409f, 5.409f};
 
 //-----------------------------------------------------------------------
-//! Table used to expand the scaled Accumulated Doppler Range STDs.  This
+//! Table used to expand the scaled Accumulated Doppler Range STDs. This
 //!  is defined in the RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevADRScaling
 //-----------------------------------------------------------------------
@@ -230,7 +230,7 @@ std::shared_ptr<spdlog::logger> RangeDecompressor::GetLogger() { return pclMyLog
 
 //------------------------------------------------------------------------------
 //! This function acts as a lookup for a signal wavelength based on the provided
-//! ChannelTrackingStatus.  Uses the Satellite System and Signal fields, and in
+//! ChannelTrackingStatus. Uses the Satellite System and Signal fields, and in
 //! the case of GLONASS, it will use the provided GLONASS frequency.
 //------------------------------------------------------------------------------
 double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatusStruct& stChannelTrackingStatus_, int16_t sGLONASSFrequency_)
@@ -292,8 +292,8 @@ double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatusStruct&
 }
 
 //------------------------------------------------------------------------------
-//! Bitfield helper function.  This will collect the number of bits specified
-//! from the provided buffer pointer.  It will keep an internal track of the
+//! Bitfield helper function. This will collect the number of bits specified
+//! from the provided buffer pointer. It will keep an internal track of the
 //! current bit offset within a given byte.
 //------------------------------------------------------------------------------
 uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uint32_t uiBitsInBitfield_)
@@ -342,7 +342,7 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
 }
 
 //------------------------------------------------------------------------------
-//! The locktime can only report up to 131071ms (0x1FFFF).  If this value is
+//! The locktime can only report up to 131071ms (0x1FFFF). If this value is
 //! reached, the locktime must continue to increment. Once the saturated value
 //! has been reached, store the header time at which the locktime was found to
 //! be saturated  and any difference between the header and stored time in the
@@ -387,37 +387,37 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStr
 
 //------------------------------------------------------------------------------
 //! RANGECMP4 locktime information is categorized into certain ranges for a
-//! given observation.  Decompressing this information without knowledge of the
+//! given observation. Decompressing this information without knowledge of the
 //! precise time at which lock was acquired can result in initially misledaing
-//! locktimes.  There are a number of cases which may occur when decompressing
+//! locktimes. There are a number of cases which may occur when decompressing
 //! the locktime bitfields from a RANGECMP4 observation:
 //! NOTE: See afTheRangeCmp4LockTimeValues for bitfield:locktime translations.
 //!   1. The locktime bitfield is b0000:
-//!      - This is the simplest case.  The locktime will increase with the time
+//!      - This is the simplest case. The locktime will increase with the time
 //!        reported by the message header.
 //!   2. The locktime bitfield is b1111:
 //!      - There is no way to determine when the locktime reached that range,
 //!        so as for case 1, the locktime will increase with the time reported
 //!        by the message header.
 //!   3. The locktime bitfield is any value from b0001 to b1110:
-//!      - This case is the most complex.  Because there is no guarantee that
+//!      - This case is the most complex. Because there is no guarantee that
 //!        the current locktime reported has just transitioned to the lower
 //!        boundary of the bitfield representation, it must be stated that the
-//!        locktime is relative, and not absolute.  Only when a change in the
+//!        locktime is relative, and not absolute. Only when a change in the
 //!        bitfield is detected can it be guaranteed the the locktime is
-//!        absolute.  At this point, the locktime can jump or slip to adjust
-//!        to the newly found bitfield.  After the jump or slip occurs, the
+//!        absolute. At this point, the locktime can jump or slip to adjust
+//!        to the newly found bitfield. After the jump or slip occurs, the
 //!        locktime must not change again, as the lower bitfield values will
 //!        produce the highest degree of accuracy.
 //!      - For example, if the locktime bitfield is b0111, the observation has
-//!        been locked for at least 1024ms.  However it is possible the message
-//!        was produced when the observation was locked for 1800ms.  This means
+//!        been locked for at least 1024ms. However it is possible the message
+//!        was produced when the observation was locked for 1800ms. This means
 //!        a 776ms discrepancy exsists between what the RangeDecompressor tracks
-//!        and what is reported in the RANGECMP messages.  When this discrepancy
+//!        and what is reported in the RANGECMP messages. When this discrepancy
 //!        is detected, the locktime can jump to match what the RANGECMP message
-//!        reports.  Thus, the distinction between "relative" and "absolute"
+//!        reports. Thus, the distinction between "relative" and "absolute"
 //!        must be made to allow the decompressor to accurately reflect
-//!        observation locktimes.  See the example below:
+//!        observation locktimes. See the example below:
 //!
 //! Locktime (t)
 //!   ^
@@ -429,7 +429,7 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStr
 //!   |                                       /
 //!   |                                     /
 //!   |                                   /   < At this point a bitfield change
-//!   |                                 *|      was found.  The transition from
+//!   |                                 *|      was found. The transition from
 //!   |                               *  |      "relative" to "absolute" time
 //!   |                             *    |      results in a locktime jump as
 //!   |                           *      |      seen here.
@@ -438,7 +438,7 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStr
 //!   |                     *       /
 //!   |                   *       /
 //!   | Absolute        *       /   < Relative locktime inferred by the
-//!   | locktime >    *       /       RangeDecompressor.  These values
+//!   | locktime >    *       /       RangeDecompressor. These values
 //!   |             *       /         will be output to RANGE message
 //!   |           *       /           locktime fields.
 //!   +-------------------------------------------------------------------->
@@ -509,7 +509,7 @@ float RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataStr
 }
 
 //------------------------------------------------------------------------------
-//! Decompresses a RANGECMP4 reference measurement block.  Populates the
+//! Decompresses a RANGECMP4 reference measurement block. Populates the
 //! provided reference block struct.
 //------------------------------------------------------------------------------
 template <bool bSecondary>
@@ -549,7 +549,7 @@ void RangeDecompressor::DecompressReferenceBlock(uint8_t** ppucDataPointer_, Ran
 }
 
 //------------------------------------------------------------------------------
-//! Decompresses a RANGECMP4 differential measurement block.  Populates the
+//! Decompresses a RANGECMP4 differential measurement block. Populates the
 //! provided reference block struct, but must be given the appropriate
 //! reference block from the same RANGECMP4 message.
 //------------------------------------------------------------------------------
@@ -593,7 +593,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     double dSignalWavelength =
         GetSignalWavelength(stChannelTrackingStatus_, static_cast<int16_t>(cGLONASSFrequencyNumber_ - GLONASS_FREQUENCY_NUMBER_OFFSET));
 
-    //! Some logic for PRN offsets based on the constellation.  See documentation:
+    //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
     switch (stChannelTrackingStatus_.eSatelliteSystem)
     {
@@ -774,7 +774,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
 
     MEASUREMENT_SOURCE eMeasurementSource = stMetaData_.eMeasurementSource;
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
-    // Clear any dead reference blocks on the whole second.  We should be storing new ones.
+    // Clear any dead reference blocks on the whole second. We should be storing new ones.
     if (dSecondOffset == 0.0) { ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)].clear(); }
 
     auto eCurrentSatelliteSystem = SYSTEM::UNKNOWN;
@@ -836,7 +836,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                 }
             }
 
-            // Iterate through the PRNs once to collect the signals tracked by each.  We need this
+            // Iterate through the PRNs once to collect the signals tracked by each. We need this
             // info before we can start decompressing.
             mIncludedSignals.clear();
             for (const auto& uiPRN : vPRNs)
@@ -963,7 +963,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                 }
 
                 // Go back and update the grouping bit in the status word if we've counted more than
-                // one signal for this PRN.  We can't know this ahead of time without blindly
+                // one signal for this PRN. We can't know this ahead of time without blindly
                 // jumping forward into the compressed message.
                 if (uiSignalsForPRN > 1 && uiSignalsForPRN <= stRangeMessage_.uiNumberOfObservations)
                 {

@@ -178,7 +178,7 @@ class MessageDecoderBase
     //! the frame and be fully populated to help describe the decoded log.
     //
     //! \remark Note, that pucMessage_ must not point to the message header,
-    //! rather the message body.  This can be done by advancing the pointer
+    //! rather the message body. This can be done by advancing the pointer
     //! of a message frame by stMetaData.uiHeaderLength.
     //! \return An error code describing the result of decoding.
     //!   SUCCESS: The operation was successful.

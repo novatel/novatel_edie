@@ -75,7 +75,7 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.  Defaults to nullptr.
+    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     FileParser(JsonReader* pclJsonDb_ = nullptr);
 

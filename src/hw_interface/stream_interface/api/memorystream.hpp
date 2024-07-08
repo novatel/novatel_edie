@@ -68,49 +68,39 @@ class MemoryStream : public CircularBuffer
     /*! Default destructor */
     ~MemoryStream();
 
-    /*! \fn int32_t Available()
-     *  \return the actual content size, this is not the memory allocated size
+    /*! \return the actual content size, this is not the memory allocated size
      *  The size increases when we write and it decreases when read.
-     *
-     *  \return Available data in buffer to decode.
      */
     int32_t Available();
 
-    /*! \fn void Flush()
-     *  \brief Clear the data in the buffer.
-     *
+    /*! \brief Clear the data in the buffer.
      */
     void Flush();
 
-    /*! \fn INStreamReadStatusT Read(char* pucBuffer, uint32_t uiSize)
-     *  \brief Reads the required amount(uiSize) from buffer into pucBuffer
+    /*! \brief Reads the required amount(uiSize) from buffer into pucBuffer
      *
      *  \return StreamReadStatus structure with read statistics.
      */
     StreamReadStatus Read(char* pucBuffer, uint32_t uiSize);
 
-    /*! \fn uint32_t Read(void)
-     *  \brief Read the one byte from the buffer
+    /*! \brief Read the one byte from the buffer
      *
      *  \return Byte read from buffer.
      *  \remark update StreamReadStatus structure with read statistics.
      */
     uint32_t Read(void);
 
-    /*! \fn uint32_t Write(uint8_t)
-     *  \brief Write one byte or character to buffer and update read statistics(StreamReadStatus)
+    /*! \brief Write one byte or character to buffer and update read statistics(StreamReadStatus)
      *
      */
     uint32_t Write(uint8_t);
 
-    /*! \fn uint32_t Write(uint8_t* pucBuffer, uint32_t uisize)
-     *  \brief Write provided buffer of dezired length.
+    /*! \brief Write provided buffer of dezired length.
      *  \return Returns length of bytes append/write.
      */
     uint32_t Write(uint8_t* pucBuffer, uint32_t uisize);
 
-    /*! \fn uint32_t CalculatePercentage(uint32_t uipercentage)
-     *  \brief Calculates the percentage of current Memory(Circuallr Buffer) read.
+    /*! \brief Calculates the percentage of current Memory(Circuallr Buffer) read.
      *  \return percentage of read compare to total buffer.
      */
     uint32_t CalculatePercentage(uint32_t);

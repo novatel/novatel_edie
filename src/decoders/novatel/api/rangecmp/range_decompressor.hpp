@@ -35,6 +35,10 @@
 
 namespace novatel::edie::oem {
 
+//============================================================================
+//! \class RangeDecompressor
+//! \brief Decompresses Range logs depending on the Range version (E.g. 2/3/4).
+//============================================================================
 class RangeDecompressor
 {
   public:
@@ -88,7 +92,7 @@ class RangeDecompressor
     RangeCmp4MeasurementSignalBlockStruct astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
 
     // TODO: Is there a better way to map all this information together?
-    // This is an array of map of map of maps.  Indexed by SYSTEM, RangeCmp4::SIGNAL_TYPE, then PRN
+    // This is an array of map of map of maps. Indexed by SYSTEM, RangeCmp4::SIGNAL_TYPE, then PRN
     // (uint32_t). This will store a header and its reference block for whenever we find
     // differential data for the System, Signal type and PRN. We must keep track of which
     // measurement source the reference block came from so any subsequent differential blocks are
