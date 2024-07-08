@@ -83,7 +83,7 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void SelectFileStream(std::wstring stFileName)
      *  \brief Sets the output file in which to be decoded output will be written.
-     *  \param [in] s32FileName_ - Name of the File to be created.
+     *  \param[in] s32FileName_ - Name of the File to be created.
      *  \sa FileStream
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
@@ -99,7 +99,7 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void ConfigureBaseFileName(std::wstring stFileName)
      *  \brief Gets base file name with wide characters and extension of it.
-     *  \param [in] s32FileName_ - Name of the File.
+     *  \param[in] s32FileName_ - Name of the File.
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
@@ -107,23 +107,23 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void SelectWCLogFile(std::string strMsgName_)
      *  \brief Sets the output file name  from the log name from strMsgName_.
-     *  \param [in] strMsgName_
+     *  \param[in] strMsgName_
      *  \remark Sets output file name like "base_name_log_name".
      */
     void SelectWCLogFile(std::string strMsgName_);
 
     /*! \fn void SelectWCSizeFile(uint32_t uiSize_)
      *  \brief Sets the output file name(with Wide Characters) included with the split size
-     *  \param [in] uiSize_
+     *  \param[in] uiSize_
      *  \remark Example: output files could be basename_part<1/2/3...etc>
      */
     void SelectWCSizeFile(uint32_t uiSize_);
 
     /*! \fn void SelectWCTimeFile(TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
      *  \brief Sets the number of output files can be created based the time provided
-     *  \param [in] eStatus_
-     *  \param [in] usWeek_
-     *  \param [in] dMilliseconds_
+     *  \param[in] eStatus_
+     *  \param[in] usWeek_
+     *  \param[in] dMilliseconds_
      *  \remark Example: output files could be basename_part<1/2/3...etc>
      */
     void SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
@@ -131,13 +131,13 @@ class MultiOutputFileStream : public OutputStreamInterface
     /*! \fn uint32_t WriteData(char* pcData_, uint32_t uiDataLength_, std::string strMsgName_,
      * uint32_t uiSize_, novatel::edie::oem::TIME_STATUS eStatus_, uint16_t usWeek_, DOUBLE
      * dMilliseconds_)
-     * \param [in] pcData_
-     * \param [in] uiDataLength_
-     * \param [in] strMsgName_
-     * \param [in] uiSize_
-     * \param [in] eStatus_
-     * \param [in] usWeek_
-     * \param [in] dMilliseconds_
+     * \param[in] pcData_
+     * \param[in] uiDataLength_
+     * \param[in] strMsgName_
+     * \param[in] uiSize_
+     * \param[in] eStatus_
+     * \param[in] usWeek_
+     * \param[in] dMilliseconds_
      * \return Number of bytes written to output file.
      * \remark Set Split type and write data to output files. If split type was not set,
      * Then writing can be done to only one file.
@@ -147,8 +147,8 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn uint32_t WriteData(CHAR *pcFrameBuf_, uint32_t uiLength)
      *  \brief Write Buffer to output file.
-     *  \param [in] pcData_ pointer to buffer to be written to output file
-     *  \param [in] uiDataLength_ Length of the buffer to be written to output file
+     *  \param[in] pcData_ pointer to buffer to be written to output file
+     *  \param[in] uiDataLength_ Length of the buffer to be written to output file
      *  \return Number of bytes written to output file.
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
@@ -157,7 +157,7 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void SelectFileStream(std::string stFileName)
      *  \brief Sets the output file in which to be decoded output will be written.
-     *  \param [in] stFileName - Name of the File to be created.
+     *  \param[in] stFileName - Name of the File to be created.
      *  \sa FileStream
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
@@ -166,7 +166,7 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void ConfigureBaseFileName(std::string stFileName)
      *  \brief Gets base file name and extension of it.
-     *  \param [in] stFileName - Name of the File.
+     *  \param[in] stFileName - Name of the File.
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
@@ -180,7 +180,7 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void ConfigureSplitByLog(bool)
      *  \brief Enable/Disable Splitting of logs into different output files.
-     *  \param [in] bStatus
+     *  \param[in] bStatus
      *  \remark Enable/Disable log Splitting. If enabled, split type will be set to SPLIT_LOG
      *  If disabled split type will be set to SPLIT_NONE
      */
@@ -188,28 +188,28 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void SelectLogFile(std::string strMsgName_)
      *  \brief Sets the output file name  from the log name from strMsgName_.
-     *  \param [in] strMsgName_
+     *  \param[in] strMsgName_
      *  \remark Sets output file name like "base_name_log_name".
      */
     void SelectLogFile(const std::string& strMsgName_);
 
     /*! \fn void ConfigureSplitBySize(uint64_t )
      *  \brief Split file into different output file with defined size.
-     *  \param [in] ullFileSplitSize
+     *  \param[in] ullFileSplitSize
      *  \remark Output files with ullFileSplitSize size will be created while writing to the output.
      */
     void ConfigureSplitBySize(uint64_t ullFileSplitSize) override;
 
     /*! \fn void SelectSizeFile(uint32_t uiSize_)
      *  \brief Sets the output file name included with the split size
-     *  \param [in] uiSize_
+     *  \param[in] uiSize_
      *  \remark Example: output files could be basename_part<1/2/3...etc>
      */
     void SelectSizeFile(uint32_t uiSize_);
 
     /*! \fn void ConfigureSplitByTime(double dFileSplitTime)
      *  \brief Sets the interval of time the file to be split.
-     *  \param [in] dFileSplitTime
+     *  \param[in] dFileSplitTime
      *  \remark Different output files will be created with the logs,
      *  in which will be captured in the time interval provided.
      */
@@ -217,9 +217,9 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void SelectTimeFile(TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
      *  \brief Sets the number of output files can be created based the time provided
-     *  \param [in] eStatus_
-     *  \param [in] usWeek_
-     *  \param [in] dMilliseconds_
+     *  \param[in] eStatus_
+     *  \param[in] usWeek_
+     *  \param[in] dMilliseconds_
      *  \remark Example: output files could be basename_part<1/2/3...etc>
      */
     void SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
@@ -240,7 +240,7 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \fn void SetExtensionName(std::string
      *  \brief Sets the extension name of the output file
-     *  \param [in] strExt std::string - Output file name
+     *  \param[in] strExt std::string - Output file name
      */
     void SetExtensionName(const std::string& strExt) { stMyExtensionName = strExt; }
     void SetExtensionName(const std::u32string& strExt) { s32MyExtensionName = strExt; }

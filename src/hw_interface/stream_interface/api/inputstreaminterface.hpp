@@ -47,7 +47,7 @@ class InputStreamInterface
     /** A pure virtual member.
      *
      * \sa ReadData()
-     * \param [in] pReadDataStructure ReadDataStructure variable to hold decoded log
+     * \param[in] pReadDataStructure ReadDataStructure variable to hold decoded log
      * \return StreamReadStatus structure - Read data statistics
      */
     virtual StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure) = 0;

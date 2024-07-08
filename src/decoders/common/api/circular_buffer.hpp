@@ -125,7 +125,7 @@ class CircularBuffer
     //! \brief Return copy of byte at iIndex_ (throw exception if iIndex_ out of
     //! bounds)
     //
-    //! \param [in] iIndex_ integer value
+    //! \param[in] iIndex_ integer value
     //
     //! \return The byte at the provided index.
     //----------------------------------------------------------------------------

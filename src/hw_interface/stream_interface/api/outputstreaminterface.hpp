@@ -49,8 +49,8 @@ class OutputStreamInterface
      *
      *  \fn uint32_t WriteData(const char* pcData_, uint32_t uiDataLength_)
      *  \brief Write data to the buffer
-     *  \param [in] pcData_ Buffer pointer.
-     *  \param [in] uiDataLength_ size of the buffer.
+     *  \param[in] pcData_ Buffer pointer.
+     *  \param[in] uiDataLength_ size of the buffer.
      *  \return Number of bytes written to output file.
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.

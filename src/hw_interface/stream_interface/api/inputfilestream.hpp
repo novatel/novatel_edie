@@ -42,7 +42,7 @@ class InputFileStream : public InputStreamInterface
     /*! A Constructor
      *  \brief  Creates FileStream class object with wide character filename string.
      *
-     *  \param [in] s32FileName_ Wide Character file name as Character pointer.
+     *  \param[in] s32FileName_ Wide Character file name as Character pointer.
      *
      *  \remark If pwcFileName is NULL, then exception "Filename name not valid" will be thrown.
      */
@@ -51,7 +51,7 @@ class InputFileStream : public InputStreamInterface
     /*! A Constructor
      *  \brief  Creates FileStream class object with filename string.
      *
-     *  \param [in] pFileName file name as Character pointer.
+     *  \param[in] pFileName file name as Character pointer.
      *
      *  \remark If pFileName is NULL, then exception "Filename name not valid" will be thrown.
      */
@@ -66,14 +66,14 @@ class InputFileStream : public InputStreamInterface
     /*! \fn StreamReadStatus ReadData(ReadDataStructure&)
      *  \brief Hold/copy decoded log and size of it in ReadDataStructure
      *
-     *  \param [in] pReadDataStructure ReadDataStructure pointer to hold decoded log
+     *  \param[in] pReadDataStructure ReadDataStructure pointer to hold decoded log
      *  \return StreamReadStatus read data statistics
      */
     StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure) override;
     /*! \fn StreamReadStatus ReadLine
      *  \brief Read one line from the file.
      *
-     *  \param [in] szLine String pointer to hold one line dats read from the file.
+     *  \param[in] szLine String pointer to hold one line dats read from the file.
      *  \return Returns Read statistics structure (StreamReadStatus)
      */
     StreamReadStatus ReadLine(std::string& szLine) override;
@@ -81,8 +81,8 @@ class InputFileStream : public InputStreamInterface
     /*! \fn void Reset(std::streamoff = 0, std::ios_base::seekdir = std::ios::beg)
      *  \brief Set/Reset File Position from which next read will be done.
      *
-     *  \param [in] offset the position of the file pointer to read.
-     *  \param [in] dir Seeking direction from beginning or end.
+     *  \param[in] offset the position of the file pointer to read.
+     *  \param[in] dir Seeking direction from beginning or end.
      *
      *  \remark After reset, the current file size will be changed accordingly.
      */
@@ -106,7 +106,7 @@ class InputFileStream : public InputStreamInterface
     /*! \fn void SetCurrentFileOffset(uint64_t  ullCurrentFileOffset)
      *  \brief Sets the current file offset. It could be read bytes so far.
      *
-     *  \param [in] ullCurrentFileOffset Size of the data from one read size,
+     *  \param[in] ullCurrentFileOffset Size of the data from one read size,
      *  Will be appended to calculate read bytes so far
      */
     void SetCurrentFileOffset(uint64_t ullCurrentFileOffset) override;

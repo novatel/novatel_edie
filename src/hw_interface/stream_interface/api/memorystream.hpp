@@ -43,15 +43,15 @@ class MemoryStream : public CircularBuffer
      *  \brief  Created default circular buffer class object.
      *  It will create circuallr buffer with size(uiBufferSize) provided
      *
-     * \param [in] uiBufferSize - Length of circular buffer to be created.
+     * \param[in] uiBufferSize - Length of circular buffer to be created.
      */
     MemoryStream(uint32_t uiBufferSize);
 
     /*! A Constructor
      *  \brief  Creates circular buffer and append buffer content provided.
      *
-     *  \param [in] pucBuffer Data Buffer.
-     *  \param [in] uiContentSize Length of data buffer.
+     *  \param[in] pucBuffer Data Buffer.
+     *  \param[in] uiContentSize Length of data buffer.
      *
      *  \remark If circular buffer length is lesser than provided uiContentSize,
      *   then circular buffer will auto enlarge to created reuested size before append.

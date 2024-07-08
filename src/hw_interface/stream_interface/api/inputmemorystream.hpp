@@ -59,15 +59,15 @@ class InputMemoryStream : public InputStreamInterface
     /*! A Constructor
      *  \brief  Created MemoryStream object with default buffer with size 1024 bytes.
      *  \sa MemoryStream
-     *  \param [in] uiBufferSize Buffer size
+     *  \param[in] uiBufferSize Buffer size
      */
     InputMemoryStream(uint32_t uiBufferSize);
 
     /*! A Constructor
      *  \brief  Created buffer of given size and append provided data.
      *  \sa MemoryStream
-     *  \param [in] pucBuffer Data to be append to the buffer
-     *  \param [in] uiContentSize size of the data
+     *  \param[in] pucBuffer Data to be append to the buffer
+     *  \param[in] uiContentSize size of the data
      *
      */
     InputMemoryStream(uint8_t* pucBuffer, uint32_t uiContentSize);
@@ -78,7 +78,7 @@ class InputMemoryStream : public InputStreamInterface
     /*! \fn StreamReadStatus ReadData(ReadDataStructure&)
      *  \brief Hold/copy decoded log and size of it in ReadDataStructure
      *
-     *  \param [in] pReadDataStructure ReadDataStructure variable to hold decoded log
+     *  \param[in] pReadDataStructure ReadDataStructure variable to hold decoded log
      *  \return StreamReadStatus read data statistics
      */
     StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure);
@@ -86,8 +86,8 @@ class InputMemoryStream : public InputStreamInterface
     /*! \fn uint32_t Write(uint8_t* pcData_, uint32_t uiBytes_ )
      *  \brief Write buffer data with desired size uiBytes_.
      *
-     *  \param [in] pcData_ Data to be written the circullar buffer, will be used to decode.
-     *  \param [in] uiBytes_ Number of bytes in data buffer.
+     *  \param[in] pcData_ Data to be written the circullar buffer, will be used to decode.
+     *  \param[in] uiBytes_ Number of bytes in data buffer.
      *  \return Number of bytes written to the stream.
      */
     uint32_t Write(uint8_t* pcData_, uint32_t uiBytes_);
