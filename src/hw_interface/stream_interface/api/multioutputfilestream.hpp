@@ -83,7 +83,7 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \brief Sets the output file in which to be decoded output will be written.
      *  \param[in] s32FileName_ - Name of the File to be created.
-     * 
+     *
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
      */
@@ -148,7 +148,7 @@ class MultiOutputFileStream : public OutputStreamInterface
 
     /*! \brief Sets the output file in which to be decoded output will be written.
      *  \param[in] stFileName - Name of the File to be created.
-     * 
+     *
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
      */

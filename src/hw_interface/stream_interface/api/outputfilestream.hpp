@@ -49,7 +49,7 @@ class OutputFileStream : public OutputStreamInterface
 
     /*! A Constructor.
      *  \brief  Creates FileStream Object for writing output. And initializes MessageDataFilter
-     *  object to nullptr. 
+     *  object to nullptr.
      *  \param[in] pcFileName Output file name.
      */
     OutputFileStream(const char* pcFileName);
