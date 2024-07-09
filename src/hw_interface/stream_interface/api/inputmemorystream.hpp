@@ -57,17 +57,16 @@ class InputMemoryStream : public InputStreamInterface
 
     /*! A Constructor
      *  \brief  Created MemoryStream object with default buffer with size 1024 bytes.
-     * 
+     *
      *  \param[in] uiBufferSize Buffer size
      */
     InputMemoryStream(uint32_t uiBufferSize);
 
     /*! A Constructor
      *  \brief  Created buffer of given size and append provided data.
-     * 
+     *
      *  \param[in] pucBuffer Data to be append to the buffer
      *  \param[in] uiContentSize size of the data
-     *
      */
     InputMemoryStream(uint8_t* pucBuffer, uint32_t uiContentSize);
 

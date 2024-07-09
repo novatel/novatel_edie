@@ -36,7 +36,6 @@ class MemoryStream;
 
 /*! \class OutputStreamInterface
  *  \brief An Interface Class used by application to write data to the output.
- *
  *  \details Output stream is an interface for writing data to file and port handles.
  *  Output Stream has three derived classes to support file and port access, OutputFileStream,
  * OutputPortStream and MultiOutputFileStream. The ideal usage of Output Stream is to support
@@ -46,12 +45,9 @@ class OutputStreamInterface
 {
   public:
     /** A virtual member.
-     *
      *  \brief Write data to the buffer
-     * 
      *  \param[in] pcData_ Buffer pointer.
      *  \param[in] uiDataLength_ size of the buffer.
-     * 
      *  \return Number of bytes written to output file.
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
@@ -63,7 +59,6 @@ class OutputStreamInterface
 
     /** A virtual member.
      *  \brief Sets the output file in which to be decoded output will be written.
-     * 
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
      */
@@ -71,7 +66,6 @@ class OutputStreamInterface
 
     /** A virtual member.
      *  \brief Enable/Disable Splitting of logs into different output files.
-     * 
      *  \remark Enable/Disable log Splitting. If enabled, split type will be set to SPLIT_LOG
      *  If disabled split type will be set to SPLIT_NONE
      */
@@ -79,7 +73,6 @@ class OutputStreamInterface
 
     /** A virtual member.
      *  \brief Gets base file name and extension of it.
-     * 
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
@@ -87,14 +80,12 @@ class OutputStreamInterface
 
     /** A virtual member.
      *  \brief Split file into different output file with defined size.
-     * 
      *  \remark Output files with ullFileSplitSize size will be created while writing to the output.
      */
     virtual void ConfigureSplitBySize(uint64_t) {}
 
     /** A virtual member.
      *  \brief Sets the interval of time the file to be split.
-     * 
      *  \remark Different output files will be created with the logs,
      *  in which will be captured in the time interval provided.
      */
@@ -108,7 +99,6 @@ class OutputStreamInterface
     // #ifdef WIDE_CHAR_SUPPORT
     /** A virtual member.
      *  \brief Sets the output file in which to be decoded output will be written.
-     *  
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
      */
@@ -116,7 +106,6 @@ class OutputStreamInterface
 
     /** A virtual member
      *  \brief Gets wide character base file name and extension of it.
-     * 
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */

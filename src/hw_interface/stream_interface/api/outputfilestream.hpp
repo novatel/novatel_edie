@@ -51,13 +51,11 @@ class OutputFileStream : public OutputStreamInterface
      *  \brief  Creates FileStream Object for writing output. And initializes MessageDataFilter
      *  object to nullptr. 
      *  \param[in] pcFileName Output file name.
-     *
      */
     OutputFileStream(const char* pcFileName);
 
     /*! A virtual destructor.
      *  \brief  Clears MessageDataFilter and FileStream objects.
-     *
      */
     ~OutputFileStream() override;
 
@@ -66,7 +64,6 @@ class OutputFileStream : public OutputStreamInterface
     FileStream* pOutFileStream;
 
     /*! \brief Write data to output file.
-    * 
      *  \param[in] cData Buffer pointer.
      *  \param[in] uiSize size of the buffer.
      *  \return Number of bytes written to output file.
@@ -77,14 +74,12 @@ class OutputFileStream : public OutputStreamInterface
 
   private:
     /*! Private Copy Constructor
-     *
      *  A copy constructor is a member function which initializes an object using another object of
      * the same class.
      */
     OutputFileStream(const OutputFileStream& clTemp);
 
     /*! Private assignment operator
-     *
      *  The copy assignment operator is called whenever selected by overload resolution,
      *  e.g. when an object appears on the left side of an assignment expression.
      */
