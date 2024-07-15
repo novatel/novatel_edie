@@ -50,13 +50,13 @@ jobs:
         shell: bash
         run: |
           if [ "${{ env.COMPILER }}" == "msvc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022"
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang-cl" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL #TODO: -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "gcc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DWARNINGS_AS_ERRORS=ON
           fi
 
       - name: Build
@@ -141,7 +141,7 @@ jobs:
 
       - name: Static code analysis
         run: |
-          cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu
+          cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu -DWARNINGS_AS_ERRORS=ON
           cmake --build build --parallel --config Debug
 
   # =========================================================
@@ -167,7 +167,7 @@ jobs:
         sudo apt-get install -y gcovr
 
     - name: Configure
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON -DWARNINGS_AS_ERRORS=ON
 
     - name: Build
       run: cmake --build build --parallel --config debug
