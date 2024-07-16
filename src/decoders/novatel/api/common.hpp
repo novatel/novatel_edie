@@ -27,7 +27,7 @@
 #ifndef NOVATEL_COMMON_HPP
 #define NOVATEL_COMMON_HPP
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "decoders/common/api/common.hpp"
 
