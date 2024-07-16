@@ -39,10 +39,6 @@ jobs:
         with:
           version: "17.0"
 
-      - name: Install Conan
-        id: conan
-        uses: turtlebrowser/get-conan@main
-
       - name: Install CMake
         uses: lukka/get-cmake@latest
         
@@ -132,10 +128,6 @@ jobs:
         with:
           version: "17.0"
 
-      - name: Install Conan
-        id: conan
-        uses: turtlebrowser/get-conan@main
-
       - name: Install CMake
         uses: lukka/get-cmake@latest
 
@@ -153,10 +145,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Install Conan
-      id: conan
-      uses: turtlebrowser/get-conan@main
 
     - name: Install CMake
       uses: lukka/get-cmake@latest
