@@ -112,6 +112,15 @@ enum class ASCII_HEADER
     RECEIVER_SW_VERSION, //!< Receiver software version.
 };
 
+// static inline accessor function
+enum class CONSTELLATION
+{
+    UNKNOWN,
+    GLONASS,
+    GPS,
+    GNSS
+};
+
 //-----------------------------------------------------------------------
 //! \struct MetaDataStruct
 //! \brief Structure containing information about a framed and decoded
@@ -122,6 +131,7 @@ struct MetaDataStruct : public MetaDataBase
 {
     MEASUREMENT_SOURCE eMeasurementSource{MEASUREMENT_SOURCE::PRIMARY};
     TIME_STATUS eTimeStatus{TIME_STATUS::UNKNOWN};
+    CONSTELLATION constellation{CONSTELLATION::UNKNOWN};
 
     MetaDataStruct() = default;
 
