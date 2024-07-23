@@ -86,16 +86,16 @@ inline std::ostream& operator<<(std::ostream& os_, const STATUS eStatus_)
 //-----------------------------------------------------------------------
 //! \enum ENCODE_FORMAT
 //! \brief Used to specify the kind of format to re-encode a decoded
-//! message to.  Not every encoder supports these types.
+//! message to. Not every encoder supports these types.
 //-----------------------------------------------------------------------
 enum class ENCODE_FORMAT
 {
-    FLATTENED_BINARY, //!< NovAtel EDIE "Flattened" binary format.  All strings/arrays are padded to
+    FLATTENED_BINARY, //!< NovAtel EDIE "Flattened" binary format. All strings/arrays are padded to
                       //!< maximum length to allow programmatic access.
-    ASCII,            //!< NovAtel ASCII.  If the log was decoded from a SHORT/compressed format, it will be
+    ASCII,            //!< NovAtel ASCII. If the log was decoded from a SHORT/compressed format, it will be
                       //!< encoded to the respective SHORT/compressed format.
     ABBREV_ASCII,     //!< NovAtel Abbreviated ASCII.
-    BINARY,           //!< NovAtel Binary.  If the log was decoded from a SHORT/compressed format, it will be
+    BINARY,           //!< NovAtel Binary. If the log was decoded from a SHORT/compressed format, it will be
                       //!< encoded to the respective SHORT/compressed format.
     JSON,             //!< A JSON object. See HTML documentation for information on fields.
     UNSPECIFIED       //!< No encode format was specified.
@@ -258,6 +258,11 @@ struct MessageDataStruct
 //! Forward declaration for common function headers.
 struct EnumDefinition;
 
+//============================================================================
+//! \class MetaDataBase
+//! \brief Base class for all metadata. Contains data about the data such as header format,
+//! GPS week and milliseconds, and message ID.
+//============================================================================
 class MetaDataBase
 {
   private:

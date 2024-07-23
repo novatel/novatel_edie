@@ -23,6 +23,9 @@ Documentation on NovAtel's data (commands, logs, messages, and responses) can be
 
 ## Getting Started
 
+Regardless of your operating system, have [Conan](https://conan.io/) installed as a prerequisite. 
+Conan is a package manager for C++ and is used by EDIE.
+
 ### Building EDIE on Linux (Ubuntu 18.04 or newer)
 
 1. Open terminal

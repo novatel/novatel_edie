@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
         eStatus = clFramer.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData);
         if (eStatus == STATUS::SUCCESS)
         {
-            // Decode the header.  Get metadata here and populate the Intermediate header.
+            // Decode the header. Get metadata here and populate the Intermediate header.
             eStatus = clHeaderDecoder.Decode(pucReadBuffer, stHeader, stMetaData);
             if (eStatus == STATUS::SUCCESS)
             {

@@ -44,19 +44,17 @@ class FileStream
     uint64_t ullMyFileLength;        /**< Total File Length */
     uint64_t ullMyCurrentFileSize;   /**< Read size so far from the file */
     uint64_t ullMyCurrentFileOffset; /**< Current File offset pointer from which next read will commence */
-    /*! \var MyStream
-     *
-     *  Input/output stream class to operate on files.
+    /*! Input/output stream class to operate on files.
      *  Objects of this class maintain a file buf object as their internal stream buffer, which
-     * performs input/output operations on the file they are associated with (if any). File streams
-     * are associated with files on construction itself in this class.
+     *  performs input/output operations on the file they are associated with (if any). File streams
+     *  are associated with files on construction itself in this class.
      */
     std::fstream MyStream;
 
     /*! Private Copy Constructor
      *
      *  A copy constructor is a member function which initializes an object using another object of
-     * the same class.
+     *  the same class.
      */
 
     const char* pcMyFileName; /**< Character pointer for file name */
@@ -74,10 +72,7 @@ class FileStream
      */
     const FileStream& operator=(const FileStream& clOther);
 
-    /*! \fn void CalculateFileSize()
-     *  \brief Calculate Total file size
-     *
-     *
+    /*! \brief Calculate Total file size
      */
     void CalculateFileSize();
 
@@ -100,7 +95,7 @@ class FileStream
      *  \brief  Create U32 String character filename string with name provided as argument.
      *          And initializes File offsets and length of it.
      *
-     *  \param [in] s32FileName_ 32 bit String character file name as character pointer.
+     *  \param[in] s32FileName_ 32 bit String character file name as character pointer.
      *
      *  \remark If s32FileName is an empty u32string, then exception "Filename name not valid" will
      * be thrown.
@@ -111,7 +106,7 @@ class FileStream
      *  \brief  Create filename string with name provided as argument.
      *          And initializes File offsets and length of it.
      *
-     *  \param [in] pcFileName File name as Character pointer.
+     *  \param[in] pcFileName File name as Character pointer.
      *
      *  \remark If pcFileName is NULL, then exception "Filename name not valid" will be thrown.
      */
@@ -129,18 +124,16 @@ class FileStream
      */
     friend class FileStreamUnitTest;
 
-    /*! \fn void OpenFile(FILE_MODES eMode)
-     *  \brief Open File to read/write/truncate in different modes of open.
+    /*! \brief Open File to read/write/truncate in different modes of open.
      *
-     *  \param [in] eMode File mode enumeration
+     *  \param[in] eMode File mode enumeration
      *  \return "Does not return a value"
      *  \remark If eMode is not valid exception ("") will be thrown.
      *          If open fails exception("File mode not valid") will be thrown.
      */
     void OpenFile(FILE_MODES eMode);
 
-    /*! \fn void CloseFile()
-     *  \brief Close the file.
+    /*! \brief Close the file.
      *
      *  \remark This function may not be required, Because fstream closes
      *  the files when out of scope. This may be helpful if somebody wants to check the close
@@ -148,119 +141,88 @@ class FileStream
      */
     void CloseFile();
 
-    /*! \fn uint32_t CalculatePercentage(uint64_t  ullCurrentFileRead);
-     *  \brief Calculates the percentage of current file read.
+    /*! \brief Calculates the percentage of current file read.
      *
-     *  \param [in] ullCurrentFileRead uint64_t current file read length
+     *  \param[in] ullCurrentFileRead uint64_t current file read length
      *
      *  \return Percentage of Read.
      *  \remark If file length is '0', Then exception"...file  size not valid" will be thrown.
      */
     uint32_t CalculatePercentage(uint64_t ullCurrentFileRead) const;
 
-    /*! \fn StreamReadStatus ReadFile(char* cData, uint32_t );
-     *  \brief Reads uiSize characters of data from fstream file and stores
+    /*! \brief Reads uiSize characters of data from fstream file and stores
      *  them in the array pointed by cData also fills the StreamReadStatus structure.
      *
-     *  \param [in] cData Holds the read data from file.
-     *  \param [in] uiSize Size of the data to be read data from file.
+     *  \param[in] cData Holds the read data from file.
+     *  \param[in] uiSize Size of the data to be read data from file.
      *
      *  \return StreamReadStatus, Read statistics structure
      *  \remark If read fails, then exception"... file  read failed" will be thrown.
      */
     StreamReadStatus ReadFile(char* cData, uint32_t uiSize);
 
-    /*! \fn uint32_t WriteFile(const char* cData, uint32_t uiSize)
-     *  \brief Writes the first uiSize character pointed by cData into fstream
+    /*! \brief Writes the first uiSize character pointed by cData into fstream
      *
-     *  \param [in] cData Data to be written to the fstream.
-     *  \param [in] uiSize Size of the data to be written to the file.
+     *  \param[in] cData Data to be written to the fstream.
+     *  \param[in] uiSize Size of the data to be written to the file.
      *
      *  \return Number of bytes written into the file
      *  \remark If write fails, then exception"... file  write failed" will be thrown.
      */
     uint32_t WriteFile(const char* cData, uint32_t uiSize);
 
-    /*! \fn void GetFileSize()
-     *  \brief Calculates the File size and update it in MyFileLength private variable.
-     *
-     *  \return
-     *  \remark
+    /*! \brief Calculates the File size and update it in MyFileLength private variable.
      */
     void GetFileSize();
 
-    /*! \fn void FlushFile()
-     *  \brief  clears the internal buffer of the file.
-     *
-     *  \return
-     *  \remark
+    /*! \brief  clears the internal buffer of the file.
      */
     void FlushFile();
 
-    /*! \fn void SetFilePosition(std::streamoff = 0, std::ios_base::seekdir = std::ios::beg)
-     *  \brief Set File Position from which next read will be done.
+    /*! \brief Set File Position from which next read will be done.
      *
-     *  \param [in] offset the position of the file pointer to read.
-     *  \param [in] dir Seeking direction from beginning or end.
+     *  \param[in] offset the position of the file pointer to read.
+     *  \param[in] dir Seeking direction from beginning or end.
      *
      *  \remark After seeking the current file size will be changed accordingly.
      */
     void SetFilePosition(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg);
 
-    /*! \fn uint64_t  GetFileLength()
-     *  \brief Returns Total file length.
-     *
-     *  \return Total file length.
+    /*! \return Total file length.
      */
     uint64_t GetFileLength() const { return ullMyFileLength; }
 
-    /*! \fn const char* GetFileName()
-     *  \brief Returns File Name.
-     *
-     *  \return Name of the File which currently operating.
+    /*! \return File Name.
      */
     std::string GetFileName() const { return clFilePath.string(); }
 
-    /*! \fn uint64_t  GetCurrentFileSize()
-     *  \brief Returns current file size which user has read so far.
-     *
-     *  \return current file size which user has read so far.
+    /*! \return current file size which user has read so far.
      */
     uint64_t GetCurrentFileSize() const { return ullMyCurrentFileSize; }
 
-    /*! \fn std::fstream* GetMyFileStream()
-     *  \brief Returns file stream pointer.
-     *
-     *  \return fstream Pointer of the file stream.
+    /*! \return file stream pointer.
      */
     std::fstream* GetMyFileStream() { return &MyStream; }
 
-    /*! \fn StreamReadStatus ReadLine
-     *  \brief Read one line from the file.
+    /*! \brief Read one line from the file.
      *
-     *  \param [in] szLine reference String to hole one line dats read from the file.
+     *  \param[in] szLine reference String to hole one line dats read from the file.
      *  \return Returns Read statistics structure (StreamReadStatus)
      */
     StreamReadStatus ReadLine(std::string& szLine);
 
-    /*! \fn void SetCurrentFileOffset(uint64_t  ullCurrentFileOffset)
-     *  \brief Sets the current file offset. It could be read bytes so far.
+    /*! \brief Sets the current file offset. It could be read bytes so far.
      *
-     *  \param [in] ullCurrentFileOffset Size of the data from one read size,
+     *  \param[in] ullCurrentFileOffset Size of the data from one read size,
      *  Will be appended to calculate read bytes so far
      */
     void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
 
-    /*! \fn uint64_t  GetCurrentFileOffset(void)
-     *  \brief Returns current file offset.
-     *
-     *  \return Current file offset.
+    /*! \return current file offset.
      */
     uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; }
 
-    /*! \fn std::u32string Get32StringFileName()
-     *  \brief Returns u32string filename.
-     *
+    /*! \return u32string filename.
      */
     std::u32string Get32StringFileName() const { return clFilePath.generic_u32string(); }
 };

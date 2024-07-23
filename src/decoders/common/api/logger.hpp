@@ -38,7 +38,11 @@
 #include <spdlog/spdlog.h>
 #include <spdlog_setup/spdlog_setup.hpp>
 
-// TODO: this class is mostly obsolete now, would be best to find a way to make the functions standalone
+//============================================================================
+//! \class Logger
+//! \brief Custom logger class.
+//! TODO: this class is mostly obsolete now, would be best to find a way to make the functions standalone
+//============================================================================
 class Logger
 {
   private:
@@ -159,7 +163,7 @@ class Logger
     }
 
     /** \brief Add console output to the logger
-     *  \param [in] eLevel_  The logging level to enable.
+     *  \param[in] eLevel_  The logging level to enable.
      */
     static void AddConsoleLogging(std::shared_ptr<spdlog::logger> lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug)
     {
@@ -172,11 +176,11 @@ class Logger
     }
 
     /** \brief Add file output to the logger
-     *  \param [in] eLevel_  Logging level to enable.
-     *  \param [in] sFileName_  Logger output file name.
-     *  \param [in] uiFileSize_  Max file size.
-     *  \param [in] uiMaxFiles_  Max number of rotating files.
-     *  \param [in] bRotateOnOpen_  Rotate files on open.
+     *  \param[in] eLevel_  Logging level to enable.
+     *  \param[in] sFileName_  Logger output file name.
+     *  \param[in] uiFileSize_  Max file size.
+     *  \param[in] uiMaxFiles_  Max number of rotating files.
+     *  \param[in] bRotateOnOpen_  Rotate files on open.
      */
     static void AddRotatingFileLogger(std::shared_ptr<spdlog::logger> lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug,
                                       std::string sFileName_ = "edie.log", uint32_t uiFileSize_ = 5 * 1024 * 1024, uint32_t uiMaxFiles_ = 2,

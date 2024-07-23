@@ -3,6 +3,8 @@
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+# https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
+# https://www.codingwiththomas.com/blog/my-sphinx-best-practice-for-a-multiversion-documentation-in-different-languages
 
 # -- Path setup --------------------------------------------------------------
 
@@ -18,8 +20,8 @@ import textwrap
 # -- Project information -----------------------------------------------------
 
 project = 'EDIE'
-copyright = '2020, rdoris'
-author = 'rdoris'
+copyright = '2024, NovAtel'
+author = 'NovAtel'
 
 
 # -- General configuration ---------------------------------------------------
@@ -44,7 +46,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
+# The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
@@ -80,10 +82,10 @@ exhale_args = {
     # "treeViewIsBootstrap": True,
     "exhaleExecutesDoxygen": True,
     "exhaleDoxygenStdin":    textwrap.dedent('''
-      INPUT = ../api
-      EXCLUDE_PATTERNS       = */libgen/*
-      EXCLUDE_PATTERNS       += */nov-decoder/tests/*
-      EXCLUDE_PATTERNS       += */nov-decoder/lib/*
+      INPUT = ../src/decoders/common/api
+      INPUT += ../src/decoders/dynamic_library/api
+      INPUT += ../src/decoders/novatel/api
+      INPUT += ../src/hw_interface/dynamic_library/api
+      INPUT += ../src/hw_interface/stream_interface/api
     ''')
 }
-

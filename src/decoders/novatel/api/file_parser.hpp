@@ -75,7 +75,7 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.  Defaults to nullptr.
+    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     FileParser(JsonReader* pclJsonDb_ = nullptr);
 
@@ -102,8 +102,8 @@ class FileParser
     //! \brief Set the level of detail produced by the internal components'
     //! internal loggers
     //
-    //! \param [in] eLevel_ The logging level to enable.
-    //! \param [in] sFileName_ The logging level to enable.
+    //! \param[in] eLevel_ The logging level to enable.
+    //! \param[in] sFileName_ The logging level to enable.
     //----------------------------------------------------------------------------
     void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log");
 
@@ -122,7 +122,7 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Set the abbreviated ASCII response option.
     //
-    //! \param [in] bIgnoreAbbreviatedAsciiResponses_ true to ignore abbreviated
+    //! \param[in] bIgnoreAbbreviatedAsciiResponses_ true to ignore abbreviated
     //! ASCII responses.
     //----------------------------------------------------------------------------
     void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_);
@@ -144,7 +144,7 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
     //
-    //! \param [in] bDecompressRangeCmp_ true to decompress RANGECMP messages.
+    //! \param[in] bDecompressRangeCmp_ true to decompress RANGECMP messages.
     //----------------------------------------------------------------------------
     void SetDecompressRangeCmp(bool bDecompressRangeCmp_);
 
@@ -158,7 +158,7 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Set the return option for unknown bytes.
     //
-    //! \param [in] bReturnUnknownBytes_ true to return unknown bytes.
+    //! \param[in] bReturnUnknownBytes_ true to return unknown bytes.
     //----------------------------------------------------------------------------
     void SetReturnUnknownBytes(bool bReturnUnknownBytes_);
 
@@ -172,7 +172,7 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Set the encode format for messages.
     //
-    //! \param [in] eFormat_ the encode format for future messages.
+    //! \param[in] eFormat_ the encode format for future messages.
     //----------------------------------------------------------------------------
     void SetEncodeFormat(ENCODE_FORMAT eFormat_);
 
@@ -186,7 +186,7 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Set the Filter for the FileParser.
     //
-    //! \param [in] pclFilter_ A pointer to an OEM message Filter object.
+    //! \param[in] pclFilter_ A pointer to an OEM message Filter object.
     //----------------------------------------------------------------------------
     void SetFilter(Filter* pclFilter_);
 
@@ -200,7 +200,7 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Set the InputFileStream for the FileParser.
     //
-    //! \param [in] pclInputStream_ A pointer to the input stream.
+    //! \param[in] pclInputStream_ A pointer to the input stream.
     //
     //! \return A boolean describing if the operation was successful
     //----------------------------------------------------------------------------
@@ -209,9 +209,9 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Read a log from the FileParser.
     //
-    //! \param [out] stMessageData_ A reference to a MessageDataStruct to be
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
     //! populated by the FileParser.
-    //! \param [out] stMetaData_ A reference to a MetaDataStruct to be populated
+    //! \param[out] stMetaData_ A reference to a MetaDataStruct to be populated
     //! by the FileParser.
     //
     //! \return An error code describing the result of parsing.
@@ -234,9 +234,9 @@ class FileParser
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Parser.
     //
-    //! \param [in] pucBuffer_ A buffer to contain flushed bytes, if desired.
+    //! \param[in] pucBuffer_ A buffer to contain flushed bytes, if desired.
     //! Defaults to nullptr.
-    //! \param [in] uiBufferSize_ The length of ulBufferSize_, if provided.
+    //! \param[in] uiBufferSize_ The length of ulBufferSize_, if provided.
     //
     //! \return The number of bytes flushed from the internal Parser.
     //----------------------------------------------------------------------------

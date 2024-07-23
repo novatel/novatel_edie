@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 
     if (!clFileParser.SetStream(&clIfs))
     {
-        pclLogger->error("Input stream could not be set.  The stream is either unavailable or exhausted.");
+        pclLogger->error("Input stream could not be set. The stream is either unavailable or exhausted.");
         exit(-1);
     }
 

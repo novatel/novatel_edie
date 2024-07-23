@@ -76,7 +76,7 @@ class Encoder : public EncoderBase
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Encoder class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.  Defaults to nullptr.
+    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     Encoder(JsonReader* pclJsonDb_ = nullptr);
 
@@ -106,7 +106,7 @@ class Encoder : public EncoderBase
     //! but the buffer is already full or could not write the bytes without
     //! over-running.
     //!   FAILURE: stMessageData_.pucMessageHeader was not correctly set inside
-    //! this function.  This should not happen.
+    //! this function. This should not happen.
     //!   UNSUPPORTED: eFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
@@ -129,7 +129,7 @@ class Encoder : public EncoderBase
     //! This must be populated by the Framer and HeaderDecoder.
     //! \param[in] eFormat_ The format to encode the message to.
     //! \param[in] bIsEmbeddedHeader_ This header is embedded in an RXCONFIG
-    //! message, and should be treated as such.  Is a default argument and is
+    //! message, and should be treated as such. Is a default argument and is
     //! defaulted as false.
     //
     //! \return An error code describing the result of encoding.

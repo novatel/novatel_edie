@@ -31,6 +31,7 @@
 
 //============================================================================
 //! \class CircularBuffer
+//! \brief Used for maintaining a continuous/rotating buffer of set capacity.
 //============================================================================
 class CircularBuffer
 {
@@ -64,29 +65,29 @@ class CircularBuffer
     void SetCapacity(uint32_t uiCapacity_);
 
     //----------------------------------------------------------------------------
-    //! \brief Returns current capacity of buffer.
+    //! \return current capacity of buffer.
     //----------------------------------------------------------------------------
     [[nodiscard]] inline uint32_t GetCapacity() const;
 
     //----------------------------------------------------------------------------
-    //! \brief Returns number of bytes of data in buffer. Number of bytes between
+    //! \return number of bytes of data in buffer. Number of bytes between
     //! beginning of buffer and write cursor.
     //----------------------------------------------------------------------------
     [[nodiscard]] inline uint32_t GetLength() const;
 
     //----------------------------------------------------------------------------
-    //! \brief Returns the current buffer.
+    //! \return the current buffer.
     //----------------------------------------------------------------------------
     [[nodiscard]] inline unsigned char* GetBuffer() const;
 
     //----------------------------------------------------------------------------
-    //! \brief Append data to end of buffer.  Will increase buffer size if needed.
+    //! \brief Append data to end of buffer. Will increase buffer size if needed.
     //
     //! \param[in] pucData_ unsigned char buffer pointer from which data to
     //! append to the queue.
     //! \param[in] uiBytes_ Size of data (in bytes) to append from above address.
     //
-    //! \return AReturn number of bytes actually appended
+    //! \return Number of bytes actually appended
     //! \remark If size of data is more than the capacity of buffer, heap will be
     //! created on time.
     //----------------------------------------------------------------------------
@@ -125,7 +126,7 @@ class CircularBuffer
     //! \brief Return copy of byte at iIndex_ (throw exception if iIndex_ out of
     //! bounds)
     //
-    //! \param [in] iIndex_ integer value
+    //! \param[in] iIndex_ integer value
     //
     //! \return The byte at the provided index.
     //----------------------------------------------------------------------------
@@ -136,34 +137,14 @@ class CircularBuffer
 // Inline Functions
 //-----------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
-//! \brief Returns the current capacity of buffer.
-//----------------------------------------------------------------------------
 inline uint32_t CircularBuffer::GetCapacity() const { return uiMyCapacity; }
 
-//----------------------------------------------------------------------------
-//! \brief Returns number of bytes of data in buffer.
-//----------------------------------------------------------------------------
 inline uint32_t CircularBuffer::GetLength() const { return uiMyLength; }
 
-//----------------------------------------------------------------------------
-//! \brief Delete contents of buffer, internally called Discard method.
-//----------------------------------------------------------------------------
 inline void CircularBuffer::Clear() { Discard(uiMyLength); }
 
-//----------------------------------------------------------------------------
-//! \brief Returns entire circular buffer.
-//----------------------------------------------------------------------------
 inline unsigned char* CircularBuffer::GetBuffer() const { return pucMyBuffer; }
 
-//----------------------------------------------------------------------------
-//! \brief Returns copy of byte at iIndex_ (throw exception if iIndex_ out of
-//! bounds)
-//
-//! \param [in] iIndex_ integer value
-//
-//! \return unsigned character
-//----------------------------------------------------------------------------
 inline unsigned char CircularBuffer::operator[](const int32_t iIndex_) const { return GetByte(iIndex_); }
 
 #endif // CIRCULAR_BUFFER_HPP

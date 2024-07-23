@@ -157,7 +157,7 @@ class EncoderBase
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Encoder class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.  Defaults to nullptr.
+    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     EncoderBase(JsonReader* pclJsonDb_ = nullptr);
 

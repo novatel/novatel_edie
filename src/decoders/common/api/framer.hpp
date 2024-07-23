@@ -33,8 +33,8 @@
 #include "logger.hpp"
 
 //============================================================================
-//! \class Framer
-//! \brief Base class for all framers.  Contains necessary buffers and member
+//! \class FramerBase
+//! \brief Base class for all framers. Contains necessary buffers and member
 //! variables, defining generic framer operations.
 //============================================================================
 class FramerBase

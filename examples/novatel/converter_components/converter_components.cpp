@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
                 pucFrameBuffer[stMetaData.uiLength] = '\0';
                 pclLogger->info("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
 
-                // Decode the header.  Get metadata here and populate the Intermediate header.
+                // Decode the header. Get metadata here and populate the Intermediate header.
                 eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
 
                 if (eDecoderStatus == STATUS::SUCCESS)

@@ -197,7 +197,7 @@ constexpr uint32_t RC_GLONASS_FREQUENCY_SHIFT = 26;
 //-----------------------------------------------------------------------
 //! RANGECMP2 data field masks, shifts and scale factors.
 //! NOTE: RANGECMP2 contains two kinds of blocks - Satellite (SAT) and
-//! Signal (SIG) - each with oddly sized bitfields.  The bitfields can be
+//! Signal (SIG) - each with oddly sized bitfields. The bitfields can be
 //! masked out of larger fields (that are multiples of bytes) which
 //! contain the relevant information. By utilizing bitmasks and logical
 //! shift operators, these oddly sized bitfields can be contained within
@@ -258,7 +258,7 @@ constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK = 0xFFFE0000;
 //! RANGECMP4 data field masks, shifts and scale factors.
 //! NOTE: RANGECMP4 field sizes are defined by the number of bits.
 //! Unlike RANGECMP and RANGECMP2, RANGECMP4 has no consistently sized
-//! data.  The method of decoding will deviate from type-casting large
+//! data. The method of decoding will deviate from type-casting large
 //! data blocks to extracting specific-sized bitfields from a byte array.
 //! In order to achieve this, the size of each field (in bits, not bytes)
 //! must be defined.
@@ -327,7 +327,7 @@ constexpr std::array<int64_t, 2> RC4_RBLK_INVALID_PSR = {137438953471, -524288};
 
 //-----------------------------------------------------------------------
 //! \enum SYSTEM
-//! \brief Satellite Constellation System enumerations.  These can also
+//! \brief Satellite Constellation System enumerations. These can also
 //! be used to shift a sytem mask for decoding.
 //! \note These are different than the enumerations for the Satellite
 //! System field of the Channel Tracking Status word.
@@ -449,7 +449,7 @@ struct RangeCmp2LockTimeInfoStruct
 
 namespace RangeCmp2 {
 //--------------------------------------------------------------------
-//! \enum RangeCmp2::SIGNAL_TYPE
+//! \enum SIGNAL_TYPE
 //! \brief RANGECMP2 message Signal Type value bitfield
 //! representations as defined by RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=Range#SignalType_RANGECMP2
@@ -515,11 +515,11 @@ struct RangeCmp2Struct
 
 #pragma pack(pop)
 //! NOTE: None of the RANGECMP4 structures are packed because the method
-//! of decompression is not a cast-based decode operation.  The bitfields
+//! of decompression is not a cast-based decode operation. The bitfields
 //! are far too complex and oddly-sized such that each field must be
-//! extracted from the binary data buffer one at a time.  A bitfield
+//! extracted from the binary data buffer one at a time. A bitfield
 //! helper function should be used to determine and populate the
-//! following structures.  These are for containment purposes only.
+//! following structures. These are for containment purposes only.
 
 //-----------------------------------------------------------------------
 //! \struct RangeCmp4MeasurementBlockHeaderStruct
@@ -579,7 +579,7 @@ struct RangeCmp4LocktimeInfoStruct
 //-----------------------------------------------------------------------
 namespace RangeCmp4 {
 //--------------------------------------------------------------------
-//! \enum RangeCmp4::SIGNAL_TYPE
+//! \enum SIGNAL_TYPE
 //! \brief RANGECMP4 message Signal Type value bitfield
 //! representations as defined by RANGECMP4 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Signal
@@ -634,11 +634,11 @@ enum class SIGNAL_TYPE
 
 //-----------------------------------------------------------------------
 //! \struct ChannelTrackingStatusStruct
-//! \brief Channel Tracking Status word fields decoded.  Fields are from
+//! \brief Channel Tracking Status word fields decoded. Fields are from
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm#TrackingState.
 //! Not every RANGECMP* message contains a raw form of the channel
-//! tracking status word.  It is the case that it must be constructed
-//! from known data during the decompression process.  However, it is
+//! tracking status word. It is the case that it must be constructed
+//! from known data during the decompression process. However, it is
 //! also highly probably that there will be fields in the channel
 //! tracking status word that cannot be inferred based on the data in the
 //! RANGECMP* log, and certain defaults must be applied.

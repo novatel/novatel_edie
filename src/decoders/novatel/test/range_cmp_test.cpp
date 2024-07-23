@@ -154,7 +154,7 @@ TEST_F(RangeCmpTest, BITFIELD_2)
 
 TEST_F(RangeCmpTest, BITFIELD_3)
 {
-   // 9 bytes, 72 bits.  We should not be able to ask for more than 64 bits from this function.
+   // 9 bytes, 72 bits. We should not be able to ask for more than 64 bits from this function.
    uint8_t aucBytes[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
    uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 

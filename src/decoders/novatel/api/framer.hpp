@@ -48,7 +48,7 @@ class Framer : public FramerBase
 
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
-    //! \param [in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
+    //! \param[in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
     //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
     //----------------------------------------------------------------------------
     [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
@@ -65,10 +65,10 @@ class Framer : public FramerBase
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
     //
-    //! \param [out] pucFrameBuffer_ The buffer which the Framer should copy the
+    //! \param[out] pucFrameBuffer_ The buffer which the Framer should copy the
     //! framed OEM message to.
-    //! \param [in] uiFrameBufferSize_ The length of pucFrameBuffer_.
-    //! \param [out] stMetaData_ A MetaDataStruct to contain some information
+    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
+    //! \param[out] stMetaData_ A MetaDataStruct to contain some information
     //! about OEM message frame.
     //
     //! \return An error code describing the result of framing.

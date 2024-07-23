@@ -79,7 +79,7 @@ uint32_t CircularBuffer::Append(const unsigned char* pucData_, uint32_t uiBytes_
         if (uiBytes_ > uiMyCapacity - uiMyLength) { uiBytes_ = uiMyCapacity - uiMyLength; }
     }
 
-    // Append data to buffer.  Do this in 2 steps, in case of wrap around.
+    // Append data to buffer. Do this in 2 steps, in case of wrap around.
     // Don't need to worry about overwriting data, because we enlarged the
     // buffer to guarantee a fit.
     auto uiCopyBytes = std::min(static_cast<uint32_t>(pucMyBuffer + uiMyCapacity - pucMyTail), uiBytes_);
@@ -91,7 +91,7 @@ uint32_t CircularBuffer::Append(const unsigned char* pucData_, uint32_t uiBytes_
     pucMyTail += uiCopyBytes;
     pucData_ += uiCopyBytes;
 
-    // Copy any remaining data.  No need to check for overwriting data because
+    // Copy any remaining data. No need to check for overwriting data because
     // uiBytes_ was adjusted as necessary in the 'Enlarge buffer' block above
     uiCopyBytes = uiBytes_ - uiCopyBytes;
     if (uiCopyBytes > 0)
@@ -130,7 +130,7 @@ uint32_t CircularBuffer::Copy(unsigned char* pucTarget_, uint32_t uiBytes_) cons
     if (uiBytes_ > 0)
     {
         // Copy data from our buffer to the target buffer, beginning
-        // at the logical beginning of our buffer.  We do this in two
+        // at the logical beginning of our buffer. We do this in two
         // steps, in case of wraparound.
         auto uiCopyBytes = std::min(static_cast<uint32_t>(pucMyBuffer + uiMyCapacity - pucMyHead), uiBytes_);
 

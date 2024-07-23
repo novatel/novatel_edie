@@ -43,7 +43,7 @@ constexpr uint16_t US_RX_CONFIG_USER_MSG_ID = 2474;
 //============================================================================
 //! \class RxConfigHandler
 //! \brief Class to handle RXCONFIGA and RXCONFIGB messages, which are
-//! outliers with regard to OEM message protocol.  This class should have
+//! outliers with regard to OEM message protocol. This class should have
 //! bytes containing RXCONFIG messages written to it with calls to Write()
 //! and the converted data should be retrieved with calls to Convert().
 //============================================================================
@@ -126,8 +126,8 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     //! \brief Write bytes to the RxConfigHandler to be converted.
     //
-    //! \param [in] pucData_ Buffer containing data to be written.
-    //! \param [in] uiDataSize_ Size of data to be written.
+    //! \param[in] pucData_ Buffer containing data to be written.
+    //! \param[in] uiDataSize_ Size of data to be written.
     //
     //! \return The number of bytes successfully written to the RxConfigHandler.
     //----------------------------------------------------------------------------
@@ -136,13 +136,13 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     //! \brief Read and convert an RXCONFIG message from the handler.
     //
-    //! \param [out] stRxConfigMessageData_ A reference to a MessageDataStruct to be
+    //! \param[out] stRxConfigMessageData_ A reference to a MessageDataStruct to be
     //! populated by the handler, referring to the RXCONFIG message.
-    //! \param [out] stRxConfigMetaData_ A reference to a MetaDataStruct to be populated
+    //! \param[out] stRxConfigMetaData_ A reference to a MetaDataStruct to be populated
     //! by the handler, referring to the RXCONFIG message.
-    //! \param [out] stEmbeddedMessageData_ A reference to a MessageDataStruct to be
+    //! \param[out] stEmbeddedMessageData_ A reference to a MessageDataStruct to be
     //! populated by the handler, referring to the embedded message in RXCONFIG.
-    //! \param [out] stEmbeddedMetaData_ A reference to a MetaDataStruct to be populated
+    //! \param[out] stEmbeddedMetaData_ A reference to a MetaDataStruct to be populated
     //! by the handler, referring to the embedded message in RXCONFIG.
     //! \param[in] eEncodeFormat_ An enum describing the format to encode the message to.
     //
@@ -155,9 +155,9 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Framer.
     //
-    //! \param [in] pucBuffer_ A buffer to contain flushed bytes, if desired.
+    //! \param[in] pucBuffer_ A buffer to contain flushed bytes, if desired.
     //! Defaults to NULL.
-    //! \param [in] uiBufferSize_ The length of ulBufferSize_, if provided.
+    //! \param[in] uiBufferSize_ The length of ulBufferSize_, if provided.
     //! Defaults to the size of the internal buffer (64kB).
     //
     //! \return The number of bytes flushed from the internal Framer.

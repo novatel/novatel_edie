@@ -487,7 +487,7 @@ class JsonReader
     //----------------------------------------------------------------------------
     //! \brief A copy constructor for the JsonReader class.
     //
-    //! \param [in] that_ The JsonReader object to copy.
+    //! \param[in] that_ The JsonReader object to copy.
     //----------------------------------------------------------------------------
     JsonReader(const JsonReader& that_)
     {
@@ -500,7 +500,7 @@ class JsonReader
     //----------------------------------------------------------------------------
     //! \brief Overloaded assignment operator for the JsonReader class.
     //
-    //! \param [in] that_ The JsonReader object to assign.
+    //! \param[in] that_ The JsonReader object to assign.
     //----------------------------------------------------------------------------
     JsonReader& operator=(const JsonReader& that_)
     {
@@ -522,79 +522,79 @@ class JsonReader
     //----------------------------------------------------------------------------
     //! \brief Load a Json DB from the provided filepath.
     //
-    //! \param [in] filePath_ The filepath to the Json file.
+    //! \param[in] filePath_ The filepath to the Json file.
     //----------------------------------------------------------------------------
     template <typename T> void LoadFile(T filePath_);
 
     //----------------------------------------------------------------------------
     //! \brief Append a message Json DB from the provided filepath.
     //
-    //! \param [in] filePath_ The filepath to the Json file.
+    //! \param[in] filePath_ The filepath to the Json file.
     //----------------------------------------------------------------------------
     template <typename T> void AppendMessages(T filePath_);
 
     //----------------------------------------------------------------------------
     //! \brief Append an enumeration Json DB from the provided filepath.
     //
-    //! \param [in] filePath_ The filepath to the Json file.
+    //! \param[in] filePath_ The filepath to the Json file.
     //----------------------------------------------------------------------------
     template <typename T> void AppendEnumerations(T filePath_);
 
     //----------------------------------------------------------------------------
     //! \brief Append a message Json DB from the provided filepath.
     //
-    //! \param [in] iMsgId_ The message ID
-    //! \param [in] bGenerateMappings_ Boolean for generating mappings
+    //! \param[in] iMsgId_ The message ID
+    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
     void RemoveMessage(uint32_t iMsgId_, bool bGenerateMappings_ = true);
 
     //----------------------------------------------------------------------------
     //! \brief Append an enumeration Json DB from the provided filepath.
     //
-    //! \param [in] strEnumeration_ The enumeration name
-    //! \param [in] bGenerateMappings_ Boolean for generating mappings
+    //! \param[in] strEnumeration_ The enumeration name
+    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
     void RemoveEnumeration(const std::string& strEnumeration_, bool bGenerateMappings_);
 
     //----------------------------------------------------------------------------
     //! \brief Parse the Json string provided.
     //
-    //! \param [in] strJsonData_ A string containing Json objects.
+    //! \param[in] strJsonData_ A string containing Json objects.
     //----------------------------------------------------------------------------
     void ParseJson(const std::string& strJsonData_);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
     //
-    //! \param [in] strMsgName_ A string containing the message name.
+    //! \param[in] strMsgName_ A string containing the message name.
     //----------------------------------------------------------------------------
     [[nodiscard]] const MessageDefinition* GetMsgDef(const std::string& strMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message ID.
     //
-    //! \param [in] iMsgId_ The message ID.
+    //! \param[in] iMsgId_ The message ID.
     //----------------------------------------------------------------------------
     [[nodiscard]] const MessageDefinition* GetMsgDef(int32_t iMsgId_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Convert a message name string to a message ID number.
     //
-    //! \param [in] sMsgName_ The message name string
+    //! \param[in] sMsgName_ The message name string
     //----------------------------------------------------------------------------
     [[nodiscard]] uint32_t MsgNameToMsgId(std::string sMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Convert a message ID number to a message name string.
     //
-    //! \param [in] uiMessageId_ The message ID number
+    //! \param[in] uiMessageId_ The message ID number
     //----------------------------------------------------------------------------
     [[nodiscard]] std::string MsgIdToMsgName(uint32_t uiMessageId_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB enum definition for the provided enum ID.
     //
-    //! \param [in] sEnumId_ The enum ID.
+    //! \param[in] sEnumId_ The enum ID.
     //----------------------------------------------------------------------------
     [[nodiscard]] EnumDefinition* GetEnumDefId(const std::string& sEnumId_) const
     {
@@ -605,7 +605,7 @@ class JsonReader
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB enum definition for the provided enum name.
     //
-    //! \param [in] sEnumName_ The enum name.
+    //! \param[in] sEnumName_ The enum name.
     //----------------------------------------------------------------------------
     [[nodiscard]] EnumDefinition* GetEnumDefName(const std::string& sEnumName_) const
     {
