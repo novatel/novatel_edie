@@ -479,6 +479,7 @@ class JsonReader
 
   protected:
     std::vector<EnumDefinition> vEnumDefinitions;
+
   public:
     //----------------------------------------------------------------------------
     //! \brief A constructor for the JsonReader class.
