@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1afce378f62ab4bdf7a792a29ff9da4dc5:
+
+Variable novatel::edie::oem::FREQUENCY_HZ_GAL_E1
+================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::FREQUENCY_HZ_GAL_E1
+   :project: handlerfactory

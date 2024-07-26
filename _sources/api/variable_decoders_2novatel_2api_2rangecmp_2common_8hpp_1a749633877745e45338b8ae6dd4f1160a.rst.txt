@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a749633877745e45338b8ae6dd4f1160a:
+
+Variable novatel::edie::oem::FREQUENCY_HZ_GPS_L5
+================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::FREQUENCY_HZ_GPS_L5
+   :project: handlerfactory

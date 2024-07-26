@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__commander_8hpp_1a844c5e9fbe2453586770db1542785e9d:
+
+Function NovatelCommanderShutdownLogger
+=======================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_commander.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelCommanderShutdownLogger(novatel::edie::oem::Commander *)
+   :project: handlerfactory

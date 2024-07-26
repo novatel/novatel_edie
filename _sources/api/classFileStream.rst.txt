@@ -1,0 +1,17 @@
+.. _exhale_class_classFileStream:
+
+Class FileStream
+================
+
+- Defined in :ref:`file_src_hw_interface_stream_interface_api_filestream.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: FileStream
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

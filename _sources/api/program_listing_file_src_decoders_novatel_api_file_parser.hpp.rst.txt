@@ -1,0 +1,197 @@
+
+.. _program_listing_file_src_decoders_novatel_api_file_parser.hpp:
+
+Program Listing for File file_parser.hpp
+========================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_src_decoders_novatel_api_file_parser.hpp>` (``src/decoders/novatel/api/file_parser.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   // ===============================================================================
+   // |                                                                             |
+   // |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+   // |                                                                             |
+   // |  Permission is hereby granted, free of charge, to any person obtaining a    |
+   // |  copy of this software and associated documentation files (the "Software"), |
+   // |  to deal in the Software without restriction, including without limitation  |
+   // |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+   // |  and/or sell copies of the Software, and to permit persons to whom the      |
+   // |  Software is furnished to do so, subject to the following conditions:       |
+   // |                                                                             |
+   // |  The above copyright notice and this permission notice shall be included    |
+   // |  in all copies or substantial portions of the Software.                     |
+   // |                                                                             |
+   // |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+   // |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+   // |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+   // |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+   // |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+   // |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+   // |  DEALINGS IN THE SOFTWARE.                                                  |
+   // |                                                                             |
+   // ===============================================================================
+   // ! \file file_parser.hpp
+   // ===============================================================================
+   
+   #ifndef NOVATEL_FILE_PARSER_HPP
+   #define NOVATEL_FILE_PARSER_HPP
+   
+   #include "decoders/common/api/common.hpp"
+   #include "decoders/novatel/api/parser.hpp"
+   #include "hw_interface/stream_interface/api/inputfilestream.hpp"
+   
+   namespace novatel::edie::oem {
+   
+   //============================================================================
+   //============================================================================
+   class FileParser
+   {
+     private:
+       std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
+   
+       Parser clMyParser;
+       InputFileStream* pclMyInputStream;
+       StreamReadStatus stMyStreamReadStatus;
+       ReadDataStructure stMyReadData;
+       unsigned char* const pcMyStreamReadBuffer;
+   
+       [[nodiscard]] bool ReadStream();
+   
+     public:
+       FileParser(const FileParser&) = delete;
+       FileParser(const FileParser&&) = delete;
+       FileParser& operator=(const FileParser&) = delete;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       FileParser(const std::string& sDbPath_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       FileParser(const std::u32string& sDbPath_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       FileParser(JsonReader* pclJsonDb_ = nullptr);
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       ~FileParser();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void LoadJsonDb(JsonReader* pclJsonDb_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log");
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       static void ShutdownLogger();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] uint32_t GetPercentRead() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetDecompressRangeCmp(bool bDecompressRangeCmp_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] bool GetDecompressRangeCmp() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetReturnUnknownBytes(bool bReturnUnknownBytes_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] bool GetReturnUnknownBytes() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetEncodeFormat(ENCODE_FORMAT eFormat_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetFilter(Filter* pclFilter_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] Filter* GetFilter() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] bool SetStream(InputFileStream* pclInputStream_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       bool Reset();
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = Parser::uiParserInternalBufferSize);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] unsigned char* GetInternalBuffer() const;
+   };
+   
+   } // namespace novatel::edie::oem
+   
+   #endif // NOVATEL_FILE_PARSER_HPP

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a98df60d0a6eae88c75f50ca278ff25ff:
+
+Variable novatel::edie::oem::RC2_SIG_CODE_LOCK_MASK
+===================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_CODE_LOCK_MASK
+   :project: handlerfactory

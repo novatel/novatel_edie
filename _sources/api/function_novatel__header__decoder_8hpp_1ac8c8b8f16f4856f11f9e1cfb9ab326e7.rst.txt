@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__header__decoder_8hpp_1ac8c8b8f16f4856f11f9e1cfb9ab326e7:
+
+Function NovatelHeaderDecoderDelete
+===================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelHeaderDecoderDelete(novatel::edie::oem::HeaderDecoder *)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1a9999533722ee3f47446c6ba22b4506ad:
+
+Function NovatelFramerDelete
+============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerDelete(novatel::edie::oem::Framer *)
+   :project: handlerfactory

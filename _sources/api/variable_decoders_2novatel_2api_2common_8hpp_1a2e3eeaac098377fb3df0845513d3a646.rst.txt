@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2common_8hpp_1a2e3eeaac098377fb3df0845513d3a646:
+
+Variable novatel::edie::oem::OEM4_ABBREV_ASCII_SEPARATOR
+========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::OEM4_ABBREV_ASCII_SEPARATOR
+   :project: handlerfactory

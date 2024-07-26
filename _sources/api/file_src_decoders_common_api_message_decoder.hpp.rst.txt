@@ -1,0 +1,89 @@
+
+.. _file_src_decoders_common_api_message_decoder.hpp:
+
+File message_decoder.hpp
+========================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_common_api>` (``src/decoders/common/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/common/api/message_decoder.hpp``)
+------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_common_api_message_decoder.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders/common/api/common.hpp`` (:ref:`file_src_decoders_common_api_common.hpp`)
+
+- ``decoders/common/api/json_reader.hpp`` (:ref:`file_src_decoders_common_api_json_reader.hpp`)
+
+- ``decoders/common/api/logger.hpp`` (:ref:`file_src_decoders_common_api_logger.hpp`)
+
+- ``decoders/common/api/message_decoder.hpp`` (:ref:`file_src_decoders_common_api_message_decoder.hpp`)
+
+- ``nlohmann/json.hpp``
+
+- ``string``
+
+- ``variant``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_decoders_common_api_encoder.hpp`
+
+- :ref:`file_src_decoders_common_api_message_decoder.hpp`
+
+- :ref:`file_src_decoders_novatel_api_encoder.hpp`
+
+- :ref:`file_src_decoders_novatel_api_message_decoder.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1FieldContainer`
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1MessageDecoderBase`
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_common_2api_2message__decoder_8hpp_1a754ccca0bea1f0e62a1c9420ea56df15`
+
+- :ref:`exhale_define_common_2api_2message__decoder_8hpp_1a8f57431bd1b50da9df723eb31732ad0e`
+

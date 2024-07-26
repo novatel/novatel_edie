@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a6c16d9428ae7660b22c3b20d5a449b71:
+
+Variable novatel::edie::oem::QZSS_PRN_OFFSET
+============================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::QZSS_PRN_OFFSET
+   :project: handlerfactory

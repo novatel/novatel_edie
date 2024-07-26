@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1aa1bc5e2dac3b3f0a67a45001531a6c1d:
+
+Variable novatel::edie::oem::CTS_PRIMARY_L1_CHANNEL_SHIFT
+=========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_PRIMARY_L1_CHANNEL_SHIFT
+   :project: handlerfactory

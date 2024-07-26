@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2common_2api_2common_8hpp_1ad49506790d8038807f78566e2e5fad20:
+
+Function novatel::edie::StatusToString
+======================================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::StatusToString(const STATUS)
+   :project: handlerfactory

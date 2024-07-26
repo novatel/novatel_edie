@@ -1,0 +1,14 @@
+.. _exhale_variable_stream__interface_8hpp_1a6fc08e9f244620499cae48b0014b8a0e:
+
+Variable pcReadBuf_
+===================
+
+- Defined in :ref:`file_src_hw_interface_dynamic_library_api_stream_interface.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: pcReadBuf_
+   :project: handlerfactory

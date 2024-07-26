@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a543ff5fccb2bc370f4d69826a6546500:
+
+Variable novatel::edie::oem::CTS_CORRELATOR_MASK
+================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_CORRELATOR_MASK
+   :project: handlerfactory

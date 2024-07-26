@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__header__decoder_8hpp_1a3c9072e0adc56e97bed213368fca5acb:
+
+Function NovatelHeaderDecoderLoadJson
+=====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelHeaderDecoderLoadJson(novatel::edie::oem::HeaderDecoder *, novatel::edie::JsonReader *)
+   :project: handlerfactory

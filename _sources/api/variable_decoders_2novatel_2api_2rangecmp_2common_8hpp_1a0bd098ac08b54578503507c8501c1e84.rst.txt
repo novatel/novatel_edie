@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a0bd098ac08b54578503507c8501c1e84:
+
+Variable novatel::edie::oem::RC4_SIG_BLK_PSR_SCALE_FACTOR
+=========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_SIG_BLK_PSR_SCALE_FACTOR
+   :project: handlerfactory

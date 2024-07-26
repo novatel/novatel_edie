@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1aef3f223068f2ea4aee12aa2b1427373e:
+
+Variable novatel::edie::oem::CTS_GROUPING_MASK
+==============================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_GROUPING_MASK
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_enum_decoders_2common_2api_2common_8hpp_1af24978e6f9a0fb4f12f61b895de33cec:
+
+Enum ENCODE_FORMAT
+==================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::ENCODE_FORMAT
+   :project: handlerfactory

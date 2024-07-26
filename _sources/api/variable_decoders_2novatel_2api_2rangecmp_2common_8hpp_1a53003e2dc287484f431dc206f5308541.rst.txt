@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a53003e2dc287484f431dc206f5308541:
+
+Variable novatel::edie::oem::WAVELENGTH_GAL_E5AQ
+================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::WAVELENGTH_GAL_E5AQ
+   :project: handlerfactory

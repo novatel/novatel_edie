@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1abf1e5793cfdf772687981c5eac9d0130:
+
+Function NovatelFilterSetIncludeDecimation
+==========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterSetIncludeDecimation(novatel::edie::oem::Filter *, double)
+   :project: handlerfactory

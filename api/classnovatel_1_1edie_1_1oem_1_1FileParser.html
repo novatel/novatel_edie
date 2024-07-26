@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class FileParser &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class Filter" href="classnovatel_1_1edie_1_1oem_1_1Filter.html" />
+    <link rel="prev" title="Class Encoder" href="classnovatel_1_1edie_1_1oem_1_1Encoder.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct.html">Struct ChannelTrackingStatusStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html">Struct IntermediateHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html">Struct MetaDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryHeader.html">Struct Oem4BinaryHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader.html">Struct Oem4BinaryShortHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2LockTimeInfoStruct.html">Struct RangeCmp2LockTimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SatelliteBlockStruct.html">Struct RangeCmp2SatelliteBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SignalBlockStruct.html">Struct RangeCmp2SignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2Struct.html">Struct RangeCmp2Struct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4LocktimeInfoStruct.html">Struct RangeCmp4LocktimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementBlockHeaderStruct.html">Struct RangeCmp4MeasurementBlockHeaderStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementSignalBlockStruct.html">Struct RangeCmp4MeasurementSignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpDataStruct.html">Struct RangeCmpDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpStruct.html">Struct RangeCmpStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeDataStruct.html">Struct RangeDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeStruct.html">Struct RangeStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structReadDataStructure.html">Struct ReadDataStructure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSatelliteId.html">Struct SatelliteId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamReadStatus.html">Struct StreamReadStatus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFileStream.html">Class FileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputFileStream.html">Class InputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputMemoryStream.html">Class InputMemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputStreamInterface.html">Class InputStreamInterface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLogger.html">Class Logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMemoryStream.html">Class MemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiOutputFileStream.html">Class MultiOutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNExcept.html">Class NExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Commander.html">Class Commander</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Encoder.html">Class Encoder</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class FileParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html">Class Filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1HeaderDecoder.html">Class HeaderDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1MessageDecoder.html">Class MessageDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html">Class Parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html">Class RangeDecompressor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler.html">Class RxConfigHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputFileStream.html">Class OutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputStreamInterface.html">Class OutputStreamInterface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Class FileParser</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classnovatel_1_1edie_1_1oem_1_1FileParser.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-fileparser">
+<span id="exhale-class-classnovatel-1-1edie-1-1oem-1-1fileparser"></span><h1>Class FileParser<a class="headerlink" href="#class-fileparser" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_src_decoders_novatel_api_file_parser.hpp.html#file-src-decoders-novatel-api-file-parser-hpp"><span class="std std-ref">File file_parser.hpp</span></a></p></li>
+</ul>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParserE">
+<span id="_CPPv3N7novatel4edie3oem10FileParserE"></span><span id="_CPPv2N7novatel4edie3oem10FileParserE"></span><span id="novatel::edie::oem::FileParser"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FileParser</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParserE" title="Link to this definition"></a><br /></dt>
+<dd><p>Frame, decode and re-encode OEM logs from an <a class="reference internal" href="classInputFileStream.html#classInputFileStream"><span class="std std-ref">InputFileStream</span></a>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser10FileParserERK10FileParser">
+<span id="_CPPv3N7novatel4edie3oem10FileParser10FileParserERK10FileParser"></span><span id="_CPPv2N7novatel4edie3oem10FileParser10FileParserERK10FileParser"></span><span id="novatel::edie::oem::FileParser::FileParser__FileParserCR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a62ae2e713a8fe1e56ffbda5bc14b403f"></span><span class="sig-name descname"><span class="n"><span class="pre">FileParser</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem10FileParser10FileParserERK10FileParser" title="novatel::edie::oem::FileParser::FileParser"><span class="n"><span class="pre">FileParser</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser10FileParserERK10FileParser" title="Link to this definition"></a><br /></dt>
+<dd><p>TODO: Manage copy/move/assignment constructors better. NOTE: The following constructors prevent this class from ever being constructed from a copy, move or assignment. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser10FileParserERRK10FileParser">
+<span id="_CPPv3N7novatel4edie3oem10FileParser10FileParserERRK10FileParser"></span><span id="_CPPv2N7novatel4edie3oem10FileParser10FileParserERRK10FileParser"></span><span id="novatel::edie::oem::FileParser::FileParser__FileParserCRR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a8588ef5bad7b221650ec69635d8e9452"></span><span class="sig-name descname"><span class="n"><span class="pre">FileParser</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem10FileParser10FileParserERRK10FileParser" title="novatel::edie::oem::FileParser::FileParser"><span class="n"><span class="pre">FileParser</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser10FileParserERRK10FileParser" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParseraSERK10FileParser">
+<span id="_CPPv3N7novatel4edie3oem10FileParseraSERK10FileParser"></span><span id="_CPPv2N7novatel4edie3oem10FileParseraSERK10FileParser"></span><span id="novatel::edie::oem::FileParser::assign-operator__FileParserCR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1aefd61a782106e8e9267a9115c3fdc4b2"></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem10FileParserE" title="novatel::edie::oem::FileParser"><span class="n"><span class="pre">FileParser</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem10FileParserE" title="novatel::edie::oem::FileParser"><span class="n"><span class="pre">FileParser</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParseraSERK10FileParser" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser10FileParserERKNSt6stringE">
+<span id="_CPPv3N7novatel4edie3oem10FileParser10FileParserERKNSt6stringE"></span><span id="_CPPv2N7novatel4edie3oem10FileParser10FileParserERKNSt6stringE"></span><span id="novatel::edie::oem::FileParser::FileParser__ssCR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1ab9dfcc138898cb88fa56d52d7bacd463"></span><span class="sig-name descname"><span class="n"><span class="pre">FileParser</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sDbPath_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser10FileParserERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>A constructor for the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a> class. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sDbPath_</strong> – <strong>[in]</strong> Filepath to a JSON message DB. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser10FileParserERKNSt9u32stringE">
+<span id="_CPPv3N7novatel4edie3oem10FileParser10FileParserERKNSt9u32stringE"></span><span id="_CPPv2N7novatel4edie3oem10FileParser10FileParserERKNSt9u32stringE"></span><span id="novatel::edie::oem::FileParser::FileParser__std::u32stringCR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a07e85f4860293a93a8e333e5b7661c44"></span><span class="sig-name descname"><span class="n"><span class="pre">FileParser</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">u32string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sDbPath_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser10FileParserERKNSt9u32stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>A constructor for the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a> class. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sDbPath_</strong> – <strong>[in]</strong> Filepath to a JSON message DB. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser10FileParserEP10JsonReader">
+<span id="_CPPv3N7novatel4edie3oem10FileParser10FileParserEP10JsonReader"></span><span id="_CPPv2N7novatel4edie3oem10FileParser10FileParserEP10JsonReader"></span><span id="novatel::edie::oem::FileParser::FileParser__JsonReaderP"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a975e2667403f47a7b3711a5018f52396"></span><span class="sig-name descname"><span class="n"><span class="pre">FileParser</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#_CPPv4N7novatel4edie10JsonReaderE" title="novatel::edie::JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pclJsonDb_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">nullptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser10FileParserEP10JsonReader" title="Link to this definition"></a><br /></dt>
+<dd><p>A constructor for the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a> class. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pclJsonDb_</strong> – <strong>[in]</strong> A pointer to a <a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#classnovatel_1_1edie_1_1JsonReader"><span class="std std-ref">JsonReader</span></a> object. Defaults to nullptr. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParserD0Ev">
+<span id="_CPPv3N7novatel4edie3oem10FileParserD0Ev"></span><span id="_CPPv2N7novatel4edie3oem10FileParserD0Ev"></span><span id="novatel::edie::oem::FileParser::~FileParser"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1ac275e14c1714d057b81377ec500db564"></span><span class="sig-name descname"><span class="n"><span class="pre">~FileParser</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParserD0Ev" title="Link to this definition"></a><br /></dt>
+<dd><p>A destructor for the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a> class. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser10LoadJsonDbEP10JsonReader">
+<span id="_CPPv3N7novatel4edie3oem10FileParser10LoadJsonDbEP10JsonReader"></span><span id="_CPPv2N7novatel4edie3oem10FileParser10LoadJsonDbEP10JsonReader"></span><span id="novatel::edie::oem::FileParser::LoadJsonDb__JsonReaderP"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a5161476430559861c22f80b56de35603"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LoadJsonDb</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#_CPPv4N7novatel4edie10JsonReaderE" title="novatel::edie::JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pclJsonDb_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser10LoadJsonDbEP10JsonReader" title="Link to this definition"></a><br /></dt>
+<dd><p>Load a <a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#classnovatel_1_1edie_1_1JsonReader"><span class="std std-ref">JsonReader</span></a> object. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pclJsonDb_</strong> – <strong>[in]</strong> A pointer to a <a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#classnovatel_1_1edie_1_1JsonReader"><span class="std std-ref">JsonReader</span></a> object. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser9GetLoggerEv">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser9GetLoggerEv"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser9GetLoggerEv"></span><span id="novatel::edie::oem::FileParser::GetLoggerC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a2cc20ae2690f72da7b2e874f300d40c1"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLogger</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser9GetLoggerEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the internal logger. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A shared_ptr to the spdlog::logger. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser26EnableFramerDecoderLoggingEN6spdlog5level10level_enumERKNSt6stringE">
+<span id="_CPPv3N7novatel4edie3oem10FileParser26EnableFramerDecoderLoggingEN6spdlog5level10level_enumERKNSt6stringE"></span><span id="_CPPv2N7novatel4edie3oem10FileParser26EnableFramerDecoderLoggingEN6spdlog5level10level_enumERKNSt6stringE"></span><span id="novatel::edie::oem::FileParser::EnableFramerDecoderLogging__spdlog::level::level_enum.ssCR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a663502424fd0f496e469bf5a7e99b5fd"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EnableFramerDecoderLogging</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level_enum</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">eLevel_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">debug</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sFileName_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="s"><span class="pre">&quot;edie.log&quot;</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser26EnableFramerDecoderLoggingEN6spdlog5level10level_enumERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the level of detail produced by the internal components’ internal loggers. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eLevel_</strong> – <strong>[in]</strong> The logging level to enable. </p></li>
+<li><p><strong>sFileName_</strong> – <strong>[in]</strong> The logging level to enable. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser14SetLoggerLevelEN6spdlog5level10level_enumE">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser14SetLoggerLevelEN6spdlog5level10level_enumE"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser14SetLoggerLevelEN6spdlog5level10level_enumE"></span><span id="novatel::edie::oem::FileParser::SetLoggerLevel__spdlog::level::level_enumC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1ae38225f6b1d6f369d6c8e05190948347"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetLoggerLevel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level_enum</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">eLevel_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser14SetLoggerLevelEN6spdlog5level10level_enumE" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the level of detail produced by the internal logger. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>eLevel_</strong> – <strong>[in]</strong> The logging level to enable. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser34SetIgnoreAbbreviatedAsciiResponsesEb">
+<span id="_CPPv3N7novatel4edie3oem10FileParser34SetIgnoreAbbreviatedAsciiResponsesEb"></span><span id="_CPPv2N7novatel4edie3oem10FileParser34SetIgnoreAbbreviatedAsciiResponsesEb"></span><span id="novatel::edie::oem::FileParser::SetIgnoreAbbreviatedAsciiResponses__b"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1ab649826c427a162ba873aa224b15990d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetIgnoreAbbreviatedAsciiResponses</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">bIgnoreAbbreviatedAsciiResponses_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser34SetIgnoreAbbreviatedAsciiResponsesEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the abbreviated ASCII response option. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bIgnoreAbbreviatedAsciiResponses_</strong> – <strong>[in]</strong> true to ignore abbreviated ASCII responses. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser34GetIgnoreAbbreviatedAsciiResponsesEv">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser34GetIgnoreAbbreviatedAsciiResponsesEv"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser34GetIgnoreAbbreviatedAsciiResponsesEv"></span><span id="novatel::edie::oem::FileParser::GetIgnoreAbbreviatedAsciiResponsesC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a4724e88b0f4518685320d6c819df1bd3"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetIgnoreAbbreviatedAsciiResponses</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser34GetIgnoreAbbreviatedAsciiResponsesEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the abbreviated ASCII response option. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current option for ignoring abbreviated ASCII responses. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser14GetPercentReadEv">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser14GetPercentReadEv"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser14GetPercentReadEv"></span><span id="novatel::edie::oem::FileParser::GetPercentReadC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1aac651c535755a6d8e437f2d69fee58a7"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetPercentRead</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser14GetPercentReadEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the percent of the <a class="reference internal" href="classInputFileStream.html#classInputFileStream"><span class="std std-ref">InputFileStream</span></a> that has been parsed. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An integer percentage. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser21SetDecompressRangeCmpEb">
+<span id="_CPPv3N7novatel4edie3oem10FileParser21SetDecompressRangeCmpEb"></span><span id="_CPPv2N7novatel4edie3oem10FileParser21SetDecompressRangeCmpEb"></span><span id="novatel::edie::oem::FileParser::SetDecompressRangeCmp__b"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a466946ee86ad93a72b745068752f3eef"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetDecompressRangeCmp</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">bDecompressRangeCmp_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser21SetDecompressRangeCmpEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the decompression option for RANGECMP messages. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bDecompressRangeCmp_</strong> – <strong>[in]</strong> true to decompress RANGECMP messages. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser21GetDecompressRangeCmpEv">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser21GetDecompressRangeCmpEv"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser21GetDecompressRangeCmpEv"></span><span id="novatel::edie::oem::FileParser::GetDecompressRangeCmpC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a722bd3925410969c928b354887de63a7"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetDecompressRangeCmp</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser21GetDecompressRangeCmpEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the decompression option for RANGECMP messages. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current option for decompressing RANGECMP messages. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser21SetReturnUnknownBytesEb">
+<span id="_CPPv3N7novatel4edie3oem10FileParser21SetReturnUnknownBytesEb"></span><span id="_CPPv2N7novatel4edie3oem10FileParser21SetReturnUnknownBytesEb"></span><span id="novatel::edie::oem::FileParser::SetReturnUnknownBytes__b"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a505e74e6ed35d3fc7ad8cf4898a0bfc5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetReturnUnknownBytes</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">bReturnUnknownBytes_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser21SetReturnUnknownBytesEb" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the return option for unknown bytes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bReturnUnknownBytes_</strong> – <strong>[in]</strong> true to return unknown bytes. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser21GetReturnUnknownBytesEv">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser21GetReturnUnknownBytesEv"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser21GetReturnUnknownBytesEv"></span><span id="novatel::edie::oem::FileParser::GetReturnUnknownBytesC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a56f7a3bfa23c5a127ce9bf65b8386b84"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetReturnUnknownBytes</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser21GetReturnUnknownBytesEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the return option for unknown bytes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current option for returning unknown bytes. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser15SetEncodeFormatE13ENCODE_FORMAT">
+<span id="_CPPv3N7novatel4edie3oem10FileParser15SetEncodeFormatE13ENCODE_FORMAT"></span><span id="_CPPv2N7novatel4edie3oem10FileParser15SetEncodeFormatE13ENCODE_FORMAT"></span><span id="novatel::edie::oem::FileParser::SetEncodeFormat__ENCODE_FORMAT"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a5c75e4b1a75a0e2d4c90ccda19594fc3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetEncodeFormat</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="enum_decoders_2common_2api_2common_8hpp_1af24978e6f9a0fb4f12f61b895de33cec.html#_CPPv4N7novatel4edie13ENCODE_FORMATE" title="novatel::edie::ENCODE_FORMAT"><span class="n"><span class="pre">ENCODE_FORMAT</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eFormat_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser15SetEncodeFormatE13ENCODE_FORMAT" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the encode format for messages. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>eFormat_</strong> – <strong>[in]</strong> the encode format for future messages. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser15GetEncodeFormatEv">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser15GetEncodeFormatEv"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser15GetEncodeFormatEv"></span><span id="novatel::edie::oem::FileParser::GetEncodeFormatC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a56880742856201f404b7da2451f8431c"></span><a class="reference internal" href="enum_decoders_2common_2api_2common_8hpp_1af24978e6f9a0fb4f12f61b895de33cec.html#_CPPv4N7novatel4edie13ENCODE_FORMATE" title="novatel::edie::ENCODE_FORMAT"><span class="n"><span class="pre">ENCODE_FORMAT</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetEncodeFormat</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser15GetEncodeFormatEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the encode format for messages. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The current encode format for messages. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser9SetFilterEP6Filter">
+<span id="_CPPv3N7novatel4edie3oem10FileParser9SetFilterEP6Filter"></span><span id="_CPPv2N7novatel4edie3oem10FileParser9SetFilterEP6Filter"></span><span id="novatel::edie::oem::FileParser::SetFilter__FilterP"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a0ee0001a3e0cac500292057faa2a5492"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetFilter</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html#_CPPv4N7novatel4edie3oem6FilterE" title="novatel::edie::oem::Filter"><span class="n"><span class="pre">Filter</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pclFilter_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser9SetFilterEP6Filter" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the <a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html#classnovatel_1_1edie_1_1oem_1_1Filter"><span class="std std-ref">Filter</span></a> for the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pclFilter_</strong> – <strong>[in]</strong> A pointer to an OEM message <a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html#classnovatel_1_1edie_1_1oem_1_1Filter"><span class="std std-ref">Filter</span></a> object. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser9GetFilterEv">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser9GetFilterEv"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser9GetFilterEv"></span><span id="novatel::edie::oem::FileParser::GetFilterC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a7048d0df4119658b3362e0283141d2e0"></span><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html#_CPPv4N7novatel4edie3oem6FilterE" title="novatel::edie::oem::Filter"><span class="n"><span class="pre">Filter</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetFilter</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser9GetFilterEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the config for the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A pointer to the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a>’s OEM message <a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html#classnovatel_1_1edie_1_1oem_1_1Filter"><span class="std std-ref">Filter</span></a> object. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser9SetStreamEP15InputFileStream">
+<span id="_CPPv3N7novatel4edie3oem10FileParser9SetStreamEP15InputFileStream"></span><span id="_CPPv2N7novatel4edie3oem10FileParser9SetStreamEP15InputFileStream"></span><span id="novatel::edie::oem::FileParser::SetStream__InputFileStreamP"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a389654b0fd16a3b01266b8cd0b178e09"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetStream</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classInputFileStream.html#_CPPv415InputFileStream" title="InputFileStream"><span class="n"><span class="pre">InputFileStream</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pclInputStream_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser9SetStreamEP15InputFileStream" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the <a class="reference internal" href="classInputFileStream.html#classInputFileStream"><span class="std std-ref">InputFileStream</span></a> for the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pclInputStream_</strong> – <strong>[in]</strong> A pointer to the input stream. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A boolean describing if the operation was successful </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser4ReadER17MessageDataStructR14MetaDataStruct">
+<span id="_CPPv3N7novatel4edie3oem10FileParser4ReadER17MessageDataStructR14MetaDataStruct"></span><span id="_CPPv2N7novatel4edie3oem10FileParser4ReadER17MessageDataStructR14MetaDataStruct"></span><span id="novatel::edie::oem::FileParser::Read__MessageDataStructR.MetaDataStructR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a117dbe66256985dbe429c845c18d5f4e"></span><a class="reference internal" href="enum_decoders_2common_2api_2common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b.html#_CPPv4N7novatel4edie6STATUSE" title="novatel::edie::STATUS"><span class="n"><span class="pre">STATUS</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Read</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html#_CPPv4N7novatel4edie17MessageDataStructE" title="novatel::edie::MessageDataStruct"><span class="n"><span class="pre">MessageDataStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stMessageData_</span></span>, <a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html#_CPPv4N7novatel4edie3oem14MetaDataStructE" title="novatel::edie::oem::MetaDataStruct"><span class="n"><span class="pre">MetaDataStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stMetaData_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser4ReadER17MessageDataStructR14MetaDataStruct" title="Link to this definition"></a><br /></dt>
+<dd><p>Read a log from the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stMessageData_</strong> – <strong>[out]</strong> A reference to a <a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html#structnovatel_1_1edie_1_1MessageDataStruct"><span class="std std-ref">MessageDataStruct</span></a> to be populated by the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a>. </p></li>
+<li><p><strong>stMetaData_</strong> – <strong>[out]</strong> A reference to a <a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html#structnovatel_1_1edie_1_1oem_1_1MetaDataStruct"><span class="std std-ref">MetaDataStruct</span></a> to be populated by the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a>. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An error code describing the result of parsing. SUCCESS: A message was framed, decoded, filtered, encoded and stored internally, pointed to by stMessageData_. UNKNOWN: A message could not be found and unknown bytes were returned if requested in the ParserConfigStruct given to SetConfig(). FILE_EMPTY: There are no more bytes to parse in the file provided. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser5ResetEv">
+<span id="_CPPv3N7novatel4edie3oem10FileParser5ResetEv"></span><span id="_CPPv2N7novatel4edie3oem10FileParser5ResetEv"></span><span id="novatel::edie::oem::FileParser::Reset"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1a7a5f358061e31e616ea8f7d5b8a1fb81"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Reset</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser5ResetEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Reset the <a class="reference internal" href="classInputFileStream.html#classInputFileStream"><span class="std std-ref">InputFileStream</span></a>, and flush all bytes from the internal <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1FileParser"><span class="std std-ref">FileParser</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A boolean describing if the operation was successful. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser5FlushEPh8uint32_t">
+<span id="_CPPv3N7novatel4edie3oem10FileParser5FlushEPh8uint32_t"></span><span id="_CPPv2N7novatel4edie3oem10FileParser5FlushEPh8uint32_t"></span><span id="novatel::edie::oem::FileParser::Flush__unsigned-cP.uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1af01295a234e188599a45a4180eba79ab"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Flush</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pucBuffer_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">nullptr</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiBufferSize_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html#_CPPv4N7novatel4edie3oem6ParserE" title="novatel::edie::oem::Parser"><span class="n"><span class="pre">Parser</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html#_CPPv4N7novatel4edie3oem6Parser26uiParserInternalBufferSizeE" title="novatel::edie::oem::Parser::uiParserInternalBufferSize"><span class="n"><span class="pre">uiParserInternalBufferSize</span></span></a><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser5FlushEPh8uint32_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Flush all bytes from the internal <a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html#classnovatel_1_1edie_1_1oem_1_1Parser"><span class="std std-ref">Parser</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pucBuffer_</strong> – <strong>[in]</strong> A buffer to contain flushed bytes, if desired. Defaults to nullptr. </p></li>
+<li><p><strong>uiBufferSize_</strong> – <strong>[in]</strong> The length of ulBufferSize_, if provided. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of bytes flushed from the internal <a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html#classnovatel_1_1edie_1_1oem_1_1Parser"><span class="std std-ref">Parser</span></a>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem10FileParser17GetInternalBufferEv">
+<span id="_CPPv3NK7novatel4edie3oem10FileParser17GetInternalBufferEv"></span><span id="_CPPv2NK7novatel4edie3oem10FileParser17GetInternalBufferEv"></span><span id="novatel::edie::oem::FileParser::GetInternalBufferC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1ad30ccb2e0e7188882667cecb06ab5aa8"></span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetInternalBuffer</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem10FileParser17GetInternalBufferEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get a pointer to the current framed log raw data. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A pointer to the internal <a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html#classnovatel_1_1edie_1_1oem_1_1Parser"><span class="std std-ref">Parser</span></a>’s internal encode buffer. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem10FileParser14ShutdownLoggerEv">
+<span id="_CPPv3N7novatel4edie3oem10FileParser14ShutdownLoggerEv"></span><span id="_CPPv2N7novatel4edie3oem10FileParser14ShutdownLoggerEv"></span><span id="novatel::edie::oem::FileParser::ShutdownLogger"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1FileParser_1adcca0d879e14b1fb6412e5583f90be16"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShutdownLogger</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem10FileParser14ShutdownLoggerEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Shutdown the internal logger. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classnovatel_1_1edie_1_1oem_1_1Encoder.html" class="btn btn-neutral float-left" title="Class Encoder" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classnovatel_1_1edie_1_1oem_1_1Filter.html" class="btn btn-neutral float-right" title="Class Filter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

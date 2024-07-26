@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__message__decoder_8hpp_1a2e9e6577f6b9ae89269f1102fc22a15d:
+
+Function NovatelMessageDecoderDelete
+====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelMessageDecoderDelete(novatel::edie::oem::MessageDecoder *)
+   :project: handlerfactory

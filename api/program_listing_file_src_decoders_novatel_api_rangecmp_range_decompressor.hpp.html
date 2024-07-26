@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File range_decompressor.hpp &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File range_decompressor.hpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_src_decoders_novatel_api_rangecmp_range_decompressor.hpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-range-decompressor-hpp">
+<span id="program-listing-file-src-decoders-novatel-api-rangecmp-range-decompressor-hpp"></span><h1>Program Listing for File range_decompressor.hpp<a class="headerlink" href="#program-listing-for-file-range-decompressor-hpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_src_decoders_novatel_api_rangecmp_range_decompressor.hpp.html#file-src-decoders-novatel-api-rangecmp-range-decompressor-hpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">src/decoders/novatel/api/rangecmp/range_decompressor.hpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// ===============================================================================</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  Permission is hereby granted, free of charge, to any person obtaining a    |</span>
+<span class="c1">// |  copy of this software and associated documentation files (the &quot;Software&quot;), |</span>
+<span class="c1">// |  to deal in the Software without restriction, including without limitation  |</span>
+<span class="c1">// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |</span>
+<span class="c1">// |  and/or sell copies of the Software, and to permit persons to whom the      |</span>
+<span class="c1">// |  Software is furnished to do so, subject to the following conditions:       |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  The above copyright notice and this permission notice shall be included    |</span>
+<span class="c1">// |  in all copies or substantial portions of the Software.                     |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |</span>
+<span class="c1">// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |</span>
+<span class="c1">// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |</span>
+<span class="c1">// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |</span>
+<span class="c1">// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |</span>
+<span class="c1">// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |</span>
+<span class="c1">// |  DEALINGS IN THE SOFTWARE.                                                  |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// ===============================================================================</span>
+<span class="c1">// ! \file range_decompressor.hpp</span>
+<span class="c1">// ===============================================================================</span>
+
+<span class="cp">#ifndef RANGE_DECOMPRESSOR_HPP</span>
+<span class="cp">#define RANGE_DECOMPRESSOR_HPP</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/novatel/api/encoder.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/novatel/api/filter.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/novatel/api/header_decoder.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/novatel/api/message_decoder.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/novatel/api/rangecmp/common.hpp&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">novatel</span><span class="o">::</span><span class="nn">edie</span><span class="o">::</span><span class="nn">oem</span><span class="w"> </span><span class="p">{</span>
+
+<span class="c1">//============================================================================</span>
+<span class="c1">//============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RangeDecompressor</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">RangeDecompressor</span><span class="p">(</span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclJsonDB_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">LoadJsonDb</span><span class="p">(</span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclJsonDb_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetLogger</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetLoggerLevel</span><span class="p">(</span><span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">level_enum</span><span class="w"> </span><span class="n">eLevel_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">Reset</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">ammmMyRangeCmp2LockTimes</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">PRIMARY</span><span class="p">)].</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">        </span><span class="n">ammmMyRangeCmp2LockTimes</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">SECONDARY</span><span class="p">)].</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">        </span><span class="n">ammmMyRangeCmp4LockTimes</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">PRIMARY</span><span class="p">)].</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">        </span><span class="n">ammmMyRangeCmp4LockTimes</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">SECONDARY</span><span class="p">)].</span><span class="n">clear</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">ShutdownLogger</span><span class="p">();</span>
+
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">STATUS</span><span class="w"> </span><span class="n">Decompress</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">pucRangeMessageBuffer_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiRangeMessageBufferSize_</span><span class="p">,</span><span class="w"> </span><span class="n">MetaDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stMetaData_</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">ENCODE_FORMAT</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">UNSPECIFIED</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="n">Filter</span><span class="w"> </span><span class="n">clMyRangeCmpFilter</span><span class="p">;</span>
+<span class="w">    </span><span class="n">HeaderDecoder</span><span class="w"> </span><span class="n">clMyHeaderDecoder</span><span class="p">;</span>
+<span class="w">    </span><span class="n">MessageDecoder</span><span class="w"> </span><span class="n">clMyMessageDecoder</span><span class="p">;</span>
+<span class="w">    </span><span class="n">Encoder</span><span class="w"> </span><span class="n">clMyEncoder</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pclMyLogger</span><span class="p">;</span>
+<span class="w">    </span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclMyMsgDB</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Store the last primary reference blocks for each measurement source.</span>
+<span class="w">    </span><span class="n">RangeCmp4MeasurementSignalBlockStruct</span><span class="w"> </span><span class="n">astMyLastPrimaryReferenceBlocks</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">MAX</span><span class="p">)];</span>
+
+<span class="w">    </span><span class="c1">// TODO: Is there a better way to map all this information together?</span>
+<span class="w">    </span><span class="c1">// This is an array of map of map of maps. Indexed by SYSTEM, RangeCmp4::SIGNAL_TYPE, then PRN</span>
+<span class="w">    </span><span class="c1">// (uint32_t). This will store a header and its reference block for whenever we find</span>
+<span class="w">    </span><span class="c1">// differential data for the System, Signal type and PRN. We must keep track of which</span>
+<span class="w">    </span><span class="c1">// measurement source the reference block came from so any subsequent differential blocks are</span>
+<span class="w">    </span><span class="c1">// correctly decompressed.</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">SYSTEM</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">RangeCmp4</span><span class="o">::</span><span class="n">SIGNAL_TYPE</span><span class="p">,</span>
+<span class="w">                              </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">RangeCmp4MeasurementBlockHeaderStruct</span><span class="p">,</span><span class="w"> </span><span class="n">RangeCmp4MeasurementSignalBlockStruct</span><span class="o">&gt;&gt;&gt;&gt;</span>
+<span class="w">        </span><span class="n">ammmMyReferenceBlocks</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">MAX</span><span class="p">)];</span>
+
+<span class="w">    </span><span class="c1">// Protected members to be accessed by test child classes.</span>
+<span class="w">  </span><span class="k">protected</span><span class="o">:</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">ChannelTrackingStatusStruct</span><span class="o">::</span><span class="n">SATELLITE_SYSTEM</span><span class="p">,</span>
+<span class="w">             </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">ChannelTrackingStatusStruct</span><span class="o">::</span><span class="n">SIGNAL_TYPE</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span><span class="w"> </span><span class="n">RangeCmp2LockTimeInfoStruct</span><span class="o">&gt;&gt;&gt;</span>
+<span class="w">        </span><span class="n">ammmMyRangeCmp2LockTimes</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">MAX</span><span class="p">)];</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">ChannelTrackingStatusStruct</span><span class="o">::</span><span class="n">SATELLITE_SYSTEM</span><span class="p">,</span>
+<span class="w">             </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">ChannelTrackingStatusStruct</span><span class="o">::</span><span class="n">SIGNAL_TYPE</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span><span class="w"> </span><span class="n">RangeCmp4LocktimeInfoStruct</span><span class="o">&gt;&gt;&gt;</span>
+<span class="w">        </span><span class="n">ammmMyRangeCmp4LockTimes</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">MAX</span><span class="p">)];</span>
+
+<span class="w">  </span><span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">GetSignalWavelength</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">ChannelTrackingStatusStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stChannelTrackingStatus_</span><span class="p">,</span><span class="w"> </span><span class="kt">int16_t</span><span class="w"> </span><span class="n">sGLONASSFrequency_</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="nf">DetermineRangeCmp2ObservationLockTime</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MetaDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stMetaData_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiLockTimeBits_</span><span class="p">,</span>
+<span class="w">                                                </span><span class="n">ChannelTrackingStatusStruct</span><span class="o">::</span><span class="n">SATELLITE_SYSTEM</span><span class="w"> </span><span class="n">eSystem_</span><span class="p">,</span>
+<span class="w">                                                </span><span class="n">ChannelTrackingStatusStruct</span><span class="o">::</span><span class="n">SIGNAL_TYPE</span><span class="w"> </span><span class="n">eSignal_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usPRN_</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="nf">DetermineRangeCmp4ObservationLockTime</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MetaDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stMetaData_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucLockTimeBits_</span><span class="p">,</span>
+<span class="w">                                                </span><span class="n">ChannelTrackingStatusStruct</span><span class="o">::</span><span class="n">SATELLITE_SYSTEM</span><span class="w"> </span><span class="n">eSystem_</span><span class="p">,</span>
+<span class="w">                                                </span><span class="n">ChannelTrackingStatusStruct</span><span class="o">::</span><span class="n">SIGNAL_TYPE</span><span class="w"> </span><span class="n">eSignal_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiPRN_</span><span class="p">);</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">bIsSecondary</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">DecompressReferenceBlock</span><span class="p">(</span><span class="kt">uint8_t</span><span class="o">**</span><span class="w"> </span><span class="n">ppucDataPointer_</span><span class="p">,</span><span class="w"> </span><span class="n">RangeCmp4MeasurementSignalBlockStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stReferenceBlock_</span><span class="p">,</span>
+<span class="w">                                  </span><span class="n">MEASUREMENT_SOURCE</span><span class="w"> </span><span class="n">eMeasurementSource_</span><span class="p">);</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">bIsSecondary</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">DecompressDifferentialBlock</span><span class="p">(</span><span class="kt">uint8_t</span><span class="o">**</span><span class="w"> </span><span class="n">ppucDataPointer_</span><span class="p">,</span><span class="w"> </span><span class="n">RangeCmp4MeasurementSignalBlockStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stDifferentialBlock_</span><span class="p">,</span>
+<span class="w">                                     </span><span class="k">const</span><span class="w"> </span><span class="n">RangeCmp4MeasurementSignalBlockStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stReferenceBlock_</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">dSecondOffset_</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">PopulateNextRangeData</span><span class="p">(</span><span class="n">RangeDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stRangeData_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">RangeCmp4MeasurementSignalBlockStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stBlock_</span><span class="p">,</span>
+<span class="w">                               </span><span class="k">const</span><span class="w"> </span><span class="n">MetaDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stMetaData_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">ChannelTrackingStatusStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stChannelTrackingStatus_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiPRN_</span><span class="p">,</span>
+<span class="w">                               </span><span class="kt">char</span><span class="w"> </span><span class="n">cGLONASSFrequencyNumber_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">RangeCmpToRange</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">RangeCmpStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stRangeCmpMessage_</span><span class="p">,</span><span class="w"> </span><span class="n">RangeStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stRangeMessage_</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">RangeCmp2ToRange</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">RangeCmp2Struct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stRangeCmp2Message_</span><span class="p">,</span><span class="w"> </span><span class="n">RangeStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stRangeMessage_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">MetaDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stMetaData_</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">RangeCmp4ToRange</span><span class="p">(</span><span class="kt">uint8_t</span><span class="o">*</span><span class="w"> </span><span class="n">pucCompressedData_</span><span class="p">,</span><span class="w"> </span><span class="n">RangeStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stRangeMessage_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">MetaDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">pstMetaData_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Protected members to be accessed by test child classes.</span>
+<span class="w">  </span><span class="k">protected</span><span class="o">:</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMyBytesRemaining</span><span class="p">{</span><span class="mi">0U</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMyBitOffset</span><span class="p">{</span><span class="mi">0U</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="nf">GetBitfieldFromBuffer</span><span class="p">(</span><span class="kt">uint8_t</span><span class="o">**</span><span class="w"> </span><span class="n">ppucDataBuffer_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiBitsInBitfield_</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="p">}</span><span class="w"> </span><span class="c1">// namespace novatel::edie::oem</span>
+
+<span class="cp">#endif </span><span class="c1">// RANGE_DECOMPRESSOR_HPP</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

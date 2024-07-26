@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a172324213b4394481902cfbabf27e27a:
+
+Function NovatelFilterSetIncludeUpperTime
+=========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterSetIncludeUpperTime(novatel::edie::oem::Filter *, uint32_t, double)
+   :project: handlerfactory

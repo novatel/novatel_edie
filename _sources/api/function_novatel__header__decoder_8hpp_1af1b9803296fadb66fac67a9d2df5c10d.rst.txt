@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__header__decoder_8hpp_1af1b9803296fadb66fac67a9d2df5c10d:
+
+Function NovatelHeaderDecoderShutdownLogger
+===========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelHeaderDecoderShutdownLogger(novatel::edie::oem::HeaderDecoder *)
+   :project: handlerfactory

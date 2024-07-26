@@ -1,0 +1,53 @@
+
+.. _file_src_decoders_dynamic_library_api_common_json_reader.hpp:
+
+File common_json_reader.hpp
+===========================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_dynamic_library_api>` (``src/decoders/dynamic_library/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/dynamic_library/api/common_json_reader.hpp``)
+------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_dynamic_library_api_common_json_reader.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders/common/api/json_reader.hpp`` (:ref:`file_src_decoders_common_api_json_reader.hpp`)
+
+- ``decoders_export.h`` (:ref:`file_src_decoders_dynamic_library_api_decoders_export.h`)
+
+
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_common__json__reader_8hpp_1ac9674d2899dcb78341f6dda5b41b8ce0`
+
+- :ref:`exhale_function_common__json__reader_8hpp_1a03c66494b6600e0ea78f8ff82269fefc`
+
+- :ref:`exhale_function_common__json__reader_8hpp_1add5389d105b1924f12891b6e93b5153e`
+
+- :ref:`exhale_function_common__json__reader_8hpp_1aff86a5000544d902971c6e24f06b9038`
+

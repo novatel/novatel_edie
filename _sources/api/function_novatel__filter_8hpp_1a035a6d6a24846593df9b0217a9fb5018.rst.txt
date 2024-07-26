@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a035a6d6a24846593df9b0217a9fb5018:
+
+Function NovatelFilterInvertDecimationFilter
+============================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterInvertDecimationFilter(novatel::edie::oem::Filter *, bool)
+   :project: handlerfactory

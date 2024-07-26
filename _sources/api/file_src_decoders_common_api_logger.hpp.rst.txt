@@ -1,0 +1,80 @@
+
+.. _file_src_decoders_common_api_logger.hpp:
+
+File logger.hpp
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_common_api>` (``src/decoders/common/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/common/api/logger.hpp``)
+---------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_common_api_logger.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``iostream``
+
+- ``map``
+
+- ``spdlog/sinks/rotating_file_sink.h``
+
+- ``spdlog/sinks/stdout_color_sinks.h``
+
+- ``spdlog/spdlog.h``
+
+- ``spdlog_setup/spdlog_setup.hpp``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_decoders_common_api_framer.hpp`
+
+- :ref:`file_src_decoders_common_api_json_reader.hpp`
+
+- :ref:`file_src_decoders_common_api_message_decoder.hpp`
+
+- :ref:`file_src_decoders_dynamic_library_api_common_logger.hpp`
+
+- :ref:`file_src_decoders_novatel_api_filter.hpp`
+
+- :ref:`file_src_decoders_novatel_api_header_decoder.hpp`
+
+- :ref:`file_src_decoders_novatel_api_parser.hpp`
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classLogger`
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_logger_8hpp_1ae4fda6f71f35120e2ff48157fca961b5`
+

@@ -1,0 +1,23 @@
+.. _dir_src_decoders:
+
+
+Directory decoders
+==================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src>` (``src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/decoders``
+
+Subdirectories
+--------------
+
+- :ref:`dir_src_decoders_common`
+- :ref:`dir_src_decoders_dynamic_library`
+- :ref:`dir_src_decoders_novatel`
+
+
+

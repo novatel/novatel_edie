@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__parser_8hpp_1ac33088195f370279148543b738e01791:
+
+Function NovatelParserSetDecompressRangeCmp
+===========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelParserSetDecompressRangeCmp(novatel::edie::oem::Parser *, bool)
+   :project: handlerfactory

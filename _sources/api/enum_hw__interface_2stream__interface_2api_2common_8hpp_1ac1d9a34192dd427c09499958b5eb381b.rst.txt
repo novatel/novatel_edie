@@ -1,0 +1,14 @@
+.. _exhale_enum_hw__interface_2stream__interface_2api_2common_8hpp_1ac1d9a34192dd427c09499958b5eb381b:
+
+Enum FileSplitMethodEnum
+========================
+
+- Defined in :ref:`file_src_hw_interface_stream_interface_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: FileSplitMethodEnum
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a9cbf4445434c951535266ecfa50ebaab:
+
+Function NovatelFilterInvertMessageIdFilter
+===========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterInvertMessageIdFilter(novatel::edie::oem::Filter *, bool)
+   :project: handlerfactory

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File common.hpp &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File common.hpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_src_decoders_common_api_common.hpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-common-hpp">
+<span id="program-listing-file-src-decoders-common-api-common-hpp"></span><h1>Program Listing for File common.hpp<a class="headerlink" href="#program-listing-for-file-common-hpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_src_decoders_common_api_common.hpp.html#file-src-decoders-common-api-common-hpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">src/decoders/common/api/common.hpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// ===============================================================================</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  Permission is hereby granted, free of charge, to any person obtaining a    |</span>
+<span class="c1">// |  copy of this software and associated documentation files (the &quot;Software&quot;), |</span>
+<span class="c1">// |  to deal in the Software without restriction, including without limitation  |</span>
+<span class="c1">// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |</span>
+<span class="c1">// |  and/or sell copies of the Software, and to permit persons to whom the      |</span>
+<span class="c1">// |  Software is furnished to do so, subject to the following conditions:       |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  The above copyright notice and this permission notice shall be included    |</span>
+<span class="c1">// |  in all copies or substantial portions of the Software.                     |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |</span>
+<span class="c1">// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |</span>
+<span class="c1">// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |</span>
+<span class="c1">// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |</span>
+<span class="c1">// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |</span>
+<span class="c1">// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |</span>
+<span class="c1">// |  DEALINGS IN THE SOFTWARE.                                                  |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// ===============================================================================</span>
+<span class="c1">// ! \file common.hpp</span>
+<span class="c1">// ===============================================================================</span>
+
+<span class="cp">#ifndef COMMON_HPP</span>
+<span class="cp">#define COMMON_HPP</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdint&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstring&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">novatel</span><span class="o">::</span><span class="nn">edie</span><span class="w"> </span><span class="p">{</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">STATUS</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">SUCCESS</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FAILURE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">UNKNOWN</span><span class="p">,</span>
+<span class="w">    </span><span class="n">INCOMPLETE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">INCOMPLETE_MORE_DATA</span><span class="p">,</span>
+<span class="w">    </span><span class="n">NULL_PROVIDED</span><span class="p">,</span>
+<span class="w">    </span><span class="n">NO_DATABASE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">NO_DEFINITION</span><span class="p">,</span>
+<span class="w">    </span><span class="n">NO_DEFINITION_EMBEDDED</span><span class="p">,</span>
+<span class="w">    </span><span class="n">BUFFER_FULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">BUFFER_EMPTY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">STREAM_EMPTY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">UNSUPPORTED</span><span class="p">,</span>
+<span class="w">    </span><span class="n">MALFORMED_INPUT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">DECOMPRESSION_FAILURE</span>
+<span class="p">};</span>
+
+<span class="kr">inline</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">StatusToString</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">STATUS</span><span class="w"> </span><span class="n">eStatus_</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">SUCCESS</span><span class="w">                  </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;SUCCESS&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">FAILURE</span><span class="w">                </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;FAILURE&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">INCOMPLETE</span><span class="w">             </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;INCOMPLETE&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">INCOMPLETE_MORE_DATA</span><span class="w">   </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;INCOMPLETE_MORE_DATA&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">NULL_PROVIDED</span><span class="w">          </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;NULL_PROVIDED&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">NO_DATABASE</span><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;NO_DATABASE&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">NO_DEFINITION</span><span class="w">          </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;NO_DEFINITION&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">NO_DEFINITION_EMBEDDED</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;NO_DEFINITION_EMBEDDED&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">BUFFER_FULL</span><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;BUFFER_FULL&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">BUFFER_EMPTY</span><span class="w">           </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;BUFFER_EMPTY&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">STREAM_EMPTY</span><span class="w">           </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;STREAM_EMPTY&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">UNSUPPORTED</span><span class="w">            </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;UNSUPPORTED&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">MALFORMED_INPUT</span><span class="w">        </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;MALFORMED_INPUT&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eStatus_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">STATUS</span><span class="o">::</span><span class="n">DECOMPRESSION_FAILURE</span><span class="w">  </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;DECOMPRESSION_FAILURE&quot;</span>
+<span class="w">                                                        </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;UNKNOWN&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kr">inline</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">ostream</span><span class="o">&amp;</span><span class="w"> </span><span class="k">operator</span><span class="o">&lt;&lt;</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">ostream</span><span class="o">&amp;</span><span class="w"> </span><span class="n">os_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">STATUS</span><span class="w"> </span><span class="n">eStatus_</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">os_</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">StatusToString</span><span class="p">(</span><span class="n">eStatus_</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">os_</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ENCODE_FORMAT</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">FLATTENED_BINARY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ASCII</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ABBREV_ASCII</span><span class="p">,</span>
+<span class="w">    </span><span class="n">BINARY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">JSON</span><span class="p">,</span>
+<span class="w">    </span><span class="n">UNSPECIFIED</span>
+<span class="p">};</span>
+
+<span class="kr">inline</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="w"> </span><span class="nf">StringToEncodeFormat</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sEnumName_</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sEnumName_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;FLATTENED_BINARY&quot;</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">FLATTENED_BINARY</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">sEnumName_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;ASCII&quot;</span><span class="w">          </span><span class="o">?</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">ASCII</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">sEnumName_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;BINARY&quot;</span><span class="w">         </span><span class="o">?</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">BINARY</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">sEnumName_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;JSON&quot;</span><span class="w">           </span><span class="o">?</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">JSON</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">sEnumName_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;ABBREV_ASCII&quot;</span><span class="w">   </span><span class="o">?</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">ABBREV_ASCII</span>
+<span class="w">                                            </span><span class="o">:</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">UNSPECIFIED</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kr">inline</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">EncodeFormatToString</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="w"> </span><span class="n">eFormat_</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">FLATTENED_BINARY</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;FLATTENED_BINARY&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">ASCII</span><span class="w">          </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;ASCII&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">ABBREV_ASCII</span><span class="w">   </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;ABBREV_ASCII&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">BINARY</span><span class="w">         </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;BINARY&quot;</span>
+<span class="w">           </span><span class="o">:</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="o">::</span><span class="n">JSON</span><span class="w">           </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;JSON&quot;</span>
+<span class="w">                                                       </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;UNSPECIFIED&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kr">inline</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">ostream</span><span class="o">&amp;</span><span class="w"> </span><span class="k">operator</span><span class="o">&lt;&lt;</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">ostream</span><span class="o">&amp;</span><span class="w"> </span><span class="n">os_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="w"> </span><span class="n">eFormat_</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">os_</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">EncodeFormatToString</span><span class="p">(</span><span class="n">eFormat_</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">os_</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">TIME_STATUS</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">UNKNOWN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span>
+<span class="w">    </span><span class="n">APPROXIMATE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+<span class="w">    </span><span class="n">COARSEADJUSTING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span>
+<span class="w">    </span><span class="n">COARSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
+<span class="w">    </span><span class="n">COARSESTEERING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FREEWHEELING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">130</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FINEADJUSTING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">140</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FINE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">160</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FINEBACKUPSTEERING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">170</span><span class="p">,</span>
+<span class="w">    </span><span class="n">FINESTEERING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">180</span><span class="p">,</span>
+<span class="w">    </span><span class="n">SATTIME</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span>
+<span class="w">    </span><span class="n">EXTERN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">220</span><span class="p">,</span>
+<span class="w">    </span><span class="n">EXACT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">240</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">HEADER_FORMAT</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">UNKNOWN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="n">BINARY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">SHORT_BINARY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">PROPRIETARY_BINARY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ASCII</span><span class="p">,</span>
+<span class="w">    </span><span class="n">SHORT_ASCII</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ABB_ASCII</span><span class="p">,</span>
+<span class="w">    </span><span class="n">NMEA</span><span class="p">,</span>
+<span class="w">    </span><span class="n">JSON</span><span class="p">,</span>
+<span class="w">    </span><span class="n">SHORT_ABB_ASCII</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ALL</span><span class="w"> </span><span class="c1">// Used in filters to indicate all filter types : all new enums should be added before this value</span>
+<span class="p">};</span>
+
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">IsShortHeaderFormat</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">HEADER_FORMAT</span><span class="w"> </span><span class="n">eFormat_</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">HEADER_FORMAT</span><span class="o">::</span><span class="n">SHORT_ASCII</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">HEADER_FORMAT</span><span class="o">::</span><span class="n">SHORT_BINARY</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">eFormat_</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">HEADER_FORMAT</span><span class="o">::</span><span class="n">SHORT_ABB_ASCII</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MESSAGE_FORMAT</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">BINARY</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b00</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ASCII</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b01</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ABBREV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b10</span><span class="p">,</span>
+<span class="w">    </span><span class="n">RSRVD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b11</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MESSAGE_TYPE_MASK</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">MEASSRC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b00011111</span><span class="p">,</span>
+<span class="w">    </span><span class="n">MSGFORMAT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b01100000</span><span class="p">,</span>
+<span class="w">    </span><span class="n">RESPONSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mb">0b10000000</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MESSAGE_ID_MASK</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">LOGID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x00FFFF</span><span class="p">,</span>
+<span class="w">    </span><span class="n">MEASSRC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MESSAGE_TYPE_MASK</span><span class="o">::</span><span class="n">MEASSRC</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span>
+<span class="w">    </span><span class="n">MSGFORMAT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MESSAGE_TYPE_MASK</span><span class="o">::</span><span class="n">MSGFORMAT</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span>
+<span class="w">    </span><span class="n">RESPONSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MESSAGE_TYPE_MASK</span><span class="o">::</span><span class="n">RESPONSE</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">16</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">MEASUREMENT_SOURCE</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PRIMARY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">SECONDARY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">MAX</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">MessageDataStruct</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">pucMessageHeader</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageHeaderLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">pucMessageBody</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageBodyLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">pucMessage</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="n">MessageDataStruct</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">MessageDataStruct</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">pucMessage_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiLength_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiHeaderLength_</span><span class="p">)</span>
+<span class="w">        </span><span class="o">:</span><span class="w"> </span><span class="n">pucMessageHeader</span><span class="p">(</span><span class="n">pucMessage_</span><span class="p">),</span><span class="w"> </span><span class="n">uiMessageHeaderLength</span><span class="p">(</span><span class="n">uiHeaderLength_</span><span class="p">),</span><span class="w"> </span><span class="n">pucMessageBody</span><span class="p">(</span><span class="n">pucMessage_</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">uiMessageHeaderLength</span><span class="p">),</span>
+<span class="w">          </span><span class="n">uiMessageBodyLength</span><span class="p">(</span><span class="n">uiLength_</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">uiHeaderLength_</span><span class="p">),</span><span class="w"> </span><span class="n">pucMessage</span><span class="p">(</span><span class="n">pucMessage_</span><span class="p">),</span><span class="w"> </span><span class="n">uiMessageLength</span><span class="p">(</span><span class="n">uiLength_</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="k">operator</span><span class="o">==</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MessageDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stOther_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">uiMessageHeaderLength</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stOther_</span><span class="p">.</span><span class="n">uiMessageHeaderLength</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">uiMessageBodyLength</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stOther_</span><span class="p">.</span><span class="n">uiMessageBodyLength</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">               </span><span class="n">uiMessageLength</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stOther_</span><span class="p">.</span><span class="n">uiMessageLength</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">memcmp</span><span class="p">(</span><span class="n">pucMessageHeader</span><span class="p">,</span><span class="w"> </span><span class="n">stOther_</span><span class="p">.</span><span class="n">pucMessageHeader</span><span class="p">,</span><span class="w"> </span><span class="n">uiMessageHeaderLength</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">               </span><span class="n">memcmp</span><span class="p">(</span><span class="n">pucMessageBody</span><span class="p">,</span><span class="w"> </span><span class="n">stOther_</span><span class="p">.</span><span class="n">pucMessageBody</span><span class="p">,</span><span class="w"> </span><span class="n">uiMessageBodyLength</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">               </span><span class="n">memcmp</span><span class="p">(</span><span class="n">pucMessage</span><span class="p">,</span><span class="w"> </span><span class="n">stOther_</span><span class="p">.</span><span class="n">pucMessage</span><span class="p">,</span><span class="w"> </span><span class="n">uiMessageLength</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="k">operator</span><span class="o">!=</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MessageDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stOther_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="o">!</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stOther_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">struct</span><span class="w"> </span><span class="nc">EnumDefinition</span><span class="p">;</span>
+
+<span class="c1">//============================================================================</span>
+<span class="c1">//============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MetaDataBase</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageNameMax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">40</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">MetaDataBase</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">MetaDataBase</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">bResponse</span><span class="p">{</span><span class="nb">false</span><span class="p">};</span>
+<span class="w">    </span><span class="n">HEADER_FORMAT</span><span class="w"> </span><span class="n">eFormat</span><span class="p">{</span><span class="n">HEADER_FORMAT</span><span class="o">::</span><span class="n">UNKNOWN</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usWeek</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">dMilliseconds</span><span class="p">{</span><span class="mf">0.0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiBinaryMsgLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiHeaderLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usMessageId</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageCrc</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">acMessageName</span><span class="p">[</span><span class="n">uiMessageNameMax</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]{</span><span class="sc">&#39;\0&#39;</span><span class="p">};</span>
+
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">MessageName</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="n">acMessageName</span><span class="p">};</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">MessageName</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">strMessageName_</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">memcpy</span><span class="p">(</span><span class="n">acMessageName</span><span class="p">,</span><span class="w"> </span><span class="n">strMessageName_</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span><span class="w"> </span><span class="n">strMessageName_</span><span class="p">.</span><span class="n">length</span><span class="p">());</span>
+<span class="w">        </span><span class="n">acMessageName</span><span class="p">[</span><span class="n">strMessageName_</span><span class="p">.</span><span class="n">length</span><span class="p">()]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="kr">inline</span><span class="w"> </span><span class="n">MetaDataBase</span><span class="o">::~</span><span class="n">MetaDataBase</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="p">}</span><span class="w"> </span><span class="c1">// namespace novatel::edie</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="kt">bool</span><span class="w"> </span><span class="n">IsEqual</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">dVal1_</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">dVal2_</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">dEpsilon_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.001</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="nf">CreateMsgId</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageId_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiSiblingId_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMsgFormat_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiResponse_</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">UnpackMsgId</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageId_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">usMessageId_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">uiSiblingId_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">uiMsgFormat_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="o">&amp;</span><span class="w"> </span><span class="n">uiResponse_</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="nf">PackMsgType</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiSiblingId_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMsgFormat_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiResponse_</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">GetEnumString</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="n">stEnumDef_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiEnum_</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="kt">int32_t</span><span class="w"> </span><span class="nf">GetEnumValue</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="n">stEnumDef_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">strEnum_</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="kt">int32_t</span><span class="w"> </span><span class="nf">GetResponseId</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">novatel</span><span class="o">::</span><span class="n">edie</span><span class="o">::</span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="n">stRespDef_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">strResp_</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="kt">int32_t</span><span class="w"> </span><span class="nf">ToDigit</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="n">c_</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//</span>
+<span class="c1">//</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="kt">bool</span><span class="w"> </span><span class="nf">ConsumeAbbrevFormatting</span><span class="p">(</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">ullTokenLength_</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">ppcMessageBuffer_</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">SatelliteId</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usPrnOrSlot</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">int16_t</span><span class="w"> </span><span class="n">sFrequencyChannel</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="n">SatelliteId</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="k">operator</span><span class="o">==</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">SatelliteId</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stOther_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">usPrnOrSlot</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stOther_</span><span class="p">.</span><span class="n">usPrnOrSlot</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">sFrequencyChannel</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stOther_</span><span class="p">.</span><span class="n">sFrequencyChannel</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">// Common miscellaneous defines</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SEC_TO_MILLI_SEC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">SECS_IN_WEEK</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">604800</span><span class="p">;</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">// NovAtel message length defines</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">MESSAGE_SIZE_MAX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x8000</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">MAX_ASCII_MESSAGE_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MESSAGE_SIZE_MAX</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">MAX_BINARY_MESSAGE_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MESSAGE_SIZE_MAX</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">MAX_SHORT_ASCII_MESSAGE_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MESSAGE_SIZE_MAX</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">MAX_SHORT_BINARY_MESSAGE_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">12</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">255</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">MAX_ABB_ASCII_RESPONSE_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MESSAGE_SIZE_MAX</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">MAX_NMEA_MESSAGE_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">256</span><span class="p">;</span><span class="w"> </span><span class="c1">//(82)</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

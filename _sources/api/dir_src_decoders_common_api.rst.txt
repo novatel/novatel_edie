@@ -1,0 +1,29 @@
+.. _dir_src_decoders_common_api:
+
+
+Directory api
+=============
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_common>` (``src/decoders/common``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/decoders/common/api``
+
+
+Files
+-----
+
+- :ref:`file_src_decoders_common_api_circular_buffer.hpp`
+- :ref:`file_src_decoders_common_api_common.hpp`
+- :ref:`file_src_decoders_common_api_crc32.hpp`
+- :ref:`file_src_decoders_common_api_encoder.hpp`
+- :ref:`file_src_decoders_common_api_framer.hpp`
+- :ref:`file_src_decoders_common_api_json_reader.hpp`
+- :ref:`file_src_decoders_common_api_logger.hpp`
+- :ref:`file_src_decoders_common_api_message_decoder.hpp`
+- :ref:`file_src_decoders_common_api_nexcept.hpp`
+
+

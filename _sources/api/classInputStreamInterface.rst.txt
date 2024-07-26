@@ -1,0 +1,27 @@
+.. _exhale_class_classInputStreamInterface:
+
+Class InputStreamInterface
+==========================
+
+- Defined in :ref:`file_src_hw_interface_stream_interface_api_inputstreaminterface.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Types
+*************
+
+- ``public InputFileStream`` (:ref:`exhale_class_classInputFileStream`)
+- ``public InputMemoryStream`` (:ref:`exhale_class_classInputMemoryStream`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: InputStreamInterface
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

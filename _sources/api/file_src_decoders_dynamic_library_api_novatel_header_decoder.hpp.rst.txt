@@ -1,0 +1,59 @@
+
+.. _file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp:
+
+File novatel_header_decoder.hpp
+===============================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_dynamic_library_api>` (``src/decoders/dynamic_library/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/dynamic_library/api/novatel_header_decoder.hpp``)
+----------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders/novatel/api/common.hpp`` (:ref:`file_src_decoders_novatel_api_common.hpp`)
+
+- ``decoders/novatel/api/header_decoder.hpp`` (:ref:`file_src_decoders_novatel_api_header_decoder.hpp`)
+
+- ``decoders_export.h`` (:ref:`file_src_decoders_dynamic_library_api_decoders_export.h`)
+
+
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_novatel__header__decoder_8hpp_1a141e944df260602997f5823a5f9939d5`
+
+- :ref:`exhale_function_novatel__header__decoder_8hpp_1ac8c8b8f16f4856f11f9e1cfb9ab326e7`
+
+- :ref:`exhale_function_novatel__header__decoder_8hpp_1ae5a5e77b6ffebac966739970e51550dd`
+
+- :ref:`exhale_function_novatel__header__decoder_8hpp_1a3c9072e0adc56e97bed213368fca5acb`
+
+- :ref:`exhale_function_novatel__header__decoder_8hpp_1a22fe95c2ab5223381e12e62677d5ecaa`
+
+- :ref:`exhale_function_novatel__header__decoder_8hpp_1af1b9803296fadb66fac67a9d2df5c10d`
+

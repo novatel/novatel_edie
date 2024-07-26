@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a0ded938d164bf60c002da344752fdd5b:
+
+Variable novatel::edie::oem::RC2_SIG_PHASERANGE_DIFF_SCALE_FACTOR
+=================================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_PHASERANGE_DIFF_SCALE_FACTOR
+   :project: handlerfactory

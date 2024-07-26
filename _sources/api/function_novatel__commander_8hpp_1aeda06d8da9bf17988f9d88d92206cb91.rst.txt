@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__commander_8hpp_1aeda06d8da9bf17988f9d88d92206cb91:
+
+Function NovatelCommanderSetLoggerLevel
+=======================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_commander.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelCommanderSetLoggerLevel(novatel::edie::oem::Commander *, uint32_t)
+   :project: handlerfactory

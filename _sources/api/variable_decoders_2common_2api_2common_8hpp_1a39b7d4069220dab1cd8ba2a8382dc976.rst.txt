@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2common_2api_2common_8hpp_1a39b7d4069220dab1cd8ba2a8382dc976:
+
+Variable SECS_IN_WEEK
+=====================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: SECS_IN_WEEK
+   :project: handlerfactory

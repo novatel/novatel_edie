@@ -1,16 +1,16 @@
-.. _exhale_class_classnExcept:
+.. _exhale_class_classNExcept:
 
-Class nExcept
+Class NExcept
 =============
 
-- Defined in :ref:`file_api_nexcept.h`
+- Defined in :ref:`file_src_decoders_common_api_nexcept.hpp`
 
 
 Class Documentation
 -------------------
 
 
-.. doxygenclass:: nExcept
+.. doxygenclass:: NExcept
    :project: handlerfactory
    :members:
    :protected-members:

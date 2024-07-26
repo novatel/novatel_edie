@@ -1,0 +1,14 @@
+.. _exhale_function_common__json__reader_8hpp_1ac9674d2899dcb78341f6dda5b41b8ce0:
+
+Function CommonJsonReaderDelete
+===============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_common_json_reader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CommonJsonReaderDelete(novatel::edie::JsonReader *)
+   :project: handlerfactory

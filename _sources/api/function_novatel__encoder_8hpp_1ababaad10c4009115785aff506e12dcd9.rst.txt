@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__encoder_8hpp_1ababaad10c4009115785aff506e12dcd9:
+
+Function NovatelEncoderSetLoggerLevel
+=====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelEncoderSetLoggerLevel(novatel::edie::oem::Encoder *, uint32_t)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2dynamic__library_2api_2version_8hpp_1aa804156b51f67b910ec5e792f1075e3e:
+
+Function PrettyVersion
+======================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_version.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: PrettyVersion()
+   :project: handlerfactory

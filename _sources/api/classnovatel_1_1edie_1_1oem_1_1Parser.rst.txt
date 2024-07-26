@@ -1,0 +1,17 @@
+.. _exhale_class_classnovatel_1_1edie_1_1oem_1_1Parser:
+
+Class Parser
+============
+
+- Defined in :ref:`file_src_decoders_novatel_api_parser.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: novatel::edie::oem::Parser
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

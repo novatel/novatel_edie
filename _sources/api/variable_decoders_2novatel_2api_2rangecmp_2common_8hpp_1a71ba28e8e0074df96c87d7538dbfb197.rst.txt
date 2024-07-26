@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a71ba28e8e0074df96c87d7538dbfb197:
+
+Variable novatel::edie::oem::RC2_SIG_CORRELATOR_TYPE_SHIFT
+==========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_CORRELATOR_TYPE_SHIFT
+   :project: handlerfactory

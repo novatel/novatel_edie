@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1aee13cfc46277fe81998c1b2b743799c7:
+
+Variable novatel::edie::oem::RC2_SIG_CARRIER_PHASE_MEAS_MASK
+============================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_CARRIER_PHASE_MEAS_MASK
+   :project: handlerfactory

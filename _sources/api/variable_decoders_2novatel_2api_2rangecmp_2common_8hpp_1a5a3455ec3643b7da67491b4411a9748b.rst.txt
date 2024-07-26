@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a5a3455ec3643b7da67491b4411a9748b:
+
+Variable novatel::edie::oem::RC4_SIG_DBLK_INVALID_PHASERANGE
+============================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_SIG_DBLK_INVALID_PHASERANGE
+   :project: handlerfactory

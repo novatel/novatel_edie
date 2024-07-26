@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a2d1f7970208c5bd39b80785b306e4a69:
+
+Function NovatelFilterDoFiltering
+=================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterDoFiltering(novatel::edie::oem::Filter *, novatel::edie::oem::MetaDataStruct *)
+   :project: handlerfactory

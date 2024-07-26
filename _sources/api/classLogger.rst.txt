@@ -1,0 +1,17 @@
+.. _exhale_class_classLogger:
+
+Class Logger
+============
+
+- Defined in :ref:`file_src_decoders_common_api_logger.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: Logger
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

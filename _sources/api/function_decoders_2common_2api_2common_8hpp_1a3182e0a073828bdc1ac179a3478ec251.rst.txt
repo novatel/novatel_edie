@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2common_2api_2common_8hpp_1a3182e0a073828bdc1ac179a3478ec251:
+
+Function GetResponseId
+======================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: GetResponseId(const novatel::edie::EnumDefinition *, const std::string&)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2common_8hpp_1a497dba9104cb57c05be2c332701e8499:
+
+Variable novatel::edie::oem::OEM4_BINARY_SYNC1
+==============================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::OEM4_BINARY_SYNC1
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1aa001980249b9fb723f90a2fdfc097258:
+
+Variable novatel::edie::oem::RC4_SIG_DBLK_PHASERANGE_SIGNBIT_MASK
+=================================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_SIG_DBLK_PHASERANGE_SIGNBIT_MASK
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a0b9ac84db8e821b8ed7b69ac5f022cb9:
+
+Variable novatel::edie::oem::RC4_PSIG_RBLK_INVALID_DOPPLER
+==========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_PSIG_RBLK_INVALID_DOPPLER
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2common_2api_2common_8hpp_1ad53173ef3350687f3d315e4647ee54c3:
+
+Variable SEC_TO_MILLI_SEC
+=========================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: SEC_TO_MILLI_SEC
+   :project: handlerfactory

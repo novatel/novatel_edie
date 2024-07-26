@@ -1,0 +1,27 @@
+.. _exhale_class_classOutputStreamInterface:
+
+Class OutputStreamInterface
+===========================
+
+- Defined in :ref:`file_src_hw_interface_stream_interface_api_outputstreaminterface.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Types
+*************
+
+- ``public MultiOutputFileStream`` (:ref:`exhale_class_classMultiOutputFileStream`)
+- ``public OutputFileStream`` (:ref:`exhale_class_classOutputFileStream`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: OutputStreamInterface
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

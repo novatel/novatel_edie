@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a50d7e2455db2fc1c4c87ac6627446ee8:
+
+Variable novatel::edie::oem::CTS_PRN_LOCK_SHIFT
+===============================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_PRN_LOCK_SHIFT
+   :project: handlerfactory

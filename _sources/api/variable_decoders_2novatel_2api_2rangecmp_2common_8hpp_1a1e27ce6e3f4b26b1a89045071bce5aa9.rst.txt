@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a1e27ce6e3f4b26b1a89045071bce5aa9:
+
+Variable novatel::edie::oem::SPEED_OF_LIGHT
+===========================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::SPEED_OF_LIGHT
+   :project: handlerfactory

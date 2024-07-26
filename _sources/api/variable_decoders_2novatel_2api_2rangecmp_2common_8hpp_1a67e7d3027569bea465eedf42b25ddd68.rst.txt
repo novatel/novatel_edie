@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a67e7d3027569bea465eedf42b25ddd68:
+
+Variable novatel::edie::oem::RC2_SIG_CNO_MASK
+=============================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_CNO_MASK
+   :project: handlerfactory

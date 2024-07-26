@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__parser_8hpp_1ab45649688f541710ee2382e4ed7b8328:
+
+Function NovatelParserGetEncodeFormat
+=====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelParserGetEncodeFormat(novatel::edie::oem::Parser *)
+   :project: handlerfactory

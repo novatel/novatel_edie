@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__file__parser_8hpp_1ad8c7bc020f3fd97fc0af848b0aa964b6:
+
+Function NovatelFileParserGetPercentRead
+========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFileParserGetPercentRead(novatel::edie::oem::FileParser *)
+   :project: handlerfactory

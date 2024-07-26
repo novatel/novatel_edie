@@ -1,0 +1,17 @@
+.. _exhale_struct_structStreamReadStatus:
+
+Struct StreamReadStatus
+=======================
+
+- Defined in :ref:`file_src_hw_interface_stream_interface_api_common.hpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: StreamReadStatus
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

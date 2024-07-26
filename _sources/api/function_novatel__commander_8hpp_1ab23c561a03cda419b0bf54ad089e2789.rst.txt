@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__commander_8hpp_1ab23c561a03cda419b0bf54ad089e2789:
+
+Function NovatelCommanderInit
+=============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_commander.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelCommanderInit(novatel::edie::JsonReader *)
+   :project: handlerfactory

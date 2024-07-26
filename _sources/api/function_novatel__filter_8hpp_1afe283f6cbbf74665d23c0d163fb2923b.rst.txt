@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1afe283f6cbbf74665d23c0d163fb2923b:
+
+Function NovatelFilterIncludeMessageId
+======================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterIncludeMessageId(novatel::edie::oem::Filter *, uint32_t, novatel::edie::HEADER_FORMAT, novatel::edie::MEASUREMENT_SOURCE)
+   :project: handlerfactory

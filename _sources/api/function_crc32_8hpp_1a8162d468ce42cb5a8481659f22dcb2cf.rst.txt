@@ -1,0 +1,14 @@
+.. _exhale_function_crc32_8hpp_1a8162d468ce42cb5a8481659f22dcb2cf:
+
+Function CalculateBlockCrc32(const char \*)
+===========================================
+
+- Defined in :ref:`file_src_decoders_common_api_crc32.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CalculateBlockCrc32(const char *)
+   :project: handlerfactory

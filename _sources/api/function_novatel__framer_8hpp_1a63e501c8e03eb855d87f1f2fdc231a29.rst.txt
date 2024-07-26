@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1a63e501c8e03eb855d87f1f2fdc231a29:
+
+Function NovatelFramerInit
+==========================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerInit()
+   :project: handlerfactory

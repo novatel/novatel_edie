@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ac29e217cadc7b59a869fc1f4a04a833f:
+
+Variable novatel::edie::oem::RC_GLONASS_FREQUENCY_MASK
+======================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC_GLONASS_FREQUENCY_MASK
+   :project: handlerfactory

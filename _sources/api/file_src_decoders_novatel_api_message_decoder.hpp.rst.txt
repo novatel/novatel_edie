@@ -1,0 +1,68 @@
+
+.. _file_src_decoders_novatel_api_message_decoder.hpp:
+
+File message_decoder.hpp
+========================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_novatel_api>` (``src/decoders/novatel/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/novatel/api/message_decoder.hpp``)
+-------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_novatel_api_message_decoder.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders/common/api/message_decoder.hpp`` (:ref:`file_src_decoders_common_api_message_decoder.hpp`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp`
+
+- :ref:`file_src_decoders_novatel_api_commander.hpp`
+
+- :ref:`file_src_decoders_novatel_api_rangecmp_range_decompressor.hpp`
+
+- :ref:`file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+- :ref:`namespace_novatel__edie__oem`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1oem_1_1MessageDecoder`
+

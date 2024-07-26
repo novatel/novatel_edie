@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1aace2452f39cf180c48fb17c29c75ca02:
+
+Function NovatelFilterInit
+==========================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterInit()
+   :project: handlerfactory

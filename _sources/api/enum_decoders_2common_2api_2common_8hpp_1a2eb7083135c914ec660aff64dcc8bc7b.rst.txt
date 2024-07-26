@@ -1,0 +1,14 @@
+.. _exhale_enum_decoders_2common_2api_2common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b:
+
+Enum STATUS
+===========
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::STATUS
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__file__parser_8hpp_1a999c543091e00a407b41e0795f979e07:
+
+Function NovatelFileParserSetStream
+===================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFileParserSetStream(novatel::edie::oem::FileParser *, InputFileStream *)
+   :project: handlerfactory

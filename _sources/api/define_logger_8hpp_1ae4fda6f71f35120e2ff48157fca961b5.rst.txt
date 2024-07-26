@@ -1,0 +1,14 @@
+.. _exhale_define_logger_8hpp_1ae4fda6f71f35120e2ff48157fca961b5:
+
+Define SPDLOG_ACTIVE_LEVEL
+==========================
+
+- Defined in :ref:`file_src_decoders_common_api_logger.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: SPDLOG_ACTIVE_LEVEL
+   :project: handlerfactory

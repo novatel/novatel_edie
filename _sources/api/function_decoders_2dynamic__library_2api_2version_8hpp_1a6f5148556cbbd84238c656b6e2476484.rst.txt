@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2dynamic__library_2api_2version_8hpp_1a6f5148556cbbd84238c656b6e2476484:
+
+Function Version
+================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_version.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: Version()
+   :project: handlerfactory

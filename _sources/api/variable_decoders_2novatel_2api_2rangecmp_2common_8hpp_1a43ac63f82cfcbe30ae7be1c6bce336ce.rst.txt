@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a43ac63f82cfcbe30ae7be1c6bce336ce:
+
+Variable novatel::edie::oem::RC4_SIG_DBLK_PSR_SIGNBIT_MASK
+==========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_SIG_DBLK_PSR_SIGNBIT_MASK
+   :project: handlerfactory

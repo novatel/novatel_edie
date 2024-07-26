@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Struct ChannelTrackingStatusStruct &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Struct IntermediateHeader" href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html" />
+    <link rel="prev" title="Struct MessageDefinition" href="structnovatel_1_1edie_1_1MessageDefinition.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Struct ChannelTrackingStatusStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html">Struct IntermediateHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html">Struct MetaDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryHeader.html">Struct Oem4BinaryHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader.html">Struct Oem4BinaryShortHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2LockTimeInfoStruct.html">Struct RangeCmp2LockTimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SatelliteBlockStruct.html">Struct RangeCmp2SatelliteBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SignalBlockStruct.html">Struct RangeCmp2SignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2Struct.html">Struct RangeCmp2Struct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4LocktimeInfoStruct.html">Struct RangeCmp4LocktimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementBlockHeaderStruct.html">Struct RangeCmp4MeasurementBlockHeaderStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementSignalBlockStruct.html">Struct RangeCmp4MeasurementSignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpDataStruct.html">Struct RangeCmpDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpStruct.html">Struct RangeCmpStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeDataStruct.html">Struct RangeDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeStruct.html">Struct RangeStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structReadDataStructure.html">Struct ReadDataStructure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSatelliteId.html">Struct SatelliteId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamReadStatus.html">Struct StreamReadStatus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFileStream.html">Class FileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputFileStream.html">Class InputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputMemoryStream.html">Class InputMemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputStreamInterface.html">Class InputStreamInterface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLogger.html">Class Logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMemoryStream.html">Class MemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiOutputFileStream.html">Class MultiOutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNExcept.html">Class NExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Commander.html">Class Commander</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Encoder.html">Class Encoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1FileParser.html">Class FileParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html">Class Filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1HeaderDecoder.html">Class HeaderDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1MessageDecoder.html">Class MessageDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html">Class Parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html">Class RangeDecompressor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler.html">Class RxConfigHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputFileStream.html">Class OutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputStreamInterface.html">Class OutputStreamInterface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Struct ChannelTrackingStatusStruct</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="struct-channeltrackingstatusstruct">
+<span id="exhale-struct-structnovatel-1-1edie-1-1oem-1-1channeltrackingstatusstruct"></span><h1>Struct ChannelTrackingStatusStruct<a class="headerlink" href="#struct-channeltrackingstatusstruct" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_src_decoders_novatel_api_rangecmp_common.hpp.html#file-src-decoders-novatel-api-rangecmp-common-hpp"><span class="std std-ref">File common.hpp</span></a></p></li>
+</ul>
+<section id="struct-documentation">
+<h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStructE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStructE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStructE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChannelTrackingStatusStruct</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStructE" title="Link to this definition"></a><br /></dt>
+<dd><p>Channel Tracking Status word fields decoded. Fields are from <a class="reference external" href="https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm#TrackingState">https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm#TrackingState</a>. Not every RANGECMP* message contains a raw form of the channel tracking status word. It is the case that it must be constructed from known data during the decompression process. However, it is also highly probably that there will be fields in the channel tracking status word that cannot be inferred based on the data in the RANGECMP* log, and certain defaults must be applied. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-types">Public Types</p>
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATEE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATEE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATEE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dd"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TRACKING_STATE</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATEE" title="Link to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE4IDLEE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE4IDLEE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE4IDLEE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3ddaa5daf7f2ebbba4975d61dab1c40188c7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IDLE</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE4IDLEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE10SKY_SEARCHE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE10SKY_SEARCHE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE10SKY_SEARCHE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dda82a159124c388e8dfbbc7f0c4d2e4760"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SKY_SEARCH</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE10SKY_SEARCHE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE15WIDEBAND_PULLINE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE15WIDEBAND_PULLINE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE15WIDEBAND_PULLINE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dda00dafa6f3a585f39f7f27b6ef3b82e65"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WIDEBAND_PULLIN</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE15WIDEBAND_PULLINE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE17NARROWBAND_PULLINE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE17NARROWBAND_PULLINE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE17NARROWBAND_PULLINE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dda786a8fc823e0dbd1e8924e3e1a609964"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NARROWBAND_PULLIN</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE17NARROWBAND_PULLINE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE15PHASE_LOCK_LOOPE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE15PHASE_LOCK_LOOPE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE15PHASE_LOCK_LOOPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3ddac14de42d896908474961a153456fe8fd"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PHASE_LOCK_LOOP</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE15PHASE_LOCK_LOOPE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE16CHANNEL_STEERINGE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE16CHANNEL_STEERINGE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE16CHANNEL_STEERINGE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3ddaa318cede38789f0b2eacaf5179b2a417"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CHANNEL_STEERING</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE16CHANNEL_STEERINGE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE19FREQUENCY_LOCK_LOOPE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE19FREQUENCY_LOCK_LOOPE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE19FREQUENCY_LOCK_LOOPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dda16396aac95a955915c71e34839ae3230"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FREQUENCY_LOCK_LOOP</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE19FREQUENCY_LOCK_LOOPE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE17CHANNEL_ALIGNMENTE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE17CHANNEL_ALIGNMENTE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE17CHANNEL_ALIGNMENTE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dda1f0b15dc6971330ebd515ff7d902ff81"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CHANNEL_ALIGNMENT</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE17CHANNEL_ALIGNMENTE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE11CODE_SEARCHE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE11CODE_SEARCHE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE11CODE_SEARCHE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3ddaa7990b66ea4a62b412ec477bdf58e418"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CODE_SEARCH</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE11CODE_SEARCHE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE21AIDED_PHASE_LOCK_LOOPE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE21AIDED_PHASE_LOCK_LOOPE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE21AIDED_PHASE_LOCK_LOOPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dda9ffc86d0111562fefb1cb55f0715d7d9"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AIDED_PHASE_LOCK_LOOP</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE21AIDED_PHASE_LOCK_LOOPE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE19SIDE_PEAK_DETECTIONE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE19SIDE_PEAK_DETECTIONE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE19SIDE_PEAK_DETECTIONE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dda89fcda0fc2e3155101f8929bdcd233bb"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SIDE_PEAK_DETECTION</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE19SIDE_PEAK_DETECTIONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE14FFT_SKY_SERACHE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE14FFT_SKY_SERACHE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE14FFT_SKY_SERACHE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0247913f342a4b1e874bc5e0e554b3dda4a00964521228696d15a2b07c145910c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FFT_SKY_SERACH</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE14FFT_SKY_SERACHE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPEE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPEE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPEE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a824aa18507c7666e39528bcc4f715a54"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CORRELATOR_TYPE</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPEE" title="Link to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE4NONEE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE4NONEE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE4NONEE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a824aa18507c7666e39528bcc4f715a54ab50339a10e1de285ac99d4c3990b8693"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NONE</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE4NONEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE8STANDARDE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE8STANDARDE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE8STANDARDE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a824aa18507c7666e39528bcc4f715a54a94e94133f4bdc1794c6b647b8ea134d0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">STANDARD</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE8STANDARDE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE6NARROWE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE6NARROWE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE6NARROWE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a824aa18507c7666e39528bcc4f715a54abf7c5af65ebae8852beeb84be95802a3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NARROW</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE6NARROWE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE8RESERVEDE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE8RESERVEDE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE8RESERVEDE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a824aa18507c7666e39528bcc4f715a54a83c7f2aa8c3ac10ed8beb75cad162827"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RESERVED</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE8RESERVEDE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE14PULSE_APERTUREE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE14PULSE_APERTUREE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE14PULSE_APERTUREE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a824aa18507c7666e39528bcc4f715a54a371e0962e0953c42962d1d39b911c9a2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PULSE_APERTURE</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE14PULSE_APERTUREE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE21NARROW_PULSE_APERTUREE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE21NARROW_PULSE_APERTUREE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE21NARROW_PULSE_APERTUREE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a824aa18507c7666e39528bcc4f715a54a9753a5a9e38e568252a00b37554f47b7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NARROW_PULSE_APERTURE</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE21NARROW_PULSE_APERTUREE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE36MULTI_PATH_ESTIMATION_AND_CORRECTIONE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE36MULTI_PATH_ESTIMATION_AND_CORRECTIONE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE36MULTI_PATH_ESTIMATION_AND_CORRECTIONE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a824aa18507c7666e39528bcc4f715a54a3e313abe021298224dd2cd1e4228afcf"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MULTI_PATH_ESTIMATION_AND_CORRECTION</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE36MULTI_PATH_ESTIMATION_AND_CORRECTIONE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SATELLITE_SYSTEM</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME" title="Link to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM3GPSE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM3GPSE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM3GPSE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7a8c578de37278ada488d763ea86c5cf20"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GPS</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM3GPSE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM7GLONASSE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM7GLONASSE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM7GLONASSE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7a48549df6f41418cb94b963fe84894cd6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GLONASS</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM7GLONASSE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM4SBASE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM4SBASE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM4SBASE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7a34dd33959e729910d676a3108e81ac7f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SBAS</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM4SBASE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM7GALILEOE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM7GALILEOE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM7GALILEOE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7a002aa3295f27b9c1aa3c602fd2a37c35"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GALILEO</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM7GALILEOE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM6BEIDOUE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM6BEIDOUE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM6BEIDOUE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7a8ad870ec5e4460b4acfa78e8e324a7d6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM6BEIDOUE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM4QZSSE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM4QZSSE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM4QZSSE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7a10b5ac7cdca8f06ca82238f8f3b2d119"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QZSS</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM4QZSSE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM5NAVICE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM5NAVICE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM5NAVICE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7af51fe3d8f3d7c83257083b927f904f2f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NAVIC</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM5NAVICE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM5OTHERE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM5OTHERE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM5OTHERE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab15c0c8a296caa0671efd735a413a2a7a03570470bad94692ce93e32700d2e1cb"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OTHER</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM5OTHERE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPEE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPEE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPEE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1b"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SIGNAL_TYPE</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPEE" title="Link to this definition"></a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L1CAE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L1CAE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L1CAE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1baae7fec9803d586a45c9c3ac836d0e36f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GPS_L1CA</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L1CAE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L2PE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L2PE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L2PE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba46acbfb0c3ed61f6f65bd8c8bd2f376f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GPS_L2P</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L2PE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L2YE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L2YE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L2YE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1baea6f4efcd467ffe5151e83beef008ee8"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GPS_L2Y</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L2YE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L5QE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L5QE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L5QE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba6d70a9ea99e29e84504286a7f3048283"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GPS_L5Q</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7GPS_L5QE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L1CPE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L1CPE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L1CPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba18c4eb6fc0e0ba8feb9704464968cbac"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GPS_L1CP</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L1CPE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L2CME">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L2CME"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L2CME"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1babcfb842287f7f641ad8a9bd991e6709a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GPS_L2CM</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8GPS_L2CME" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GLONASS_L1CAE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GLONASS_L1CAE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GLONASS_L1CAE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba7b029b3b6569661d6c574878c02b8b23"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GLONASS_L1CA</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GLONASS_L1CAE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GLONASS_L2CAE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GLONASS_L2CAE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GLONASS_L2CAE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba5ce7e69848c3910e79ccfa2353057fe7"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GLONASS_L2CA</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GLONASS_L2CAE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GLONASS_L2PE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GLONASS_L2PE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GLONASS_L2PE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba3b228ee8d216ad93a8832b1d30c288ea"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GLONASS_L2P</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GLONASS_L2PE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GLONASS_L3QE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GLONASS_L3QE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GLONASS_L3QE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba5210c238fa270c679cb875862d16de1a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GLONASS_L3Q</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GLONASS_L3QE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B1ID1E">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B1ID1E"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B1ID1E"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba3a589e6258a577859a715ff777120fea"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B1ID1</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B1ID1E" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B2ID1E">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B2ID1E"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B2ID1E"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba5fbbeea0dbcbf5be2c38082f92e9e226"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B2ID1</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B2ID1E" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B3ID1E">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B3ID1E"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B3ID1E"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba276314d07b7fa24137e482af7f2d6cf0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B3ID1</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B3ID1E" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B1ID2E">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B1ID2E"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B1ID2E"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1baf1ad63b73baa2fe48beac0d742e16dcd"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B1ID2</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B1ID2E" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B2ID2E">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B2ID2E"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B2ID2E"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1baceebe19d32d3d19bafafbe81d1730ea9"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B2ID2</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B2ID2E" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B3ID2E">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B3ID2E"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B3ID2E"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1bab87b0e05a04332949bb2e6827aabdd06"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B3ID2</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12BEIDOU_B3ID2E" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B1CPE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B1CPE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B1CPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba69eabb8d6db77e5570fc7bf42b843497"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B1CP</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B1CPE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B2APE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B2APE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B2APE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba740624cb219ae543bc3d8a1bb6e288bc"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B2AP</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B2APE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B2BIE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B2BIE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B2BIE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba556f2c82d0c868829e8520f92e496b47"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">BEIDOU_B2BI</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11BEIDOU_B2BIE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E1CE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E1CE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E1CE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba2aa5159f7da227ff590de79b1891c4c8"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GALILEO_E1C</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E1CE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E6BE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E6BE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E6BE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1bac15661199f2be03cf37473090f00fad5"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GALILEO_E6B</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E6BE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E6CE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E6CE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E6CE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba89b23c2419373b83675fbd38f9fd23f2"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GALILEO_E6C</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11GALILEO_E6CE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GALILEO_E5AQE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GALILEO_E5AQE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GALILEO_E5AQE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1baa999c31661e6ae332ce63d85dd751a49"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GALILEO_E5AQ</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GALILEO_E5AQE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GALILEO_E5BQE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GALILEO_E5BQE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GALILEO_E5BQE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba2c8cd6d9cbb8ecf8691e8632a01221e8"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GALILEO_E5BQ</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE12GALILEO_E5BQE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE17GALILEO_E5ALTBOCQE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE17GALILEO_E5ALTBOCQE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE17GALILEO_E5ALTBOCQE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1bacb4bdeb7812623f5422877b2495e68a1"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GALILEO_E5ALTBOCQ</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE17GALILEO_E5ALTBOCQE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L1CAE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L1CAE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L1CAE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba1e76723677fc6c9cb70b514ea4cd2b1b"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QZSS_L1CA</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L1CAE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L5QE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L5QE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L5QE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba91977fd00b431fc45bf99f02be2dc623"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QZSS_L5Q</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L5QE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L1CPE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L1CPE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L1CPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba296166374dc58dc817ab6ae31a6578cc"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QZSS_L1CP</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L1CPE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L2CME">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L2CME"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L2CME"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba122c71baff42d54204d857a7c98d767d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QZSS_L2CM</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9QZSS_L2CME" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L6PE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L6PE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L6PE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba62993b38538f7acf5d482a266cb5b0f3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QZSS_L6P</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L6PE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L6DE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L6DE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L6DE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba5226b3242ba4b6dead201da1fe1bd6ee"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">QZSS_L6D</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8QZSS_L6DE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9SBAS_L1CAE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9SBAS_L1CAE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9SBAS_L1CAE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba84fc64c5884df5b626cf9889cd0c71b4"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SBAS_L1CA</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE9SBAS_L1CAE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8SBAS_L5IE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8SBAS_L5IE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8SBAS_L5IE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1baf04d4f76141c77f3aec1220f513a6026"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SBAS_L5I</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE8SBAS_L5IE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11NAVIC_L5SPSE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11NAVIC_L5SPSE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11NAVIC_L5SPSE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba2240b3e25db137485a2a7ed75f8356eb"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NAVIC_L5SPS</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE11NAVIC_L5SPSE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE5LBANDE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE5LBANDE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE5LBANDE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1bad26fa866549a33f8932616acda3237aa"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LBAND</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE5LBANDE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7UNKNOWNE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7UNKNOWNE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7UNKNOWNE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6eef028fad6d76cd8c1f6341327bfa1ba696b031073e74bf2cb98e5ef201d4aa3"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">UNKNOWN</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7UNKNOWNE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructEv">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructEv"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructEv"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::ChannelTrackingStatusStruct"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1aa391b8c51b591770e018263ccd9c48f0"></span><span class="sig-name descname"><span class="n"><span class="pre">ChannelTrackingStatusStruct</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Default constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructE8uint32_t">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructE8uint32_t"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructE8uint32_t"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::ChannelTrackingStatusStruct__uint32_t"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1aea25b175ed3b224234736170c600a771"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChannelTrackingStatusStruct</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiChannelTrackingStatus_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructE8uint32_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Constructor from a channel tracking status word. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructERK29RangeCmp2SatelliteBlockStructRK26RangeCmp2SignalBlockStruct">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructERK29RangeCmp2SatelliteBlockStructRK26RangeCmp2SignalBlockStruct"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructERK29RangeCmp2SatelliteBlockStructRK26RangeCmp2SignalBlockStruct"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::ChannelTrackingStatusStruct__RangeCmp2SatelliteBlockStructCR.RangeCmp2SignalBlockStructCR"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a7be92cd73516fa9668a7a098be07bddc"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChannelTrackingStatusStruct</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SatelliteBlockStruct.html#_CPPv4N7novatel4edie3oem29RangeCmp2SatelliteBlockStructE" title="novatel::edie::oem::RangeCmp2SatelliteBlockStruct"><span class="n"><span class="pre">RangeCmp2SatelliteBlockStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stRangeCmp2SatBlock_</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SignalBlockStruct.html#_CPPv4N7novatel4edie3oem26RangeCmp2SignalBlockStructE" title="novatel::edie::oem::RangeCmp2SignalBlockStruct"><span class="n"><span class="pre">RangeCmp2SignalBlockStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stRangeCmp2SigBlock_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructERK29RangeCmp2SatelliteBlockStructRK26RangeCmp2SignalBlockStruct" title="Link to this definition"></a><br /></dt>
+<dd><p>Constructor from the available data from a RANGECMP2 SAT/SIG block pair. NOTE: Some defaults exist here. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructE6SYSTEMN9RangeCmp411SIGNAL_TYPEERK37RangeCmp4MeasurementSignalBlockStruct">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructE6SYSTEMN9RangeCmp411SIGNAL_TYPEERK37RangeCmp4MeasurementSignalBlockStruct"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructE6SYSTEMN9RangeCmp411SIGNAL_TYPEERK37RangeCmp4MeasurementSignalBlockStruct"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::ChannelTrackingStatusStruct__SYSTEM.RangeCmp4::SIGNAL_TYPE.RangeCmp4MeasurementSignalBlockStructCR"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1aab0365bc30dc690b7c29161b6cfdbfe6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChannelTrackingStatusStruct</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="enum_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ad5ab53c966f256236e535cc1f6e64d90.html#_CPPv4N7novatel4edie3oem6SYSTEME" title="novatel::edie::oem::SYSTEM"><span class="n"><span class="pre">SYSTEM</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eSystem_</span></span>, <span class="n"><span class="pre">RangeCmp4</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="enum_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a36412365ba8d734fa67a2e886cef536b.html#_CPPv4N7novatel4edie3oem9RangeCmp411SIGNAL_TYPEE" title="novatel::edie::oem::RangeCmp4::SIGNAL_TYPE"><span class="n"><span class="pre">SIGNAL_TYPE</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eSignalType_</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementSignalBlockStruct.html#_CPPv4N7novatel4edie3oem37RangeCmp4MeasurementSignalBlockStructE" title="novatel::edie::oem::RangeCmp4MeasurementSignalBlockStruct"><span class="n"><span class="pre">RangeCmp4MeasurementSignalBlockStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stMeasurementBlock_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct27ChannelTrackingStatusStructE6SYSTEMN9RangeCmp411SIGNAL_TYPEERK37RangeCmp4MeasurementSignalBlockStruct" title="Link to this definition"></a><br /></dt>
+<dd><p>Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block pair. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct31RangeCmp2SignalTypeToSignalTypeE16SATELLITE_SYSTEMN9RangeCmp211SIGNAL_TYPEE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct31RangeCmp2SignalTypeToSignalTypeE16SATELLITE_SYSTEMN9RangeCmp211SIGNAL_TYPEE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct31RangeCmp2SignalTypeToSignalTypeE16SATELLITE_SYSTEMN9RangeCmp211SIGNAL_TYPEE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::RangeCmp2SignalTypeToSignalType__SATELLITE_SYSTEM.RangeCmp2::SIGNAL_TYPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a67a14ba308e91222f9fed870ea7e5b86"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::SIGNAL_TYPE"><span class="n"><span class="pre">SIGNAL_TYPE</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RangeCmp2SignalTypeToSignalType</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME" title="novatel::edie::oem::ChannelTrackingStatusStruct::SATELLITE_SYSTEM"><span class="n"><span class="pre">SATELLITE_SYSTEM</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eSystem_</span></span>, <span class="n"><span class="pre">RangeCmp2</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="enum_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a2374190dcb89f3c9455f9989ea154f82.html#_CPPv4N7novatel4edie3oem9RangeCmp211SIGNAL_TYPEE" title="novatel::edie::oem::RangeCmp2::SIGNAL_TYPE"><span class="n"><span class="pre">SIGNAL_TYPE</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eSignalType_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct31RangeCmp2SignalTypeToSignalTypeE16SATELLITE_SYSTEMN9RangeCmp211SIGNAL_TYPEE" title="Link to this definition"></a><br /></dt>
+<dd><p>Convert a RANGECMP2 signal type to the channel tracking status enumeration. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct31RangeCmp4SignalTypeToSignalTypeE16SATELLITE_SYSTEMN9RangeCmp411SIGNAL_TYPEE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct31RangeCmp4SignalTypeToSignalTypeE16SATELLITE_SYSTEMN9RangeCmp411SIGNAL_TYPEE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct31RangeCmp4SignalTypeToSignalTypeE16SATELLITE_SYSTEMN9RangeCmp411SIGNAL_TYPEE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::RangeCmp4SignalTypeToSignalType__SATELLITE_SYSTEM.RangeCmp4::SIGNAL_TYPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a0a5856260c7734a1d8119b0e69ebbd65"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::SIGNAL_TYPE"><span class="n"><span class="pre">SIGNAL_TYPE</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RangeCmp4SignalTypeToSignalType</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME" title="novatel::edie::oem::ChannelTrackingStatusStruct::SATELLITE_SYSTEM"><span class="n"><span class="pre">SATELLITE_SYSTEM</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eSystem_</span></span>, <span class="n"><span class="pre">RangeCmp4</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="enum_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a36412365ba8d734fa67a2e886cef536b.html#_CPPv4N7novatel4edie3oem9RangeCmp411SIGNAL_TYPEE" title="novatel::edie::oem::RangeCmp4::SIGNAL_TYPE"><span class="n"><span class="pre">SIGNAL_TYPE</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eSignalType_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct31RangeCmp4SignalTypeToSignalTypeE16SATELLITE_SYSTEMN9RangeCmp411SIGNAL_TYPEE" title="Link to this definition"></a><br /></dt>
+<dd><p>Convert a RANGECMP4 signal type to the channel tracking status enumeration. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct23SystemToSatelliteSystemE6SYSTEM">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct23SystemToSatelliteSystemE6SYSTEM"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct23SystemToSatelliteSystemE6SYSTEM"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::SystemToSatelliteSystem__SYSTEM"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ad8791b09587dd58d718314da48d16f52"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME" title="novatel::edie::oem::ChannelTrackingStatusStruct::SATELLITE_SYSTEM"><span class="n"><span class="pre">SATELLITE_SYSTEM</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SystemToSatelliteSystem</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="enum_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ad5ab53c966f256236e535cc1f6e64d90.html#_CPPv4N7novatel4edie3oem6SYSTEME" title="novatel::edie::oem::SYSTEM"><span class="n"><span class="pre">SYSTEM</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eSystem_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct23SystemToSatelliteSystemE6SYSTEM" title="Link to this definition"></a><br /></dt>
+<dd><p>Convert a SYSTEM enumeration to a channel tracking status SATELLITE_SYSTEM. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem27ChannelTrackingStatusStruct9GetAsWordEv">
+<span id="_CPPv3NK7novatel4edie3oem27ChannelTrackingStatusStruct9GetAsWordEv"></span><span id="_CPPv2NK7novatel4edie3oem27ChannelTrackingStatusStruct9GetAsWordEv"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::GetAsWordC"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a6cb260b6f6830fb047e3fad979c9c643"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetAsWord</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem27ChannelTrackingStatusStruct9GetAsWordEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Combine the channel tracking status fields into a single 4-byte value according to documentation: <a class="reference external" href="https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus">https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus</a></p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14eTrackingStateE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct14eTrackingStateE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct14eTrackingStateE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::eTrackingState__TRACKING_STATE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a9b31bd813fc5d9cfa5fa7d6f34d7d9cb"></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::TRACKING_STATE"><span class="n"><span class="pre">TRACKING_STATE</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">eTrackingState</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::TRACKING_STATE"><span class="n"><span class="pre">TRACKING_STATE</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14TRACKING_STATE4IDLEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::TRACKING_STATE::IDLE"><span class="n"><span class="pre">IDLE</span></span></a><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct14eTrackingStateE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct17uiSVChannelNumberE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct17uiSVChannelNumberE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct17uiSVChannelNumberE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::uiSVChannelNumber__uint32_t"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a09c2012e5bb4e5b76ac0a0aa026a08a6"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiSVChannelNumber</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0U</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct17uiSVChannelNumberE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct12bPhaseLockedE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct12bPhaseLockedE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct12bPhaseLockedE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bPhaseLocked__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1aee88592c929033c7ff660ae3549a8898"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bPhaseLocked</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct12bPhaseLockedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct12bParityKnownE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct12bParityKnownE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct12bParityKnownE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bParityKnown__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a906ba2d3554bd164885f11c5bf51f809"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bParityKnown</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct12bParityKnownE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11bCodeLockedE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11bCodeLockedE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11bCodeLockedE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bCodeLocked__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ac5259ea589a87c3cf282837c703fb906"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bCodeLocked</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11bCodeLockedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15eCorrelatorTypeE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15eCorrelatorTypeE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15eCorrelatorTypeE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::eCorrelatorType__CORRELATOR_TYPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a8acf8dc687c86dd92a86f389be6fa93e"></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::CORRELATOR_TYPE"><span class="n"><span class="pre">CORRELATOR_TYPE</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">eCorrelatorType</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::CORRELATOR_TYPE"><span class="n"><span class="pre">CORRELATOR_TYPE</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15CORRELATOR_TYPE4NONEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::CORRELATOR_TYPE::NONE"><span class="n"><span class="pre">NONE</span></span></a><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15eCorrelatorTypeE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16eSatelliteSystemE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct16eSatelliteSystemE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct16eSatelliteSystemE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::eSatelliteSystem__SATELLITE_SYSTEM"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1a749438df28f7383abbbc6a53490c8bd0"></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME" title="novatel::edie::oem::ChannelTrackingStatusStruct::SATELLITE_SYSTEM"><span class="n"><span class="pre">SATELLITE_SYSTEM</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">eSatelliteSystem</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEME" title="novatel::edie::oem::ChannelTrackingStatusStruct::SATELLITE_SYSTEM"><span class="n"><span class="pre">SATELLITE_SYSTEM</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16SATELLITE_SYSTEM3GPSE" title="novatel::edie::oem::ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GPS"><span class="n"><span class="pre">GPS</span></span></a><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct16eSatelliteSystemE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct8bGroupedE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct8bGroupedE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct8bGroupedE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bGrouped__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1aa82852d419156e8a426b17538dd981a4"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bGrouped</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct8bGroupedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11eSignalTypeE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct11eSignalTypeE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct11eSignalTypeE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::eSignalType__SIGNAL_TYPE"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ab96b236cf3de578556a795728033173a"></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::SIGNAL_TYPE"><span class="n"><span class="pre">SIGNAL_TYPE</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">eSignalType</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPEE" title="novatel::edie::oem::ChannelTrackingStatusStruct::SIGNAL_TYPE"><span class="n"><span class="pre">SIGNAL_TYPE</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11SIGNAL_TYPE7UNKNOWNE" title="novatel::edie::oem::ChannelTrackingStatusStruct::SIGNAL_TYPE::UNKNOWN"><span class="n"><span class="pre">UNKNOWN</span></span></a><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct11eSignalTypeE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct17bPrimaryL1ChannelE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct17bPrimaryL1ChannelE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct17bPrimaryL1ChannelE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bPrimaryL1Channel__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1aa62956044fae104b1e5ffc51959753e6"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bPrimaryL1Channel</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct17bPrimaryL1ChannelE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15bHalfCycleAddedE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct15bHalfCycleAddedE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct15bHalfCycleAddedE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bHalfCycleAdded__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1abaa4fb692aef9364aca15714e95457d5"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bHalfCycleAdded</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct15bHalfCycleAddedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct25bDigitalFilteringOnSignalE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct25bDigitalFilteringOnSignalE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct25bDigitalFilteringOnSignalE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bDigitalFilteringOnSignal__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1ae3ac36e34abcaa51f6d9ec8972a37825"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bDigitalFilteringOnSignal</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct25bDigitalFilteringOnSignalE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct10bPRNLockedE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct10bPRNLockedE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct10bPRNLockedE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bPRNLocked__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1acc446acb9d967f314a3fa0e46b34f60e"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bPRNLocked</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct10bPRNLockedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct24bChannelAssignmentForcedE">
+<span id="_CPPv3N7novatel4edie3oem27ChannelTrackingStatusStruct24bChannelAssignmentForcedE"></span><span id="_CPPv2N7novatel4edie3oem27ChannelTrackingStatusStruct24bChannelAssignmentForcedE"></span><span id="novatel::edie::oem::ChannelTrackingStatusStruct::bChannelAssignmentForced__b"></span><span class="target" id="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct_1af9eaddc516b45484310c34b98cd3d2a8"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bChannelAssignmentForced</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem27ChannelTrackingStatusStruct24bChannelAssignmentForcedE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="structnovatel_1_1edie_1_1MessageDefinition.html" class="btn btn-neutral float-left" title="Struct MessageDefinition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html" class="btn btn-neutral float-right" title="Struct IntermediateHeader" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+
+.. _program_listing_file_src_hw_interface_stream_interface_api_inputmemorystream.hpp:
+
+Program Listing for File inputmemorystream.hpp
+==============================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_src_hw_interface_stream_interface_api_inputmemorystream.hpp>` (``src/hw_interface/stream_interface/api/inputmemorystream.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   //
+   // Copyright (c) 2020 NovAtel Inc.
+   //
+   // Permission is hereby granted, free of charge, to any person obtaining a copy
+   // of this software and associated documentation files (the "Software"), to deal
+   // in the Software without restriction, including without limitation the rights
+   // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   // copies of the Software, and to permit persons to whom the Software is
+   // furnished to do so, subject to the following conditions:
+   //
+   // The above copyright notice and this permission notice shall be included in all
+   // copies or substantial portions of the Software.
+   //
+   // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   // SOFTWARE.
+   //
+   
+   //-----------------------------------------------------------------------
+   // Recursive Inclusion
+   //-----------------------------------------------------------------------
+   #ifndef INPUTMEMORYSTREAM_HPP
+   #define INPUTMEMORYSTREAM_HPP
+   
+   #include "inputstreaminterface.hpp"
+   #include "memorystream.hpp"
+   
+   class InputMemoryStream : public InputStreamInterface
+   {
+     public:
+       InputMemoryStream();
+   
+       InputMemoryStream(uint32_t uiBufferSize);
+   
+       InputMemoryStream(uint8_t* pucBuffer, uint32_t uiContentSize);
+   
+       virtual ~InputMemoryStream();
+   
+       StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure);
+   
+       uint32_t Write(uint8_t* pcData_, uint32_t uiBytes_);
+   
+       bool IsStreamAvailable();
+   
+       MemoryStream* GetMemoryStream() { return pMyInMemoryStream; }
+   
+     private:
+       InputMemoryStream(const InputMemoryStream& clTemp);
+   
+       const InputMemoryStream& operator=(const InputMemoryStream& clTemp);
+   
+       MemoryStream* pMyInMemoryStream;
+   };
+   
+   #endif

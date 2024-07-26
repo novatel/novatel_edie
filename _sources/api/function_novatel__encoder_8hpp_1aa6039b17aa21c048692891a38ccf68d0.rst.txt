@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__encoder_8hpp_1aa6039b17aa21c048692891a38ccf68d0:
+
+Function NovatelEncoderShutdownLogger
+=====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelEncoderShutdownLogger(novatel::edie::oem::Encoder *)
+   :project: handlerfactory

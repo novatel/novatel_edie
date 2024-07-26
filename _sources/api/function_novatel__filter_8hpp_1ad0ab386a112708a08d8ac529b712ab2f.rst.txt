@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1ad0ab386a112708a08d8ac529b712ab2f:
+
+Function NovatelFilterSetIncludeLowerTime
+=========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterSetIncludeLowerTime(novatel::edie::oem::Filter *, uint32_t, double)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1aa7be1dcd987618ae009d23e19e7910cc:
+
+Variable novatel::edie::oem::CTS_SIGNAL_TYPE_SHIFT
+==================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_SIGNAL_TYPE_SHIFT
+   :project: handlerfactory

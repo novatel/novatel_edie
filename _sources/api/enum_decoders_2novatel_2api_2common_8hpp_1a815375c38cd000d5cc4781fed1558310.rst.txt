@@ -1,0 +1,14 @@
+.. _exhale_enum_decoders_2novatel_2api_2common_8hpp_1a815375c38cd000d5cc4781fed1558310:
+
+Enum ASCII_HEADER
+=================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::oem::ASCII_HEADER
+   :project: handlerfactory

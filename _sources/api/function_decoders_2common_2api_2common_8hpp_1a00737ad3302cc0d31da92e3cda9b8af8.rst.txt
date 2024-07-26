@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2common_2api_2common_8hpp_1a00737ad3302cc0d31da92e3cda9b8af8:
+
+Function PackMsgType
+====================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: PackMsgType(uint32_t, uint32_t, uint32_t)
+   :project: handlerfactory

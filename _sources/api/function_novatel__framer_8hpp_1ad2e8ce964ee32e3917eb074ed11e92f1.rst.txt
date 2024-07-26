@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1ad2e8ce964ee32e3917eb074ed11e92f1:
+
+Function NovatelFramerPayloadOnly
+=================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerPayloadOnly(novatel::edie::oem::Framer *, bool)
+   :project: handlerfactory

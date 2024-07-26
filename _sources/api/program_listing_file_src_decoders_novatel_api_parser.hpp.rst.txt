@@ -1,0 +1,213 @@
+
+.. _program_listing_file_src_decoders_novatel_api_parser.hpp:
+
+Program Listing for File parser.hpp
+===================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_src_decoders_novatel_api_parser.hpp>` (``src/decoders/novatel/api/parser.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   // ===============================================================================
+   // |                                                                             |
+   // |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+   // |                                                                             |
+   // |  Permission is hereby granted, free of charge, to any person obtaining a    |
+   // |  copy of this software and associated documentation files (the "Software"), |
+   // |  to deal in the Software without restriction, including without limitation  |
+   // |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+   // |  and/or sell copies of the Software, and to permit persons to whom the      |
+   // |  Software is furnished to do so, subject to the following conditions:       |
+   // |                                                                             |
+   // |  The above copyright notice and this permission notice shall be included    |
+   // |  in all copies or substantial portions of the Software.                     |
+   // |                                                                             |
+   // |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+   // |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+   // |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+   // |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+   // |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+   // |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+   // |  DEALINGS IN THE SOFTWARE.                                                  |
+   // |                                                                             |
+   // ===============================================================================
+   // ! \file parser.hpp
+   // ===============================================================================
+   
+   #ifndef NOVATEL_PARSER_HPP
+   #define NOVATEL_PARSER_HPP
+   
+   #include "decoders/common/api/common.hpp"
+   #include "decoders/common/api/logger.hpp"
+   #include "decoders/novatel/api/common.hpp"
+   #include "decoders/novatel/api/encoder.hpp"
+   #include "decoders/novatel/api/filter.hpp"
+   #include "decoders/novatel/api/framer.hpp"
+   #include "decoders/novatel/api/header_decoder.hpp"
+   #include "decoders/novatel/api/rangecmp/range_decompressor.hpp"
+   #include "decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
+   
+   namespace novatel::edie::oem {
+   
+   //============================================================================
+   //============================================================================
+   class Parser
+   {
+     private:
+       std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_parser")};
+   
+       JsonReader clMyJsonReader;
+       Filter* pclMyUserFilter{nullptr};
+       Framer clMyFramer;
+       HeaderDecoder clMyHeaderDecoder;
+       MessageDecoder clMyMessageDecoder;
+       Encoder clMyEncoder;
+   
+       // Niche components
+       RangeDecompressor clMyRangeDecompressor;
+       RxConfigHandler clMyRxConfigHandler;
+   
+       // Filters for specific components
+       Filter clMyRangeCmpFilter;
+       Filter clMyRxConfigFilter;
+   
+       unsigned char* const pcMyEncodeBuffer{nullptr};
+       unsigned char* pucMyEncodeBufferPointer{nullptr};
+       unsigned char* const pcMyFrameBuffer{nullptr};
+       unsigned char* pucMyFrameBufferPointer{nullptr};
+   
+       // Configuration options
+       bool bMyDecompressRangeCmp{true};
+       bool bMyReturnUnknownBytes{true};
+       bool bMyIgnoreAbbreviatedAsciiResponse{true};
+       ENCODE_FORMAT eMyEncodeFormat{ENCODE_FORMAT::ASCII};
+   
+     public:
+       static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX;
+   
+       Parser(const Parser&) = delete;
+       Parser(const Parser&&) = delete;
+       Parser& operator=(const Parser&) = delete;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       Parser(const std::string& sDbPath_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       Parser(const std::u32string& sDbPath_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       Parser(JsonReader* pclJsonDb_ = nullptr);
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       ~Parser();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void LoadJsonDb(JsonReader* pclJsonDb_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       std::shared_ptr<spdlog::logger> GetLogger();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log");
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       static void ShutdownLogger();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetDecompressRangeCmp(bool bDecompressRangeCmp_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] bool GetDecompressRangeCmp() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetReturnUnknownBytes(bool bReturnUnknownBytes_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] bool GetReturnUnknownBytes() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetEncodeFormat(ENCODE_FORMAT eFormat_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetFilter(Filter* pclFilter_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] Filter* GetFilter() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] unsigned char* GetInternalBuffer() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiParserInternalBufferSize);
+   };
+   
+   } // namespace novatel::edie::oem
+   
+   #endif // PARSER_H

@@ -1,0 +1,49 @@
+
+.. _file_src_decoders_common_api_nexcept.hpp:
+
+File nexcept.hpp
+================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_common_api>` (``src/decoders/common/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/common/api/nexcept.hpp``)
+----------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_common_api_nexcept.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``stdarg.h``
+
+- ``stdio.h``
+
+- ``string.h``
+
+
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classNExcept`
+

@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a21333e01fc81e655689d3c3b6373691d:
+
+Function NovatelFilterSetLoggerLevel
+====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterSetLoggerLevel(novatel::edie::oem::Filter *, uint32_t)
+   :project: handlerfactory

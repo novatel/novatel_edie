@@ -1,0 +1,14 @@
+.. _exhale_variable_multioutputfilestream_8hpp_1a106d3fbbfd34d754a477d62cc2bc3609:
+
+Variable MBYTE_TO_BYTE
+======================
+
+- Defined in :ref:`file_src_hw_interface_stream_interface_api_multioutputfilestream.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: MBYTE_TO_BYTE
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ae3cc303f9121f180b34e8414f094dde1:
+
+Variable novatel::edie::oem::RC4_MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS
+=======================================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS
+   :project: handlerfactory

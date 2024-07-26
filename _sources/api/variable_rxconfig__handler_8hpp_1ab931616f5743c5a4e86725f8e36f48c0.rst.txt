@@ -1,0 +1,14 @@
+.. _exhale_variable_rxconfig__handler_8hpp_1ab931616f5743c5a4e86725f8e36f48c0:
+
+Variable novatel::edie::oem::US_RX_CONFIG_USER_MSG_ID
+=====================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::US_RX_CONFIG_USER_MSG_ID
+   :project: handlerfactory

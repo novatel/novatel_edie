@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1aaadf37d398babaed9e6d2f831fd6dbc0:
+
+Function NovatelFramerFrameJson
+===============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerFrameJson(novatel::edie::oem::Framer *, bool)
+   :project: handlerfactory

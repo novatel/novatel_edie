@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a9302a659011227dc29e5bbc7d2712137:
+
+Function NovatelFilterIncludeTimeStatus
+=======================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterIncludeTimeStatus(novatel::edie::oem::Filter *, novatel::edie::TIME_STATUS)
+   :project: handlerfactory

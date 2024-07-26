@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a10a880fa731ee286941f5d7d4de4ce34:
+
+Variable novatel::edie::oem::RC2_SIG_PARITY_KNOWN_MASK
+======================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_PARITY_KNOWN_MASK
+   :project: handlerfactory

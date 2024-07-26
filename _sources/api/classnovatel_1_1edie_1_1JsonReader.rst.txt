@@ -1,0 +1,17 @@
+.. _exhale_class_classnovatel_1_1edie_1_1JsonReader:
+
+Class JsonReader
+================
+
+- Defined in :ref:`file_src_decoders_common_api_json_reader.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: novatel::edie::JsonReader
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

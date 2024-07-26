@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2common_2api_2common_8hpp_1a69d8fc842b631cad8e8a153f4f3b5b58:
+
+Variable MAX_SHORT_ASCII_MESSAGE_LENGTH
+=======================================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: MAX_SHORT_ASCII_MESSAGE_LENGTH
+   :project: handlerfactory

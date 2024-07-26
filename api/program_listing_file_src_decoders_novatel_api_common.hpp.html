@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File common.hpp &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File common.hpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_src_decoders_novatel_api_common.hpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-common-hpp">
+<span id="program-listing-file-src-decoders-novatel-api-common-hpp"></span><h1>Program Listing for File common.hpp<a class="headerlink" href="#program-listing-for-file-common-hpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_src_decoders_novatel_api_common.hpp.html#file-src-decoders-novatel-api-common-hpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">src/decoders/novatel/api/common.hpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// ===============================================================================</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  Permission is hereby granted, free of charge, to any person obtaining a    |</span>
+<span class="c1">// |  copy of this software and associated documentation files (the &quot;Software&quot;), |</span>
+<span class="c1">// |  to deal in the Software without restriction, including without limitation  |</span>
+<span class="c1">// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |</span>
+<span class="c1">// |  and/or sell copies of the Software, and to permit persons to whom the      |</span>
+<span class="c1">// |  Software is furnished to do so, subject to the following conditions:       |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  The above copyright notice and this permission notice shall be included    |</span>
+<span class="c1">// |  in all copies or substantial portions of the Software.                     |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |</span>
+<span class="c1">// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |</span>
+<span class="c1">// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |</span>
+<span class="c1">// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |</span>
+<span class="c1">// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |</span>
+<span class="c1">// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |</span>
+<span class="c1">// |  DEALINGS IN THE SOFTWARE.                                                  |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// ===============================================================================</span>
+<span class="c1">// ! \file common.hpp</span>
+<span class="c1">// ===============================================================================</span>
+
+<span class="cp">#ifndef NOVATEL_COMMON_HPP</span>
+<span class="cp">#define NOVATEL_COMMON_HPP</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdint.h&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/common/api/common.hpp&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">novatel</span><span class="o">::</span><span class="nn">edie</span><span class="o">::</span><span class="nn">oem</span><span class="w"> </span><span class="p">{</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">// NMEA message protocol constants</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">NMEA_SYNC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;$&#39;</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">NMEA_SYNC_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">NMEA_CRC_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">// OEM4 ASCII message protocol constants</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">OEM4_ASCII_SYNC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;#&#39;</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">OEM4_ASCII_FIELD_SEPARATOR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;,&#39;</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">OEM4_ASCII_HEADER_TERMINATOR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;;&#39;</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">OEM4_ASCII_SYNC_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">OEM4_ASCII_CRC_DELIMITER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;*&#39;</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">OEM4_ASCII_CRC_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">OEM4_SHORT_ASCII_SYNC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;%&#39;</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">OEM4_ASCII_MESSAGE_NAME_MAX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">40</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">OEM4_SHORT_ASCII_SYNC_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">OEM4_ABBREV_ASCII_SYNC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;&lt;&#39;</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">OEM4_ABBREV_ASCII_SEPARATOR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">OEM4_ABBREV_ASCII_INDENTATION_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">OEM4_ERROR_PREFIX_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">6</span><span class="p">;</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">// OEM4 BINARY message protocol constants</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0xAA</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x44</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x12</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">OEM4_BINARY_HEADER_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">28</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">OEM4_BINARY_CRC_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">OEM4_SHORT_BINARY_SYNC3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x13</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">OEM4_SHORT_BINARY_SYNC_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">OEM4_SHORT_BINARY_HEADER_LENGTH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">12</span><span class="p">;</span>
+<span class="k">constexpr</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">OEM4_PROPRIETARY_BINARY_SYNC2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x45</span><span class="p">;</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">NovAtelFrameState</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">WAITING_FOR_SYNC</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_BINARY_SYNC2</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_BINARY_SYNC3</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_ABB_ASCII_SYNC2</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_BINARY_HEADER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_SHORT_BINARY_HEADER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_ABB_ASCII_HEADER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_BINARY_BODY_AND_CRC</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_ASCII_HEADER_AND_BODY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_ASCII_CRC</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_NMEA_BODY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_NMEA_CRC</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_ABB_ASCII_BODY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WAITING_FOR_JSON_OBJECT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">COMPLETE_MESSAGE</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">enum</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">ASCII_HEADER</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">MESSAGE_NAME</span><span class="p">,</span>
+<span class="w">    </span><span class="n">PORT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">SEQUENCE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">IDLE_TIME</span><span class="p">,</span>
+<span class="w">    </span><span class="n">TIME_STATUS</span><span class="p">,</span>
+<span class="w">    </span><span class="n">WEEK</span><span class="p">,</span>
+<span class="w">    </span><span class="n">SECONDS</span><span class="p">,</span>
+<span class="w">    </span><span class="n">RECEIVER_STATUS</span><span class="p">,</span>
+<span class="w">    </span><span class="n">MSG_DEF_CRC</span><span class="p">,</span>
+<span class="w">    </span><span class="n">RECEIVER_SW_VERSION</span><span class="p">,</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">MetaDataStruct</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">MetaDataBase</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">MEASUREMENT_SOURCE</span><span class="w"> </span><span class="n">eMeasurementSource</span><span class="p">{</span><span class="n">MEASUREMENT_SOURCE</span><span class="o">::</span><span class="n">PRIMARY</span><span class="p">};</span>
+<span class="w">    </span><span class="n">TIME_STATUS</span><span class="w"> </span><span class="n">eTimeStatus</span><span class="p">{</span><span class="n">TIME_STATUS</span><span class="o">::</span><span class="n">UNKNOWN</span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">MetaDataStruct</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">MetaDataStruct</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">HEADER_FORMAT</span><span class="w"> </span><span class="n">eFormat_</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">eFormat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eFormat_</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">MetaDataStruct</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">HEADER_FORMAT</span><span class="w"> </span><span class="n">eFormat_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiLength_</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">eFormat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eFormat_</span><span class="p">;</span>
+<span class="w">        </span><span class="n">uiLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">uiLength_</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="o">~</span><span class="n">MetaDataStruct</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="k">operator</span><span class="o">==</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MetaDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">eFormat</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">eFormat</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">eMeasurementSource</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">eMeasurementSource</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">eTimeStatus</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">eTimeStatus</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">               </span><span class="n">bResponse</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">bResponse</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">usWeek</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">usWeek</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">IsEqual</span><span class="p">(</span><span class="n">dMilliseconds</span><span class="p">,</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">dMilliseconds</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">               </span><span class="n">uiLength</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">uiLength</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">uiHeaderLength</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">uiHeaderLength</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">usMessageId</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">usMessageId</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">               </span><span class="n">uiMessageCrc</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">uiMessageCrc</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">MessageName</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">other_</span><span class="p">.</span><span class="n">MessageName</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">IntermediateHeader</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usMessageId</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucMessageType</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiPortAddress</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w"> </span><span class="c1">//  NOTE: This field is truncated in binary to uint8_t.</span>
+<span class="w">                               </span><span class="c1">//  In ASCII, this field is a string, but binary truncates it.</span>
+<span class="w">                               </span><span class="c1">//  Save as much of this info as possible without truncating it.</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span><span class="w">      </span><span class="c1">//  This field will only be filled when decoding binary logs</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usSequence</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucIdleTime</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiTimeStatus</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usWeek</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">dMilliseconds</span><span class="p">{</span><span class="mf">0.0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiReceiverStatus</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageDefinitionCrc</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usReceiverSwVersion</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">IntermediateHeader</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="cp">#pragma pack(push, 1)</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Oem4BinaryShortHeader</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucSync1</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucSync2</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucSync3</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usMessageId</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usWeekNo</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiWeekMSec</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">Oem4BinaryShortHeader</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">Oem4BinaryShortHeader</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">IntermediateHeader</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">ucSync1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC1</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucSync2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC2</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucSync3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OEM4_SHORT_BINARY_SYNC3</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="c1">// Will be filled in following the body encoding</span>
+<span class="w">        </span><span class="n">usMessageId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">usMessageId</span><span class="p">;</span>
+<span class="w">        </span><span class="n">usWeekNo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">usWeek</span><span class="p">;</span>
+<span class="w">        </span><span class="n">uiWeekMSec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">dMilliseconds</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Oem4BinaryHeader</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucSync1</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucSync2</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucSync3</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucHeaderLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usMsgNumber</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucMsgType</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucPort</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usLength</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usSequenceNumber</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucIdleTime</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ucTimeStatus</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usWeekNo</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiWeekMSec</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiStatus</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usMsgDefCrc</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">usReceiverSwVersion</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">Oem4BinaryHeader</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">Oem4BinaryHeader</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">IntermediateHeader</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="n">ucSync1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC1</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucSync2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC2</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucSync3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OEM4_BINARY_SYNC3</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucHeaderLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OEM4_BINARY_HEADER_LENGTH</span><span class="p">;</span>
+<span class="w">        </span><span class="n">usMsgNumber</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">usMessageId</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucMsgType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">ucMessageType</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="o">~</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">MESSAGE_TYPE_MASK</span><span class="o">::</span><span class="n">MSGFORMAT</span><span class="p">));</span>
+<span class="w">        </span><span class="n">ucPort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint8_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">uiPortAddress</span><span class="p">);</span>
+<span class="w">        </span><span class="n">usLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">usLength</span><span class="p">;</span>
+<span class="w">        </span><span class="n">usSequenceNumber</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">usSequence</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucIdleTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">ucIdleTime</span><span class="p">;</span>
+<span class="w">        </span><span class="n">ucTimeStatus</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint8_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">uiTimeStatus</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0xFF</span><span class="p">);</span>
+<span class="w">        </span><span class="n">usWeekNo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">usWeek</span><span class="p">;</span>
+<span class="w">        </span><span class="n">uiWeekMSec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">dMilliseconds</span><span class="p">);</span>
+<span class="w">        </span><span class="n">uiStatus</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">uiReceiverStatus</span><span class="p">;</span>
+<span class="w">        </span><span class="n">usMsgDefCrc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">uint16_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">uiMessageDefinitionCrc</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0xFFFF</span><span class="p">);</span>
+<span class="w">        </span><span class="n">usReceiverSwVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stInterHeader_</span><span class="p">.</span><span class="n">usReceiverSwVersion</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="k">operator</span><span class="o">==</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Oem4BinaryHeader</span><span class="o">&amp;</span><span class="w"> </span><span class="n">other_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">memcmp</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">other_</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">))</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="k">operator</span><span class="o">==</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Oem4BinaryShortHeader</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stShortHeader_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ucSync1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stShortHeader_</span><span class="p">.</span><span class="n">ucSync1</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">ucSync2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stShortHeader_</span><span class="p">.</span><span class="n">ucSync2</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">ucSync3</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stShortHeader_</span><span class="p">.</span><span class="n">ucSync3</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">               </span><span class="n">usMsgNumber</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stShortHeader_</span><span class="p">.</span><span class="n">usMessageId</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">usLength</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stShortHeader_</span><span class="p">.</span><span class="n">ucLength</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">usWeekNo</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stShortHeader_</span><span class="p">.</span><span class="n">usWeekNo</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="w">               </span><span class="n">uiWeekMSec</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">stShortHeader_</span><span class="p">.</span><span class="n">uiWeekMSec</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="cp">#pragma pack(pop)</span>
+
+<span class="p">}</span><span class="w"> </span><span class="c1">// namespace novatel::edie::oem</span>
+
+<span class="cp">#endif </span><span class="c1">// NOVATEL_COMMON_HPP</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

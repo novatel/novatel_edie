@@ -1,24 +1,26 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Struct FieldContainer &mdash; EDIE  documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -48,7 +50,6 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
@@ -63,25 +64,59 @@
 <li class="toctree-l4 current"><a class="current reference internal" href="#">Struct FieldContainer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
 <li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct.html">Struct ChannelTrackingStatusStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html">Struct IntermediateHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html">Struct MetaDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryHeader.html">Struct Oem4BinaryHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader.html">Struct Oem4BinaryShortHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2LockTimeInfoStruct.html">Struct RangeCmp2LockTimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SatelliteBlockStruct.html">Struct RangeCmp2SatelliteBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SignalBlockStruct.html">Struct RangeCmp2SignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2Struct.html">Struct RangeCmp2Struct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4LocktimeInfoStruct.html">Struct RangeCmp4LocktimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementBlockHeaderStruct.html">Struct RangeCmp4MeasurementBlockHeaderStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementSignalBlockStruct.html">Struct RangeCmp4MeasurementSignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpDataStruct.html">Struct RangeCmpDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpStruct.html">Struct RangeCmpStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeDataStruct.html">Struct RangeDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeStruct.html">Struct RangeStruct</a></li>
 <li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
-<li class="toctree-l4"><a class="reference internal" href="structSATELLITEID.html">Struct SATELLITEID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structReadDataStructure.html">Struct ReadDataStructure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSatelliteId.html">Struct SatelliteId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamReadStatus.html">Struct StreamReadStatus</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
-<li class="toctree-l4"><a class="reference internal" href="classFramer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFileStream.html">Class FileStream</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
-<li class="toctree-l4"><a class="reference internal" href="classJsonReader.html">Class JsonReader</a></li>
-<li class="toctree-l4"><a class="reference internal" href="classJsonReaderFailure.html">Class JsonReaderFailure</a></li>
-<li class="toctree-l4"><a class="reference internal" href="classnExcept.html">Class nExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputFileStream.html">Class InputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputMemoryStream.html">Class InputMemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputStreamInterface.html">Class InputStreamInterface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLogger.html">Class Logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMemoryStream.html">Class MemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiOutputFileStream.html">Class MultiOutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNExcept.html">Class NExcept</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html">Class JsonReader</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Commander.html">Class Commander</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Encoder.html">Class Encoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1FileParser.html">Class FileParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html">Class Filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1HeaderDecoder.html">Class HeaderDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1MessageDecoder.html">Class MessageDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html">Class Parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html">Class RangeDecompressor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler.html">Class RxConfigHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputFileStream.html">Class OutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputStreamInterface.html">Class OutputStreamInterface</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
 </ul>
 </li>
 </ul>
@@ -114,39 +149,39 @@
            <div itemprop="articleBody">
              
   <section id="struct-fieldcontainer">
-<span id="exhale-struct-structnovatel-1-1edie-1-1fieldcontainer"></span><h1>Struct FieldContainer<a class="headerlink" href="#struct-fieldcontainer" title="Permalink to this heading"></a></h1>
+<span id="exhale-struct-structnovatel-1-1edie-1-1fieldcontainer"></span><h1>Struct FieldContainer<a class="headerlink" href="#struct-fieldcontainer" title="Link to this heading"></a></h1>
 <ul class="simple">
-<li><p>Defined in <a class="reference internal" href="file_api_message_decoder.hpp.html#file-api-message-decoder-hpp"><span class="std std-ref">File message_decoder.hpp</span></a></p></li>
+<li><p>Defined in <a class="reference internal" href="file_src_decoders_common_api_message_decoder.hpp.html#file-src-decoders-common-api-message-decoder-hpp"><span class="std std-ref">File message_decoder.hpp</span></a></p></li>
 </ul>
 <section id="struct-documentation">
-<h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Permalink to this heading"></a></h2>
+<h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Link to this heading"></a></h2>
 <dl class="cpp struct">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie14FieldContainerE">
-<span id="_CPPv3N7novatel4edie14FieldContainerE"></span><span id="_CPPv2N7novatel4edie14FieldContainerE"></span><span id="novatel::edie::FieldContainer"></span><span class="target" id="structnovatel_1_1edie_1_1FieldContainer"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldContainer</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie14FieldContainerE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie14FieldContainerE"></span><span id="_CPPv2N7novatel4edie14FieldContainerE"></span><span id="novatel::edie::FieldContainer"></span><span class="target" id="structnovatel_1_1edie_1_1FieldContainer"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldContainer</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie14FieldContainerE" title="Link to this definition"></a><br /></dt>
 <dd><p>A struct to contain different fields from OEM messages. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField">
-<span id="_CPPv3I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField"></span><span id="_CPPv2I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structnovatel_1_1edie_1_1FieldContainer_1a5904dd29aa2bc4fdcc56e89c554ceb0e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldContainer</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField" title="novatel::edie::FieldContainer::FieldContainer::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">field_value_</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#_CPPv4N7novatel4edie9BaseFieldE" title="novatel::edie::BaseField"><span class="n"><span class="pre">BaseField</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">field_def_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField"></span><span id="_CPPv2I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structnovatel_1_1edie_1_1FieldContainer_1ac6b5d60176e74d79afab2aed5b2e8c7d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldContainer</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField" title="novatel::edie::FieldContainer::FieldContainer::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">tFieldValue_</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#_CPPv4N7novatel4edie9BaseFieldE" title="novatel::edie::BaseField"><span class="n"><span class="pre">BaseField</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pstFieldDef_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN7novatel4edie14FieldContainer14FieldContainerE1TPK9BaseField" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer">
-<span id="_CPPv3N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer"></span><span id="_CPPv2N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer"></span><span id="novatel::edie::FieldContainer::FieldContainer__FieldContainerCR"></span><span class="target" id="structnovatel_1_1edie_1_1FieldContainer_1ac5c203c1850956efc091b557ce2e23c5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldContainer</span></span></span><span class="sig-paren">(</span><span class="p"><span class="pre">[[</span></span><span class="pre">maybe_unused</span><span class="p"><span class="pre">]]</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer" title="novatel::edie::FieldContainer::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">obj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer"></span><span id="_CPPv2N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer"></span><span id="novatel::edie::FieldContainer::FieldContainer__FieldContainerCR"></span><span class="target" id="structnovatel_1_1edie_1_1FieldContainer_1aeb303ca7314415d722c018787810cfe4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FieldContainer</span></span></span><span class="sig-paren">(</span><span class="p"><span class="pre">[[</span></span><span class="pre">maybe_unused</span><span class="p"><span class="pre">]]</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer" title="novatel::edie::FieldContainer::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">obj_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie14FieldContainer14FieldContainerERK14FieldContainer" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie14FieldContainer11field_valueE">
-<span id="_CPPv3N7novatel4edie14FieldContainer11field_valueE"></span><span id="_CPPv2N7novatel4edie14FieldContainer11field_valueE"></span><span id="novatel::edie::FieldContainer::field_value__std::variant:b.int8_t.int16_t.int32_t.int64_t.uint8_t.uint16_t.uint32_t.uint64_t.float.double.ss.std::vector:FieldContainer::"></span><span class="target" id="structnovatel_1_1edie_1_1FieldContainer_1a0f5fa1487f6bc76256a3fc13b87a11f2"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int8_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int16_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint8_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint16_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">field_value</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie14FieldContainer11field_valueE" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie14FieldContainer10fieldValueE">
+<span id="_CPPv3N7novatel4edie14FieldContainer10fieldValueE"></span><span id="_CPPv2N7novatel4edie14FieldContainer10fieldValueE"></span><span id="novatel::edie::FieldContainer::fieldValue__std::variant:b.int8_t.int16_t.int32_t.int64_t.uint8_t.uint16_t.uint32_t.uint64_t.float.double.ss.std::vector:FieldContainer::"></span><span class="target" id="structnovatel_1_1edie_1_1FieldContainer_1a55ba46139568eb59877a2eef3628c006"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int8_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int16_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint8_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint16_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4N7novatel4edie14FieldContainerE" title="novatel::edie::FieldContainer"><span class="n"><span class="pre">FieldContainer</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">fieldValue</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie14FieldContainer10fieldValueE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie14FieldContainer9field_defE">
-<span id="_CPPv3N7novatel4edie14FieldContainer9field_defE"></span><span id="_CPPv2N7novatel4edie14FieldContainer9field_defE"></span><span id="novatel::edie::FieldContainer::field_def__novatel::edie::BaseFieldCP"></span><span class="target" id="structnovatel_1_1edie_1_1FieldContainer_1aa95779afa63b0405bd72297721734ffd"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">novatel</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">edie</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#_CPPv4N7novatel4edie9BaseFieldE" title="novatel::edie::BaseField"><span class="n"><span class="pre">BaseField</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">field_def</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie14FieldContainer9field_defE" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie14FieldContainer8fieldDefE">
+<span id="_CPPv3N7novatel4edie14FieldContainer8fieldDefE"></span><span id="_CPPv2N7novatel4edie14FieldContainer8fieldDefE"></span><span id="novatel::edie::FieldContainer::fieldDef__BaseFieldCP"></span><span class="target" id="structnovatel_1_1edie_1_1FieldContainer_1a3d2638d3619698e9a40d27d89d895051"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#_CPPv4N7novatel4edie9BaseFieldE" title="novatel::edie::BaseField"><span class="n"><span class="pre">BaseField</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fieldDef</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie14FieldContainer8fieldDefE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -166,7 +201,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020, rdoris.</p>
+    <p>&#169; Copyright 2024, NovAtel.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

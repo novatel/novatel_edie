@@ -1,0 +1,14 @@
+.. _exhale_variable_stream__interface_8hpp_1aee280500c9176bd752ef5e53bb9b2610:
+
+Variable iBufSize_
+==================
+
+- Defined in :ref:`file_src_hw_interface_dynamic_library_api_stream_interface.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: iBufSize_
+   :project: handlerfactory

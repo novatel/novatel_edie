@@ -1,0 +1,77 @@
+
+.. _program_listing_file_src_hw_interface_stream_interface_api_outputstreaminterface.hpp:
+
+Program Listing for File outputstreaminterface.hpp
+==================================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_src_hw_interface_stream_interface_api_outputstreaminterface.hpp>` (``src/hw_interface/stream_interface/api/outputstreaminterface.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   // ===============================================================================
+   // |                                                                             |
+   // |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+   // |                                                                             |
+   // |  Permission is hereby granted, free of charge, to any person obtaining a    |
+   // |  copy of this software and associated documentation files (the "Software"), |
+   // |  to deal in the Software without restriction, including without limitation  |
+   // |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+   // |  and/or sell copies of the Software, and to permit persons to whom the      |
+   // |  Software is furnished to do so, subject to the following conditions:       |
+   // |                                                                             |
+   // |  The above copyright notice and this permission notice shall be included    |
+   // |  in all copies or substantial portions of the Software.                     |
+   // |                                                                             |
+   // |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+   // |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+   // |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+   // |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+   // |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+   // |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+   // |  DEALINGS IN THE SOFTWARE.                                                  |
+   // |                                                                             |
+   // ===============================================================================
+   // ! \file outputstreaminterface.hpp
+   // ===============================================================================
+   
+   #ifndef OUTPUT_STREAM_INTERFACE_HPP
+   #define OUTPUT_STREAM_INTERFACE_HPP
+   
+   #include <string>
+   
+   //-----------------------------------------------------------------------
+   // Globals
+   //-----------------------------------------------------------------------
+   class MemoryStream;
+   
+   class OutputStreamInterface
+   {
+     public:
+       virtual uint32_t WriteData(const char* pcData_, uint32_t uiDataLength_) = 0;
+   
+       virtual ~OutputStreamInterface() = default;
+   
+       virtual void SelectFileStream(const std::string&) {}
+   
+       virtual void ConfigureSplitByLog(bool) {}
+   
+       virtual void ConfigureBaseFileName(const std::string&) {}
+   
+       virtual void ConfigureSplitBySize(uint64_t) {}
+   
+       virtual void ConfigureSplitByTime(double) {}
+   
+       virtual MemoryStream* GetMemoryStream() { return nullptr; }
+   
+       // #ifdef WIDE_CHAR_SUPPORT
+       virtual void SelectFileStream(const std::u32string&) {}
+   
+       virtual void ConfigureBaseFileName(const std::u32string&) {}
+       // #endif
+   
+     private:
+   };
+   
+   #endif

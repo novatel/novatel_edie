@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a1f26a65ac87d359cfe5a157f597be9bc:
+
+Variable novatel::edie::oem::RC2_SAT_SATELLITE_DOPPLER_BASE_SHIFT
+=================================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SAT_SATELLITE_DOPPLER_BASE_SHIFT
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__file__parser_8hpp_1a3ec1335f3dac3e9a66470dabc18ce626:
+
+Function NovatelFileParserLoadJsonDb
+====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFileParserLoadJsonDb(novatel::edie::oem::FileParser *, novatel::edie::JsonReader *)
+   :project: handlerfactory

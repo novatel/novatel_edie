@@ -1,0 +1,14 @@
+.. _exhale_define_decoders__export_8h_1a44d4416ad5f02ff03217a224918649a7:
+
+Define DECODERS_DEPRECATED_EXPORT
+=================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_decoders_export.h`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: DECODERS_DEPRECATED_EXPORT
+   :project: handlerfactory

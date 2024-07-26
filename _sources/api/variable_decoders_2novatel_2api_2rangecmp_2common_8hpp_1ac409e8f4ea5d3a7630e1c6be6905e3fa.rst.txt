@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ac409e8f4ea5d3a7630e1c6be6905e3fa:
+
+Variable novatel::edie::oem::RC2_SAT_SATELLITE_SYSTEM_ID_MASK
+=============================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SAT_SATELLITE_SYSTEM_ID_MASK
+   :project: handlerfactory

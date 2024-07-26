@@ -1,0 +1,26 @@
+.. _exhale_class_classnovatel_1_1edie_1_1oem_1_1Framer:
+
+Class Framer
+============
+
+- Defined in :ref:`file_src_decoders_novatel_api_framer.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public FramerBase`` (:ref:`exhale_class_classFramerBase`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: novatel::edie::oem::Framer
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

@@ -1,0 +1,18 @@
+
+.. _namespace_RangeCmp4:
+
+Namespace RangeCmp4
+===================
+
+
+Containment for RANGECMP4-specific field values found in other RANGE data representations. 
+
+
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+
+

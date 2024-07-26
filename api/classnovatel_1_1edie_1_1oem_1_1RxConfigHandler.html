@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class RxConfigHandler &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class OutputFileStream" href="classOutputFileStream.html" />
+    <link rel="prev" title="Class RangeDecompressor" href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct.html">Struct ChannelTrackingStatusStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html">Struct IntermediateHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html">Struct MetaDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryHeader.html">Struct Oem4BinaryHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader.html">Struct Oem4BinaryShortHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2LockTimeInfoStruct.html">Struct RangeCmp2LockTimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SatelliteBlockStruct.html">Struct RangeCmp2SatelliteBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SignalBlockStruct.html">Struct RangeCmp2SignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2Struct.html">Struct RangeCmp2Struct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4LocktimeInfoStruct.html">Struct RangeCmp4LocktimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementBlockHeaderStruct.html">Struct RangeCmp4MeasurementBlockHeaderStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementSignalBlockStruct.html">Struct RangeCmp4MeasurementSignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpDataStruct.html">Struct RangeCmpDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpStruct.html">Struct RangeCmpStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeDataStruct.html">Struct RangeDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeStruct.html">Struct RangeStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structReadDataStructure.html">Struct ReadDataStructure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSatelliteId.html">Struct SatelliteId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamReadStatus.html">Struct StreamReadStatus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFileStream.html">Class FileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputFileStream.html">Class InputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputMemoryStream.html">Class InputMemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputStreamInterface.html">Class InputStreamInterface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLogger.html">Class Logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMemoryStream.html">Class MemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiOutputFileStream.html">Class MultiOutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNExcept.html">Class NExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Commander.html">Class Commander</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Encoder.html">Class Encoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1FileParser.html">Class FileParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html">Class Filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1HeaderDecoder.html">Class HeaderDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1MessageDecoder.html">Class MessageDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html">Class Parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html">Class RangeDecompressor</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class RxConfigHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputFileStream.html">Class OutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputStreamInterface.html">Class OutputStreamInterface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Class RxConfigHandler</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classnovatel_1_1edie_1_1oem_1_1RxConfigHandler.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-rxconfighandler">
+<span id="exhale-class-classnovatel-1-1edie-1-1oem-1-1rxconfighandler"></span><h1>Class RxConfigHandler<a class="headerlink" href="#class-rxconfighandler" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp.html#file-src-decoders-novatel-api-rxconfig-rxconfig-handler-hpp"><span class="std std-ref">File rxconfig_handler.hpp</span></a></p></li>
+</ul>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandlerE">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandlerE"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandlerE"></span><span id="novatel::edie::oem::RxConfigHandler"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RxConfigHandler</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandlerE" title="Link to this definition"></a><br /></dt>
+<dd><p>Class to handle RXCONFIGA and RXCONFIGB messages, which are outliers with regard to OEM message protocol. This class should have bytes containing RXCONFIG messages written to it with calls to <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a81b6d6e1824bdcc5512c39c231f5cb13"><span class="std std-ref">Write()</span></a> and the converted data should be retrieved with calls to <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a9a90d13e302845aad6dbc262ea71525a"><span class="std std-ref">Convert()</span></a>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERK15RxConfigHandler">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERK15RxConfigHandler"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERK15RxConfigHandler"></span><span id="novatel::edie::oem::RxConfigHandler::RxConfigHandler__RxConfigHandlerCR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a1229d53c219de6303d603625ae57e806"></span><span class="sig-name descname"><span class="n"><span class="pre">RxConfigHandler</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERK15RxConfigHandler" title="novatel::edie::oem::RxConfigHandler::RxConfigHandler"><span class="n"><span class="pre">RxConfigHandler</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERK15RxConfigHandler" title="Link to this definition"></a><br /></dt>
+<dd><p>TODO: Manage copy/move/assignment constructors better. NOTE: The following constructors prevent this class from ever being constructed from a copy, move or assignment. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERRK15RxConfigHandler">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERRK15RxConfigHandler"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERRK15RxConfigHandler"></span><span id="novatel::edie::oem::RxConfigHandler::RxConfigHandler__RxConfigHandlerCRR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a0f6724f067b81344314a86a345b111fb"></span><span class="sig-name descname"><span class="n"><span class="pre">RxConfigHandler</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERRK15RxConfigHandler" title="novatel::edie::oem::RxConfigHandler::RxConfigHandler"><span class="n"><span class="pre">RxConfigHandler</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerERRK15RxConfigHandler" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandleraSERK15RxConfigHandler">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandleraSERK15RxConfigHandler"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandleraSERK15RxConfigHandler"></span><span id="novatel::edie::oem::RxConfigHandler::assign-operator__RxConfigHandlerCR"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1ae09869ef67e602871cb87afbab0d7785"></span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem15RxConfigHandlerE" title="novatel::edie::oem::RxConfigHandler"><span class="n"><span class="pre">RxConfigHandler</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N7novatel4edie3oem15RxConfigHandlerE" title="novatel::edie::oem::RxConfigHandler"><span class="n"><span class="pre">RxConfigHandler</span></span></a><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">delete</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandleraSERK15RxConfigHandler" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerEP10JsonReader">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerEP10JsonReader"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerEP10JsonReader"></span><span id="novatel::edie::oem::RxConfigHandler::RxConfigHandler__JsonReaderP"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a511f93d093a35b7e56e2a51b5e666f88"></span><span class="sig-name descname"><span class="n"><span class="pre">RxConfigHandler</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#_CPPv4N7novatel4edie10JsonReaderE" title="novatel::edie::JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pclJsonDb_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">nullptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler15RxConfigHandlerEP10JsonReader" title="Link to this definition"></a><br /></dt>
+<dd><p>A constructor for the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1RxConfigHandler"><span class="std std-ref">RxConfigHandler</span></a> class. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pclJsonDb_</strong> – <strong>[in]</strong> A pointer to a <a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#classnovatel_1_1edie_1_1JsonReader"><span class="std std-ref">JsonReader</span></a> object. Defaults to nullptr. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandler10LoadJsonDbEP10JsonReader">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandler10LoadJsonDbEP10JsonReader"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandler10LoadJsonDbEP10JsonReader"></span><span id="novatel::edie::oem::RxConfigHandler::LoadJsonDb__JsonReaderP"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a2865efdbdb9669ef6d62895439f7fe96"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LoadJsonDb</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#_CPPv4N7novatel4edie10JsonReaderE" title="novatel::edie::JsonReader"><span class="n"><span class="pre">JsonReader</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pclJsonDb_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler10LoadJsonDbEP10JsonReader" title="Link to this definition"></a><br /></dt>
+<dd><p>Load a <a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#classnovatel_1_1edie_1_1JsonReader"><span class="std std-ref">JsonReader</span></a> object. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pclJsonDb_</strong> – <strong>[in]</strong> A pointer to a <a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html#classnovatel_1_1edie_1_1JsonReader"><span class="std std-ref">JsonReader</span></a> object. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem15RxConfigHandler9GetLoggerEv">
+<span id="_CPPv3NK7novatel4edie3oem15RxConfigHandler9GetLoggerEv"></span><span id="_CPPv2NK7novatel4edie3oem15RxConfigHandler9GetLoggerEv"></span><span id="novatel::edie::oem::RxConfigHandler::GetLoggerC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1ab3c531801d81e0dcd1ad074e5b654526"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shared_ptr</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetLogger</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem15RxConfigHandler9GetLoggerEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Get the internal logger. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A shared_ptr to the spdlog::logger. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie3oem15RxConfigHandler14SetLoggerLevelEN6spdlog5level10level_enumE">
+<span id="_CPPv3NK7novatel4edie3oem15RxConfigHandler14SetLoggerLevelEN6spdlog5level10level_enumE"></span><span id="_CPPv2NK7novatel4edie3oem15RxConfigHandler14SetLoggerLevelEN6spdlog5level10level_enumE"></span><span id="novatel::edie::oem::RxConfigHandler::SetLoggerLevel__spdlog::level::level_enumC"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a480f07936f46a366adc5746404846883"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetLoggerLevel</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">spdlog</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">level_enum</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">eLevel_</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie3oem15RxConfigHandler14SetLoggerLevelEN6spdlog5level10level_enumE" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the level of detail produced by the internal logger. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>eLevel_</strong> – <strong>[in]</strong> The logging level to enable. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandler5WriteEPh8uint32_t">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandler5WriteEPh8uint32_t"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandler5WriteEPh8uint32_t"></span><span id="novatel::edie::oem::RxConfigHandler::Write__unsigned-cP.uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a81b6d6e1824bdcc5512c39c231f5cb13"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pucData_</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiDataSize_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler5WriteEPh8uint32_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Write bytes to the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1RxConfigHandler"><span class="std std-ref">RxConfigHandler</span></a> to be converted. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pucData_</strong> – <strong>[in]</strong> Buffer containing data to be written. </p></li>
+<li><p><strong>uiDataSize_</strong> – <strong>[in]</strong> Size of data to be written. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of bytes successfully written to the <a class="reference internal" href="#classnovatel_1_1edie_1_1oem_1_1RxConfigHandler"><span class="std std-ref">RxConfigHandler</span></a>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandler7ConvertER17MessageDataStructR14MetaDataStructR17MessageDataStructR14MetaDataStruct13ENCODE_FORMAT">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandler7ConvertER17MessageDataStructR14MetaDataStructR17MessageDataStructR14MetaDataStruct13ENCODE_FORMAT"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandler7ConvertER17MessageDataStructR14MetaDataStructR17MessageDataStructR14MetaDataStruct13ENCODE_FORMAT"></span><span id="novatel::edie::oem::RxConfigHandler::Convert__MessageDataStructR.MetaDataStructR.MessageDataStructR.MetaDataStructR.ENCODE_FORMAT"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1a9a90d13e302845aad6dbc262ea71525a"></span><a class="reference internal" href="enum_decoders_2common_2api_2common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b.html#_CPPv4N7novatel4edie6STATUSE" title="novatel::edie::STATUS"><span class="n"><span class="pre">STATUS</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Convert</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html#_CPPv4N7novatel4edie17MessageDataStructE" title="novatel::edie::MessageDataStruct"><span class="n"><span class="pre">MessageDataStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stRxConfigMessageData_</span></span>, <a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html#_CPPv4N7novatel4edie3oem14MetaDataStructE" title="novatel::edie::oem::MetaDataStruct"><span class="n"><span class="pre">MetaDataStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stRxConfigMetaData_</span></span>, <a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html#_CPPv4N7novatel4edie17MessageDataStructE" title="novatel::edie::MessageDataStruct"><span class="n"><span class="pre">MessageDataStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stEmbeddedMessageData_</span></span>, <a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html#_CPPv4N7novatel4edie3oem14MetaDataStructE" title="novatel::edie::oem::MetaDataStruct"><span class="n"><span class="pre">MetaDataStruct</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">stEmbeddedMetaData_</span></span>, <a class="reference internal" href="enum_decoders_2common_2api_2common_8hpp_1af24978e6f9a0fb4f12f61b895de33cec.html#_CPPv4N7novatel4edie13ENCODE_FORMATE" title="novatel::edie::ENCODE_FORMAT"><span class="n"><span class="pre">ENCODE_FORMAT</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eEncodeFormat_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler7ConvertER17MessageDataStructR14MetaDataStructR17MessageDataStructR14MetaDataStruct13ENCODE_FORMAT" title="Link to this definition"></a><br /></dt>
+<dd><p>Read and convert an RXCONFIG message from the handler. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stRxConfigMessageData_</strong> – <strong>[out]</strong> A reference to a <a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html#structnovatel_1_1edie_1_1MessageDataStruct"><span class="std std-ref">MessageDataStruct</span></a> to be populated by the handler, referring to the RXCONFIG message. </p></li>
+<li><p><strong>stRxConfigMetaData_</strong> – <strong>[out]</strong> A reference to a <a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html#structnovatel_1_1edie_1_1oem_1_1MetaDataStruct"><span class="std std-ref">MetaDataStruct</span></a> to be populated by the handler, referring to the RXCONFIG message. </p></li>
+<li><p><strong>stEmbeddedMessageData_</strong> – <strong>[out]</strong> A reference to a <a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html#structnovatel_1_1edie_1_1MessageDataStruct"><span class="std std-ref">MessageDataStruct</span></a> to be populated by the handler, referring to the embedded message in RXCONFIG. </p></li>
+<li><p><strong>stEmbeddedMetaData_</strong> – <strong>[out]</strong> A reference to a <a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html#structnovatel_1_1edie_1_1oem_1_1MetaDataStruct"><span class="std std-ref">MetaDataStruct</span></a> to be populated by the handler, referring to the embedded message in RXCONFIG. </p></li>
+<li><p><strong>eEncodeFormat_</strong> – <strong>[in]</strong> An enum describing the format to encode the message to. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An error code describing the result of decoding and converting. See novatel::edie::oem::STATUS. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandler5FlushEPh8uint32_t">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandler5FlushEPh8uint32_t"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandler5FlushEPh8uint32_t"></span><span id="novatel::edie::oem::RxConfigHandler::Flush__unsigned-cP.uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1afe46131f66ef53439792bee5cad7343a"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Flush</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pucBuffer_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">nullptr</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiBufferSize_</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">uiInternalBufferSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler5FlushEPh8uint32_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Flush all bytes from the internal <a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html#classnovatel_1_1edie_1_1oem_1_1Framer"><span class="std std-ref">Framer</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pucBuffer_</strong> – <strong>[in]</strong> A buffer to contain flushed bytes, if desired. Defaults to NULL. </p></li>
+<li><p><strong>uiBufferSize_</strong> – <strong>[in]</strong> The length of ulBufferSize_, if provided. Defaults to the size of the internal buffer (64kB). </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of bytes flushed from the internal <a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html#classnovatel_1_1edie_1_1oem_1_1Framer"><span class="std std-ref">Framer</span></a>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie3oem15RxConfigHandler14ShutdownLoggerEv">
+<span id="_CPPv3N7novatel4edie3oem15RxConfigHandler14ShutdownLoggerEv"></span><span id="_CPPv2N7novatel4edie3oem15RxConfigHandler14ShutdownLoggerEv"></span><span id="novatel::edie::oem::RxConfigHandler::ShutdownLogger"></span><span class="target" id="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler_1ae03b7a5f8ba5fb3b8b3fa1a8c17cdb9a"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ShutdownLogger</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie3oem15RxConfigHandler14ShutdownLoggerEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Shutdown the internal logger. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html" class="btn btn-neutral float-left" title="Class RangeDecompressor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classOutputFileStream.html" class="btn btn-neutral float-right" title="Class OutputFileStream" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

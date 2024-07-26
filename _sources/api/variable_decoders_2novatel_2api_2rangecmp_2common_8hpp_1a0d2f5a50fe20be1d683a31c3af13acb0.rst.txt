@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a0d2f5a50fe20be1d683a31c3af13acb0:
+
+Variable novatel::edie::oem::GLONASS_L1_FREQUENCY_SCALE_HZ
+==========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::GLONASS_L1_FREQUENCY_SCALE_HZ
+   :project: handlerfactory

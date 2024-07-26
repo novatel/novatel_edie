@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File file_parser.hpp &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File file_parser.hpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_src_decoders_novatel_api_file_parser.hpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-file-parser-hpp">
+<span id="program-listing-file-src-decoders-novatel-api-file-parser-hpp"></span><h1>Program Listing for File file_parser.hpp<a class="headerlink" href="#program-listing-for-file-file-parser-hpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_src_decoders_novatel_api_file_parser.hpp.html#file-src-decoders-novatel-api-file-parser-hpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">src/decoders/novatel/api/file_parser.hpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// ===============================================================================</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  Permission is hereby granted, free of charge, to any person obtaining a    |</span>
+<span class="c1">// |  copy of this software and associated documentation files (the &quot;Software&quot;), |</span>
+<span class="c1">// |  to deal in the Software without restriction, including without limitation  |</span>
+<span class="c1">// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |</span>
+<span class="c1">// |  and/or sell copies of the Software, and to permit persons to whom the      |</span>
+<span class="c1">// |  Software is furnished to do so, subject to the following conditions:       |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  The above copyright notice and this permission notice shall be included    |</span>
+<span class="c1">// |  in all copies or substantial portions of the Software.                     |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |</span>
+<span class="c1">// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |</span>
+<span class="c1">// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |</span>
+<span class="c1">// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |</span>
+<span class="c1">// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |</span>
+<span class="c1">// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |</span>
+<span class="c1">// |  DEALINGS IN THE SOFTWARE.                                                  |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// ===============================================================================</span>
+<span class="c1">// ! \file file_parser.hpp</span>
+<span class="c1">// ===============================================================================</span>
+
+<span class="cp">#ifndef NOVATEL_FILE_PARSER_HPP</span>
+<span class="cp">#define NOVATEL_FILE_PARSER_HPP</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/common/api/common.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/novatel/api/parser.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;hw_interface/stream_interface/api/inputfilestream.hpp&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">novatel</span><span class="o">::</span><span class="nn">edie</span><span class="o">::</span><span class="nn">oem</span><span class="w"> </span><span class="p">{</span>
+
+<span class="c1">//============================================================================</span>
+<span class="c1">//============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileParser</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pclMyLogger</span><span class="p">{</span><span class="n">Logger</span><span class="o">::</span><span class="n">RegisterLogger</span><span class="p">(</span><span class="s">&quot;novatel_file_parser&quot;</span><span class="p">)};</span>
+
+<span class="w">    </span><span class="n">Parser</span><span class="w"> </span><span class="n">clMyParser</span><span class="p">;</span>
+<span class="w">    </span><span class="n">InputFileStream</span><span class="o">*</span><span class="w"> </span><span class="n">pclMyInputStream</span><span class="p">;</span>
+<span class="w">    </span><span class="n">StreamReadStatus</span><span class="w"> </span><span class="n">stMyStreamReadStatus</span><span class="p">;</span>
+<span class="w">    </span><span class="n">ReadDataStructure</span><span class="w"> </span><span class="n">stMyReadData</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">pcMyStreamReadBuffer</span><span class="p">;</span>
+
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ReadStream</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">FileParser</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FileParser</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span><span class="p">;</span>
+<span class="w">    </span><span class="n">FileParser</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FileParser</span><span class="o">&amp;&amp;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span><span class="p">;</span>
+<span class="w">    </span><span class="n">FileParser</span><span class="o">&amp;</span><span class="w"> </span><span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">FileParser</span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">FileParser</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sDbPath_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">FileParser</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">u32string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sDbPath_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">FileParser</span><span class="p">(</span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclJsonDb_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="o">~</span><span class="n">FileParser</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">LoadJsonDb</span><span class="p">(</span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclJsonDb_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetLogger</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">EnableFramerDecoderLogging</span><span class="p">(</span><span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">level_enum</span><span class="w"> </span><span class="n">eLevel_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">debug</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sFileName_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edie.log&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetLoggerLevel</span><span class="p">(</span><span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">level_enum</span><span class="w"> </span><span class="n">eLevel_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">ShutdownLogger</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetIgnoreAbbreviatedAsciiResponses</span><span class="p">(</span><span class="kt">bool</span><span class="w"> </span><span class="n">bIgnoreAbbreviatedAsciiResponses_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">GetIgnoreAbbreviatedAsciiResponses</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">GetPercentRead</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetDecompressRangeCmp</span><span class="p">(</span><span class="kt">bool</span><span class="w"> </span><span class="n">bDecompressRangeCmp_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">GetDecompressRangeCmp</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetReturnUnknownBytes</span><span class="p">(</span><span class="kt">bool</span><span class="w"> </span><span class="n">bReturnUnknownBytes_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">GetReturnUnknownBytes</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetEncodeFormat</span><span class="p">(</span><span class="n">ENCODE_FORMAT</span><span class="w"> </span><span class="n">eFormat_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">ENCODE_FORMAT</span><span class="w"> </span><span class="n">GetEncodeFormat</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetFilter</span><span class="p">(</span><span class="n">Filter</span><span class="o">*</span><span class="w"> </span><span class="n">pclFilter_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">Filter</span><span class="o">*</span><span class="w"> </span><span class="n">GetFilter</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">SetStream</span><span class="p">(</span><span class="n">InputFileStream</span><span class="o">*</span><span class="w"> </span><span class="n">pclInputStream_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">STATUS</span><span class="w"> </span><span class="n">Read</span><span class="p">(</span><span class="n">MessageDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stMessageData_</span><span class="p">,</span><span class="w"> </span><span class="n">MetaDataStruct</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stMetaData_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">Reset</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="nf">Flush</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">pucBuffer_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiBufferSize_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Parser</span><span class="o">::</span><span class="n">uiParserInternalBufferSize</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">GetInternalBuffer</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="p">}</span><span class="w"> </span><span class="c1">// namespace novatel::edie::oem</span>
+
+<span class="cp">#endif </span><span class="c1">// NOVATEL_FILE_PARSER_HPP</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

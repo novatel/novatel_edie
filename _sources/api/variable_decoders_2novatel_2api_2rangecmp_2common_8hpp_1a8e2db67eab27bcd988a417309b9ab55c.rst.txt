@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a8e2db67eab27bcd988a417309b9ab55c:
+
+Variable novatel::edie::oem::RC2_SIG_CODE_LOCK_SHIFT
+====================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_CODE_LOCK_SHIFT
+   :project: handlerfactory

@@ -3,7 +3,16 @@
 Class MetaDataBase
 ==================
 
-- Defined in :ref:`file_api_common.hpp`
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Type
+************
+
+- ``public novatel::edie::oem::MetaDataStruct`` (:ref:`exhale_struct_structnovatel_1_1edie_1_1oem_1_1MetaDataStruct`)
 
 
 Class Documentation

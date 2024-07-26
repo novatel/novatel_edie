@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2common_8hpp_1a0f628e343e3277c4a7ab0099ac3aaff8:
+
+Variable novatel::edie::oem::OEM4_BINARY_CRC_LENGTH
+===================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::OEM4_BINARY_CRC_LENGTH
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_common_2api_2encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf:
+
+Function novatel::edie::PrintToBuffer
+=====================================
+
+- Defined in :ref:`file_src_decoders_common_api_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::PrintToBuffer(char **, uint32_t&, const char *, ...)
+   :project: handlerfactory

@@ -1,0 +1,47 @@
+
+.. _file_src_decoders_dynamic_library_api_version.hpp:
+
+File version.hpp
+================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_dynamic_library_api>` (``src/decoders/dynamic_library/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/dynamic_library/api/version.hpp``)
+-------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_dynamic_library_api_version.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders_export.h`` (:ref:`file_src_decoders_dynamic_library_api_decoders_export.h`)
+
+
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_decoders_2dynamic__library_2api_2version_8hpp_1aa804156b51f67b910ec5e792f1075e3e`
+
+- :ref:`exhale_function_decoders_2dynamic__library_2api_2version_8hpp_1a6f5148556cbbd84238c656b6e2476484`
+

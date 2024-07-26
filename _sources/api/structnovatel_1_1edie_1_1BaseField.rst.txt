@@ -3,7 +3,7 @@
 Struct BaseField
 ================
 
-- Defined in :ref:`file_api_jsonreader.hpp`
+- Defined in :ref:`file_src_decoders_common_api_json_reader.hpp`
 
 
 Inheritance Relationships

@@ -1,0 +1,71 @@
+
+.. _file_src_decoders_dynamic_library_api_novatel_framer.hpp:
+
+File novatel_framer.hpp
+=======================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_dynamic_library_api>` (``src/decoders/dynamic_library/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/dynamic_library/api/novatel_framer.hpp``)
+--------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_dynamic_library_api_novatel_framer.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders/novatel/api/common.hpp`` (:ref:`file_src_decoders_novatel_api_common.hpp`)
+
+- ``decoders/novatel/api/filter.hpp`` (:ref:`file_src_decoders_novatel_api_filter.hpp`)
+
+- ``decoders/novatel/api/framer.hpp`` (:ref:`file_src_decoders_novatel_api_framer.hpp`)
+
+- ``decoders_export.h`` (:ref:`file_src_decoders_dynamic_library_api_decoders_export.h`)
+
+
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_novatel__framer_8hpp_1a9999533722ee3f47446c6ba22b4506ad`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1aac5fed0bd736841b621c45ee5663a2b9`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1aaadf37d398babaed9e6d2f831fd6dbc0`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1a01a1030811e9ac5a27918df6a1a6e437`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1a63e501c8e03eb855d87f1f2fdc231a29`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1ad2e8ce964ee32e3917eb074ed11e92f1`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1a16cd6230398e4a34a474f8297f2b0888`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1aaa071ea1b505c633b6dd17dad07bc297`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1a3b5a16242a9d6c20566a8700443bf8fa`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1a37b0848c61240cfc83d80dc426f444dc`
+
+- :ref:`exhale_function_novatel__framer_8hpp_1a7dae61e5bfd54ea02a6ba9cd02d5c159`
+

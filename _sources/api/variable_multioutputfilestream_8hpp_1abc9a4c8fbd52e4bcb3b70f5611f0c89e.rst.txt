@@ -1,0 +1,14 @@
+.. _exhale_variable_multioutputfilestream_8hpp_1abc9a4c8fbd52e4bcb3b70f5611f0c89e:
+
+Variable MIN_FILE_SPLIT_SIZE
+============================
+
+- Defined in :ref:`file_src_hw_interface_stream_interface_api_multioutputfilestream.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: MIN_FILE_SPLIT_SIZE
+   :project: handlerfactory

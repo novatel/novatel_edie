@@ -1,0 +1,32 @@
+.. _dir_src_decoders_dynamic_library_api:
+
+
+Directory api
+=============
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_dynamic_library>` (``src/decoders/dynamic_library``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/decoders/dynamic_library/api``
+
+
+Files
+-----
+
+- :ref:`file_src_decoders_dynamic_library_api_common_json_reader.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_common_logger.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_decoders_export.h`
+- :ref:`file_src_decoders_dynamic_library_api_novatel_commander.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_novatel_encoder.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_novatel_parser.hpp`
+- :ref:`file_src_decoders_dynamic_library_api_version.hpp`
+
+

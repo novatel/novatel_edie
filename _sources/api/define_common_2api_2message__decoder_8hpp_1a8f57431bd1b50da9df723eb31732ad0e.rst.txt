@@ -1,0 +1,14 @@
+.. _exhale_define_common_2api_2message__decoder_8hpp_1a8f57431bd1b50da9df723eb31732ad0e:
+
+Define NOVATEL_TYPES
+====================
+
+- Defined in :ref:`file_src_decoders_common_api_message_decoder.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: NOVATEL_TYPES
+   :project: handlerfactory

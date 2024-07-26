@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a735e28ab11c91d28b1bcc85162b2c376:
+
+Variable novatel::edie::oem::RC4_DBLK_DOPPLER_BITS
+==================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_DBLK_DOPPLER_BITS
+   :project: handlerfactory

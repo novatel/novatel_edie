@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1a3b5a16242a9d6c20566a8700443bf8fa:
+
+Function NovatelFramerSetLoggerLevel
+====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerSetLoggerLevel(novatel::edie::oem::Framer *, uint32_t)
+   :project: handlerfactory

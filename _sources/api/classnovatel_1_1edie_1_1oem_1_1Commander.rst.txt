@@ -1,0 +1,17 @@
+.. _exhale_class_classnovatel_1_1edie_1_1oem_1_1Commander:
+
+Class Commander
+===============
+
+- Defined in :ref:`file_src_decoders_novatel_api_commander.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: novatel::edie::oem::Commander
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

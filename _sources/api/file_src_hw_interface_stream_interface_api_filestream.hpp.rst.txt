@@ -1,0 +1,59 @@
+
+.. _file_src_hw_interface_stream_interface_api_filestream.hpp:
+
+File filestream.hpp
+===================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_hw_interface_stream_interface_api>` (``src/hw_interface/stream_interface/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/hw_interface/stream_interface/api/filestream.hpp``)
+---------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_hw_interface_stream_interface_api_filestream.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``common.hpp`` (:ref:`file_src_decoders_common_api_common.hpp`)
+
+- ``filesystem``
+
+- ``fstream``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_hw_interface_stream_interface_api_inputfilestream.hpp`
+
+- :ref:`file_src_hw_interface_stream_interface_api_multioutputfilestream.hpp`
+
+- :ref:`file_src_hw_interface_stream_interface_api_outputfilestream.hpp`
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classFileStream`
+

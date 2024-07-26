@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__file__parser_8hpp_1a40a4a4d14360b6f4a6faff1e9cfdb74c:
+
+Function NovatelFileParserReset
+===============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFileParserReset(novatel::edie::oem::FileParser *)
+   :project: handlerfactory

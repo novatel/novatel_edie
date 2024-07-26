@@ -1,0 +1,17 @@
+.. _exhale_struct_structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct:
+
+Struct ChannelTrackingStatusStruct
+==================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: novatel::edie::oem::ChannelTrackingStatusStruct
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

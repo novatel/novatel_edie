@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1aaa071ea1b505c633b6dd17dad07bc297:
+
+Function NovatelFramerReportUnknownBytes
+========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerReportUnknownBytes(novatel::edie::oem::Framer *, bool)
+   :project: handlerfactory

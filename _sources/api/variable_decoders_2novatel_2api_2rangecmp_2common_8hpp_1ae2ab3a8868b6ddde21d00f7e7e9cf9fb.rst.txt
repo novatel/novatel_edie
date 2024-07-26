@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ae2ab3a8868b6ddde21d00f7e7e9cf9fb:
+
+Variable novatel::edie::oem::RC4_SIG_BLK_DOPPLER_SCALE_FACTOR
+=============================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_SIG_BLK_DOPPLER_SCALE_FACTOR
+   :project: handlerfactory

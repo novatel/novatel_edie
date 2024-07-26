@@ -1,0 +1,14 @@
+.. _exhale_variable_stream__interface_8hpp_1a9e45e3deee6a23ea89dcf09a9f0106ed:
+
+Variable pstReadStatus_
+=======================
+
+- Defined in :ref:`file_src_hw_interface_dynamic_library_api_stream_interface.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: pstReadStatus_
+   :project: handlerfactory

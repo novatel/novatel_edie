@@ -1,16 +1,16 @@
-.. _exhale_struct_structSATELLITEID:
+.. _exhale_struct_structSatelliteId:
 
-Struct SATELLITEID
+Struct SatelliteId
 ==================
 
-- Defined in :ref:`file_api_common.hpp`
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
 
 
 Struct Documentation
 --------------------
 
 
-.. doxygenstruct:: SATELLITEID
+.. doxygenstruct:: SatelliteId
    :project: handlerfactory
    :members:
    :protected-members:

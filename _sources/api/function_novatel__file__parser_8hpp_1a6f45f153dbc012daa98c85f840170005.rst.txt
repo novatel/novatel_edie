@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__file__parser_8hpp_1a6f45f153dbc012daa98c85f840170005:
+
+Function NovatelFileParserGetIgnoreAbbrevAsciiResponses
+=======================================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFileParserGetIgnoreAbbrevAsciiResponses(novatel::edie::oem::FileParser *)
+   :project: handlerfactory

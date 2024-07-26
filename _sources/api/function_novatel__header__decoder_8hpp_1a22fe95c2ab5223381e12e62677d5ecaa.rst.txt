@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__header__decoder_8hpp_1a22fe95c2ab5223381e12e62677d5ecaa:
+
+Function NovatelHeaderDecoderSetLoggerLevel
+===========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelHeaderDecoderSetLoggerLevel(novatel::edie::oem::HeaderDecoder *, uint32_t)
+   :project: handlerfactory

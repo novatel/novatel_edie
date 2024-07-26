@@ -3,7 +3,7 @@
 Struct FieldContainer
 =====================
 
-- Defined in :ref:`file_api_message_decoder.hpp`
+- Defined in :ref:`file_src_decoders_common_api_message_decoder.hpp`
 
 
 Struct Documentation

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a1395654ac5fd0abe28c093b0efaa5ce3:
+
+Variable novatel::edie::oem::WAVELENGTH_BDS_B2
+==============================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::WAVELENGTH_BDS_B2
+   :project: handlerfactory

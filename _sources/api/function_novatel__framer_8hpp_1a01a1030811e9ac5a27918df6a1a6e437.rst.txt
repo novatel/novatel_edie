@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1a01a1030811e9ac5a27918df6a1a6e437:
+
+Function NovatelFramerGetAvailableBytes
+=======================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerGetAvailableBytes(novatel::edie::oem::Framer *)
+   :project: handlerfactory

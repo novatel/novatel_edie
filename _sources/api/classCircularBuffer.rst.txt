@@ -3,7 +3,16 @@
 Class CircularBuffer
 ====================
 
-- Defined in :ref:`file_api_circularbuffer.hpp`
+- Defined in :ref:`file_src_decoders_common_api_circular_buffer.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Type
+************
+
+- ``public MemoryStream`` (:ref:`exhale_class_classMemoryStream`)
 
 
 Class Documentation

@@ -1,0 +1,21 @@
+.. _dir_src_decoders_novatel:
+
+
+Directory novatel
+=================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders>` (``src/decoders``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/decoders/novatel``
+
+Subdirectories
+--------------
+
+- :ref:`dir_src_decoders_novatel_api`
+
+
+

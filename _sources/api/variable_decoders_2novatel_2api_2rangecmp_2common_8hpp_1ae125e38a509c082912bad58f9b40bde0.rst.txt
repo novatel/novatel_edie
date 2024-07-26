@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ae125e38a509c082912bad58f9b40bde0:
+
+Variable novatel::edie::oem::CTS_TRACKING_STATE_SHIFT
+=====================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_TRACKING_STATE_SHIFT
+   :project: handlerfactory

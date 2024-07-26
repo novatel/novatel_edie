@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__parser_8hpp_1a1601aaa5f459e78ba8718108717291ba:
+
+Function NovatelParserRead
+==========================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelParserRead(novatel::edie::oem::Parser *, novatel::edie::MessageDataStruct *, novatel::edie::oem::MetaDataStruct *)
+   :project: handlerfactory

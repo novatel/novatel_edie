@@ -1,0 +1,114 @@
+
+.. _program_listing_file_src_hw_interface_stream_interface_api_filestream.hpp:
+
+Program Listing for File filestream.hpp
+=======================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_src_hw_interface_stream_interface_api_filestream.hpp>` (``src/hw_interface/stream_interface/api/filestream.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   // ===============================================================================
+   // |                                                                             |
+   // |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+   // |                                                                             |
+   // |  Permission is hereby granted, free of charge, to any person obtaining a    |
+   // |  copy of this software and associated documentation files (the "Software"), |
+   // |  to deal in the Software without restriction, including without limitation  |
+   // |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+   // |  and/or sell copies of the Software, and to permit persons to whom the      |
+   // |  Software is furnished to do so, subject to the following conditions:       |
+   // |                                                                             |
+   // |  The above copyright notice and this permission notice shall be included    |
+   // |  in all copies or substantial portions of the Software.                     |
+   // |                                                                             |
+   // |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+   // |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+   // |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+   // |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+   // |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+   // |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+   // |  DEALINGS IN THE SOFTWARE.                                                  |
+   // |                                                                             |
+   // ===============================================================================
+   // ! \file filestream.hpp
+   // ===============================================================================
+   
+   #ifndef FILESTREAM_HPP
+   #define FILESTREAM_HPP
+   
+   #include <filesystem>
+   #include <fstream>
+   
+   #include "common.hpp"
+   
+   class FileStream
+   {
+     private:
+       std::filesystem::path clFilePath; 
+       uint64_t ullMyFileLength;        
+       uint64_t ullMyCurrentFileSize;   
+       uint64_t ullMyCurrentFileOffset; 
+       std::fstream MyStream;
+   
+       const char* pcMyFileName; 
+       FileStream(const FileStream& clOther);
+   
+       const FileStream& operator=(const FileStream& clOther);
+   
+       void CalculateFileSize();
+   
+     public:
+       enum class FILE_MODES
+       {
+           APPEND,  
+           INSERT,  
+           INPUT,   
+           OUTPUT,  
+           TRUNCATE 
+       };
+   
+       FileStream(const std::u32string& s32FileName_);
+   
+       FileStream(const char* pcFileName);
+   
+       ~FileStream();
+   
+       friend class FileStreamUnitTest;
+   
+       void OpenFile(FILE_MODES eMode);
+   
+       void CloseFile();
+   
+       uint32_t CalculatePercentage(uint64_t ullCurrentFileRead) const;
+   
+       StreamReadStatus ReadFile(char* cData, uint32_t uiSize);
+   
+       uint32_t WriteFile(const char* cData, uint32_t uiSize);
+   
+       void GetFileSize();
+   
+       void FlushFile();
+   
+       void SetFilePosition(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg);
+   
+       uint64_t GetFileLength() const { return ullMyFileLength; }
+   
+       std::string GetFileName() const { return clFilePath.string(); }
+   
+       uint64_t GetCurrentFileSize() const { return ullMyCurrentFileSize; }
+   
+       std::fstream* GetMyFileStream() { return &MyStream; }
+   
+       StreamReadStatus ReadLine(std::string& szLine);
+   
+       void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
+   
+       uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; }
+   
+       std::u32string Get32StringFileName() const { return clFilePath.generic_u32string(); }
+   };
+   
+   #endif

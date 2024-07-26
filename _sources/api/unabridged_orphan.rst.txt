@@ -11,7 +11,77 @@ Directories
 .. toctree::
    :maxdepth: 5
 
-   dir_api.rst
+   dir_src.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders_common.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders_common_api.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders_dynamic_library.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders_dynamic_library_api.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders_novatel.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders_novatel_api.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders_novatel_api_rangecmp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_decoders_novatel_api_rxconfig.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_hw_interface.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_hw_interface_dynamic_library.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_hw_interface_dynamic_library_api.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_hw_interface_stream_interface.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_src_hw_interface_stream_interface_api.rst
 
 Files
 *****
@@ -20,39 +90,224 @@ Files
 .. toctree::
    :maxdepth: 5
 
-   file_api_circularbuffer.hpp.rst
+   file_src_decoders_common_api_circular_buffer.hpp.rst
 
 .. toctree::
    :maxdepth: 5
 
-   file_api_common.hpp.rst
+   file_src_decoders_novatel_api_commander.hpp.rst
 
 .. toctree::
    :maxdepth: 5
 
-   file_api_crc32.hpp.rst
+   file_src_decoders_common_api_common.hpp.rst
 
 .. toctree::
    :maxdepth: 5
 
-   file_api_encoder.hpp.rst
+   file_src_decoders_novatel_api_common.hpp.rst
 
 .. toctree::
    :maxdepth: 5
 
-   file_api_framer.hpp.rst
+   file_src_decoders_novatel_api_rangecmp_common.hpp.rst
 
 .. toctree::
    :maxdepth: 5
 
-   file_api_jsonreader.hpp.rst
+   file_src_hw_interface_stream_interface_api_common.hpp.rst
 
 .. toctree::
    :maxdepth: 5
 
-   file_api_message_decoder.hpp.rst
+   file_src_decoders_dynamic_library_api_common_json_reader.hpp.rst
 
 .. toctree::
    :maxdepth: 5
 
-   file_api_nexcept.h.rst
+   file_src_decoders_dynamic_library_api_common_logger.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_common_api_crc32.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_decoders_export.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_common_api_encoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_encoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_file_parser.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_stream_interface_api_filestream.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_filter.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_common_api_framer.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_framer.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_header_decoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_dynamic_library_api_hwinterface_export.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_stream_interface_api_inputfilestream.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_stream_interface_api_inputmemorystream.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_stream_interface_api_inputstreaminterface.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_common_api_json_reader.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_common_api_logger.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_stream_interface_api_memorystream.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_common_api_message_decoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_message_decoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_stream_interface_api_multioutputfilestream.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_common_api_nexcept.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_novatel_commander.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_novatel_encoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_novatel_file_parser.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_novatel_filter.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_novatel_framer.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_novatel_parser.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_stream_interface_api_outputfilestream.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_stream_interface_api_outputstreaminterface.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_parser.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_rangecmp_range_decompressor.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_dynamic_library_api_stream_interface.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_decoders_dynamic_library_api_version.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_src_hw_interface_dynamic_library_api_version.hpp.rst

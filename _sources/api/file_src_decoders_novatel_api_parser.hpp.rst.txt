@@ -1,0 +1,80 @@
+
+.. _file_src_decoders_novatel_api_parser.hpp:
+
+File parser.hpp
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_novatel_api>` (``src/decoders/novatel/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/novatel/api/parser.hpp``)
+----------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_novatel_api_parser.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders/common/api/common.hpp`` (:ref:`file_src_decoders_common_api_common.hpp`)
+
+- ``decoders/common/api/logger.hpp`` (:ref:`file_src_decoders_common_api_logger.hpp`)
+
+- ``decoders/novatel/api/common.hpp`` (:ref:`file_src_decoders_novatel_api_common.hpp`)
+
+- ``decoders/novatel/api/encoder.hpp`` (:ref:`file_src_decoders_novatel_api_encoder.hpp`)
+
+- ``decoders/novatel/api/filter.hpp`` (:ref:`file_src_decoders_novatel_api_filter.hpp`)
+
+- ``decoders/novatel/api/framer.hpp`` (:ref:`file_src_decoders_novatel_api_framer.hpp`)
+
+- ``decoders/novatel/api/header_decoder.hpp`` (:ref:`file_src_decoders_novatel_api_header_decoder.hpp`)
+
+- ``decoders/novatel/api/rangecmp/range_decompressor.hpp`` (:ref:`file_src_decoders_novatel_api_rangecmp_range_decompressor.hpp`)
+
+- ``decoders/novatel/api/rxconfig/rxconfig_handler.hpp`` (:ref:`file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_parser.hpp`
+
+- :ref:`file_src_decoders_novatel_api_file_parser.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+- :ref:`namespace_novatel__edie__oem`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1oem_1_1Parser`
+

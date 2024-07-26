@@ -1,0 +1,143 @@
+
+.. _program_listing_file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp:
+
+Program Listing for File rxconfig_handler.hpp
+=============================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp>` (``src/decoders/novatel/api/rxconfig/rxconfig_handler.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   // ===============================================================================
+   // |                                                                             |
+   // |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+   // |                                                                             |
+   // |  Permission is hereby granted, free of charge, to any person obtaining a    |
+   // |  copy of this software and associated documentation files (the "Software"), |
+   // |  to deal in the Software without restriction, including without limitation  |
+   // |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+   // |  and/or sell copies of the Software, and to permit persons to whom the      |
+   // |  Software is furnished to do so, subject to the following conditions:       |
+   // |                                                                             |
+   // |  The above copyright notice and this permission notice shall be included    |
+   // |  in all copies or substantial portions of the Software.                     |
+   // |                                                                             |
+   // |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+   // |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+   // |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+   // |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+   // |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+   // |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+   // |  DEALINGS IN THE SOFTWARE.                                                  |
+   // |                                                                             |
+   // ===============================================================================
+   // ! \file rxconfig_handler.hpp
+   // ===============================================================================
+   
+   #ifndef RXCONFIG_HANDLER_HPP
+   #define RXCONFIG_HANDLER_HPP
+   
+   #include "decoders/common/api/common.hpp"
+   #include "decoders/common/api/json_reader.hpp"
+   #include "decoders/novatel/api/common.hpp"
+   #include "decoders/novatel/api/encoder.hpp"
+   #include "decoders/novatel/api/framer.hpp"
+   #include "decoders/novatel/api/header_decoder.hpp"
+   #include "decoders/novatel/api/message_decoder.hpp"
+   
+   namespace novatel::edie::oem {
+   
+   constexpr uint16_t US_RX_CONFIG_MSG_ID = 128;
+   constexpr uint16_t US_RX_CONFIG_USER_MSG_ID = 2474;
+   
+   //============================================================================
+   //============================================================================
+   class RxConfigHandler
+   {
+     private:
+       static constexpr auto szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
+       static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
+   
+       Framer clMyFramer;
+       HeaderDecoder clMyHeaderDecoder;
+       MessageDecoder clMyMessageDecoder;
+       Encoder clMyEncoder;
+   
+       std::shared_ptr<spdlog::logger> pclMyLogger;
+       JsonReader* pclMyMsgDb;
+       EnumDefinition* vMyCommandDefinitions;
+       EnumDefinition* vMyPortAddressDefinitions;
+       EnumDefinition* vMyGpsTimeStatusDefinitions;
+   
+       std::unique_ptr<unsigned char[]> pcMyFrameBuffer;
+       std::unique_ptr<unsigned char[]> pcMyEncodeBuffer;
+   
+       // Inline buffer functions
+       [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, ...)
+       {
+           va_list args;
+           va_start(args, szFormat_);
+           uint32_t uiBytesBuffered = vsnprintf(*ppcBuffer_, uiBytesLeft_, szFormat_, args);
+           va_end(args);
+           if (uiBytesLeft_ < uiBytesBuffered) { return false; }
+           *ppcBuffer_ += uiBytesBuffered;
+           uiBytesLeft_ -= uiBytesBuffered;
+           return true;
+       }
+   
+       static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
+   
+     public:
+       RxConfigHandler(const RxConfigHandler&) = delete;
+       RxConfigHandler(const RxConfigHandler&&) = delete;
+       RxConfigHandler& operator=(const RxConfigHandler&) = delete;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       RxConfigHandler(JsonReader* pclJsonDb_ = nullptr);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void LoadJsonDb(JsonReader* pclJsonDb_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       static void ShutdownLogger();
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       [[nodiscard]] STATUS Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStruct& stRxConfigMetaData_,
+                                    MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eEncodeFormat_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //
+       //----------------------------------------------------------------------------
+       uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize);
+   };
+   
+   } // namespace novatel::edie::oem
+   
+   #endif // EXTENSION_RXCONFIG_HANDLER_HPP

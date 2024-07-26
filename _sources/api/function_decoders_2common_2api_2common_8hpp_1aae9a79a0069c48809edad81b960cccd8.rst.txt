@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2common_2api_2common_8hpp_1aae9a79a0069c48809edad81b960cccd8:
+
+Function ConsumeAbbrevFormatting
+================================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: ConsumeAbbrevFormatting(uint64_t, char **)
+   :project: handlerfactory

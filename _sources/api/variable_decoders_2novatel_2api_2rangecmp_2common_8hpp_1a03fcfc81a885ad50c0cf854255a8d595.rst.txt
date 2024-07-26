@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a03fcfc81a885ad50c0cf854255a8d595:
+
+Variable novatel::edie::oem::RC4_SIG_BLK_CNO_BITS
+=================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_SIG_BLK_CNO_BITS
+   :project: handlerfactory

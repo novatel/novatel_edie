@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__file__parser_8hpp_1a53a641b330447b42c8ed276bf43f9ce6:
+
+Function NovatelFileParserSetFilter
+===================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFileParserSetFilter(novatel::edie::oem::FileParser *, novatel::edie::oem::Filter *)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ae69cf4a70a0341945a41e5f2b6cc9405:
+
+Variable novatel::edie::oem::CTS_GROUPING_SHIFT
+===============================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_GROUPING_SHIFT
+   :project: handlerfactory

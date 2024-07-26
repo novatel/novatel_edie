@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a89a34b4ecf7a1efb21aa5ab25472ad1c:
+
+Variable novatel::edie::oem::RC_ADR_SCALE_FACTOR
+================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC_ADR_SCALE_FACTOR
+   :project: handlerfactory

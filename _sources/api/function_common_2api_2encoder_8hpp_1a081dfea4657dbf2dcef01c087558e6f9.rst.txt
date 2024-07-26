@@ -1,0 +1,14 @@
+.. _exhale_function_common_2api_2encoder_8hpp_1a081dfea4657dbf2dcef01c087558e6f9:
+
+Function novatel::edie::SetInBuffer
+===================================
+
+- Defined in :ref:`file_src_decoders_common_api_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::SetInBuffer(unsigned char **, uint32_t&, const int32_t, const uint32_t)
+   :project: handlerfactory

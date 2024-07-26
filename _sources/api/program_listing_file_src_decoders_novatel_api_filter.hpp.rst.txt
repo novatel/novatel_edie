@@ -1,0 +1,200 @@
+
+.. _program_listing_file_src_decoders_novatel_api_filter.hpp:
+
+Program Listing for File filter.hpp
+===================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_src_decoders_novatel_api_filter.hpp>` (``src/decoders/novatel/api/filter.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   // ===============================================================================
+   // |                                                                             |
+   // |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |
+   // |                                                                             |
+   // |  Permission is hereby granted, free of charge, to any person obtaining a    |
+   // |  copy of this software and associated documentation files (the "Software"), |
+   // |  to deal in the Software without restriction, including without limitation  |
+   // |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |
+   // |  and/or sell copies of the Software, and to permit persons to whom the      |
+   // |  Software is furnished to do so, subject to the following conditions:       |
+   // |                                                                             |
+   // |  The above copyright notice and this permission notice shall be included    |
+   // |  in all copies or substantial portions of the Software.                     |
+   // |                                                                             |
+   // |  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |
+   // |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |
+   // |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |
+   // |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |
+   // |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
+   // |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
+   // |  DEALINGS IN THE SOFTWARE.                                                  |
+   // |                                                                             |
+   // ===============================================================================
+   // ! \file filter.hpp
+   // ===============================================================================
+   
+   #ifndef NOVATEL_FILTER_HPP
+   #define NOVATEL_FILTER_HPP
+   
+   #include <memory>
+   #include <tuple>
+   
+   #include "decoders/common/api/common.hpp"
+   #include "decoders/common/api/logger.hpp"
+   #include "decoders/novatel/api/common.hpp"
+   #include "decoders/novatel/api/header_decoder.hpp"
+   
+   namespace novatel::edie::oem {
+   
+   //============================================================================
+   //============================================================================
+   class Filter
+   {
+     private:
+       std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_filter")};
+   
+       std::vector<bool (Filter::*)(const MetaDataStruct&) const> vMyFilterFunctions;
+   
+       // Filtering members
+       std::vector<TIME_STATUS> vMyTimeStatusFilters;
+       bool bMyInvertTimeStatusFilter;
+   
+       std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageIdFilters;
+       bool bMyInvertMessageIdFilter;
+   
+       std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageNameFilters;
+       bool bMyInvertMessageNameFilter;
+   
+       uint32_t uiMyLowerWeek;
+       uint32_t uiMyLowerMSec;
+       bool bMyFilterLowerTime;
+       uint32_t uiMyUpperWeek;
+       uint32_t uiMyUpperMSec;
+       bool bMyFilterUpperTime;
+       bool bMyInvertTimeFilter;
+   
+       uint32_t uiMyDecimationPeriodMilliSec;
+       bool bMyDecimate;
+       bool bMyInvertDecimation;
+   
+       bool bMyIncludeNmea;
+   
+       void PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const);
+   
+       bool FilterTime(const MetaDataStruct& stMetaData_) const;
+       bool FilterTimeStatus(const MetaDataStruct& stMetaData_) const;
+       bool FilterMessageId(const MetaDataStruct& stMetaData_) const;
+       bool FilterMessage(const MetaDataStruct& stMetaData_) const;
+       bool FilterDecimation(const MetaDataStruct& stMetaData_) const;
+   
+     public:
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       Filter();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       std::shared_ptr<spdlog::logger> GetLogger();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       static void ShutdownLogger();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetIncludeLowerTimeBound(uint32_t uiWeek_, double dSec_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetIncludeUpperTimeBound(uint32_t uiWeek_, double dSec_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void InvertTimeFilter(bool bInvert_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void SetIncludeDecimation(double dPeriodSec_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void InvertDecimationFilter(bool bInvert_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void IncludeTimeStatus(TIME_STATUS eTimeStatus_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void IncludeTimeStatus(std::vector<TIME_STATUS> vTimeStatuses_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void InvertTimeStatusFilter(bool bInvert_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vIds_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void InvertMessageIdFilter(bool bInvert_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void IncludeMessageName(const std::string& szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL,
+                               MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vNames_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void InvertMessageNameFilter(bool bInvert_);
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       void IncludeNmeaMessages(bool bIncludeNmea_);
+   
+       //----------------------------------------------------------------------------
+       //----------------------------------------------------------------------------
+       void ClearFilters();
+   
+       //----------------------------------------------------------------------------
+       //
+       //----------------------------------------------------------------------------
+       bool DoFiltering(const MetaDataStruct& stMetaData_);
+   };
+   
+   } // namespace novatel::edie::oem
+   
+   #endif // NOVATEL_FILTER_HPP

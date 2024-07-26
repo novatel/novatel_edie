@@ -1,0 +1,17 @@
+.. _exhale_struct_structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader:
+
+Struct Oem4BinaryShortHeader
+============================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: novatel::edie::oem::Oem4BinaryShortHeader
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

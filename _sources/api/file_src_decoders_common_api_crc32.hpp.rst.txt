@@ -1,0 +1,64 @@
+
+.. _file_src_decoders_common_api_crc32.hpp:
+
+File crc32.hpp
+==============
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_common_api>` (``src/decoders/common/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/common/api/crc32.hpp``)
+--------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_common_api_crc32.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``array``
+
+- ``cstdint``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_decoders_common_api_json_reader.hpp`
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_crc32_8hpp_1a18d7f2729d4f3acd050cecd872f397d4`
+
+- :ref:`exhale_function_crc32_8hpp_1a8162d468ce42cb5a8481659f22dcb2cf`
+
+- :ref:`exhale_function_crc32_8hpp_1a9ce45e4257c79ed74e3a7f0a367eef73`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_crc32_8hpp_1a3639c81075b931c4e7e8bf4c3e7a2d01`
+

@@ -3,7 +3,16 @@
 Class FramerBase
 ================
 
-- Defined in :ref:`file_api_framer.hpp`
+- Defined in :ref:`file_src_decoders_common_api_framer.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Derived Type
+************
+
+- ``public novatel::edie::oem::Framer`` (:ref:`exhale_class_classnovatel_1_1edie_1_1oem_1_1Framer`)
 
 
 Class Documentation

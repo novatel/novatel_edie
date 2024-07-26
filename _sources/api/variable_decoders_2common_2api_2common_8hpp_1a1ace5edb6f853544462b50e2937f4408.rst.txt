@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2common_2api_2common_8hpp_1a1ace5edb6f853544462b50e2937f4408:
+
+Variable MAX_ABB_ASCII_RESPONSE_LENGTH
+======================================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: MAX_ABB_ASCII_RESPONSE_LENGTH
+   :project: handlerfactory

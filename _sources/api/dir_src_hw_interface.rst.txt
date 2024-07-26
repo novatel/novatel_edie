@@ -1,0 +1,22 @@
+.. _dir_src_hw_interface:
+
+
+Directory hw_interface
+======================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src>` (``src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/hw_interface``
+
+Subdirectories
+--------------
+
+- :ref:`dir_src_hw_interface_dynamic_library`
+- :ref:`dir_src_hw_interface_stream_interface`
+
+
+

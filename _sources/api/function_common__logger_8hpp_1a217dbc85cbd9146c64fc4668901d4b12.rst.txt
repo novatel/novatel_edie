@@ -1,0 +1,14 @@
+.. _exhale_function_common__logger_8hpp_1a217dbc85cbd9146c64fc4668901d4b12:
+
+Function CommonLoggerSetLoggerLevel
+===================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_common_logger.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CommonLoggerSetLoggerLevel(int32_t)
+   :project: handlerfactory

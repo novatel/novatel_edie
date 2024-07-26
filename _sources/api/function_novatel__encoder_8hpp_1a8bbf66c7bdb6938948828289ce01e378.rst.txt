@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__encoder_8hpp_1a8bbf66c7bdb6938948828289ce01e378:
+
+Function NovatelEncoderDelete
+=============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelEncoderDelete(novatel::edie::oem::Encoder *)
+   :project: handlerfactory

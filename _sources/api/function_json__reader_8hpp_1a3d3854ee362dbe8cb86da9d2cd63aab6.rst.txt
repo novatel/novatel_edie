@@ -1,0 +1,14 @@
+.. _exhale_function_json__reader_8hpp_1a3d3854ee362dbe8cb86da9d2cd63aab6:
+
+Function novatel::edie::from_json(const json&, FieldArrayField&)
+================================================================
+
+- Defined in :ref:`file_src_decoders_common_api_json_reader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::from_json(const json&, FieldArrayField&)
+   :project: handlerfactory

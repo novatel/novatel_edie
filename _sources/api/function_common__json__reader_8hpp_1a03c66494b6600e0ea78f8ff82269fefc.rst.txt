@@ -1,0 +1,14 @@
+.. _exhale_function_common__json__reader_8hpp_1a03c66494b6600e0ea78f8ff82269fefc:
+
+Function CommonJsonReaderInit
+=============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_common_json_reader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CommonJsonReaderInit()
+   :project: handlerfactory

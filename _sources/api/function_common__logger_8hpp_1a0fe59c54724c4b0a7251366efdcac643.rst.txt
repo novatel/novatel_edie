@@ -1,0 +1,14 @@
+.. _exhale_function_common__logger_8hpp_1a0fe59c54724c4b0a7251366efdcac643:
+
+Function CommonLoggerLog
+========================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_common_logger.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CommonLoggerLog(int32_t, char *)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ab671a3c86d3942af847e8cd2f04748c5:
+
+Variable novatel::edie::oem::RC2_SIG_PHASERANGE_DIFF_SHIFT
+==========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_PHASERANGE_DIFF_SHIFT
+   :project: handlerfactory

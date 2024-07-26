@@ -1,0 +1,14 @@
+.. _exhale_define_hwinterface__export_8h_1aecb9d13c220a1380ab9b0e5a50ae75b4:
+
+Define HWINTERFACE_DEPRECATED
+=============================
+
+- Defined in :ref:`file_src_hw_interface_dynamic_library_api_hwinterface_export.h`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: HWINTERFACE_DEPRECATED
+   :project: handlerfactory

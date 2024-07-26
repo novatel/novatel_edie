@@ -1,0 +1,21 @@
+.. _dir_src_decoders_dynamic_library:
+
+
+Directory dynamic_library
+=========================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders>` (``src/decoders``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/decoders/dynamic_library``
+
+Subdirectories
+--------------
+
+- :ref:`dir_src_decoders_dynamic_library_api`
+
+
+

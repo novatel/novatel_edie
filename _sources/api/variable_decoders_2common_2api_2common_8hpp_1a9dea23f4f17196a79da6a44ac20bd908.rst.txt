@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2common_2api_2common_8hpp_1a9dea23f4f17196a79da6a44ac20bd908:
+
+Variable MAX_SHORT_BINARY_MESSAGE_LENGTH
+========================================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: MAX_SHORT_BINARY_MESSAGE_LENGTH
+   :project: handlerfactory

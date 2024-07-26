@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2common_2api_2common_8hpp_1a3fcbff2360cfafe2f7e4729cbf3d2714:
+
+Function GetEnumValue
+=====================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: GetEnumValue(const novatel::edie::EnumDefinition *, const std::string&)
+   :project: handlerfactory

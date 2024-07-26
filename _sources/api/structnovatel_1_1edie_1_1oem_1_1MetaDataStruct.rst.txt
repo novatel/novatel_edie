@@ -1,0 +1,26 @@
+.. _exhale_struct_structnovatel_1_1edie_1_1oem_1_1MetaDataStruct:
+
+Struct MetaDataStruct
+=====================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public novatel::edie::MetaDataBase`` (:ref:`exhale_class_classnovatel_1_1edie_1_1MetaDataBase`)
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: novatel::edie::oem::MetaDataStruct
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

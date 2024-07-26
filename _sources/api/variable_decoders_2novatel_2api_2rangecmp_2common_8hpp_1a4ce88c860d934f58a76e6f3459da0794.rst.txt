@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a4ce88c860d934f58a76e6f3459da0794:
+
+Variable novatel::edie::oem::RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK
+========================================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK
+   :project: handlerfactory

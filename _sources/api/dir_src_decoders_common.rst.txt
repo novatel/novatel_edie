@@ -1,0 +1,21 @@
+.. _dir_src_decoders_common:
+
+
+Directory common
+================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders>` (``src/decoders``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/decoders/common``
+
+Subdirectories
+--------------
+
+- :ref:`dir_src_decoders_common_api`
+
+
+

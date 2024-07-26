@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__message__decoder_8hpp_1a2c5baada2638a87e8250f9f9b63bf734:
+
+Function NovatelMessageDecoderShutdownLogger
+============================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelMessageDecoderShutdownLogger(novatel::edie::oem::MessageDecoder *)
+   :project: handlerfactory

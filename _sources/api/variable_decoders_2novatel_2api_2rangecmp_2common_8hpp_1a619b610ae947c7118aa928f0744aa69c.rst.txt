@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a619b610ae947c7118aa928f0744aa69c:
+
+Variable novatel::edie::oem::SBAS_PRN_OFFSET_130
+================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::SBAS_PRN_OFFSET_130
+   :project: handlerfactory

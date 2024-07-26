@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1abc91863487cfc04e1b149d9a4965667f:
+
+Function NovatelFilterInvertTimeStatusFilter
+============================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterInvertTimeStatusFilter(novatel::edie::oem::Filter *, bool)
+   :project: handlerfactory

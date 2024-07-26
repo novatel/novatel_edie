@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2common_8hpp_1a8a2cae5103c7ffd3508ab96dcc0c3f90:
+
+Variable novatel::edie::oem::OEM4_ASCII_MESSAGE_NAME_MAX
+========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::OEM4_ASCII_MESSAGE_NAME_MAX
+   :project: handlerfactory

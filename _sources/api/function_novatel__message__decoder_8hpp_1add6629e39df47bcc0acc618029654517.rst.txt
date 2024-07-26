@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__message__decoder_8hpp_1add6629e39df47bcc0acc618029654517:
+
+Function NovatelMessageDecoderSetLoggerLevel
+============================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelMessageDecoderSetLoggerLevel(novatel::edie::oem::MessageDecoder *, uint32_t)
+   :project: handlerfactory

@@ -1,0 +1,164 @@
+
+.. _file_src_decoders_novatel_api_common.hpp:
+
+File common.hpp
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_novatel_api>` (``src/decoders/novatel/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/novatel/api/common.hpp``)
+----------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_novatel_api_common.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``decoders/common/api/common.hpp`` (:ref:`file_src_decoders_common_api_common.hpp`)
+
+- ``stdint.h``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_commander.hpp`
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_encoder.hpp`
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp`
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp`
+
+- :ref:`file_src_decoders_dynamic_library_api_novatel_parser.hpp`
+
+- :ref:`file_src_decoders_novatel_api_commander.hpp`
+
+- :ref:`file_src_decoders_novatel_api_encoder.hpp`
+
+- :ref:`file_src_decoders_novatel_api_filter.hpp`
+
+- :ref:`file_src_decoders_novatel_api_framer.hpp`
+
+- :ref:`file_src_decoders_novatel_api_header_decoder.hpp`
+
+- :ref:`file_src_decoders_novatel_api_parser.hpp`
+
+- :ref:`file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp`
+
+- :ref:`file_src_hw_interface_stream_interface_api_multioutputfilestream.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+- :ref:`namespace_novatel__edie__oem`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1oem_1_1IntermediateHeader`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1oem_1_1MetaDataStruct`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1oem_1_1Oem4BinaryHeader`
+
+- :ref:`exhale_struct_structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader`
+
+
+Enums
+-----
+
+
+- :ref:`exhale_enum_decoders_2novatel_2api_2common_8hpp_1a815375c38cd000d5cc4781fed1558310`
+
+- :ref:`exhale_enum_decoders_2novatel_2api_2common_8hpp_1a6175c0fc646287a051909e74b2a485ac`
+
+
+Variables
+---------
+
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1af42a34ad0641dc9f3069748992df3ecc`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a5c0b91b29897614c5089ebd0dd560c89`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a0d765cd405f45bd204c39084c1255a20`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1ae3a670f5d7547aeb6c9469088d541d59`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a2e3eeaac098377fb3df0845513d3a646`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1afb29c89d5a05c5312401be7a60f6f9e6`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a9b4399d01f745fa9c8c79db9fc6d6581`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1acb3dfebde92624d1abd312ad09d58ec6`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1ab4b2736835fa3e3b40b78aa4fe8316b5`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a9b575d4b6ad3c3af9145ac65ff426ced`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a8a2cae5103c7ffd3508ab96dcc0c3f90`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1adf70c4aa41437112673674a91e604fb5`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a35faeb6697e469e0b6192363dfaef83b`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a0f628e343e3277c4a7ab0099ac3aaff8`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a40778aed2adac1f137ca36cf7028e60e`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a497dba9104cb57c05be2c332701e8499`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a1d46196b01cb9f6e0e9e0840c9193189`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a284e9f6017478f9f6b3c74161225edc3`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a9eb26bd422d05887a11b5a293cd4cb46`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1af98cb1840f003f659d142a645e28510a`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a7f6b769204d3bcd899cc50409bf24978`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1afcaaf3d1e1f9d05105eed6ff38fad116`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a6aae611d7f1f8bc469970f5b2f3f76dc`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a252e7bd8374629df6a755bcb6396056a`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a7079b55fa365bc5154f7b82bd71f68ba`
+
+- :ref:`exhale_variable_decoders_2novatel_2api_2common_8hpp_1a6770a78f2ebab5343564243950d7a76e`
+

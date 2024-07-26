@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a3f3fe2b33b61aef2f838939f7f493b74:
+
+Function NovatelFilterDelete
+============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterDelete(novatel::edie::oem::Filter *)
+   :project: handlerfactory

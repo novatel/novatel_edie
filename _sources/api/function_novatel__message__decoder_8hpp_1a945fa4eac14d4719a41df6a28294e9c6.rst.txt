@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__message__decoder_8hpp_1a945fa4eac14d4719a41df6a28294e9c6:
+
+Function NovatelMessageDecoderInit
+==================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelMessageDecoderInit(novatel::edie::JsonReader *)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1a16cd6230398e4a34a474f8297f2b0888:
+
+Function NovatelFramerRead
+==========================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerRead(novatel::edie::oem::Framer *, unsigned char *, uint32_t, novatel::edie::oem::MetaDataStruct *)
+   :project: handlerfactory

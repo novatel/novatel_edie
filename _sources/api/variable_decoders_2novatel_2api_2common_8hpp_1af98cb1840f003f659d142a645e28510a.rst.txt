@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2common_8hpp_1af98cb1840f003f659d142a645e28510a:
+
+Variable novatel::edie::oem::OEM4_ERROR_PREFIX_LENGTH
+=====================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::OEM4_ERROR_PREFIX_LENGTH
+   :project: handlerfactory

@@ -1,0 +1,83 @@
+
+.. _file_src_decoders_common_api_encoder.hpp:
+
+File encoder.hpp
+================
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_common_api>` (``src/decoders/common/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/common/api/encoder.hpp``)
+----------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_common_api_encoder.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``cstdarg``
+
+- ``decoders/common/api/json_reader.hpp`` (:ref:`file_src_decoders_common_api_json_reader.hpp`)
+
+- ``decoders/common/api/message_decoder.hpp`` (:ref:`file_src_decoders_common_api_message_decoder.hpp`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_decoders_novatel_api_encoder.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel`
+
+- :ref:`namespace_novatel__edie`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classnovatel_1_1edie_1_1EncoderBase`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a27d597e3f40c545400c19dd17575545c`
+
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756`
+
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a6f93ddb567c4d5f7d0f61d6d9d0ae9e3`
+
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a1688897d3880d47f804f1360547768fa`
+
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a0f8b88e6ebb6eaa256bbf886d2735add`
+
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf`
+
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a081dfea4657dbf2dcef01c087558e6f9`
+

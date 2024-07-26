@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2common_2api_2common_8hpp_1a4bfc7e121e84fd8dfea779a5b4243144:
+
+Function novatel::edie::StringToEncodeFormat
+============================================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::StringToEncodeFormat(const std::string&)
+   :project: handlerfactory

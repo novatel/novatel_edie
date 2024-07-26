@@ -1,0 +1,14 @@
+.. _exhale_define_common_2api_2message__decoder_8hpp_1a754ccca0bea1f0e62a1c9420ea56df15:
+
+Define CONTAINER_TYPES
+======================
+
+- Defined in :ref:`file_src_decoders_common_api_message_decoder.hpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: CONTAINER_TYPES
+   :project: handlerfactory

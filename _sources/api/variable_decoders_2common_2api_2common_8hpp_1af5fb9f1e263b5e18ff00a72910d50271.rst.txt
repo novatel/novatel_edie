@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2common_2api_2common_8hpp_1af5fb9f1e263b5e18ff00a72910d50271:
+
+Variable MAX_NMEA_MESSAGE_LENGTH
+================================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: MAX_NMEA_MESSAGE_LENGTH
+   :project: handlerfactory

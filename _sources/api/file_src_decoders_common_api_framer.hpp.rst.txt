@@ -1,0 +1,55 @@
+
+.. _file_src_decoders_common_api_framer.hpp:
+
+File framer.hpp
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_common_api>` (``src/decoders/common/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``src/decoders/common/api/framer.hpp``)
+---------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_src_decoders_common_api_framer.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``circular_buffer.hpp`` (:ref:`file_src_decoders_common_api_circular_buffer.hpp`)
+
+- ``logger.hpp`` (:ref:`file_src_decoders_dynamic_library_api_common_logger.hpp`)
+
+- ``memory`` (:ref:`file_src_hw_interface_stream_interface_api_inputmemorystream.hpp`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_src_decoders_novatel_api_framer.hpp`
+
+
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classFramerBase`
+

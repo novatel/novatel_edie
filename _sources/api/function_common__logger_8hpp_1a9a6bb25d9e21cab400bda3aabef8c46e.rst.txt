@@ -1,0 +1,14 @@
+.. _exhale_function_common__logger_8hpp_1a9a6bb25d9e21cab400bda3aabef8c46e:
+
+Function CommonLoggerShutdownLogger
+===================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_common_logger.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CommonLoggerShutdownLogger()
+   :project: handlerfactory

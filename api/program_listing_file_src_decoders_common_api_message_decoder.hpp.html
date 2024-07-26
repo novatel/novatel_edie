@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File message_decoder.hpp &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Library API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File message_decoder.hpp</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_src_decoders_common_api_message_decoder.hpp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-message-decoder-hpp">
+<span id="program-listing-file-src-decoders-common-api-message-decoder-hpp"></span><h1>Program Listing for File message_decoder.hpp<a class="headerlink" href="#program-listing-for-file-message-decoder-hpp" title="Link to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_src_decoders_common_api_message_decoder.hpp.html#file-src-decoders-common-api-message-decoder-hpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">src/decoders/common/api/message_decoder.hpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// ===============================================================================</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  COPYRIGHT NovAtel Inc, 2022. All rights reserved.                          |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  Permission is hereby granted, free of charge, to any person obtaining a    |</span>
+<span class="c1">// |  copy of this software and associated documentation files (the &quot;Software&quot;), |</span>
+<span class="c1">// |  to deal in the Software without restriction, including without limitation  |</span>
+<span class="c1">// |  the rights to use, copy, modify, merge, publish, distribute, sublicense,   |</span>
+<span class="c1">// |  and/or sell copies of the Software, and to permit persons to whom the      |</span>
+<span class="c1">// |  Software is furnished to do so, subject to the following conditions:       |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  The above copyright notice and this permission notice shall be included    |</span>
+<span class="c1">// |  in all copies or substantial portions of the Software.                     |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// |  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR |</span>
+<span class="c1">// |  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,   |</span>
+<span class="c1">// |  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL    |</span>
+<span class="c1">// |  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER |</span>
+<span class="c1">// |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |</span>
+<span class="c1">// |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |</span>
+<span class="c1">// |  DEALINGS IN THE SOFTWARE.                                                  |</span>
+<span class="c1">// |                                                                             |</span>
+<span class="c1">// ===============================================================================</span>
+<span class="c1">// ! \file message_decoder.hpp</span>
+<span class="c1">// ===============================================================================</span>
+
+<span class="cp">#ifndef MESSAGE_DECODER_HPP</span>
+<span class="cp">#define MESSAGE_DECODER_HPP</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;variant&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nlohmann/json.hpp&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/common/api/common.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/common/api/json_reader.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/common/api/logger.hpp&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;decoders/common/api/message_decoder.hpp&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">novatel</span><span class="o">::</span><span class="nn">edie</span><span class="w"> </span><span class="p">{</span>
+
+<span class="k">using</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">;</span>
+
+<span class="k">struct</span><span class="w"> </span><span class="nc">FieldContainer</span><span class="p">;</span>
+
+<span class="cp">#define NOVATEL_TYPES bool, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, std::string</span>
+<span class="cp">#define CONTAINER_TYPES NOVATEL_TYPES, std::vector&lt;FieldContainer&gt;</span>
+
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="c1">//-----------------------------------------------------------------------</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">FieldContainer</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span><span class="n">CONTAINER_TYPES</span><span class="o">&gt;</span><span class="w"> </span><span class="n">fieldValue</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="w"> </span><span class="n">fieldDef</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">FieldContainer</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="n">tFieldValue_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="w"> </span><span class="n">pstFieldDef_</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">fieldValue</span><span class="p">(</span><span class="n">tFieldValue_</span><span class="p">),</span><span class="w"> </span><span class="n">fieldDef</span><span class="p">(</span><span class="n">pstFieldDef_</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+
+<span class="w">    </span><span class="n">FieldContainer</span><span class="p">([[</span><span class="n">maybe_unused</span><span class="p">]]</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">FieldContainer</span><span class="o">&amp;</span><span class="w"> </span><span class="n">obj_</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;FieldContainer: I&#39;m being copied. Implement a proper copy constructor.&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="c1">//============================================================================</span>
+<span class="c1">//============================================================================</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MessageDecoderBase</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="w"> </span><span class="n">svErrorPrefix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;ERROR:&quot;</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span><span class="w"> </span><span class="n">pclMyLogger</span><span class="p">{</span><span class="n">Logger</span><span class="o">::</span><span class="n">RegisterLogger</span><span class="p">(</span><span class="s">&quot;message_decoder&quot;</span><span class="p">)};</span>
+
+<span class="w">    </span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclMyMsgDb</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="n">vMyResponseDefinitions</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
+<span class="w">    </span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="n">vMyCommandDefinitions</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
+<span class="w">    </span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="n">vMyPortAddressDefinitions</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
+<span class="w">    </span><span class="n">EnumDefinition</span><span class="o">*</span><span class="w"> </span><span class="n">vMyGpsTimeStatusDefinitions</span><span class="p">{</span><span class="k">nullptr</span><span class="p">};</span>
+
+<span class="w">    </span><span class="n">MessageDefinition</span><span class="w"> </span><span class="n">stMyRespDef</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Enum util functions</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">InitEnumDefinitions</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">InitFieldMaps</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">CreateResponseMsgDefinitions</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">protected</span><span class="o">:</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span>
+<span class="w">        </span><span class="kt">uint32_t</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="p">,</span><span class="w"> </span><span class="p">[[</span><span class="n">maybe_unused</span><span class="p">]]</span><span class="w"> </span><span class="kt">size_t</span><span class="p">,</span><span class="w"> </span><span class="p">[[</span><span class="n">maybe_unused</span><span class="p">]]</span><span class="w"> </span><span class="n">JsonReader</span><span class="o">*</span><span class="p">)</span><span class="o">&gt;&gt;</span>
+<span class="w">        </span><span class="n">asciiFieldMap</span><span class="p">;</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">json</span><span class="p">,</span><span class="w"> </span><span class="p">[[</span><span class="n">maybe_unused</span><span class="p">]]</span><span class="w"> </span><span class="n">JsonReader</span><span class="o">*</span><span class="p">)</span><span class="o">&gt;&gt;</span>
+<span class="w">        </span><span class="n">jsonFieldMap</span><span class="p">;</span>
+
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">STATUS</span><span class="w"> </span><span class="n">DecodeBinary</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">BaseField</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">vMsgDefFields_</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">ppucLogBuf_</span><span class="p">,</span>
+<span class="w">                                      </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vIntermediateFormat_</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">uiMessageLength_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">bool</span><span class="w"> </span><span class="n">Abbreviated</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">STATUS</span><span class="w"> </span><span class="n">DecodeAscii</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">BaseField</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">vMsgDefFields_</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">ppcLogBuf_</span><span class="p">,</span>
+<span class="w">                                     </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vIntermediateFormat_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">STATUS</span><span class="w"> </span><span class="n">DecodeJson</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">BaseField</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">vMsgDefFields_</span><span class="p">,</span><span class="w"> </span><span class="n">json</span><span class="w"> </span><span class="n">clJsonFields_</span><span class="p">,</span>
+<span class="w">                                    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vIntermediateFormat_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">DecodeBinaryField</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="w"> </span><span class="n">pstMessageDataType_</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">ppucLogBuf_</span><span class="p">,</span>
+<span class="w">                           </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vIntermediateFormat_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">DecodeAsciiField</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="w"> </span><span class="n">pstMessageDataType_</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">tokenLength_</span><span class="p">,</span>
+<span class="w">                          </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vIntermediateFormat_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">DecodeJsonField</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="w"> </span><span class="n">pstMessageDataType_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">json</span><span class="o">&amp;</span><span class="w"> </span><span class="n">clJsonField_</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vIntermediateFormat_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// -------------------------------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">R</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="p">,</span><span class="w"> </span><span class="n">JsonReader</span><span class="o">*</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">SimpleAsciiMapEntry</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="w"> </span><span class="n">pstField_</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">ppcToken_</span><span class="p">,</span>
+<span class="w">                  </span><span class="p">[[</span><span class="n">maybe_unused</span><span class="p">]]</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">tokenLength_</span><span class="p">,</span><span class="w"> </span><span class="p">[[</span><span class="n">maybe_unused</span><span class="p">]]</span><span class="w"> </span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclMsgDb_</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">int8_t</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">strtol</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">R</span><span class="p">)),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">int16_t</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">strtol</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">R</span><span class="p">)),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">int32_t</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">strtol</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">R</span><span class="p">)),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">int64_t</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">strtoll</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">R</span><span class="p">)),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">strtoul</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">R</span><span class="p">)),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">strtoul</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">R</span><span class="p">)),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">strtoul</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">R</span><span class="p">)),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">strtoull</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">R</span><span class="p">)),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">strtof</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">is_same_v</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">strtod</span><span class="p">(</span><span class="o">*</span><span class="n">ppcToken_</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">),</span><span class="w"> </span><span class="n">pstField_</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<span class="w">        </span><span class="p">};</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// -------------------------------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">json</span><span class="p">,</span><span class="w"> </span><span class="n">JsonReader</span><span class="o">*</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">SimpleJsonMapEntry</span><span class="p">()</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">BaseField</span><span class="o">*</span><span class="w"> </span><span class="n">pstMessageDataType_</span><span class="p">,</span><span class="w"> </span><span class="n">json</span><span class="w"> </span><span class="n">clJsonField_</span><span class="p">,</span>
+<span class="w">                  </span><span class="p">[[</span><span class="n">maybe_unused</span><span class="p">]]</span><span class="w"> </span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclMsgDb_</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vIntermediate_</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">clJsonField_</span><span class="p">.</span><span class="n">get</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(),</span><span class="w"> </span><span class="n">pstMessageDataType_</span><span class="p">);</span><span class="w"> </span><span class="p">};</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">MessageDecoderBase</span><span class="p">(</span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclJsonDb_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">LoadJsonDb</span><span class="p">(</span><span class="n">JsonReader</span><span class="o">*</span><span class="w"> </span><span class="n">pclJsonDb_</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span><span class="w"> </span><span class="n">GetLogger</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">SetLoggerLevel</span><span class="p">(</span><span class="n">spdlog</span><span class="o">::</span><span class="n">level</span><span class="o">::</span><span class="n">level_enum</span><span class="w"> </span><span class="n">eLevel_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">ShutdownLogger</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//</span>
+<span class="w">    </span><span class="c1">//----------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="p">[[</span><span class="n">nodiscard</span><span class="p">]]</span><span class="w"> </span><span class="n">STATUS</span><span class="w"> </span><span class="n">Decode</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">pucMessage_</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">FieldContainer</span><span class="o">&gt;&amp;</span><span class="w"> </span><span class="n">stInterMessage_</span><span class="p">,</span><span class="w"> </span><span class="n">MetaDataBase</span><span class="o">&amp;</span><span class="w"> </span><span class="n">stMetaData_</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="p">}</span><span class="w"> </span><span class="c1">// namespace novatel::edie</span>
+
+<span class="cp">#endif </span><span class="c1">// MESSAGE_DECODER_HPP</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

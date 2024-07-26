@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__header__decoder_8hpp_1a141e944df260602997f5823a5f9939d5:
+
+Function NovatelHeaderDecoderDecode
+===================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_header_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelHeaderDecoderDecode(novatel::edie::oem::HeaderDecoder *, unsigned char *, novatel::edie::oem::IntermediateHeader *, novatel::edie::oem::MetaDataStruct *)
+   :project: handlerfactory

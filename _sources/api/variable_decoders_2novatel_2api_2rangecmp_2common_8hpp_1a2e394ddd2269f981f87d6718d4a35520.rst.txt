@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a2e394ddd2269f981f87d6718d4a35520:
+
+Variable novatel::edie::oem::CTS_SV_CHANNEL_NUMBER_SHIFT
+========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_SV_CHANNEL_NUMBER_SHIFT
+   :project: handlerfactory

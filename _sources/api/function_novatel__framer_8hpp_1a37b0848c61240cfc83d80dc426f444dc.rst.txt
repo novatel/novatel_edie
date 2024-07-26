@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1a37b0848c61240cfc83d80dc426f444dc:
+
+Function NovatelFramerShutdownLogger
+====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerShutdownLogger(novatel::edie::oem::Framer *)
+   :project: handlerfactory

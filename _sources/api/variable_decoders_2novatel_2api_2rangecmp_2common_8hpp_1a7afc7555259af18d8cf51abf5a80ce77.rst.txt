@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a7afc7555259af18d8cf51abf5a80ce77:
+
+Variable novatel::edie::oem::RC2_SIG_ADR_STDDEV_SHIFT
+=====================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_ADR_STDDEV_SHIFT
+   :project: handlerfactory

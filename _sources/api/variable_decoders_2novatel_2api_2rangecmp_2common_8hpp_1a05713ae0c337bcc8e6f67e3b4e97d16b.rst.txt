@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a05713ae0c337bcc8e6f67e3b4e97d16b:
+
+Variable novatel::edie::oem::RC2_SIG_PSR_STDDEV_SHIFT
+=====================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_PSR_STDDEV_SHIFT
+   :project: handlerfactory

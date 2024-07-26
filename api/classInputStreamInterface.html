@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class InputStreamInterface &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class Logger" href="classLogger.html" />
+    <link rel="prev" title="Class InputMemoryStream" href="classInputMemoryStream.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct.html">Struct ChannelTrackingStatusStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html">Struct IntermediateHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html">Struct MetaDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryHeader.html">Struct Oem4BinaryHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader.html">Struct Oem4BinaryShortHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2LockTimeInfoStruct.html">Struct RangeCmp2LockTimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SatelliteBlockStruct.html">Struct RangeCmp2SatelliteBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SignalBlockStruct.html">Struct RangeCmp2SignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2Struct.html">Struct RangeCmp2Struct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4LocktimeInfoStruct.html">Struct RangeCmp4LocktimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementBlockHeaderStruct.html">Struct RangeCmp4MeasurementBlockHeaderStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementSignalBlockStruct.html">Struct RangeCmp4MeasurementSignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpDataStruct.html">Struct RangeCmpDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpStruct.html">Struct RangeCmpStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeDataStruct.html">Struct RangeDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeStruct.html">Struct RangeStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structReadDataStructure.html">Struct ReadDataStructure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSatelliteId.html">Struct SatelliteId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamReadStatus.html">Struct StreamReadStatus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFileStream.html">Class FileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputFileStream.html">Class InputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputMemoryStream.html">Class InputMemoryStream</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class InputStreamInterface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLogger.html">Class Logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMemoryStream.html">Class MemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiOutputFileStream.html">Class MultiOutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNExcept.html">Class NExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Commander.html">Class Commander</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Encoder.html">Class Encoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1FileParser.html">Class FileParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html">Class Filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1HeaderDecoder.html">Class HeaderDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1MessageDecoder.html">Class MessageDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html">Class Parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html">Class RangeDecompressor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler.html">Class RxConfigHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputFileStream.html">Class OutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputStreamInterface.html">Class OutputStreamInterface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Class InputStreamInterface</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classInputStreamInterface.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-inputstreaminterface">
+<span id="exhale-class-classinputstreaminterface"></span><h1>Class InputStreamInterface<a class="headerlink" href="#class-inputstreaminterface" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_src_hw_interface_stream_interface_api_inputstreaminterface.hpp.html#file-src-hw-interface-stream-interface-api-inputstreaminterface-hpp"><span class="std std-ref">File inputstreaminterface.hpp</span></a></p></li>
+</ul>
+<section id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Link to this heading"></a></h2>
+<section id="derived-types">
+<h3>Derived Types<a class="headerlink" href="#derived-types" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">InputFileStream</span></code> (<a class="reference internal" href="classInputFileStream.html#exhale-class-classinputfilestream"><span class="std std-ref">Class InputFileStream</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">InputMemoryStream</span></code> (<a class="reference internal" href="classInputMemoryStream.html#exhale-class-classinputmemorystream"><span class="std std-ref">Class InputMemoryStream</span></a>)</p></li>
+</ul>
+</section>
+</section>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv420InputStreamInterface">
+<span id="_CPPv320InputStreamInterface"></span><span id="_CPPv220InputStreamInterface"></span><span id="InputStreamInterface"></span><span class="target" id="classInputStreamInterface"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InputStreamInterface</span></span></span><a class="headerlink" href="#_CPPv420InputStreamInterface" title="Link to this definition"></a><br /></dt>
+<dd><p>An Interface Class used by application ro provide input to the decoder. </p>
+<p>Interface class for reading data from all types of decoder input(File/Port/Buffer) </p>
+<p>Subclassed by <a class="reference internal" href="classInputFileStream.html#classInputFileStream"><span class="std std-ref">InputFileStream</span></a>, <a class="reference internal" href="classInputMemoryStream.html#classInputMemoryStream"><span class="std std-ref">InputMemoryStream</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterface8ReadDataER17ReadDataStructure">
+<span id="_CPPv3N20InputStreamInterface8ReadDataER17ReadDataStructure"></span><span id="_CPPv2N20InputStreamInterface8ReadDataER17ReadDataStructure"></span><span id="InputStreamInterface::ReadData__ReadDataStructureR"></span><span class="target" id="classInputStreamInterface_1a9703945f3635be845422567f1029c96c"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="structStreamReadStatus.html#_CPPv416StreamReadStatus" title="StreamReadStatus"><span class="n"><span class="pre">StreamReadStatus</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadData</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="structReadDataStructure.html#_CPPv417ReadDataStructure" title="ReadDataStructure"><span class="n"><span class="pre">ReadDataStructure</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">pReadDataStructure</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N20InputStreamInterface8ReadDataER17ReadDataStructure" title="Link to this definition"></a><br /></dt>
+<dd><p>A pure virtual member.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pReadDataStructure</strong> – <strong>[in]</strong> <a class="reference internal" href="structReadDataStructure.html#structReadDataStructure"><span class="std std-ref">ReadDataStructure</span></a> variable to hold decoded log </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="structStreamReadStatus.html#structStreamReadStatus"><span class="std std-ref">StreamReadStatus</span></a> structure - Read data statistics </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterface17IsStreamAvailableEv">
+<span id="_CPPv3N20InputStreamInterface17IsStreamAvailableEv"></span><span id="_CPPv2N20InputStreamInterface17IsStreamAvailableEv"></span><span id="InputStreamInterface::IsStreamAvailable"></span><span class="target" id="classInputStreamInterface_1a29e1d9547c789402e4af4bb76ebf4f1a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IsStreamAvailable</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20InputStreamInterface17IsStreamAvailableEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Checks whether the data in circular buffer available to decode or not. </p>
+<p>A virtual member. <div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If no concrete derived method, It simply returns false. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>true or false. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterface8ReadLineERNSt6stringE">
+<span id="_CPPv3N20InputStreamInterface8ReadLineERNSt6stringE"></span><span id="_CPPv2N20InputStreamInterface8ReadLineERNSt6stringE"></span><span id="InputStreamInterface::ReadLine__ssR"></span><span class="target" id="classInputStreamInterface_1a74bf36c5416a25df87129176fc201931"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="structStreamReadStatus.html#_CPPv416StreamReadStatus" title="StreamReadStatus"><span class="n"><span class="pre">StreamReadStatus</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20InputStreamInterface8ReadLineERNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Read one line from the file. </p>
+<p>A virtual member. <div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If no concrete derived method, It simply returns default <a class="reference internal" href="structStreamReadStatus.html#structStreamReadStatus"><span class="std std-ref">StreamReadStatus</span></a> value. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Returns Read statistics structure (<a class="reference internal" href="structStreamReadStatus.html#structStreamReadStatus"><span class="std std-ref">StreamReadStatus</span></a>) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK20InputStreamInterface16GetFileExtensionEv">
+<span id="_CPPv3NK20InputStreamInterface16GetFileExtensionEv"></span><span id="_CPPv2NK20InputStreamInterface16GetFileExtensionEv"></span><span id="InputStreamInterface::GetFileExtensionC"></span><span class="target" id="classInputStreamInterface_1a784d57e35e99e70315e2ed090e639e41"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetFileExtension</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK20InputStreamInterface16GetFileExtensionEv" title="Link to this definition"></a><br /></dt>
+<dd><p>A virtual member. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the extension of the input file to be decoded. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns the extension of the input file to be decoded. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK20InputStreamInterface11GetFileNameEv">
+<span id="_CPPv3NK20InputStreamInterface11GetFileNameEv"></span><span id="_CPPv2NK20InputStreamInterface11GetFileNameEv"></span><span id="InputStreamInterface::GetFileNameC"></span><span class="target" id="classInputStreamInterface_1ab0a4a056e542260f2cb18c138746b2d9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetFileName</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK20InputStreamInterface11GetFileNameEv" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterface10SetTimeOutEd">
+<span id="_CPPv3N20InputStreamInterface10SetTimeOutEd"></span><span id="_CPPv2N20InputStreamInterface10SetTimeOutEd"></span><span id="InputStreamInterface::SetTimeOut__double"></span><span class="target" id="classInputStreamInterface_1aeeaa15379e70fb8e00dd1ec279935934"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetTimeOut</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20InputStreamInterface10SetTimeOutEd" title="Link to this definition"></a><br /></dt>
+<dd><p>Waiting period on port for incoming data to be decoded. </p>
+<p>A virtual member. <div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>No default implementation. </p>
+</div>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterface5ResetENSt9streamoffENSt8ios_base7seekdirE">
+<span id="_CPPv3N20InputStreamInterface5ResetENSt9streamoffENSt8ios_base7seekdirE"></span><span id="_CPPv2N20InputStreamInterface5ResetENSt9streamoffENSt8ios_base7seekdirE"></span><span id="InputStreamInterface::Reset__std::streamoff.std::ios_base::seekdir"></span><span class="target" id="classInputStreamInterface_1ab9b3a2ce509e57d0470d2f82611eddb4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Reset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">streamoff</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ios_base</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">seekdir</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20InputStreamInterface5ResetENSt9streamoffENSt8ios_base7seekdirE" title="Link to this definition"></a><br /></dt>
+<dd><p>Set/Reset File Position from which next read will be done. </p>
+<p>A virtual member. <div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>No default implementation. </p>
+</div>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterface22GetCurrentFilePositionEv">
+<span id="_CPPv3N20InputStreamInterface22GetCurrentFilePositionEv"></span><span id="_CPPv2N20InputStreamInterface22GetCurrentFilePositionEv"></span><span id="InputStreamInterface::GetCurrentFilePosition"></span><span class="target" id="classInputStreamInterface_1ab5aee88db0ce96fed0d62d49b2c11a33"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCurrentFilePosition</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20InputStreamInterface22GetCurrentFilePositionEv" title="Link to this definition"></a><br /></dt>
+<dd><p>A virtual member. <div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>Default returns 0. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the current file position from which next read will be done. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterfaceD0Ev">
+<span id="_CPPv3N20InputStreamInterfaceD0Ev"></span><span id="_CPPv2N20InputStreamInterfaceD0Ev"></span><span id="InputStreamInterface::~InputStreamInterface"></span><span class="target" id="classInputStreamInterface_1ad9d3e5e69bda09240715334f8c576bc4"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~InputStreamInterface</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N20InputStreamInterfaceD0Ev" title="Link to this definition"></a><br /></dt>
+<dd><p>A virtual default destructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterface20SetCurrentFileOffsetE8uint64_t">
+<span id="_CPPv3N20InputStreamInterface20SetCurrentFileOffsetE8uint64_t"></span><span id="_CPPv2N20InputStreamInterface20SetCurrentFileOffsetE8uint64_t"></span><span id="InputStreamInterface::SetCurrentFileOffset__uint64_t"></span><span class="target" id="classInputStreamInterface_1a2a8b8604219802838c761f57ec31bc7c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetCurrentFileOffset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20InputStreamInterface20SetCurrentFileOffsetE8uint64_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Sets the current file offset. It could be read bytes so far. </p>
+<p>A virtual member. <div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>No default implementation. </p>
+</div>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK20InputStreamInterface20GetCurrentFileOffsetEv">
+<span id="_CPPv3NK20InputStreamInterface20GetCurrentFileOffsetEv"></span><span id="_CPPv2NK20InputStreamInterface20GetCurrentFileOffsetEv"></span><span id="InputStreamInterface::GetCurrentFileOffsetC"></span><span class="target" id="classInputStreamInterface_1ac1b4a1ced3ef8d537ab625e915a352ec"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCurrentFileOffset</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK20InputStreamInterface20GetCurrentFileOffsetEv" title="Link to this definition"></a><br /></dt>
+<dd><p>A virtual member. <div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>returns 0, if no concrete derived method for it. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current file offset. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N20InputStreamInterface15GetMemoryStreamEv">
+<span id="_CPPv3N20InputStreamInterface15GetMemoryStreamEv"></span><span id="_CPPv2N20InputStreamInterface15GetMemoryStreamEv"></span><span id="InputStreamInterface::GetMemoryStream"></span><span class="target" id="classInputStreamInterface_1a0d0d7281dab6e37c8409a6c54f41e530"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="classMemoryStream.html#_CPPv412MemoryStream" title="MemoryStream"><span class="n"><span class="pre">MemoryStream</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetMemoryStream</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N20InputStreamInterface15GetMemoryStreamEv" title="Link to this definition"></a><br /></dt>
+<dd><p>A virtual member. <div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>MemoryStream* class Object to access circular buffer. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the class object which has interfaced or derived from circular buffer. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classInputMemoryStream.html" class="btn btn-neutral float-left" title="Class InputMemoryStream" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classLogger.html" class="btn btn-neutral float-right" title="Class Logger" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

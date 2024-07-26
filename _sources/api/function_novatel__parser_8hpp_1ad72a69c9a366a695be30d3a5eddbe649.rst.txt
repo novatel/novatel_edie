@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__parser_8hpp_1ad72a69c9a366a695be30d3a5eddbe649:
+
+Function NovatelParserGetReturnUnknownBytes
+===========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelParserGetReturnUnknownBytes(novatel::edie::oem::Parser *)
+   :project: handlerfactory

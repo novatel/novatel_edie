@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__file__parser_8hpp_1af7659f271167cfd6c194ae94a5aa01d2:
+
+Function NovatelFileParserGetDecompressRangeCmp
+===============================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFileParserGetDecompressRangeCmp(novatel::edie::oem::FileParser *)
+   :project: handlerfactory

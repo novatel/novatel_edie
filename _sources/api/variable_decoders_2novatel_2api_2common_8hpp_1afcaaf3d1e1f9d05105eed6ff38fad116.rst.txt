@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2common_8hpp_1afcaaf3d1e1f9d05105eed6ff38fad116:
+
+Variable novatel::edie::oem::OEM4_SHORT_ASCII_SYNC
+==================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::OEM4_SHORT_ASCII_SYNC
+   :project: handlerfactory

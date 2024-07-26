@@ -1,0 +1,29 @@
+.. _dir_src_hw_interface_stream_interface_api:
+
+
+Directory api
+=============
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src_hw_interface_stream_interface>` (``src/hw_interface/stream_interface``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/hw_interface/stream_interface/api``
+
+
+Files
+-----
+
+- :ref:`file_src_hw_interface_stream_interface_api_common.hpp`
+- :ref:`file_src_hw_interface_stream_interface_api_filestream.hpp`
+- :ref:`file_src_hw_interface_stream_interface_api_inputfilestream.hpp`
+- :ref:`file_src_hw_interface_stream_interface_api_inputmemorystream.hpp`
+- :ref:`file_src_hw_interface_stream_interface_api_inputstreaminterface.hpp`
+- :ref:`file_src_hw_interface_stream_interface_api_memorystream.hpp`
+- :ref:`file_src_hw_interface_stream_interface_api_multioutputfilestream.hpp`
+- :ref:`file_src_hw_interface_stream_interface_api_outputfilestream.hpp`
+- :ref:`file_src_hw_interface_stream_interface_api_outputstreaminterface.hpp`
+
+

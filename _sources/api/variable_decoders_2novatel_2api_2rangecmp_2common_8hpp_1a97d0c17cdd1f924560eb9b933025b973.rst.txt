@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a97d0c17cdd1f924560eb9b933025b973:
+
+Variable novatel::edie::oem::CTS_CARRIER_PHASE_SHIFT
+====================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::CTS_CARRIER_PHASE_SHIFT
+   :project: handlerfactory

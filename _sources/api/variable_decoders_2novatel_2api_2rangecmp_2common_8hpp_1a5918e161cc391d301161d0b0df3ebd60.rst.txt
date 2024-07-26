@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a5918e161cc391d301161d0b0df3ebd60:
+
+Variable novatel::edie::oem::WAVELENGTH_QZSS_L1
+===============================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::WAVELENGTH_QZSS_L1
+   :project: handlerfactory

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class FileStream &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class FramerBase" href="classFramerBase.html" />
+    <link rel="prev" title="Class CircularBuffer" href="classCircularBuffer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1ArrayField.html">Struct ArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseDataType.html">Struct BaseDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html">Struct BaseField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDataType.html">Struct EnumDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumDefinition.html">Struct EnumDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1EnumField.html">Struct EnumField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldArrayField.html">Struct FieldArrayField</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct.html">Struct ChannelTrackingStatusStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html">Struct IntermediateHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html">Struct MetaDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryHeader.html">Struct Oem4BinaryHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader.html">Struct Oem4BinaryShortHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2LockTimeInfoStruct.html">Struct RangeCmp2LockTimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SatelliteBlockStruct.html">Struct RangeCmp2SatelliteBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SignalBlockStruct.html">Struct RangeCmp2SignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2Struct.html">Struct RangeCmp2Struct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4LocktimeInfoStruct.html">Struct RangeCmp4LocktimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementBlockHeaderStruct.html">Struct RangeCmp4MeasurementBlockHeaderStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementSignalBlockStruct.html">Struct RangeCmp4MeasurementSignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpDataStruct.html">Struct RangeCmpDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpStruct.html">Struct RangeCmpStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeDataStruct.html">Struct RangeDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeStruct.html">Struct RangeStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structReadDataStructure.html">Struct ReadDataStructure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSatelliteId.html">Struct SatelliteId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamReadStatus.html">Struct StreamReadStatus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Class FileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputFileStream.html">Class InputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputMemoryStream.html">Class InputMemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputStreamInterface.html">Class InputStreamInterface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLogger.html">Class Logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMemoryStream.html">Class MemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiOutputFileStream.html">Class MultiOutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNExcept.html">Class NExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html">Class JsonReader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MetaDataBase.html">Class MetaDataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Commander.html">Class Commander</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Encoder.html">Class Encoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1FileParser.html">Class FileParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html">Class Filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1HeaderDecoder.html">Class HeaderDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1MessageDecoder.html">Class MessageDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html">Class Parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html">Class RangeDecompressor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler.html">Class RxConfigHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputFileStream.html">Class OutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputStreamInterface.html">Class OutputStreamInterface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Class FileStream</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/classFileStream.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="class-filestream">
+<span id="exhale-class-classfilestream"></span><h1>Class FileStream<a class="headerlink" href="#class-filestream" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_src_hw_interface_stream_interface_api_filestream.hpp.html#file-src-hw-interface-stream-interface-api-filestream-hpp"><span class="std std-ref">File filestream.hpp</span></a></p></li>
+</ul>
+<section id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv410FileStream">
+<span id="_CPPv310FileStream"></span><span id="_CPPv210FileStream"></span><span id="FileStream"></span><span class="target" id="classFileStream"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FileStream</span></span></span><a class="headerlink" href="#_CPPv410FileStream" title="Link to this definition"></a><br /></dt>
+<dd><p>A class will provide file operation handlers. More detailed <a class="reference internal" href="#classFileStream"><span class="std std-ref">FileStream</span></a> class description. It will also support file names with wide characters. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-types">Public Types</p>
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream10FILE_MODESE">
+<span id="_CPPv3N10FileStream10FILE_MODESE"></span><span id="_CPPv2N10FileStream10FILE_MODESE"></span><span class="target" id="classFileStream_1a67cab61640d689eb23ce56785f9a9aef"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FILE_MODES</span></span></span><a class="headerlink" href="#_CPPv4N10FileStream10FILE_MODESE" title="Link to this definition"></a><br /></dt>
+<dd><p>An enum.</p>
+<p>File Operations Enumeration. </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream10FILE_MODES6APPENDE">
+<span id="_CPPv3N10FileStream10FILE_MODES6APPENDE"></span><span id="_CPPv2N10FileStream10FILE_MODES6APPENDE"></span><span class="target" id="classFileStream_1a67cab61640d689eb23ce56785f9a9aefa375ffb668aa90f1c7fcae55e9734a752"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">APPEND</span></span></span><a class="headerlink" href="#_CPPv4N10FileStream10FILE_MODES6APPENDE" title="Link to this definition"></a><br /></dt>
+<dd><p>Append may refer to the process of attaching or combining data with another file or set of data. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream10FILE_MODES6INSERTE">
+<span id="_CPPv3N10FileStream10FILE_MODES6INSERTE"></span><span id="_CPPv2N10FileStream10FILE_MODES6INSERTE"></span><span class="target" id="classFileStream_1a67cab61640d689eb23ce56785f9a9aefa61ee777e7f71dc466c3b2c685d8d313b"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">INSERT</span></span></span><a class="headerlink" href="#_CPPv4N10FileStream10FILE_MODES6INSERTE" title="Link to this definition"></a><br /></dt>
+<dd><p>Insert Data into the file </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream10FILE_MODES5INPUTE">
+<span id="_CPPv3N10FileStream10FILE_MODES5INPUTE"></span><span id="_CPPv2N10FileStream10FILE_MODES5INPUTE"></span><span class="target" id="classFileStream_1a67cab61640d689eb23ce56785f9a9aefaa84cc046d48610b05c21fd3670d0c829"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">INPUT</span></span></span><a class="headerlink" href="#_CPPv4N10FileStream10FILE_MODES5INPUTE" title="Link to this definition"></a><br /></dt>
+<dd><p>Open file as Input for read </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream10FILE_MODES6OUTPUTE">
+<span id="_CPPv3N10FileStream10FILE_MODES6OUTPUTE"></span><span id="_CPPv2N10FileStream10FILE_MODES6OUTPUTE"></span><span class="target" id="classFileStream_1a67cab61640d689eb23ce56785f9a9aefa50a87f0d71f7221582dad4bf507a0f34"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OUTPUT</span></span></span><a class="headerlink" href="#_CPPv4N10FileStream10FILE_MODES6OUTPUTE" title="Link to this definition"></a><br /></dt>
+<dd><p>Open file as output for write into the file </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream10FILE_MODES8TRUNCATEE">
+<span id="_CPPv3N10FileStream10FILE_MODES8TRUNCATEE"></span><span id="_CPPv2N10FileStream10FILE_MODES8TRUNCATEE"></span><span class="target" id="classFileStream_1a67cab61640d689eb23ce56785f9a9aefa0a83d15fde12983f199bdeb76667660f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TRUNCATE</span></span></span><a class="headerlink" href="#_CPPv4N10FileStream10FILE_MODES8TRUNCATEE" title="Link to this definition"></a><br /></dt>
+<dd><p>Truncate some part of data in file </p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream10FileStreamERKNSt9u32stringE">
+<span id="_CPPv3N10FileStream10FileStreamERKNSt9u32stringE"></span><span id="_CPPv2N10FileStream10FileStreamERKNSt9u32stringE"></span><span id="FileStream::FileStream__std::u32stringCR"></span><span class="target" id="classFileStream_1aaf51de170eb8722c3aedd527c0ec6018"></span><span class="sig-name descname"><span class="n"><span class="pre">FileStream</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">u32string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">s32FileName_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream10FileStreamERKNSt9u32stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Create U32 String character filename string with name provided as argument. And initializes File offsets and length of it. </p>
+<p>A Constructor</p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If s32FileName is an empty u32string, then exception “Filename name not valid” will be thrown. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>s32FileName_</strong> – <strong>[in]</strong> 32 bit String character file name as character pointer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream10FileStreamEPKc">
+<span id="_CPPv3N10FileStream10FileStreamEPKc"></span><span id="_CPPv2N10FileStream10FileStreamEPKc"></span><span id="FileStream::FileStream__cCP"></span><span class="target" id="classFileStream_1a3be0c7b0506fff2e71c4834be0c5f311"></span><span class="sig-name descname"><span class="n"><span class="pre">FileStream</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">pcFileName</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream10FileStreamEPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Create filename string with name provided as argument. And initializes File offsets and length of it. </p>
+<p>A Constructor</p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If pcFileName is NULL, then exception “Filename name not valid” will be thrown. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pcFileName</strong> – <strong>[in]</strong> File name as Character pointer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStreamD0Ev">
+<span id="_CPPv3N10FileStreamD0Ev"></span><span id="_CPPv2N10FileStreamD0Ev"></span><span id="FileStream::~FileStream"></span><span class="target" id="classFileStream_1a3c410d9531313aa1fc924bbd77cd4781"></span><span class="sig-name descname"><span class="n"><span class="pre">~FileStream</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStreamD0Ev" title="Link to this definition"></a><br /></dt>
+<dd><p>A default Destructor</p>
+<p>All dynamic created pointers will be deleted. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream8OpenFileE10FILE_MODES">
+<span id="_CPPv3N10FileStream8OpenFileE10FILE_MODES"></span><span id="_CPPv2N10FileStream8OpenFileE10FILE_MODES"></span><span id="FileStream::OpenFile__FILE_MODES"></span><span class="target" id="classFileStream_1aa3db4106de58fb533cc0fc3ae634b4f9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OpenFile</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N10FileStream10FILE_MODESE" title="FileStream::FILE_MODES"><span class="n"><span class="pre">FILE_MODES</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">eMode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream8OpenFileE10FILE_MODES" title="Link to this definition"></a><br /></dt>
+<dd><p>Open File to read/write/truncate in different modes of open. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If eMode is not valid exception (“”) will be thrown. If open fails exception(“File mode not valid”) will be thrown. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>eMode</strong> – <strong>[in]</strong> File mode enumeration </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>“Does not return a value” </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream9CloseFileEv">
+<span id="_CPPv3N10FileStream9CloseFileEv"></span><span id="_CPPv2N10FileStream9CloseFileEv"></span><span id="FileStream::CloseFile"></span><span class="target" id="classFileStream_1aa97de164711f02cfa6c176ae740bb403"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CloseFile</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream9CloseFileEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Close the file. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>This function may not be required, Because fstream closes the files when out of scope. This may be helpful if somebody wants to check the close status. </p>
+</div>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10FileStream19CalculatePercentageE8uint64_t">
+<span id="_CPPv3NK10FileStream19CalculatePercentageE8uint64_t"></span><span id="_CPPv2NK10FileStream19CalculatePercentageE8uint64_t"></span><span id="FileStream::CalculatePercentage__uint64_tC"></span><span class="target" id="classFileStream_1ab3eef5885892cac925d57fba28a90f03"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CalculatePercentage</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ullCurrentFileRead</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10FileStream19CalculatePercentageE8uint64_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates the percentage of current file read. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If file length is ‘0’, Then exception”…file  size not valid” will be thrown. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ullCurrentFileRead</strong> – <strong>[in]</strong> uint64_t current file read length</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Percentage of Read. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream8ReadFileEPc8uint32_t">
+<span id="_CPPv3N10FileStream8ReadFileEPc8uint32_t"></span><span id="_CPPv2N10FileStream8ReadFileEPc8uint32_t"></span><span id="FileStream::ReadFile__cP.uint32_t"></span><span class="target" id="classFileStream_1a68b1dbd1f6dbe218cab7855bb6485dbb"></span><a class="reference internal" href="structStreamReadStatus.html#_CPPv416StreamReadStatus" title="StreamReadStatus"><span class="n"><span class="pre">StreamReadStatus</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadFile</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">cData</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream8ReadFileEPc8uint32_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Reads uiSize characters of data from fstream file and stores them in the array pointed by cData also fills the <a class="reference internal" href="structStreamReadStatus.html#structStreamReadStatus"><span class="std std-ref">StreamReadStatus</span></a> structure. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If read fails, then exception”… file  read failed” will be thrown. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cData</strong> – <strong>[in]</strong> Holds the read data from file. </p></li>
+<li><p><strong>uiSize</strong> – <strong>[in]</strong> Size of the data to be read data from file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="structStreamReadStatus.html#structStreamReadStatus"><span class="std std-ref">StreamReadStatus</span></a>, Read statistics structure </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream9WriteFileEPKc8uint32_t">
+<span id="_CPPv3N10FileStream9WriteFileEPKc8uint32_t"></span><span id="_CPPv2N10FileStream9WriteFileEPKc8uint32_t"></span><span id="FileStream::WriteFile__cCP.uint32_t"></span><span class="target" id="classFileStream_1ab0d131949d4a300f498e027db7a64efc"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WriteFile</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">cData</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">uiSize</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream9WriteFileEPKc8uint32_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Writes the first uiSize character pointed by cData into fstream. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>If write fails, then exception”… file  write failed” will be thrown. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cData</strong> – <strong>[in]</strong> Data to be written to the fstream. </p></li>
+<li><p><strong>uiSize</strong> – <strong>[in]</strong> Size of the data to be written to the file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of bytes written into the file </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream11GetFileSizeEv">
+<span id="_CPPv3N10FileStream11GetFileSizeEv"></span><span id="_CPPv2N10FileStream11GetFileSizeEv"></span><span id="FileStream::GetFileSize"></span><span class="target" id="classFileStream_1a23c504ba2328a535060c339d018c5b18"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetFileSize</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream11GetFileSizeEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Calculates the File size and update it in MyFileLength private variable. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream9FlushFileEv">
+<span id="_CPPv3N10FileStream9FlushFileEv"></span><span id="_CPPv2N10FileStream9FlushFileEv"></span><span id="FileStream::FlushFile"></span><span class="target" id="classFileStream_1aae929741196fc860bcd09de60f5b3758"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FlushFile</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream9FlushFileEv" title="Link to this definition"></a><br /></dt>
+<dd><p>clears the internal buffer of the file. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream15SetFilePositionENSt9streamoffENSt8ios_base7seekdirE">
+<span id="_CPPv3N10FileStream15SetFilePositionENSt9streamoffENSt8ios_base7seekdirE"></span><span id="_CPPv2N10FileStream15SetFilePositionENSt9streamoffENSt8ios_base7seekdirE"></span><span id="FileStream::SetFilePosition__std::streamoff.std::ios_base::seekdir"></span><span class="target" id="classFileStream_1a9ed4aa9d0f6ff39d1d869020d96370f0"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetFilePosition</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">streamoff</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">offset</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ios_base</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">seekdir</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dir</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ios</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">beg</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream15SetFilePositionENSt9streamoffENSt8ios_base7seekdirE" title="Link to this definition"></a><br /></dt>
+<dd><p>Set File Position from which next read will be done. </p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>After seeking the current file size will be changed accordingly. </p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>offset</strong> – <strong>[in]</strong> the position of the file pointer to read. </p></li>
+<li><p><strong>dir</strong> – <strong>[in]</strong> Seeking direction from beginning or end.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10FileStream13GetFileLengthEv">
+<span id="_CPPv3NK10FileStream13GetFileLengthEv"></span><span id="_CPPv2NK10FileStream13GetFileLengthEv"></span><span id="FileStream::GetFileLengthC"></span><span class="target" id="classFileStream_1a05985d317ea0995ff8c9f0dc82bbaf07"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetFileLength</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10FileStream13GetFileLengthEv" title="Link to this definition"></a><br /></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Total file length. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10FileStream11GetFileNameEv">
+<span id="_CPPv3NK10FileStream11GetFileNameEv"></span><span id="_CPPv2NK10FileStream11GetFileNameEv"></span><span id="FileStream::GetFileNameC"></span><span class="target" id="classFileStream_1a6d72209eccea62e02ef5168cdaa55b8d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetFileName</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10FileStream11GetFileNameEv" title="Link to this definition"></a><br /></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>File Name. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10FileStream18GetCurrentFileSizeEv">
+<span id="_CPPv3NK10FileStream18GetCurrentFileSizeEv"></span><span id="_CPPv2NK10FileStream18GetCurrentFileSizeEv"></span><span id="FileStream::GetCurrentFileSizeC"></span><span class="target" id="classFileStream_1a63821fa647d5574d33f4c20be27582bb"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCurrentFileSize</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10FileStream18GetCurrentFileSizeEv" title="Link to this definition"></a><br /></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>current file size which user has read so far. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream15GetMyFileStreamEv">
+<span id="_CPPv3N10FileStream15GetMyFileStreamEv"></span><span id="_CPPv2N10FileStream15GetMyFileStreamEv"></span><span id="FileStream::GetMyFileStream"></span><span class="target" id="classFileStream_1a40f1ff9f02bd69a8b037065b31ba41c8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fstream</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetMyFileStream</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream15GetMyFileStreamEv" title="Link to this definition"></a><br /></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>file stream pointer. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream8ReadLineERNSt6stringE">
+<span id="_CPPv3N10FileStream8ReadLineERNSt6stringE"></span><span id="_CPPv2N10FileStream8ReadLineERNSt6stringE"></span><span id="FileStream::ReadLine__ssR"></span><span class="target" id="classFileStream_1a67059831b83eb9eb9837800625643dc9"></span><a class="reference internal" href="structStreamReadStatus.html#_CPPv416StreamReadStatus" title="StreamReadStatus"><span class="n"><span class="pre">StreamReadStatus</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ReadLine</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">szLine</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream8ReadLineERNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Read one line from the file. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>szLine</strong> – <strong>[in]</strong> reference String to hole one line dats read from the file. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns Read statistics structure (<a class="reference internal" href="structStreamReadStatus.html#structStreamReadStatus"><span class="std std-ref">StreamReadStatus</span></a>) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N10FileStream20SetCurrentFileOffsetE8uint64_t">
+<span id="_CPPv3N10FileStream20SetCurrentFileOffsetE8uint64_t"></span><span id="_CPPv2N10FileStream20SetCurrentFileOffsetE8uint64_t"></span><span id="FileStream::SetCurrentFileOffset__uint64_t"></span><span class="target" id="classFileStream_1a51675dfeeb51a5c8b66cd3c5b643c1e9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetCurrentFileOffset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ullCurrentFileOffset</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N10FileStream20SetCurrentFileOffsetE8uint64_t" title="Link to this definition"></a><br /></dt>
+<dd><p>Sets the current file offset. It could be read bytes so far. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ullCurrentFileOffset</strong> – <strong>[in]</strong> Size of the data from one read size, Will be appended to calculate read bytes so far </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10FileStream20GetCurrentFileOffsetEv">
+<span id="_CPPv3NK10FileStream20GetCurrentFileOffsetEv"></span><span id="_CPPv2NK10FileStream20GetCurrentFileOffsetEv"></span><span id="FileStream::GetCurrentFileOffsetC"></span><span class="target" id="classFileStream_1a423a636182bc1fef9245d50f5bc25fa1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetCurrentFileOffset</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10FileStream20GetCurrentFileOffsetEv" title="Link to this definition"></a><br /></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>current file offset. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK10FileStream19Get32StringFileNameEv">
+<span id="_CPPv3NK10FileStream19Get32StringFileNameEv"></span><span id="_CPPv2NK10FileStream19Get32StringFileNameEv"></span><span id="FileStream::Get32StringFileNameC"></span><span class="target" id="classFileStream_1aeaca69dc1ac669801d20ac0b80332d82"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">u32string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Get32StringFileName</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK10FileStream19Get32StringFileNameEv" title="Link to this definition"></a><br /></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>u32string filename. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-friends">Friends</p>
+<dl>
+<dt class="sig sig-object cpp">
+<em class="property"><span class="pre">friend</span> <span class="pre">class</span></em> <span class="pre">FileStreamUnitTest</span></dt>
+</dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classCircularBuffer.html" class="btn btn-neutral float-left" title="Class CircularBuffer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classFramerBase.html" class="btn btn-neutral float-right" title="Class FramerBase" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

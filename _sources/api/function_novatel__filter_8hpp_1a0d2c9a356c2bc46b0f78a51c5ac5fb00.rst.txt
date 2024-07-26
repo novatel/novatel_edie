@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a0d2c9a356c2bc46b0f78a51c5ac5fb00:
+
+Function NovatelFilterIncludeNmeaMessages
+=========================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterIncludeNmeaMessages(novatel::edie::oem::Filter *, bool)
+   :project: handlerfactory

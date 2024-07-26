@@ -1,0 +1,14 @@
+.. _exhale_function_common__logger_8hpp_1a0594494833d77a6e03316ff77f20a1d7:
+
+Function CommonLoggerSetupFromFile
+==================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_common_logger.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: CommonLoggerSetupFromFile(char *)
+   :project: handlerfactory

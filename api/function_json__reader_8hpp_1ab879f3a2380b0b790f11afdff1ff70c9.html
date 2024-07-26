@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Function novatel::edie::ParseFields &mdash; EDIE  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Function novatel::edie::PrintAsString" href="function_common_2api_2encoder_8hpp_1a0f8b88e6ebb6eaa256bbf886d2735add.html" />
+    <link rel="prev" title="Function novatel::edie::ParseEnumerators" href="function_json__reader_8hpp_1a212fad8d293d7ef0e460f336b4423a1e.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            EDIE
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#classes-and-structs">Classes and Structs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="library_root.html#functions">Functions</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="function_hw__interface_2dynamic__library_2api_2version_8hpp_1aeb647f1c9e77f17440f19537e16e8ea6.html">Function __declspec(dllimport)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_stream__interface_8hpp_1ae4ed322aec7804f2c4916f6a8f727560.html">Function __declspec(dllimport)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_crc32_8hpp_1a18d7f2729d4f3acd050cecd872f397d4.html">Function CalculateBlockCrc32(uint32_t, uint32_t, const unsigned char *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_crc32_8hpp_1a8162d468ce42cb5a8481659f22dcb2cf.html">Function CalculateBlockCrc32(const char *)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_crc32_8hpp_1a9ce45e4257c79ed74e3a7f0a367eef73.html">Function CalculateCharacterCrc32</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__json__reader_8hpp_1ac9674d2899dcb78341f6dda5b41b8ce0.html">Function CommonJsonReaderDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__json__reader_8hpp_1a03c66494b6600e0ea78f8ff82269fefc.html">Function CommonJsonReaderInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__json__reader_8hpp_1add5389d105b1924f12891b6e93b5153e.html">Function CommonJsonReaderLoadFile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__json__reader_8hpp_1aff86a5000544d902971c6e24f06b9038.html">Function CommonJsonReaderParseJson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__logger_8hpp_1a0fe59c54724c4b0a7251366efdcac643.html">Function CommonLoggerLog</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__logger_8hpp_1a217dbc85cbd9146c64fc4668901d4b12.html">Function CommonLoggerSetLoggerLevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__logger_8hpp_1acd143f7a3784c8c110cbbe1027783266.html">Function CommonLoggerSetup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__logger_8hpp_1a0594494833d77a6e03316ff77f20a1d7.html">Function CommonLoggerSetupFromFile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common__logger_8hpp_1a9a6bb25d9e21cab400bda3aabef8c46e.html">Function CommonLoggerShutdownLogger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1aae9a79a0069c48809edad81b960cccd8.html">Function ConsumeAbbrevFormatting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a014e7d7b8bbfa32f6960b6b6361db702.html">Function CreateMsgId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a2fff03c8982e3b9ebd5cdf70a7a31b3b.html">Function GetEnumString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a3fcbff2360cfafe2f7e4729cbf3d2714.html">Function GetEnumValue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a3182e0a073828bdc1ac179a3478ec251.html">Function GetResponseId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a8918a252aac1ba227378167a800f72a0.html">Function IsEqual</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_2api_2encoder_8hpp_1a27d597e3f40c545400c19dd17575545c.html">Template Function novatel::edie::BasicMapEntry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_2api_2encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756.html">Template Function novatel::edie::CopyToBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a0b749f11809ba71f1803b81cb1a781ae.html">Function novatel::edie::DataTypeConversion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a7ed104af9c1e331d53d896ff601ce239.html">Function novatel::edie::DataTypeSize</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1aee4129c7578a51eb744ca5f60521b45f.html">Function novatel::edie::EncodeFormatToString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a0734355af517001b765d8fe2f89666e5.html">Function novatel::edie::from_json(const json&amp;, EnumDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a2fcc5d64737be8b91a100e85043aac43.html">Function novatel::edie::from_json(const json&amp;, BaseDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a46f3c5cac057ddfeb84e47db3b131d58.html">Function novatel::edie::from_json(const json&amp;, SimpleDataType&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a148fbc02c72df6b92e75eac754955614.html">Function novatel::edie::from_json(const json&amp;, BaseField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1ae73f0c1dff289ddc07f16e0d35f1488e.html">Function novatel::edie::from_json(const json&amp;, EnumField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a7241e96bfb48ed35fd7be9156103aff8.html">Function novatel::edie::from_json(const json&amp;, ArrayField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a3d3854ee362dbe8cb86da9d2cd63aab6.html">Function novatel::edie::from_json(const json&amp;, FieldArrayField&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a14002229f78d2cf64661b5f42f99a9e9.html">Function novatel::edie::from_json(const json&amp;, MessageDefinition&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1ab6b2063c5c82afff55324c19305ad1d7.html">Function novatel::edie::from_json(const json&amp;, EnumDefinition&amp;)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_2api_2encoder_8hpp_1a6f93ddb567c4d5f7d0f61d6d9d0ae9e3.html">Function novatel::edie::IsCommaSeparated</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a4c40028a953f26811239801b92daa07a.html">Function novatel::edie::IsShortHeaderFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_2api_2encoder_8hpp_1a1688897d3880d47f804f1360547768fa.html">Template Function novatel::edie::MakeConversionString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a6ddeb1fe7ef191895c27d283239c58dc.html">Function novatel::edie::operator&lt;&lt;(std::ostream&amp;, const STATUS)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1abf94e68d9046edfb542e79506bb318b6.html">Function novatel::edie::operator&lt;&lt;(std::ostream&amp;, const ENCODE_FORMAT)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_json__reader_8hpp_1a212fad8d293d7ef0e460f336b4423a1e.html">Function novatel::edie::ParseEnumerators</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Function novatel::edie::ParseFields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_2api_2encoder_8hpp_1a0f8b88e6ebb6eaa256bbf886d2735add.html">Function novatel::edie::PrintAsString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_2api_2encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf.html">Function novatel::edie::PrintToBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_common_2api_2encoder_8hpp_1a081dfea4657dbf2dcef01c087558e6f9.html">Function novatel::edie::SetInBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1ad49506790d8038807f78566e2e5fad20.html">Function novatel::edie::StatusToString</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a4bfc7e121e84fd8dfea779a5b4243144.html">Function novatel::edie::StringToEncodeFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__commander_8hpp_1a97e5d7d2d0e7892e3ba3fb21c54ad6f6.html">Function NovatelCommanderDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__commander_8hpp_1ab96e53cbea012b5a53ccb3e07a41b1db.html">Function NovatelCommanderEncode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__commander_8hpp_1ab23c561a03cda419b0bf54ad089e2789.html">Function NovatelCommanderInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__commander_8hpp_1a5326b10adc69c234fff7f066e4ed7889.html">Function NovatelCommanderLoadJson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__commander_8hpp_1aeda06d8da9bf17988f9d88d92206cb91.html">Function NovatelCommanderSetLoggerLevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__commander_8hpp_1a844c5e9fbe2453586770db1542785e9d.html">Function NovatelCommanderShutdownLogger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__encoder_8hpp_1a8bbf66c7bdb6938948828289ce01e378.html">Function NovatelEncoderDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__encoder_8hpp_1a260ffaaa31129a2087a4bea2bc64bc7d.html">Function NovatelEncoderEncode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__encoder_8hpp_1a3e461981cbd5b72ffb5433ba0c05b616.html">Function NovatelEncoderInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__encoder_8hpp_1aeadba7f336bbca20eca31658525b059b.html">Function NovatelEncoderLoadJson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__encoder_8hpp_1ababaad10c4009115785aff506e12dcd9.html">Function NovatelEncoderSetLoggerLevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__encoder_8hpp_1aa6039b17aa21c048692891a38ccf68d0.html">Function NovatelEncoderShutdownLogger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a26528f20be6b7de9cdbd6f48dca30ee7.html">Function NovatelFileParserDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a60bcf9a193a543579360d04478e191ee.html">Function NovatelFileParserFlush</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1abdacf2332a34ea4ce041958e9c7052c0.html">Function NovatelFileParserGetBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1af7659f271167cfd6c194ae94a5aa01d2.html">Function NovatelFileParserGetDecompressRangeCmp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a2a4aedc003ee8a9afbf8d3b02021169d.html">Function NovatelFileParserGetEncodeFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1ad665e960107f866c4cc4ba4e3591d693.html">Function NovatelFileParserGetFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a6f45f153dbc012daa98c85f840170005.html">Function NovatelFileParserGetIgnoreAbbrevAsciiResponses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1ad8c7bc020f3fd97fc0af848b0aa964b6.html">Function NovatelFileParserGetPercentRead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a7538e219026b59538e75d94c4698dc01.html">Function NovatelFileParserGetReturnUnknownBytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a147b5b162007c1f953924e8d57c3ddf8.html">Function NovatelFileParserInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a3ec1335f3dac3e9a66470dabc18ce626.html">Function NovatelFileParserLoadJsonDb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a9153dcb8cae68ccdb14fd8946c07ac08.html">Function NovatelFileParserRead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a40a4a4d14360b6f4a6faff1e9cfdb74c.html">Function NovatelFileParserReset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a912fd122759c323724f219e0b4a235b3.html">Function NovatelFileParserSetDecompressRangeCmp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a13d181d62f0134648372f09796ccdaa6.html">Function NovatelFileParserSetEncodeFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a53a641b330447b42c8ed276bf43f9ce6.html">Function NovatelFileParserSetFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a3cf0fdebd776c17fc4f214199f8dc5eb.html">Function NovatelFileParserSetIgnoreAbbrevAsciiResponses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1ae9232980e6e8d30d717d6c968119badf.html">Function NovatelFileParserSetReturnUnknownBytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__file__parser_8hpp_1a999c543091e00a407b41e0795f979e07.html">Function NovatelFileParserSetStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1ad4468670d46e2229f905b106db768901.html">Function NovatelFilterClearFilters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a3f3fe2b33b61aef2f838939f7f493b74.html">Function NovatelFilterDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a2d1f7970208c5bd39b80785b306e4a69.html">Function NovatelFilterDoFiltering</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1afe283f6cbbf74665d23c0d163fb2923b.html">Function NovatelFilterIncludeMessageId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1aa67dc58c7d1759f7451c783f06707d4f.html">Function NovatelFilterIncludeMessageName</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a0d2c9a356c2bc46b0f78a51c5ac5fb00.html">Function NovatelFilterIncludeNmeaMessages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a9302a659011227dc29e5bbc7d2712137.html">Function NovatelFilterIncludeTimeStatus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1aace2452f39cf180c48fb17c29c75ca02.html">Function NovatelFilterInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a035a6d6a24846593df9b0217a9fb5018.html">Function NovatelFilterInvertDecimationFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a9cbf4445434c951535266ecfa50ebaab.html">Function NovatelFilterInvertMessageIdFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a044a246e512b2e9b3149d725ce694655.html">Function NovatelFilterInvertMessageNameFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1ad20b070dcea2be19d86afc326772054b.html">Function NovatelFilterInvertTimeFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1abc91863487cfc04e1b149d9a4965667f.html">Function NovatelFilterInvertTimeStatusFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1abf1e5793cfdf772687981c5eac9d0130.html">Function NovatelFilterSetIncludeDecimation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1ad0ab386a112708a08d8ac529b712ab2f.html">Function NovatelFilterSetIncludeLowerTime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a172324213b4394481902cfbabf27e27a.html">Function NovatelFilterSetIncludeUpperTime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a21333e01fc81e655689d3c3b6373691d.html">Function NovatelFilterSetLoggerLevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__filter_8hpp_1a391a179dd6d3fa039e8072621f840892.html">Function NovatelFilterShutdownLogger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1a9999533722ee3f47446c6ba22b4506ad.html">Function NovatelFramerDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1aac5fed0bd736841b621c45ee5663a2b9.html">Function NovatelFramerFlush</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1aaadf37d398babaed9e6d2f831fd6dbc0.html">Function NovatelFramerFrameJson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1a01a1030811e9ac5a27918df6a1a6e437.html">Function NovatelFramerGetAvailableBytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1a63e501c8e03eb855d87f1f2fdc231a29.html">Function NovatelFramerInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1ad2e8ce964ee32e3917eb074ed11e92f1.html">Function NovatelFramerPayloadOnly</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1a16cd6230398e4a34a474f8297f2b0888.html">Function NovatelFramerRead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1aaa071ea1b505c633b6dd17dad07bc297.html">Function NovatelFramerReportUnknownBytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1a3b5a16242a9d6c20566a8700443bf8fa.html">Function NovatelFramerSetLoggerLevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1a37b0848c61240cfc83d80dc426f444dc.html">Function NovatelFramerShutdownLogger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__framer_8hpp_1a7dae61e5bfd54ea02a6ba9cd02d5c159.html">Function NovatelFramerWrite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__header__decoder_8hpp_1a141e944df260602997f5823a5f9939d5.html">Function NovatelHeaderDecoderDecode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__header__decoder_8hpp_1ac8c8b8f16f4856f11f9e1cfb9ab326e7.html">Function NovatelHeaderDecoderDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__header__decoder_8hpp_1ae5a5e77b6ffebac966739970e51550dd.html">Function NovatelHeaderDecoderInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__header__decoder_8hpp_1a3c9072e0adc56e97bed213368fca5acb.html">Function NovatelHeaderDecoderLoadJson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__header__decoder_8hpp_1a22fe95c2ab5223381e12e62677d5ecaa.html">Function NovatelHeaderDecoderSetLoggerLevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__header__decoder_8hpp_1af1b9803296fadb66fac67a9d2df5c10d.html">Function NovatelHeaderDecoderShutdownLogger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__message__decoder_8hpp_1a0b7088c65fb35aa21db067f386db1a64.html">Function NovatelIntermediateMessageDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__message__decoder_8hpp_1af2b3a0f4f786c130654c77e3aa86d270.html">Function NovatelIntermediateMessageInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__message__decoder_8hpp_1a253135bb87f65878f1f1c2ebf95f847d.html">Function NovatelMessageDecoderDecode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__message__decoder_8hpp_1a2e9e6577f6b9ae89269f1102fc22a15d.html">Function NovatelMessageDecoderDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__message__decoder_8hpp_1a945fa4eac14d4719a41df6a28294e9c6.html">Function NovatelMessageDecoderInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__message__decoder_8hpp_1a61babd20183cbe32485529465ece3e3d.html">Function NovatelMessageDecoderLoadJson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__message__decoder_8hpp_1add6629e39df47bcc0acc618029654517.html">Function NovatelMessageDecoderSetLoggerLevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__message__decoder_8hpp_1a2c5baada2638a87e8250f9f9b63bf734.html">Function NovatelMessageDecoderShutdownLogger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a27f7b034bd5c214391f413f7c18d8441.html">Function NovatelParserDelete</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a1c3d2aa67bf041d588e3708dd04f663b.html">Function NovatelParserFlush</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1ac926be0eb005e9d1395a94adc931a95b.html">Function NovatelParserGetBuffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a13d2edec5de4205a8b75bb09fe3d416b.html">Function NovatelParserGetDecompressRangeCmp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1ab45649688f541710ee2382e4ed7b8328.html">Function NovatelParserGetEncodeFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a315d6fa8031b3325d6855e65b16d25f4.html">Function NovatelParserGetFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1aac5a20502712fdb74d7b0e05779fec8b.html">Function NovatelParserGetIgnoreAbbrevAsciiResponses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1ad72a69c9a366a695be30d3a5eddbe649.html">Function NovatelParserGetReturnUnknownBytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a1239c076e02b9dc0f1acba5f5a689d45.html">Function NovatelParserInit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1aaa08afe66fb3689256274ef6be30242c.html">Function NovatelParserLoadJsonDb</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a1601aaa5f459e78ba8718108717291ba.html">Function NovatelParserRead</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1ac33088195f370279148543b738e01791.html">Function NovatelParserSetDecompressRangeCmp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a8f163d27633cd2736f845c03360536bf.html">Function NovatelParserSetEncodeFormat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a7d825fc7f8fd231e38f1db43688a8e55.html">Function NovatelParserSetFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a46df84c5664f6a7f1c290c99ebe18616.html">Function NovatelParserSetIgnoreAbbrevAsciiResponses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a498b2f55780e3b92e37f158c4239b474.html">Function NovatelParserSetReturnUnknownBytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_novatel__parser_8hpp_1a2a450153c12c3990e78aaa789716d8ca.html">Function NovatelParserWrite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a00737ad3302cc0d31da92e3cda9b8af8.html">Function PackMsgType</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2dynamic__library_2api_2version_8hpp_1aa804156b51f67b910ec5e792f1075e3e.html">Function PrettyVersion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a58e4b8338ff888aac5d982f774c10ec7.html">Function ToDigit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2common_2api_2common_8hpp_1a126e23157d6479731ba252522adfdde8.html">Function UnpackMsgId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="function_decoders_2dynamic__library_2api_2version_8hpp_1a6f5148556cbbd84238c656b6e2476484.html">Function Version</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EDIE</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="library_root.html">Library API</a></li>
+      <li class="breadcrumb-item active">Function novatel::edie::ParseFields</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/function_json__reader_8hpp_1ab879f3a2380b0b790f11afdff1ff70c9.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="function-novatel-edie-parsefields">
+<span id="exhale-function-json-reader-8hpp-1ab879f3a2380b0b790f11afdff1ff70c9"></span><h1>Function novatel::edie::ParseFields<a class="headerlink" href="#function-novatel-edie-parsefields" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_src_decoders_common_api_json_reader.hpp.html#file-src-decoders-common-api-json-reader-hpp"><span class="std std-ref">File json_reader.hpp</span></a></p></li>
+</ul>
+<section id="function-documentation">
+<h2>Function Documentation<a class="headerlink" href="#function-documentation" title="Link to this heading"></a></h2>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie11ParseFieldsERK4jsonRNSt6vectorIP9BaseFieldEE">
+<span id="_CPPv3N7novatel4edie11ParseFieldsERK4jsonRNSt6vectorIP9BaseFieldEE"></span><span id="_CPPv2N7novatel4edie11ParseFieldsERK4jsonRNSt6vectorIP9BaseFieldEE"></span><span id="novatel::edie::ParseFields__jsonCR.std::vector:BaseFieldP:R"></span><span class="target" id="json__reader_8hpp_1ab879f3a2380b0b790f11afdff1ff70c9"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">novatel</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">edie</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">ParseFields</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">json</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">j_</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="structnovatel_1_1edie_1_1BaseField.html#_CPPv4N7novatel4edie9BaseFieldE" title="novatel::edie::BaseField"><span class="n"><span class="pre">BaseField</span></span></a><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vFields_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie11ParseFieldsERK4jsonRNSt6vectorIP9BaseFieldEE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="function_json__reader_8hpp_1a212fad8d293d7ef0e460f336b4423a1e.html" class="btn btn-neutral float-left" title="Function novatel::edie::ParseEnumerators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="function_common_2api_2encoder_8hpp_1a0f8b88e6ebb6eaa256bbf886d2735add.html" class="btn btn-neutral float-right" title="Function novatel::edie::PrintAsString" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, NovAtel.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,28 +1,30 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Class MetaDataBase &mdash; EDIE  documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css?v=a885cde7" />
+
+  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
-        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js?v=73120307"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js?v=660e4f45"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Enum DATA_TYPE" href="enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0.html" />
+    <link rel="next" title="Class Commander" href="classnovatel_1_1edie_1_1oem_1_1Commander.html" />
     <link rel="prev" title="Class MessageDecoderBase" href="classnovatel_1_1edie_1_1MessageDecoderBase.html" /> 
 </head>
 
@@ -48,7 +50,6 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="library_root.html">Library API</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="library_root.html#class-hierarchy">Class Hierarchy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="library_root.html#full-api">Full API</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#namespaces">Namespaces</a></li>
@@ -63,25 +64,59 @@
 <li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1FieldContainer.html">Struct FieldContainer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDataStruct.html">Struct MessageDataStruct</a></li>
 <li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1MessageDefinition.html">Struct MessageDefinition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1ChannelTrackingStatusStruct.html">Struct ChannelTrackingStatusStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1IntermediateHeader.html">Struct IntermediateHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html">Struct MetaDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryHeader.html">Struct Oem4BinaryHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1Oem4BinaryShortHeader.html">Struct Oem4BinaryShortHeader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2LockTimeInfoStruct.html">Struct RangeCmp2LockTimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SatelliteBlockStruct.html">Struct RangeCmp2SatelliteBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2SignalBlockStruct.html">Struct RangeCmp2SignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp2Struct.html">Struct RangeCmp2Struct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4LocktimeInfoStruct.html">Struct RangeCmp4LocktimeInfoStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementBlockHeaderStruct.html">Struct RangeCmp4MeasurementBlockHeaderStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmp4MeasurementSignalBlockStruct.html">Struct RangeCmp4MeasurementSignalBlockStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpDataStruct.html">Struct RangeCmpDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeCmpStruct.html">Struct RangeCmpStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeDataStruct.html">Struct RangeDataStruct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1RangeStruct.html">Struct RangeStruct</a></li>
 <li class="toctree-l4"><a class="reference internal" href="structnovatel_1_1edie_1_1SimpleDataType.html">Struct SimpleDataType</a></li>
-<li class="toctree-l4"><a class="reference internal" href="structSATELLITEID.html">Struct SATELLITEID</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structReadDataStructure.html">Struct ReadDataStructure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structSatelliteId.html">Struct SatelliteId</a></li>
+<li class="toctree-l4"><a class="reference internal" href="structStreamReadStatus.html">Struct StreamReadStatus</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classCircularBuffer.html">Class CircularBuffer</a></li>
-<li class="toctree-l4"><a class="reference internal" href="classFramer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classFileStream.html">Class FileStream</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classFramerBase.html">Class FramerBase</a></li>
-<li class="toctree-l4"><a class="reference internal" href="classJsonReader.html">Class JsonReader</a></li>
-<li class="toctree-l4"><a class="reference internal" href="classJsonReaderFailure.html">Class JsonReaderFailure</a></li>
-<li class="toctree-l4"><a class="reference internal" href="classnExcept.html">Class nExcept</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputFileStream.html">Class InputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputMemoryStream.html">Class InputMemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classInputStreamInterface.html">Class InputStreamInterface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classLogger.html">Class Logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMemoryStream.html">Class MemoryStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classMultiOutputFileStream.html">Class MultiOutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classNExcept.html">Class NExcept</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1EncoderBase.html">Class EncoderBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReader.html">Class JsonReader</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1JsonReaderFailure.html">Class JsonReaderFailure</a></li>
 <li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1MessageDecoderBase.html">Class MessageDecoderBase</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">Class MetaDataBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Commander.html">Class Commander</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Encoder.html">Class Encoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1FileParser.html">Class FileParser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Filter.html">Class Filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Framer.html">Class Framer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1HeaderDecoder.html">Class HeaderDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1MessageDecoder.html">Class MessageDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1Parser.html">Class Parser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RangeDecompressor.html">Class RangeDecompressor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classnovatel_1_1edie_1_1oem_1_1RxConfigHandler.html">Class RxConfigHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputFileStream.html">Class OutputFileStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="classOutputStreamInterface.html">Class OutputStreamInterface</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#enums">Enums</a></li>
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#functions">Functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#variables">Variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="library_root.html#defines">Defines</a></li>
-<li class="toctree-l3"><a class="reference internal" href="library_root.html#typedefs">Typedefs</a></li>
 </ul>
 </li>
 </ul>
@@ -114,35 +149,46 @@
            <div itemprop="articleBody">
              
   <section id="class-metadatabase">
-<span id="exhale-class-classnovatel-1-1edie-1-1metadatabase"></span><h1>Class MetaDataBase<a class="headerlink" href="#class-metadatabase" title="Permalink to this heading"></a></h1>
+<span id="exhale-class-classnovatel-1-1edie-1-1metadatabase"></span><h1>Class MetaDataBase<a class="headerlink" href="#class-metadatabase" title="Link to this heading"></a></h1>
 <ul class="simple">
-<li><p>Defined in <a class="reference internal" href="file_api_common.hpp.html#file-api-common-hpp"><span class="std std-ref">File common.hpp</span></a></p></li>
+<li><p>Defined in <a class="reference internal" href="file_src_decoders_common_api_common.hpp.html#file-src-decoders-common-api-common-hpp"><span class="std std-ref">File common.hpp</span></a></p></li>
 </ul>
+<section id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Link to this heading"></a></h2>
+<section id="derived-type">
+<h3>Derived Type<a class="headerlink" href="#derived-type" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">novatel::edie::oem::MetaDataStruct</span></code> (<a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html#exhale-struct-structnovatel-1-1edie-1-1oem-1-1metadatastruct"><span class="std std-ref">Struct MetaDataStruct</span></a>)</p></li>
+</ul>
+</section>
+</section>
 <section id="class-documentation">
-<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this heading"></a></h2>
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Link to this heading"></a></h2>
 <dl class="cpp class">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBaseE">
-<span id="_CPPv3N7novatel4edie12MetaDataBaseE"></span><span id="_CPPv2N7novatel4edie12MetaDataBaseE"></span><span id="novatel::edie::MetaDataBase"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MetaDataBase</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBaseE" title="Permalink to this definition"></a><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
+<span id="_CPPv3N7novatel4edie12MetaDataBaseE"></span><span id="_CPPv2N7novatel4edie12MetaDataBaseE"></span><span id="novatel::edie::MetaDataBase"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MetaDataBase</span></span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBaseE" title="Link to this definition"></a><br /></dt>
+<dd><p>Base class for all metadata. Contains data about the data such as header format, GPS week and milliseconds, and message ID. </p>
+<p>Subclassed by <a class="reference internal" href="structnovatel_1_1edie_1_1oem_1_1MetaDataStruct.html#structnovatel_1_1edie_1_1oem_1_1MetaDataStruct"><span class="std std-ref">novatel::edie::oem::MetaDataStruct</span></a></p>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase12MetaDataBaseEv">
-<span id="_CPPv3N7novatel4edie12MetaDataBase12MetaDataBaseEv"></span><span id="_CPPv2N7novatel4edie12MetaDataBase12MetaDataBaseEv"></span><span id="novatel::edie::MetaDataBase::MetaDataBase"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1aa5fbe292eb3d9b327385dce765f8e3c7"></span><span class="sig-name descname"><span class="n"><span class="pre">MetaDataBase</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase12MetaDataBaseEv" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase12MetaDataBaseEv"></span><span id="_CPPv2N7novatel4edie12MetaDataBase12MetaDataBaseEv"></span><span id="novatel::edie::MetaDataBase::MetaDataBase"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1aa5fbe292eb3d9b327385dce765f8e3c7"></span><span class="sig-name descname"><span class="n"><span class="pre">MetaDataBase</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase12MetaDataBaseEv" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBaseD0Ev">
-<span id="_CPPv3N7novatel4edie12MetaDataBaseD0Ev"></span><span id="_CPPv2N7novatel4edie12MetaDataBaseD0Ev"></span><span id="novatel::edie::MetaDataBase::~MetaDataBase"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1aad3652394f8e8f4d245ca6b99adfd02a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~MetaDataBase</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBaseD0Ev" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBaseD0Ev"></span><span id="_CPPv2N7novatel4edie12MetaDataBaseD0Ev"></span><span id="novatel::edie::MetaDataBase::~MetaDataBase"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1aad3652394f8e8f4d245ca6b99adfd02a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~MetaDataBase</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBaseD0Ev" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt class="sig sig-object cpp" id="_CPPv4NK7novatel4edie12MetaDataBase11MessageNameEv">
-<span id="_CPPv3NK7novatel4edie12MetaDataBase11MessageNameEv"></span><span id="_CPPv2NK7novatel4edie12MetaDataBase11MessageNameEv"></span><span id="novatel::edie::MetaDataBase::MessageNameC"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a35806bfa4f2ec75f6ba9a58074b14481"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MessageName</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie12MetaDataBase11MessageNameEv" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3NK7novatel4edie12MetaDataBase11MessageNameEv"></span><span id="_CPPv2NK7novatel4edie12MetaDataBase11MessageNameEv"></span><span id="novatel::edie::MetaDataBase::MessageNameC"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a35806bfa4f2ec75f6ba9a58074b14481"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MessageName</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK7novatel4edie12MetaDataBase11MessageNameEv" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase11MessageNameENSt6stringE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase11MessageNameENSt6stringE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase11MessageNameENSt6stringE"></span><span id="novatel::edie::MetaDataBase::MessageName__ss"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1adfe8979ae9a8dd47fa77ed416ad0922e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MessageName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">strMessageName_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase11MessageNameENSt6stringE" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase11MessageNameERKNSt6stringE">
+<span id="_CPPv3N7novatel4edie12MetaDataBase11MessageNameERKNSt6stringE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase11MessageNameERKNSt6stringE"></span><span id="novatel::edie::MetaDataBase::MessageName__ssCR"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a9317e1e426795e4ea1b2b8758240d002"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MessageName</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">strMessageName_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase11MessageNameERKNSt6stringE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -150,53 +196,53 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase9bResponseE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase9bResponseE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase9bResponseE"></span><span id="novatel::edie::MetaDataBase::bResponse__b"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a824ac37f34d244d2919b1818ae492a5d"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bResponse</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase9bResponseE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase9bResponseE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase9bResponseE"></span><span id="novatel::edie::MetaDataBase::bResponse__b"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a824ac37f34d244d2919b1818ae492a5d"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">bResponse</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">false</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase9bResponseE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase7eFormatE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase7eFormatE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase7eFormatE"></span><span id="novatel::edie::MetaDataBase::eFormat__HEADERFORMAT"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a52621663afcd39c3816d0cf2baf2845b"></span><a class="reference internal" href="enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f.html#_CPPv4N7novatel4edie12HEADERFORMATE" title="novatel::edie::HEADERFORMAT"><span class="n"><span class="pre">HEADERFORMAT</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">eFormat</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><a class="reference internal" href="enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f.html#_CPPv4N7novatel4edie12HEADERFORMATE" title="novatel::edie::HEADERFORMAT"><span class="n"><span class="pre">HEADERFORMAT</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f.html#_CPPv4N7novatel4edie12HEADERFORMAT7UNKNOWNE" title="novatel::edie::HEADERFORMAT::UNKNOWN"><span class="n"><span class="pre">UNKNOWN</span></span></a><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase7eFormatE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase7eFormatE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase7eFormatE"></span><span id="novatel::edie::MetaDataBase::eFormat__HEADER_FORMAT"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1abc34ad7651a99b156d2a660e20085c3e"></span><a class="reference internal" href="enum_decoders_2common_2api_2common_8hpp_1afb37ef910b11367c898fac70572360c4.html#_CPPv4N7novatel4edie13HEADER_FORMATE" title="novatel::edie::HEADER_FORMAT"><span class="n"><span class="pre">HEADER_FORMAT</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">eFormat</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><a class="reference internal" href="enum_decoders_2common_2api_2common_8hpp_1afb37ef910b11367c898fac70572360c4.html#_CPPv4N7novatel4edie13HEADER_FORMATE" title="novatel::edie::HEADER_FORMAT"><span class="n"><span class="pre">HEADER_FORMAT</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="enum_decoders_2common_2api_2common_8hpp_1afb37ef910b11367c898fac70572360c4.html#_CPPv4N7novatel4edie13HEADER_FORMAT7UNKNOWNE" title="novatel::edie::HEADER_FORMAT::UNKNOWN"><span class="n"><span class="pre">UNKNOWN</span></span></a><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase7eFormatE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase6usWeekE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase6usWeekE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase6usWeekE"></span><span id="novatel::edie::MetaDataBase::usWeek__uint16_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a1176dc10bc54b74eaa5c5bf7de3e2f7b"></span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">usWeek</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase6usWeekE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase6usWeekE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase6usWeekE"></span><span id="novatel::edie::MetaDataBase::usWeek__uint16_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a1176dc10bc54b74eaa5c5bf7de3e2f7b"></span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">usWeek</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase6usWeekE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase13dMillisecondsE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase13dMillisecondsE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase13dMillisecondsE"></span><span id="novatel::edie::MetaDataBase::dMilliseconds__double"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a9c963c7d4e1742b841faeacfb4dbcfc5"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dMilliseconds</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0.0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase13dMillisecondsE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase13dMillisecondsE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase13dMillisecondsE"></span><span id="novatel::edie::MetaDataBase::dMilliseconds__double"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a9c963c7d4e1742b841faeacfb4dbcfc5"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dMilliseconds</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0.0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase13dMillisecondsE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase8uiLengthE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase8uiLengthE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase8uiLengthE"></span><span id="novatel::edie::MetaDataBase::uiLength__uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1afd3e0ce83071214b46a80e173d38ee86"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase8uiLengthE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase8uiLengthE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase8uiLengthE"></span><span id="novatel::edie::MetaDataBase::uiLength__uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1afd3e0ce83071214b46a80e173d38ee86"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase8uiLengthE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase17uiBinaryMsgLengthE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase17uiBinaryMsgLengthE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase17uiBinaryMsgLengthE"></span><span id="novatel::edie::MetaDataBase::uiBinaryMsgLength__uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a0448efe0a018b778337106753bbcda1e"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiBinaryMsgLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase17uiBinaryMsgLengthE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase17uiBinaryMsgLengthE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase17uiBinaryMsgLengthE"></span><span id="novatel::edie::MetaDataBase::uiBinaryMsgLength__uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a0448efe0a018b778337106753bbcda1e"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiBinaryMsgLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase17uiBinaryMsgLengthE" title="Link to this definition"></a><br /></dt>
 <dd><p>Message length according to the binary header. If ASCII, this field is not used. </p>
 </dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase14uiHeaderLengthE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase14uiHeaderLengthE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase14uiHeaderLengthE"></span><span id="novatel::edie::MetaDataBase::uiHeaderLength__uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a9c544770376f97b8d2212cb903900853"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiHeaderLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase14uiHeaderLengthE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase14uiHeaderLengthE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase14uiHeaderLengthE"></span><span id="novatel::edie::MetaDataBase::uiHeaderLength__uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a9c544770376f97b8d2212cb903900853"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiHeaderLength</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase14uiHeaderLengthE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase11usMessageIDE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase11usMessageIDE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase11usMessageIDE"></span><span id="novatel::edie::MetaDataBase::usMessageID__uint16_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a04b9e84c1e5c0e23df1d208e1a379250"></span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">usMessageID</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase11usMessageIDE" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase11usMessageIdE">
+<span id="_CPPv3N7novatel4edie12MetaDataBase11usMessageIdE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase11usMessageIdE"></span><span id="novatel::edie::MetaDataBase::usMessageId__uint16_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1acd2fed21b05f5b64e0fccccd418f19ca"></span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">usMessageId</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase11usMessageIdE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase12uiMessageCRCE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase12uiMessageCRCE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase12uiMessageCRCE"></span><span id="novatel::edie::MetaDataBase::uiMessageCRC__uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a43bf3e7e145a26179a7caed2e941aee5"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiMessageCRC</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase12uiMessageCRCE" title="Permalink to this definition"></a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase12uiMessageCrcE">
+<span id="_CPPv3N7novatel4edie12MetaDataBase12uiMessageCrcE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase12uiMessageCrcE"></span><span id="novatel::edie::MetaDataBase::uiMessageCrc__uint32_t"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1ae765ff2e1f665c0790684a01e8325596"></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">uiMessageCrc</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">0</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase12uiMessageCrcE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt class="sig sig-object cpp" id="_CPPv4N7novatel4edie12MetaDataBase13acMessageNameE">
-<span id="_CPPv3N7novatel4edie12MetaDataBase13acMessageNameE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase13acMessageNameE"></span><span id="novatel::edie::MetaDataBase::acMessageName__cA"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a343f9f33f493ad34e66cdc89a310ad9b"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">acMessageName</span></span></span><span class="p"><span class="pre">[</span></span><span class="n"><span class="pre">uiMessageNameMax</span></span><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="sc"><span class="pre">'\0'</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase13acMessageNameE" title="Permalink to this definition"></a><br /></dt>
+<span id="_CPPv3N7novatel4edie12MetaDataBase13acMessageNameE"></span><span id="_CPPv2N7novatel4edie12MetaDataBase13acMessageNameE"></span><span id="novatel::edie::MetaDataBase::acMessageName__cA"></span><span class="target" id="classnovatel_1_1edie_1_1MetaDataBase_1a343f9f33f493ad34e66cdc89a310ad9b"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">acMessageName</span></span></span><span class="p"><span class="pre">[</span></span><span class="n"><span class="pre">uiMessageNameMax</span></span><span class="w"> </span><span class="o"><span class="pre">+</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="sc"><span class="pre">'\0'</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N7novatel4edie12MetaDataBase13acMessageNameE" title="Link to this definition"></a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -210,13 +256,13 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="classnovatel_1_1edie_1_1MessageDecoderBase.html" class="btn btn-neutral float-left" title="Class MessageDecoderBase" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0.html" class="btn btn-neutral float-right" title="Enum DATA_TYPE" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="classnovatel_1_1edie_1_1oem_1_1Commander.html" class="btn btn-neutral float-right" title="Class Commander" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020, rdoris.</p>
+    <p>&#169; Copyright 2024, NovAtel.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__message__decoder_8hpp_1af2b3a0f4f786c130654c77e3aa86d270:
+
+Function NovatelIntermediateMessageInit
+=======================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_message_decoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelIntermediateMessageInit()
+   :project: handlerfactory

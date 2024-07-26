@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2common_2api_2common_8hpp_1a8918a252aac1ba227378167a800f72a0:
+
+Function IsEqual
+================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: IsEqual(double, double, double)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_json__reader_8hpp_1a0734355af517001b765d8fe2f89666e5:
+
+Function novatel::edie::from_json(const json&, EnumDataType&)
+=============================================================
+
+- Defined in :ref:`file_src_decoders_common_api_json_reader.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::from_json(const json&, EnumDataType&)
+   :project: handlerfactory

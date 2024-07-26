@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a9e77ad156d44cb1ea9a893ec1eed65f2:
+
+Variable novatel::edie::oem::RC2_SIG_LOCKTIME_SHIFT
+===================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_LOCKTIME_SHIFT
+   :project: handlerfactory

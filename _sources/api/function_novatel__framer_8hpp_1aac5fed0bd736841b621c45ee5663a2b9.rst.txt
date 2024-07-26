@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1aac5fed0bd736841b621c45ee5663a2b9:
+
+Function NovatelFramerFlush
+===========================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerFlush(novatel::edie::oem::Framer *, unsigned char *, uint32_t)
+   :project: handlerfactory

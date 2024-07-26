@@ -1,0 +1,14 @@
+.. _exhale_enum_decoders_2common_2api_2common_8hpp_1a82b84f748d68ee23b4cf1cc427ce6204:
+
+Enum MESSAGE_TYPE_MASK
+======================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::MESSAGE_TYPE_MASK
+   :project: handlerfactory

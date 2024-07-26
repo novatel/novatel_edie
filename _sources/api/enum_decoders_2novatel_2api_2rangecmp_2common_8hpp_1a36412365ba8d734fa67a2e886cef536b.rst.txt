@@ -1,0 +1,14 @@
+.. _exhale_enum_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a36412365ba8d734fa67a2e886cef536b:
+
+Enum SIGNAL_TYPE
+================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: novatel::edie::oem::RangeCmp4::SIGNAL_TYPE
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__framer_8hpp_1a7dae61e5bfd54ea02a6ba9cd02d5c159:
+
+Function NovatelFramerWrite
+===========================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_framer.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFramerWrite(novatel::edie::oem::Framer *, unsigned char *, uint32_t)
+   :project: handlerfactory

@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a9726c1dbf6a710e4ba79a755db30a7ff:
+
+Variable novatel::edie::oem::RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK
+================================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK
+   :project: handlerfactory

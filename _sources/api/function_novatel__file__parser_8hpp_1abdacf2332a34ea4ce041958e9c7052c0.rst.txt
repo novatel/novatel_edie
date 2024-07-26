@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__file__parser_8hpp_1abdacf2332a34ea4ce041958e9c7052c0:
+
+Function NovatelFileParserGetBuffer
+===================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_file_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFileParserGetBuffer(novatel::edie::oem::FileParser *)
+   :project: handlerfactory

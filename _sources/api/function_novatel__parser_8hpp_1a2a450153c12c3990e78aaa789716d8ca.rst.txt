@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__parser_8hpp_1a2a450153c12c3990e78aaa789716d8ca:
+
+Function NovatelParserWrite
+===========================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_parser.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelParserWrite(novatel::edie::oem::Parser *, unsigned char *, uint32_t)
+   :project: handlerfactory

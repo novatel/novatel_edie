@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1a825991f8dfe57d422b04c485d14b2443:
+
+Variable novatel::edie::oem::RC4_SIG_BLK_HALF_CYCLE_BITS
+========================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_SIG_BLK_HALF_CYCLE_BITS
+   :project: handlerfactory

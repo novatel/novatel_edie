@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__encoder_8hpp_1a260ffaaa31129a2087a4bea2bc64bc7d:
+
+Function NovatelEncoderEncode
+=============================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_encoder.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelEncoderEncode(novatel::edie::oem::Encoder *, unsigned char *, uint32_t, novatel::edie::oem::IntermediateHeader *, std::vector<novatel::edie::FieldContainer> *, novatel::edie::MessageDataStruct *, novatel::edie::oem::MetaDataStruct *, novatel::edie::ENCODE_FORMAT)
+   :project: handlerfactory

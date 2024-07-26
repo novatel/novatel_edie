@@ -1,0 +1,14 @@
+.. _exhale_function_stream__interface_8hpp_1ae4ed322aec7804f2c4916f6a8f727560:
+
+Function __declspec(dllimport)
+==============================
+
+- Defined in :ref:`file_src_hw_interface_dynamic_library_api_stream_interface.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: __declspec(dllimport)
+   :project: handlerfactory

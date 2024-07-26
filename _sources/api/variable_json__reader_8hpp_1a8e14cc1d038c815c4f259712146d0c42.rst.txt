@@ -1,0 +1,14 @@
+.. _exhale_variable_json__reader_8hpp_1a8e14cc1d038c815c4f259712146d0c42:
+
+Variable novatel::edie::DataTypeEnumLookup
+==========================================
+
+- Defined in :ref:`file_src_decoders_common_api_json_reader.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::DataTypeEnumLookup
+   :project: handlerfactory

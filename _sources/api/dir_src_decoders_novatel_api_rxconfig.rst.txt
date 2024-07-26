@@ -1,0 +1,21 @@
+.. _dir_src_decoders_novatel_api_rxconfig:
+
+
+Directory rxconfig
+==================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_src_decoders_novatel_api>` (``src/decoders/novatel/api``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+
+*Directory path:* ``src/decoders/novatel/api/rxconfig``
+
+
+Files
+-----
+
+- :ref:`file_src_decoders_novatel_api_rxconfig_rxconfig_handler.hpp`
+
+

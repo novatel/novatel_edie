@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1ad3f9e6e998bea6c676d46500c3f1e7a9:
+
+Variable novatel::edie::oem::RC4_SIG_DBLK_INVALID_PSR
+=====================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC4_SIG_DBLK_INVALID_PSR
+   :project: handlerfactory

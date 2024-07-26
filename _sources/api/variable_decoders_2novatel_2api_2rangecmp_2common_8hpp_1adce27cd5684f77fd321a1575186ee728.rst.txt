@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1adce27cd5684f77fd321a1575186ee728:
+
+Variable novatel::edie::oem::RC2_SAT_SATELLITE_PSR_BASE_MASK
+============================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SAT_SATELLITE_PSR_BASE_MASK
+   :project: handlerfactory

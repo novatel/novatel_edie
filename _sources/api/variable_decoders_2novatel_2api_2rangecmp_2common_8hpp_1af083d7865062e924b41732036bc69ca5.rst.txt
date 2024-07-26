@@ -1,0 +1,14 @@
+.. _exhale_variable_decoders_2novatel_2api_2rangecmp_2common_8hpp_1af083d7865062e924b41732036bc69ca5:
+
+Variable novatel::edie::oem::RC2_SIG_DOPPLER_DIFF_MASK
+======================================================
+
+- Defined in :ref:`file_src_decoders_novatel_api_rangecmp_common.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: novatel::edie::oem::RC2_SIG_DOPPLER_DIFF_MASK
+   :project: handlerfactory

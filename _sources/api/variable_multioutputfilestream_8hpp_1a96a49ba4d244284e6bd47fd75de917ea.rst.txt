@@ -1,0 +1,14 @@
+.. _exhale_variable_multioutputfilestream_8hpp_1a96a49ba4d244284e6bd47fd75de917ea:
+
+Variable HR_TO_SEC
+==================
+
+- Defined in :ref:`file_src_hw_interface_stream_interface_api_multioutputfilestream.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: HR_TO_SEC
+   :project: handlerfactory

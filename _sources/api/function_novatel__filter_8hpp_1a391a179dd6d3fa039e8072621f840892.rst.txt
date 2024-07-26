@@ -1,0 +1,14 @@
+.. _exhale_function_novatel__filter_8hpp_1a391a179dd6d3fa039e8072621f840892:
+
+Function NovatelFilterShutdownLogger
+====================================
+
+- Defined in :ref:`file_src_decoders_dynamic_library_api_novatel_filter.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: NovatelFilterShutdownLogger(novatel::edie::oem::Filter *)
+   :project: handlerfactory

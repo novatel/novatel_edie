@@ -1,0 +1,26 @@
+.. _exhale_class_classnovatel_1_1edie_1_1oem_1_1Encoder:
+
+Class Encoder
+=============
+
+- Defined in :ref:`file_src_decoders_novatel_api_encoder.hpp`
+
+
+Inheritance Relationships
+-------------------------
+
+Base Type
+*********
+
+- ``public novatel::edie::EncoderBase`` (:ref:`exhale_class_classnovatel_1_1edie_1_1EncoderBase`)
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: novatel::edie::oem::Encoder
+   :project: handlerfactory
+   :members:
+   :protected-members:
+   :undoc-members:

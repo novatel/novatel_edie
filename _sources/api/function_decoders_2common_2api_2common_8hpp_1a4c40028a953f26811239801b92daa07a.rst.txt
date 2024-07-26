@@ -1,0 +1,14 @@
+.. _exhale_function_decoders_2common_2api_2common_8hpp_1a4c40028a953f26811239801b92daa07a:
+
+Function novatel::edie::IsShortHeaderFormat
+===========================================
+
+- Defined in :ref:`file_src_decoders_common_api_common.hpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: novatel::edie::IsShortHeaderFormat(const HEADER_FORMAT)
+   :project: handlerfactory

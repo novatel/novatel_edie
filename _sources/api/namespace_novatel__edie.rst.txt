@@ -13,6 +13,13 @@ Namespace novatel::edie
 
 
 
+Namespaces
+----------
+
+
+- :ref:`namespace_novatel__edie__oem`
+
+
 Classes
 -------
 
@@ -41,6 +48,8 @@ Classes
 
 - :ref:`exhale_class_classnovatel_1_1edie_1_1EncoderBase`
 
+- :ref:`exhale_class_classnovatel_1_1edie_1_1JsonReader`
+
 - :ref:`exhale_class_classnovatel_1_1edie_1_1JsonReaderFailure`
 
 - :ref:`exhale_class_classnovatel_1_1edie_1_1MessageDecoderBase`
@@ -52,95 +61,88 @@ Enums
 -----
 
 
-- :ref:`exhale_enum_jsonreader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0`
+- :ref:`exhale_enum_json__reader_8hpp_1a1b481bfbefcc7e058c22cf7c5e82dce0`
 
-- :ref:`exhale_enum_common_8hpp_1a9fd78211ce54ca94de8d7f3f70968672`
+- :ref:`exhale_enum_decoders_2common_2api_2common_8hpp_1af24978e6f9a0fb4f12f61b895de33cec`
 
-- :ref:`exhale_enum_jsonreader_8hpp_1a85ae70f4901fa4c5211e530a5f521694`
+- :ref:`exhale_enum_json__reader_8hpp_1a85ae70f4901fa4c5211e530a5f521694`
 
-- :ref:`exhale_enum_common_8hpp_1a5396182b22ccdd74a697fc02a9cb122f`
+- :ref:`exhale_enum_decoders_2common_2api_2common_8hpp_1afb37ef910b11367c898fac70572360c4`
 
-- :ref:`exhale_enum_common_8hpp_1af935215bd726d6179b622df2f0e0f88f`
+- :ref:`exhale_enum_decoders_2common_2api_2common_8hpp_1af935215bd726d6179b622df2f0e0f88f`
 
-- :ref:`exhale_enum_common_8hpp_1a17d1039b7274b431a86382b141dc6b09`
+- :ref:`exhale_enum_decoders_2common_2api_2common_8hpp_1a94040b93fea5e2a39e76afb9c4f21451`
 
-- :ref:`exhale_enum_common_8hpp_1a0076c4cb48227f162680743cfa73f21b`
+- :ref:`exhale_enum_decoders_2common_2api_2common_8hpp_1a04bf32d88e167403d2acbdee97ac4236`
 
-- :ref:`exhale_enum_common_8hpp_1aa94608c65d49406b2f4b3d1ad14b86af`
+- :ref:`exhale_enum_decoders_2common_2api_2common_8hpp_1a82b84f748d68ee23b4cf1cc427ce6204`
 
-- :ref:`exhale_enum_common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b`
+- :ref:`exhale_enum_decoders_2common_2api_2common_8hpp_1a2eb7083135c914ec660aff64dcc8bc7b`
 
-- :ref:`exhale_enum_common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4`
+- :ref:`exhale_enum_decoders_2common_2api_2common_8hpp_1ad3998b3f23123f6e900dfe940f7afdc4`
 
 
 Functions
 ---------
 
 
-- :ref:`exhale_function_encoder_8hpp_1a80e75398d1f9a3407512eeec51e54643`
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a27d597e3f40c545400c19dd17575545c`
 
-- :ref:`exhale_function_encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756`
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a31c79e65c6ec0c02b5feb4e22903e756`
 
-- :ref:`exhale_function_jsonreader_8hpp_1ac25bc65ccb7bd9c923bb4f7b2171b6f5`
+- :ref:`exhale_function_json__reader_8hpp_1a0b749f11809ba71f1803b81cb1a781ae`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a2b7fa0e28bfb2916c56dea3155c3ee7f`
+- :ref:`exhale_function_json__reader_8hpp_1a7ed104af9c1e331d53d896ff601ce239`
 
-- :ref:`exhale_function_common_8hpp_1ae1a615c0fd4e3c710de24ef9e98de297`
+- :ref:`exhale_function_decoders_2common_2api_2common_8hpp_1aee4129c7578a51eb744ca5f60521b45f`
 
-- :ref:`exhale_function_jsonreader_8hpp_1aaa44b0d2b52f02b9b9b9a58388bc91d0`
+- :ref:`exhale_function_json__reader_8hpp_1a0734355af517001b765d8fe2f89666e5`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a50304a69348356fbd990529f3503fd08`
+- :ref:`exhale_function_json__reader_8hpp_1a2fcc5d64737be8b91a100e85043aac43`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a72801e64e7afc62cf96cdd5c93d9983a`
+- :ref:`exhale_function_json__reader_8hpp_1a46f3c5cac057ddfeb84e47db3b131d58`
 
-- :ref:`exhale_function_jsonreader_8hpp_1aa321775574547a0130c5d10a80465eb7`
+- :ref:`exhale_function_json__reader_8hpp_1a148fbc02c72df6b92e75eac754955614`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a5d3c94e68862c9ce18384300519ea373`
+- :ref:`exhale_function_json__reader_8hpp_1ae73f0c1dff289ddc07f16e0d35f1488e`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a08916570b2caed1bd93b7c1081ea6d0d`
+- :ref:`exhale_function_json__reader_8hpp_1a7241e96bfb48ed35fd7be9156103aff8`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a3b8e71fbbdd1eaed976d75788893f934`
+- :ref:`exhale_function_json__reader_8hpp_1a3d3854ee362dbe8cb86da9d2cd63aab6`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a9f253eab9fa2e53e104b44f8f6160ec7`
+- :ref:`exhale_function_json__reader_8hpp_1a14002229f78d2cf64661b5f42f99a9e9`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a9084fe0fe62af31a0e14256f4f4c9f4f`
+- :ref:`exhale_function_json__reader_8hpp_1ab6b2063c5c82afff55324c19305ad1d7`
 
-- :ref:`exhale_function_encoder_8hpp_1a6ea3541127df07cbe37c1d9f3049065b`
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a6f93ddb567c4d5f7d0f61d6d9d0ae9e3`
 
-- :ref:`exhale_function_common_8hpp_1a68b380ea5eaded99ba8871508b8dacb8`
+- :ref:`exhale_function_decoders_2common_2api_2common_8hpp_1a4c40028a953f26811239801b92daa07a`
 
-- :ref:`exhale_function_encoder_8hpp_1a1688897d3880d47f804f1360547768fa`
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a1688897d3880d47f804f1360547768fa`
 
-- :ref:`exhale_function_common_8hpp_1a810ac542cd59f4836834708014f80d59`
+- :ref:`exhale_function_decoders_2common_2api_2common_8hpp_1a6ddeb1fe7ef191895c27d283239c58dc`
 
-- :ref:`exhale_function_common_8hpp_1a34fc12fa6c0fe96b202985ec474d3a5f`
+- :ref:`exhale_function_decoders_2common_2api_2common_8hpp_1abf94e68d9046edfb542e79506bb318b6`
 
-- :ref:`exhale_function_jsonreader_8hpp_1a683ae7d1e4dd2053d6f5d62c881b5bf1`
+- :ref:`exhale_function_json__reader_8hpp_1a212fad8d293d7ef0e460f336b4423a1e`
 
-- :ref:`exhale_function_jsonreader_8hpp_1af8c0615cf5ac56f204a9ad9150eb3a1b`
+- :ref:`exhale_function_json__reader_8hpp_1ab879f3a2380b0b790f11afdff1ff70c9`
 
-- :ref:`exhale_function_encoder_8hpp_1acf33bc815c816eda40e8bb8e6686af48`
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a0f8b88e6ebb6eaa256bbf886d2735add`
 
-- :ref:`exhale_function_encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf`
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a0ec8220d71d0510395aabace0cb44aaf`
 
-- :ref:`exhale_function_encoder_8hpp_1adb76891b87a7e504f1a4d0e104421bad`
+- :ref:`exhale_function_common_2api_2encoder_8hpp_1a081dfea4657dbf2dcef01c087558e6f9`
 
-- :ref:`exhale_function_common_8hpp_1a5aaa0e5e4b61fb8b926b985d3a11cf95`
+- :ref:`exhale_function_decoders_2common_2api_2common_8hpp_1ad49506790d8038807f78566e2e5fad20`
 
-- :ref:`exhale_function_common_8hpp_1ae1ede00eea76fa6f2e6a0f006dd67cea`
-
-
-Typedefs
---------
-
-
-- :ref:`exhale_typedef_message__decoder_8hpp_1a001b56f665b07c27a54158921b031127`
+- :ref:`exhale_function_decoders_2common_2api_2common_8hpp_1a4bfc7e121e84fd8dfea779a5b4243144`
 
 
 Variables
 ---------
 
 
-- :ref:`exhale_variable_jsonreader_8hpp_1a10c72e4c1bbd03d1fa34bc59edcc2e3b`
+- :ref:`exhale_variable_json__reader_8hpp_1a8e14cc1d038c815c4f259712146d0c42`
 
-- :ref:`exhale_variable_jsonreader_8hpp_1a3a32510c01175587c27430e7f0acd272`
+- :ref:`exhale_variable_json__reader_8hpp_1aad50ca3a5894cf268384f74b4f85ac5f`
