@@ -27,9 +27,9 @@
 #ifndef NEXCEPT_H
 #define NEXCEPT_H
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
 
 //============================================================================
 //! \class NExcept
