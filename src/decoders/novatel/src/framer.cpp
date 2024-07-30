@@ -172,7 +172,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 HandleUnknownBytes(pucFrameBuffer_, uiMyByteCount - 1);
                 return STATUS::UNKNOWN;
             }
-            else if (uiMyByteCount > uiFrameBufferSize_)
+            if (uiMyByteCount > uiFrameBufferSize_)
             {
                 stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
                 stMetaData_.uiLength = uiMyByteCount - 1;
@@ -362,12 +362,12 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 //                                         internal CRC   |<------->|
 
                 // Check for a second CRC delimiter which indicates this is RXCONFIG
-                if (clMyCircularDataBuffer[uiMyByteCount + OEM4_ASCII_CRC_LENGTH] == OEM4_ASCII_CRC_DELIMITER)
+                if (clMyCircularDataBuffer[uiMyByteCount + OEM4_ASCII_CRC_LENGTH] == OEM4_ASCII_CRC_DELIMITER
+                    // Look ahead for the CRLF to ensure this is a CRC delimiter and not a '*' in a log payload
+                    || !IsAsciiCrc(uiMyByteCount))
                 {
                     CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte);
                 }
-                // Look ahead for the CRLF to ensure this is a CRC delimiter and not a '*' in a log payload
-                else if (!IsAsciiCrc(uiMyByteCount)) { CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte); }
                 else { eMyFrameState = NovAtelFrameState::WAITING_FOR_ASCII_CRC; }
             }
             else if (uiMyByteCount >= MAX_ASCII_MESSAGE_LENGTH)

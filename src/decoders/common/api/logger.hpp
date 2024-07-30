@@ -70,15 +70,15 @@ class Logger
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            std::cout << "Logger spdlog init failed: " << ex.what() << std::endl;
+            std::cout << "Logger spdlog init failed: " << ex.what() << '\n';
         }
         catch (const spdlog_setup::setup_error& ex)
         {
-            std::cout << "Logger spdlog_setup failed: " << ex.what() << std::endl;
+            std::cout << "Logger spdlog_setup failed: " << ex.what() << '\n';
         }
         catch (const std::exception& ex)
         {
-            std::cout << "Logger failed: " << ex.what() << std::endl;
+            std::cout << "Logger failed: " << ex.what() << '\n';
         }
     }
 
@@ -101,15 +101,15 @@ class Logger
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            std::cout << "Logger spdlog init failed: " << ex.what() << std::endl;
+            std::cout << "Logger spdlog init failed: " << ex.what() << '\n';
         }
         catch (const spdlog_setup::setup_error& ex)
         {
-            std::cout << "Logger spdlog_setup failed: " << ex.what() << std::endl;
+            std::cout << "Logger spdlog_setup failed: " << ex.what() << '\n';
         }
         catch (const std::exception& ex)
         {
-            std::cout << "Logger failed: " << ex.what() << std::endl;
+            std::cout << "Logger failed: " << ex.what() << '\n';
         }
     }
 
@@ -117,7 +117,7 @@ class Logger
      */
     static void Shutdown()
     {
-        if (pclMyRootLogger) pclMyRootLogger->flush();
+        if (pclMyRootLogger) { pclMyRootLogger->flush(); }
         spdlog::shutdown();
     }
 
@@ -153,8 +153,8 @@ class Logger
         catch (const spdlog::spdlog_ex& ex)
         {
             // TODO: why does deleting this line break the pipeline?
-            std::cout << (spdlog::get(sLoggerName_) == nullptr ? "null" : "not null") << std::endl;
-            std::cout << "Logger::RegisterLogger() init failed: " << ex.what() << std::endl;
+            std::cout << (spdlog::get(sLoggerName_) == nullptr ? "null" : "not null") << '\n';
+            std::cout << "Logger::RegisterLogger() init failed: " << ex.what() << '\n';
             SPDLOG_ERROR("Logger::RegisterLogger(\"{}\") init failed: {}", sLoggerName_, ex.what());
         }
 
@@ -186,7 +186,7 @@ class Logger
                                       std::string sFileName_ = "edie.log", uint32_t uiFileSize_ = 5 * 1024 * 1024, uint32_t uiMaxFiles_ = 2,
                                       bool bRotateOnOpen_ = true)
     {
-        if (mRotatingFiles.count(sFileName_)) { lgr->sinks().push_back(mRotatingFiles.at(sFileName_)); }
+        if (mRotatingFiles.find(sFileName_) != mRotatingFiles.end()) { lgr->sinks().push_back(mRotatingFiles.at(sFileName_)); }
         else
         {
             // Rotating file sink, with default formatting/metadata, max 3 files (2 previous + 1 current) of 5MB each

@@ -57,6 +57,20 @@ class InputFileStream : public InputStreamInterface
      */
     InputFileStream(const char* pFileName);
 
+	/*! Disabled Copy Constructor
+     *
+     *  A copy constructor is a member function which initializes an InputFileStream object
+     *  using another object of the same class.
+     */
+    InputFileStream(const InputFileStream& clTemp_) = delete;
+
+    /*! Disabled assignment operator
+     *
+     *  The copy assignment operator is called whenever selected by overload resolution,
+     *  e.g. when an object appears on the left side of an assignment expression.
+     */
+    const InputFileStream& operator=(const InputFileStream& clTemp_) = delete;
+
     /*! A default destructor */
     ~InputFileStream() override;
 
@@ -89,8 +103,8 @@ class InputFileStream : public InputStreamInterface
      *
      *  \return  std::string - File Extension name
      */
-    std::string GetFileExtension() const override;
-    std::string GetFileName() const override;
+    [[nodiscard]] std::string GetFileExtension() const override;
+    [[nodiscard]] std::string GetFileName() const override;
 
     /*! \return the current file position from which next read will be done.
      *
@@ -109,34 +123,20 @@ class InputFileStream : public InputStreamInterface
      *
      *  \return Current file offset.
      */
-    uint64_t GetCurrentFileOffset() const override;
+    [[nodiscard]] uint64_t GetCurrentFileOffset() const override;
 
   private:
-    /*! Private Copy Constructor
-     *
-     *  A copy constructor is a member function which initializes an InputFileStream object
-     *  using another object of the same class.
-     */
-    InputFileStream(const InputFileStream& clTemp);
-
-    /*! Private assignment operator
-     *
-     *  The copy assignment operator is called whenever selected by overload resolution,
-     *  e.g. when an object appears on the left side of an assignment expression.
-     */
-    const InputFileStream& operator=(const InputFileStream& clTemp);
-
     /*! \brief Provides file extension name.
      *
      *  \return Returns the file extension name.
      */
-    std::string FileExtension() const;
+    [[nodiscard]] std::string FileExtension() const;
 
     /*! \brief Provides wide character file extension name.
      *
      *  \return Returns wide character file extension name.
      */
-    std::string WCFileExtension() const;
+    [[nodiscard]] std::string WCFileExtension() const;
 
     /*! File with Wide character name.
      */

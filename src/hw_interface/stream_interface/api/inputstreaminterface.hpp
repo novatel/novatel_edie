@@ -69,9 +69,9 @@ class InputStreamInterface
      * \return the extension of the input file to be decoded.
      * \return Returns the extension of the input file to be decoded.
      */
-    virtual std::string GetFileExtension() const { throw std::logic_error("Unsupported method"); };
+    [[nodiscard]] virtual std::string GetFileExtension() const { throw std::logic_error("Unsupported method"); };
 
-    virtual std::string GetFileName() const { throw std::logic_error("Unsupported method"); };
+    [[nodiscard]] virtual std::string GetFileName() const { throw std::logic_error("Unsupported method"); };
 
     /** A virtual member.
      * \brief Waiting period on port for incoming data to be decoded.
@@ -105,7 +105,7 @@ class InputStreamInterface
      * \return Current file offset.
      * \remark returns 0, if no concrete derived method for it.
      */
-    virtual uint64_t GetCurrentFileOffset() const { return 0; }
+    [[nodiscard]] virtual uint64_t GetCurrentFileOffset() const { return 0; }
 
     /** A virtual member.
      * \return the class object which has interfaced or derived from circular buffer.

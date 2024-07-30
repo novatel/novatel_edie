@@ -28,7 +28,7 @@
 
 InputFileStream* ifs_init(char* pcInputFilePath_)
 {
-    auto pclIFS = new InputFileStream(pcInputFilePath_);
+    auto* pclIFS = new InputFileStream(pcInputFilePath_);
     return pclIFS;
 }
 

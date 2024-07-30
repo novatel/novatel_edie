@@ -107,7 +107,7 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
             {
                 const auto& vCurrentFieldArrayField = std::get<std::vector<FieldContainer>>(field.fieldValue);
 
-                uint32_t uiFieldCount = static_cast<uint32_t>(vCurrentFieldArrayField.size());
+                auto uiFieldCount = static_cast<uint32_t>(vCurrentFieldArrayField.size());
                 if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &uiFieldCount)) { return false; }
 
                 pucTempStart = *ppucOutBuf_; // Move the start placeholder to the front of the array start
@@ -137,7 +137,7 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
                 if (field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
                 {
                     // if the field is a variable array, print the size first
-                    const uint32_t uiVarArraySize = static_cast<uint32_t>(vFcCurrentVectorField.size());
+                    const auto uiVarArraySize = static_cast<uint32_t>(vFcCurrentVectorField.size());
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &uiVarArraySize)) { return false; }
                 }
 
@@ -373,7 +373,7 @@ bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermedia
                 }
                 break;
             case FIELD_TYPE::ENUM: {
-                const auto enumField = dynamic_cast<const EnumField*>(field.fieldDef);
+                const auto* enumField = dynamic_cast<const EnumField*>(field.fieldDef);
                 if (enumField->length == 2)
                 {
                     if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c",
