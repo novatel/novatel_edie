@@ -442,7 +442,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
             // Empty Field
             if (0 == strcspn(*ppcLogBuf_, ",*"))
             {
-                vIntermediateFormat_.emplace_back("", field);
+                vIntermediateFormat_.emplace_back(std::string(""), field);
                 *ppcLogBuf_ += 1;
             }
             // Quoted String

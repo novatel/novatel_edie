@@ -168,6 +168,10 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
             switch (field.fieldDef->type)
             {
             case FIELD_TYPE::STRING: { // STRING types can be handled all at once because they are a single element and have a null terminator
+                //const char* szString = '\0';
+                //
+                //if (std::get<std::string>(field.fieldValue) == "") { szString = '\0'; }
+                //else { szString = std::get<std::string>(field.fieldValue).c_str(); }
                 const char* szString = std::get<std::string>(field.fieldValue).c_str();
                 if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, szString)) { return false; }
 
