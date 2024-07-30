@@ -303,7 +303,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, 
 {
     const unsigned char* pucTempStart = *ppucLogBuf_;
 
-    for (auto& field : vMsgDefFields_)
+    for (const auto& field : vMsgDefFields_)
     {
         // Realign to type byte boundary if needed
         uint8_t usTypeAlignment = std::min(static_cast<uint16_t>(4), field->dataType.length);
@@ -408,7 +408,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
 
     char* pcBufEnd = *ppcLogBuf_ + strlen(*ppcLogBuf_);
 
-    for (auto& field : vMsgDefFields_)
+    for (const auto& field : vMsgDefFields_)
     {
         if (*ppcLogBuf_ >= pcBufEnd) { return STATUS::MALFORMED_INPUT; } // We encountered the end of the buffer unexpectedly
 
@@ -428,7 +428,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
             break;
         case FIELD_TYPE::ENUM: {
             auto sEnum = std::string(*ppcLogBuf_, tokenLength);
-            const auto enumField = dynamic_cast<EnumField*>(field);
+            const auto* enumField = dynamic_cast<EnumField*>(field);
             switch (enumField->length)
             {
             case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(GetEnumValue(enumField->enumDef, sEnum)), field); break;
@@ -607,7 +607,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
         }
 
         // TODO: previously, we didn't check for early end in abbreviated ascii, but I assume this was a bug
-        if (Abbreviated == false && bEarlyEndOfMessage) { break; }
+        if (!Abbreviated && bEarlyEndOfMessage) { break; }
     }
 
     return STATUS::SUCCESS;
@@ -622,7 +622,7 @@ STATUS
 MessageDecoderBase::DecodeJson(const std::vector<BaseField*>& vMsgDefFields_, json clJsonFields_,
                                std::vector<FieldContainer>& vIntermediateFormat_) const
 {
-    for (auto& field : vMsgDefFields_)
+    for (const auto& field : vMsgDefFields_)
     {
         json clField = clJsonFields_[field->name];
 

@@ -140,14 +140,14 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField*>& vFields_)
 
         if (sFieldType == "SIMPLE")
         {
-            auto pstField = new BaseField;
+            auto* pstField = new BaseField;
             *pstField = field;
             vFields_.push_back(pstField);
             uiFieldSize += stDataType.length;
         }
         else if (sFieldType == "ENUM")
         {
-            auto pstField = new EnumField;
+            auto* pstField = new EnumField;
             *pstField = field;
             pstField->length = stDataType.length;
             vFields_.push_back(pstField);
@@ -155,7 +155,7 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField*>& vFields_)
         }
         else if (sFieldType == "FIXED_LENGTH_ARRAY" || sFieldType == "VARIABLE_LENGTH_ARRAY" || sFieldType == "STRING")
         {
-            auto pstField = new ArrayField;
+            auto* pstField = new ArrayField;
             *pstField = field;
             vFields_.push_back(pstField);
             uint32_t uiArrayLength = field.at("arrayLength").get<uint32_t>();
@@ -163,7 +163,7 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField*>& vFields_)
         }
         else if (sFieldType == "FIELD_ARRAY")
         {
-            auto pstField = new FieldArrayField;
+            auto* pstField = new FieldArrayField;
             *pstField = field;
             vFields_.push_back(pstField);
         }

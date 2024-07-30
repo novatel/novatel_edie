@@ -109,7 +109,6 @@ int main(int argc, char* argv[])
     MessageDataStruct stEmbeddedMessageData;
 
     RxConfigHandler clRxConfigHandler(&clJsonDb);
-    auto eStatus = STATUS::UNKNOWN;
 
     while (!stReadStatus.bEOS)
     {
@@ -117,8 +116,10 @@ int main(int argc, char* argv[])
         stReadStatus = clIfs.ReadData(stReadData);
         clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
 
-        do {
-            eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
+        STATUS eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
+
+        while (eStatus != STATUS::BUFFER_EMPTY)
+        {
             if (eStatus == STATUS::SUCCESS)
             {
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
@@ -151,7 +152,9 @@ int main(int argc, char* argv[])
                     clStrippedRxConfigOfs.WriteData(const_cast<char*>(",\r\n"), 3);
                 }
             }
-        } while (eStatus != STATUS::BUFFER_EMPTY);
+
+            eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
+        }
     }
 
     Logger::Shutdown();

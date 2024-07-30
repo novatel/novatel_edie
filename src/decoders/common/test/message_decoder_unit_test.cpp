@@ -171,9 +171,9 @@ class MessageDecoderTypesTest : public ::testing::Test
         }
         catch (JsonReaderFailure& e)
         {
-            std::cout << e.what() << std::endl;
+            std::cout << e.what() << '\n';
 
-            for (auto it : MsgDefFields) { delete it; }
+            for (auto* it : MsgDefFields) { delete it; }
 
             MsgDefFields.clear();
         }
@@ -183,16 +183,16 @@ class MessageDecoderTypesTest : public ::testing::Test
     {
         pclMyDecoderTester->ShutdownLogger();
 
-        for (auto it : MsgDefFields) { delete it; }
+        for (auto* it : MsgDefFields) { delete it; }
 
         MsgDefFields.clear();
     }
 
     void CreateEnumField(std::string name, std::string description, int32_t value)
     {
-        auto stField = new EnumField();
-        auto enumDef = new EnumDefinition();
-        auto enumDT = new EnumDataType();
+        auto* stField = new EnumField();
+        auto* enumDef = new EnumDefinition();
+        auto* enumDT = new EnumDataType();
         enumDT->name = name;
         enumDT->description = description;
         enumDT->value = value;
@@ -219,7 +219,7 @@ TEST_F(MessageDecoderTypesTest, LOGGER)
 TEST_F(MessageDecoderTypesTest, FIELD_CONTAINER_ERROR_ON_COPY)
 {
     FieldContainer fc(3, new BaseField());
-    ASSERT_THROW(FieldContainer fc2(fc);, std::runtime_error);
+    ASSERT_THROW(FieldContainer{fc}, std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
@@ -235,7 +235,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
     pclMyDecoderTester->ValidSimpleASCIIHelper<int32_t, DATA_TYPE::LONG>({"-2147483648", "2147483647", "0"}, {0});
     pclMyDecoderTester->ValidSimpleASCIIHelper<uint64_t, DATA_TYPE::ULONGLONG>({"0", "18446744073709551615", "9346284632323321"}, {9346284632323321ULL});
     pclMyDecoderTester->ValidSimpleASCIIHelper<int64_t, DATA_TYPE::LONGLONG>({"-9223372036854775808", "9223372036854775807", "0"}, {0LL});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<float, DATA_TYPE::FLOAT>({"1.17549435e-38", "3.40282347e+38", "3279347.4", "-3.14"}, {3279347.4f, -3.14f});
+    pclMyDecoderTester->ValidSimpleASCIIHelper<float, DATA_TYPE::FLOAT>({"1.17549435e-38", "3.40282347e+38", "3279347.4", "-3.14"}, {3279347.4F, -3.14F});
     pclMyDecoderTester->ValidSimpleASCIIHelper<double, DATA_TYPE::DOUBLE>({"2.2250738585072014e-308", "1.7976931348623157e+308", "0.0"}, {0.0});
 }
 
@@ -263,7 +263,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    auto testInput = "4";
+    const auto* testInput = "4";
     pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
     ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_[0].fieldValue), '4');
@@ -275,7 +275,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    auto testInput = "True";
+    const auto* testInput = "True";
     pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
     ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), false);
@@ -293,7 +293,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(vTestInput.size());
 
-    auto testInput = "UNKNOWN,APPROXIMATE,SATTIME";
+    const auto* testInput = "UNKNOWN,APPROXIMATE,SATTIME";
 
     ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat), STATUS::SUCCESS);
     ASSERT_EQ(vIntermediateFormat.size(), vTestInput.size());
@@ -328,7 +328,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    auto testInput = "garbage";
+    const auto* testInput = "garbage";
 
     ASSERT_THROW(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
 }
@@ -347,7 +347,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
     pclMyDecoderTester->ValidBinaryHelper<int32_t, DATA_TYPE::LONG>({{0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0x7F}, {0x00, 0x00, 0xFF, 0xFF}, {0x00, 0x00, 0x00, 0x00}}, {-65536, 0});
     pclMyDecoderTester->ValidBinaryHelper<uint64_t, DATA_TYPE::ULONGLONG>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}}, {});
     pclMyDecoderTester->ValidBinaryHelper<int64_t, DATA_TYPE::LONGLONG>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F}}, {});
-    pclMyDecoderTester->ValidBinaryHelper<float, DATA_TYPE::FLOAT>({{0x00, 0x00, 0x80, 0x00}, {0xFF, 0xFF, 0x7F, 0x7F}, {0x9A, 0x99, 0x99, 0x3F}, {0xCD, 0xCC, 0xBC, 0xC0}}, {1.2f, -5.9f});
+    pclMyDecoderTester->ValidBinaryHelper<float, DATA_TYPE::FLOAT>({{0x00, 0x00, 0x80, 0x00}, {0xFF, 0xFF, 0x7F, 0x7F}, {0x9A, 0x99, 0x99, 0x3F}, {0xCD, 0xCC, 0xBC, 0xC0}}, {1.2F, -5.9F});
     pclMyDecoderTester->ValidBinaryHelper<double, DATA_TYPE::DOUBLE>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xEF, 0x7F}, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}}, {0.0});
 }
 
@@ -388,7 +388,7 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(MsgDefFields.size());
 
-    auto testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
+    const auto* testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
 
     ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat));
     // TODO: Keep this here or make a file for testing common encoder?

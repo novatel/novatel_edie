@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <new>
+#include <memory>
 
 #include "decoders/common/api/nexcept.hpp"
 
@@ -39,21 +39,21 @@ void CircularBuffer::SetCapacity(const uint32_t uiCapacity_)
     // Set the size of the buffer (bytes)
     if (uiCapacity_ <= uiMyCapacity) { return; }
 
-    const auto pucBuffer = new (std::nothrow) unsigned char[uiCapacity_];
+    auto pucBuffer = std::make_unique<unsigned char[]>(uiCapacity_);
 
     // Do nothing if new failed.... just use existing buffer
-    if (pucBuffer != nullptr)
+    if (pucBuffer)
     {
-        memset(pucBuffer, '*', uiCapacity_);
+        memset(pucBuffer.get(), '*', uiCapacity_);
 
         // Copy the data from our old buffer to the new one
-        Copy(pucBuffer, uiMyLength);
+        Copy(pucBuffer.get(), uiMyLength);
 
         // Free the old buffer and take ownership of the new buffer
         delete[] pucMyBuffer;
-        pucMyBuffer = pucBuffer;
+        pucMyBuffer = pucBuffer.release();
 
-        // Update our pointers to point into the new buffer
+        // Update pointers to point into the new buffer
         pucMyHead = pucMyBuffer;
         pucMyTail = pucMyHead + uiMyLength;
         uiMyCapacity = uiCapacity_;

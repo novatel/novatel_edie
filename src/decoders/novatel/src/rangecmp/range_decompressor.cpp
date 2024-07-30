@@ -38,9 +38,9 @@ using namespace novatel::edie::oem;
 //-----------------------------------------------------------------------
 constexpr float afTheRangeCmpPSRStdDevValues[] = {
     // 0       1       2       3       4       5       6       7
-    0.050f, 0.075f, 0.113f, 0.169f, 0.253f, 0.380f, 0.570f, 0.854f,
+    0.050F, 0.075F, 0.113F, 0.169F, 0.253F, 0.380F, 0.570F, 0.854F,
     // 8       9       10      11      12       13       14       15
-    1.281f, 2.375f, 4.750f, 9.500f, 19.000f, 38.000f, 76.000f, 152.000f};
+    1.281F, 2.375F, 4.750F, 9.500F, 19.000F, 38.000F, 76.000F, 152.000F};
 
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Pseudorange STDs. This is defined
@@ -49,9 +49,9 @@ constexpr float afTheRangeCmpPSRStdDevValues[] = {
 //-----------------------------------------------------------------------
 constexpr float afTheRangeCmp2PSRStdDevValues[] = {
     // 0       1       2       3       4       5       6       7
-    0.020f, 0.030f, 0.045f, 0.066f, 0.099f, 0.148f, 0.220f, 0.329f,
+    0.020F, 0.030F, 0.045F, 0.066F, 0.099F, 0.148F, 0.220F, 0.329F,
     // 8       9       10      11      12      13      14      15 (>5.409)
-    0.491f, 0.732f, 1.092f, 1.629f, 2.430f, 3.625f, 5.409f, 5.409f};
+    0.491F, 0.732F, 1.092F, 1.629F, 2.430F, 3.625F, 5.409F, 5.409F};
 
 //-----------------------------------------------------------------------
 //! Table used to expand the scaled Accumulated Doppler Range STDs. This
@@ -60,9 +60,9 @@ constexpr float afTheRangeCmp2PSRStdDevValues[] = {
 //-----------------------------------------------------------------------
 constexpr float afTheRangeCmp2ADRStdDevValues[] = {
     // 0         1         2         3         4         5         6         7
-    0.00391f, 0.00521f, 0.00696f, 0.00929f, 0.01239f, 0.01654f, 0.02208f, 0.02947f,
+    0.00391F, 0.00521F, 0.00696F, 0.00929F, 0.01239F, 0.01654F, 0.02208F, 0.02947F,
     // 8         9         10        11        12        13        14        15 (>0.22230)
-    0.03933f, 0.05249f, 0.07006f, 0.09350f, 0.12480f, 0.16656f, 0.22230f, 0.22230f};
+    0.03933F, 0.05249F, 0.07006F, 0.09350F, 0.12480F, 0.16656F, 0.22230F, 0.22230F};
 
 //-----------------------------------------------------------------------
 //! Two-dimensional map to look up L1/E1/B1 Scaling for RANGECMP2 signals
@@ -158,9 +158,9 @@ static std::map<SYSTEM, std::vector<RangeCmp4::SIGNAL_TYPE>> mvTheRangeCmp4Syste
 //-----------------------------------------------------------------------
 constexpr float afTheRangeCmp4PSRStdDevValues[] = {
     // 0         1         2         3         4         5         6         7
-    0.020f, 0.030f, 0.045f, 0.066f, 0.099f, 0.148f, 0.220f, 0.329f,
+    0.020F, 0.030F, 0.045F, 0.066F, 0.099F, 0.148F, 0.220F, 0.329F,
     // 8         9         10        11        12        13        14        15 (>5.410)
-    0.491f, 0.732f, 1.092f, 1.629f, 2.430f, 3.625f, 5.409f, 5.409f};
+    0.491F, 0.732F, 1.092F, 1.629F, 2.430F, 3.625F, 5.409F, 5.409F};
 
 //-----------------------------------------------------------------------
 //! List of pre-defined floats used as translations for RANGECMP4 ADR
@@ -172,9 +172,9 @@ constexpr float afTheRangeCmp4PSRStdDevValues[] = {
 //-----------------------------------------------------------------------
 constexpr float afTheRangeCmp4ADRStdDevValues[] = {
     // 0         1         2         3         4         5         6         7
-    0.003f, 0.005f, 0.007f, 0.009f, 0.012f, 0.016f, 0.022f, 0.029f,
+    0.003F, 0.005F, 0.007F, 0.009F, 0.012F, 0.016F, 0.022F, 0.029F,
     // 8         9         10        11        12        13        14        15 (>0.2223)
-    0.039f, 0.052f, 0.070f, 0.093f, 0.124f, 0.166f, 0.222f, 0.222f};
+    0.039F, 0.052F, 0.070F, 0.093F, 0.124F, 0.166F, 0.222F, 0.222F};
 
 //-----------------------------------------------------------------------
 //! List of pre-defined floats used as translations for RANGECMP4 lock
@@ -186,9 +186,9 @@ constexpr float afTheRangeCmp4ADRStdDevValues[] = {
 //-----------------------------------------------------------------------
 constexpr float afTheRangeCmp4LockTimeValues[] = {
     // 0         1         2         3         4         5         6         7
-    0.0f, 16.0f, 32.0f, 64.0f, 128.0f, 256.0f, 512.0f, 1024.0f,
+    0.0F, 16.0F, 32.0F, 64.0F, 128.0F, 256.0F, 512.0F, 1024.0F,
     // 8         9         10        11        12        13        14         15
-    2048.0f, 4096.0f, 8192.0f, 16384.0f, 32768.0f, 65536.0f, 131072.0f, 262144.0f};
+    2048.0F, 4096.0F, 8192.0F, 16384.0F, 32768.0F, 65536.0F, 131072.0F, 262144.0F};
 
 //------------------------------------------------------------------------------
 RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_)
@@ -358,7 +358,7 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStr
                                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_)
 {
-    float fLocktimeMilliseconds = static_cast<float>(uiLockTimeBits_);
+    auto fLocktimeMilliseconds = static_cast<float>(uiLockTimeBits_);
 
     RangeCmp2LockTimeInfoStruct& stLocktimeInfo =
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
@@ -620,7 +620,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     if (stRangeData_.usPRN == 0) { throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits"); }
 
     // any fields flagged as invalid are set to NaN and appear in the log as such
-    stRangeData_.sGLONASSFrequency = static_cast<int16_t>(cGLONASSFrequencyNumber_);
+    stRangeData_.sGLONASSFrequency = static_cast<int16_t>(static_cast<unsigned char>(cGLONASSFrequencyNumber_));
     stRangeData_.dPSR = stBlock_.bValidPSR ? stBlock_.dPSR : std::numeric_limits<double>::quiet_NaN();
     stRangeData_.fPSRStdDev = afTheRangeCmp4PSRStdDevValues[stBlock_.ucPSRBitfield];
     stRangeData_.dADR =
@@ -777,7 +777,6 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
     if (dSecondOffset == 0.0) { ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)].clear(); }
 
-    auto eCurrentSatelliteSystem = SYSTEM::UNKNOWN;
     std::vector<RangeCmp4::SIGNAL_TYPE> vSignals;  // All available signals
     std::vector<uint32_t> vPRNs;                   // All available PRNs
     std::map<uint32_t, uint64_t> mIncludedSignals; // IncludedSignal bitmasks for each PRN.
@@ -808,20 +807,19 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
 
     // For each satellite system, we will decode a series of measurement block headers, each with
     // their own subsequent reference signal measurement blocks.
-    for (uint8_t ucSystemIndex = 0; ucSystemIndex < RC4_HEADER_BLOCK_SYSTEM_COUNT; ucSystemIndex++)
+    for (const auto& aeTheRangeCmp4SatelliteSystem : aeTheRangeCmp4SatelliteSystems)
     {
-        eCurrentSatelliteSystem = aeTheRangeCmp4SatelliteSystems[ucSystemIndex];
         vSignals.clear();
         vPRNs.clear();
 
         // Does this message have any data for this satellite system?
-        if (usSatelliteSystems & (1UL << static_cast<uint16_t>(eCurrentSatelliteSystem)))
+        if (usSatelliteSystems & (1UL << static_cast<uint16_t>(aeTheRangeCmp4SatelliteSystem)))
         {
             ulSatellites = GetBitfieldFromBuffer(&pucTempDataPointer, RC4_SATELLITES_BITS);
             usSignals = static_cast<uint16_t>(GetBitfieldFromBuffer(&pucTempDataPointer, RC4_SIGNALS_BITS));
 
             // Collect the signals tracked in this satellite system.
-            for (RangeCmp4::SIGNAL_TYPE eCurrentSignalType : mvTheRangeCmp4SystemSignalMasks[eCurrentSatelliteSystem])
+            for (RangeCmp4::SIGNAL_TYPE eCurrentSignalType : mvTheRangeCmp4SystemSignalMasks[aeTheRangeCmp4SatelliteSystem])
             {
                 if (usSignals & (1UL << static_cast<uint16_t>(eCurrentSignalType))) { vSignals.push_back(eCurrentSignalType); }
             }
@@ -858,7 +856,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                 stMeasurementBlockHeader.cGLONASSFrequencyNumber = 0;
 
                 // This field is only present for GLONASS and reference blocks.
-                if (eCurrentSatelliteSystem == SYSTEM::GLONASS && !stMeasurementBlockHeader.bIsDifferentialData)
+                if (aeTheRangeCmp4SatelliteSystem == SYSTEM::GLONASS && !stMeasurementBlockHeader.bIsDifferentialData)
                 {
                     stMeasurementBlockHeader.cGLONASSFrequencyNumber =
                         static_cast<uint8_t>(GetBitfieldFromBuffer(&pucTempDataPointer, RC4_MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS));
@@ -892,13 +890,14 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                             }
                             else { DecompressReferenceBlock<true>(&pucTempDataPointer, stMeasurementBlock, eMeasurementSource); }
 
-                            stChannelTrackingStatus = ChannelTrackingStatusStruct(eCurrentSatelliteSystem, eCurrentSignalType, stMeasurementBlock);
+                            stChannelTrackingStatus =
+                                ChannelTrackingStatusStruct(aeTheRangeCmp4SatelliteSystem, eCurrentSignalType, stMeasurementBlock);
                             PopulateNextRangeData((stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++]), stMeasurementBlock,
                                                   stMetaData_, stChannelTrackingStatus, uiPRN, stMeasurementBlockHeader.cGLONASSFrequencyNumber);
 
                             // Always store reference blocks.
-                            ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)][eCurrentSatelliteSystem][eCurrentSignalType][uiPRN] =
-                                std::pair(stMeasurementBlockHeader, stMeasurementBlock);
+                            ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)][aeTheRangeCmp4SatelliteSystem][eCurrentSignalType]
+                                                 [uiPRN] = std::pair(stMeasurementBlockHeader, stMeasurementBlock);
                         }
                         else // This is a differential block.
                         {
@@ -907,12 +906,12 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                             try
                             {
                                 pstReferenceBlockHeader = &ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)]
-                                                               .at(eCurrentSatelliteSystem)
+                                                               .at(aeTheRangeCmp4SatelliteSystem)
                                                                .at(eCurrentSignalType)
                                                                .at(uiPRN)
                                                                .first;
                                 pstReferenceBlock = &ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)]
-                                                         .at(eCurrentSatelliteSystem)
+                                                         .at(aeTheRangeCmp4SatelliteSystem)
                                                          .at(eCurrentSignalType)
                                                          .at(uiPRN)
                                                          .second;
@@ -921,8 +920,8 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                             {
                                 pclMyLogger->warn("No reference data exists for SATELLITE_SYSTEM {}, SIGNAL_TYPE "
                                                   "{}, PRN {}, ID {}",
-                                                  static_cast<int32_t>(eCurrentSatelliteSystem), static_cast<int32_t>(eCurrentSignalType), uiPRN,
-                                                  stMeasurementBlockHeader.ucReferenceDataBlockID);
+                                                  static_cast<int32_t>(aeTheRangeCmp4SatelliteSystem), static_cast<int32_t>(eCurrentSignalType),
+                                                  uiPRN, stMeasurementBlockHeader.ucReferenceDataBlockID);
                             }
 
                             // Do nothing if we can't find reference data.
@@ -942,7 +941,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                                     }
 
                                     stChannelTrackingStatus =
-                                        ChannelTrackingStatusStruct(eCurrentSatelliteSystem, eCurrentSignalType, stMeasurementBlock);
+                                        ChannelTrackingStatusStruct(aeTheRangeCmp4SatelliteSystem, eCurrentSignalType, stMeasurementBlock);
                                     PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stMeasurementBlock,
                                                           stMetaData_, stChannelTrackingStatus, uiPRN,
                                                           pstReferenceBlockHeader->cGLONASSFrequencyNumber);

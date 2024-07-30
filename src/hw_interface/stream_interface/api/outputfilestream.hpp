@@ -54,6 +54,20 @@ class OutputFileStream : public OutputStreamInterface
      */
     OutputFileStream(const char* pcFileName);
 
+    /*! Disabled Copy Constructor
+     *
+     *  A copy constructor is a member function which initializes an object using another object of
+     * the same class.
+     */
+    OutputFileStream(const OutputFileStream& clTemp_) = delete;
+
+    /*! Disabled assignment operator
+     *
+     *  The copy assignment operator is called whenever selected by overload resolution,
+     *  e.g. when an object appears on the left side of an assignment expression.
+     */
+    const OutputFileStream& operator=(const OutputFileStream& clTemp_) = delete;
+
     /*! A virtual destructor.
      *  \brief  Clears MessageDataFilter and FileStream objects.
      */
@@ -73,17 +87,6 @@ class OutputFileStream : public OutputStreamInterface
     uint32_t WriteData(const char* cData, uint32_t uiSize) override;
 
   private:
-    /*! Private Copy Constructor
-     *  A copy constructor is a member function which initializes an object using another object of
-     * the same class.
-     */
-    OutputFileStream(const OutputFileStream& clTemp);
-
-    /*! Private assignment operator
-     *  The copy assignment operator is called whenever selected by overload resolution,
-     *  e.g. when an object appears on the left side of an assignment expression.
-     */
-    const OutputFileStream& operator=(const OutputFileStream& clTemp);
 };
 
 #endif

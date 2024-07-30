@@ -112,9 +112,7 @@ int main(int argc, char* argv[])
     Logger::AddConsoleLogging(clFilter.GetLogger());
     Logger::AddRotatingFileLogger(clFilter.GetLogger());
 
-    // Initialize structures and error codes
-    auto eStatus = STATUS::UNKNOWN;
-
+    // Initialize structures
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
@@ -134,17 +132,20 @@ int main(int argc, char* argv[])
 
     uint32_t uiCompleteMessages = 0;
     uint32_t uiCounter = 0;
+
     tStart = std::chrono::high_resolution_clock::now();
     tLoop = std::chrono::high_resolution_clock::now();
+
     while (!stReadStatus.bEOS)
     {
         stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
         stReadStatus = clIfs.ReadData(stReadData);
         clParser.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
 
-        do {
-            eStatus = clParser.Read(stMessageData, stMetaData);
+        STATUS eStatus = clParser.Read(stMessageData, stMetaData);
 
+        while (eStatus != STATUS::BUFFER_EMPTY)
+        {
             if (eStatus == STATUS::SUCCESS)
             {
                 clConvertedLogsOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
@@ -159,7 +160,9 @@ int main(int argc, char* argv[])
                 pclLogger->info("{} logs/s", uiCompleteMessages / uiCounter);
                 tLoop = std::chrono::high_resolution_clock::now();
             }
-        } while (eStatus != STATUS::BUFFER_EMPTY);
+
+            eStatus = clParser.Read(stMessageData, stMetaData);
+        }
     }
 
     pclLogger->info("Converted {} logs in {}ms from {}", uiCompleteMessages,
