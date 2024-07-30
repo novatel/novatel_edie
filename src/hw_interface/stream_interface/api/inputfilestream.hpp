@@ -57,7 +57,7 @@ class InputFileStream : public InputStreamInterface
      */
     InputFileStream(const char* pFileName);
 
-	/*! Disabled Copy Constructor
+    /*! Disabled Copy Constructor
      *
      *  A copy constructor is a member function which initializes an InputFileStream object
      *  using another object of the same class.
