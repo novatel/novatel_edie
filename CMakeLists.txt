@@ -41,16 +41,12 @@ if(MSVC)
         add_compile_options(/WX)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
-    add_compile_options(-Wall -Wextra -pedantic -Wold-style-cast)
+    add_compile_options(-Wall -Wextra -pedantic)
     add_compile_options("$<$<CONFIG:Release>:-O3>")
 
     if(WINDOWS)
         # TODO: we shouldn't have to do this, something is bloating an object file
         add_compile_options($<$<CONFIG:Debug>:-O1>)
-    endif()
-
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        add_compile_options(-Wno-restrict)
     endif()
 
     if(WARNINGS_AS_ERRORS)
