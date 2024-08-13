@@ -112,7 +112,7 @@ enum class ASCII_HEADER
     RECEIVER_SW_VERSION, //!< Receiver software version.
 };
 
-// static inline accessor function
+// Constellations 
 enum class CONSTELLATION
 {
     UNKNOWN,

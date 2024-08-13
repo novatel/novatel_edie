@@ -477,7 +477,6 @@ class JsonReader
     std::unordered_map<std::string, EnumDefinition*> mEnumName;
     std::unordered_map<std::string, EnumDefinition*> mEnumId;
 
-  protected:
     std::vector<EnumDefinition> vEnumDefinitions;
 
   public:
