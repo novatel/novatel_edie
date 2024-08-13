@@ -27,6 +27,7 @@
 #ifndef JSON_READER_HPP
 #define JSON_READER_HPP
 
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <map>
