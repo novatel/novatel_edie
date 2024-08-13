@@ -62,7 +62,7 @@ class NExcept
     {
         va_list argPtr;
         va_start(argPtr, szFormat_);
-        vsprintf(buffer, szFormat_, argPtr);
+        if (vsnprintf(buffer, sizeof(buffer), szFormat_, argPtr) != static_cast<int32_t>(strlen(szFormat_))) { exit(EXIT_FAILURE); }
         perror(buffer);
         va_end(argPtr);
     }
@@ -86,7 +86,7 @@ class NExcept
     {
         va_list argPtr;
         va_start(argPtr, szFormat_);
-        vsprintf(buffer, szFormat_, argPtr);
+        if (vsnprintf(buffer, sizeof(buffer), szFormat_, argPtr) != static_cast<int32_t>(strlen(szFormat_))) { exit(EXIT_FAILURE); }
         perror(buffer);
         va_end(argPtr);
     }
