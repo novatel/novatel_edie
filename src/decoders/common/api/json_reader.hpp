@@ -27,7 +27,6 @@
 #ifndef JSON_READER_HPP
 #define JSON_READER_HPP
 
-#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -280,7 +279,7 @@ struct BaseField
             // is necessary to consume.
             if (*sConvertString >= '0' && *sConvertString <= '9')
             {
-                if (sscanf_s(sConvertString, "%d.", &iSelectedPoint) != 1) { throw std::runtime_error("Failed to parse integer value"); }
+                if (sscanf(sConvertString, "%d.", &iSelectedPoint) != 1) { throw std::runtime_error("Failed to parse integer value"); }
                 sConvertString = sConvertString + (*iSelectedPoint > 9 ? 2 : 1); // Skip the numerals
             }
 
