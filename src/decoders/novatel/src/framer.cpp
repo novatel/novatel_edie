@@ -512,7 +512,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;
-                if (sscanf(acCrc, "%x", &uiMessageCrc) > 0 && uiMyCalculatedCrc32 == uiMessageCrc)
+                if (sscanf(acCrc, "%x", uiMessageCrc) > 0 && uiMyCalculatedCrc32 == uiMessageCrc)
                 {
                     uiMyByteCount = 0;
 
