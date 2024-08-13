@@ -114,8 +114,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
 
     char acCmdParams[MAX_ASCII_MESSAGE_LENGTH];
     char* pcCmdParams = acCmdParams;
-    std::copy(strCmdParams.begin(), strCmdParams.end(), acCmdParams);
-    acCmdParams[strCmdParams.size()] = '\0';
+    strcpy(acCmdParams, strCmdParams.c_str());
 
     if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
 
@@ -170,8 +169,7 @@ STATUS Commander::Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMe
 
     unsigned char acCmdParams[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucCmdParams = acCmdParams;
-    std::copy(strCmdParams.begin(), strCmdParams.end(), acCmdParams);
-    acCmdParams[strCmdParams.size()] = '\0';
+    strcpy(reinterpret_cast<char*>(acCmdParams), strCmdParams.c_str());
 
     const MessageDefinition* pclMessageDef = clJsonDb_.GetMsgDef(strCmdName);
     if (!pclMessageDef) { return STATUS::NO_DEFINITION; }
