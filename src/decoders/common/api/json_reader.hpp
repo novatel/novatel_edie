@@ -472,12 +472,11 @@ void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
 class JsonReader
 {
     std::vector<MessageDefinition> vMessageDefinitions;
+    std::vector<EnumDefinition> vEnumDefinitions;
     std::unordered_map<std::string, MessageDefinition*> mMessageName;
     std::unordered_map<int32_t, MessageDefinition*> mMessageId;
     std::unordered_map<std::string, EnumDefinition*> mEnumName;
     std::unordered_map<std::string, EnumDefinition*> mEnumId;
-
-    std::vector<EnumDefinition> vEnumDefinitions;
 
   public:
     //----------------------------------------------------------------------------
