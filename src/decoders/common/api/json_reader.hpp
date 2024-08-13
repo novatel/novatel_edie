@@ -279,7 +279,7 @@ struct BaseField
             // is necessary to consume.
             if (*sConvertString >= '0' && *sConvertString <= '9')
             {
-                sscanf(sConvertString, "%d.", iSelectedPoint);
+                if (sscanf_s(sConvertString, "%d.", &iSelectedPoint) != 1) { throw std::runtime_error("Failed to parse integer value"); }
                 sConvertString = sConvertString + (*iSelectedPoint > 9 ? 2 : 1); // Skip the numerals
             }
 

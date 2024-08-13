@@ -520,7 +520,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
                 if (field->conversionHash == CalculateBlockCrc32("%Z"))
                 {
                     uint32_t uiValueRead = 0;
-                    if (sscanf(pcPosition, "%02x", &uiValueRead) != 1)
+                    if (sscanf_s(pcPosition, "%02x", &uiValueRead) != 1)
                     {
                         SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii(): Error decoding %Z Array");
                         throw std::runtime_error("DecodeAscii(): Error decoding %Z Array");
@@ -547,7 +547,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
                     pcPosition += 2; // Consume the '\x' that signifies hex without a char representation
                     uint32_t uiValueRead = 0;
 
-                    if (sscanf(pcPosition, "%02x", &uiValueRead) != 1)
+                    if (sscanf_s(pcPosition, "%02x", &uiValueRead) != 1)
                     {
                         SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii(): Error decoding %s array");
                         throw std::runtime_error("DecodeAscii(): Error decoding %s array");
