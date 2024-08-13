@@ -51,8 +51,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         add_compile_options(-Wno-restrict)
-    else()
-        add_compile_options(-Wno-unknown-pragmas)
     endif()
 
     if(WARNINGS_AS_ERRORS)
