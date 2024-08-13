@@ -413,10 +413,14 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
         if (*ppcLogBuf_ >= pcBufEnd) { return STATUS::MALFORMED_INPUT; } // We encountered the end of the buffer unexpectedly
 
         size_t tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); // TODO: do we need to use acDelimiter3?
-        if (Abbreviated && ConsumeAbbrevFormatting(tokenLength, ppcLogBuf_)) { tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); }
 
-        // TODO: previously, we didn't do these malformed input checks in ascii, but I assume this was a bug
-        if (Abbreviated && tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
+        if constexpr (Abbreviated)
+        {
+            if (ConsumeAbbrevFormatting(tokenLength, ppcLogBuf_)) { tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); }
+
+            // TODO: previously, we didn't do these malformed input checks in ascii, but I assume this was a bug
+            if (tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
+        }
 
         bool bEarlyEndOfMessage = (*(*ppcLogBuf_ + tokenLength) == cDelimiter2);
 
@@ -607,7 +611,10 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
         }
 
         // TODO: previously, we didn't check for early end in abbreviated ascii, but I assume this was a bug
-        if (!Abbreviated && bEarlyEndOfMessage) { break; }
+        if constexpr (!Abbreviated)
+        {
+            if (bEarlyEndOfMessage) { break; }
+        }
     }
 
     return STATUS::SUCCESS;
