@@ -64,7 +64,9 @@ class JsonReaderFailure : public std::exception
 
     [[nodiscard]] const char* what() const noexcept override
     {
-        return fmt::format("In file \"{}\" : {}() (Line {})\n\t\"{}: {}.\"", file, func, line, clFilePath.generic_string(), failure).c_str();
+        sprintf(const_cast<char*>(acWhatString), "In file \"%s\" : %s() (Line %d)\n\t\"%s: %s.\"", file, func, line,
+                clFilePath.generic_string().c_str(), failure);
+        return acWhatString;
     }
 };
 
