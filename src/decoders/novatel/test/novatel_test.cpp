@@ -939,7 +939,7 @@ class DecodeEncodeTest : public ::testing::Test
             pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb.get());
             pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb.get());
         }
-        catch (JsonReaderFailure& e)
+        catch (std::exception& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -2174,7 +2174,7 @@ class CommandEncodeTest : public ::testing::Test
             pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
             pclMyCommander = std::make_unique<Commander>(pclMyJsonDb.get());
         }
-        catch (const JsonReaderFailure& e)
+        catch (std::exception& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -2281,7 +2281,7 @@ class BenchmarkTest : public ::testing::Test
             pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb.get());
             pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb.get());
         }
-        catch (JsonReaderFailure& e)
+        catch (std::exception& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -2375,7 +2375,7 @@ class FilterTest : public ::testing::Test
             pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb.get());
             pclMyFilter = std::make_unique<Filter>();
         }
-        catch (JsonReaderFailure& e)
+        catch (std::exception& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -2778,7 +2778,7 @@ class FileParserTest : public ::testing::Test
         {
             pclFp = std::make_unique<FileParser>(std::getenv("TEST_DATABASE_PATH"));
         }
-        catch (JsonReaderFailure& e)
+        catch (std::exception& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -2995,7 +2995,7 @@ class NovatelTypesTest : public ::testing::Test
             pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb.get());
             pclMyEncoderTester = std::make_unique<EncoderTester>(pclMyJsonDb.get());
         }
-        catch (JsonReaderFailure& e)
+        catch (std::exception& e)
         {
             std::cout << e.what() << '\n';
             for (auto* it : MsgDefFields) { delete it; }
