@@ -31,11 +31,6 @@
 
 #include "common.hpp"
 
-//-----------------------------------------------------------------------
-// Globals
-//-----------------------------------------------------------------------
-class MemoryStream;
-
 /*! \class InputStreamInterface
  *   \brief An Interface Class used by application ro provide input to the decoder.
  *
@@ -106,12 +101,6 @@ class InputStreamInterface
      * \remark returns 0, if no concrete derived method for it.
      */
     [[nodiscard]] virtual uint64_t GetCurrentFileOffset() const { return 0; }
-
-    /** A virtual member.
-     * \return the class object which has interfaced or derived from circular buffer.
-     * \remark MemoryStream* class Object to access circular buffer.
-     */
-    virtual MemoryStream* GetMemoryStream() { return nullptr; }
 };
 
 #endif
