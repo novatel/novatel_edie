@@ -368,7 +368,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
     }
 
     stMessageData_.pucMessage = *ppucBuffer_;
-    stMessageData_.uiMessageLength = static_cast<uint32_t>(pucTempEncodeBuffer - *ppucBuffer_);
+    stMessageData_.uiMessageLength = pucTempEncodeBuffer - *ppucBuffer_;
 
     return STATUS::SUCCESS;
 }
@@ -421,7 +421,7 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
 
     // Record the length of the encoded message header.
     stMessageData_.pucMessageHeader = *ppucBuffer_;
-    stMessageData_.uiMessageHeaderLength = static_cast<uint32_t>(pucTempBuffer - stMessageData_.pucMessageHeader);
+    stMessageData_.uiMessageHeaderLength = pucTempBuffer - stMessageData_.pucMessageHeader;
     return STATUS::SUCCESS;
 }
 
@@ -442,7 +442,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
     case ENCODE_FORMAT::ASCII: {
         if (!EncodeAsciiBody<false>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pucTempBuffer--; // Remove last delimiter ','
-        const uint32_t uiCrc = CalculateBlockCrc32(static_cast<uint32_t>(pucTempBuffer - stMessageData_.pucMessageHeader - 1), 0, stMessageData_.pucMessageHeader + 1);
+        const uint32_t uiCrc = CalculateBlockCrc32(pucTempBuffer - stMessageData_.pucMessageHeader - 1, 0, stMessageData_.pucMessageHeader + 1);
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "*%08x\r\n", uiCrc)) { return STATUS::BUFFER_FULL; }
         break;
     }
@@ -474,7 +474,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         {
             reinterpret_cast<Oem4BinaryShortHeader*>(stMessageData_.pucMessageHeader)->ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
         }
-        uint32_t uiCrc = CalculateBlockCrc32(static_cast<uint32_t>(pucTempBuffer - stMessageData_.pucMessageHeader), 0, stMessageData_.pucMessageHeader);
+        uint32_t uiCrc = CalculateBlockCrc32(pucTempBuffer - stMessageData_.pucMessageHeader, 0, stMessageData_.pucMessageHeader);
         if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, &uiCrc)) { return STATUS::BUFFER_FULL; }
         break;
     }
@@ -487,6 +487,6 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
 
     // Record the length of the encoded message body.
     stMessageData_.pucMessageBody = *ppucBuffer_;
-    stMessageData_.uiMessageBodyLength = static_cast<uint32_t>(pucTempBuffer - stMessageData_.pucMessageBody);
+    stMessageData_.uiMessageBodyLength = pucTempBuffer - stMessageData_.pucMessageBody;
     return STATUS::SUCCESS;
 }

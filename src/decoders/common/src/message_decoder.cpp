@@ -306,7 +306,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, 
     for (const auto& field : vMsgDefFields_)
     {
         // Realign to type byte boundary if needed
-        auto usTypeAlignment = static_cast<uint8_t>(std::min(static_cast<uint16_t>(4), field->dataType.length));
+        uint8_t usTypeAlignment = std::min(static_cast<uint16_t>(4), field->dataType.length);
         uint64_t usAlignmentOffset = static_cast<uint64_t>(*ppucLogBuf_ - pucTempStart) % usTypeAlignment;
         if (usAlignmentOffset != 0) { *ppucLogBuf_ += usTypeAlignment - usAlignmentOffset; }
 

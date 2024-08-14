@@ -95,7 +95,7 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
             const uint32_t uiAlign = std::min(4U, static_cast<uint32_t>(field.fieldDef->dataType.length));
             const auto ullRem = reinterpret_cast<uint64_t>(*ppucOutBuf_) % uiAlign;
 
-            if (ullRem && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, static_cast<uint32_t>(uiAlign - ullRem))) { return false; }
+            if (ullRem && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, uiAlign - ullRem)) { return false; }
         }
 
         if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
