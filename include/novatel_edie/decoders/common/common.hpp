@@ -135,7 +135,7 @@ inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
 //-----------------------------------------------------------------------
 enum class HEADER_FORMAT
 {
-    UNKNOWN = 1,
+    UNKNOWN,
     BINARY,
     SHORT_BINARY,
     PROPRIETARY_BINARY,
