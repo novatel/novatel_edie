@@ -474,6 +474,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         {
             reinterpret_cast<Oem4BinaryShortHeader*>(stMessageData_.pucMessageHeader)->ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
         }
+        else { reinterpret_cast<Oem4BinaryHeader*>(stMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_); }
         uint32_t uiCrc = CalculateBlockCrc32(pucTempBuffer - stMessageData_.pucMessageHeader, 0, stMessageData_.pucMessageHeader);
         if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, &uiCrc)) { return STATUS::BUFFER_FULL; }
         break;
