@@ -139,17 +139,17 @@ enum class HEADER_FORMAT
     // Bit 5: Short
     // Bit 6: ASCII
     // Bit 7: Binary
-    UNKNOWN            = 0b00000000,
-    BINARY             = 0b10000000,
-    SHORT_BINARY       = 0b10100000,
+    UNKNOWN = 0b00000000,
+    BINARY = 0b10000000,
+    SHORT_BINARY = 0b10100000,
     PROPRIETARY_BINARY = 0b10000001,
-    ASCII              = 0b01000000,
-    SHORT_ASCII        = 0b01100000,
-    ABB_ASCII          = 0b01010000,
-    SHORT_ABB_ASCII    = 0b01110000,
-    NMEA               = 0b00000001,
-    JSON               = 0b00000010,
-    ALL                = 0b11111111
+    ASCII = 0b01000000,
+    SHORT_ASCII = 0b01100000,
+    ABB_ASCII = 0b01010000,
+    SHORT_ABB_ASCII = 0b01110000,
+    NMEA = 0b00000001,
+    JSON = 0b00000010,
+    ALL = 0b11111111
 };
 
 constexpr bool IsBinaryHeaderFormat(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 7; }
