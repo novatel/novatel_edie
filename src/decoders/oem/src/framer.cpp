@@ -115,10 +115,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
         stMetaData_.uiLength = uiMyByteCount;
 
         // non-ASCII characters in an ASCII message indicates a corrupt log or unknown data. Either way, mark the data as unknown
-        if ((stMetaData_.eFormat == HEADER_FORMAT::ASCII || stMetaData_.eFormat == HEADER_FORMAT::SHORT_ASCII ||
-             stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII || stMetaData_.eFormat == HEADER_FORMAT::NMEA ||
-             stMetaData_.eFormat == HEADER_FORMAT::JSON) &&
-            ucDataByte > 127)
+        if (IsAscii(stMetaData_.eFormat) && ucDataByte > 127)
         {
             stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
             ResetState();
