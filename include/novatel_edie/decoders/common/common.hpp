@@ -135,7 +135,10 @@ inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
 //-----------------------------------------------------------------------
 enum class HEADER_FORMAT
 {
-    // clang-format off
+    // Bit 0-4: Reserved
+    // Bit 5: Short
+    // Bit 6: ASCII
+    // Bit 7: Binary
     UNKNOWN            = 0b00000000,
     BINARY             = 0b10000000,
     SHORT_BINARY       = 0b10100000,
@@ -146,8 +149,7 @@ enum class HEADER_FORMAT
     SHORT_ABB_ASCII    = 0b01110000,
     NMEA               = 0b00000001,
     JSON               = 0b00000010,
-    ALL                = 0b11111111 // Used in filters to indicate all filter types : all new enums should be added before this value
-    // clang-format on
+    ALL                = 0b11111111
 };
 
 constexpr bool IsBinaryHeaderFormat(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 7; }
