@@ -206,8 +206,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
         // eFormat is HEADER_FORMAT::ABB_ASCII or HEADER_FORMAT::SHORT_ABB_ASCII then flush the framer
         // and attempt to decode that data.
 
-        if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE &&
-            (stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII || stMetaData_.eFormat == HEADER_FORMAT::SHORT_ABB_ASCII))
+        if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE && IsAbbreviated(stMetaData_.eFormat))
         {
             uint32_t uiFlushSize = clMyFramer.Flush(pucMyFrameBufferPointer, uiParserInternalBufferSize);
             if (uiFlushSize > 0)
