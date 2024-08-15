@@ -135,23 +135,22 @@ inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
 //-----------------------------------------------------------------------
 enum class HEADER_FORMAT
 {
-    UNKNOWN,
-    BINARY,
-    SHORT_BINARY,
-    PROPRIETARY_BINARY,
-    ASCII,
-    SHORT_ASCII,
-    ABB_ASCII,
-    NMEA,
-    JSON,
-    SHORT_ABB_ASCII,
-    ALL // Used in filters to indicate all filter types : all new enums should be added before this value
+    UNKNOWN            = 0b00000000,
+    BINARY             = 0b10000000,
+    SHORT_BINARY       = 0b10100000,
+    PROPRIETARY_BINARY = 0b10000001,
+    ASCII              = 0b01000000,
+    SHORT_ASCII        = 0b01100000,
+    ABB_ASCII          = 0b01010000,
+    SHORT_ABB_ASCII    = 0b01110000,
+    NMEA               = 0b00000001,
+    JSON               = 0b00000010,
+    ALL                = 0b11111111 // Used in filters to indicate all filter types : all new enums should be added before this value
 };
 
-constexpr bool IsShortHeaderFormat(const HEADER_FORMAT eFormat_)
-{
-    return eFormat_ == HEADER_FORMAT::SHORT_ASCII || eFormat_ == HEADER_FORMAT::SHORT_BINARY || eFormat_ == HEADER_FORMAT::SHORT_ABB_ASCII;
-}
+constexpr bool IsBinaryHeaderFormat(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 7; }
+constexpr bool IsAsciiHeaderFormat(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 6; }
+constexpr bool IsShortHeaderFormat(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 5; }
 
 //-----------------------------------------------------------------------
 //! \enum MESSAGE_FORMAT
