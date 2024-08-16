@@ -45,9 +45,6 @@ std::shared_ptr<spdlog::logger> Filter::GetLogger() { return pclMyLogger; }
 void Filter::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::ShutdownLogger() { Logger::Shutdown(); }
-
-// -------------------------------------------------------------------------------------------------------
 void Filter::PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const)
 {
     if (std::find(vMyFilterFunctions.begin(), vMyFilterFunctions.end(), filter_) == vMyFilterFunctions.end())

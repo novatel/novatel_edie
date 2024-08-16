@@ -54,9 +54,6 @@ void HeaderDecoder::LoadJsonDb(JsonReader* pclJsonDb_)
 void HeaderDecoder::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void HeaderDecoder::ShutdownLogger() { Logger::Shutdown(); }
-
-// -------------------------------------------------------------------------------------------------------
 std::shared_ptr<spdlog::logger> HeaderDecoder::GetLogger() { return pclMyLogger; }
 
 // -------------------------------------------------------------------------------------------------------

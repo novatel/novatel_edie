@@ -165,11 +165,6 @@ class MessageDecoderBase
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    static void ShutdownLogger();
-
-    //----------------------------------------------------------------------------
     //! \brief Decode a message body from the provided frame.
     //
     //! \param[in] pucMessage_ A pointer to a message body.

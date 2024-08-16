@@ -52,9 +52,6 @@ std::shared_ptr<spdlog::logger> Commander::GetLogger() const { return pclMyLogge
 void Commander::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void Commander::ShutdownLogger() { Logger::Shutdown(); }
-
-// -------------------------------------------------------------------------------------------------------
 void Commander::InitEnumDefinitions()
 {
     vMyResponseDefinitions = pclMyMsgDb->GetEnumDefName("Responses");

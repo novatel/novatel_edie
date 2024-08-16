@@ -149,9 +149,6 @@ void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const
 void Parser::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void Parser::ShutdownLogger() { Logger::Shutdown(); }
-
-// -------------------------------------------------------------------------------------------------------
 void Parser::SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_)
 {
     bMyIgnoreAbbreviatedAsciiResponse = bIgnoreAbbreviatedAsciiResponses_;

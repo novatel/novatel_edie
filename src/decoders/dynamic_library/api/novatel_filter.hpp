@@ -34,7 +34,6 @@ extern "C"
 {
     // Logger
     DECODERS_EXPORT bool NovatelFilterSetLoggerLevel(novatel::edie::oem::Filter* pclFilter_, uint32_t uiLogLevel_);
-    DECODERS_EXPORT void NovatelFilterShutdownLogger(novatel::edie::oem::Filter* pclFilter_);
 
     // Construct/Destruct
     DECODERS_EXPORT novatel::edie::oem::Filter* NovatelFilterInit();

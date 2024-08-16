@@ -36,11 +36,6 @@ bool NovatelCommanderSetLoggerLevel(Commander* pclCommander_, uint32_t uiLogLeve
            true : false;
 }
 
-void NovatelCommanderShutdownLogger(Commander* pclCommander_)
-{
-    if (pclCommander_) { pclCommander_->ShutdownLogger(); } // TODO: ShutdownLogger is static, this function signature should be changed
-}
-
 Commander* NovatelCommanderInit(JsonReader* pclJsonDb_) { return new Commander(pclJsonDb_); }
 
 void NovatelCommanderDelete(Commander* pclCommander_)

@@ -119,11 +119,6 @@ class RxConfigHandler
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    static void ShutdownLogger();
-
-    //----------------------------------------------------------------------------
     //! \brief Write bytes to the RxConfigHandler to be converted.
     //
     //! \param[in] pucData_ Buffer containing data to be written.

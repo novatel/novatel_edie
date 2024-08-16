@@ -85,11 +85,6 @@ class HeaderDecoder
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    static void ShutdownLogger();
-
-    //----------------------------------------------------------------------------
     //! \brief Decode an OEM message header from the provided frame.
     //
     //! \param[in] pucLogBuf_ A pointer to an OEM message header.

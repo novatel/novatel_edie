@@ -84,9 +84,6 @@ void FileParser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, c
 void FileParser::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::ShutdownLogger() { Logger::Shutdown(); }
-
-// -------------------------------------------------------------------------------------------------------
 void FileParser::SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_)
 {
     clMyParser.SetIgnoreAbbreviatedAsciiResponses(bIgnoreAbbreviatedAsciiResponses_);

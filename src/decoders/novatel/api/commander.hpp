@@ -89,11 +89,6 @@ class Commander
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    static void ShutdownLogger();
-
-    //----------------------------------------------------------------------------
     //! \brief Encode an abbreviated ASCII command to a full ASCII or BINARY
     //! command.
     //

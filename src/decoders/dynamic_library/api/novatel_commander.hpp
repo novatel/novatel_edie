@@ -36,7 +36,6 @@ extern "C"
 {
     // Logger
     DECODERS_EXPORT bool NovatelCommanderSetLoggerLevel(novatel::edie::oem::Commander* pclCommander_, uint32_t iLogLevel_);
-    DECODERS_EXPORT void NovatelCommanderShutdownLogger(novatel::edie::oem::Commander* pclCommander_);
 
     // Construct/Destruct
     DECODERS_EXPORT novatel::edie::oem::Commander* NovatelCommanderInit(novatel::edie::JsonReader* pclJsonDb_);

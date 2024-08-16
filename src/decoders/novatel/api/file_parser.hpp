@@ -115,11 +115,6 @@ class FileParser
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    static void ShutdownLogger();
-
-    //----------------------------------------------------------------------------
     //! \brief Set the abbreviated ASCII response option.
     //
     //! \param[in] bIgnoreAbbreviatedAsciiResponses_ true to ignore abbreviated

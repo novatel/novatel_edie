@@ -36,7 +36,6 @@ extern "C"
 {
     // Logger
     DECODERS_EXPORT bool NovatelFramerSetLoggerLevel(novatel::edie::oem::Framer* pclFramer_, uint32_t uiLogLevel_);
-    DECODERS_EXPORT void NovatelFramerShutdownLogger(novatel::edie::oem::Framer* pclFramer_);
 
     // Construct/Destruct
     DECODERS_EXPORT novatel::edie::oem::Framer* NovatelFramerInit();

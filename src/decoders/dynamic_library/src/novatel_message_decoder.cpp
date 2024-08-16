@@ -35,11 +35,6 @@ bool NovatelMessageDecoderSetLoggerLevel(oem::MessageDecoder* pclMessageDecoder_
            true : false;
 }
 
-void NovatelMessageDecoderShutdownLogger(oem::MessageDecoder* pclMessageDecoder_)
-{
-    if (pclMessageDecoder_) { pclMessageDecoder_->ShutdownLogger(); }
-}
-
 oem::MessageDecoder* NovatelMessageDecoderInit(JsonReader* pclJsonDb_) { return new oem::MessageDecoder(pclJsonDb_); }
 
 void NovatelMessageDecoderDelete(oem::MessageDecoder* pclMessageDecoder_)

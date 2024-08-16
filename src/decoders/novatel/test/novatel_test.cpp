@@ -67,7 +67,7 @@ class FramerTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { pclMyFramer->ShutdownLogger(); }
+    static void TearDownTestSuite() { Logger::Shutdown(); }
 
     // Per-test setup
     void SetUp() override { FlushFramer(); }
@@ -946,12 +946,7 @@ class DecodeEncodeTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite()
-    {
-        pclMyHeaderDecoder->ShutdownLogger();
-        pclMyMessageDecoder->ShutdownLogger();
-        pclMyEncoder->ShutdownLogger();
-    }
+    static void TearDownTestSuite() { Logger::Shutdown(); }
 
   public:
     using logChecker = void (*)(char*, char*);
@@ -2181,10 +2176,7 @@ class CommandEncodeTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite()
-    {
-        pclMyCommander->ShutdownLogger();
-    }
+    static void TearDownTestSuite() { Logger::Shutdown(); }
 
   public:
     STATUS TestCommandConversion(std::string sCommandToEncode_, char* pcEncodedCommandBuffer_, uint32_t uiEncodedCommandBufferSize_, ENCODE_FORMAT eFormat_)
@@ -2382,10 +2374,7 @@ class FilterTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite()
-    {
-        pclMyFilter->ShutdownLogger();
-    }
+    static void TearDownTestSuite() { Logger::Shutdown(); }
 
     void SetUp() override
     {
@@ -2785,10 +2774,7 @@ class FileParserTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite()
-    {
-        pclFp->ShutdownLogger();
-    }
+    static void TearDownTestSuite() { Logger::Shutdown(); }
 };
 
 std::unique_ptr<FileParser> FileParserTest::pclFp = nullptr;
@@ -3005,7 +2991,7 @@ class NovatelTypesTest : public ::testing::Test
 
     void TearDown() override
     {
-        pclMyDecoderTester->ShutdownLogger();
+        Logger::Shutdown();
         for (auto* it : MsgDefFields) { delete it; }
         MsgDefFields.clear();
     }

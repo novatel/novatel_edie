@@ -181,7 +181,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
     void TearDown() override
     {
-        pclMyDecoderTester->ShutdownLogger();
+        Logger::Shutdown();
 
         for (auto* it : MsgDefFields) { delete it; }
 
