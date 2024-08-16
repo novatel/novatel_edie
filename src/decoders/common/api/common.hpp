@@ -296,17 +296,6 @@ inline MetaDataBase::~MetaDataBase() = default;
 } // namespace novatel::edie
 
 //-----------------------------------------------------------------------
-//! \brief Compare two double values.
-//
-//! \param[in] dVal1_ First double type Value.
-//! \param[in] dVal2_ Second double type value.
-//! \param[in] dEpsilon_ The tolerance with which to justify "equal".
-//
-//! \return Boolean Value - Returns both values are equal or not?
-//-----------------------------------------------------------------------
-bool IsEqual(double dVal1_, double dVal2_, double dEpsilon_ = 0.001);
-
-//-----------------------------------------------------------------------
 //! \brief Construct a full message ID from its parts.
 //
 //! \param[in] uiMessageId_ The base message ID.

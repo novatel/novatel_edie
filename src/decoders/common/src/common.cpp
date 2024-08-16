@@ -31,16 +31,6 @@
 using namespace novatel::edie;
 
 //-----------------------------------------------------------------------
-bool IsEqual(const double dVal1_, const double dVal2_, const double dEpsilon_)
-{
-    double dDiff = dVal1_ - dVal2_;
-
-    if (dDiff < 0) { dDiff *= -1.0; }
-
-    return dDiff < dEpsilon_;
-}
-
-//-----------------------------------------------------------------------
 uint32_t CreateMsgId(const uint32_t uiMessageId_, const uint32_t uiSiblingId_, const uint32_t uiMsgFormat_, const uint32_t uiResponse_)
 {
     return static_cast<uint16_t>(uiMessageId_) | (static_cast<uint32_t>(MESSAGE_ID_MASK::MEASSRC) & (uiSiblingId_ << 16)) |
