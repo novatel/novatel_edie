@@ -49,6 +49,10 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
         add_compile_options($<$<CONFIG:Debug>:-O1>)
     endif()
 
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        add_compile_options(-Wno-format-truncation)
+    endif()
+
     if(WARNINGS_AS_ERRORS)
         add_compile_options(-Werror)
     endif()
