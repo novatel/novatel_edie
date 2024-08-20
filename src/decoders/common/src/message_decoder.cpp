@@ -518,13 +518,13 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
 
             for (uint32_t i = 0; i < uiArraySize; ++i)
             {
-                if (field->conversionHash == CalculateBlockCrc32("%Z"))
+                if (field->conversionHash == CalculateBlockCrc32("%Z") || field->conversionHash == CalculateBlockCrc32("%P"))
                 {
                     uint32_t uiValueRead = 0;
                     if (sscanf(pcPosition, "%02x", &uiValueRead) != 1)
                     {
-                        SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii(): Error decoding %Z Array");
-                        throw std::runtime_error("DecodeAscii(): Error decoding %Z Array");
+                        SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii(): Error decoding array");
+                        throw std::runtime_error("DecodeAscii(): Error decoding array");
                     }
                     pcPosition += 2;
                     pvFieldContainer.emplace_back(static_cast<uint8_t>(uiValueRead), field);
