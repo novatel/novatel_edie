@@ -28,7 +28,6 @@
 
 #include <bitset>
 #include <cmath>
-#include <sstream>
 
 using namespace novatel::edie::oem;
 
