@@ -79,9 +79,6 @@ std::shared_ptr<spdlog::logger> EncoderBase::GetLogger() const { return pclMyLog
 void EncoderBase::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void EncoderBase::ShutdownLogger() { Logger::Shutdown(); }
-
-// -------------------------------------------------------------------------------------------------------
 template <bool Flatten, bool Align>
 bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
 {

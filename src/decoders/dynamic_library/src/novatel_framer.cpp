@@ -38,11 +38,6 @@ bool NovatelFramerSetLoggerLevel(Framer* pclFramer_, uint32_t uiLogLevel_)
            true : false;
 }
 
-void NovatelFramerShutdownLogger(Framer* pclFramer_)
-{
-    if (pclFramer_) { pclFramer_->ShutdownLogger(); } // TODO: ShutdownLogger is static, this function signature should be changed
-}
-
 Framer* NovatelFramerInit() { return new Framer(); }
 
 void NovatelFramerDelete(Framer* pclFramer_)

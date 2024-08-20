@@ -212,13 +212,7 @@ int main(int argc, char* argv[])
     }
 
     // Clean up
-    NovatelFramerShutdownLogger(pclFramer);
-    NovatelHeaderDecoderShutdownLogger(pclHeaderDecoder);
-    NovatelMessageDecoderShutdownLogger(pclMessageDecoder);
-    NovatelEncoderShutdownLogger(pclEncoder);
-    NovatelFilterShutdownLogger(pclFilter);
     Logger::Shutdown();
-
     NovatelFramerDelete(pclFramer);
     NovatelHeaderDecoderDelete(pclHeaderDecoder);
     NovatelMessageDecoderDelete(pclMessageDecoder);

@@ -36,11 +36,6 @@ bool NovatelHeaderDecoderSetLoggerLevel(HeaderDecoder* pclHeaderDecoder_, uint32
            true : false;
 }
 
-void NovatelHeaderDecoderShutdownLogger(HeaderDecoder* pclHeaderDecoder_)
-{
-    if (pclHeaderDecoder_) { pclHeaderDecoder_->ShutdownLogger(); } // TODO: ShutdownLogger is static, this function signature should be changed
-}
-
 HeaderDecoder* NovatelHeaderDecoderInit(JsonReader* pclJsonDb_) { return new HeaderDecoder(pclJsonDb_); }
 
 void NovatelHeaderDecoderDelete(HeaderDecoder* pclHeaderDecoder_)

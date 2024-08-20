@@ -37,7 +37,6 @@ extern "C"
 {
     // Logger
     DECODERS_EXPORT bool NovatelMessageDecoderSetLoggerLevel(novatel::edie::oem::MessageDecoder* pclMessageDecoder_, uint32_t iLogLevel_);
-    DECODERS_EXPORT void NovatelMessageDecoderShutdownLogger(novatel::edie::oem::MessageDecoder* pclMessageDecoder_);
 
     // Construct/Destruct
     DECODERS_EXPORT novatel::edie::oem::MessageDecoder* NovatelMessageDecoderInit(novatel::edie::JsonReader* pclJsonDb_);

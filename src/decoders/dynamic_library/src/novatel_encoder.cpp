@@ -36,11 +36,6 @@ bool NovatelEncoderSetLoggerLevel(Encoder* pclEncoder_, uint32_t uiLogLevel_)
            true : false;
 }
 
-void NovatelEncoderShutdownLogger(Encoder* pclEncoder_)
-{
-    if (pclEncoder_) { pclEncoder_->ShutdownLogger(); } // TODO: ShutdownLogger is static, this function signature should be changed
-}
-
 Encoder* NovatelEncoderInit(JsonReader* pclJsonDb_) { return new Encoder(pclJsonDb_); }
 
 void NovatelEncoderDelete(Encoder* pclEncoder_)

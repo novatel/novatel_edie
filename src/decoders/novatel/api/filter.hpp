@@ -104,11 +104,6 @@ class Filter
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    static void ShutdownLogger();
-
-    //----------------------------------------------------------------------------
     //! \brief Include messages at and above the lower time bound (inclusive).
     //
     //! \param[in] uiWeek_  The week lower bound.

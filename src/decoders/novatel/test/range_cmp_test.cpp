@@ -72,7 +72,7 @@ class RangeCmpTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { pclMyRangeDecompressor->ShutdownLogger(); }
+    static void TearDownTestSuite() { Logger::Shutdown(); }
 
     void SetUp() override { pclMyRangeDecompressor->ResetLockTimes(); }
 };

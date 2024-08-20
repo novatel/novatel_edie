@@ -104,11 +104,6 @@ class FramerBase
     void SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    static void ShutdownLogger() { Logger::Shutdown(); }
-
-    //----------------------------------------------------------------------------
     //! \brief Should the Framer look for JSON objects in provided bytes?
     //! This setting can be extremely error-prone, as there is no CRC search or
     //! sync bytes, just direct comparisons to '{' and '}' characters.

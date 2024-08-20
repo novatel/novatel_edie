@@ -223,9 +223,6 @@ void RangeDecompressor::LoadJsonDb(JsonReader* pclJsonDB_)
 void RangeDecompressor::SetLoggerLevel(spdlog::level::level_enum eLevel_) { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void RangeDecompressor::ShutdownLogger() { Logger::Shutdown(); }
-
-// -------------------------------------------------------------------------------------------------------
 std::shared_ptr<spdlog::logger> RangeDecompressor::GetLogger() { return pclMyLogger; }
 
 //------------------------------------------------------------------------------

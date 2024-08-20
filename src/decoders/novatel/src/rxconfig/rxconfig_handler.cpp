@@ -61,9 +61,6 @@ void RxConfigHandler::LoadJsonDb(JsonReader* pclJsonDB_)
 void RxConfigHandler::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
-void RxConfigHandler::ShutdownLogger() { Logger::Shutdown(); }
-
-// -------------------------------------------------------------------------------------------------------
 std::shared_ptr<spdlog::logger> RxConfigHandler::GetLogger() const { return pclMyLogger; }
 
 //-----------------------------------------------------------------------

@@ -36,11 +36,6 @@ bool NovatelFilterSetLoggerLevel(Filter* pclFilter_, uint32_t uiLogLevel_)
            true : false;
 }
 
-void NovatelFilterShutdownLogger(Filter* pclFilter_)
-{
-    if (pclFilter_) { pclFilter_->ShutdownLogger(); } // TODO: ShutdownLogger is static, this function signature should be changed
-}
-
 Filter* NovatelFilterInit() { return new Filter(); }
 
 void NovatelFilterDelete(Filter* pclFilter_)

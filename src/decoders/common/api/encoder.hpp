@@ -186,11 +186,6 @@ class EncoderBase
     //! \param[in] eLevel_  The logging level to enable.
     //----------------------------------------------------------------------------
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
-
-    //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    static void ShutdownLogger();
 };
 
 } // namespace novatel::edie
