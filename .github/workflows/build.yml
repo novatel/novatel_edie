@@ -14,21 +14,22 @@ jobs:
     strategy:
       matrix:
         platform:
-          - [windows, windows-latest, msvc, Debug]
-          - [windows, windows-latest, msvc, Release]
-          - [windows, windows-latest, gcc, Debug]
-          - [windows, windows-latest, gcc, Release]
-          - [windows, windows-latest, clang-cl, Debug]
-          - [windows, windows-latest, clang-cl, Release]
-          - [linux, ubuntu-latest, gcc, Debug]
-          - [linux, ubuntu-latest, gcc, Release]
-          - [linux, ubuntu-latest, clang, Debug]
-          - [linux, ubuntu-latest, clang, Release]
+          - [windows, windows-latest, msvc, Debug, msvc]
+          - [windows, windows-latest, msvc, Release, msvc]
+          - [windows, windows-latest, gnu, Debug, gnu]
+          - [windows, windows-latest, gnu, Release, gnu]
+          - [windows, windows-latest, clang-cl, Debug, clang]
+          - [windows, windows-latest, clang-cl, Release, clang]
+          - [linux, ubuntu-latest, gnu, Debug, gnu]
+          - [linux, ubuntu-latest, gnu, Release, gnu]
+          - [linux, ubuntu-latest, clang, Debug, clang]
+          - [linux, ubuntu-latest, clang, Release, clang]
     env:
       OPERATING_SYSTEM: ${{ matrix.platform[0] }}
       DISTRIBUTION: ${{ matrix.platform[1] }}
       COMPILER: ${{ matrix.platform[2] }}
       BUILD_TYPE: ${{ matrix.platform[3] }}
+      COMPILER_ID: ${{ matrix.platform[4] }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,26 +51,26 @@ jobs:
         shell: bash
         run: |
           if [ "${{ env.COMPILER }}" == "msvc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang-cl" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL #TODO: -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL #TODO: -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DWARNINGS_AS_ERRORS=ON
-          elif [ "${{ env.COMPILER }}" == "gcc" ]; then
-            cmake -S . -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DWARNINGS_AS_ERRORS=ON
+          elif [ "${{ env.COMPILER }}" == "gnu" ]; then
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DWARNINGS_AS_ERRORS=ON
           fi
 
       - name: Build
-        run: cmake --build build --parallel --config ${{ env.BUILD_TYPE }}
+        run: cmake --build out/build --parallel --config ${{ env.BUILD_TYPE }}
 
       - name: Unit Tests
-        run: ctest --test-dir build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
+        run: ctest --test-dir out/build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
       - name: Regression Tests
         shell: bash
         run: |
           echo "Starting regression tests for $OPERATING_SYSTEM $BUILD_TYPE"
-          bash regression/run_tests.sh ./build/bin/$BUILD_TYPE/converter_components
+          bash regression/run_tests.sh ./out/build/bin/$OPERATING_SYSTEM-$COMPILER_ID-$BUILD_TYPE/converter_components
           echo "Regression tests for $OPERATING_SYSTEM $BUILD_TYPE done!"
 
       - name: Upload Artifacts
@@ -79,6 +80,7 @@ jobs:
           name: ${{ env.OPERATING_SYSTEM }}-${{ env.COMPILER }}-${{ env.BUILD_TYPE }}-artifacts
           path: |
              regression/
+             out/build/bin/
   
   # =========================================================
   # Clang Format Job
@@ -141,8 +143,8 @@ jobs:
 
       - name: Static code analysis
         run: |
-          cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu -DWARNINGS_AS_ERRORS=ON
-          cmake --build build --parallel --config Debug
+          cmake -S . -B out/build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu -DWARNINGS_AS_ERRORS=ON
+          cmake --build out/build --parallel --config Debug
 
   # =========================================================
   # Code Coverage Job
@@ -161,35 +163,35 @@ jobs:
     - name: Install CMake
       uses: lukka/get-cmake@latest
 
-    - name: Install GCC Coverage
+    - name: Install GNU Coverage
       run: |
         sudo apt-get update
         sudo apt-get install -y gcovr
 
     - name: Configure
-      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON -DWARNINGS_AS_ERRORS=ON
+      run: cmake -S . -B out/build -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCOVERAGE=ON -DWARNINGS_AS_ERRORS=ON
 
     - name: Build
-      run: cmake --build build --parallel --config debug
+      run: cmake --build out/build --parallel --config debug
 
     - name: Run Tests
-      run: cd build && ctest && cd ..
+      run: cd out/build && ctest && cd ..
 
     - name: Generate HTML code coverage reports
       run: | 
-        mkdir build/code-coverage
-        gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --html --html-details -o ./build/code-coverage/index.html
+        mkdir out/build/code-coverage
+        gcovr -r ./src/ ./out/build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --html --html-details -o ./out/build/code-coverage/index.html
     
     - name: Coverage visualization in pipeline summary
-      run: gcovr -r ./src/ ./build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --exclude-unreachable-branches --print-summary -o ./build/coverage.xml
+      run: gcovr -r ./src/ ./out/build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --exclude-unreachable-branches --print-summary -o ./out/build/coverage.xml
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4.3.0
       with:
         name: code-coverage
         path: |
-          build/code-coverage
-          build/coverage.xml
+          out/build/code-coverage
+          out/build/coverage.xml
   
   # =========================================================
   # Documentation Job
