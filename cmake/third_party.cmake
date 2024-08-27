@@ -37,18 +37,12 @@ endif()
 set(CONAN_DEPLOYER_DIR "${CMAKE_BINARY_DIR}/full_deploy/host")
 
 function(copy_third_party_dlls)
-    # Copy all third-party DLLs to build/bin for tests and executables
+    # Convert build type, operating system, and compiler to lowercase/uppercase as needed
+    string(TOLOWER ${CMAKE_SYSTEM_NAME} OPERATING_SYSTEM)
+    string(TOLOWER ${CMAKE_CXX_COMPILER_ID} COMPILER)
+
+    # Copy all third-party DLLs to the target directory
     file(GLOB_RECURSE dll_files "${CONAN_DEPLOYER_DIR}/*/*.dll")
-    if(CMAKE_CONFIGURATION_TYPES)
-        foreach(config ${CMAKE_CONFIGURATION_TYPES})
-            foreach(dll ${dll_files})
-                file(RELATIVE_PATH dll_rel "${CONAN_DEPLOYER_DIR}" "${dll}")
-                if(dll_rel MATCHES ".+/${config}/.+")
-                    file(COPY ${dll} DESTINATION "${CMAKE_BINARY_DIR}/bin/${config}")
-                endif()
-            endforeach()
-        endforeach()
-    else()
-        file(COPY ${dll_files} DESTINATION "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
-    endif()
+    set(TARGET_DIR "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${COMPILER}-${CMAKE_BUILD_TYPE}")
+    file(COPY ${dll_files} DESTINATION "${TARGET_DIR}")
 endfunction()
