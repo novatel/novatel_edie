@@ -14,22 +14,23 @@ jobs:
     strategy:
       matrix:
         platform:
-          - [windows, windows-latest, msvc, Debug, msvc]
-          - [windows, windows-latest, msvc, Release, msvc]
-          - [windows, windows-latest, gnu, Debug, gnu]
-          - [windows, windows-latest, gnu, Release, gnu]
-          - [windows, windows-latest, clang-cl, Debug, clang]
-          - [windows, windows-latest, clang-cl, Release, clang]
-          - [linux, ubuntu-latest, gnu, Debug, gnu]
-          - [linux, ubuntu-latest, gnu, Release, gnu]
-          - [linux, ubuntu-latest, clang, Debug, clang]
-          - [linux, ubuntu-latest, clang, Release, clang]
+          - [windows, windows-latest, msvc, Debug, msvc, AMD64]
+          - [windows, windows-latest, msvc, Release, msvc, AMD64]
+          - [windows, windows-latest, gnu, Debug, gnu, AMD64]
+          - [windows, windows-latest, gnu, Release, gnu, AMD64]
+          - [windows, windows-latest, clang-cl, Debug, clang, AMD64]
+          - [windows, windows-latest, clang-cl, Release, clang, AMD64]
+          - [linux, ubuntu-latest, gnu, Debug, gnu, x86_64]
+          - [linux, ubuntu-latest, gnu, Release, gnu, x86_64]
+          - [linux, ubuntu-latest, clang, Debug, clang, x86_64]
+          - [linux, ubuntu-latest, clang, Release, clang, x86_64]
     env:
       OPERATING_SYSTEM: ${{ matrix.platform[0] }}
       DISTRIBUTION: ${{ matrix.platform[1] }}
       COMPILER: ${{ matrix.platform[2] }}
       BUILD_TYPE: ${{ matrix.platform[3] }}
       COMPILER_ID: ${{ matrix.platform[4] }}
+      ARCH: ${{ matrix.platform[5]}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -70,7 +71,7 @@ jobs:
         shell: bash
         run: |
           echo "Starting regression tests for $OPERATING_SYSTEM $BUILD_TYPE"
-          bash regression/run_tests.sh ./out/build/bin/$OPERATING_SYSTEM-$COMPILER_ID-$BUILD_TYPE/converter_components
+          bash regression/run_tests.sh ./out/build/bin/$OPERATING_SYSTEM-$ARCH-$COMPILER_ID-$BUILD_TYPE/converter_components
           echo "Regression tests for $OPERATING_SYSTEM $BUILD_TYPE done!"
 
       - name: Upload Artifacts
