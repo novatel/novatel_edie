@@ -43,6 +43,6 @@ function(copy_third_party_dlls)
 
     # Copy all third-party DLLs to the target directory
     file(GLOB_RECURSE dll_files "${CONAN_DEPLOYER_DIR}/*/*.dll")
-    set(TARGET_DIR "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}-${COMPILER}-${CMAKE_BUILD_TYPE}")
+    set(TARGET_DIR "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${CMAKE_BUILD_TYPE}")
     file(COPY ${dll_files} DESTINATION "${TARGET_DIR}")
 endfunction()
