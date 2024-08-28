@@ -14,12 +14,12 @@ jobs:
     strategy:
       matrix:
         platform:
-          - [windows, windows-latest, msvc, Debug, msvc, x86_64]
-          - [windows, windows-latest, msvc, Release, msvc, x86_64]
-          - [windows, windows-latest, gnu, Debug, gnu, x86_64]
-          - [windows, windows-latest, gnu, Release, gnu, x86_64]
-          - [windows, windows-latest, clang-cl, Debug, clang, x86_64]
-          - [windows, windows-latest, clang-cl, Release, clang, x86_64]
+          - [windows, windows-latest, msvc, Debug, msvc, AMD64]
+          - [windows, windows-latest, msvc, Release, msvc, AMD64]
+          - [windows, windows-latest, gnu, Debug, gnu, AMD64]
+          - [windows, windows-latest, gnu, Release, gnu, AMD64]
+          - [windows, windows-latest, clang-cl, Debug, clang, AMD64]
+          - [windows, windows-latest, clang-cl, Release, clang, AMD64]
           - [linux, ubuntu-latest, gnu, Debug, gnu, x86_64]
           - [linux, ubuntu-latest, gnu, Release, gnu, x86_64]
           - [linux, ubuntu-latest, clang, Debug, clang, x86_64]
