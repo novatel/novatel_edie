@@ -74,14 +74,18 @@ jobs:
           bash regression/run_tests.sh ./out/build/bin/$OPERATING_SYSTEM-$ARCH-$COMPILER_ID-$BUILD_TYPE/converter_components
           echo "Regression tests for $OPERATING_SYSTEM $BUILD_TYPE done!"
 
-      - name: Upload Artifacts
+      - name: Upload Bin Artifacts
+        uses: actions/upload-artifact@v4.3.0
+        with:
+          name: ${{ env.OPERATING_SYSTEM }}-${{ env.ARCH }}-${{ env.COMPILER }}-${{ env.BUILD_TYPE }}-bin
+          path: out/build/bin/
+
+      - name: Upload Regression Artifacts on Failure
         if: failure()
         uses: actions/upload-artifact@v4.3.0
         with:
-          name: ${{ env.OPERATING_SYSTEM }}-${{ env.COMPILER }}-${{ env.BUILD_TYPE }}-artifacts
-          path: |
-             regression/
-             out/build/bin/
+          name: ${{ env.OPERATING_SYSTEM }}-${{ env.ARCH }}-${{ env.COMPILER }}-${{ env.BUILD_TYPE }}-regression
+          path: regression/
   
   # =========================================================
   # Clang Format Job
