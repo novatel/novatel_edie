@@ -42,34 +42,6 @@ using nlohmann::json;
 
 namespace novatel::edie {
 
-//============================================================================
-//! \class JsonReaderFailure
-//! \brief Exception to be thrown when JsonReader fails to parse a JSON.
-//============================================================================
-class JsonReaderFailure : public std::exception
-{
-  private:
-    const char* func;
-    const char* file;
-    int32_t line;
-    std::filesystem::path clFilePath;
-    const char* failure;
-    char acWhatString[256];
-
-  public:
-    JsonReaderFailure(const char* func_, const char* file_, const int32_t line_, std::filesystem::path jsonFile_, const char* failure_)
-        : func(func_), file(file_), line(line_), clFilePath(std::move(jsonFile_)), failure(failure_), acWhatString{}
-    {
-    }
-
-    [[nodiscard]] const char* what() const noexcept override
-    {
-        sprintf(const_cast<char*>(acWhatString), "In file \"%s\" : %s() (Line %d)\n\t\"%s: %s.\"", file, func, line,
-                clFilePath.generic_string().c_str(), failure);
-        return acWhatString;
-    }
-};
-
 //-----------------------------------------------------------------------
 //! \enum DATA_TYPE
 //! \brief Data type name string represented as an enum.

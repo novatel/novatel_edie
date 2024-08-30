@@ -169,7 +169,7 @@ class MessageDecoderTypesTest : public ::testing::Test
             pclMyJsonDb->ParseJson(sMinJsonDb);
             pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb.get());
         }
-        catch (JsonReaderFailure& e)
+        catch (std::exception& e)
         {
             std::cout << e.what() << '\n';
 

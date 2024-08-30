@@ -46,7 +46,7 @@ class JsonReaderTest : public testing::Test
 TEST_F(JsonReaderTest, JsonReaderFailure)
 {
     JsonReader clJson;
-    ASSERT_THROW(clJson.LoadFile<std::string>(""), JsonReaderFailure);
+    ASSERT_THROW(clJson.LoadFile<std::string>(""), std::exception);
 }
 
 TEST_F(JsonReaderTest, AppendEnumerations)

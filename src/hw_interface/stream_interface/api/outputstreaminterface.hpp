@@ -29,11 +29,6 @@
 
 #include <string>
 
-//-----------------------------------------------------------------------
-// Globals
-//-----------------------------------------------------------------------
-class MemoryStream;
-
 /*! \class OutputStreamInterface
  *  \brief An Interface Class used by application to write data to the output.
  *  \details Output stream is an interface for writing data to file and port handles.
@@ -90,11 +85,6 @@ class OutputStreamInterface
      *  in which will be captured in the time interval provided.
      */
     virtual void ConfigureSplitByTime(double) {}
-
-    /** A virtual member.
-     * \return MemoryStream Object which had buffer.
-     */
-    virtual MemoryStream* GetMemoryStream() { return nullptr; }
 
     // #ifdef WIDE_CHAR_SUPPORT
     /** A virtual member.

@@ -188,22 +188,21 @@ template <typename T> void JsonReader::LoadFile(T filePath_)
         json jDefinitions = json::parse(jsonFile);
 
         vMessageDefinitions.clear();
-        for (const auto& msg : jDefinitions["messages"])
-        {
-            vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
-        }
+        // The JSON object is converted to a MessageDefinition object here
+        for (const auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(msg); }
 
         vEnumDefinitions.clear();
-        for (const auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        // The JSON object is converted to a EnumDefinition object here
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
     catch (std::exception& e)
     {
-        throw JsonReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+        std::ostringstream oss;
+        oss << "In file \"" << __FILE__ << "\" : " << __func__ << "() (Line " << __LINE__ << ")\n\t\""
+            << std::filesystem::path(filePath_).generic_string().c_str() << ": " << e.what() << ".\"";
+        throw std::runtime_error(oss.str());
     }
 }
 
@@ -217,23 +216,21 @@ template <> void JsonReader::LoadFile<std::string>(std::string filePath_)
         json jDefinitions = json::parse(jsonFile);
 
         vMessageDefinitions.clear();
-
-        for (auto& msg : jDefinitions["messages"])
-        {
-            vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
-        }
+        // The JSON object is converted to a MessageDefinition object here
+        for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(msg); }
 
         vEnumDefinitions.clear();
-        for (auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        // The JSON object is converted to a EnumDefinition object here
+        for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
     catch (std::exception& e)
     {
-        throw JsonReaderFailure(__func__, __FILE__, __LINE__, filePath_.c_str(), e.what());
+        std::ostringstream oss;
+        oss << "In file \"" << __FILE__ << "\" : " << __func__ << "() (Line " << __LINE__ << ")\n\t\""
+            << std::filesystem::path(filePath_).generic_string().c_str() << ": " << e.what() << ".\"";
+        throw std::runtime_error(oss.str());
     }
 }
 
@@ -266,7 +263,10 @@ template <typename T> void JsonReader::AppendMessages(T filePath_)
     }
     catch (std::exception& e)
     {
-        throw JsonReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+        std::ostringstream oss;
+        oss << "In file \"" << __FILE__ << "\" : " << __func__ << "() (Line " << __LINE__ << ")\n\t\""
+            << std::filesystem::path(filePath_).generic_string().c_str() << ": " << e.what() << ".\"";
+        throw std::runtime_error(oss.str());
     }
 }
 
@@ -279,16 +279,17 @@ template <typename T> void JsonReader::AppendEnumerations(T filePath_)
         jsonFile.open(std::filesystem::path(filePath_));
         json jDefinitions = json::parse(jsonFile);
 
-        for (const auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        // The JSON object is converted to an EnumDefinition object here
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
     catch (std::exception& e)
     {
-        throw JsonReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+        std::ostringstream oss;
+        oss << "In file \"" << __FILE__ << "\" : " << __func__ << "() (Line " << __LINE__ << ")\n\t\""
+            << std::filesystem::path(filePath_).generic_string().c_str() << ": " << e.what() << ".\"";
+        throw std::runtime_error(oss.str());
     }
 }
 

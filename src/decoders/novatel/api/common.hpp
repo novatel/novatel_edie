@@ -148,7 +148,7 @@ struct MetaDataStruct : public MetaDataBase
     bool operator==(const MetaDataStruct& other_) const
     {
         return eFormat == other_.eFormat && eMeasurementSource == other_.eMeasurementSource && eTimeStatus == other_.eTimeStatus &&
-               bResponse == other_.bResponse && usWeek == other_.usWeek && IsEqual(dMilliseconds, other_.dMilliseconds) &&
+               bResponse == other_.bResponse && usWeek == other_.usWeek && std::abs(dMilliseconds - other_.dMilliseconds) < 0.001 &&
                uiLength == other_.uiLength && uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId &&
                uiMessageCrc == other_.uiMessageCrc && MessageName() == other_.MessageName();
     }
