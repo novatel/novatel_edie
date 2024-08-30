@@ -54,19 +54,3 @@ HeaderFilterRegex: 'src/.*|examples/.*'
 WarningsAsErrors: '*'
 
 ExtraArgs: - -Wno-unknown-pragmas # TODO: remove this after switch to clang-tidy-18
-
-CheckOptions:
-  - key: readability-identifier-naming.EnumConstantCase
-    value: UPPER_CASE
-  #- key: readability-identifier-naming.GlobalConstantCase
-  #  value: UPPER_CASE
-  #- key: readability-identifier-naming.EnumCase
-  #  value: CamelCase
-  #- key: readability-identifier-naming.ClassCase
-  #  value: CamelCase
-  #- key: readability-identifier-naming.StructCase
-  #  value: CamelCase
-  #- key: readability-identifier-naming.FunctionCase
-  #  value: lower_case
-  #- key: readability-identifier-naming.NamespaceCase
-  #  value: lower_case
