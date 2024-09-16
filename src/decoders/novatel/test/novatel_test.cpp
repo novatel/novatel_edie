@@ -76,8 +76,7 @@ class FramerTest : public ::testing::Test
     void TearDown() override { FlushFramer(); }
 
   public:
-    template <HEADER_FORMAT F, STATUS S>
-    void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
+    template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
     {
         MetaDataStruct stExpectedMetaData(F, uiLength_);
         MetaDataStruct stTestMetaData;
