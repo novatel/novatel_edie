@@ -31,7 +31,7 @@ using namespace novatel::edie::oem;
 
 bool NovatelHeaderDecoderSetLoggerLevel(HeaderDecoder* pclHeaderDecoder_, uint32_t uiLogLevel_)
 {
-    return pclHeaderDecoder_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
+    return (pclHeaderDecoder_ != nullptr) && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclHeaderDecoder_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
@@ -40,7 +40,7 @@ HeaderDecoder* NovatelHeaderDecoderInit(JsonReader* pclJsonDb_) { return new Hea
 
 void NovatelHeaderDecoderDelete(HeaderDecoder* pclHeaderDecoder_)
 {
-    if (pclHeaderDecoder_)
+    if (pclHeaderDecoder_ != nullptr)
     {
         delete pclHeaderDecoder_;
         pclHeaderDecoder_ = nullptr;
@@ -49,12 +49,13 @@ void NovatelHeaderDecoderDelete(HeaderDecoder* pclHeaderDecoder_)
 
 void NovatelHeaderDecoderLoadJson(HeaderDecoder* pclHeaderDecoder_, JsonReader* pclJsonDb_)
 {
-    if (pclHeaderDecoder_ && pclJsonDb_) { pclHeaderDecoder_->LoadJsonDb(pclJsonDb_); }
+    if ((pclHeaderDecoder_ != nullptr) && (pclJsonDb_ != nullptr)) { pclHeaderDecoder_->LoadJsonDb(pclJsonDb_); }
 }
 
 STATUS NovatelHeaderDecoderDecode(HeaderDecoder* pclHeaderDecoder_, unsigned char* pucLogBuf_, IntermediateHeader* pstInterHeader_,
                                   MetaDataStruct* pstMetaData_)
 {
-    return pclHeaderDecoder_ && pucLogBuf_ && pstInterHeader_ && pstMetaData_ ? pclHeaderDecoder_->Decode(pucLogBuf_, *pstInterHeader_, *pstMetaData_)
-                                                                              : STATUS::NULL_PROVIDED;
+    return (pclHeaderDecoder_ != nullptr) && (pucLogBuf_ != nullptr) && (pstInterHeader_ != nullptr) && (pstMetaData_ != nullptr)
+               ? pclHeaderDecoder_->Decode(pucLogBuf_, *pstInterHeader_, *pstMetaData_)
+               : STATUS::NULL_PROVIDED;
 }

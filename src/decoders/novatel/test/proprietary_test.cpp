@@ -58,7 +58,7 @@ class ProprietaryFramerTest : public ::testing::Test
     void TearDown() override { FlushFramer(); }
 
   public:
-    void WriteFileStreamToFramer(std::string sFilename_)
+    void WriteFileStreamToFramer(const std::string& sFilename_)
     {
         pclMyIFS = std::make_unique<InputFileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
 

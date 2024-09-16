@@ -81,7 +81,7 @@ class RangeDecompressor
     Encoder clMyEncoder;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    JsonReader* pclMyMsgDB;
+    JsonReader* pclMyMsgDB{};
 
     // Store the last primary reference blocks for each measurement source.
     RangeCmp4MeasurementSignalBlockStruct astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];

@@ -53,27 +53,27 @@ class Filter
 
     // Filtering members
     std::vector<TIME_STATUS> vMyTimeStatusFilters;
-    bool bMyInvertTimeStatusFilter;
+    bool bMyInvertTimeStatusFilter{};
 
     std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageIdFilters;
-    bool bMyInvertMessageIdFilter;
+    bool bMyInvertMessageIdFilter{};
 
     std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageNameFilters;
-    bool bMyInvertMessageNameFilter;
+    bool bMyInvertMessageNameFilter{};
 
-    uint32_t uiMyLowerWeek;
-    uint32_t uiMyLowerMSec;
-    bool bMyFilterLowerTime;
-    uint32_t uiMyUpperWeek;
-    uint32_t uiMyUpperMSec;
-    bool bMyFilterUpperTime;
-    bool bMyInvertTimeFilter;
+    uint32_t uiMyLowerWeek{};
+    uint32_t uiMyLowerMSec{};
+    bool bMyFilterLowerTime{};
+    uint32_t uiMyUpperWeek{};
+    uint32_t uiMyUpperMSec{};
+    bool bMyFilterUpperTime{};
+    bool bMyInvertTimeFilter{};
 
-    uint32_t uiMyDecimationPeriodMilliSec;
-    bool bMyDecimate;
-    bool bMyInvertDecimation;
+    uint32_t uiMyDecimationPeriodMilliSec{};
+    bool bMyDecimate{};
+    bool bMyInvertDecimation{};
 
-    bool bMyIncludeNmea;
+    bool bMyIncludeNmea{};
 
     void PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const);
 

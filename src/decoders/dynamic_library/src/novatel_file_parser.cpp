@@ -35,7 +35,7 @@ FileParser* NovatelFileParserInit(JsonReader* pclJsonDb_) { return new FileParse
 
 void NovatelFileParserDelete(FileParser* pclFileParser_)
 {
-    if (pclFileParser_)
+    if (pclFileParser_ != nullptr)
     {
         delete pclFileParser_;
         pclFileParser_ = nullptr;
@@ -44,70 +44,82 @@ void NovatelFileParserDelete(FileParser* pclFileParser_)
 
 void NovatelFileParserLoadJsonDb(FileParser* pclFileParser_, JsonReader* pclJsonDb_)
 {
-    if (pclFileParser_ && pclJsonDb_) { pclFileParser_->LoadJsonDb(pclJsonDb_); }
+    if ((pclFileParser_ != nullptr) && (pclJsonDb_ != nullptr)) { pclFileParser_->LoadJsonDb(pclJsonDb_); }
 }
 
 void NovatelFileParserSetIgnoreAbbrevAsciiResponses(FileParser* pclFileParser_, bool bIgnoreAbbrevAsciiResponsesCmp_)
 {
-    if (pclFileParser_) { pclFileParser_->SetIgnoreAbbreviatedAsciiResponses(bIgnoreAbbrevAsciiResponsesCmp_); }
+    if (pclFileParser_ != nullptr) { pclFileParser_->SetIgnoreAbbreviatedAsciiResponses(bIgnoreAbbrevAsciiResponsesCmp_); }
 }
 
 bool NovatelFileParserGetIgnoreAbbrevAsciiResponses(FileParser* pclFileParser_)
 {
-    return pclFileParser_ ? pclFileParser_->GetIgnoreAbbreviatedAsciiResponses() : false;
+    return pclFileParser_ != nullptr ? pclFileParser_->GetIgnoreAbbreviatedAsciiResponses() : false;
 }
 
 void NovatelFileParserSetDecompressRangeCmp(FileParser* pclFileParser_, bool bDecompressRangeCmp_)
 {
-    if (pclFileParser_) { pclFileParser_->SetDecompressRangeCmp(bDecompressRangeCmp_); }
+    if (pclFileParser_ != nullptr) { pclFileParser_->SetDecompressRangeCmp(bDecompressRangeCmp_); }
 }
 
-bool NovatelFileParserGetDecompressRangeCmp(FileParser* pclFileParser_) { return pclFileParser_ ? pclFileParser_->GetDecompressRangeCmp() : false; }
+bool NovatelFileParserGetDecompressRangeCmp(FileParser* pclFileParser_)
+{
+    return pclFileParser_ != nullptr ? pclFileParser_->GetDecompressRangeCmp() : false;
+}
 
 void NovatelFileParserSetReturnUnknownBytes(FileParser* pclFileParser_, bool bReturnUnknownBytes_)
 {
-    if (pclFileParser_) { pclFileParser_->SetReturnUnknownBytes(bReturnUnknownBytes_); }
+    if (pclFileParser_ != nullptr) { pclFileParser_->SetReturnUnknownBytes(bReturnUnknownBytes_); }
 }
 
-bool NovatelFileParserGetReturnUnknownBytes(FileParser* pclFileParser_) { return pclFileParser_ ? pclFileParser_->GetReturnUnknownBytes() : false; }
+bool NovatelFileParserGetReturnUnknownBytes(FileParser* pclFileParser_)
+{
+    return pclFileParser_ != nullptr ? pclFileParser_->GetReturnUnknownBytes() : false;
+}
 
 void NovatelFileParserSetEncodeFormat(FileParser* pclFileParser_, ENCODE_FORMAT eEncodeFormat_)
 {
-    if (pclFileParser_) { return pclFileParser_->SetEncodeFormat(eEncodeFormat_); }
+    if (pclFileParser_ != nullptr) { return pclFileParser_->SetEncodeFormat(eEncodeFormat_); }
 }
 
 ENCODE_FORMAT NovatelFileParserGetEncodeFormat(FileParser* pclFileParser_)
 {
-    return pclFileParser_ ? pclFileParser_->GetEncodeFormat() : ENCODE_FORMAT::UNSPECIFIED;
+    return pclFileParser_ != nullptr ? pclFileParser_->GetEncodeFormat() : ENCODE_FORMAT::UNSPECIFIED;
 }
 
-unsigned char* NovatelFileParserGetBuffer(FileParser* pclFileParser_) { return pclFileParser_ ? pclFileParser_->GetInternalBuffer() : nullptr; }
+unsigned char* NovatelFileParserGetBuffer(FileParser* pclFileParser_)
+{
+    return pclFileParser_ != nullptr ? pclFileParser_->GetInternalBuffer() : nullptr;
+}
 
-Filter* NovatelFileParserGetFilter(FileParser* pclFileParser_) { return pclFileParser_ ? pclFileParser_->GetFilter() : nullptr; }
+Filter* NovatelFileParserGetFilter(FileParser* pclFileParser_) { return pclFileParser_ != nullptr ? pclFileParser_->GetFilter() : nullptr; }
 
 void NovatelFileParserSetFilter(FileParser* pclFileParser_, Filter* pclFilter_)
 {
-    if (pclFileParser_ && pclFilter_) { pclFileParser_->SetFilter(pclFilter_); }
+    if ((pclFileParser_ != nullptr) && (pclFilter_ != nullptr)) { pclFileParser_->SetFilter(pclFilter_); }
 }
 
 bool NovatelFileParserSetStream(FileParser* pclFileParser_, InputFileStream* pclIfs_)
 {
-    return pclFileParser_ && pclIfs_ ? pclFileParser_->SetStream(pclIfs_) : false;
+    return (pclFileParser_ != nullptr) && (pclIfs_ != nullptr) ? pclFileParser_->SetStream(pclIfs_) : false;
 }
 
 uint32_t NovatelFileParserGetPercentRead(FileParser* pclFileParser_)
 {
-    return pclFileParser_ ? pclFileParser_->GetPercentRead() : std::numeric_limits<uint32_t>::max();
+    return pclFileParser_ != nullptr ? pclFileParser_->GetPercentRead() : std::numeric_limits<uint32_t>::max();
 }
 
 STATUS NovatelFileParserRead(FileParser* pclFileParser_, MessageDataStruct* pstMessageData_, MetaDataStruct* pstMetaData_)
 {
-    return pclFileParser_ && pstMessageData_ && pstMetaData_ ? pclFileParser_->Read(*pstMessageData_, *pstMetaData_) : STATUS::NULL_PROVIDED;
+    return (pclFileParser_ != nullptr) && (pstMessageData_ != nullptr) && (pstMetaData_ != nullptr)
+               ? pclFileParser_->Read(*pstMessageData_, *pstMetaData_)
+               : STATUS::NULL_PROVIDED;
 }
 
-bool NovatelFileParserReset(FileParser* pclFileParser_) { return pclFileParser_ ? pclFileParser_->Reset() : false; }
+bool NovatelFileParserReset(FileParser* pclFileParser_) { return pclFileParser_ != nullptr ? pclFileParser_->Reset() : false; }
 
 uint32_t NovatelFileParserFlush(FileParser* pclFileParser_, unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
-    return pclFileParser_ && pucBuffer_ ? pclFileParser_->Flush(pucBuffer_, uiBufferSize_) : std::numeric_limits<uint32_t>::max();
+    return (pclFileParser_ != nullptr) && (pucBuffer_ != nullptr) ? pclFileParser_->Flush(pucBuffer_, uiBufferSize_)
+                                                                  : std::numeric_limits<uint32_t>::max();
 }

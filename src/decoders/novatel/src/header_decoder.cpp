@@ -133,9 +133,9 @@ void HeaderDecoder::DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stI
 STATUS
 HeaderDecoder::Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const
 {
-    if (!pucLogBuf_) { return STATUS::NULL_PROVIDED; }
+    if (pucLogBuf_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
-    if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     auto* pcTempBuf = reinterpret_cast<char*>(pucLogBuf_);
     auto* pstBinaryHeader = reinterpret_cast<Oem4BinaryHeader*>(pucLogBuf_);

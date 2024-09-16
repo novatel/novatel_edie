@@ -330,5 +330,5 @@ uint32_t MultiOutputFileStream::WriteData(const char* pcData_, uint32_t uiDataLe
 // ---------------------------------------------------------
 uint32_t MultiOutputFileStream::WriteData(const char* pcData_, uint32_t uiDataLength_)
 {
-    return pLocalFileStream ? pLocalFileStream->WriteFile(pcData_, uiDataLength_) : 0;
+    return pLocalFileStream != nullptr ? pLocalFileStream->WriteFile(pcData_, uiDataLength_) : 0;
 }

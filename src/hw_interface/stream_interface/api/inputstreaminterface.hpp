@@ -63,7 +63,7 @@ class InputStreamInterface
      * \return Returns Read statistics structure (StreamReadStatus)
      * \remark If no concrete derived method, It simply returns default StreamReadStatus value.
      */
-    virtual StreamReadStatus ReadLine(std::string&) { return {}; }
+    virtual StreamReadStatus ReadLine(std::string& /*unused*/) { return {}; }
 
     /** A virtual member.
      * \return the extension of the input file to be decoded.
@@ -77,13 +77,13 @@ class InputStreamInterface
      * \brief Waiting period on port for incoming data to be decoded.
      * \remark No default implementation.
      */
-    virtual void SetTimeOut(double) {}
+    virtual void SetTimeOut(double /*unused*/) {}
 
     /** A virtual member.
      * \brief Set/Reset File Position from which next read will be done.
      * \remark No default implementation.
      */
-    virtual void Reset(std::streamoff, std::ios_base::seekdir) {}
+    virtual void Reset(std::streamoff /*unused*/, std::ios_base::seekdir /*unused*/) {}
 
     /** A virtual member.
      * \return the current file position from which next read will be done.
@@ -99,7 +99,7 @@ class InputStreamInterface
      * \brief Sets the current file offset. It could be read bytes so far.
      * \remark No default implementation.
      */
-    virtual void SetCurrentFileOffset(uint64_t) {}
+    virtual void SetCurrentFileOffset(uint64_t /*unused*/) {}
 
     /** A virtual member.
      * \return Current file offset.

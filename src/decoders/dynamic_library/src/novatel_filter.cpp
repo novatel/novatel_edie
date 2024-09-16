@@ -31,7 +31,7 @@ using namespace novatel::edie::oem;
 
 bool NovatelFilterSetLoggerLevel(Filter* pclFilter_, uint32_t uiLogLevel_)
 {
-    return pclFilter_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
+    return (pclFilter_ != nullptr) && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclFilter_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
@@ -40,7 +40,7 @@ Filter* NovatelFilterInit() { return new Filter(); }
 
 void NovatelFilterDelete(Filter* pclFilter_)
 {
-    if (pclFilter_)
+    if (pclFilter_ != nullptr)
     {
         delete pclFilter_;
         pclFilter_ = nullptr;
@@ -49,70 +49,73 @@ void NovatelFilterDelete(Filter* pclFilter_)
 
 void NovatelFilterSetIncludeLowerTime(Filter* pclFilter_, uint32_t uiLowerTimeWeek_, double dLowerTimeSec_)
 {
-    if (pclFilter_) { pclFilter_->SetIncludeLowerTimeBound(uiLowerTimeWeek_, dLowerTimeSec_); }
+    if (pclFilter_ != nullptr) { pclFilter_->SetIncludeLowerTimeBound(uiLowerTimeWeek_, dLowerTimeSec_); }
 }
 
 void NovatelFilterSetIncludeUpperTime(Filter* pclFilter_, uint32_t uiUpperTime_, double dUpperTimeSec_)
 {
-    if (pclFilter_) { pclFilter_->SetIncludeUpperTimeBound(uiUpperTime_, dUpperTimeSec_); }
+    if (pclFilter_ != nullptr) { pclFilter_->SetIncludeUpperTimeBound(uiUpperTime_, dUpperTimeSec_); }
 }
 
 void NovatelFilterInvertTimeFilter(Filter* pclFilter_, bool bInvert_)
 {
-    if (pclFilter_) { pclFilter_->InvertTimeFilter(bInvert_); }
+    if (pclFilter_ != nullptr) { pclFilter_->InvertTimeFilter(bInvert_); }
 }
 
 void NovatelFilterSetIncludeDecimation(Filter* pclFilter_, double dPeriodSec_)
 {
-    if (pclFilter_) { pclFilter_->SetIncludeDecimation(dPeriodSec_); }
+    if (pclFilter_ != nullptr) { pclFilter_->SetIncludeDecimation(dPeriodSec_); }
 }
 
 void NovatelFilterInvertDecimationFilter(Filter* pclFilter_, bool bInvert_)
 {
-    if (pclFilter_) { pclFilter_->InvertDecimationFilter(bInvert_); }
+    if (pclFilter_ != nullptr) { pclFilter_->InvertDecimationFilter(bInvert_); }
 }
 
 void NovatelFilterIncludeTimeStatus(Filter* pclFilter_, TIME_STATUS eTimeStatus_)
 {
-    if (pclFilter_) { pclFilter_->IncludeTimeStatus(eTimeStatus_); }
+    if (pclFilter_ != nullptr) { pclFilter_->IncludeTimeStatus(eTimeStatus_); }
 }
 
 void NovatelFilterInvertTimeStatusFilter(Filter* pclFilter_, bool bInvert_)
 {
-    if (pclFilter_) { pclFilter_->InvertTimeStatusFilter(bInvert_); }
+    if (pclFilter_ != nullptr) { pclFilter_->InvertTimeStatusFilter(bInvert_); }
 }
 
 void NovatelFilterIncludeMessageId(Filter* pclFilter_, uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
-    if (pclFilter_) { pclFilter_->IncludeMessageId(uiId_, eFormat_, eSource_); }
+    if (pclFilter_ != nullptr) { pclFilter_->IncludeMessageId(uiId_, eFormat_, eSource_); }
 }
 
 void NovatelFilterInvertMessageIdFilter(Filter* pclFilter_, bool bInvert_)
 {
-    if (pclFilter_) { pclFilter_->InvertMessageIdFilter(bInvert_); }
+    if (pclFilter_ != nullptr) { pclFilter_->InvertMessageIdFilter(bInvert_); }
 }
 
 void NovatelFilterIncludeMessageName(Filter* pclFilter_, uint8_t* pucMessageName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
-    if (pclFilter_ && pucMessageName_) { pclFilter_->IncludeMessageName(std::string(reinterpret_cast<char*>(pucMessageName_)), eFormat_, eSource_); }
+    if ((pclFilter_ != nullptr) && (pucMessageName_ != nullptr))
+    {
+        pclFilter_->IncludeMessageName(std::string(reinterpret_cast<char*>(pucMessageName_)), eFormat_, eSource_);
+    }
 }
 
 void NovatelFilterInvertMessageNameFilter(Filter* pclFilter_, bool bInvert_)
 {
-    if (pclFilter_) { pclFilter_->InvertMessageNameFilter(bInvert_); }
+    if (pclFilter_ != nullptr) { pclFilter_->InvertMessageNameFilter(bInvert_); }
 }
 
 void NovatelFilterIncludeNmeaMessages(Filter* pclFilter_, bool bInvert_)
 {
-    if (pclFilter_) { pclFilter_->IncludeNmeaMessages(bInvert_); }
+    if (pclFilter_ != nullptr) { pclFilter_->IncludeNmeaMessages(bInvert_); }
 }
 
 bool NovatelFilterDoFiltering(Filter* pclFilter_, MetaDataStruct* pstMetaData_)
 {
-    return pclFilter_ && pstMetaData_ ? pclFilter_->DoFiltering(*pstMetaData_) : false;
+    return (pclFilter_ != nullptr) && (pstMetaData_ != nullptr) ? pclFilter_->DoFiltering(*pstMetaData_) : false;
 }
 
 void NovatelFilterClearFilters(Filter* pclFilter_)
 {
-    if (pclFilter_) { pclFilter_->ClearFilters(); }
+    if (pclFilter_ != nullptr) { pclFilter_->ClearFilters(); }
 }

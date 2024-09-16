@@ -724,11 +724,11 @@ MessageDecoderBase::Decode(unsigned char* pucMessage_, std::vector<FieldContaine
     }
     else
     {
-        if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
+        if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
         vMsgDef = pclMyMsgDb->GetMsgDef(stMetaData_.usMessageId);
 
-        if (!vMsgDef)
+        if (vMsgDef == nullptr)
         {
             pclMyLogger->warn("No log definition for ID {}", stMetaData_.usMessageId);
             return STATUS::NO_DEFINITION;

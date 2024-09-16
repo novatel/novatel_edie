@@ -53,7 +53,7 @@ struct FieldContainer;
 struct FieldContainer
 {
     std::variant<CONTAINER_TYPES> fieldValue;
-    const BaseField* fieldDef;
+    const BaseField* fieldDef{};
 
     template <class T> FieldContainer(T tFieldValue_, const BaseField* pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_) {}
 

@@ -57,12 +57,12 @@ class FileStream
      *  the same class.
      */
 
-    const char* pcMyFileName; /**< Character pointer for file name */
-                              /*! Private Copy Constructor
-                               *
-                               *  A copy constructor is a member function which initializes an object using another object of
-                               * the same class.
-                               */
+    const char* pcMyFileName{}; /**< Character pointer for file name */
+                                /*! Private Copy Constructor
+                                 *
+                                 *  A copy constructor is a member function which initializes an object using another object of
+                                 * the same class.
+                                 */
 
     /*! \brief Calculate Total file size
      */
@@ -154,7 +154,7 @@ class FileStream
      *  \return Percentage of Read.
      *  \remark If file length is '0', Then exception"...file  size not valid" will be thrown.
      */
-    uint32_t CalculatePercentage(uint64_t ullCurrentFileRead) const;
+    [[nodiscard]] uint32_t CalculatePercentage(uint64_t ullCurrentFileRead) const;
 
     /*! \brief Reads uiSize characters of data from fstream file and stores
      *  them in the array pointed by cData also fills the StreamReadStatus structure.
@@ -196,15 +196,15 @@ class FileStream
 
     /*! \return Total file length.
      */
-    uint64_t GetFileLength() const { return ullMyFileLength; }
+    [[nodiscard]] uint64_t GetFileLength() const { return ullMyFileLength; }
 
     /*! \return File Name.
      */
-    std::string GetFileName() const { return clFilePath.string(); }
+    [[nodiscard]] std::string GetFileName() const { return clFilePath.string(); }
 
     /*! \return current file size which user has read so far.
      */
-    uint64_t GetCurrentFileSize() const { return ullMyCurrentFileSize; }
+    [[nodiscard]] uint64_t GetCurrentFileSize() const { return ullMyCurrentFileSize; }
 
     /*! \return file stream pointer.
      */
@@ -226,11 +226,11 @@ class FileStream
 
     /*! \return current file offset.
      */
-    uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; }
+    [[nodiscard]] uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; }
 
     /*! \return u32string filename.
      */
-    std::u32string Get32StringFileName() const { return clFilePath.generic_u32string(); }
+    [[nodiscard]] std::u32string Get32StringFileName() const { return clFilePath.generic_u32string(); }
 };
 
 #endif

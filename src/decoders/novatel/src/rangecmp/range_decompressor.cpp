@@ -304,7 +304,7 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
 
     // If the user is asking for more bits than are available in the buffer, don't do anything.
     uint32_t uiRemainderBits = uiBitsInBitfield_ % BITS_PER_BYTE;
-    uint32_t uiBytesRequired = uiBitsInBitfield_ / BITS_PER_BYTE + (uiRemainderBits ? 1 : 0);
+    uint32_t uiBytesRequired = uiBitsInBitfield_ / BITS_PER_BYTE + (uiRemainderBits != 0u ? 1 : 0);
     if (uiBytesRequired > uiMyBytesRemaining)
     {
         pclMyLogger->critical("Not enough bytes in this buffer. Required {}, have {}.", uiBytesRequired, uiMyBytesRemaining);
@@ -321,7 +321,7 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
     // Iterate over each bit, adding the bit to the 64-bit return value if it is set.
     for (uint32_t uiBitsConsumed = 0; uiBitsConsumed < uiBitsInBitfield_; uiBitsConsumed++)
     {
-        if (ucCurrentByte & (1UL << uiMyBitOffset)) { ulBitfield |= (1ULL << uiBitsConsumed); }
+        if ((ucCurrentByte & (1UL << uiMyBitOffset)) != 0u) { ulBitfield |= (1ULL << uiBitsConsumed); }
 
         // Rollover to the next byte when we reach the end of the current byte.
         uiMyBitOffset++;
@@ -656,7 +656,7 @@ void RangeDecompressor::RangeCmpToRange(const RangeCmpStruct& stRangeCmpMessage_
 
         // Extend the sign
         auto iTempDoppler = static_cast<int32_t>(stRangeCmpData.ulDopplerFrequencyPSRField & RC_DOPPLER_FREQUENCY_MASK);
-        if (iTempDoppler & RC_DOPPLER_FREQUENCY_SIGNBIT_MASK) { iTempDoppler |= RC_DOPPLER_FREQUENCY_SIGNEXT_MASK; }
+        if ((iTempDoppler & RC_DOPPLER_FREQUENCY_SIGNBIT_MASK) != 0u) { iTempDoppler |= RC_DOPPLER_FREQUENCY_SIGNEXT_MASK; }
         stRangeData.fDopplerFrequency = static_cast<float>(iTempDoppler / RC_DOPPLER_FREQUENCY_SCALE_FACTOR);
 
         stRangeData.dPSR = static_cast<double>(((stRangeCmpData.ulDopplerFrequencyPSRField & RC_PSR_MEASUREMENT_MASK) >> RC_PSR_MEASUREMENT_SHIFT) /
@@ -703,12 +703,12 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
         // Extend the sign
         auto iPSRBase = static_cast<int32_t>(static_cast<uint64_t>(stRangeCmp2SatBlock.ulCombinedField & RC2_SAT_SATELLITE_PSR_BASE_MASK) >>
                                              RC2_SAT_SATELLITE_PSR_BASE_SHIFT);
-        if (iPSRBase & RC2_SAT_SATELLITE_PSR_BASE_SIGNBIT_MASK) { iPSRBase |= RC2_SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK; }
+        if ((iPSRBase & RC2_SAT_SATELLITE_PSR_BASE_SIGNBIT_MASK) != 0u) { iPSRBase |= RC2_SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK; }
 
         // Extend the sign
         auto iDopplerBase = static_cast<int32_t>(static_cast<uint64_t>(stRangeCmp2SatBlock.ulCombinedField & RC2_SAT_SATELLITE_DOPPLER_BASE_MASK) >>
                                                  RC2_SAT_SATELLITE_DOPPLER_BASE_SHIFT);
-        if (iDopplerBase & RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNBIT_MASK) { iDopplerBase |= RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK; }
+        if ((iDopplerBase & RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNBIT_MASK) != 0u) { iDopplerBase |= RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK; }
 
         uiRangeDataBytesDecompressed += sizeof(RangeCmp2SatelliteBlockStruct);
 
@@ -731,7 +731,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
             // Extend the sign
             auto iDopplerBitfield = static_cast<int32_t>(static_cast<uint64_t>(stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_DOPPLER_DIFF_MASK) >>
                                                          RC2_SIG_DOPPLER_DIFF_SHIFT);
-            if (iDopplerBitfield & RC2_SIG_DOPPLER_DIFF_SIGNBIT_MASK) { iDopplerBitfield |= RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK; }
+            if ((iDopplerBitfield & RC2_SIG_DOPPLER_DIFF_SIGNBIT_MASK) != 0u) { iDopplerBitfield |= RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK; }
 
             const auto fPSRDiff = static_cast<float>((stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_PSR_DIFF_MASK) >> RC2_SIG_PSR_DIFF_SHIFT);
             const auto fPhaseRangeDiff = static_cast<float>(
@@ -812,7 +812,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
         vPRNs.clear();
 
         // Does this message have any data for this satellite system?
-        if (usSatelliteSystems & (1UL << static_cast<uint16_t>(aeTheRangeCmp4SatelliteSystem)))
+        if ((usSatelliteSystems & (1UL << static_cast<uint16_t>(aeTheRangeCmp4SatelliteSystem))) != 0u)
         {
             ulSatellites = GetBitfieldFromBuffer(&pucTempDataPointer, RC4_SATELLITES_BITS);
             usSignals = static_cast<uint16_t>(GetBitfieldFromBuffer(&pucTempDataPointer, RC4_SIGNALS_BITS));
@@ -820,14 +820,14 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
             // Collect the signals tracked in this satellite system.
             for (RangeCmp4::SIGNAL_TYPE eCurrentSignalType : mvTheRangeCmp4SystemSignalMasks[aeTheRangeCmp4SatelliteSystem])
             {
-                if (usSignals & (1UL << static_cast<uint16_t>(eCurrentSignalType))) { vSignals.push_back(eCurrentSignalType); }
+                if ((usSignals & (1UL << static_cast<uint16_t>(eCurrentSignalType))) != 0u) { vSignals.push_back(eCurrentSignalType); }
             }
 
             // Collect the satellite PRNs tracked in this satellite system.
             for (uint8_t ucBitPosition = 0; ucBitPosition < RC4_SATELLITES_BITS; ucBitPosition++)
             {
                 // Note that ucBitPosition contains the PRN value at this point.
-                if (ulSatellites & (1ULL << ucBitPosition))
+                if ((ulSatellites & (1ULL << ucBitPosition)) != 0u)
                 {
                     vPRNs.push_back(ucBitPosition + 1); // Bit position is PRN-1, so +1 here
                 }
@@ -878,7 +878,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                     }
 
                     // Is the signal included?
-                    if (ulIncludedSignals & (1ULL << uiSignalBitMaskShift++))
+                    if ((ulIncludedSignals & (1ULL << uiSignalBitMaskShift++)) != 0u)
                     {
                         if (!stMeasurementBlockHeader.bIsDifferentialData) // This is a reference block.
                         {
@@ -984,9 +984,9 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
                               ENCODE_FORMAT eFormat_)
 {
     // Check for buffer validity
-    if (!pucRangeMessageBuffer_) { return STATUS::NULL_PROVIDED; }
+    if (pucRangeMessageBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
-    if (!pclMyMsgDB) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDB == nullptr) { return STATUS::NO_DATABASE; }
 
     MessageDataStruct stMessageData;
     IntermediateHeader stHeader;

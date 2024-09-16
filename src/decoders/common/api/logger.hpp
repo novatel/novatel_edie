@@ -165,7 +165,7 @@ class Logger
     /** \brief Add console output to the logger
      *  \param[in] eLevel_  The logging level to enable.
      */
-    static void AddConsoleLogging(std::shared_ptr<spdlog::logger> lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug)
+    static void AddConsoleLogging(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug)
     {
         // Console sink, with no formatting/metadata
         auto pclConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -182,8 +182,8 @@ class Logger
      *  \param[in] uiMaxFiles_  Max number of rotating files.
      *  \param[in] bRotateOnOpen_  Rotate files on open.
      */
-    static void AddRotatingFileLogger(std::shared_ptr<spdlog::logger> lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug,
-                                      std::string sFileName_ = "edie.log", uint32_t uiFileSize_ = 5 * 1024 * 1024, uint32_t uiMaxFiles_ = 2,
+    static void AddRotatingFileLogger(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug,
+                                      const std::string& sFileName_ = "edie.log", uint32_t uiFileSize_ = 5 * 1024 * 1024, uint32_t uiMaxFiles_ = 2,
                                       bool bRotateOnOpen_ = true)
     {
         if (mRotatingFiles.find(sFileName_) != mRotatingFiles.end()) { lgr->sinks().push_back(mRotatingFiles.at(sFileName_)); }
