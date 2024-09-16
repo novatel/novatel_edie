@@ -68,7 +68,7 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer;
 
     // Inline buffer functions
-    [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, ...)
+    [[nodiscard]] static bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, ...)
     {
         va_list args;
         va_start(args, szFormat_);

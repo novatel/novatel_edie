@@ -151,7 +151,7 @@ class EncoderBase
     [[nodiscard]] bool EncodeJsonBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
     virtual void InitEnumDefinitions();
-    void InitFieldMaps();
+    static void InitFieldMaps();
 
   public:
     //----------------------------------------------------------------------------

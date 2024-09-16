@@ -418,13 +418,13 @@ std::string JsonReader::MsgIdToMsgName(const uint32_t uiMessageId_) const
     const MessageDefinition* pstMessageDefinition = GetMsgDef(usLogId);
     std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions.data(), usLogId);
 
-    std::string strMessageFormatSuffix = uiResponse != 0u                                                   ? "R"
+    std::string strMessageFormatSuffix = uiResponse != 0U                                                   ? "R"
                                          : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY) ? "B"
                                          : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)
                                              ? "A"
                                              : ""; // default to abbreviated ASCII format
 
-    if (uiSiblingId != 0u) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
+    if (uiSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
 
     return strMessageName.append(strMessageFormatSuffix);
 }

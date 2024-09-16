@@ -37,7 +37,7 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
     const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
 
     // Append sibling i.e. the _1 of RANGEA_1
-    if (uiSiblingId != 0u) { sMsgName_.append("_").append(std::to_string(uiSiblingId)); }
+    if (uiSiblingId != 0U) { sMsgName_.append("_").append(std::to_string(uiSiblingId)); }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -210,7 +210,7 @@ bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char**
     const MessageDefinition* pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
-    sMsgName.append(uiResponse != 0u ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
+    sMsgName.append(uiResponse != 0U ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
     return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ASCII_FIELD_SEPARATOR) &&
@@ -265,7 +265,7 @@ bool Encoder::EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, c
     // Message name
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
     const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
-    sMsgName.append(uiResponse != 0u ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
+    sMsgName.append(uiResponse != 0U ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
     return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ASCII_FIELD_SEPARATOR) &&

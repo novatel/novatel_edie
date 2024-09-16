@@ -103,8 +103,8 @@ class MessageDecoderBase
     [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField*>& vMsgDefFields_, json clJsonFields_,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
-    void DecodeBinaryField(const BaseField* pstMessageDataType_, unsigned char** ppucLogBuf_,
-                           std::vector<FieldContainer>& vIntermediateFormat_) const;
+    static void DecodeBinaryField(const BaseField* pstMessageDataType_, unsigned char** ppucLogBuf_,
+                                  std::vector<FieldContainer>& vIntermediateFormat_);
     void DecodeAsciiField(const BaseField* pstMessageDataType_, char** ppcToken_, size_t tokenLength_,
                           std::vector<FieldContainer>& vIntermediateFormat_) const;
     void DecodeJsonField(const BaseField* pstMessageDataType_, const json& clJsonField_, std::vector<FieldContainer>& vIntermediateFormat_) const;

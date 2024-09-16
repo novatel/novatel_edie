@@ -259,7 +259,7 @@ void MessageDecoderBase::SetLoggerLevel(const spdlog::level::level_enum eLevel_)
 
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::DecodeBinaryField(const BaseField* pstMessageDataType_, unsigned char** ppucLogBuf_,
-                                           std::vector<FieldContainer>& vIntermediateFormat_) const
+                                           std::vector<FieldContainer>& vIntermediateFormat_)
 {
     switch (pstMessageDataType_->dataType.name)
     {

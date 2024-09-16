@@ -84,7 +84,7 @@ class FramerTest : public ::testing::Test
         ASSERT_EQ(stTestMetaData, stExpectedMetaData);
     }
 
-    void WriteFileStreamToFramer(std::string sFilename_)
+    static void WriteFileStreamToFramer(std::string sFilename_)
     {
         pclMyIFS = std::make_unique<InputFileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
 
@@ -107,12 +107,12 @@ class FramerTest : public ::testing::Test
         pclMyIFS = nullptr;
     }
 
-    void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_)
+    static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_)
     {
         ASSERT_EQ(pclMyFramer->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
     }
 
-    void FlushFramer()
+    static void FlushFramer()
     {
         while (pclMyFramer->Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
     }
@@ -962,7 +962,7 @@ class DecodeEncodeTest : public ::testing::Test
         MESSAGE_DATA_COMPARISON_ERROR
     };
 
-    int32_t DecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
+    static int32_t DecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
     {
         IntermediateHeader stHeader;
         std::vector<FieldContainer> stMessage;
@@ -1015,7 +1015,7 @@ class DecodeEncodeTest : public ::testing::Test
         }
     }
 
-    int TestDecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_)
+    static int TestDecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_)
     {
         MetaDataStruct stMetaData;
         MessageDataStruct stMessageData;
@@ -1026,7 +1026,7 @@ class DecodeEncodeTest : public ::testing::Test
         return DecodeEncode(eFormat_, pucMessageBuffer_, pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, stMessageData);
     }
 
-    int TestSameFormatCompare(ENCODE_FORMAT eFormat_, MessageDataStruct* pstExpectedMessageData_)
+    static int TestSameFormatCompare(ENCODE_FORMAT eFormat_, MessageDataStruct* pstExpectedMessageData_)
     {
         MetaDataStruct stMetaData;
         MessageDataStruct stMessageData;
@@ -1043,7 +1043,7 @@ class DecodeEncodeTest : public ::testing::Test
                                                                                                                      : SUCCESS;
     }
 
-    int32_t TestConversion(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, MessageDataStruct* pstExpectedMessageData_)
+    static int32_t TestConversion(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, MessageDataStruct* pstExpectedMessageData_)
     {
         MetaDataStruct stMetaData;
         MessageDataStruct stMessageData;
@@ -2179,7 +2179,7 @@ class CommandEncodeTest : public ::testing::Test
     static void TearDownTestSuite() { Logger::Shutdown(); }
 
   public:
-    STATUS TestCommandConversion(std::string sCommandToEncode_, char* pcEncodedCommandBuffer_, uint32_t uiEncodedCommandBufferSize_, ENCODE_FORMAT eFormat_)
+    static STATUS TestCommandConversion(std::string sCommandToEncode_, char* pcEncodedCommandBuffer_, uint32_t uiEncodedCommandBufferSize_, ENCODE_FORMAT eFormat_)
     {
         return pclMyCommander->Encode(sCommandToEncode_.c_str(), static_cast<uint32_t>(sCommandToEncode_.length()), pcEncodedCommandBuffer_, uiEncodedCommandBufferSize_, eFormat_);
     }
@@ -2303,23 +2303,23 @@ void BenchmarkHelper(BenchmarkTest& test, unsigned char* aucLog)
         uint32_t uiCount = 0;
 
         auto start = std::chrono::system_clock::now();
-        while (uiCount < test.uiMaxCount)
+        while (uiCount < BenchmarkTest::uiMaxCount)
         {
             pucLogPtr = aucLog;
-            if (STATUS::SUCCESS != test.pclMyHeaderDecoder->Decode(pucLogPtr, stHeader, stMetaData))
+            if (STATUS::SUCCESS != BenchmarkTest::pclMyHeaderDecoder->Decode(pucLogPtr, stHeader, stMetaData))
             {
                 bFailedOnce = true;
                 break;
             }
 
             pucLogPtr += stMetaData.uiHeaderLength;
-            if (STATUS::SUCCESS != test.pclMyMessageDecoder->Decode(pucLogPtr, stMessage, stMetaData))
+            if (STATUS::SUCCESS != BenchmarkTest::pclMyMessageDecoder->Decode(pucLogPtr, stMessage, stMetaData))
             {
                 bFailedOnce = true;
                 break;
             }
 
-            if (STATUS::SUCCESS != test.pclMyEncoder->Encode(&pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData, stMetaData, eFormat))
+            if (STATUS::SUCCESS != BenchmarkTest::pclMyEncoder->Encode(&pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData, stMetaData, eFormat))
             {
                 bFailedOnce = true;
                 break;
@@ -2382,7 +2382,7 @@ class FilterTest : public ::testing::Test
     }
 
   public:
-    bool TestFilter(const unsigned char* pucMessage_)
+    static bool TestFilter(const unsigned char* pucMessage_)
     {
         MetaDataStruct stMetaData;
         IntermediateHeader stHeader;
@@ -2396,12 +2396,12 @@ class FilterTest : public ::testing::Test
         return pclMyFilter->DoFiltering(stMetaData);
     }
 
-    bool TestFilter(const std::initializer_list<unsigned char>& data)
+    static bool TestFilter(const std::initializer_list<unsigned char>& data)
     {
         return TestFilter(reinterpret_cast<const unsigned char*>(data.begin()));
     }
 
-    bool TestFilter(const char* str)
+    static bool TestFilter(const char* str)
     {
         return TestFilter(reinterpret_cast<const unsigned char*>(str));
     }

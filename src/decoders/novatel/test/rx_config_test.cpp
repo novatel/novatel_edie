@@ -61,13 +61,13 @@ class RxConfigTest : public ::testing::Test
     void TearDown() override { pclMyRxConfigHandler->Flush(); }
 
   public:
-    void WriteBytesToHandler(unsigned char* pucBytes_, uint32_t uiNumBytes_)
+    static void WriteBytesToHandler(unsigned char* pucBytes_, uint32_t uiNumBytes_)
     {
         ASSERT_EQ(pclMyRxConfigHandler->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
     }
 
-    bool TestSameFormatCompare(ENCODE_FORMAT eFormat_, MessageDataStruct* pstExpectedRxConfigMessageData_,
-                               MessageDataStruct* pstExpectedEmbeddedMessageData_)
+    static bool TestSameFormatCompare(ENCODE_FORMAT eFormat_, MessageDataStruct* pstExpectedRxConfigMessageData_,
+                                      MessageDataStruct* pstExpectedEmbeddedMessageData_)
     {
         MetaDataStruct stTestRxConfigMetaData;
         MetaDataStruct stTestEmbeddedMetaData;

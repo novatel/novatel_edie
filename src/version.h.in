@@ -1,5 +1,4 @@
 #include <string>
-#include <string.h>
 
 #define RELEASE_VERSION "3.3.7"
 #define GIT_SHA "@GIT_SHA@"

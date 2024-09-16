@@ -844,8 +844,7 @@ struct ChannelTrackingStatusStruct
     }
 
     //! Convert a RANGECMP2 signal type to the channel tracking status enumeration.
-    SIGNAL_TYPE
-    RangeCmp2SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, RangeCmp2::SIGNAL_TYPE eSignalType_)
+    static SIGNAL_TYPE RangeCmp2SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, RangeCmp2::SIGNAL_TYPE eSignalType_)
     {
         switch (eSystem_)
         {
@@ -900,8 +899,7 @@ struct ChannelTrackingStatusStruct
     }
 
     //! Convert a RANGECMP4 signal type to the channel tracking status enumeration.
-    SIGNAL_TYPE
-    RangeCmp4SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, RangeCmp4::SIGNAL_TYPE eSignalType_)
+    static SIGNAL_TYPE RangeCmp4SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, RangeCmp4::SIGNAL_TYPE eSignalType_)
     {
         switch (eSystem_)
         {
@@ -956,8 +954,7 @@ struct ChannelTrackingStatusStruct
     }
 
     //! Convert a SYSTEM enumeration to a channel tracking status SATELLITE_SYSTEM.
-    SATELLITE_SYSTEM
-    SystemToSatelliteSystem(SYSTEM eSystem_)
+    static SATELLITE_SYSTEM SystemToSatelliteSystem(SYSTEM eSystem_)
     {
         return eSystem_ == SYSTEM::GPS       ? SATELLITE_SYSTEM::GPS
                : eSystem_ == SYSTEM::GLONASS ? SATELLITE_SYSTEM::GLONASS

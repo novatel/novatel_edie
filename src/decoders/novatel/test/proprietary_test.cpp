@@ -58,7 +58,7 @@ class ProprietaryFramerTest : public ::testing::Test
     void TearDown() override { FlushFramer(); }
 
   public:
-    void WriteFileStreamToFramer(const std::string& sFilename_)
+    static void WriteFileStreamToFramer(const std::string& sFilename_)
     {
         pclMyIFS = std::make_unique<InputFileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
 
@@ -79,9 +79,12 @@ class ProprietaryFramerTest : public ::testing::Test
         stReadData.cData = nullptr;
     }
 
-    void WriteBytesToFramer(unsigned char* pucBytes_, uint32_t uiNumBytes_) { ASSERT_EQ(pclMyFramer->Write(pucBytes_, uiNumBytes_), uiNumBytes_); }
+    static void WriteBytesToFramer(unsigned char* pucBytes_, uint32_t uiNumBytes_)
+    {
+        ASSERT_EQ(pclMyFramer->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
+    }
 
-    void FlushFramer()
+    static void FlushFramer()
     {
         while (pclMyFramer->Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
     }
