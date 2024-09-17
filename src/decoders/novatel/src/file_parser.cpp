@@ -125,7 +125,7 @@ unsigned char* FileParser::GetInternalBuffer() const { return clMyParser.GetInte
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::SetStream(InputFileStream* pclInputStream_)
 {
-    if (!pclInputStream_) { return false; }
+    if (pclInputStream_ == nullptr) { return false; }
     // TODO: This call is not implemented and returns false in the interface.
     // Is the stream available?
     // if (!pclInputStream_->IsStreamAvailable())

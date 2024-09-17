@@ -30,7 +30,7 @@ using namespace novatel::edie;
 
 bool NovatelMessageDecoderSetLoggerLevel(oem::MessageDecoder* pclMessageDecoder_, uint32_t uiLogLevel_)
 {
-    return pclMessageDecoder_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
+    return (pclMessageDecoder_ != nullptr) && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclMessageDecoder_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
@@ -39,7 +39,7 @@ oem::MessageDecoder* NovatelMessageDecoderInit(JsonReader* pclJsonDb_) { return 
 
 void NovatelMessageDecoderDelete(oem::MessageDecoder* pclMessageDecoder_)
 {
-    if (pclMessageDecoder_)
+    if (pclMessageDecoder_ != nullptr)
     {
         delete pclMessageDecoder_;
         pclMessageDecoder_ = nullptr;
@@ -48,21 +48,22 @@ void NovatelMessageDecoderDelete(oem::MessageDecoder* pclMessageDecoder_)
 
 void NovatelMessageDecoderLoadJson(oem::MessageDecoder* pclMessageDecoder_, JsonReader* pclJsonDb_)
 {
-    if (pclMessageDecoder_ && pclJsonDb_) { pclMessageDecoder_->LoadJsonDb(pclJsonDb_); }
+    if ((pclMessageDecoder_ != nullptr) && (pclJsonDb_ != nullptr)) { pclMessageDecoder_->LoadJsonDb(pclJsonDb_); }
 }
 
 STATUS NovatelMessageDecoderDecode(oem::MessageDecoder* pclMessageDecoder_, unsigned char* pucLogBuf_, std::vector<FieldContainer>* pstInterMessage_,
                                    oem::MetaDataStruct* pstMetaData_)
 {
-    return pclMessageDecoder_ && pstInterMessage_ && pstMetaData_ ? pclMessageDecoder_->Decode(pucLogBuf_, *pstInterMessage_, *pstMetaData_)
-                                                                  : STATUS::NULL_PROVIDED;
+    return (pclMessageDecoder_ != nullptr) && (pstInterMessage_ != nullptr) && (pstMetaData_ != nullptr)
+               ? pclMessageDecoder_->Decode(pucLogBuf_, *pstInterMessage_, *pstMetaData_)
+               : STATUS::NULL_PROVIDED;
 }
 
 std::vector<FieldContainer>* NovatelIntermediateMessageInit() { return new std::vector<FieldContainer>(); }
 
 void NovatelIntermediateMessageDelete(std::vector<FieldContainer>* pstInterMessage_)
 {
-    if (pstInterMessage_)
+    if (pstInterMessage_ != nullptr)
     {
         delete pstInterMessage_;
         pstInterMessage_ = nullptr;

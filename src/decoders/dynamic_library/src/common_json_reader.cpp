@@ -36,7 +36,7 @@ JsonReader* CommonJsonReaderInit()
 
 bool CommonJsonReaderLoadFile(JsonReader* pclJsonDb_, const char* pcJsonDbFilepath_)
 {
-    if (!pclJsonDb_) { return false; }
+    if (pclJsonDb_ == nullptr) { return false; }
 
     try
     {
@@ -52,7 +52,7 @@ bool CommonJsonReaderLoadFile(JsonReader* pclJsonDb_, const char* pcJsonDbFilepa
 
 bool CommonJsonReaderParseJson(JsonReader* pclJsonDb_, const char* pcJsonData_)
 {
-    if (!pclJsonDb_) { return false; }
+    if (pclJsonDb_ == nullptr) { return false; }
 
     try
     {
@@ -68,7 +68,7 @@ bool CommonJsonReaderParseJson(JsonReader* pclJsonDb_, const char* pcJsonData_)
 
 bool CommonJsonReaderDelete(JsonReader* pclJsonDb_)
 {
-    if (!pclJsonDb_) { return false; }
+    if (pclJsonDb_ == nullptr) { return false; }
 
     try
     {

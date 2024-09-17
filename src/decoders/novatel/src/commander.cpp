@@ -100,7 +100,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
 {
     constexpr uint32_t thisPort = 0xC0;
 
-    if (!pcAbbrevAsciiCommand_ || !pcEncodeBuffer_) { return STATUS::NULL_PROVIDED; }
+    if ((pcAbbrevAsciiCommand_ == nullptr) || (pcEncodeBuffer_ == nullptr)) { return STATUS::NULL_PROVIDED; }
 
     if (eEncodeFormat_ != ENCODE_FORMAT::ASCII && eEncodeFormat_ != ENCODE_FORMAT::BINARY) { return STATUS::UNSUPPORTED; }
 
@@ -114,10 +114,10 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     std::copy(strCmdParams.begin(), strCmdParams.end(), acCmdParams);
     acCmdParams[strCmdParams.size()] = '\0';
 
-    if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     const MessageDefinition* pclMessageDef = pclMyMsgDb->GetMsgDef(strCmdName);
-    if (!pclMessageDef) { return STATUS::NO_DEFINITION; }
+    if (pclMessageDef == nullptr) { return STATUS::NO_DEFINITION; }
 
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;
@@ -156,7 +156,7 @@ STATUS Commander::Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMe
 {
     constexpr uint32_t thisPort = 0xC0;
 
-    if (!pcAbbrevAsciiCommand_ || !pcEncodeBuffer_) { return STATUS::NULL_PROVIDED; }
+    if ((pcAbbrevAsciiCommand_ == nullptr) || (pcEncodeBuffer_ == nullptr)) { return STATUS::NULL_PROVIDED; }
 
     if (eEncodeFormat_ != ENCODE_FORMAT::ASCII && eEncodeFormat_ != ENCODE_FORMAT::BINARY) { return STATUS::UNSUPPORTED; }
 
@@ -171,7 +171,7 @@ STATUS Commander::Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMe
     acCmdParams[strCmdParams.size()] = '\0';
 
     const MessageDefinition* pclMessageDef = clJsonDb_.GetMsgDef(strCmdName);
-    if (!pclMessageDef) { return STATUS::NO_DEFINITION; }
+    if (pclMessageDef == nullptr) { return STATUS::NO_DEFINITION; }
 
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;

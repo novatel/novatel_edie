@@ -62,34 +62,34 @@ class OutputStreamInterface
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
      */
-    virtual void SelectFileStream(const std::string&) {}
+    virtual void SelectFileStream(const std::string& /*unused*/) {}
 
     /** A virtual member.
      *  \brief Enable/Disable Splitting of logs into different output files.
      *  \remark Enable/Disable log Splitting. If enabled, split type will be set to SPLIT_LOG
      *  If disabled split type will be set to SPLIT_NONE
      */
-    virtual void ConfigureSplitByLog(bool) {}
+    virtual void ConfigureSplitByLog(bool /*unused*/) {}
 
     /** A virtual member.
      *  \brief Gets base file name and extension of it.
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
-    virtual void ConfigureBaseFileName(const std::string&) {}
+    virtual void ConfigureBaseFileName(const std::string& /*unused*/) {}
 
     /** A virtual member.
      *  \brief Split file into different output file with defined size.
      *  \remark Output files with ullFileSplitSize size will be created while writing to the output.
      */
-    virtual void ConfigureSplitBySize(uint64_t) {}
+    virtual void ConfigureSplitBySize(uint64_t /*unused*/) {}
 
     /** A virtual member.
      *  \brief Sets the interval of time the file to be split.
      *  \remark Different output files will be created with the logs,
      *  in which will be captured in the time interval provided.
      */
-    virtual void ConfigureSplitByTime(double) {}
+    virtual void ConfigureSplitByTime(double /*unused*/) {}
 
     /** A virtual member.
      * \return MemoryStream Object which had buffer.
@@ -102,14 +102,14 @@ class OutputStreamInterface
      *  \remark FileStream Object will be created and added to map.
      *  If already created, The file with name stFileName will be set for writing.
      */
-    virtual void SelectFileStream(const std::u32string&) {}
+    virtual void SelectFileStream(const std::u32string& /*unused*/) {}
 
     /** A virtual member
      *  \brief Gets wide character base file name and extension of it.
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
-    virtual void ConfigureBaseFileName(const std::u32string&) {}
+    virtual void ConfigureBaseFileName(const std::u32string& /*unused*/) {}
     // #endif
 
   private:

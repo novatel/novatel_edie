@@ -31,7 +31,7 @@ using namespace novatel::edie::oem;
 
 bool NovatelEncoderSetLoggerLevel(Encoder* pclEncoder_, uint32_t uiLogLevel_)
 {
-    return pclEncoder_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
+    return (pclEncoder_ != nullptr) && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclEncoder_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
@@ -40,7 +40,7 @@ Encoder* NovatelEncoderInit(JsonReader* pclJsonDb_) { return new Encoder(pclJson
 
 void NovatelEncoderDelete(Encoder* pclEncoder_)
 {
-    if (pclEncoder_)
+    if (pclEncoder_ != nullptr)
     {
         delete pclEncoder_;
         pclEncoder_ = nullptr;
@@ -49,14 +49,15 @@ void NovatelEncoderDelete(Encoder* pclEncoder_)
 
 void NovatelEncoderLoadJson(Encoder* pclEncoder_, JsonReader* pclJsonDb_)
 {
-    if (pclEncoder_ && pclJsonDb_) { pclEncoder_->LoadJsonDb(pclJsonDb_); }
+    if ((pclEncoder_ != nullptr) && (pclJsonDb_ != nullptr)) { pclEncoder_->LoadJsonDb(pclJsonDb_); }
 }
 
 STATUS NovatelEncoderEncode(Encoder* pclEncoder_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, IntermediateHeader* pstInterHeader_,
                             std::vector<FieldContainer>* pstInterMessage_, MessageDataStruct* pstMessageData_, MetaDataStruct* pstMetaData_,
                             ENCODE_FORMAT eEncodeFormat_)
 {
-    return pclEncoder_ && pucEncodeBuffer_ && pstInterHeader_ && pstInterMessage_ && pstMessageData_ && pstMetaData_
+    return (pclEncoder_ != nullptr) && (pucEncodeBuffer_ != nullptr) && (pstInterHeader_ != nullptr) && (pstInterMessage_ != nullptr) &&
+                   (pstMessageData_ != nullptr) && (pstMetaData_ != nullptr)
                ? pclEncoder_->Encode(&pucEncodeBuffer_, uiEncodeBufferSize_, *pstInterHeader_, *pstInterMessage_, *pstMessageData_, *pstMetaData_,
                                      eEncodeFormat_)
                : STATUS::NULL_PROVIDED;

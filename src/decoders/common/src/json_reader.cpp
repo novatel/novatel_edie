@@ -369,7 +369,7 @@ uint32_t JsonReader::MsgNameToMsgId(std::string sMsgName_) const
 
     // If this is an abbrev msg (no format information), we will be able to find the MsgDef
     const MessageDefinition* pclMessageDef = GetMsgDef(sMsgName_);
-    if (pclMessageDef)
+    if (pclMessageDef != nullptr)
     {
         uiResponse = static_cast<uint32_t>(false);
         uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV);
@@ -402,7 +402,7 @@ uint32_t JsonReader::MsgNameToMsgId(std::string sMsgName_) const
 
     pclMessageDef = GetMsgDef(sMsgName_);
 
-    return pclMessageDef ? CreateMsgId(pclMessageDef->logID, uiSiblingId, uiMsgFormat, uiResponse) : 0;
+    return pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, uiSiblingId, uiMsgFormat, uiResponse) : 0;
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -416,15 +416,15 @@ std::string JsonReader::MsgIdToMsgName(const uint32_t uiMessageId_) const
     UnpackMsgId(uiMessageId_, usLogId, uiSiblingId, uiMessageFormat, uiResponse);
 
     const MessageDefinition* pstMessageDefinition = GetMsgDef(usLogId);
-    std::string strMessageName = pstMessageDefinition ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions.data(), usLogId);
+    std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions.data(), usLogId);
 
-    std::string strMessageFormatSuffix = uiResponse                                                         ? "R"
+    std::string strMessageFormatSuffix = uiResponse != 0U                                                   ? "R"
                                          : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY) ? "B"
                                          : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)
                                              ? "A"
                                              : ""; // default to abbreviated ASCII format
 
-    if (uiSiblingId) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
+    if (uiSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
 
     return strMessageName.append(strMessageFormatSuffix);
 }

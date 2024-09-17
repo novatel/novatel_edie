@@ -37,7 +37,7 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
     const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
 
     // Append sibling i.e. the _1 of RANGEA_1
-    if (uiSiblingId) { sMsgName_.append("_").append(std::to_string(uiSiblingId)); }
+    if (uiSiblingId != 0U) { sMsgName_.append("_").append(std::to_string(uiSiblingId)); }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -132,9 +132,9 @@ void Encoder::InitFieldMaps()
         const auto uiTempId = std::get<uint32_t>(fc_.fieldValue);
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
-        return sGloChan < 0 ? PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u%d")", usSv, sGloChan)
-               : sGloChan   ? PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u+%d")", usSv, sGloChan)
-                            : PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u")", usSv);
+        return sGloChan < 0    ? PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u%d")", usSv, sGloChan)
+               : sGloChan != 0 ? PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u+%d")", usSv, sGloChan)
+                               : PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u")", usSv);
     };
 
     jsonFieldMap[CalculateBlockCrc32("%k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -208,9 +208,9 @@ bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char**
 
     // Message name
     const MessageDefinition* pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
-    std::string sMsgName(pclMessageDef ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
+    std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
-    sMsgName.append(uiResponse ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
+    sMsgName.append(uiResponse != 0U ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
     return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ASCII_FIELD_SEPARATOR) &&
@@ -236,7 +236,7 @@ bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, 
 
     // Message name
     const MessageDefinition* pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
-    std::string sMsgName(pclMessageDef ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
+    std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     AppendSiblingId(sMsgName, stInterHeader_);
 
     return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ABBREV_ASCII_SEPARATOR) &&
@@ -265,7 +265,7 @@ bool Encoder::EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, c
     // Message name
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
     const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
-    sMsgName.append(uiResponse ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
+    sMsgName.append(uiResponse != 0U ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
     return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ASCII_FIELD_SEPARATOR) &&
@@ -293,7 +293,7 @@ std::string Encoder::JsonHeaderToMsgName(const IntermediateHeader& stInterHeader
 {
     // Message name
     const MessageDefinition* pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
-    std::string sMsgName(pclMessageDef ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
+    std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     AppendSiblingId(sMsgName, stInterHeader_);
 
     return sMsgName;
@@ -338,7 +338,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
-    if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
 
@@ -380,7 +380,7 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
-    if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     unsigned char* pucTempBuffer = *ppucBuffer_;
     auto** ppcTempBuffer = reinterpret_cast<char**>(&pucTempBuffer);
@@ -433,7 +433,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
     // TODO: this entire function should be in common, only header stuff and map redefinitions belong in this file
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
-    if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     unsigned char* pucTempBuffer = *ppucBuffer_;
 

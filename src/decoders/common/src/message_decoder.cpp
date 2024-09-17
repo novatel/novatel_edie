@@ -259,7 +259,7 @@ void MessageDecoderBase::SetLoggerLevel(const spdlog::level::level_enum eLevel_)
 
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::DecodeBinaryField(const BaseField* pstMessageDataType_, unsigned char** ppucLogBuf_,
-                                           std::vector<FieldContainer>& vIntermediateFormat_) const
+                                           std::vector<FieldContainer>& vIntermediateFormat_)
 {
     switch (pstMessageDataType_->dataType.name)
     {
@@ -724,11 +724,11 @@ MessageDecoderBase::Decode(unsigned char* pucMessage_, std::vector<FieldContaine
     }
     else
     {
-        if (!pclMyMsgDb) { return STATUS::NO_DATABASE; }
+        if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
         vMsgDef = pclMyMsgDb->GetMsgDef(stMetaData_.usMessageId);
 
-        if (!vMsgDef)
+        if (vMsgDef == nullptr)
         {
             pclMyLogger->warn("No log definition for ID {}", stMetaData_.usMessageId);
             return STATUS::NO_DEFINITION;

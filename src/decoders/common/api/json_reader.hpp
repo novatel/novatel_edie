@@ -54,11 +54,11 @@ class JsonReaderFailure : public std::exception
     int32_t line;
     std::filesystem::path clFilePath;
     const char* failure;
-    char acWhatString[256];
+    char acWhatString[256]{};
 
   public:
     JsonReaderFailure(const char* func_, const char* file_, const int32_t line_, std::filesystem::path jsonFile_, const char* failure_)
-        : func(func_), file(file_), line(line_), clFilePath(std::move(jsonFile_)), failure(failure_), acWhatString{}
+        : func(func_), file(file_), line(line_), clFilePath(std::move(jsonFile_)), failure(failure_)
     {
     }
 
@@ -268,7 +268,7 @@ struct BaseField
         const char* sConvertString = conversion.c_str();
         int32_t* iSelectedPoint = &iBeforePoint_;
 
-        while (*sConvertString)
+        while (*sConvertString != 0)
         {
             // "0x" could be a prefix on a hex field (0x%...) or a valid conversion string (%0x).
             // Prevent these two cases from occurring at the same time.
@@ -283,7 +283,7 @@ struct BaseField
                 sConvertString = sConvertString + (*iSelectedPoint > 9 ? 2 : 1); // Skip the numerals
             }
 
-            if (std::isalpha(*sConvertString) || *sConvertString == '%')
+            if ((std::isalpha(*sConvertString) != 0) || *sConvertString == '%')
             {
                 strStrippedConversionString_.push_back(sConvertString[0]);
                 sConvertString++;

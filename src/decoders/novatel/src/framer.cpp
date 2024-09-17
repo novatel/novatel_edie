@@ -65,14 +65,14 @@ bool Framer::IsAbbrevAsciiResponse() const
     {
         for (uint32_t i = 0; i < okLen; i++) { szResponse[i] = clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + i]; }
 
-        if (strstr(szResponse, "OK")) { return true; }
+        if (strstr(szResponse, "OK") != nullptr) { return true; }
     }
 
     if (uiMyAbbrevAsciiHeaderPosition + errorLen < clMyCircularDataBuffer.GetLength())
     {
         for (uint32_t i = 0; i < errorLen; i++) { szResponse[i] = clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + i]; }
 
-        if (strstr(szResponse, "ERROR")) { return true; }
+        if (strstr(szResponse, "ERROR") != nullptr) { return true; }
     }
 
     return false;
@@ -218,7 +218,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             break;
 
         case NovAtelFrameState::WAITING_FOR_ABB_ASCII_SYNC2:
-            if (ucDataByte != OEM4_ABBREV_ASCII_SEPARATOR && isalpha(ucDataByte)) { eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_HEADER; }
+            if (ucDataByte != OEM4_ABBREV_ASCII_SEPARATOR && (isalpha(ucDataByte) != 0))
+            {
+                eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_HEADER;
+            }
             else
             {
                 stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;

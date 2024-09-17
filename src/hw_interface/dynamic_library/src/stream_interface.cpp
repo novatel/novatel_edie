@@ -34,7 +34,7 @@ InputFileStream* ifs_init(char* pcInputFilePath_)
 
 void ifs_del(InputStreamInterface* pclIFS_)
 {
-    if (pclIFS_)
+    if (pclIFS_ != nullptr)
     {
         delete pclIFS_;
         pclIFS_ = nullptr;

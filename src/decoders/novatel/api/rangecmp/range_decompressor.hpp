@@ -81,7 +81,7 @@ class RangeDecompressor
     Encoder clMyEncoder;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    JsonReader* pclMyMsgDB;
+    JsonReader* pclMyMsgDB{};
 
     // Store the last primary reference blocks for each measurement source.
     RangeCmp4MeasurementSignalBlockStruct astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
@@ -106,7 +106,7 @@ class RangeDecompressor
         ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
 
   private:
-    double GetSignalWavelength(const ChannelTrackingStatusStruct& stChannelTrackingStatus_, int16_t sGLONASSFrequency_);
+    static double GetSignalWavelength(const ChannelTrackingStatusStruct& stChannelTrackingStatus_, int16_t sGLONASSFrequency_);
     float DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
                                                 ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                 ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_);
@@ -123,7 +123,7 @@ class RangeDecompressor
                                const MetaDataStruct& stMetaData_, const ChannelTrackingStatusStruct& stChannelTrackingStatus_, uint32_t uiPRN_,
                                char cGLONASSFrequencyNumber_);
 
-    void RangeCmpToRange(const RangeCmpStruct& stRangeCmpMessage_, RangeStruct& stRangeMessage_);
+    static void RangeCmpToRange(const RangeCmpStruct& stRangeCmpMessage_, RangeStruct& stRangeMessage_);
     void RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Message_, RangeStruct& stRangeMessage_, const MetaDataStruct& stMetaData_);
     void RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& pstMetaData_);
 

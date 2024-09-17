@@ -33,7 +33,7 @@ using namespace novatel::edie::oem;
 
 bool NovatelFramerSetLoggerLevel(Framer* pclFramer_, uint32_t uiLogLevel_)
 {
-    return pclFramer_ && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
+    return (pclFramer_ != nullptr) && uiLogLevel_ >= spdlog::level::level_enum::trace && uiLogLevel_ < spdlog::level::level_enum::n_levels
            ? pclFramer_->SetLoggerLevel(static_cast<spdlog::level::level_enum>(uiLogLevel_)),
            true : false;
 }
@@ -51,35 +51,36 @@ void NovatelFramerDelete(Framer* pclFramer_)
 
 void NovatelFramerFrameJson(Framer* pclFramer_, bool bFrameJson_)
 {
-    if (pclFramer_) { pclFramer_->SetFrameJson(bFrameJson_); }
+    if (pclFramer_ != nullptr) { pclFramer_->SetFrameJson(bFrameJson_); }
 }
 
 void NovatelFramerPayloadOnly(Framer* pclFramer_, bool bPayloadOnly_)
 {
-    if (pclFramer_) { pclFramer_->SetPayloadOnly(bPayloadOnly_); }
+    if (pclFramer_ != nullptr) { pclFramer_->SetPayloadOnly(bPayloadOnly_); }
 }
 
 void NovatelFramerReportUnknownBytes(Framer* pclFramer_, bool bReportUnknownBytes_)
 {
-    if (pclFramer_) { pclFramer_->SetReportUnknownBytes(bReportUnknownBytes_); }
+    if (pclFramer_ != nullptr) { pclFramer_->SetReportUnknownBytes(bReportUnknownBytes_); }
 }
 
 uint32_t NovatelFramerGetAvailableBytes(Framer* pclFramer_)
 {
-    return pclFramer_ ? pclFramer_->GetBytesAvailableInBuffer() : std::numeric_limits<uint32_t>::max();
+    return pclFramer_ != nullptr ? pclFramer_->GetBytesAvailableInBuffer() : std::numeric_limits<uint32_t>::max();
 }
 
 uint32_t NovatelFramerWrite(Framer* pclFramer_, unsigned char* pucBytes_, uint32_t uiByteCount_)
 {
-    return pclFramer_ ? pclFramer_->Write(pucBytes_, uiByteCount_) : std::numeric_limits<uint32_t>::max();
+    return pclFramer_ != nullptr ? pclFramer_->Write(pucBytes_, uiByteCount_) : std::numeric_limits<uint32_t>::max();
 }
 
 STATUS NovatelFramerRead(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct* pstMetaData_)
 {
-    return pclFramer_ && pstMetaData_ ? pclFramer_->GetFrame(pucBuffer_, uiBufferSize_, *pstMetaData_) : STATUS::NULL_PROVIDED;
+    return (pclFramer_ != nullptr) && (pstMetaData_ != nullptr) ? pclFramer_->GetFrame(pucBuffer_, uiBufferSize_, *pstMetaData_)
+                                                                : STATUS::NULL_PROVIDED;
 }
 
 uint32_t NovatelFramerFlush(Framer* pclFramer_, unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
-    return pclFramer_ && pucBuffer_ ? pclFramer_->Flush(pucBuffer_, uiBufferSize_) : std::numeric_limits<uint32_t>::max();
+    return (pclFramer_ != nullptr) && (pucBuffer_ != nullptr) ? pclFramer_->Flush(pucBuffer_, uiBufferSize_) : std::numeric_limits<uint32_t>::max();
 }
