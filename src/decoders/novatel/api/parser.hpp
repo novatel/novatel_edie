@@ -52,7 +52,7 @@ class Parser
 
     JsonReader clMyJsonReader;
     Filter* pclMyUserFilter{nullptr};
-    Framer clMyFramer;
+    std::unique_ptr<Framer> pclMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;

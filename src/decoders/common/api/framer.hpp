@@ -30,6 +30,7 @@
 #include <memory>
 
 #include "circular_buffer.hpp"
+#include "common.hpp"
 #include "logger.hpp"
 
 //============================================================================
@@ -41,7 +42,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    CircularBuffer clMyCircularDataBuffer;
+    std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -52,35 +53,24 @@ class FramerBase
     bool bMyPayloadOnly{false};
     bool bMyFrameJson{false};
 
-    virtual void ResetState() = 0;
 
     [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
-        return uiPosition_ + 1 < clMyCircularDataBuffer.GetLength() && clMyCircularDataBuffer[uiPosition_] == '\r' &&
-               clMyCircularDataBuffer[uiPosition_ + 1] == '\n';
-    }
-
-    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
-    {
-        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { clMyCircularDataBuffer.Copy(pucBuffer_, uiUnknownBytes_); }
-        clMyCircularDataBuffer.Discard(uiUnknownBytes_);
-
-        uiMyByteCount = 0;
-        uiMyExpectedMessageLength = 0;
-        uiMyExpectedPayloadLength = 0;
-
-        ResetState();
+        return uiPosition_ + 1 < pclMyCircularDataBuffer->GetLength() && (*pclMyCircularDataBuffer)[uiPosition_] == '\r' &&
+               (*pclMyCircularDataBuffer)[uiPosition_ + 1] == '\n';
     }
 
   public:
+    virtual void ResetState() = 0;
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FramerBase class.
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
     //----------------------------------------------------------------------------
-    FramerBase(const std::string& strLoggerName_) : pclMyLogger(Logger::RegisterLogger(strLoggerName_))
+    FramerBase(const std::string& strLoggerName_, std::shared_ptr<CircularBuffer> circularBuffer_)
+        : pclMyLogger(Logger::RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(circularBuffer_)
     {
-        clMyCircularDataBuffer.Clear();
+        pclMyCircularDataBuffer->Clear();
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -141,7 +131,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] virtual uint32_t GetBytesAvailableInBuffer() const
     {
-        return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength();
+        return pclMyCircularDataBuffer->GetCapacity() - pclMyCircularDataBuffer->GetLength();
     }
 
     //----------------------------------------------------------------------------
@@ -155,21 +145,21 @@ class FramerBase
     //----------------------------------------------------------------------------
     virtual uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
     {
-        return clMyCircularDataBuffer.Append(pucDataBuffer_, uiDataBytes_);
+        return pclMyCircularDataBuffer->Append(pucDataBuffer_, uiDataBytes_);
     }
 
-    //----------------------------------------------------------------------------
-    //! \brief Flush bytes from the internal circular buffer.
-    //
-    //! \param[in] pucBuffer_ The buffer to contain the flushed bytes.
-    //! \param[in] uiBufferSize_ The size of the provided buffer.
-    //
-    //! \return The number of bytes flushed from the internal circular buffer.
-    //----------------------------------------------------------------------------
+    ////----------------------------------------------------------------------------
+    ////! \brief Flush bytes from the internal circular buffer.
+    ////
+    ////! \param[in] pucBuffer_ The buffer to contain the flushed bytes.
+    ////! \param[in] uiBufferSize_ The size of the provided buffer.
+    ////
+    ////! \return The number of bytes flushed from the internal circular buffer.
+    ////----------------------------------------------------------------------------
     virtual uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
-        const uint32_t uiBytesToFlush = std::min(clMyCircularDataBuffer.GetLength(), uiBufferSize_);
-        HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
+        const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
+        //HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }
 };

@@ -44,7 +44,7 @@ class Framer : public FramerBase
     uint32_t uiMyJsonObjectOpenBraces{0};
     uint32_t uiMyAbbrevAsciiHeaderPosition{0};
 
-    void ResetState() override;
+
 
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
@@ -57,10 +57,11 @@ class Framer : public FramerBase
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
   public:
+    void ResetState() override;
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
     //----------------------------------------------------------------------------
-    Framer();
+    Framer(std::shared_ptr<CircularBuffer> circularBuffer);
 
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
@@ -81,7 +82,8 @@ class Framer : public FramerBase
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_,
+                                  uint32_t& uiFrameBufferOffset_);
 };
 
 } // namespace novatel::edie::oem

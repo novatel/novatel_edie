@@ -102,8 +102,9 @@ include_directories(
 )
 
 # Build EDIE components
-add_subdirectory(src/hw_interface)
 add_subdirectory(src/decoders)
+add_subdirectory(src/framer_manager)
+add_subdirectory(src/hw_interface)
 
 if(BUILD_TESTS)
     enable_testing()

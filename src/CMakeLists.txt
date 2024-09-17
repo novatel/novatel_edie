@@ -1,2 +1,3 @@
 add_subdirectory(decoders)
+add_subdirectory(framer_manager)
 add_subdirectory(hw_interface)
