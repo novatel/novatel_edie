@@ -11,6 +11,8 @@ if(NOT DEFINED CONAN_INSTALL_ARGS)
         --deployer=full_deploy "--deployer-folder=${CMAKE_BINARY_DIR}"
         # Set cppstd without relying on CMAKE_CXX_STANDARD
         --settings compiler.cppstd=17
+        # Use options set by the project
+        ${CONAN_OPTIONS}
     )
     if(WIN32)
         list(APPEND CONAN_INSTALL_ARGS -c tools.deployer:symlinks=False)
