@@ -1,14 +1,24 @@
 cmake_minimum_required(VERSION 3.15)
-include(cmake/third_party.cmake)
-
-project(novatel-edie VERSION 3.3.7 LANGUAGES CXX)
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Set -fPIC" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
+option(USE_STATIC_LIBS "Statically link dependencies" OFF)
+
+if(USE_STATIC_LIBS)
+    # Set Conan statically link dependencies
+    unset(CONAN_INSTALL_ARGS CACHE)
+    set(CONAN_OPTIONS -o spdlog/*:shared=False -o fmt/*:shared=False)
+else()
+    # Set Conan dynamically link dependencies
+    unset(CONAN_INSTALL_ARGS CACHE)
+    set(CONAN_OPTIONS -o spdlog/*:shared=True -o fmt/*:shared=True)
+endif()
+
+include(cmake/third_party.cmake)
+project(novatel-edie VERSION 3.3.7 LANGUAGES CXX)
 
 if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
