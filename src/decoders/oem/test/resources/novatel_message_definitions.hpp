@@ -1,4 +1,3 @@
-// clang-format off
 // ===============================================================================
 // |                                                                             |
 // |  COPYRIGHT NovAtel Inc, 2024. All rights reserved.                          |
@@ -25,6 +24,7 @@
 // ! \file novatel_message_definitions.hpp
 // ===============================================================================
 
+// NOLINTBEGIN
 // clang-format off
 
 #include <algorithm>
@@ -295,4 +295,6 @@ struct BESTSATS
 } // namespace novatel::edie::oem
 
 #endif // NOVATEL_MESSAGE_DEFINITIONS_HPP
+
+// NOLINTEND
 // clang-format on

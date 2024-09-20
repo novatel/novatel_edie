@@ -98,23 +98,23 @@ TEST_F(FileStreamTest, WideCharOpenFile)
     {
         pMyTestCommand = new FileStream(
             std::u32string((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / U"filestream不同语言的文件.gps").generic_u32string()));
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::OUTPUT);
+        pMyTestCommand->OpenFile(FileStream::FileModes::OUTPUT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::APPEND);
+        pMyTestCommand->OpenFile(FileStream::FileModes::APPEND);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::INPUT);
+        pMyTestCommand->OpenFile(FileStream::FileModes::INPUT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::INSERT);
+        pMyTestCommand->OpenFile(FileStream::FileModes::INSERT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::TRUNCATE);
+        pMyTestCommand->OpenFile(FileStream::FileModes::TRUNCATE);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
@@ -137,23 +137,23 @@ TEST_F(FileStreamTest, OpenFile)
     {
         pMyTestCommand = new FileStream((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "filestream_file2.asc").string().c_str());
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::OUTPUT);
+        pMyTestCommand->OpenFile(FileStream::FileModes::OUTPUT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::APPEND);
+        pMyTestCommand->OpenFile(FileStream::FileModes::APPEND);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::INPUT);
+        pMyTestCommand->OpenFile(FileStream::FileModes::INPUT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::INSERT);
+        pMyTestCommand->OpenFile(FileStream::FileModes::INSERT);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 
-        pMyTestCommand->OpenFile(FileStream::FILE_MODES::TRUNCATE);
+        pMyTestCommand->OpenFile(FileStream::FileModes::TRUNCATE);
         ASSERT_FALSE(pMyTestCommand->GetMyFileStream()->fail());
         pMyTestCommand->CloseFile();
 

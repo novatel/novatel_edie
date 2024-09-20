@@ -36,10 +36,10 @@
 namespace novatel::edie {
 
 //-----------------------------------------------------------------------
-//! \enum STATUS
+//! \enum Status
 //! \brief Enumeration for status codes returned from EDIE components.
 //-----------------------------------------------------------------------
-enum class STATUS
+enum class Status
 {
     SUCCESS,                //!< Successfully found a frame in the framer buffer.
     FAILURE,                //!< An unexpected failure occurred.
@@ -60,37 +60,37 @@ enum class STATUS
     DECOMPRESSION_FAILURE   //!< The RANGECMP log could not be decompressed.
 };
 
-inline std::string StatusToString(const STATUS eStatus_)
+inline std::string StatusToString(const Status eStatus_)
 {
-    return eStatus_ == STATUS::SUCCESS                  ? "SUCCESS"
-           : eStatus_ == STATUS::FAILURE                ? "FAILURE"
-           : eStatus_ == STATUS::INCOMPLETE             ? "INCOMPLETE"
-           : eStatus_ == STATUS::INCOMPLETE_MORE_DATA   ? "INCOMPLETE_MORE_DATA"
-           : eStatus_ == STATUS::NULL_PROVIDED          ? "NULL_PROVIDED"
-           : eStatus_ == STATUS::NO_DATABASE            ? "NO_DATABASE"
-           : eStatus_ == STATUS::NO_DEFINITION          ? "NO_DEFINITION"
-           : eStatus_ == STATUS::NO_DEFINITION_EMBEDDED ? "NO_DEFINITION_EMBEDDED"
-           : eStatus_ == STATUS::BUFFER_FULL            ? "BUFFER_FULL"
-           : eStatus_ == STATUS::BUFFER_EMPTY           ? "BUFFER_EMPTY"
-           : eStatus_ == STATUS::STREAM_EMPTY           ? "STREAM_EMPTY"
-           : eStatus_ == STATUS::UNSUPPORTED            ? "UNSUPPORTED"
-           : eStatus_ == STATUS::MALFORMED_INPUT        ? "MALFORMED_INPUT"
-           : eStatus_ == STATUS::DECOMPRESSION_FAILURE  ? "DECOMPRESSION_FAILURE"
+    return eStatus_ == Status::SUCCESS                  ? "SUCCESS"
+           : eStatus_ == Status::FAILURE                ? "FAILURE"
+           : eStatus_ == Status::INCOMPLETE             ? "INCOMPLETE"
+           : eStatus_ == Status::INCOMPLETE_MORE_DATA   ? "INCOMPLETE_MORE_DATA"
+           : eStatus_ == Status::NULL_PROVIDED          ? "NULL_PROVIDED"
+           : eStatus_ == Status::NO_DATABASE            ? "NO_DATABASE"
+           : eStatus_ == Status::NO_DEFINITION          ? "NO_DEFINITION"
+           : eStatus_ == Status::NO_DEFINITION_EMBEDDED ? "NO_DEFINITION_EMBEDDED"
+           : eStatus_ == Status::BUFFER_FULL            ? "BUFFER_FULL"
+           : eStatus_ == Status::BUFFER_EMPTY           ? "BUFFER_EMPTY"
+           : eStatus_ == Status::STREAM_EMPTY           ? "STREAM_EMPTY"
+           : eStatus_ == Status::UNSUPPORTED            ? "UNSUPPORTED"
+           : eStatus_ == Status::MALFORMED_INPUT        ? "MALFORMED_INPUT"
+           : eStatus_ == Status::DECOMPRESSION_FAILURE  ? "DECOMPRESSION_FAILURE"
                                                         : "UNKNOWN";
 }
 
-inline std::ostream& operator<<(std::ostream& os_, const STATUS eStatus_)
+inline std::ostream& operator<<(std::ostream& os_, const Status eStatus_)
 {
     os_ << StatusToString(eStatus_);
     return os_;
 }
 
 //-----------------------------------------------------------------------
-//! \enum ENCODE_FORMAT
+//! \enum EncodeFormat
 //! \brief Used to specify the kind of format to re-encode a decoded
 //! message to. Not every encoder supports these types.
 //-----------------------------------------------------------------------
-enum class ENCODE_FORMAT
+enum class EncodeFormat
 {
     FLATTENED_BINARY, //!< NovAtel EDIE "Flattened" binary format. All strings/arrays are padded to
                       //!< maximum length to allow programmatic access.
@@ -103,37 +103,59 @@ enum class ENCODE_FORMAT
     UNSPECIFIED       //!< No encode format was specified.
 };
 
-inline ENCODE_FORMAT StringToEncodeFormat(const std::string& sEnumName_)
+inline EncodeFormat StringToEncodeFormat(const std::string& sEnumName_)
 {
-    return sEnumName_ == "FLATTENED_BINARY" ? ENCODE_FORMAT::FLATTENED_BINARY
-           : sEnumName_ == "ASCII"          ? ENCODE_FORMAT::ASCII
-           : sEnumName_ == "BINARY"         ? ENCODE_FORMAT::BINARY
-           : sEnumName_ == "JSON"           ? ENCODE_FORMAT::JSON
-           : sEnumName_ == "ABBREV_ASCII"   ? ENCODE_FORMAT::ABBREV_ASCII
-                                            : ENCODE_FORMAT::UNSPECIFIED;
+    return sEnumName_ == "FLATTENED_BINARY" ? EncodeFormat::FLATTENED_BINARY
+           : sEnumName_ == "ASCII"          ? EncodeFormat::ASCII
+           : sEnumName_ == "BINARY"         ? EncodeFormat::BINARY
+           : sEnumName_ == "JSON"           ? EncodeFormat::JSON
+           : sEnumName_ == "ABBREV_ASCII"   ? EncodeFormat::ABBREV_ASCII
+                                            : EncodeFormat::UNSPECIFIED;
 }
 
-inline std::string EncodeFormatToString(const ENCODE_FORMAT eFormat_)
+inline std::string EncodeFormatToString(const EncodeFormat eFormat_)
 {
-    return eFormat_ == ENCODE_FORMAT::FLATTENED_BINARY ? "FLATTENED_BINARY"
-           : eFormat_ == ENCODE_FORMAT::ASCII          ? "ASCII"
-           : eFormat_ == ENCODE_FORMAT::ABBREV_ASCII   ? "ABBREV_ASCII"
-           : eFormat_ == ENCODE_FORMAT::BINARY         ? "BINARY"
-           : eFormat_ == ENCODE_FORMAT::JSON           ? "JSON"
-                                                       : "UNSPECIFIED";
+    return eFormat_ == EncodeFormat::FLATTENED_BINARY ? "FLATTENED_BINARY"
+           : eFormat_ == EncodeFormat::ASCII          ? "ASCII"
+           : eFormat_ == EncodeFormat::ABBREV_ASCII   ? "ABBREV_ASCII"
+           : eFormat_ == EncodeFormat::BINARY         ? "BINARY"
+           : eFormat_ == EncodeFormat::JSON           ? "JSON"
+                                                      : "UNSPECIFIED";
 }
 
-inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
+inline std::ostream& operator<<(std::ostream& os_, const EncodeFormat eFormat_)
 {
     os_ << EncodeFormatToString(eFormat_);
     return os_;
 }
 
 //-----------------------------------------------------------------------
-//! \enum HEADER_FORMAT
+//! \enum TimeStatus
+//! \brief Enumeration describing the time status on a NovAtel receiver
+//! when a log is produced. See GPS Reference Time Status.
+//-----------------------------------------------------------------------
+enum class TimeStatus
+{
+    UNKNOWN = 20,             //!< Time validity is unknown.
+    APPROXIMATE = 60,         //!< Time is set approximately.
+    COARSEADJUSTING = 80,     //!< Time is approaching coarse precision.
+    COARSE = 100,             //!< This time is valid to coarse precision.
+    COARSESTEERING = 120,     //!< Time is coarse set and is being steered.
+    FREEWHEELING = 130,       //!< Position is lost and the range bias cannot be calculated.
+    FINEADJUSTING = 140,      //!< Time is adjusting to fine precision.
+    FINE = 160,               //!< Time has fine precision.
+    FINEBACKUPSTEERING = 170, //!< Time is fine set and is being steered by the backup system.
+    FINESTEERING = 180,       //!< Time is fine set and is being steered.
+    SATTIME = 200,            //!< Time from satellite. Only used in logs containing satellite data such as ephemeris and almanac.
+    EXTERN = 220,             //!< Time source is external to the Receiver.
+    EXACT = 240               //!< Time is exact.
+};
+
+//-----------------------------------------------------------------------
+//! \enum HeaderFormat
 //! \brief Header formats of messages.
 //-----------------------------------------------------------------------
-enum class HEADER_FORMAT
+enum class HeaderFormat
 {
     UNKNOWN = 1,
     BINARY,
@@ -148,17 +170,17 @@ enum class HEADER_FORMAT
     ALL // Used in filters to indicate all filter types : all new enums should be added before this value
 };
 
-constexpr bool IsShortHeaderFormat(const HEADER_FORMAT eFormat_)
+constexpr bool IsShortHeaderFormat(const HeaderFormat eFormat_)
 {
-    return eFormat_ == HEADER_FORMAT::SHORT_ASCII || eFormat_ == HEADER_FORMAT::SHORT_BINARY || eFormat_ == HEADER_FORMAT::SHORT_ABB_ASCII;
+    return eFormat_ == HeaderFormat::SHORT_ASCII || eFormat_ == HeaderFormat::SHORT_BINARY || eFormat_ == HeaderFormat::SHORT_ABB_ASCII;
 }
 
 //-----------------------------------------------------------------------
-//! \enum MESSAGE_FORMAT
+//! \enum MessageFormat
 //! \brief Bit fields to describe message type. See Binary Message
 //! Header Structure.
 //-----------------------------------------------------------------------
-enum class MESSAGE_FORMAT
+enum class MessageFormat
 {
     BINARY = 0b00,
     ASCII = 0b01,
@@ -167,11 +189,11 @@ enum class MESSAGE_FORMAT
 };
 
 //-----------------------------------------------------------------------
-//! \enum MESSAGE_TYPE_MASK
+//! \enum MessageTypeMask
 //! \brief Bitmask for Message Type field in Binary logs. See Binary
 //! Message Header Structure.
 //-----------------------------------------------------------------------
-enum class MESSAGE_TYPE_MASK
+enum class MessageTypeMask
 {
     MEASSRC = 0b00011111,
     MSGFORMAT = 0b01100000,
@@ -179,23 +201,23 @@ enum class MESSAGE_TYPE_MASK
 };
 
 //-----------------------------------------------------------------------
-//! \enum MESSAGE_ID_MASK
+//! \enum MessageIdMask
 //! \brief Bitmask for Message ID field in Binary logs. See Binary
 //! Message Header Structure.
 //-----------------------------------------------------------------------
-enum class MESSAGE_ID_MASK
+enum class MessageIdMask
 {
     LOGID = 0x00FFFF,
-    MEASSRC = static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC) << 16,
-    MSGFORMAT = static_cast<uint32_t>(MESSAGE_TYPE_MASK::MSGFORMAT) << 16,
-    RESPONSE = static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE) << 16
+    MEASSRC = static_cast<uint32_t>(MessageTypeMask::MEASSRC) << 16,
+    MSGFORMAT = static_cast<uint32_t>(MessageTypeMask::MSGFORMAT) << 16,
+    RESPONSE = static_cast<uint32_t>(MessageTypeMask::RESPONSE) << 16
 };
 
 //-----------------------------------------------------------------------
-//! \enum MEASUREMENT_SOURCE
+//! \enum MeasurementSource
 //! \brief Enumeration for antenna source of measurements for a log.
 //-----------------------------------------------------------------------
-enum class MEASUREMENT_SOURCE
+enum class MeasurementSource
 {
     PRIMARY,
     SECONDARY,
@@ -252,7 +274,7 @@ class MetaDataBase
     MetaDataBase() = default;
     virtual ~MetaDataBase() = 0;
     bool bResponse{false};
-    HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
+    HeaderFormat eFormat{HeaderFormat::UNKNOWN};
     uint16_t usWeek{0};
     double dMilliseconds{0.0};
     uint32_t uiLength{0};

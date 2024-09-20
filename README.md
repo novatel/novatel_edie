@@ -151,7 +151,7 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // Initialize the current status, meta data structure, and message data structure.
-STATUS eStatus = STATUS::UNKNOWN;
+Status eStatus = Status::UNKNOWN;
 MetaDataStruct stMetaData;
 MessageDataStruct stMessageData;
 
@@ -161,7 +161,7 @@ clFileParser.SetEncodeFormat(ENCODEFORMAT::ASCII);
 
 // Initialize a filter for Fine Steering time status and BESTPOS messages.
 Filter clFilter;
-clFilter.IncludeTimeStatus(TIME_STATUS::FINESTEERING);
+clFilter.IncludeTimeStatus(TimeStatus::FINESTEERING);
 clFilter.IncludeMessageName("BESTPOS");
 clFileParser.SetFilter(&clFilter);
 
@@ -182,11 +182,11 @@ if (!clFileParser.SetStream(&clInputFileStream)) {
     exit(-1);
 }
 
-while (eStatus != STATUS::STREAM_EMPTY) {
+while (eStatus != Status::STREAM_EMPTY) {
     try {
         eStatus = clFileParser.Read(stMessageData, stMetaData);
 
-        if (eStatus == STATUS::SUCCESS) {
+        if (eStatus == Status::SUCCESS) {
             clConvertedLogs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
             stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
             std::cout << "Encoded: (" << stMessageData.uiMessageLength << ") " << reinterpret_cast<char*>(stMessageData.pucMessage) << std::endl;
@@ -230,7 +230,7 @@ std::string strCommand("INSTHRESHOLDS LOW 0.0 0.0 0.0");
 
 // Encode the message.
 STATUS eCommanderStatus = clCommander.Encode(strCommand.c_str(), strCommand.length(), acEncodeBuffer, uiEncodeBufferLength, ENCODEFORMAT::ASCII);
-if (eCommanderStatus == STATUS::SUCCESS) {
+if (eCommanderStatus == Status::SUCCESS) {
     // Copy the encoded command into a new string.
     std::string strEncodedCommand(acEncodeBuffer, uiEncodeBufferLength);
     std::cout << "Encoded: " << strEncodedCommand << std::endl;

@@ -70,58 +70,58 @@ constexpr float afTheRangeCmp2ADRStdDevValues[] = {
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#L1_E1_B1_Scaling
 //-----------------------------------------------------------------------
 
-static std::map<SYSTEM, std::map<RangeCmp2::SIGNAL_TYPE, const double>> mmTheRangeCmp2SignalScalingMapping = {
-    {SYSTEM::GPS,
-     {{RangeCmp2::SIGNAL_TYPE::GPS_L1C, (1.0)},
-      {RangeCmp2::SIGNAL_TYPE::GPS_L1CA, (1.0)},
-      {RangeCmp2::SIGNAL_TYPE::GPS_L2Y, (154.0 / 120.0)},
-      {RangeCmp2::SIGNAL_TYPE::GPS_L2CM, (154.0 / 120.0)},
-      {RangeCmp2::SIGNAL_TYPE::GPS_L5Q, (154.0 / 115.0)}}},
-    {SYSTEM::GLONASS,
-     {{RangeCmp2::SIGNAL_TYPE::GLONASS_L1CA, (1.0)},
-      {RangeCmp2::SIGNAL_TYPE::GLONASS_L2CA, (9.0 / 7.0)},
-      {RangeCmp2::SIGNAL_TYPE::GLONASS_L2P, (9.0 / 7.0)},
-      {RangeCmp2::SIGNAL_TYPE::GLONASS_L3Q, (313.0 / 235.0)}}},
-    {SYSTEM::SBAS, {{RangeCmp2::SIGNAL_TYPE::SBAS_L1CA, (1.0)}, {RangeCmp2::SIGNAL_TYPE::SBAS_L5I, (154.0 / 115.0)}}},
-    {SYSTEM::GALILEO,
-     {{RangeCmp2::SIGNAL_TYPE::GALILEO_E1C, (1.0)},
-      {RangeCmp2::SIGNAL_TYPE::GALILEO_E5AQ, (154.0 / 115.0)},
-      {RangeCmp2::SIGNAL_TYPE::GALILEO_E5BQ, (154.0 / 118.0)},
-      {RangeCmp2::SIGNAL_TYPE::GALILEO_ALTBOCQ, (154.0 / 116.5)},
-      {RangeCmp2::SIGNAL_TYPE::GALILEO_E6C, (154.0 / 125.0)},
-      {RangeCmp2::SIGNAL_TYPE::GALILEO_E6B, (154.0 / 125.0)}}},
-    {SYSTEM::BEIDOU,
-     {{RangeCmp2::SIGNAL_TYPE::BEIDOU_B1D1I, (1.0)},
-      {RangeCmp2::SIGNAL_TYPE::BEIDOU_B1D2I, (1.0)},
-      {RangeCmp2::SIGNAL_TYPE::BEIDOU_B1CP, (1526.0 / 1540.0)},
-      {RangeCmp2::SIGNAL_TYPE::BEIDOU_B2D1I, (1526.0 / 1180.0)},
-      {RangeCmp2::SIGNAL_TYPE::BEIDOU_B2D2I, (1526.0 / 1180.0)},
-      {RangeCmp2::SIGNAL_TYPE::BEIDOU_B2AP, (1526.0 / 1150.0)},
-      {RangeCmp2::SIGNAL_TYPE::BEIDOU_B2B_I, (1526.0 / 1180.0)},
-      {RangeCmp2::SIGNAL_TYPE::BEIDOU_B3D1I, (1526.0 / 1240.0)},
-      {RangeCmp2::SIGNAL_TYPE::BEIDOU_B3D2I, (1526.0 / 1240.0)}}},
-    {SYSTEM::QZSS,
-     {{RangeCmp2::SIGNAL_TYPE::QZSS_L1C, (1.0)},
-      {RangeCmp2::SIGNAL_TYPE::QZSS_L1CA, (1.0)},
-      {RangeCmp2::SIGNAL_TYPE::QZSS_L2CM, (154.0 / 120.0)},
-      {RangeCmp2::SIGNAL_TYPE::QZSS_L5Q, (154.0 / 115.0)},
-      {RangeCmp2::SIGNAL_TYPE::QZSS_L6P, (154.0 / 125.0)}}},
-    {SYSTEM::LBAND, {{RangeCmp2::SIGNAL_TYPE::LBAND, (1.0)}}},
-    {SYSTEM::NAVIC, {{RangeCmp2::SIGNAL_TYPE::NAVIC_L5SPS, (1.0)}}}};
+static std::map<System, std::map<RangeCmp2::SignalType, const double>> mmTheRangeCmp2SignalScalingMapping = {
+    {System::GPS,
+     {{RangeCmp2::SignalType::GPS_L1C, (1.0)},
+      {RangeCmp2::SignalType::GPS_L1CA, (1.0)},
+      {RangeCmp2::SignalType::GPS_L2Y, (154.0 / 120.0)},
+      {RangeCmp2::SignalType::GPS_L2CM, (154.0 / 120.0)},
+      {RangeCmp2::SignalType::GPS_L5Q, (154.0 / 115.0)}}},
+    {System::GLONASS,
+     {{RangeCmp2::SignalType::GLONASS_L1CA, (1.0)},
+      {RangeCmp2::SignalType::GLONASS_L2CA, (9.0 / 7.0)},
+      {RangeCmp2::SignalType::GLONASS_L2P, (9.0 / 7.0)},
+      {RangeCmp2::SignalType::GLONASS_L3Q, (313.0 / 235.0)}}},
+    {System::SBAS, {{RangeCmp2::SignalType::SBAS_L1CA, (1.0)}, {RangeCmp2::SignalType::SBAS_L5I, (154.0 / 115.0)}}},
+    {System::GALILEO,
+     {{RangeCmp2::SignalType::GALILEO_E1C, (1.0)},
+      {RangeCmp2::SignalType::GALILEO_E5AQ, (154.0 / 115.0)},
+      {RangeCmp2::SignalType::GALILEO_E5BQ, (154.0 / 118.0)},
+      {RangeCmp2::SignalType::GALILEO_ALTBOCQ, (154.0 / 116.5)},
+      {RangeCmp2::SignalType::GALILEO_E6C, (154.0 / 125.0)},
+      {RangeCmp2::SignalType::GALILEO_E6B, (154.0 / 125.0)}}},
+    {System::BEIDOU,
+     {{RangeCmp2::SignalType::BEIDOU_B1D1I, (1.0)},
+      {RangeCmp2::SignalType::BEIDOU_B1D2I, (1.0)},
+      {RangeCmp2::SignalType::BEIDOU_B1CP, (1526.0 / 1540.0)},
+      {RangeCmp2::SignalType::BEIDOU_B2D1I, (1526.0 / 1180.0)},
+      {RangeCmp2::SignalType::BEIDOU_B2D2I, (1526.0 / 1180.0)},
+      {RangeCmp2::SignalType::BEIDOU_B2AP, (1526.0 / 1150.0)},
+      {RangeCmp2::SignalType::BEIDOU_B2B_I, (1526.0 / 1180.0)},
+      {RangeCmp2::SignalType::BEIDOU_B3D1I, (1526.0 / 1240.0)},
+      {RangeCmp2::SignalType::BEIDOU_B3D2I, (1526.0 / 1240.0)}}},
+    {System::QZSS,
+     {{RangeCmp2::SignalType::QZSS_L1C, (1.0)},
+      {RangeCmp2::SignalType::QZSS_L1CA, (1.0)},
+      {RangeCmp2::SignalType::QZSS_L2CM, (154.0 / 120.0)},
+      {RangeCmp2::SignalType::QZSS_L5Q, (154.0 / 115.0)},
+      {RangeCmp2::SignalType::QZSS_L6P, (154.0 / 125.0)}}},
+    {System::LBAND, {{RangeCmp2::SignalType::LBAND, (1.0)}}},
+    {System::NAVIC, {{RangeCmp2::SignalType::NAVIC_L5SPS, (1.0)}}}};
 
 //-----------------------------------------------------------------------
 //! A list of bitmasks to iterate easily through a RANGECMP4 message, the
 //! masks are defined in the RANGECMP4 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=RANGECMP#Header
 //-----------------------------------------------------------------------
-constexpr SYSTEM aeTheRangeCmp4SatelliteSystems[RC4_HEADER_BLOCK_SYSTEM_COUNT]{
-    SYSTEM::GPS,     // bit 0
-    SYSTEM::GLONASS, // bit 1
-    SYSTEM::SBAS,    // bit 2
-    SYSTEM::GALILEO, // bit 5
-    SYSTEM::BEIDOU,  // bit 6
-    SYSTEM::QZSS,    // bit 7
-    SYSTEM::NAVIC    // bit 9
+constexpr System aeTheRangeCmp4SatelliteSystems[RC4_HEADER_BLOCK_SYSTEM_COUNT]{
+    System::GPS,     // bit 0
+    System::GLONASS, // bit 1
+    System::SBAS,    // bit 2
+    System::GALILEO, // bit 5
+    System::BEIDOU,  // bit 6
+    System::QZSS,    // bit 7
+    System::NAVIC    // bit 9
 };
 
 //-----------------------------------------------------------------------
@@ -129,27 +129,27 @@ constexpr SYSTEM aeTheRangeCmp4SatelliteSystems[RC4_HEADER_BLOCK_SYSTEM_COUNT]{
 //! satellite and signal blocks defined in the RANGECMP4 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=RANGECMP#Signal
 //-----------------------------------------------------------------------
-static std::map<SYSTEM, std::vector<RangeCmp4::SIGNAL_TYPE>> mvTheRangeCmp4SystemSignalMasks = {
-    {SYSTEM::GPS,
-     {RangeCmp4::SIGNAL_TYPE::GPS_L1CA, RangeCmp4::SIGNAL_TYPE::GPS_L2Y, RangeCmp4::SIGNAL_TYPE::GPS_L2C, RangeCmp4::SIGNAL_TYPE::GPS_L2P,
-      RangeCmp4::SIGNAL_TYPE::GPS_L5Q, RangeCmp4::SIGNAL_TYPE::GPS_L1C}},
-    {SYSTEM::GLONASS,
+static std::map<System, std::vector<RangeCmp4::SignalType>> mvTheRangeCmp4SystemSignalMasks = {
+    {System::GPS,
+     {RangeCmp4::SignalType::GPS_L1CA, RangeCmp4::SignalType::GPS_L2Y, RangeCmp4::SignalType::GPS_L2C, RangeCmp4::SignalType::GPS_L2P,
+      RangeCmp4::SignalType::GPS_L5Q, RangeCmp4::SignalType::GPS_L1C}},
+    {System::GLONASS,
      {
 
-         RangeCmp4::SIGNAL_TYPE::GLONASS_L1CA, RangeCmp4::SIGNAL_TYPE::GLONASS_L2CA, RangeCmp4::SIGNAL_TYPE::GLONASS_L2P,
-         RangeCmp4::SIGNAL_TYPE::GLONASS_L3}},
-    {SYSTEM::SBAS, {RangeCmp4::SIGNAL_TYPE::SBAS_L1CA, RangeCmp4::SIGNAL_TYPE::SBAS_L5I}},
-    {SYSTEM::GALILEO,
-     {RangeCmp4::SIGNAL_TYPE::GALILEO_E1, RangeCmp4::SIGNAL_TYPE::GALILEO_E5A, RangeCmp4::SIGNAL_TYPE::GALILEO_E5B,
-      RangeCmp4::SIGNAL_TYPE::GALILEO_ALTBOC, RangeCmp4::SIGNAL_TYPE::GALILEO_E6C, RangeCmp4::SIGNAL_TYPE::GALILEO_E6B}},
-    {SYSTEM::BEIDOU,
-     {RangeCmp4::SIGNAL_TYPE::BEIDOU_B1I, RangeCmp4::SIGNAL_TYPE::BEIDOU_B1GEO, RangeCmp4::SIGNAL_TYPE::BEIDOU_B2I,
-      RangeCmp4::SIGNAL_TYPE::BEIDOU_B2GEO, RangeCmp4::SIGNAL_TYPE::BEIDOU_B3I, RangeCmp4::SIGNAL_TYPE::BEIDOU_B3GEO,
-      RangeCmp4::SIGNAL_TYPE::BEIDOU_B1CP, RangeCmp4::SIGNAL_TYPE::BEIDOU_B2AP, RangeCmp4::SIGNAL_TYPE::BEIDOU_B2BI}},
-    {SYSTEM::QZSS,
-     {RangeCmp4::SIGNAL_TYPE::QZSS_L1CA, RangeCmp4::SIGNAL_TYPE::QZSS_L2C, RangeCmp4::SIGNAL_TYPE::QZSS_L5Q, RangeCmp4::SIGNAL_TYPE::QZSS_L1C,
-      RangeCmp4::SIGNAL_TYPE::QZSS_L6D, RangeCmp4::SIGNAL_TYPE::QZSS_L6P}},
-    {SYSTEM::NAVIC, {RangeCmp4::SIGNAL_TYPE::NAVIC_L5SPS}}};
+         RangeCmp4::SignalType::GLONASS_L1CA, RangeCmp4::SignalType::GLONASS_L2CA, RangeCmp4::SignalType::GLONASS_L2P,
+         RangeCmp4::SignalType::GLONASS_L3}},
+    {System::SBAS, {RangeCmp4::SignalType::SBAS_L1CA, RangeCmp4::SignalType::SBAS_L5I}},
+    {System::GALILEO,
+     {RangeCmp4::SignalType::GALILEO_E1, RangeCmp4::SignalType::GALILEO_E5A, RangeCmp4::SignalType::GALILEO_E5B,
+      RangeCmp4::SignalType::GALILEO_ALTBOC, RangeCmp4::SignalType::GALILEO_E6C, RangeCmp4::SignalType::GALILEO_E6B}},
+    {System::BEIDOU,
+     {RangeCmp4::SignalType::BEIDOU_B1I, RangeCmp4::SignalType::BEIDOU_B1GEO, RangeCmp4::SignalType::BEIDOU_B2I, RangeCmp4::SignalType::BEIDOU_B2GEO,
+      RangeCmp4::SignalType::BEIDOU_B3I, RangeCmp4::SignalType::BEIDOU_B3GEO, RangeCmp4::SignalType::BEIDOU_B1CP, RangeCmp4::SignalType::BEIDOU_B2AP,
+      RangeCmp4::SignalType::BEIDOU_B2BI}},
+    {System::QZSS,
+     {RangeCmp4::SignalType::QZSS_L1CA, RangeCmp4::SignalType::QZSS_L2C, RangeCmp4::SignalType::QZSS_L5Q, RangeCmp4::SignalType::QZSS_L1C,
+      RangeCmp4::SignalType::QZSS_L6D, RangeCmp4::SignalType::QZSS_L6P}},
+    {System::NAVIC, {RangeCmp4::SignalType::NAVIC_L5SPS}}};
 
 //-----------------------------------------------------------------------
 //! List of pre-defined floats used as translations for RANGECMP4 PSR
@@ -198,14 +198,14 @@ RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder
 
     if (pclJsonDB_ != nullptr) { LoadJsonDb(pclJsonDB_); }
 
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
 
     pclMyLogger->debug("RangeDecompressor initialized");
 }
@@ -234,56 +234,56 @@ double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatusStruct&
 {
     switch (stChannelTrackingStatus_.eSatelliteSystem)
     {
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GPS:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L1CA   ? WAVELENGTH_GPS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L1CP ? WAVELENGTH_GPS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2P  ? WAVELENGTH_GPS_L2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2Y  ? WAVELENGTH_GPS_L2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2CM ? WAVELENGTH_GPS_L2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L5Q  ? WAVELENGTH_GPS_L5
-                                                                                                            : 0.0;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GLONASS:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L1CA
+    case ChannelTrackingStatusStruct::SatelliteSystem::GPS:
+        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GPS_L1CA   ? WAVELENGTH_GPS_L1
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GPS_L1CP ? WAVELENGTH_GPS_L1
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GPS_L2P  ? WAVELENGTH_GPS_L2
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GPS_L2Y  ? WAVELENGTH_GPS_L2
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GPS_L2CM ? WAVELENGTH_GPS_L2
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GPS_L5Q  ? WAVELENGTH_GPS_L5
+                                                                                                           : 0.0;
+    case ChannelTrackingStatusStruct::SatelliteSystem::GLONASS:
+        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GLONASS_L1CA
                    ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + (sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ))
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L2CA
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GLONASS_L2CA
                    ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + (sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ))
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L2P
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GLONASS_L2P
                    ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + (sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ))
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L3Q ? WAVELENGTH_GLO_L3
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GLONASS_L3Q ? WAVELENGTH_GLO_L3
+                                                                                                              : 0.0;
+    case ChannelTrackingStatusStruct::SatelliteSystem::SBAS:
+        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::SBAS_L1CA  ? WAVELENGTH_GPS_L1
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::SBAS_L5I ? WAVELENGTH_GPS_L5
+                                                                                                           : 0.0;
+    case ChannelTrackingStatusStruct::SatelliteSystem::GALILEO:
+        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GALILEO_E1C         ? WAVELENGTH_GAL_E1
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GALILEO_E6B       ? WAVELENGTH_GAL_E6
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GALILEO_E6C       ? WAVELENGTH_GAL_E6
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GALILEO_E5AQ      ? WAVELENGTH_GAL_E5AQ
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GALILEO_E5BQ      ? WAVELENGTH_GAL_E5BQ
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::GALILEO_E5ALTBOCQ ? WAVELENGTH_GAL_ALTBQ
+                                                                                                                    : 0.0;
+    case ChannelTrackingStatusStruct::SatelliteSystem::BEIDOU:
+        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B1ID1   ? WAVELENGTH_BDS_B1
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B1ID2 ? WAVELENGTH_BDS_B1
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B2ID1 ? WAVELENGTH_BDS_B2
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B2ID2 ? WAVELENGTH_BDS_B2
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B3ID1 ? WAVELENGTH_BDS_B3
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B3ID2 ? WAVELENGTH_BDS_B3
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B1CP  ? WAVELENGTH_BDS_B1C
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B2AP  ? WAVELENGTH_BDS_B2A
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::BEIDOU_B2BI  ? WAVELENGTH_BDS_B2B
                                                                                                                : 0.0;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::SBAS:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::SBAS_L1CA  ? WAVELENGTH_GPS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::SBAS_L5I ? WAVELENGTH_GPS_L5
+    case ChannelTrackingStatusStruct::SatelliteSystem::QZSS:
+        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::QZSS_L1CA   ? WAVELENGTH_QZSS_L1
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::QZSS_L1CP ? WAVELENGTH_QZSS_L1
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::QZSS_L2CM ? WAVELENGTH_QZSS_L2
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::QZSS_L5Q  ? WAVELENGTH_QZSS_L5
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::QZSS_L6P  ? WAVELENGTH_QZSS_L6
+               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::QZSS_L6D  ? WAVELENGTH_QZSS_L6
                                                                                                             : 0.0;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GALILEO:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E1C         ? WAVELENGTH_GAL_E1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E6B       ? WAVELENGTH_GAL_E6
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E6C       ? WAVELENGTH_GAL_E6
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5AQ      ? WAVELENGTH_GAL_E5AQ
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5BQ      ? WAVELENGTH_GAL_E5BQ
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5ALTBOCQ ? WAVELENGTH_GAL_ALTBQ
-                                                                                                                     : 0.0;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::BEIDOU:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1ID1   ? WAVELENGTH_BDS_B1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1ID2 ? WAVELENGTH_BDS_B1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2ID1 ? WAVELENGTH_BDS_B2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2ID2 ? WAVELENGTH_BDS_B2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B3ID1 ? WAVELENGTH_BDS_B3
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B3ID2 ? WAVELENGTH_BDS_B3
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1CP  ? WAVELENGTH_BDS_B1C
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2AP  ? WAVELENGTH_BDS_B2A
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2BI  ? WAVELENGTH_BDS_B2B
-                                                                                                                : 0.0;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::QZSS:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L1CA   ? WAVELENGTH_QZSS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L1CP ? WAVELENGTH_QZSS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L2CM ? WAVELENGTH_QZSS_L2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L5Q  ? WAVELENGTH_QZSS_L5
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L6P  ? WAVELENGTH_QZSS_L6
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L6D  ? WAVELENGTH_QZSS_L6
-                                                                                                             : 0.0;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::NAVIC:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::NAVIC_L5SPS ? WAVELENGTH_NAVIC_L5 : 0.0;
+    case ChannelTrackingStatusStruct::SatelliteSystem::NAVIC:
+        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SignalType::NAVIC_L5SPS ? WAVELENGTH_NAVIC_L5 : 0.0;
     default: return 0.0;
     }
 }
@@ -352,8 +352,8 @@ uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uin
 //! observation has actually been locked.
 //------------------------------------------------------------------------------
 float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
-                                                               ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                               ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_)
+                                                               ChannelTrackingStatusStruct::SatelliteSystem eSystem_,
+                                                               ChannelTrackingStatusStruct::SignalType eSignal_, uint16_t usPRN_)
 {
     auto fLocktimeMilliseconds = static_cast<float>(uiLockTimeBits_);
 
@@ -442,8 +442,8 @@ float RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataStr
 //!                   Header time (t)
 //------------------------------------------------------------------------------
 float RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
-                                                               ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                               ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_)
+                                                               ChannelTrackingStatusStruct::SatelliteSystem eSystem_,
+                                                               ChannelTrackingStatusStruct::SignalType eSignal_, uint32_t uiPRN_)
 {
     // Store the locktime if it is different then the once we have currently.
     RangeCmp4LocktimeInfoStruct& stLocktimeInfo =
@@ -511,7 +511,7 @@ float RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataStr
 //------------------------------------------------------------------------------
 template <bool bSecondary>
 void RangeDecompressor::DecompressReferenceBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_,
-                                                 MEASUREMENT_SOURCE eMeasurementSource_)
+                                                 MeasurementSource eMeasurementSource_)
 {
     // These fields are the same size regardless of the reference block being primary or secondary.
     stReferenceBlock_.bParityKnown = static_cast<bool>(GetBitfieldFromBuffer(ppucDataPointer_, RC4_SIG_BLK_PARITY_FLAG_BITS));
@@ -596,7 +596,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
     switch (stChannelTrackingStatus_.eSatelliteSystem)
     {
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GLONASS:
+    case ChannelTrackingStatusStruct::SatelliteSystem::GLONASS:
         // If ternary returns true, documentation suggests we should save this PRN as
         // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - cGLONASSFrequencyNumber_. However, this
         // would output the PRN as an actual valid Slot ID, which is not true. We will
@@ -605,14 +605,14 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
                                  ? 0
                                  : static_cast<uint16_t>(uiPRN_) + GLONASS_SLOT_OFFSET - 1;
         break;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::SBAS:
+    case ChannelTrackingStatusStruct::SatelliteSystem::SBAS:
         stRangeData_.usPRN = (SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT)
                                  ? static_cast<uint16_t>(uiPRN_ + SBAS_PRN_OFFSET_120 - 1)
                              : (SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT)
                                  ? static_cast<uint16_t>(uiPRN_ + SBAS_PRN_OFFSET_130 - 1)
                                  : 0;
         break;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_ + QZSS_PRN_OFFSET - 1); break;
+    case ChannelTrackingStatusStruct::SatelliteSystem::QZSS: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_ + QZSS_PRN_OFFSET - 1); break;
     default: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_); break;
     }
 
@@ -696,7 +696,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
 
         // Decompress the Satellite Block
         const auto eSatelliteSystem =
-            static_cast<SYSTEM>((stRangeCmp2SatBlock.ulCombinedField & RC2_SAT_SATELLITE_SYSTEM_ID_MASK) >> RC2_SAT_SATELLITE_SYSTEM_ID_SHIFT);
+            static_cast<System>((stRangeCmp2SatBlock.ulCombinedField & RC2_SAT_SATELLITE_SYSTEM_ID_MASK) >> RC2_SAT_SATELLITE_SYSTEM_ID_SHIFT);
         const auto ucNumberOfSignalBlocks = static_cast<uint8_t>(
             static_cast<uint64_t>(stRangeCmp2SatBlock.ulCombinedField & RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK) >> RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_SHIFT);
 
@@ -718,7 +718,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
             const auto& stRangeCmp2SigBlock =
                 reinterpret_cast<const RangeCmp2SignalBlockStruct&>(stRangeCmp2Message_.aucRangeData[uiRangeDataBytesDecompressed]);
 
-            const auto eSignalType = static_cast<RangeCmp2::SIGNAL_TYPE>(stRangeCmp2SigBlock.uiCombinedField1 & RC2_SIG_SIGNAL_TYPE_MASK);
+            const auto eSignalType = static_cast<RangeCmp2::SignalType>(stRangeCmp2SigBlock.uiCombinedField1 & RC2_SIG_SIGNAL_TYPE_MASK);
             const auto ucPSRBitfield =
                 static_cast<uint8_t>((stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_PSR_STDDEV_MASK) >> RC2_SIG_PSR_STDDEV_SHIFT);
             const auto ucADRBitfield =
@@ -726,7 +726,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
             const auto uiLocktimeBits =
                 static_cast<uint32_t>((stRangeCmp2SigBlock.uiCombinedField1 & RC2_SIG_LOCKTIME_MASK) >> RC2_SIG_LOCKTIME_SHIFT);
             const auto usPRN = static_cast<uint16_t>(stRangeCmp2SatBlock.ucSatelliteIdentifier +
-                                                     (eSatelliteSystem == SYSTEM::GLONASS ? (GLONASS_SLOT_OFFSET - 1) : 0));
+                                                     (eSatelliteSystem == System::GLONASS ? (GLONASS_SLOT_OFFSET - 1) : 0));
 
             // Extend the sign
             auto iDopplerBitfield = static_cast<int32_t>(static_cast<uint64_t>(stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_DOPPLER_DIFF_MASK) >>
@@ -771,12 +771,12 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
 {
     uint8_t* pucTempDataPointer = pucCompressedData_;
 
-    MEASUREMENT_SOURCE eMeasurementSource = stMetaData_.eMeasurementSource;
+    MeasurementSource eMeasurementSource = stMetaData_.eMeasurementSource;
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
     if (dSecondOffset == 0.0) { ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)].clear(); }
 
-    std::vector<RangeCmp4::SIGNAL_TYPE> vSignals;  // All available signals
+    std::vector<RangeCmp4::SignalType> vSignals;   // All available signals
     std::vector<uint32_t> vPRNs;                   // All available PRNs
     std::map<uint32_t, uint64_t> mIncludedSignals; // IncludedSignal bitmasks for each PRN.
 
@@ -818,7 +818,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
             usSignals = static_cast<uint16_t>(GetBitfieldFromBuffer(&pucTempDataPointer, RC4_SIGNALS_BITS));
 
             // Collect the signals tracked in this satellite system.
-            for (RangeCmp4::SIGNAL_TYPE eCurrentSignalType : mvTheRangeCmp4SystemSignalMasks[aeTheRangeCmp4SatelliteSystem])
+            for (RangeCmp4::SignalType eCurrentSignalType : mvTheRangeCmp4SystemSignalMasks[aeTheRangeCmp4SatelliteSystem])
             {
                 if ((usSignals & (1UL << static_cast<uint16_t>(eCurrentSignalType))) != 0U) { vSignals.push_back(eCurrentSignalType); }
             }
@@ -855,7 +855,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                 stMeasurementBlockHeader.cGLONASSFrequencyNumber = 0;
 
                 // This field is only present for GLONASS and reference blocks.
-                if (aeTheRangeCmp4SatelliteSystem == SYSTEM::GLONASS && !stMeasurementBlockHeader.bIsDifferentialData)
+                if (aeTheRangeCmp4SatelliteSystem == System::GLONASS && !stMeasurementBlockHeader.bIsDifferentialData)
                 {
                     stMeasurementBlockHeader.cGLONASSFrequencyNumber =
                         static_cast<uint8_t>(GetBitfieldFromBuffer(&pucTempDataPointer, RC4_MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS));
@@ -864,7 +864,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                 uiSignalsForPRN = 0;
                 uiSignalBitMaskShift = 0;
                 bPrimaryBlock = true; // Reset to true for the first reference block from each PRN.
-                for (RangeCmp4::SIGNAL_TYPE eCurrentSignalType : vSignals)
+                for (RangeCmp4::SignalType eCurrentSignalType : vSignals)
                 {
                     // Get the included signals bitmask for this PRN.
                     try
@@ -979,39 +979,38 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
 //! This method will decompress the range message provided in pucRangeMessageBuffer_
 //! and overwrite the contents with the decompressed message.
 //------------------------------------------------------------------------------
-STATUS
-RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
-                              ENCODE_FORMAT eFormat_)
+Status RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
+                                     EncodeFormat eFormat_)
 {
     // Check for buffer validity
-    if (pucRangeMessageBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
+    if (pucRangeMessageBuffer_ == nullptr) { return Status::NULL_PROVIDED; }
 
-    if (pclMyMsgDB == nullptr) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDB == nullptr) { return Status::NO_DATABASE; }
 
     MessageDataStruct stMessageData;
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
-    auto eStatus = STATUS::UNKNOWN;
+    auto eStatus = Status::UNKNOWN;
 
     unsigned char* pucTempMessagePointer = pucRangeMessageBuffer_;
     eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stHeader, stMetaData_);
-    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    if (eStatus != Status::SUCCESS) { return eStatus; }
 
-    if (!clMyRangeCmpFilter.DoFiltering(stMetaData_)) { return STATUS::UNSUPPORTED; }
+    if (!clMyRangeCmpFilter.DoFiltering(stMetaData_)) { return Status::UNSUPPORTED; }
 
-    HEADER_FORMAT eInitialFormat = stMetaData_.eFormat;
+    HeaderFormat eInitialFormat = stMetaData_.eFormat;
     pucTempMessagePointer += stMetaData_.uiHeaderLength;
     // If the message is already in binary format, we don't need to do anything.
     // If the message is not in binary format, we need to ensure that it is encoded to binary so
     // that it can be decompressed.
-    if (eInitialFormat != HEADER_FORMAT::BINARY)
+    if (eInitialFormat != HeaderFormat::BINARY)
     {
         eStatus = clMyMessageDecoder.Decode(pucTempMessagePointer, stMessage, stMetaData_);
-        if (eStatus != STATUS::SUCCESS) { return eStatus; }
+        if (eStatus != Status::SUCCESS) { return eStatus; }
 
         eStatus = clMyEncoder.Encode(&pucRangeMessageBuffer_, uiRangeMessageBufferSize_, stHeader, stMessage, stMessageData, stMetaData_,
-                                     ENCODE_FORMAT::FLATTENED_BINARY);
-        if (eStatus != STATUS::SUCCESS) { return eStatus; }
+                                     EncodeFormat::FLATTENED_BINARY);
+        if (eStatus != Status::SUCCESS) { return eStatus; }
 
         pucTempMessagePointer = stMessageData.pucMessageBody;
     }
@@ -1026,7 +1025,7 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
         case RANGECMP2_MSG_ID: RangeCmp2ToRange(*reinterpret_cast<RangeCmp2Struct*>(pucTempMessagePointer), stRange, stMetaData_); break;
         case RANGECMP3_MSG_ID: [[fallthrough]];
         case RANGECMP4_MSG_ID: RangeCmp4ToRange(pucTempMessagePointer, stRange, stMetaData_); break;
-        default: return STATUS::UNSUPPORTED;
+        default: return Status::UNSUPPORTED;
         }
 
         // Set the binary message length in the metadata for decoding purposes.
@@ -1035,7 +1034,7 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
     }
     catch (...)
     {
-        return STATUS::DECOMPRESSION_FAILURE;
+        return Status::DECOMPRESSION_FAILURE;
     }
 
     // Adjust metadata/header data
@@ -1045,32 +1044,32 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
     memcpy(stMetaData_.acMessageName, "RANGE", 6);
 
     // The message should be returned in its original format
-    stMetaData_.eFormat = HEADER_FORMAT::BINARY;
+    stMetaData_.eFormat = HeaderFormat::BINARY;
     stMessage.clear();
     eStatus = clMyMessageDecoder.Decode(pucTempMessagePointer, stMessage, stMetaData_);
-    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    if (eStatus != Status::SUCCESS) { return eStatus; }
 
     stMetaData_.eFormat = eInitialFormat;
     // Re-encode to the original format if a format was not specified.
-    if (eFormat_ == ENCODE_FORMAT::UNSPECIFIED)
+    if (eFormat_ == EncodeFormat::UNSPECIFIED)
     {
         eFormat_ =
-            (eInitialFormat == HEADER_FORMAT::BINARY || eInitialFormat == HEADER_FORMAT::SHORT_BINARY ||
-             eInitialFormat == HEADER_FORMAT::PROPRIETARY_BINARY)
-                ? ENCODE_FORMAT::BINARY
-            : (eInitialFormat == HEADER_FORMAT::ASCII || eInitialFormat == HEADER_FORMAT::SHORT_ASCII || eInitialFormat == HEADER_FORMAT::ABB_ASCII)
-                ? ENCODE_FORMAT::ASCII
-            : (eInitialFormat == HEADER_FORMAT::JSON) ? ENCODE_FORMAT::JSON
-                                                      : ENCODE_FORMAT::ASCII; // Default to ASCII
+            (eInitialFormat == HeaderFormat::BINARY || eInitialFormat == HeaderFormat::SHORT_BINARY ||
+             eInitialFormat == HeaderFormat::PROPRIETARY_BINARY)
+                ? EncodeFormat::BINARY
+            : (eInitialFormat == HeaderFormat::ASCII || eInitialFormat == HeaderFormat::SHORT_ASCII || eInitialFormat == HeaderFormat::ABB_ASCII)
+                ? EncodeFormat::ASCII
+            : (eInitialFormat == HeaderFormat::JSON) ? EncodeFormat::JSON
+                                                     : EncodeFormat::ASCII; // Default to ASCII
     }
 
     // Re-encode the data back into the range message buffer.
     eStatus = clMyEncoder.Encode(&pucRangeMessageBuffer_, uiRangeMessageBufferSize_, stHeader, stMessage, stMessageData, stMetaData_, eFormat_);
-    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    if (eStatus != Status::SUCCESS) { return eStatus; }
 
     // Final adjustments to MetaData
     stMetaData_.uiLength = stMessageData.uiMessageLength;
     stMetaData_.uiHeaderLength = stMessageData.uiMessageHeaderLength;
 
-    return STATUS::SUCCESS;
+    return Status::SUCCESS;
 }

@@ -65,14 +65,14 @@ class RangeDecompressor
     //----------------------------------------------------------------------------
     void Reset()
     {
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
+        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MeasurementSource::PRIMARY)].clear();
+        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MeasurementSource::SECONDARY)].clear();
+        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MeasurementSource::PRIMARY)].clear();
+        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MeasurementSource::SECONDARY)].clear();
     }
 
-    [[nodiscard]] STATUS Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
-                                    ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
+    [[nodiscard]] Status Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
+                                    EncodeFormat eFormat_ = EncodeFormat::UNSPECIFIED);
 
   private:
     Filter clMyRangeCmpFilter;
@@ -84,7 +84,7 @@ class RangeDecompressor
     JsonReader* pclMyMsgDB{};
 
     // Store the last primary reference blocks for each measurement source.
-    RangeCmp4MeasurementSignalBlockStruct astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+    RangeCmp4MeasurementSignalBlockStruct astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(MeasurementSource::MAX)];
 
     // TODO: Is there a better way to map all this information together?
     // This is an array of map of map of maps. Indexed by SYSTEM, RangeCmp4::SIGNAL_TYPE, then PRN
@@ -92,30 +92,30 @@ class RangeDecompressor
     // differential data for the System, Signal type and PRN. We must keep track of which
     // measurement source the reference block came from so any subsequent differential blocks are
     // correctly decompressed.
-    std::map<SYSTEM, std::map<RangeCmp4::SIGNAL_TYPE,
+    std::map<System, std::map<RangeCmp4::SignalType,
                               std::map<uint32_t, std::pair<RangeCmp4MeasurementBlockHeaderStruct, RangeCmp4MeasurementSignalBlockStruct>>>>
-        ammmMyReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+        ammmMyReferenceBlocks[static_cast<uint32_t>(MeasurementSource::MAX)];
 
     // Protected members to be accessed by test child classes.
   protected:
-    std::map<ChannelTrackingStatusStruct::SATELLITE_SYSTEM,
-             std::map<ChannelTrackingStatusStruct::SIGNAL_TYPE, std::map<uint32_t, RangeCmp2LockTimeInfoStruct>>>
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
-    std::map<ChannelTrackingStatusStruct::SATELLITE_SYSTEM,
-             std::map<ChannelTrackingStatusStruct::SIGNAL_TYPE, std::map<uint32_t, RangeCmp4LocktimeInfoStruct>>>
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+    std::map<ChannelTrackingStatusStruct::SatelliteSystem,
+             std::map<ChannelTrackingStatusStruct::SignalType, std::map<uint32_t, RangeCmp2LockTimeInfoStruct>>>
+        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MeasurementSource::MAX)];
+    std::map<ChannelTrackingStatusStruct::SatelliteSystem,
+             std::map<ChannelTrackingStatusStruct::SignalType, std::map<uint32_t, RangeCmp4LocktimeInfoStruct>>>
+        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MeasurementSource::MAX)];
 
   private:
     static double GetSignalWavelength(const ChannelTrackingStatusStruct& stChannelTrackingStatus_, int16_t sGLONASSFrequency_);
     float DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
-                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_);
+                                                ChannelTrackingStatusStruct::SatelliteSystem eSystem_,
+                                                ChannelTrackingStatusStruct::SignalType eSignal_, uint16_t usPRN_);
     float DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
-                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
+                                                ChannelTrackingStatusStruct::SatelliteSystem eSystem_,
+                                                ChannelTrackingStatusStruct::SignalType eSignal_, uint32_t uiPRN_);
     template <bool bIsSecondary>
     void DecompressReferenceBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_,
-                                  MEASUREMENT_SOURCE eMeasurementSource_);
+                                  MeasurementSource eMeasurementSource_);
     template <bool bIsSecondary>
     void DecompressDifferentialBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stDifferentialBlock_,
                                      const RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_, double dSecondOffset_);

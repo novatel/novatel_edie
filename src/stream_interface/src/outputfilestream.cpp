@@ -30,14 +30,14 @@
 OutputFileStream::OutputFileStream(const std::u32string& s32FileName)
 {
     pOutFileStream = new FileStream(s32FileName);
-    pOutFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
+    pOutFileStream->OpenFile(FileStream::FileModes::OUTPUT);
 }
 
 // ---------------------------------------------------------
 OutputFileStream::OutputFileStream(const char* pcFileName)
 {
     pOutFileStream = new FileStream(pcFileName);
-    pOutFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
+    pOutFileStream->OpenFile(FileStream::FileModes::OUTPUT);
 }
 
 // ---------------------------------------------------------

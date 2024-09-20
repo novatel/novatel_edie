@@ -81,7 +81,7 @@ class Framer : public FramerBase
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] Status GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
 };
 
 } // namespace novatel::edie::oem

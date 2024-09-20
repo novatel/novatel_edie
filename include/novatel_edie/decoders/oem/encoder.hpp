@@ -107,9 +107,9 @@ class Encoder : public EncoderBase
     //!   UNSUPPORTED: eFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+    [[nodiscard]] Status Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
-                                ENCODE_FORMAT eFormat_);
+                                EncodeFormat eFormat_);
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message header from the provided intermediate header.
@@ -140,8 +140,8 @@ class Encoder : public EncoderBase
     //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                      MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_,
+    [[nodiscard]] Status EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                      MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, EncodeFormat eFormat_,
                                       bool bIsEmbeddedHeader_ = false);
 
     //----------------------------------------------------------------------------
@@ -171,8 +171,8 @@ class Encoder : public EncoderBase
     //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
-                                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_);
+    [[nodiscard]] Status EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
+                                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, EncodeFormat eFormat_);
 };
 
 } // namespace novatel::edie::oem

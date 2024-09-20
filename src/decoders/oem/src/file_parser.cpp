@@ -105,10 +105,10 @@ void FileParser::SetReturnUnknownBytes(bool bReturnUnknownBytes_) { clMyParser.S
 bool FileParser::GetReturnUnknownBytes() const { return clMyParser.GetReturnUnknownBytes(); }
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::SetEncodeFormat(ENCODE_FORMAT eFormat_) { clMyParser.SetEncodeFormat(eFormat_); }
+void FileParser::SetEncodeFormat(EncodeFormat eFormat_) { clMyParser.SetEncodeFormat(eFormat_); }
 
 // -------------------------------------------------------------------------------------------------------
-ENCODE_FORMAT FileParser::GetEncodeFormat() const { return clMyParser.GetEncodeFormat(); }
+EncodeFormat FileParser::GetEncodeFormat() const { return clMyParser.GetEncodeFormat(); }
 
 // -------------------------------------------------------------------------------------------------------
 Filter* FileParser::GetFilter() const { return clMyParser.GetFilter(); }
@@ -156,20 +156,20 @@ bool FileParser::ReadStream()
 }
 
 // -------------------------------------------------------------------------------------------------------
-[[nodiscard]] STATUS FileParser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_)
+[[nodiscard]] Status FileParser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_)
 {
     while (true)
     {
-        STATUS eStatus = clMyParser.Read(stMessageData_, stMetaData_);
+        Status eStatus = clMyParser.Read(stMessageData_, stMetaData_);
 
         switch (eStatus)
         {
-        case STATUS::SUCCESS: return STATUS::SUCCESS;
-        case STATUS::UNKNOWN: return STATUS::UNKNOWN;
-        case STATUS::BUFFER_EMPTY:
-            return ReadStream()                                                            ? STATUS::BUFFER_EMPTY
-                   : clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS
-                                                                                           : STATUS::STREAM_EMPTY;
+        case Status::SUCCESS: return Status::SUCCESS;
+        case Status::UNKNOWN: return Status::UNKNOWN;
+        case Status::BUFFER_EMPTY:
+            return ReadStream()                                                            ? Status::BUFFER_EMPTY
+                   : clMyParser.Read(stMessageData_, stMetaData_, true) == Status::SUCCESS ? Status::SUCCESS
+                                                                                           : Status::STREAM_EMPTY;
         default: pclMyLogger->info("Encountered an error: {}\n", static_cast<int32_t>(eStatus)); return eStatus;
         }
     }

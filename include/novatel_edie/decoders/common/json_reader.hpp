@@ -70,10 +70,10 @@ class JsonReaderFailure : public std::exception
 };
 
 //-----------------------------------------------------------------------
-//! \enum DATA_TYPE
+//! \enum DataType
 //! \brief Data type name string represented as an enum.
 //-----------------------------------------------------------------------
-enum class DATA_TYPE
+enum class DataType
 {
     BOOL,
     CHAR,
@@ -94,62 +94,62 @@ enum class DATA_TYPE
 };
 
 //!< returns the size associated with a datatype
-constexpr size_t DataTypeSize(const DATA_TYPE eType_)
+constexpr size_t DataTypeSize(const DataType eType_)
 {
-    return eType_ == DATA_TYPE::BOOL          ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::HEXBYTE     ? sizeof(uint8_t)
-           : eType_ == DATA_TYPE::CHAR        ? sizeof(int8_t)
-           : eType_ == DATA_TYPE::UCHAR       ? sizeof(uint8_t)
-           : eType_ == DATA_TYPE::SHORT       ? sizeof(int16_t)
-           : eType_ == DATA_TYPE::USHORT      ? sizeof(uint16_t)
-           : eType_ == DATA_TYPE::INT         ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::UINT        ? sizeof(uint32_t)
-           : eType_ == DATA_TYPE::LONG        ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::ULONG       ? sizeof(uint32_t)
-           : eType_ == DATA_TYPE::LONGLONG    ? sizeof(int64_t)
-           : eType_ == DATA_TYPE::ULONGLONG   ? sizeof(uint64_t)
-           : eType_ == DATA_TYPE::FLOAT       ? sizeof(float)
-           : eType_ == DATA_TYPE::DOUBLE      ? sizeof(double)
-           : eType_ == DATA_TYPE::SATELLITEID ? sizeof(uint32_t)
-                                              : 0;
+    return eType_ == DataType::BOOL          ? sizeof(int32_t)
+           : eType_ == DataType::HEXBYTE     ? sizeof(uint8_t)
+           : eType_ == DataType::CHAR        ? sizeof(int8_t)
+           : eType_ == DataType::UCHAR       ? sizeof(uint8_t)
+           : eType_ == DataType::SHORT       ? sizeof(int16_t)
+           : eType_ == DataType::USHORT      ? sizeof(uint16_t)
+           : eType_ == DataType::INT         ? sizeof(int32_t)
+           : eType_ == DataType::UINT        ? sizeof(uint32_t)
+           : eType_ == DataType::LONG        ? sizeof(int32_t)
+           : eType_ == DataType::ULONG       ? sizeof(uint32_t)
+           : eType_ == DataType::LONGLONG    ? sizeof(int64_t)
+           : eType_ == DataType::ULONGLONG   ? sizeof(uint64_t)
+           : eType_ == DataType::FLOAT       ? sizeof(float)
+           : eType_ == DataType::DOUBLE      ? sizeof(double)
+           : eType_ == DataType::SATELLITEID ? sizeof(uint32_t)
+                                             : 0;
 }
 
-// TODO: this table is misleading, as one DATA_TYPE may correspond to many different conversion strings
+// TODO: this table is misleading, as one DataType may correspond to many different conversion strings
 //!< returns conversion string associated with a datatype
-inline std::string DataTypeConversion(const DATA_TYPE eType_)
+inline std::string DataTypeConversion(const DataType eType_)
 {
-    return eType_ == DATA_TYPE::BOOL          ? "%d"
-           : eType_ == DATA_TYPE::CHAR        ? "%c"
-           : eType_ == DATA_TYPE::UCHAR       ? "%uc"
-           : eType_ == DATA_TYPE::SHORT       ? "%hd"
-           : eType_ == DATA_TYPE::USHORT      ? "%hu"
-           : eType_ == DATA_TYPE::INT         ? "%d"
-           : eType_ == DATA_TYPE::UINT        ? "%u"
-           : eType_ == DATA_TYPE::LONG        ? "%ld"
-           : eType_ == DATA_TYPE::ULONG       ? "%lu"
-           : eType_ == DATA_TYPE::LONGLONG    ? "%lld"
-           : eType_ == DATA_TYPE::ULONGLONG   ? "%llu"
-           : eType_ == DATA_TYPE::FLOAT       ? "%f"
-           : eType_ == DATA_TYPE::DOUBLE      ? "%lf"
-           : eType_ == DATA_TYPE::HEXBYTE     ? "%Z" // these are not valid default conversion strings
-           : eType_ == DATA_TYPE::SATELLITEID ? "%id"
-                                              : "";
+    return eType_ == DataType::BOOL          ? "%d"
+           : eType_ == DataType::CHAR        ? "%c"
+           : eType_ == DataType::UCHAR       ? "%uc"
+           : eType_ == DataType::SHORT       ? "%hd"
+           : eType_ == DataType::USHORT      ? "%hu"
+           : eType_ == DataType::INT         ? "%d"
+           : eType_ == DataType::UINT        ? "%u"
+           : eType_ == DataType::LONG        ? "%ld"
+           : eType_ == DataType::ULONG       ? "%lu"
+           : eType_ == DataType::LONGLONG    ? "%lld"
+           : eType_ == DataType::ULONGLONG   ? "%llu"
+           : eType_ == DataType::FLOAT       ? "%f"
+           : eType_ == DataType::DOUBLE      ? "%lf"
+           : eType_ == DataType::HEXBYTE     ? "%Z" // these are not valid default conversion strings
+           : eType_ == DataType::SATELLITEID ? "%id"
+                                             : "";
 }
 
 //!< Mapping from String to data type enums.
-static const std::unordered_map<std::string, DATA_TYPE> DataTypeEnumLookup = {
-    {"BOOL", DATA_TYPE::BOOL},      {"HEXBYTE", DATA_TYPE::HEXBYTE},   {"CHAR", DATA_TYPE::CHAR},
-    {"UCHAR", DATA_TYPE::UCHAR},    {"SHORT", DATA_TYPE::SHORT},       {"USHORT", DATA_TYPE::USHORT},
-    {"INT", DATA_TYPE::INT},        {"UINT", DATA_TYPE::UINT},         {"LONG", DATA_TYPE::LONG},
-    {"ULONG", DATA_TYPE::ULONG},    {"LONGLONG", DATA_TYPE::LONGLONG}, {"ULONGLONG", DATA_TYPE::ULONGLONG},
-    {"FLOAT", DATA_TYPE::FLOAT},    {"DOUBLE", DATA_TYPE::DOUBLE},     {"SATELLITEID", DATA_TYPE::SATELLITEID},
-    {"UNKNOWN", DATA_TYPE::UNKNOWN}};
+static const std::unordered_map<std::string, DataType> DataTypeEnumLookup = {
+    {"BOOL", DataType::BOOL},      {"HEXBYTE", DataType::HEXBYTE},   {"CHAR", DataType::CHAR},
+    {"UCHAR", DataType::UCHAR},    {"SHORT", DataType::SHORT},       {"USHORT", DataType::USHORT},
+    {"INT", DataType::INT},        {"UINT", DataType::UINT},         {"LONG", DataType::LONG},
+    {"ULONG", DataType::ULONG},    {"LONGLONG", DataType::LONGLONG}, {"ULONGLONG", DataType::ULONGLONG},
+    {"FLOAT", DataType::FLOAT},    {"DOUBLE", DataType::DOUBLE},     {"SATELLITEID", DataType::SATELLITEID},
+    {"UNKNOWN", DataType::UNKNOWN}};
 
 //-----------------------------------------------------------------------
-//! \enum FIELD_TYPE
+//! \enum FieldType
 //! \brief Field type string represented as an enum.
 //-----------------------------------------------------------------------
-enum class FIELD_TYPE
+enum class FieldType
 {
     SIMPLE,                //!< Simple type.
     ENUM,                  //!< Enum type.
@@ -166,14 +166,14 @@ enum class FIELD_TYPE
 };
 
 //!< Mapping from String to field type enums.
-static const std::unordered_map<std::string, FIELD_TYPE> FieldTypeEnumLookup = {{"SIMPLE", FIELD_TYPE::SIMPLE},
-                                                                                {"ENUM", FIELD_TYPE::ENUM},
-                                                                                {"BITFIELD", FIELD_TYPE::BITFIELD},
-                                                                                {"FIXED_LENGTH_ARRAY", FIELD_TYPE::FIXED_LENGTH_ARRAY},
-                                                                                {"VARIABLE_LENGTH_ARRAY", FIELD_TYPE::VARIABLE_LENGTH_ARRAY},
-                                                                                {"STRING", FIELD_TYPE::STRING},
-                                                                                {"FIELD_ARRAY", FIELD_TYPE::FIELD_ARRAY},
-                                                                                {"UNKNOWN", FIELD_TYPE::UNKNOWN}};
+static const std::unordered_map<std::string, FieldType> FieldTypeEnumLookup = {{"SIMPLE", FieldType::SIMPLE},
+                                                                               {"ENUM", FieldType::ENUM},
+                                                                               {"BITFIELD", FieldType::BITFIELD},
+                                                                               {"FIXED_LENGTH_ARRAY", FieldType::FIXED_LENGTH_ARRAY},
+                                                                               {"VARIABLE_LENGTH_ARRAY", FieldType::VARIABLE_LENGTH_ARRAY},
+                                                                               {"STRING", FieldType::STRING},
+                                                                               {"FIELD_ARRAY", FieldType::FIELD_ARRAY},
+                                                                               {"UNKNOWN", FieldType::UNKNOWN}};
 
 //-----------------------------------------------------------------------
 //! \struct EnumDataType
@@ -208,7 +208,7 @@ struct EnumDefinition
 //-----------------------------------------------------------------------
 struct BaseDataType
 {
-    DATA_TYPE name{DATA_TYPE::UNKNOWN};
+    DataType name{DataType::UNKNOWN};
     uint16_t length{0};
     std::string description{};
 
@@ -232,7 +232,7 @@ struct SimpleDataType : BaseDataType
 struct BaseField
 {
     std::string name;
-    FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
+    FieldType type{FieldType::UNKNOWN};
     std::string description;
     std::string conversion;
     std::string sConversionStripped;
@@ -243,7 +243,7 @@ struct BaseField
 
     BaseField() = default;
 
-    BaseField(std::string name_, const FIELD_TYPE type_, const std::string& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
+    BaseField(std::string name_, const FieldType type_, const std::string& sConversion_, const size_t length_, const DataType eDataTypeName_)
         : name(std::move(name_)), type(type_)
     {
         SetConversion(sConversion_);
@@ -298,7 +298,7 @@ struct BaseField
 
     [[nodiscard]] bool IsString() const
     {
-        return type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("%s") || conversionHash == CalculateBlockCrc32("%S");
+        return type == FieldType::STRING || conversionHash == CalculateBlockCrc32("%s") || conversionHash == CalculateBlockCrc32("%S");
     }
 
     [[nodiscard]] bool IsCsv() const
@@ -634,11 +634,11 @@ class JsonReader
     {
         for (const auto& field : vMsgDefFields_)
         {
-            if (field->type == FIELD_TYPE::ENUM)
+            if (field->type == FieldType::ENUM)
             {
                 dynamic_cast<EnumField*>(field)->enumDef = GetEnumDefId(dynamic_cast<const EnumField*>(field)->enumId);
             }
-            else if (field->type == FIELD_TYPE::FIELD_ARRAY) { MapMessageEnumFields(dynamic_cast<FieldArrayField*>(field)->fields); }
+            else if (field->type == FieldType::FIELD_ARRAY) { MapMessageEnumFields(dynamic_cast<FieldArrayField*>(field)->fields); }
         }
     }
 

@@ -66,7 +66,7 @@ class RxConfigTest : public ::testing::Test
         ASSERT_EQ(pclMyRxConfigHandler->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
     }
 
-    static bool TestSameFormatCompare(ENCODE_FORMAT eFormat_, MessageDataStruct* pstExpectedRxConfigMessageData_,
+    static bool TestSameFormatCompare(EncodeFormat eFormat_, MessageDataStruct* pstExpectedRxConfigMessageData_,
                                       MessageDataStruct* pstExpectedEmbeddedMessageData_)
     {
         MetaDataStruct stTestRxConfigMetaData;
@@ -75,10 +75,10 @@ class RxConfigTest : public ::testing::Test
         MessageDataStruct stTestEmbeddedMessageData;
 
         // CompareMessageData
-        const STATUS eStatus = pclMyRxConfigHandler->Convert(stTestRxConfigMessageData, stTestRxConfigMetaData, stTestEmbeddedMessageData,
+        const Status eStatus = pclMyRxConfigHandler->Convert(stTestRxConfigMessageData, stTestRxConfigMetaData, stTestEmbeddedMessageData,
                                                              stTestEmbeddedMetaData, eFormat_);
 
-        return eStatus == STATUS::SUCCESS && stTestRxConfigMessageData == *pstExpectedRxConfigMessageData_ &&
+        return eStatus == Status::SUCCESS && stTestRxConfigMessageData == *pstExpectedRxConfigMessageData_ &&
                stTestEmbeddedMessageData == *pstExpectedEmbeddedMessageData_;
     }
 };
@@ -124,7 +124,7 @@ TEST_F(RxConfigTest, DISABLED_RXCONFIG_ROUNDTRIP_ASCII)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(EncodeFormat::ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ABBREV)
@@ -151,7 +151,7 @@ TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ABBREV)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(EncodeFormat::ABBREV_ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_BINARY)
@@ -178,7 +178,7 @@ TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_BINARY)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 20;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::BINARY, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(EncodeFormat::BINARY, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -207,7 +207,7 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_ASCII_TO_JSON)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(EncodeFormat::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 TEST_F(RxConfigTest, RXCONFIG_CONVERT_ABBREV_TO_JSON)
@@ -233,7 +233,7 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_ABBREV_TO_JSON)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(EncodeFormat::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
 TEST_F(RxConfigTest, RXCONFIG_CONVERT_BINARY_TO_JSON)
@@ -262,5 +262,5 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_BINARY_TO_JSON)
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 115;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
-    ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
+    ASSERT_TRUE(TestSameFormatCompare(EncodeFormat::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }

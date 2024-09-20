@@ -144,8 +144,8 @@ class RxConfigHandler
     //! \return An error code describing the result of decoding and converting.
     //! See novatel::edie::oem::STATUS.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStruct& stRxConfigMetaData_,
-                                 MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eEncodeFormat_);
+    [[nodiscard]] Status Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStruct& stRxConfigMetaData_,
+                                 MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, EncodeFormat eEncodeFormat_);
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Framer.

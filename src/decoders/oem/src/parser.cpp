@@ -41,16 +41,16 @@ Parser::Parser(const std::string& sDbPath_)
     clMyRangeDecompressor.LoadJsonDb(&clMyJsonReader);
     clMyRxConfigHandler.LoadJsonDb(&clMyJsonReader);
 
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
 
     pclMyLogger->debug("Parser initialized");
 }
@@ -67,16 +67,16 @@ Parser::Parser(const std::u32string& sDbPath_)
     clMyRangeDecompressor.LoadJsonDb(&clMyJsonReader);
     clMyRxConfigHandler.LoadJsonDb(&clMyJsonReader);
 
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
 
     pclMyLogger->debug("Parser initialized");
 }
@@ -111,16 +111,16 @@ void Parser::LoadJsonDb(JsonReader* pclJsonDb_)
         clMyRangeDecompressor.LoadJsonDb(pclJsonDb_);
         clMyRxConfigHandler.LoadJsonDb(pclJsonDb_);
 
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-        clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-        clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-        clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
+        clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HeaderFormat::ALL, MeasurementSource::PRIMARY);
+        clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HeaderFormat::ALL, MeasurementSource::SECONDARY);
 
         clMyJsonReader = *pclJsonDb_;
     }
@@ -176,10 +176,10 @@ void Parser::SetReturnUnknownBytes(bool bReturnUnknownBytes_) { bMyReturnUnknown
 bool Parser::GetReturnUnknownBytes() const { return bMyReturnUnknownBytes; }
 
 // -------------------------------------------------------------------------------------------------------
-void Parser::SetEncodeFormat(ENCODE_FORMAT eFormat_) { eMyEncodeFormat = eFormat_; }
+void Parser::SetEncodeFormat(EncodeFormat eFormat_) { eMyEncodeFormat = eFormat_; }
 
 // -------------------------------------------------------------------------------------------------------
-ENCODE_FORMAT Parser::GetEncodeFormat() const { return eMyEncodeFormat; }
+EncodeFormat Parser::GetEncodeFormat() const { return eMyEncodeFormat; }
 
 // -------------------------------------------------------------------------------------------------------
 unsigned char* Parser::GetInternalBuffer() const { return pucMyFrameBufferPointer; }
@@ -188,8 +188,7 @@ unsigned char* Parser::GetInternalBuffer() const { return pucMyFrameBufferPointe
 uint32_t Parser::Write(unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS
-Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_)
+Status Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_)
 {
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
@@ -202,22 +201,22 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
 
         // Datasets ending with an Abbreviated ASCII message will always return an incomplete framing status
         // as there is no delimiter marking the end of the log.
-        // If bDecodeIncompleteAbbreviated is set, the Framer status is STATUS::INCOMPLETE, and MetaData
-        // eFormat is HEADER_FORMAT::ABB_ASCII or HEADER_FORMAT::SHORT_ABB_ASCII then flush the framer
+        // If bDecodeIncompleteAbbreviated is set, the Framer status is Status::INCOMPLETE, and MetaData
+        // eFormat is HeaderFormat::ABB_ASCII or HeaderFormat::SHORT_ABB_ASCII then flush the framer
         // and attempt to decode that data.
 
-        if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE &&
-            (stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII || stMetaData_.eFormat == HEADER_FORMAT::SHORT_ABB_ASCII))
+        if (bDecodeIncompleteAbbreviated_ && eStatus == Status::INCOMPLETE &&
+            (stMetaData_.eFormat == HeaderFormat::ABB_ASCII || stMetaData_.eFormat == HeaderFormat::SHORT_ABB_ASCII))
         {
             uint32_t uiFlushSize = clMyFramer.Flush(pucMyFrameBufferPointer, uiParserInternalBufferSize);
             if (uiFlushSize > 0)
             {
-                eStatus = STATUS::SUCCESS;
+                eStatus = Status::SUCCESS;
                 stMetaData_.uiLength = uiFlushSize;
             }
         }
 
-        if (eStatus == STATUS::UNKNOWN)
+        if (eStatus == Status::UNKNOWN)
         {
             stMessageData_.uiMessageHeaderLength = 0;
             stMessageData_.uiMessageBodyLength = 0;
@@ -227,12 +226,12 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                 stMessageData_.pucMessageHeader = pucMyFrameBufferPointer;
                 stMessageData_.uiMessageHeaderLength = stMetaData_.uiLength;
                 stMessageData_.pucMessageBody = nullptr;
-                return STATUS::UNKNOWN;
+                return Status::UNKNOWN;
             }
         }
-        else if (eStatus == STATUS::SUCCESS)
+        else if (eStatus == Status::SUCCESS)
         {
-            if ((!bMyIgnoreAbbreviatedAsciiResponse) && (stMetaData_.bResponse) && (stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII))
+            if ((!bMyIgnoreAbbreviatedAsciiResponse) && (stMetaData_.bResponse) && (stMetaData_.eFormat == HeaderFormat::ABB_ASCII))
             {
                 stMessageData_.uiMessageHeaderLength = 0;
                 stMessageData_.pucMessageHeader = nullptr;
@@ -240,11 +239,11 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                 stMessageData_.pucMessageBody = nullptr;
                 stMessageData_.pucMessage = pucMyFrameBufferPointer;
                 stMessageData_.uiMessageLength = stMetaData_.uiLength;
-                return STATUS::SUCCESS;
+                return Status::SUCCESS;
             }
 
             eStatus = clMyHeaderDecoder.Decode(pucMyFrameBufferPointer, stHeader, stMetaData_);
-            if (eStatus == STATUS::SUCCESS)
+            if (eStatus == Status::SUCCESS)
             {
                 if ((pclMyUserFilter != nullptr) && (!pclMyUserFilter->DoFiltering(stMetaData_))) { continue; }
 
@@ -252,7 +251,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                 if (clMyRangeCmpFilter.DoFiltering(stMetaData_) && bMyDecompressRangeCmp)
                 {
                     eStatus = clMyRangeDecompressor.Decompress(pucMyFrameBufferPointer, uiParserInternalBufferSize, stMetaData_);
-                    if (eStatus == STATUS::SUCCESS) { stHeader.usMessageId = stMetaData_.usMessageId; }
+                    if (eStatus == Status::SUCCESS) { stHeader.usMessageId = stMetaData_.usMessageId; }
                     else
                     {
                         pclMyLogger->info("RangeDecompressor returned status {}\n", static_cast<int32_t>(eStatus));
@@ -268,17 +267,17 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                     MetaDataStruct stEmbeddedMetaData;
                     clMyRxConfigHandler.Write(pucMyFrameBufferPointer, stMetaData_.uiLength);
                     eStatus = clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
-                    if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}\n", static_cast<int32_t>(eStatus)); }
+                    if (eStatus != Status::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}\n", static_cast<int32_t>(eStatus)); }
                     return eStatus;
                 }
 
                 pucMyFrameBufferPointer += stMetaData_.uiHeaderLength;
                 eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage, stMetaData_);
-                if (eStatus == STATUS::SUCCESS)
+                if (eStatus == Status::SUCCESS)
                 {
                     eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
                                                  stMetaData_, eMyEncodeFormat);
-                    if (eStatus == STATUS::SUCCESS) { return STATUS::SUCCESS; }
+                    if (eStatus == Status::SUCCESS) { return Status::SUCCESS; }
 
                     pclMyLogger->info("Encoder returned status {}\n", static_cast<int32_t>(eStatus));
                 }
@@ -286,7 +285,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
             }
             else { pclMyLogger->info("HeaderDecoder returned status {}\n", static_cast<int32_t>(eStatus)); }
         }
-        else if (eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
+        else if (eStatus == Status::INCOMPLETE || eStatus == Status::BUFFER_EMPTY) { return Status::BUFFER_EMPTY; }
         else { pclMyLogger->info("Framer returned status {}\n", static_cast<int32_t>(eStatus)); }
     }
 }

@@ -169,14 +169,14 @@ class FileParser
     //
     //! \param[in] eFormat_ the encode format for future messages.
     //----------------------------------------------------------------------------
-    void SetEncodeFormat(ENCODE_FORMAT eFormat_);
+    void SetEncodeFormat(EncodeFormat eFormat_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the encode format for messages.
     //
     //! \return The current encode format for messages.
     //----------------------------------------------------------------------------
-    [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const;
+    [[nodiscard]] EncodeFormat GetEncodeFormat() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the Filter for the FileParser.
@@ -216,7 +216,7 @@ class FileParser
     //! if requested in the ParserConfigStruct given to SetConfig().
     //!   FILE_EMPTY: There are no more bytes to parse in the file provided.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] Status Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_);
 
     //----------------------------------------------------------------------------
     //! \brief Reset the InputFileStream, and flush all bytes from the internal

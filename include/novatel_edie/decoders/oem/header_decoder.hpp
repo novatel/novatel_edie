@@ -49,8 +49,8 @@ class HeaderDecoder
     MessageDefinition stMyResponseDefinition;
 
     // Decode novatel headers
-    template <ASCII_HEADER eField> [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const;
-    template <ASCII_HEADER... eFields> [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const;
+    template <AsciiHeader eField> [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const;
+    template <AsciiHeader... eFields> [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const;
     void DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stInterHeader_) const;
 
   public:
@@ -98,7 +98,7 @@ class HeaderDecoder
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const;
+    [[nodiscard]] Status Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const;
 };
 
 } // namespace novatel::edie::oem

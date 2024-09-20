@@ -75,8 +75,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
-    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
+    EncodeFormat eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
+    if (eEncodeFormat == EncodeFormat::UNSPECIFIED)
     {
         pclLogger->error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY");
         return 1;
@@ -134,11 +134,11 @@ int main(int argc, char* argv[])
         stReadStatus = clIfs.ReadData(stReadData);
         clParser.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
 
-        STATUS eStatus = clParser.Read(stMessageData, stMetaData);
+        Status eStatus = clParser.Read(stMessageData, stMetaData);
 
-        while (eStatus != STATUS::BUFFER_EMPTY)
+        while (eStatus != Status::BUFFER_EMPTY)
         {
-            if (eStatus == STATUS::SUCCESS)
+            if (eStatus == Status::SUCCESS)
             {
                 clConvertedLogsOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';

@@ -74,7 +74,7 @@ class Parser
     bool bMyDecompressRangeCmp{true};
     bool bMyReturnUnknownBytes{true};
     bool bMyIgnoreAbbreviatedAsciiResponse{true};
-    ENCODE_FORMAT eMyEncodeFormat{ENCODE_FORMAT::ASCII};
+    EncodeFormat eMyEncodeFormat{EncodeFormat::ASCII};
 
   public:
     //! \brief uiPARSER_INTERNAL_BUFFER_SIZE: the size of the parser's internal buffer.
@@ -191,14 +191,14 @@ class Parser
     //
     //! \param[in] eFormat_ the encode format for future messages.
     //----------------------------------------------------------------------------
-    void SetEncodeFormat(ENCODE_FORMAT eFormat_);
+    void SetEncodeFormat(EncodeFormat eFormat_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the encode format for messages.
     //
     //! \return The current encode format for messages.
     //----------------------------------------------------------------------------
-    [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const;
+    [[nodiscard]] EncodeFormat GetEncodeFormat() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the Filter for the FileParser.
@@ -249,7 +249,7 @@ class Parser
     //! if requested in the ParserConfigStruct given to SetConfig().
     //!   BUFFER_EMPTY: There are no more bytes to parse in the Parser.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
+    [[nodiscard]] Status Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Parser.

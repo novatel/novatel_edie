@@ -57,14 +57,14 @@ void HeaderDecoder::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pc
 std::shared_ptr<spdlog::logger> HeaderDecoder::GetLogger() { return pclMyLogger; }
 
 // -------------------------------------------------------------------------------------------------------
-template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const
+template <AsciiHeader eField> bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const
 {
-    constexpr bool bIsLeadingNumberField = eField == ASCII_HEADER::SEQUENCE || eField == ASCII_HEADER::IDLE_TIME || eField == ASCII_HEADER::WEEK ||
-                                           eField == ASCII_HEADER::SECONDS || eField == ASCII_HEADER::RECEIVER_SW_VERSION;
+    constexpr bool bIsLeadingNumberField = eField == AsciiHeader::SEQUENCE || eField == AsciiHeader::IDLE_TIME || eField == AsciiHeader::WEEK ||
+                                           eField == AsciiHeader::SECONDS || eField == AsciiHeader::RECEIVER_SW_VERSION;
 
-    constexpr bool bIsLeadingAlphaField = eField == ASCII_HEADER::MESSAGE_NAME || eField == ASCII_HEADER::PORT || eField == ASCII_HEADER::TIME_STATUS;
+    constexpr bool bIsLeadingAlphaField = eField == AsciiHeader::MESSAGE_NAME || eField == AsciiHeader::PORT || eField == AsciiHeader::TimeStatus;
 
-    constexpr bool bIsLeadingHexField = eField == ASCII_HEADER::RECEIVER_STATUS || eField == ASCII_HEADER::MSG_DEF_CRC;
+    constexpr bool bIsLeadingHexField = eField == AsciiHeader::RECEIVER_STATUS || eField == AsciiHeader::MSG_DEF_CRC;
 
     static_assert(bIsLeadingNumberField || bIsLeadingAlphaField || bIsLeadingHexField);
 
@@ -79,7 +79,7 @@ template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(Interm
 
     switch (eField)
     {
-    case ASCII_HEADER::MESSAGE_NAME: {
+    case AsciiHeader::MESSAGE_NAME: {
         uint16_t usLogId = 0;
         uint32_t uiSiblingId = 0;
         uint32_t uiMsgFormat = 0;
@@ -89,19 +89,19 @@ template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(Interm
         stInterHeader_.ucMessageType = PackMsgType(uiSiblingId, uiMsgFormat, uiResponse);
         break;
     }
-    case ASCII_HEADER::PORT:
+    case AsciiHeader::PORT:
         stInterHeader_.uiPortAddress = static_cast<uint32_t>(GetEnumValue(vMyPortAddressDefinitions, std::string(*ppcLogBuf_, ullTokenLength)));
         break;
-    case ASCII_HEADER::SEQUENCE: stInterHeader_.usSequence = static_cast<uint16_t>(strtoul(*ppcLogBuf_, nullptr, 10)); break;
-    case ASCII_HEADER::IDLE_TIME: stInterHeader_.ucIdleTime = static_cast<uint8_t>(std::lround(2.0F * strtof(*ppcLogBuf_, nullptr))); break;
-    case ASCII_HEADER::TIME_STATUS:
+    case AsciiHeader::SEQUENCE: stInterHeader_.usSequence = static_cast<uint16_t>(strtoul(*ppcLogBuf_, nullptr, 10)); break;
+    case AsciiHeader::IDLE_TIME: stInterHeader_.ucIdleTime = static_cast<uint8_t>(std::lround(2.0F * strtof(*ppcLogBuf_, nullptr))); break;
+    case AsciiHeader::TimeStatus:
         stInterHeader_.uiTimeStatus = GetEnumValue(vMyGpsTimeStatusDefinitions, std::string(*ppcLogBuf_, ullTokenLength));
         break;
-    case ASCII_HEADER::WEEK: stInterHeader_.usWeek = static_cast<uint16_t>(strtoul(*ppcLogBuf_, nullptr, 10)); break;
-    case ASCII_HEADER::SECONDS: stInterHeader_.dMilliseconds = 1000.0 * strtod(*ppcLogBuf_, nullptr); break;
-    case ASCII_HEADER::RECEIVER_STATUS: stInterHeader_.uiReceiverStatus = strtoul(*ppcLogBuf_, nullptr, 16); break;
-    case ASCII_HEADER::MSG_DEF_CRC: stInterHeader_.uiMessageDefinitionCrc = strtoul(*ppcLogBuf_, nullptr, 16); break;
-    case ASCII_HEADER::RECEIVER_SW_VERSION: stInterHeader_.usReceiverSwVersion = static_cast<uint16_t>(strtoul(*ppcLogBuf_, nullptr, 10)); break;
+    case AsciiHeader::WEEK: stInterHeader_.usWeek = static_cast<uint16_t>(strtoul(*ppcLogBuf_, nullptr, 10)); break;
+    case AsciiHeader::SECONDS: stInterHeader_.dMilliseconds = 1000.0 * strtod(*ppcLogBuf_, nullptr); break;
+    case AsciiHeader::RECEIVER_STATUS: stInterHeader_.uiReceiverStatus = strtoul(*ppcLogBuf_, nullptr, 16); break;
+    case AsciiHeader::MSG_DEF_CRC: stInterHeader_.uiMessageDefinitionCrc = strtoul(*ppcLogBuf_, nullptr, 16); break;
+    case AsciiHeader::RECEIVER_SW_VERSION: stInterHeader_.usReceiverSwVersion = static_cast<uint16_t>(strtoul(*ppcLogBuf_, nullptr, 10)); break;
     default: return false;
     }
     *ppcLogBuf_ += ullTokenLength + 1; // Consume the token and the trailing delimiter
@@ -109,7 +109,7 @@ template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(Interm
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <ASCII_HEADER... eFields> bool HeaderDecoder::DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const
+template <AsciiHeader... eFields> bool HeaderDecoder::DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, char** ppcLogBuf_) const
 {
     return (DecodeAsciiHeaderField<eFields>(stInterHeader_, ppcLogBuf_) && ...);
 }
@@ -130,71 +130,70 @@ void HeaderDecoder::DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stI
 }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS
-HeaderDecoder::Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const
+Status HeaderDecoder::Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const
 {
-    if (pucLogBuf_ == nullptr) { return STATUS::NULL_PROVIDED; }
+    if (pucLogBuf_ == nullptr) { return Status::NULL_PROVIDED; }
 
-    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return Status::NO_DATABASE; }
 
     auto* pcTempBuf = reinterpret_cast<char*>(pucLogBuf_);
     auto* pstBinaryHeader = reinterpret_cast<Oem4BinaryHeader*>(pucLogBuf_);
 
-    stMetaData_.eFormat = pstBinaryHeader->ucSync1 == OEM4_ASCII_SYNC          ? HEADER_FORMAT::ASCII
-                          : pstBinaryHeader->ucSync1 == OEM4_SHORT_ASCII_SYNC  ? HEADER_FORMAT::SHORT_ASCII
-                          : pstBinaryHeader->ucSync1 == OEM4_ABBREV_ASCII_SYNC ? HEADER_FORMAT::ABB_ASCII
-                          : pstBinaryHeader->ucSync1 == NMEA_SYNC              ? HEADER_FORMAT::NMEA
-                          : pstBinaryHeader->ucSync1 == '{'                    ? HEADER_FORMAT::JSON
-                          : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_BINARY_SYNC3 ? HEADER_FORMAT::BINARY
+    stMetaData_.eFormat = pstBinaryHeader->ucSync1 == OEM4_ASCII_SYNC                                                      ? HeaderFormat::ASCII
+                          : pstBinaryHeader->ucSync1 == OEM4_SHORT_ASCII_SYNC                                              ? HeaderFormat::SHORT_ASCII
+                          : pstBinaryHeader->ucSync1 == OEM4_ABBREV_ASCII_SYNC                                             ? HeaderFormat::ABB_ASCII
+                          : pstBinaryHeader->ucSync1 == NMEA_SYNC                                                          ? HeaderFormat::NMEA
+                          : pstBinaryHeader->ucSync1 == '{'                                                                ? HeaderFormat::JSON
+                          : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_BINARY_SYNC3 ? HeaderFormat::BINARY
                           : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_SHORT_BINARY_SYNC3
-                              ? HEADER_FORMAT::SHORT_BINARY
-                              : HEADER_FORMAT::UNKNOWN;
+                              ? HeaderFormat::SHORT_BINARY
+                              : HeaderFormat::UNKNOWN;
 
     switch (stMetaData_.eFormat)
     {
-    case HEADER_FORMAT::ASCII:
+    case HeaderFormat::ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '#'
-        if (!DecodeAsciiHeaderFields<ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::PORT, ASCII_HEADER::SEQUENCE, ASCII_HEADER::IDLE_TIME,
-                                     ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS, ASCII_HEADER::RECEIVER_STATUS,
-                                     ASCII_HEADER::MSG_DEF_CRC, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf))
+        if (!DecodeAsciiHeaderFields<AsciiHeader::MESSAGE_NAME, AsciiHeader::PORT, AsciiHeader::SEQUENCE, AsciiHeader::IDLE_TIME,
+                                     AsciiHeader::TimeStatus, AsciiHeader::WEEK, AsciiHeader::SECONDS, AsciiHeader::RECEIVER_STATUS,
+                                     AsciiHeader::MSG_DEF_CRC, AsciiHeader::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf))
         {
-            return STATUS::FAILURE;
+            return Status::FAILURE;
         }
         break;
 
-    case HEADER_FORMAT::ABB_ASCII:
+    case HeaderFormat::ABB_ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '<'
         // At this point, we do not know if the format is short or not, but both have a message
         // field
-        if (!DecodeAsciiHeaderFields<ASCII_HEADER::MESSAGE_NAME>(stInterHeader_, &pcTempBuf)) { return STATUS::FAILURE; }
-        if (DecodeAsciiHeaderFields<ASCII_HEADER::PORT>(stInterHeader_, &pcTempBuf))
+        if (!DecodeAsciiHeaderFields<AsciiHeader::MESSAGE_NAME>(stInterHeader_, &pcTempBuf)) { return Status::FAILURE; }
+        if (DecodeAsciiHeaderFields<AsciiHeader::PORT>(stInterHeader_, &pcTempBuf))
         {
             // Port field succeeded, so this is not short format
-            if (!DecodeAsciiHeaderFields<ASCII_HEADER::SEQUENCE, ASCII_HEADER::IDLE_TIME, ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK,
-                                         ASCII_HEADER::SECONDS, ASCII_HEADER::RECEIVER_STATUS, ASCII_HEADER::MSG_DEF_CRC,
-                                         ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf))
+            if (!DecodeAsciiHeaderFields<AsciiHeader::SEQUENCE, AsciiHeader::IDLE_TIME, AsciiHeader::TimeStatus, AsciiHeader::WEEK,
+                                         AsciiHeader::SECONDS, AsciiHeader::RECEIVER_STATUS, AsciiHeader::MSG_DEF_CRC,
+                                         AsciiHeader::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf))
             {
-                return STATUS::FAILURE;
+                return Status::FAILURE;
             }
         }
         else
         {
             // Port field failed, so we (unsafely) assume this is short
-            stMetaData_.eFormat = HEADER_FORMAT::SHORT_ABB_ASCII;
-            if (!DecodeAsciiHeaderFields<ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS>(stInterHeader_, &pcTempBuf)) { return STATUS::FAILURE; }
+            stMetaData_.eFormat = HeaderFormat::SHORT_ABB_ASCII;
+            if (!DecodeAsciiHeaderFields<AsciiHeader::WEEK, AsciiHeader::SECONDS>(stInterHeader_, &pcTempBuf)) { return Status::FAILURE; }
         }
         ++pcTempBuf; // Move the input buffer past the trailing delimiter '\n'
         break;
 
-    case HEADER_FORMAT::SHORT_ASCII:
+    case HeaderFormat::SHORT_ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '%'
-        if (!DecodeAsciiHeaderFields<ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS>(stInterHeader_, &pcTempBuf))
+        if (!DecodeAsciiHeaderFields<AsciiHeader::MESSAGE_NAME, AsciiHeader::WEEK, AsciiHeader::SECONDS>(stInterHeader_, &pcTempBuf))
         {
-            return STATUS::FAILURE;
+            return Status::FAILURE;
         }
         break;
 
-    case HEADER_FORMAT::BINARY:
+    case HeaderFormat::BINARY:
         stInterHeader_.usMessageId = pstBinaryHeader->usMsgNumber;
         stInterHeader_.ucMessageType = pstBinaryHeader->ucMsgType;
         stInterHeader_.uiPortAddress = pstBinaryHeader->ucPort;
@@ -210,7 +209,7 @@ HeaderDecoder::Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHead
         pcTempBuf += sizeof(Oem4BinaryHeader);
         break;
 
-    case HEADER_FORMAT::SHORT_BINARY: {
+    case HeaderFormat::SHORT_BINARY: {
         const auto* pstBinaryShortHeader = reinterpret_cast<Oem4BinaryShortHeader*>(pucLogBuf_);
         stInterHeader_.usLength = pstBinaryShortHeader->ucLength;
         stInterHeader_.usMessageId = pstBinaryShortHeader->usMessageId;
@@ -219,7 +218,7 @@ HeaderDecoder::Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHead
         pcTempBuf += sizeof(Oem4BinaryShortHeader);
         break;
     }
-    case HEADER_FORMAT::JSON:
+    case HeaderFormat::JSON:
         try
         {
             DecodeJsonHeader(json::parse(pcTempBuf)["header"], stInterHeader_);
@@ -227,20 +226,19 @@ HeaderDecoder::Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHead
         catch (std::exception& e)
         {
             SPDLOG_LOGGER_CRITICAL(pclMyLogger, e.what());
-            return STATUS::FAILURE;
+            return Status::FAILURE;
         }
         break;
 
-    case HEADER_FORMAT::NMEA: return STATUS::UNSUPPORTED;
+    case HeaderFormat::NMEA: return Status::UNSUPPORTED;
 
-    default: return STATUS::UNKNOWN;
+    default: return Status::UNKNOWN;
     }
 
-    stMetaData_.eMeasurementSource =
-        static_cast<MEASUREMENT_SOURCE>(stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC));
-    stMetaData_.eTimeStatus = static_cast<TIME_STATUS>(stInterHeader_.uiTimeStatus);
+    stMetaData_.eMeasurementSource = static_cast<MeasurementSource>(stInterHeader_.ucMessageType & static_cast<uint32_t>(MessageTypeMask::MEASSRC));
+    stMetaData_.eTimeStatus = static_cast<TimeStatus>(stInterHeader_.uiTimeStatus);
     stMetaData_.bResponse =
-        static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE) == (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE));
+        static_cast<uint32_t>(MessageTypeMask::RESPONSE) == (stInterHeader_.ucMessageType & static_cast<uint32_t>(MessageTypeMask::RESPONSE));
     stMetaData_.usWeek = static_cast<uint32_t>(stInterHeader_.usWeek);
     stMetaData_.dMilliseconds = static_cast<uint32_t>(stInterHeader_.dMilliseconds);
     stMetaData_.usMessageId = static_cast<uint32_t>(stInterHeader_.usMessageId);
@@ -249,8 +247,8 @@ HeaderDecoder::Decode(unsigned char* pucLogBuf_, IntermediateHeader& stInterHead
     stMetaData_.uiBinaryMsgLength = static_cast<uint32_t>(stInterHeader_.usLength);
 
     // Reconstruct a message name that won't have a suffix of any kind.
-    stMetaData_.MessageName(pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY),
-                                                                   static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U)));
+    stMetaData_.MessageName(pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MeasurementSource::PRIMARY),
+                                                                   static_cast<uint32_t>(MessageFormat::ABBREV), 0U)));
 
-    return STATUS::SUCCESS;
+    return Status::SUCCESS;
 }

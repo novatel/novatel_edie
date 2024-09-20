@@ -59,34 +59,34 @@ FileStream::~FileStream() = default;
 
 // ---------------------------------------------------------
 // Open the file in different modes.
-void FileStream::OpenFile(FILE_MODES eMode)
+void FileStream::OpenFile(FileModes eMode)
 {
     switch (eMode)
     {
-    case FILE_MODES::APPEND:
+    case FileModes::APPEND:
         MyStream.open(clFilePath, std::ios::out | std::ios::app | std::ios::binary);
         if (MyStream.fail()) { throw NExcept("file does not exist"); }
         break;
 
-    case FILE_MODES::INSERT:
+    case FileModes::INSERT:
         MyStream.open(clFilePath, std::ios::out | std::ios::ate | std::ios::binary);
         if (MyStream.fail()) { throw NExcept("file does not exist"); }
 
         break;
 
-    case FILE_MODES::INPUT:
+    case FileModes::INPUT:
         MyStream.open(clFilePath, std::ios::in | std::ios::binary);
         if (MyStream.fail()) { throw NExcept("file does not exist"); }
 
         break;
 
-    case FILE_MODES::OUTPUT:
+    case FileModes::OUTPUT:
         MyStream.open(clFilePath, std::ios::out | std::ios::binary);
         if (MyStream.fail()) { throw NExcept("file does not exist"); }
 
         break;
 
-    case FILE_MODES::TRUNCATE:
+    case FileModes::TRUNCATE:
         MyStream.open(clFilePath, std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
         if (MyStream.fail()) { throw NExcept("file does not exist"); }
 

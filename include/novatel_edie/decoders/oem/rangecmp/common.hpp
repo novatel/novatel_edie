@@ -325,13 +325,13 @@ constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0
 constexpr std::array<int64_t, 2> RC4_RBLK_INVALID_PSR = {137438953471, -524288};
 
 //-----------------------------------------------------------------------
-//! \enum SYSTEM
+//! \enum System
 //! \brief Satellite Constellation System enumerations. These can also
 //! be used to shift a sytem mask for decoding.
 //! \note These are different than the enumerations for the Satellite
 //! System field of the Channel Tracking Status word.
 //-----------------------------------------------------------------------
-enum class SYSTEM
+enum class System
 {
     GPS = 0,
     GLONASS = 1,
@@ -448,12 +448,12 @@ struct RangeCmp2LockTimeInfoStruct
 
 namespace RangeCmp2 {
 //--------------------------------------------------------------------
-//! \enum SIGNAL_TYPE
+//! \enum SignalType
 //! \brief RANGECMP2 message Signal Type value bitfield
 //! representations as defined by RANGECMP2 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=Range#SignalType_RANGECMP2
 //--------------------------------------------------------------------
-enum class SIGNAL_TYPE
+enum class SignalType
 {
     // GPS
     GPS_L1CA = 1,
@@ -578,12 +578,12 @@ struct RangeCmp4LocktimeInfoStruct
 //-----------------------------------------------------------------------
 namespace RangeCmp4 {
 //--------------------------------------------------------------------
-//! \enum SIGNAL_TYPE
+//! \enum SignalType
 //! \brief RANGECMP4 message Signal Type value bitfield
 //! representations as defined by RANGECMP4 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Signal
 //--------------------------------------------------------------------
-enum class SIGNAL_TYPE
+enum class SignalType
 {
     // GPS
     GPS_L1CA = 1,
@@ -645,9 +645,9 @@ enum class SIGNAL_TYPE
 struct ChannelTrackingStatusStruct
 {
     //-----------------------------------------------------------------------
-    //! \enum TRACKING_STATE
+    //! \enum TrackingState
     //-----------------------------------------------------------------------
-    enum class TRACKING_STATE
+    enum class TrackingState
     {
         IDLE = 0,
         SKY_SEARCH = 1,
@@ -664,9 +664,9 @@ struct ChannelTrackingStatusStruct
     };
 
     //-----------------------------------------------------------------------
-    //! \enum CORRELATOR_TYPE
+    //! \enum CorrelatorType
     //-----------------------------------------------------------------------
-    enum class CORRELATOR_TYPE
+    enum class CorrelatorType
     {
         NONE = 0,
         STANDARD = 1,
@@ -678,9 +678,9 @@ struct ChannelTrackingStatusStruct
     };
 
     //-----------------------------------------------------------------------
-    //! \enum SATELLITE_SYSTEM
+    //! \enum SatelliteSystem
     //-----------------------------------------------------------------------
-    enum class SATELLITE_SYSTEM
+    enum class SatelliteSystem
     {
         GPS = 0,
         GLONASS = 1,
@@ -693,9 +693,9 @@ struct ChannelTrackingStatusStruct
     };
 
     //-----------------------------------------------------------------------
-    //! \enum SIGNAL_TYPE
+    //! \enum SignalType
     //-----------------------------------------------------------------------
-    enum class SIGNAL_TYPE
+    enum class SignalType
     {
         // GPS
         GPS_L1CA = 0,
@@ -744,15 +744,15 @@ struct ChannelTrackingStatusStruct
         UNKNOWN = 0
     };
 
-    TRACKING_STATE eTrackingState{TRACKING_STATE::IDLE};
+    TrackingState eTrackingState{TrackingState::IDLE};
     uint32_t uiSVChannelNumber{0U};
     bool bPhaseLocked{false};
     bool bParityKnown{false};
     bool bCodeLocked{false};
-    CORRELATOR_TYPE eCorrelatorType{CORRELATOR_TYPE::NONE};
-    SATELLITE_SYSTEM eSatelliteSystem{SATELLITE_SYSTEM::GPS};
+    CorrelatorType eCorrelatorType{CorrelatorType::NONE};
+    SatelliteSystem eSatelliteSystem{SatelliteSystem::GPS};
     bool bGrouped{false};
-    SIGNAL_TYPE eSignalType{SIGNAL_TYPE::UNKNOWN};
+    SignalType eSignalType{SignalType::UNKNOWN};
     bool bPrimaryL1Channel{false};
     bool bHalfCycleAdded{false};
     bool bDigitalFilteringOnSignal{false};
@@ -765,11 +765,11 @@ struct ChannelTrackingStatusStruct
     //! Constructor from a channel tracking status word.
     ChannelTrackingStatusStruct(uint32_t uiChannelTrackingStatus_)
     {
-        eTrackingState = static_cast<TRACKING_STATE>((uiChannelTrackingStatus_ & CTS_TRACKING_STATE_MASK) >> CTS_TRACKING_STATE_SHIFT);
+        eTrackingState = static_cast<TrackingState>((uiChannelTrackingStatus_ & CTS_TRACKING_STATE_MASK) >> CTS_TRACKING_STATE_SHIFT);
         uiSVChannelNumber = static_cast<uint32_t>((uiChannelTrackingStatus_ & CTS_SV_CHANNEL_NUMBER_MASK) >> CTS_SV_CHANNEL_NUMBER_SHIFT);
-        eCorrelatorType = static_cast<CORRELATOR_TYPE>((uiChannelTrackingStatus_ & CTS_CORRELATOR_MASK) >> CTS_CORRELATOR_SHIFT);
-        eSatelliteSystem = static_cast<SATELLITE_SYSTEM>((uiChannelTrackingStatus_ & CTS_SATELLITE_SYSTEM_MASK) >> CTS_SATELLITE_SYSTEM_SHIFT);
-        eSignalType = static_cast<SIGNAL_TYPE>((uiChannelTrackingStatus_ & CTS_SIGNAL_TYPE_MASK) >> CTS_SIGNAL_TYPE_SHIFT);
+        eCorrelatorType = static_cast<CorrelatorType>((uiChannelTrackingStatus_ & CTS_CORRELATOR_MASK) >> CTS_CORRELATOR_SHIFT);
+        eSatelliteSystem = static_cast<SatelliteSystem>((uiChannelTrackingStatus_ & CTS_SATELLITE_SYSTEM_MASK) >> CTS_SATELLITE_SYSTEM_SHIFT);
+        eSignalType = static_cast<SignalType>((uiChannelTrackingStatus_ & CTS_SIGNAL_TYPE_MASK) >> CTS_SIGNAL_TYPE_SHIFT);
 
         bPhaseLocked = static_cast<bool>((uiChannelTrackingStatus_ & CTS_PHASE_LOCK_MASK) >> CTS_PHASE_LOCK_SHIFT);
         bParityKnown = static_cast<bool>((uiChannelTrackingStatus_ & CTS_PARITY_KNOWN_MASK) >> CTS_PARITY_KNOWN_SHIFT);
@@ -798,22 +798,21 @@ struct ChannelTrackingStatusStruct
         bChannelAssignmentForced = false;
         bPRNLocked = false;
         uiSVChannelNumber = static_cast<uint32_t>(stRangeCmp2SatBlock_.ucSVChanNumber);
-        eTrackingState = bPrimaryL1Channel ? TRACKING_STATE::PHASE_LOCK_LOOP : TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
+        eTrackingState = bPrimaryL1Channel ? TrackingState::PHASE_LOCK_LOOP : TrackingState::AIDED_PHASE_LOCK_LOOP;
         eCorrelatorType =
-            static_cast<CORRELATOR_TYPE>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_CORRELATOR_TYPE_MASK) >> RC2_SIG_CORRELATOR_TYPE_SHIFT);
+            static_cast<CorrelatorType>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_CORRELATOR_TYPE_MASK) >> RC2_SIG_CORRELATOR_TYPE_SHIFT);
         eSatelliteSystem = SystemToSatelliteSystem(
-            static_cast<SYSTEM>((stRangeCmp2SatBlock_.ulCombinedField & RC2_SAT_SATELLITE_SYSTEM_ID_MASK) >> RC2_SAT_SATELLITE_SYSTEM_ID_SHIFT));
+            static_cast<System>((stRangeCmp2SatBlock_.ulCombinedField & RC2_SAT_SATELLITE_SYSTEM_ID_MASK) >> RC2_SAT_SATELLITE_SYSTEM_ID_SHIFT));
         eSignalType = RangeCmp2SignalTypeToSignalType(
-            eSatelliteSystem, static_cast<RangeCmp2::SIGNAL_TYPE>(stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_SIGNAL_TYPE_MASK));
+            eSatelliteSystem, static_cast<RangeCmp2::SignalType>(stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_SIGNAL_TYPE_MASK));
     }
 
     //! Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block
     //! pair.
-    ChannelTrackingStatusStruct(SYSTEM eSystem_, RangeCmp4::SIGNAL_TYPE eSignalType_,
-                                const RangeCmp4MeasurementSignalBlockStruct& stMeasurementBlock_)
+    ChannelTrackingStatusStruct(System eSystem_, RangeCmp4::SignalType eSignalType_, const RangeCmp4MeasurementSignalBlockStruct& stMeasurementBlock_)
     {
         // Defaults that cannot be determined:
-        eCorrelatorType = CORRELATOR_TYPE::NONE;
+        eCorrelatorType = CorrelatorType::NONE;
         uiSVChannelNumber = 0;
         bPRNLocked = false;
         bChannelAssignmentForced = false;
@@ -828,142 +827,142 @@ struct ChannelTrackingStatusStruct
         bCodeLocked = stMeasurementBlock_.bValidPSR;
         bPhaseLocked = stMeasurementBlock_.bValidPhaseRange;
 
-        if (eSignalType_ == RangeCmp4::SIGNAL_TYPE::GPS_L1CA || eSignalType_ == RangeCmp4::SIGNAL_TYPE::GLONASS_L1CA ||
-            eSignalType_ == RangeCmp4::SIGNAL_TYPE::SBAS_L1CA || eSignalType_ == RangeCmp4::SIGNAL_TYPE::GALILEO_E1 ||
-            eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B1I || eSignalType_ == RangeCmp4::SIGNAL_TYPE::QZSS_L1CA ||
-            (eSatelliteSystem == SATELLITE_SYSTEM::BEIDOU && eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B1GEO))
+        if (eSignalType_ == RangeCmp4::SignalType::GPS_L1CA || eSignalType_ == RangeCmp4::SignalType::GLONASS_L1CA ||
+            eSignalType_ == RangeCmp4::SignalType::SBAS_L1CA || eSignalType_ == RangeCmp4::SignalType::GALILEO_E1 ||
+            eSignalType_ == RangeCmp4::SignalType::BEIDOU_B1I || eSignalType_ == RangeCmp4::SignalType::QZSS_L1CA ||
+            (eSatelliteSystem == SatelliteSystem::BEIDOU && eSignalType_ == RangeCmp4::SignalType::BEIDOU_B1GEO))
         {
             bPrimaryL1Channel = true;
-            eTrackingState = TRACKING_STATE::PHASE_LOCK_LOOP;
+            eTrackingState = TrackingState::PHASE_LOCK_LOOP;
         }
         else
         {
             bPrimaryL1Channel = false;
-            eTrackingState = TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
+            eTrackingState = TrackingState::AIDED_PHASE_LOCK_LOOP;
         }
     }
 
     //! Convert a RANGECMP2 signal type to the channel tracking status enumeration.
-    static SIGNAL_TYPE RangeCmp2SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, RangeCmp2::SIGNAL_TYPE eSignalType_)
+    static SignalType RangeCmp2SignalTypeToSignalType(SatelliteSystem eSystem_, RangeCmp2::SignalType eSignalType_)
     {
         switch (eSystem_)
         {
-        case SATELLITE_SYSTEM::GPS:
-            return eSignalType_ == RangeCmp2::SIGNAL_TYPE::GPS_L1CA   ? SIGNAL_TYPE::GPS_L1CA
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GPS_L2Y  ? SIGNAL_TYPE::GPS_L2Y
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GPS_L2CM ? SIGNAL_TYPE::GPS_L2CM
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GPS_L2P  ? SIGNAL_TYPE::GPS_L2P
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GPS_L5Q  ? SIGNAL_TYPE::GPS_L5Q
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GPS_L1C  ? SIGNAL_TYPE::GPS_L1CP
-                                                                      : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::GLONASS:
-            return eSignalType_ == RangeCmp2::SIGNAL_TYPE::GLONASS_L1CA   ? SIGNAL_TYPE::GLONASS_L1CA
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GLONASS_L2CA ? SIGNAL_TYPE::GLONASS_L2CA
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GLONASS_L2P  ? SIGNAL_TYPE::GLONASS_L2P
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GLONASS_L3Q  ? SIGNAL_TYPE::GLONASS_L3Q
-                                                                          : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::BEIDOU:
-            return eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B1D1I   ? SIGNAL_TYPE::BEIDOU_B1ID1
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B1D2I ? SIGNAL_TYPE::BEIDOU_B1ID2
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B2D1I ? SIGNAL_TYPE::BEIDOU_B2ID1
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B2D2I ? SIGNAL_TYPE::BEIDOU_B2ID2
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B3D1I ? SIGNAL_TYPE::BEIDOU_B3ID1
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B3D2I ? SIGNAL_TYPE::BEIDOU_B3ID2
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B1CP  ? SIGNAL_TYPE::BEIDOU_B1CP
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B2AP  ? SIGNAL_TYPE::BEIDOU_B2AP
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::BEIDOU_B2B_I ? SIGNAL_TYPE::BEIDOU_B2BI
-                                                                          : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::GALILEO:
-            return eSignalType_ == RangeCmp2::SIGNAL_TYPE::GALILEO_E1C       ? SIGNAL_TYPE::GALILEO_E1C
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GALILEO_E5AQ    ? SIGNAL_TYPE::GALILEO_E5AQ
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GALILEO_E5BQ    ? SIGNAL_TYPE::GALILEO_E5BQ
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GALILEO_ALTBOCQ ? SIGNAL_TYPE::GALILEO_E5ALTBOCQ
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GALILEO_E6C     ? SIGNAL_TYPE::GALILEO_E6C
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::GALILEO_E6B     ? SIGNAL_TYPE::GALILEO_E6B
-                                                                             : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::QZSS:
-            return eSignalType_ == RangeCmp2::SIGNAL_TYPE::QZSS_L1CA   ? SIGNAL_TYPE::QZSS_L1CA
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::QZSS_L2CM ? SIGNAL_TYPE::QZSS_L2CM
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::QZSS_L5Q  ? SIGNAL_TYPE::QZSS_L5Q
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::QZSS_L1C  ? SIGNAL_TYPE::QZSS_L1CP
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::QZSS_L6P  ? SIGNAL_TYPE::QZSS_L6P
-                                                                       : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::SBAS:
-            return eSignalType_ == RangeCmp2::SIGNAL_TYPE::SBAS_L1CA  ? SIGNAL_TYPE::SBAS_L1CA
-                   : eSignalType_ == RangeCmp2::SIGNAL_TYPE::SBAS_L5I ? SIGNAL_TYPE::SBAS_L5I
-                                                                      : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::NAVIC: return eSignalType_ == RangeCmp2::SIGNAL_TYPE::NAVIC_L5SPS ? SIGNAL_TYPE::NAVIC_L5SPS : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::OTHER: return eSignalType_ == RangeCmp2::SIGNAL_TYPE::LBAND ? SIGNAL_TYPE::LBAND : SIGNAL_TYPE::UNKNOWN;
-        default: return SIGNAL_TYPE::UNKNOWN;
+        case SatelliteSystem::GPS:
+            return eSignalType_ == RangeCmp2::SignalType::GPS_L1CA   ? SignalType::GPS_L1CA
+                   : eSignalType_ == RangeCmp2::SignalType::GPS_L2Y  ? SignalType::GPS_L2Y
+                   : eSignalType_ == RangeCmp2::SignalType::GPS_L2CM ? SignalType::GPS_L2CM
+                   : eSignalType_ == RangeCmp2::SignalType::GPS_L2P  ? SignalType::GPS_L2P
+                   : eSignalType_ == RangeCmp2::SignalType::GPS_L5Q  ? SignalType::GPS_L5Q
+                   : eSignalType_ == RangeCmp2::SignalType::GPS_L1C  ? SignalType::GPS_L1CP
+                                                                     : SignalType::UNKNOWN;
+        case SatelliteSystem::GLONASS:
+            return eSignalType_ == RangeCmp2::SignalType::GLONASS_L1CA   ? SignalType::GLONASS_L1CA
+                   : eSignalType_ == RangeCmp2::SignalType::GLONASS_L2CA ? SignalType::GLONASS_L2CA
+                   : eSignalType_ == RangeCmp2::SignalType::GLONASS_L2P  ? SignalType::GLONASS_L2P
+                   : eSignalType_ == RangeCmp2::SignalType::GLONASS_L3Q  ? SignalType::GLONASS_L3Q
+                                                                         : SignalType::UNKNOWN;
+        case SatelliteSystem::BEIDOU:
+            return eSignalType_ == RangeCmp2::SignalType::BEIDOU_B1D1I   ? SignalType::BEIDOU_B1ID1
+                   : eSignalType_ == RangeCmp2::SignalType::BEIDOU_B1D2I ? SignalType::BEIDOU_B1ID2
+                   : eSignalType_ == RangeCmp2::SignalType::BEIDOU_B2D1I ? SignalType::BEIDOU_B2ID1
+                   : eSignalType_ == RangeCmp2::SignalType::BEIDOU_B2D2I ? SignalType::BEIDOU_B2ID2
+                   : eSignalType_ == RangeCmp2::SignalType::BEIDOU_B3D1I ? SignalType::BEIDOU_B3ID1
+                   : eSignalType_ == RangeCmp2::SignalType::BEIDOU_B3D2I ? SignalType::BEIDOU_B3ID2
+                   : eSignalType_ == RangeCmp2::SignalType::BEIDOU_B1CP  ? SignalType::BEIDOU_B1CP
+                   : eSignalType_ == RangeCmp2::SignalType::BEIDOU_B2AP  ? SignalType::BEIDOU_B2AP
+                   : eSignalType_ == RangeCmp2::SignalType::BEIDOU_B2B_I ? SignalType::BEIDOU_B2BI
+                                                                         : SignalType::UNKNOWN;
+        case SatelliteSystem::GALILEO:
+            return eSignalType_ == RangeCmp2::SignalType::GALILEO_E1C       ? SignalType::GALILEO_E1C
+                   : eSignalType_ == RangeCmp2::SignalType::GALILEO_E5AQ    ? SignalType::GALILEO_E5AQ
+                   : eSignalType_ == RangeCmp2::SignalType::GALILEO_E5BQ    ? SignalType::GALILEO_E5BQ
+                   : eSignalType_ == RangeCmp2::SignalType::GALILEO_ALTBOCQ ? SignalType::GALILEO_E5ALTBOCQ
+                   : eSignalType_ == RangeCmp2::SignalType::GALILEO_E6C     ? SignalType::GALILEO_E6C
+                   : eSignalType_ == RangeCmp2::SignalType::GALILEO_E6B     ? SignalType::GALILEO_E6B
+                                                                            : SignalType::UNKNOWN;
+        case SatelliteSystem::QZSS:
+            return eSignalType_ == RangeCmp2::SignalType::QZSS_L1CA   ? SignalType::QZSS_L1CA
+                   : eSignalType_ == RangeCmp2::SignalType::QZSS_L2CM ? SignalType::QZSS_L2CM
+                   : eSignalType_ == RangeCmp2::SignalType::QZSS_L5Q  ? SignalType::QZSS_L5Q
+                   : eSignalType_ == RangeCmp2::SignalType::QZSS_L1C  ? SignalType::QZSS_L1CP
+                   : eSignalType_ == RangeCmp2::SignalType::QZSS_L6P  ? SignalType::QZSS_L6P
+                                                                      : SignalType::UNKNOWN;
+        case SatelliteSystem::SBAS:
+            return eSignalType_ == RangeCmp2::SignalType::SBAS_L1CA  ? SignalType::SBAS_L1CA
+                   : eSignalType_ == RangeCmp2::SignalType::SBAS_L5I ? SignalType::SBAS_L5I
+                                                                     : SignalType::UNKNOWN;
+        case SatelliteSystem::NAVIC: return eSignalType_ == RangeCmp2::SignalType::NAVIC_L5SPS ? SignalType::NAVIC_L5SPS : SignalType::UNKNOWN;
+        case SatelliteSystem::OTHER: return eSignalType_ == RangeCmp2::SignalType::LBAND ? SignalType::LBAND : SignalType::UNKNOWN;
+        default: return SignalType::UNKNOWN;
         }
     }
 
     //! Convert a RANGECMP4 signal type to the channel tracking status enumeration.
-    static SIGNAL_TYPE RangeCmp4SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, RangeCmp4::SIGNAL_TYPE eSignalType_)
+    static SignalType RangeCmp4SignalTypeToSignalType(SatelliteSystem eSystem_, RangeCmp4::SignalType eSignalType_)
     {
         switch (eSystem_)
         {
-        case SATELLITE_SYSTEM::GPS:
-            return eSignalType_ == RangeCmp4::SIGNAL_TYPE::GPS_L1CA  ? SIGNAL_TYPE::GPS_L1CA
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GPS_L2Y ? SIGNAL_TYPE::GPS_L2Y
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GPS_L2C ? SIGNAL_TYPE::GPS_L2CM
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GPS_L2P ? SIGNAL_TYPE::GPS_L2P
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GPS_L5Q ? SIGNAL_TYPE::GPS_L5Q
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GPS_L1C ? SIGNAL_TYPE::GPS_L1CP
-                                                                     : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::GLONASS:
-            return eSignalType_ == RangeCmp4::SIGNAL_TYPE::GLONASS_L1CA   ? SIGNAL_TYPE::GLONASS_L1CA
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GLONASS_L2CA ? SIGNAL_TYPE::GLONASS_L2CA
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GLONASS_L2P  ? SIGNAL_TYPE::GLONASS_L2P
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GLONASS_L3   ? SIGNAL_TYPE::GLONASS_L3Q
-                                                                          : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::BEIDOU:
-            return eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B1I     ? SIGNAL_TYPE::BEIDOU_B1ID1
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B1GEO ? SIGNAL_TYPE::BEIDOU_B1ID2
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B2I   ? SIGNAL_TYPE::BEIDOU_B2ID1
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B2GEO ? SIGNAL_TYPE::BEIDOU_B2ID2
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B3I   ? SIGNAL_TYPE::BEIDOU_B3ID1
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B3GEO ? SIGNAL_TYPE::BEIDOU_B3ID2
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B1CP  ? SIGNAL_TYPE::BEIDOU_B1CP
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B2AP  ? SIGNAL_TYPE::BEIDOU_B2AP
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::BEIDOU_B2BI  ? SIGNAL_TYPE::BEIDOU_B2BI
-                                                                          : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::GALILEO:
-            return eSignalType_ == RangeCmp4::SIGNAL_TYPE::GALILEO_E1       ? SIGNAL_TYPE::GALILEO_E1C
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GALILEO_E5A    ? SIGNAL_TYPE::GALILEO_E5AQ
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GALILEO_E5B    ? SIGNAL_TYPE::GALILEO_E5BQ
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GALILEO_ALTBOC ? SIGNAL_TYPE::GALILEO_E5ALTBOCQ
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GALILEO_E6C    ? SIGNAL_TYPE::GALILEO_E6C
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::GALILEO_E6B    ? SIGNAL_TYPE::GALILEO_E6B
-                                                                            : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::QZSS:
-            return eSignalType_ == RangeCmp4::SIGNAL_TYPE::QZSS_L1CA  ? SIGNAL_TYPE::QZSS_L1CA
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::QZSS_L2C ? SIGNAL_TYPE::QZSS_L2CM
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::QZSS_L5Q ? SIGNAL_TYPE::QZSS_L5Q
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::QZSS_L1C ? SIGNAL_TYPE::QZSS_L1CP
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::QZSS_L6D ? SIGNAL_TYPE::QZSS_L6D
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::QZSS_L6P ? SIGNAL_TYPE::QZSS_L6P
-                                                                      : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::SBAS:
-            return eSignalType_ == RangeCmp4::SIGNAL_TYPE::SBAS_L1CA  ? SIGNAL_TYPE::SBAS_L1CA
-                   : eSignalType_ == RangeCmp4::SIGNAL_TYPE::SBAS_L5I ? SIGNAL_TYPE::SBAS_L5I
-                                                                      : SIGNAL_TYPE::UNKNOWN;
-        case SATELLITE_SYSTEM::NAVIC: return eSignalType_ == RangeCmp4::SIGNAL_TYPE::NAVIC_L5SPS ? SIGNAL_TYPE::NAVIC_L5SPS : SIGNAL_TYPE::UNKNOWN;
-        default: return SIGNAL_TYPE::UNKNOWN;
+        case SatelliteSystem::GPS:
+            return eSignalType_ == RangeCmp4::SignalType::GPS_L1CA  ? SignalType::GPS_L1CA
+                   : eSignalType_ == RangeCmp4::SignalType::GPS_L2Y ? SignalType::GPS_L2Y
+                   : eSignalType_ == RangeCmp4::SignalType::GPS_L2C ? SignalType::GPS_L2CM
+                   : eSignalType_ == RangeCmp4::SignalType::GPS_L2P ? SignalType::GPS_L2P
+                   : eSignalType_ == RangeCmp4::SignalType::GPS_L5Q ? SignalType::GPS_L5Q
+                   : eSignalType_ == RangeCmp4::SignalType::GPS_L1C ? SignalType::GPS_L1CP
+                                                                    : SignalType::UNKNOWN;
+        case SatelliteSystem::GLONASS:
+            return eSignalType_ == RangeCmp4::SignalType::GLONASS_L1CA   ? SignalType::GLONASS_L1CA
+                   : eSignalType_ == RangeCmp4::SignalType::GLONASS_L2CA ? SignalType::GLONASS_L2CA
+                   : eSignalType_ == RangeCmp4::SignalType::GLONASS_L2P  ? SignalType::GLONASS_L2P
+                   : eSignalType_ == RangeCmp4::SignalType::GLONASS_L3   ? SignalType::GLONASS_L3Q
+                                                                         : SignalType::UNKNOWN;
+        case SatelliteSystem::BEIDOU:
+            return eSignalType_ == RangeCmp4::SignalType::BEIDOU_B1I     ? SignalType::BEIDOU_B1ID1
+                   : eSignalType_ == RangeCmp4::SignalType::BEIDOU_B1GEO ? SignalType::BEIDOU_B1ID2
+                   : eSignalType_ == RangeCmp4::SignalType::BEIDOU_B2I   ? SignalType::BEIDOU_B2ID1
+                   : eSignalType_ == RangeCmp4::SignalType::BEIDOU_B2GEO ? SignalType::BEIDOU_B2ID2
+                   : eSignalType_ == RangeCmp4::SignalType::BEIDOU_B3I   ? SignalType::BEIDOU_B3ID1
+                   : eSignalType_ == RangeCmp4::SignalType::BEIDOU_B3GEO ? SignalType::BEIDOU_B3ID2
+                   : eSignalType_ == RangeCmp4::SignalType::BEIDOU_B1CP  ? SignalType::BEIDOU_B1CP
+                   : eSignalType_ == RangeCmp4::SignalType::BEIDOU_B2AP  ? SignalType::BEIDOU_B2AP
+                   : eSignalType_ == RangeCmp4::SignalType::BEIDOU_B2BI  ? SignalType::BEIDOU_B2BI
+                                                                         : SignalType::UNKNOWN;
+        case SatelliteSystem::GALILEO:
+            return eSignalType_ == RangeCmp4::SignalType::GALILEO_E1       ? SignalType::GALILEO_E1C
+                   : eSignalType_ == RangeCmp4::SignalType::GALILEO_E5A    ? SignalType::GALILEO_E5AQ
+                   : eSignalType_ == RangeCmp4::SignalType::GALILEO_E5B    ? SignalType::GALILEO_E5BQ
+                   : eSignalType_ == RangeCmp4::SignalType::GALILEO_ALTBOC ? SignalType::GALILEO_E5ALTBOCQ
+                   : eSignalType_ == RangeCmp4::SignalType::GALILEO_E6C    ? SignalType::GALILEO_E6C
+                   : eSignalType_ == RangeCmp4::SignalType::GALILEO_E6B    ? SignalType::GALILEO_E6B
+                                                                           : SignalType::UNKNOWN;
+        case SatelliteSystem::QZSS:
+            return eSignalType_ == RangeCmp4::SignalType::QZSS_L1CA  ? SignalType::QZSS_L1CA
+                   : eSignalType_ == RangeCmp4::SignalType::QZSS_L2C ? SignalType::QZSS_L2CM
+                   : eSignalType_ == RangeCmp4::SignalType::QZSS_L5Q ? SignalType::QZSS_L5Q
+                   : eSignalType_ == RangeCmp4::SignalType::QZSS_L1C ? SignalType::QZSS_L1CP
+                   : eSignalType_ == RangeCmp4::SignalType::QZSS_L6D ? SignalType::QZSS_L6D
+                   : eSignalType_ == RangeCmp4::SignalType::QZSS_L6P ? SignalType::QZSS_L6P
+                                                                     : SignalType::UNKNOWN;
+        case SatelliteSystem::SBAS:
+            return eSignalType_ == RangeCmp4::SignalType::SBAS_L1CA  ? SignalType::SBAS_L1CA
+                   : eSignalType_ == RangeCmp4::SignalType::SBAS_L5I ? SignalType::SBAS_L5I
+                                                                     : SignalType::UNKNOWN;
+        case SatelliteSystem::NAVIC: return eSignalType_ == RangeCmp4::SignalType::NAVIC_L5SPS ? SignalType::NAVIC_L5SPS : SignalType::UNKNOWN;
+        default: return SignalType::UNKNOWN;
         }
     }
 
     //! Convert a SYSTEM enumeration to a channel tracking status SATELLITE_SYSTEM.
-    static SATELLITE_SYSTEM SystemToSatelliteSystem(SYSTEM eSystem_)
+    static SatelliteSystem SystemToSatelliteSystem(System eSystem_)
     {
-        return eSystem_ == SYSTEM::GPS       ? SATELLITE_SYSTEM::GPS
-               : eSystem_ == SYSTEM::GLONASS ? SATELLITE_SYSTEM::GLONASS
-               : eSystem_ == SYSTEM::SBAS    ? SATELLITE_SYSTEM::SBAS
-               : eSystem_ == SYSTEM::GALILEO ? SATELLITE_SYSTEM::GALILEO
-               : eSystem_ == SYSTEM::BEIDOU  ? SATELLITE_SYSTEM::BEIDOU
-               : eSystem_ == SYSTEM::QZSS    ? SATELLITE_SYSTEM::QZSS
-               : eSystem_ == SYSTEM::NAVIC   ? SATELLITE_SYSTEM::NAVIC
-                                             : SATELLITE_SYSTEM::OTHER;
+        return eSystem_ == System::GPS       ? SatelliteSystem::GPS
+               : eSystem_ == System::GLONASS ? SatelliteSystem::GLONASS
+               : eSystem_ == System::SBAS    ? SatelliteSystem::SBAS
+               : eSystem_ == System::GALILEO ? SatelliteSystem::GALILEO
+               : eSystem_ == System::BEIDOU  ? SatelliteSystem::BEIDOU
+               : eSystem_ == System::QZSS    ? SatelliteSystem::QZSS
+               : eSystem_ == System::NAVIC   ? SatelliteSystem::NAVIC
+                                             : SatelliteSystem::OTHER;
     }
 
     //! Combine the channel tracking status fields into a single 4-byte value according to

@@ -65,8 +65,8 @@ int main(int argc, char* argv[])
 
     // Encode format
     std::string strEncodeFormat = argv[2];
-    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(strEncodeFormat);
-    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
+    EncodeFormat eEncodeFormat = StringToEncodeFormat(strEncodeFormat);
+    if (eEncodeFormat == EncodeFormat::UNSPECIFIED)
     {
         logger->error("Unsupported output format. Choose from:\n\tASCII\n\tBINARY");
         return 1;
@@ -85,9 +85,9 @@ int main(int argc, char* argv[])
     uint32_t uiEncodeBufferLength = MAX_ASCII_MESSAGE_LENGTH;
 
     logger->info("Converting \"{}\" to {}", argv[3], strEncodeFormat);
-    STATUS eCommanderStatus =
+    Status eCommanderStatus =
         clCommander.Encode(argv[3], static_cast<uint32_t>(strlen(argv[3])), pcEncodedMessageBuffer, uiEncodeBufferLength, eEncodeFormat);
-    if (eCommanderStatus != STATUS::SUCCESS)
+    if (eCommanderStatus != Status::SUCCESS)
     {
         logger->info("Failed to formulate a command ({})", static_cast<uint32_t>(eCommanderStatus));
         return -1;

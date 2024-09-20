@@ -54,7 +54,7 @@ void MultiOutputFileStream::SelectFileStream(const std::u32string& s32FileName_)
     else
     {
         pLocalFileStream = new FileStream(s32FileName_);
-        pLocalFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
+        pLocalFileStream->OpenFile(FileStream::FileModes::OUTPUT);
         wmMyFstreamMap.emplace(std::pair(s32FileName_, pLocalFileStream));
     }
 }
@@ -67,7 +67,7 @@ void MultiOutputFileStream::SelectFileStream(const std::string& stFileName)
     else
     {
         pLocalFileStream = new FileStream(stFileName.c_str());
-        pLocalFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
+        pLocalFileStream->OpenFile(FileStream::FileModes::OUTPUT);
         mMyFstreamMap.emplace(std::pair(stFileName, pLocalFileStream));
     }
 }
@@ -221,13 +221,13 @@ void MultiOutputFileStream::ConfigureSplitByTime(double FileSplitTime)
 }
 
 // ---------------------------------------------------------
-void MultiOutputFileStream::SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
+void MultiOutputFileStream::SelectWCTimeFile(novatel::edie::TimeStatus eStatus_, uint16_t usWeek_, double dMilliseconds_)
 {
     // If a file already exist, write the UNKNOWN and SATTIME log into that.
     // Dont consider these time status for calculation.
     if (pLocalFileStream != nullptr)
     {
-        if ((eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN) || (eStatus_ == novatel::edie::TIME_STATUS::SATTIME)) { return; }
+        if ((eStatus_ == novatel::edie::TimeStatus::UNKNOWN) || (eStatus_ == novatel::edie::TimeStatus::SATTIME)) { return; }
     }
     if (dMyTimeSplitSize * HR_TO_SEC >= MIN_TIME_SPLIT_SEC)
     {
@@ -263,13 +263,13 @@ void MultiOutputFileStream::SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_
 }
 
 // ---------------------------------------------------------
-void MultiOutputFileStream::SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
+void MultiOutputFileStream::SelectTimeFile(novatel::edie::TimeStatus eStatus_, uint16_t usWeek_, double dMilliseconds_)
 {
     // If a file already exist, write the UNKNOWN and SATTIME log into that.
     // Don't consider these time status for calculation.
     if (pLocalFileStream != nullptr)
     {
-        if (eStatus_ == novatel::edie::TIME_STATUS::UNKNOWN || eStatus_ == novatel::edie::TIME_STATUS::SATTIME) { return; }
+        if (eStatus_ == novatel::edie::TimeStatus::UNKNOWN || eStatus_ == novatel::edie::TimeStatus::SATTIME) { return; }
     }
     if (dMyTimeSplitSize * HR_TO_SEC >= MIN_TIME_SPLIT_SEC)
     {
@@ -305,7 +305,7 @@ void MultiOutputFileStream::SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, 
 
 // ---------------------------------------------------------
 uint32_t MultiOutputFileStream::WriteData(const char* pcData_, uint32_t uiDataLength_, const std::string& strMsgName_, uint32_t uiSize_,
-                                          novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
+                                          novatel::edie::TimeStatus eStatus_, uint16_t usWeek_, double dMilliseconds_)
 {
     if (bMyFileSplit)
     {

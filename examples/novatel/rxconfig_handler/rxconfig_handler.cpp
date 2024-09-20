@@ -76,8 +76,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
-    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
+    EncodeFormat eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
+    if (eEncodeFormat == EncodeFormat::UNSPECIFIED)
     {
         pclLogger->error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY");
         return 1;
@@ -116,18 +116,18 @@ int main(int argc, char* argv[])
         stReadStatus = clIfs.ReadData(stReadData);
         clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
 
-        STATUS eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
+        Status eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
 
-        while (eStatus != STATUS::BUFFER_EMPTY)
+        while (eStatus != Status::BUFFER_EMPTY)
         {
-            if (eStatus == STATUS::SUCCESS)
+            if (eStatus == Status::SUCCESS)
             {
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
                 clConvertedRxConfigOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
 
                 // Make the embedded message valid by flipping the CRC.
-                if (eEncodeFormat == ENCODE_FORMAT::ASCII)
+                if (eEncodeFormat == EncodeFormat::ASCII)
                 {
                     // Flip the CRC at the end of the embedded message and add a CRLF, so it becomes a valid command.
                     auto* pcCrcBegin =
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
                     clStrippedRxConfigOfs.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
                     clStrippedRxConfigOfs.WriteData(const_cast<char*>("\r\n"), 2);
                 }
-                else if (eEncodeFormat == ENCODE_FORMAT::BINARY)
+                else if (eEncodeFormat == EncodeFormat::BINARY)
                 {
                     // Flip the CRC at the end of the embedded message, so it becomes a valid command.
                     auto* puiCrcBegin = reinterpret_cast<uint32_t*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) -
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
                     *puiCrcBegin ^= 0xFFFFFFFF;
                     clStrippedRxConfigOfs.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
                 }
-                else if (eEncodeFormat == ENCODE_FORMAT::JSON)
+                else if (eEncodeFormat == EncodeFormat::JSON)
                 {
                     // Write in a comma and CRLF to make the files parse-able by JSON readers.
                     clConvertedRxConfigOfs.WriteData(const_cast<char*>(",\r\n"), 3);

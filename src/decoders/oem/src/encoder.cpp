@@ -34,7 +34,7 @@ using namespace novatel::edie::oem;
 // -------------------------------------------------------------------------------------------------------
 void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHeader_)
 { // TODO: should this be a private member?
-    const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
+    const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MessageTypeMask::MEASSRC);
 
     // Append sibling i.e. the _1 of RANGEA_1
     if (uiSiblingId != 0U) { sMsgName_.append("_").append(std::to_string(uiSiblingId)); }
@@ -64,7 +64,7 @@ void Encoder::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("%s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                   [[maybe_unused]] JsonReader* pclMsgDb_) {
         return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c",
-                             fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR ? std::get<uint8_t>(fc_.fieldValue) : std::get<int8_t>(fc_.fieldValue));
+                             fc_.fieldDef->dataType.name == DataType::UCHAR ? std::get<uint8_t>(fc_.fieldValue) : std::get<int8_t>(fc_.fieldValue));
     };
 
     asciiFieldMap[CalculateBlockCrc32("%m")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -107,7 +107,7 @@ void Encoder::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("%c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                   [[maybe_unused]] JsonReader* pclMsgDb_) {
         return fc_.fieldDef->dataType.length == 1 ? PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", std::get<uint8_t>(fc_.fieldValue))
-               : (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DATA_TYPE::ULONG)
+               : (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DataType::ULONG)
                    ? PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", std::get<uint32_t>(fc_.fieldValue))
                    : false;
     };
@@ -150,14 +150,13 @@ void Encoder::InitFieldMaps()
     jsonFieldMap[CalculateBlockCrc32("%s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
         return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c",
-                             (fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR) ? std::get<uint8_t>(fc_.fieldValue)
-                                                                               : std::get<int8_t>(fc_.fieldValue));
+                             (fc_.fieldDef->dataType.name == DataType::UCHAR) ? std::get<uint8_t>(fc_.fieldValue) : std::get<int8_t>(fc_.fieldValue));
     };
 
     jsonFieldMap[CalculateBlockCrc32("%c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
         return (fc_.fieldDef->dataType.length == 1 && PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"%c\"", std::get<uint8_t>(fc_.fieldValue))) ||
-               (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DATA_TYPE::ULONG &&
+               (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DataType::ULONG &&
                 PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"%c\"", std::get<uint32_t>(fc_.fieldValue)));
     };
 }
@@ -181,21 +180,21 @@ bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf
 {
     switch (fc_.fieldDef->dataType.name)
     {
-    case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, reinterpret_cast<const int32_t*>(&std::get<bool>(fc_.fieldValue)));
-    case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint8_t>(fc_.fieldValue));
-    case DATA_TYPE::CHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int8_t>(fc_.fieldValue));
-    case DATA_TYPE::USHORT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint16_t>(fc_.fieldValue));
-    case DATA_TYPE::SHORT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int16_t>(fc_.fieldValue));
-    case DATA_TYPE::UINT: [[fallthrough]];
-    case DATA_TYPE::SATELLITEID: [[fallthrough]];
-    case DATA_TYPE::ULONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint32_t>(fc_.fieldValue));
-    case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int32_t>(fc_.fieldValue));
-    case DATA_TYPE::ULONGLONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint64_t>(fc_.fieldValue));
-    case DATA_TYPE::LONGLONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int64_t>(fc_.fieldValue));
-    case DATA_TYPE::FLOAT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<float>(fc_.fieldValue));
-    case DATA_TYPE::DOUBLE: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<double>(fc_.fieldValue));
+    case DataType::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, reinterpret_cast<const int32_t*>(&std::get<bool>(fc_.fieldValue)));
+    case DataType::HEXBYTE: [[fallthrough]];
+    case DataType::UCHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint8_t>(fc_.fieldValue));
+    case DataType::CHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int8_t>(fc_.fieldValue));
+    case DataType::USHORT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint16_t>(fc_.fieldValue));
+    case DataType::SHORT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int16_t>(fc_.fieldValue));
+    case DataType::UINT: [[fallthrough]];
+    case DataType::SATELLITEID: [[fallthrough]];
+    case DataType::ULONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint32_t>(fc_.fieldValue));
+    case DataType::INT: [[fallthrough]];
+    case DataType::LONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int32_t>(fc_.fieldValue));
+    case DataType::ULONGLONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint64_t>(fc_.fieldValue));
+    case DataType::LONGLONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int64_t>(fc_.fieldValue));
+    case DataType::FLOAT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<float>(fc_.fieldValue));
+    case DataType::DOUBLE: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<double>(fc_.fieldValue));
     default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToBinary(): unknown type."); throw std::runtime_error("FieldToBinary(): unknown type.");
     }
 }
@@ -209,7 +208,7 @@ bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char**
     // Message name
     const MessageDefinition* pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
-    const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
+    const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MessageTypeMask::RESPONSE)) >> 7;
     sMsgName.append(uiResponse != 0U ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
@@ -264,7 +263,7 @@ bool Encoder::EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, c
 
     // Message name
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
-    const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
+    const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MessageTypeMask::RESPONSE)) >> 7;
     sMsgName.append(uiResponse != 0U ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
@@ -331,142 +330,140 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS
-Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
-                const ENCODE_FORMAT eFormat_)
+Status Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                       const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
+                       const EncodeFormat eFormat_)
 {
-    if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
+    if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return Status::NULL_PROVIDED; }
 
-    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return Status::NO_DATABASE; }
 
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
 
-    if (eFormat_ == ENCODE_FORMAT::JSON)
+    if (eFormat_ == EncodeFormat::JSON)
     {
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"({"header": )")) { return STATUS::BUFFER_FULL; }
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"({"header": )")) { return Status::BUFFER_FULL; }
     }
 
-    STATUS eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, stMetaData_, eFormat_);
-    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    Status eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, stMetaData_, eFormat_);
+    if (eStatus != Status::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
 
-    if (eFormat_ == ENCODE_FORMAT::JSON)
+    if (eFormat_ == EncodeFormat::JSON)
     {
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"(,"body": )")) { return STATUS::BUFFER_FULL; }
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"(,"body": )")) { return Status::BUFFER_FULL; }
     }
 
     eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, stMessageData_, stMetaData_, eFormat_);
-    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    if (eStatus != Status::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageBodyLength;
 
-    if (eFormat_ == ENCODE_FORMAT::JSON)
+    if (eFormat_ == EncodeFormat::JSON)
     {
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"(})")) { return STATUS::BUFFER_FULL; }
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"(})")) { return Status::BUFFER_FULL; }
     }
 
     stMessageData_.pucMessage = *ppucBuffer_;
     stMessageData_.uiMessageLength = pucTempEncodeBuffer - *ppucBuffer_;
 
-    return STATUS::SUCCESS;
+    return Status::SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS
-Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_, MessageDataStruct& stMessageData_,
-                      const MetaDataStruct& stMetaData_, const ENCODE_FORMAT eFormat_, const bool bIsEmbeddedHeader_)
+Status Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                             MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, const EncodeFormat eFormat_,
+                             const bool bIsEmbeddedHeader_)
 {
-    if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
+    if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return Status::NULL_PROVIDED; }
 
-    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return Status::NO_DATABASE; }
 
     unsigned char* pucTempBuffer = *ppucBuffer_;
     auto** ppcTempBuffer = reinterpret_cast<char**>(&pucTempBuffer);
 
     switch (eFormat_)
     {
-    case ENCODE_FORMAT::ASCII:
+    case EncodeFormat::ASCII:
         if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
                                                      : !EncodeAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
         {
-            return STATUS::BUFFER_FULL;
+            return Status::BUFFER_FULL;
         }
         break;
-    case ENCODE_FORMAT::ABBREV_ASCII:
+    case EncodeFormat::ABBREV_ASCII:
         if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeAbbrevAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
                                                      : !EncodeAbbrevAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
         {
-            return STATUS::BUFFER_FULL;
+            return Status::BUFFER_FULL;
         }
         break;
-    case ENCODE_FORMAT::FLATTENED_BINARY: [[fallthrough]];
-    case ENCODE_FORMAT::BINARY:
+    case EncodeFormat::FLATTENED_BINARY: [[fallthrough]];
+    case EncodeFormat::BINARY:
         if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeBinaryShortHeader(stHeader_, &pucTempBuffer, uiBufferSize_)
                                                      : !EncodeBinaryHeader(stHeader_, &pucTempBuffer, uiBufferSize_))
         {
-            return STATUS::BUFFER_FULL;
+            return Status::BUFFER_FULL;
         }
         break;
-    case ENCODE_FORMAT::JSON:
+    case EncodeFormat::JSON:
         if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeJsonShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
                                                      : !EncodeJsonHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
         {
-            return STATUS::BUFFER_FULL;
+            return Status::BUFFER_FULL;
         }
         break;
-    default: return STATUS::UNSUPPORTED;
+    default: return Status::UNSUPPORTED;
     }
 
     // Record the length of the encoded message header.
     stMessageData_.pucMessageHeader = *ppucBuffer_;
     stMessageData_.uiMessageHeaderLength = pucTempBuffer - stMessageData_.pucMessageHeader;
-    return STATUS::SUCCESS;
+    return Status::SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS
-Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
-                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_)
+Status Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
+                           MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, EncodeFormat eFormat_)
 {
     // TODO: this entire function should be in common, only header stuff and map redefinitions belong in this file
-    if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
+    if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return Status::NULL_PROVIDED; }
 
-    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
+    if (pclMyMsgDb == nullptr) { return Status::NO_DATABASE; }
 
     unsigned char* pucTempBuffer = *ppucBuffer_;
 
     switch (eFormat_)
     {
-    case ENCODE_FORMAT::ASCII: {
-        if (!EncodeAsciiBody<false>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+    case EncodeFormat::ASCII: {
+        if (!EncodeAsciiBody<false>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return Status::BUFFER_FULL; }
         pucTempBuffer--; // Remove last delimiter ','
         const uint32_t uiCrc = CalculateBlockCrc32(pucTempBuffer - stMessageData_.pucMessageHeader - 1, 0, stMessageData_.pucMessageHeader + 1);
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "*%08x\r\n", uiCrc)) { return STATUS::BUFFER_FULL; }
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "*%08x\r\n", uiCrc)) { return Status::BUFFER_FULL; }
         break;
     }
-    case ENCODE_FORMAT::ABBREV_ASCII:
-        if (!EncodeAsciiBody<true>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+    case EncodeFormat::ABBREV_ASCII:
+        if (!EncodeAsciiBody<true>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return Status::BUFFER_FULL; }
         pucTempBuffer--; // Remove last delimiter ' '
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "\r\n")) { return Status::BUFFER_FULL; }
         break;
 
-    case ENCODE_FORMAT::FLATTENED_BINARY:
-        if (!EncodeBinaryBody<true, true>(stMessage_, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+    case EncodeFormat::FLATTENED_BINARY:
+        if (!EncodeBinaryBody<true, true>(stMessage_, &pucTempBuffer, uiBufferSize_)) { return Status::BUFFER_FULL; }
         [[fallthrough]];
 
-    case ENCODE_FORMAT::BINARY: {
-        if (eFormat_ == ENCODE_FORMAT::BINARY && !EncodeBinaryBody<false, true>(stMessage_, &pucTempBuffer, uiBufferSize_))
+    case EncodeFormat::BINARY: {
+        if (eFormat_ == EncodeFormat::BINARY && !EncodeBinaryBody<false, true>(stMessage_, &pucTempBuffer, uiBufferSize_))
         {
-            return STATUS::BUFFER_FULL;
+            return Status::BUFFER_FULL;
         }
         // MessageData must have a valid MessageHeader pointer to populate the length field.
-        if (stMessageData_.pucMessageHeader == nullptr) { return STATUS::FAILURE; }
+        if (stMessageData_.pucMessageHeader == nullptr) { return Status::FAILURE; }
         // Go back and set the length field in the header.
         // TODO: this little block of code below is what's blocking us from moving this function to common
-        if (stMetaData_.eFormat == HEADER_FORMAT::ASCII || stMetaData_.eFormat == HEADER_FORMAT::BINARY ||
-            stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII)
+        if (stMetaData_.eFormat == HeaderFormat::ASCII || stMetaData_.eFormat == HeaderFormat::BINARY ||
+            stMetaData_.eFormat == HeaderFormat::ABB_ASCII)
         {
             reinterpret_cast<Oem4BinaryHeader*>(stMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
         }
@@ -475,18 +472,18 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
             reinterpret_cast<Oem4BinaryShortHeader*>(stMessageData_.pucMessageHeader)->ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
         }
         uint32_t uiCrc = CalculateBlockCrc32(pucTempBuffer - stMessageData_.pucMessageHeader, 0, stMessageData_.pucMessageHeader);
-        if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, &uiCrc)) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, &uiCrc)) { return Status::BUFFER_FULL; }
         break;
     }
-    case ENCODE_FORMAT::JSON:
-        if (!EncodeJsonBody(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+    case EncodeFormat::JSON:
+        if (!EncodeJsonBody(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return Status::BUFFER_FULL; }
         break;
 
-    default: return STATUS::UNSUPPORTED;
+    default: return Status::UNSUPPORTED;
     }
 
     // Record the length of the encoded message body.
     stMessageData_.pucMessageBody = *ppucBuffer_;
     stMessageData_.uiMessageBodyLength = pucTempBuffer - stMessageData_.pucMessageBody;
-    return STATUS::SUCCESS;
+    return Status::SUCCESS;
 }

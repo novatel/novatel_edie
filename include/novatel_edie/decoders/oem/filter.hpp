@@ -52,13 +52,13 @@ class Filter
     std::vector<bool (Filter::*)(const MetaDataStruct&) const> vMyFilterFunctions;
 
     // Filtering members
-    std::vector<TIME_STATUS> vMyTimeStatusFilters;
+    std::vector<TimeStatus> vMyTimeStatusFilters;
     bool bMyInvertTimeStatusFilter{};
 
-    std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageIdFilters;
+    std::vector<std::tuple<uint32_t, HeaderFormat, MeasurementSource>> vMyMessageIdFilters;
     bool bMyInvertMessageIdFilter{};
 
-    std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageNameFilters;
+    std::vector<std::tuple<std::string, HeaderFormat, MeasurementSource>> vMyMessageNameFilters;
     bool bMyInvertMessageNameFilter{};
 
     uint32_t uiMyLowerWeek{};
@@ -158,7 +158,7 @@ class Filter
     //
     //! \param[in] eTimeStatus_  The time status.
     //----------------------------------------------------------------------------
-    void IncludeTimeStatus(TIME_STATUS eTimeStatus_);
+    void IncludeTimeStatus(TimeStatus eTimeStatus_);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple time statuses.
@@ -167,7 +167,7 @@ class Filter
     //
     //! \param[in] vTimeStatuses_ Multiple time statuses.
     //----------------------------------------------------------------------------
-    void IncludeTimeStatus(std::vector<TIME_STATUS> vTimeStatuses_);
+    void IncludeTimeStatus(std::vector<TimeStatus> vTimeStatuses_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the time status filter.
@@ -183,7 +183,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
+    void IncludeMessageId(uint32_t uiId_, HeaderFormat eFormat_ = HeaderFormat::ALL, MeasurementSource eSource_ = MeasurementSource::PRIMARY);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message IDs.
@@ -191,7 +191,7 @@ class Filter
     //! \param[in] vIds_  Vector of tuples containing: message ID, message format,
     //! and antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vIds_);
+    void IncludeMessageId(std::vector<std::tuple<uint32_t, HeaderFormat, MeasurementSource>>& vIds_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the message ID filter.
@@ -207,8 +207,8 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(const std::string& szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL,
-                            MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
+    void IncludeMessageName(const std::string& szMsgName_, HeaderFormat eFormat_ = HeaderFormat::ALL,
+                            MeasurementSource eSource_ = MeasurementSource::PRIMARY);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message names.
@@ -216,7 +216,7 @@ class Filter
     //! \param[in] vNames_  Vector of tuples containing: message name,
     //! message format, and antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vNames_);
+    void IncludeMessageName(std::vector<std::tuple<std::string, HeaderFormat, MeasurementSource>>& vNames_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the message name filter.

@@ -91,12 +91,12 @@ class MessageDecoderBase
     std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, const BaseField*, json, [[maybe_unused]] JsonReader*)>>
         jsonFieldMap;
 
-    [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, unsigned char** ppucLogBuf_,
+    [[nodiscard]] Status DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, unsigned char** ppucLogBuf_,
                                       std::vector<FieldContainer>& vIntermediateFormat_, uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
-    [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField*>& vMsgDefFields_, char** ppcLogBuf_,
+    [[nodiscard]] Status DecodeAscii(const std::vector<BaseField*>& vMsgDefFields_, char** ppcLogBuf_,
                                      std::vector<FieldContainer>& vIntermediateFormat_) const;
-    [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField*>& vMsgDefFields_, json clJsonFields_,
+    [[nodiscard]] Status DecodeJson(const std::vector<BaseField*>& vMsgDefFields_, json clJsonFields_,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     static void DecodeBinaryField(const BaseField* pstMessageDataType_, unsigned char** ppucLogBuf_,
@@ -181,7 +181,7 @@ class MessageDecoderBase
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataBase& stMetaData_) const;
+    [[nodiscard]] Status Decode(unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataBase& stMetaData_) const;
 };
 
 } // namespace novatel::edie

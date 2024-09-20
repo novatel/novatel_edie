@@ -42,7 +42,7 @@ void from_json(const json& j_, EnumDataType& f_)
 void from_json(const json& j_, BaseDataType& f_)
 {
     auto itrDataTypeMapping = DataTypeEnumLookup.find(j_.at("name"));
-    f_.name = itrDataTypeMapping != DataTypeEnumLookup.end() ? itrDataTypeMapping->second : DATA_TYPE::UNKNOWN;
+    f_.name = itrDataTypeMapping != DataTypeEnumLookup.end() ? itrDataTypeMapping->second : DataType::UNKNOWN;
     f_.length = j_.at("length");
     f_.description = j_.at("description").is_null() ? "" : j_.at("description");
 }
@@ -65,7 +65,7 @@ void from_json(const json& j_, BaseField& f_)
     f_.description = j_.at("description").is_null() ? "" : j_.at("description");
 
     const auto itrFieldTypeMapping = FieldTypeEnumLookup.find(j_.at("type"));
-    f_.type = itrFieldTypeMapping != FieldTypeEnumLookup.end() ? itrFieldTypeMapping->second : FIELD_TYPE::UNKNOWN;
+    f_.type = itrFieldTypeMapping != FieldTypeEnumLookup.end() ? itrFieldTypeMapping->second : FieldType::UNKNOWN;
 
     if (j_.find("conversionString") != j_.end())
     {
@@ -372,7 +372,7 @@ uint32_t JsonReader::MsgNameToMsgId(std::string sMsgName_) const
     if (pclMessageDef != nullptr)
     {
         uiResponse = static_cast<uint32_t>(false);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV);
+        uiMsgFormat = static_cast<uint32_t>(MessageFormat::ABBREV);
 
         return CreateMsgId(pclMessageDef->logID, uiSiblingId, uiMsgFormat, uiResponse);
     }
@@ -381,22 +381,22 @@ uint32_t JsonReader::MsgNameToMsgId(std::string sMsgName_) const
     {
     case 'R': // ASCII Response
         uiResponse = static_cast<uint32_t>(true);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ASCII);
+        uiMsgFormat = static_cast<uint32_t>(MessageFormat::ASCII);
         sMsgName_.pop_back();
         break;
     case 'A': // ASCII
         uiResponse = static_cast<uint32_t>(false);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ASCII);
+        uiMsgFormat = static_cast<uint32_t>(MessageFormat::ASCII);
         sMsgName_.pop_back();
         break;
     case 'B': // Binary
         uiResponse = static_cast<uint32_t>(false);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::BINARY);
+        uiMsgFormat = static_cast<uint32_t>(MessageFormat::BINARY);
         sMsgName_.pop_back();
         break;
     default: // Abbreviated ASCII
         uiResponse = static_cast<uint32_t>(false);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV);
+        uiMsgFormat = static_cast<uint32_t>(MessageFormat::ABBREV);
         break;
     }
 
@@ -418,11 +418,10 @@ std::string JsonReader::MsgIdToMsgName(const uint32_t uiMessageId_) const
     const MessageDefinition* pstMessageDefinition = GetMsgDef(usLogId);
     std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions.data(), usLogId);
 
-    std::string strMessageFormatSuffix = uiResponse != 0U                                                   ? "R"
-                                         : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY) ? "B"
-                                         : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)
-                                             ? "A"
-                                             : ""; // default to abbreviated ASCII format
+    std::string strMessageFormatSuffix = uiResponse != 0U                                                  ? "R"
+                                         : uiMessageFormat == static_cast<uint32_t>(MessageFormat::BINARY) ? "B"
+                                         : uiMessageFormat == static_cast<uint32_t>(MessageFormat::ASCII)  ? "A"
+                                                                                                          : ""; // default to abbreviated ASCII format
 
     if (uiSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
 

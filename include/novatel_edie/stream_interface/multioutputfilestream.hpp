@@ -133,7 +133,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \param[in] dMilliseconds_
      *  \remark Example: output files could be basename_part<1/2/3...etc>
      */
-    void SelectWCTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
+    void SelectWCTimeFile(novatel::edie::TimeStatus eStatus_, uint16_t usWeek_, double dMilliseconds_);
 
     /*! \brief Writes data to the file stream.
      *  \param[in] pcData_
@@ -148,7 +148,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  Then writing can be done to only one file.
      */
     uint32_t WriteData(const char* pcData_, uint32_t uiDataLength_, const std::string& strMsgName_, uint32_t uiSize_,
-                       novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
+                       novatel::edie::TimeStatus eStatus_, uint16_t usWeek_, double dMilliseconds_);
 
     /*! \brief Write Buffer to output file.
      *  \param[in] pcData_ pointer to buffer to be written to output file
@@ -217,7 +217,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \param[in] dMilliseconds_
      *  \remark Example: output files could be basename_part<1/2/3...etc>
      */
-    void SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
+    void SelectTimeFile(novatel::edie::TimeStatus eStatus_, uint16_t usWeek_, double dMilliseconds_);
 
     /*! \brief Gets the output file map
      *  \return Map with filename and FileStream Struct as key-value pair

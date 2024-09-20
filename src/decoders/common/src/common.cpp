@@ -43,26 +43,26 @@ bool IsEqual(const double dVal1_, const double dVal2_, const double dEpsilon_)
 //-----------------------------------------------------------------------
 uint32_t CreateMsgId(const uint32_t uiMessageId_, const uint32_t uiSiblingId_, const uint32_t uiMsgFormat_, const uint32_t uiResponse_)
 {
-    return static_cast<uint16_t>(uiMessageId_) | (static_cast<uint32_t>(MESSAGE_ID_MASK::MEASSRC) & (uiSiblingId_ << 16)) |
-           (static_cast<uint32_t>(MESSAGE_ID_MASK::MSGFORMAT) & (uiMsgFormat_ << 21)) |
-           (static_cast<uint32_t>(MESSAGE_ID_MASK::RESPONSE) & (uiResponse_ << 23));
+    return static_cast<uint16_t>(uiMessageId_) | (static_cast<uint32_t>(MessageIdMask::MEASSRC) & (uiSiblingId_ << 16)) |
+           (static_cast<uint32_t>(MessageIdMask::MSGFORMAT) & (uiMsgFormat_ << 21)) |
+           (static_cast<uint32_t>(MessageIdMask::RESPONSE) & (uiResponse_ << 23));
 }
 
 //-----------------------------------------------------------------------
 void UnpackMsgId(const uint32_t uiMessageId_, uint16_t& usMessageId_, uint32_t& uiSiblingId_, uint32_t& uiMsgFormat_, uint32_t& uiResponse_)
 {
-    usMessageId_ = (uiMessageId_ & static_cast<uint32_t>(MESSAGE_ID_MASK::LOGID));
-    uiSiblingId_ = (uiMessageId_ & static_cast<uint32_t>(MESSAGE_ID_MASK::MEASSRC)) >> 16;
-    uiMsgFormat_ = (uiMessageId_ & static_cast<uint32_t>(MESSAGE_ID_MASK::MSGFORMAT)) >> 21;
-    uiResponse_ = (uiMessageId_ & static_cast<uint32_t>(MESSAGE_ID_MASK::RESPONSE)) >> 23;
+    usMessageId_ = (uiMessageId_ & static_cast<uint32_t>(MessageIdMask::LOGID));
+    uiSiblingId_ = (uiMessageId_ & static_cast<uint32_t>(MessageIdMask::MEASSRC)) >> 16;
+    uiMsgFormat_ = (uiMessageId_ & static_cast<uint32_t>(MessageIdMask::MSGFORMAT)) >> 21;
+    uiResponse_ = (uiMessageId_ & static_cast<uint32_t>(MessageIdMask::RESPONSE)) >> 23;
 }
 
 //-----------------------------------------------------------------------
 unsigned char PackMsgType(const uint32_t uiSiblingId_, const uint32_t uiMsgFormat_, const uint32_t uiResponse_)
 {
-    return static_cast<uint8_t>(((uiResponse_ << 7) & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) |
-                                ((uiMsgFormat_ << 5) & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MSGFORMAT)) |
-                                ((uiSiblingId_ << 0) & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC)));
+    return static_cast<uint8_t>(((uiResponse_ << 7) & static_cast<uint32_t>(MessageTypeMask::RESPONSE)) |
+                                ((uiMsgFormat_ << 5) & static_cast<uint32_t>(MessageTypeMask::MSGFORMAT)) |
+                                ((uiSiblingId_ << 0) & static_cast<uint32_t>(MessageTypeMask::MEASSRC)));
 }
 
 //-----------------------------------------------------------------------

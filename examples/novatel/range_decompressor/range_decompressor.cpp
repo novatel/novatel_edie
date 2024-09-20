@@ -82,8 +82,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
-    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
+    EncodeFormat eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
+    if (eEncodeFormat == EncodeFormat::UNSPECIFIED)
     {
         pclLogger->error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY");
         return -1;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
     OutputFileStream clOfs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
     StreamReadStatus stReadStatus;
 
-    auto eStatus = STATUS::UNKNOWN;
+    auto eStatus = Status::UNKNOWN;
 
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
@@ -147,14 +147,14 @@ int main(int argc, char* argv[])
 
         // Get frame, null-terminate.
         eStatus = clFramer.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData);
-        if (eStatus == STATUS::SUCCESS)
+        if (eStatus == Status::SUCCESS)
         {
             // Decode the header. Get metadata here and populate the Intermediate header.
             eStatus = clHeaderDecoder.Decode(pucReadBuffer, stHeader, stMetaData);
-            if (eStatus == STATUS::SUCCESS)
+            if (eStatus == Status::SUCCESS)
             {
                 eStatus = clRangeDecompressor.Decompress(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, eEncodeFormat);
-                if (eStatus == STATUS::SUCCESS)
+                if (eStatus == Status::SUCCESS)
                 {
                     uiCompletedMessages++;
                     uint32_t uiBytesWritten = clOfs.WriteData(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
@@ -165,18 +165,18 @@ int main(int argc, char* argv[])
                     }
                     else { pclLogger->error("Could only write {}/{} bytes.", uiBytesWritten, stMessageData.uiMessageLength); }
                 }
-                else if (eStatus == STATUS::UNSUPPORTED)
+                else if (eStatus == Status::UNSUPPORTED)
                 {
-                    if (eStatus == STATUS::SUCCESS)
+                    if (eStatus == Status::SUCCESS)
                     {
                         stHeader.usMessageId = stMetaData.usMessageId;
                         eStatus = clMessageDecoder.Decode((pucReadBuffer + stMetaData.uiHeaderLength), stMessage, stMetaData);
-                        if (eStatus == STATUS::SUCCESS)
+                        if (eStatus == Status::SUCCESS)
                         {
                             // Encode our message now that we have everything we need.
                             eStatus = clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData,
                                                        stMetaData, eEncodeFormat);
-                            if (eStatus == STATUS::SUCCESS)
+                            if (eStatus == Status::SUCCESS)
                             {
                                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
                 }
             }
         }
-        else if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE)
+        else if (eStatus == Status::BUFFER_EMPTY || eStatus == Status::INCOMPLETE)
         {
             // Read from file, write to framer.
             stReadStatus = clIfs.ReadData(stReadData);

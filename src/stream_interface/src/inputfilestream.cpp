@@ -32,7 +32,7 @@
 InputFileStream::InputFileStream(const std::u32string& s32FileName_)
 {
     pInFileStream = new FileStream(s32FileName_);
-    pInFileStream->OpenFile(FileStream::FILE_MODES::INPUT);
+    pInFileStream->OpenFile(FileStream::FileModes::INPUT);
     pInFileStream->GetFileSize();
     bEnableWideCharSupport = true;
 }
@@ -41,7 +41,7 @@ InputFileStream::InputFileStream(const std::u32string& s32FileName_)
 InputFileStream::InputFileStream(const char* pFileName_)
 {
     pInFileStream = new FileStream(pFileName_);
-    pInFileStream->OpenFile(FileStream::FILE_MODES::INPUT);
+    pInFileStream->OpenFile(FileStream::FileModes::INPUT);
     pInFileStream->GetFileSize();
 
     bEnableWideCharSupport = false;

@@ -86,14 +86,14 @@ void Filter::SetIncludeDecimation(double dPeriodSec_)
 void Filter::InvertDecimationFilter(bool bInvert_) { bMyInvertDecimation = bInvert_; }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeTimeStatus(TIME_STATUS eTimeStatus_)
+void Filter::IncludeTimeStatus(TimeStatus eTimeStatus_)
 {
     vMyTimeStatusFilters.push_back(eTimeStatus_);
     PushUnique(&Filter::FilterTimeStatus);
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeTimeStatus(std::vector<TIME_STATUS> vTimeStatuses_)
+void Filter::IncludeTimeStatus(std::vector<TimeStatus> vTimeStatuses_)
 {
     vMyTimeStatusFilters.insert(vMyTimeStatusFilters.end(), vTimeStatuses_.begin(), vTimeStatuses_.end());
     PushUnique(&Filter::FilterTimeStatus);
@@ -103,14 +103,14 @@ void Filter::IncludeTimeStatus(std::vector<TIME_STATUS> vTimeStatuses_)
 void Filter::InvertTimeStatusFilter(bool bInvert_) { bMyInvertTimeStatusFilter = bInvert_; }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+void Filter::IncludeMessageId(uint32_t uiId_, HeaderFormat eFormat_, MeasurementSource eSource_)
 {
     vMyMessageIdFilters.emplace_back(uiId_, eFormat_, eSource_);
     PushUnique(&Filter::FilterMessageId);
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vIds_)
+void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, HeaderFormat, MeasurementSource>>& vIds_)
 {
     vMyMessageIdFilters.insert(vMyMessageIdFilters.end(), vIds_.begin(), vIds_.end());
     PushUnique(&Filter::FilterMessageId);
@@ -120,14 +120,14 @@ void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, ME
 void Filter::InvertMessageIdFilter(bool bInvert_) { bMyInvertMessageIdFilter = bInvert_; }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageName(const std::string& szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+void Filter::IncludeMessageName(const std::string& szMsgName_, HeaderFormat eFormat_, MeasurementSource eSource_)
 {
     vMyMessageNameFilters.emplace_back(szMsgName_, eFormat_, eSource_);
     PushUnique(&Filter::FilterMessage);
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vNames_)
+void Filter::IncludeMessageName(std::vector<std::tuple<std::string, HeaderFormat, MeasurementSource>>& vNames_)
 {
     vMyMessageNameFilters.insert(vMyMessageNameFilters.end(), vNames_.begin(), vNames_.end());
     PushUnique(&Filter::FilterMessage);
@@ -202,11 +202,11 @@ bool Filter::FilterMessageId(const MetaDataStruct& stMetaData_) const
     if (vMyMessageIdFilters.empty()) { return true; }
 
     auto uiMessageId = static_cast<uint32_t>(stMetaData_.usMessageId);
-    HEADER_FORMAT eFormat = stMetaData_.eFormat;
-    MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
+    HeaderFormat eFormat = stMetaData_.eFormat;
+    MeasurementSource eSource = stMetaData_.eMeasurementSource;
 
-    const auto isMessageIdFilterMatch = [&uiMessageId, eSource](const std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>& elem) {
-        return uiMessageId == std::get<0>(elem) && HEADER_FORMAT::ALL == std::get<1>(elem) && eSource == std::get<2>(elem);
+    const auto isMessageIdFilterMatch = [&uiMessageId, eSource](const std::tuple<uint32_t, HeaderFormat, MeasurementSource>& elem) {
+        return uiMessageId == std::get<0>(elem) && HeaderFormat::ALL == std::get<1>(elem) && eSource == std::get<2>(elem);
     };
 
     return bMyInvertMessageIdFilter ==
@@ -221,11 +221,11 @@ bool Filter::FilterMessage(const MetaDataStruct& stMetaData_) const
     if (vMyMessageNameFilters.empty()) { return true; }
 
     std::string szMessageName = stMetaData_.MessageName();
-    HEADER_FORMAT eFormat = stMetaData_.eFormat;
-    MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
+    HeaderFormat eFormat = stMetaData_.eFormat;
+    MeasurementSource eSource = stMetaData_.eMeasurementSource;
 
-    const auto isMessageNameFilterMatch = [&szMessageName, eSource](const std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>& elem_) {
-        return szMessageName == std::get<0>(elem_) && HEADER_FORMAT::ALL == std::get<1>(elem_) && eSource == std::get<2>(elem_);
+    const auto isMessageNameFilterMatch = [&szMessageName, eSource](const std::tuple<std::string, HeaderFormat, MeasurementSource>& elem_) {
+        return szMessageName == std::get<0>(elem_) && HeaderFormat::ALL == std::get<1>(elem_) && eSource == std::get<2>(elem_);
     };
 
     return bMyInvertMessageNameFilter ==
@@ -243,8 +243,8 @@ bool Filter::FilterDecimation(const MetaDataStruct& stMetaData_) const
 // -------------------------------------------------------------------------------------------------------
 bool Filter::DoFiltering(const MetaDataStruct& stMetaData_)
 {
-    if (stMetaData_.eFormat == HEADER_FORMAT::UNKNOWN) { return false; }
-    if (stMetaData_.eFormat == HEADER_FORMAT::NMEA) { return bMyIncludeNmea; }
+    if (stMetaData_.eFormat == HeaderFormat::UNKNOWN) { return false; }
+    if (stMetaData_.eFormat == HeaderFormat::NMEA) { return bMyIncludeNmea; }
 
     return std::all_of(vMyFilterFunctions.begin(), vMyFilterFunctions.end(),
                        [this, &stMetaData_](const auto& filterFunction) { return (this->*filterFunction)(stMetaData_); });

@@ -115,8 +115,8 @@ class Commander
     //! but the buffer is already full or could not write the bytes without
     //! over-running.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Encode(const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
-                                uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_);
+    [[nodiscard]] Status Encode(const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
+                                uint32_t& uiEncodeBufferSize_, EncodeFormat eEncodeFormat_);
 
     //----------------------------------------------------------------------------
     //! \brief A static method to encode an abbreviated ASCII command to a full
@@ -148,9 +148,9 @@ class Commander
     //! but the buffer is already full or could not write the bytes without
     //! over-running.
     //----------------------------------------------------------------------------
-    [[nodiscard]] static STATUS Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
+    [[nodiscard]] static Status Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
                                        const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
-                                       uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_);
+                                       uint32_t& uiEncodeBufferSize_, EncodeFormat eEncodeFormat_);
 };
 
 } // namespace novatel::edie::oem

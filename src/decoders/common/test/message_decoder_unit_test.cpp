@@ -38,13 +38,13 @@ class MessageDecoderTypesTest : public ::testing::Test
       public:
         DecoderTester(JsonReader* pclJsonDb_) : MessageDecoderBase(pclJsonDb_) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char** ppcLogBuf_,
+        Status TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char** ppcLogBuf_,
                                std::vector<FieldContainer>& vIntermediateFormat_)
         {
             return DecodeAscii<false>(MsgDefFields_, const_cast<char**>(ppcLogBuf_), vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsigned char** ppucLogBuf_,
+        Status TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, unsigned char** ppucLogBuf_,
                                 std::vector<FieldContainer>& vIntermediateFormat_)
         {
             uint16_t MsgDefFieldsSize = 0;
@@ -52,11 +52,11 @@ class MessageDecoderTypesTest : public ::testing::Test
             return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
         }
 
-        template <typename T, DATA_TYPE D> void ValidSimpleASCIIHelper(std::vector<std::string> vstrTestInput, std::vector<T> vTargets)
+        template <typename T, DataType D> void ValidSimpleAsciiHelper(std::vector<std::string> vstrTestInput, std::vector<T> vTargets)
         {
             // this test expects the virst two values in the test input to be the min and max, respectively
             // these values must be omitted from the vTargets argument when the function is called
-            if constexpr (D != DATA_TYPE::UCHAR && D != DATA_TYPE::CHAR)
+            if constexpr (D != DataType::UCHAR && D != DataType::CHAR)
             {
                 vTargets.insert(vTargets.begin(), std::numeric_limits<T>::max());
                 vTargets.insert(vTargets.begin(), std::numeric_limits<T>::min());
@@ -70,7 +70,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                const auto stMessageDataType = BaseField("", FieldType::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
                 MessageDecoderBase::DecodeAsciiField(&stMessageDataType, const_cast<char**>(&tempStr), vstrTestInput[sz].length(),
                                                      vIntermediateFormat_);
@@ -84,19 +84,19 @@ class MessageDecoderTypesTest : public ::testing::Test
             }
         }
 
-        template <typename T, DATA_TYPE D> void InvalidSizeSimpleASCIIHelper(std::string strTestInput)
+        template <typename T, DataType D> void InvalidSizeSimpleASCIIHelper(std::string strTestInput)
         {
             std::vector<FieldContainer> vIntermediateFormat;
             vIntermediateFormat.reserve(1);
 
-            const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
+            const auto stMessageDataType = BaseField("", FieldType::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
             const char* tempStr = strTestInput.c_str();
             ASSERT_THROW(
                 MessageDecoderBase::DecodeAsciiField(&stMessageDataType, const_cast<char**>(&tempStr), strTestInput.length(), vIntermediateFormat),
                 std::runtime_error);
         }
 
-        template <typename T, DATA_TYPE D> void ValidBinaryHelper(std::vector<std::vector<uint8_t>> vvucTestInput, std::vector<T> vTargets)
+        template <typename T, DataType D> void ValidBinaryHelper(std::vector<std::vector<uint8_t>> vvucTestInput, std::vector<T> vTargets)
         {
             // this test expects the virst two values in the test input to be the min and max, respectively
             // these values must be omitted from the vTargets argument when the function is called
@@ -111,7 +111,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                const auto stMessageDataType = BaseField("", FieldType::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 // there should be a better way to do this
                 uint8_t* pucTestInput = vvucTestInput[sz].data();
                 MessageDecoderBase::DecodeBinaryField(&stMessageDataType, &pucTestInput, vIntermediateFormat_);
@@ -198,7 +198,7 @@ class MessageDecoderTypesTest : public ::testing::Test
         enumDT->value = value;
         enumDef->enumerators.push_back(*enumDT);
         stField->enumDef = enumDef;
-        stField->type = FIELD_TYPE::ENUM;
+        stField->type = FieldType::ENUM;
         MsgDefFields.emplace_back(stField);
     }
 };
@@ -224,42 +224,42 @@ TEST_F(MessageDecoderTypesTest, FIELD_CONTAINER_ERROR_ON_COPY)
 
 TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
 {
-    pclMyDecoderTester->ValidSimpleASCIIHelper<bool, DATA_TYPE::BOOL>({"FALSE", "TRUE"}, {});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<uint8_t, DATA_TYPE::UCHAR>({"#", "A", ";"}, {'#', 'A', ';'});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<int8_t, DATA_TYPE::CHAR>({"#", "A", ";"}, {'#', 'A', ';'});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<uint16_t, DATA_TYPE::USHORT>({"0", "65535", "29383"}, {29383});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<int16_t, DATA_TYPE::SHORT>({"-32768", "32767", "0"}, {0});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<uint32_t, DATA_TYPE::UINT>({"0", "4294967295", "367184312"}, {367184312});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<int32_t, DATA_TYPE::INT>({"-2147483648", "2147483647", "0"}, {0});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<uint32_t, DATA_TYPE::ULONG>({"0", "4294967295", "76382343"}, {76382343});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<int32_t, DATA_TYPE::LONG>({"-2147483648", "2147483647", "0"}, {0});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<uint64_t, DATA_TYPE::ULONGLONG>({"0", "18446744073709551615", "9346284632323321"}, {9346284632323321ULL});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<int64_t, DATA_TYPE::LONGLONG>({"-9223372036854775808", "9223372036854775807", "0"}, {0LL});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<float, DATA_TYPE::FLOAT>({"1.17549435e-38", "3.40282347e+38", "3279347.4", "-3.14"}, {3279347.4F, -3.14F});
-    pclMyDecoderTester->ValidSimpleASCIIHelper<double, DATA_TYPE::DOUBLE>({"2.2250738585072014e-308", "1.7976931348623157e+308", "0.0"}, {0.0});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<bool, DataType::BOOL>({"FALSE", "TRUE"}, {});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<uint8_t, DataType::UCHAR>({"#", "A", ";"}, {'#', 'A', ';'});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<int8_t, DataType::CHAR>({"#", "A", ";"}, {'#', 'A', ';'});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<uint16_t, DataType::USHORT>({"0", "65535", "29383"}, {29383});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<int16_t, DataType::SHORT>({"-32768", "32767", "0"}, {0});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<uint32_t, DataType::UINT>({"0", "4294967295", "367184312"}, {367184312});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<int32_t, DataType::INT>({"-2147483648", "2147483647", "0"}, {0});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<uint32_t, DataType::ULONG>({"0", "4294967295", "76382343"}, {76382343});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<int32_t, DataType::LONG>({"-2147483648", "2147483647", "0"}, {0});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<uint64_t, DataType::ULONGLONG>({"0", "18446744073709551615", "9346284632323321"}, {9346284632323321ULL});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<int64_t, DataType::LONGLONG>({"-9223372036854775808", "9223372036854775807", "0"}, {0LL});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<float, DataType::FLOAT>({"1.17549435e-38", "3.40282347e+38", "3279347.4", "-3.14"}, {3279347.4F, -3.14F});
+    pclMyDecoderTester->ValidSimpleAsciiHelper<double, DataType::DOUBLE>({"2.2250738585072014e-308", "1.7976931348623157e+308", "0.0"}, {0.0});
 }
 
 TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_SIMPLE_INVALID_SIZE)
 {
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<bool, DATA_TYPE::BOOL>("FALSE");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint8_t, DATA_TYPE::UCHAR>("#");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int8_t, DATA_TYPE::CHAR>("#");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint8_t, DATA_TYPE::HEXBYTE>("0x00");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint16_t, DATA_TYPE::USHORT>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int16_t, DATA_TYPE::SHORT>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint32_t, DATA_TYPE::UINT>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int32_t, DATA_TYPE::INT>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint32_t, DATA_TYPE::ULONG>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int32_t, DATA_TYPE::LONG>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint64_t, DATA_TYPE::ULONGLONG>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int64_t, DATA_TYPE::LONGLONG>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<float, DATA_TYPE::FLOAT>("0.0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<double, DATA_TYPE::DOUBLE>("0.0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<bool, DataType::BOOL>("FALSE");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint8_t, DataType::UCHAR>("#");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int8_t, DataType::CHAR>("#");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint8_t, DataType::HEXBYTE>("0x00");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint16_t, DataType::USHORT>("0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int16_t, DataType::SHORT>("0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint32_t, DataType::UINT>("0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int32_t, DataType::INT>("0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint32_t, DataType::ULONG>("0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int32_t, DataType::LONG>("0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint64_t, DataType::ULONGLONG>("0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int64_t, DataType::LONGLONG>("0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<float, DataType::FLOAT>("0.0");
+    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<double, DataType::DOUBLE>("0.0");
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 {
-    MsgDefFields.emplace_back(new BaseField("CHAR_1", FIELD_TYPE::SIMPLE, "%c", 1, DATA_TYPE::CHAR));
+    MsgDefFields.emplace_back(new BaseField("CHAR_1", FieldType::SIMPLE, "%c", 1, DataType::CHAR));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -271,7 +271,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 
 TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
 {
-    MsgDefFields.emplace_back(new BaseField("B_True", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
+    MsgDefFields.emplace_back(new BaseField("B_True", FieldType::SIMPLE, "%d", 4, DataType::BOOL));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -295,7 +295,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
 
     const auto* testInput = "UNKNOWN,APPROXIMATE,SATTIME";
 
-    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat), STATUS::SUCCESS);
+    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat), Status::SUCCESS);
     ASSERT_EQ(vIntermediateFormat.size(), vTestInput.size());
 
     for (size_t sz = 0; sz < vTestInput.size(); ++sz)
@@ -306,7 +306,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 {
-    MsgDefFields.emplace_back(new BaseField("MESSAGE", FIELD_TYPE::STRING, "", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(new BaseField("MESSAGE", FieldType::STRING, "", 1, DataType::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(1);
 
@@ -315,7 +315,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 
     for (size_t sz = 0; sz < testInputs.size(); ++sz)
     {
-        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInputs[sz], vIntermediateFormat), Status::SUCCESS);
         ASSERT_EQ(std::get<std::string>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
 
         vIntermediateFormat.clear();
@@ -324,7 +324,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "%d", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::UNKNOWN, "%d", 1, DataType::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -335,25 +335,25 @@ TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_VALID)
 {
-    pclMyDecoderTester->ValidBinaryHelper<bool, DATA_TYPE::BOOL>({{0x00, 0x00, 0x00, 0x00}, {0x01, 0x00, 0x00, 0x00}}, {});
-    pclMyDecoderTester->ValidBinaryHelper<uint8_t, DATA_TYPE::UCHAR>({{0x00}, {0xFF}, {0x23}, {0x41}, {0x3B}}, {'#', 'A', ';'});
-    pclMyDecoderTester->ValidBinaryHelper<int8_t, DATA_TYPE::CHAR>({{0x80}, {0x7F}, {0x00}}, {0});
-    pclMyDecoderTester->ValidBinaryHelper<uint8_t, DATA_TYPE::HEXBYTE>({{0x00}, {0xFF}, {0x01}}, {1});
-    pclMyDecoderTester->ValidBinaryHelper<uint16_t, DATA_TYPE::USHORT>({{0x00, 0x00}, {0xFF, 0xFF}, {0x01, 0x00}, {0x10, 0x00}}, {1, 16});
-    pclMyDecoderTester->ValidBinaryHelper<int16_t, DATA_TYPE::SHORT>({{0x00, 0x80}, {0xFF, 0x7F}, {0xFF, 0xFF}, {0x00, 0x00}}, {-1, 0});
-    pclMyDecoderTester->ValidBinaryHelper<uint32_t, DATA_TYPE::UINT>({{0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF}, {0xFF, 0xFF, 0x00, 0x00}},{65535U});
-    pclMyDecoderTester->ValidBinaryHelper<int32_t, DATA_TYPE::INT>({{0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0x7F}, {0x00, 0x00, 0xFF, 0xFF}, {0x00, 0x00, 0x00, 0x00}}, {-65536, 0});
-    pclMyDecoderTester->ValidBinaryHelper<uint32_t, DATA_TYPE::ULONG>({{0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF}, {0xFF, 0xFF, 0x00, 0x00}}, {65535U});
-    pclMyDecoderTester->ValidBinaryHelper<int32_t, DATA_TYPE::LONG>({{0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0x7F}, {0x00, 0x00, 0xFF, 0xFF}, {0x00, 0x00, 0x00, 0x00}}, {-65536, 0});
-    pclMyDecoderTester->ValidBinaryHelper<uint64_t, DATA_TYPE::ULONGLONG>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}}, {});
-    pclMyDecoderTester->ValidBinaryHelper<int64_t, DATA_TYPE::LONGLONG>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F}}, {});
-    pclMyDecoderTester->ValidBinaryHelper<float, DATA_TYPE::FLOAT>({{0x00, 0x00, 0x80, 0x00}, {0xFF, 0xFF, 0x7F, 0x7F}, {0x9A, 0x99, 0x99, 0x3F}, {0xCD, 0xCC, 0xBC, 0xC0}}, {1.2F, -5.9F});
-    pclMyDecoderTester->ValidBinaryHelper<double, DATA_TYPE::DOUBLE>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xEF, 0x7F}, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}}, {0.0});
+    pclMyDecoderTester->ValidBinaryHelper<bool, DataType::BOOL>({{0x00, 0x00, 0x00, 0x00}, {0x01, 0x00, 0x00, 0x00}}, {});
+    pclMyDecoderTester->ValidBinaryHelper<uint8_t, DataType::UCHAR>({{0x00}, {0xFF}, {0x23}, {0x41}, {0x3B}}, {'#', 'A', ';'});
+    pclMyDecoderTester->ValidBinaryHelper<int8_t, DataType::CHAR>({{0x80}, {0x7F}, {0x00}}, {0});
+    pclMyDecoderTester->ValidBinaryHelper<uint8_t, DataType::HEXBYTE>({{0x00}, {0xFF}, {0x01}}, {1});
+    pclMyDecoderTester->ValidBinaryHelper<uint16_t, DataType::USHORT>({{0x00, 0x00}, {0xFF, 0xFF}, {0x01, 0x00}, {0x10, 0x00}}, {1, 16});
+    pclMyDecoderTester->ValidBinaryHelper<int16_t, DataType::SHORT>({{0x00, 0x80}, {0xFF, 0x7F}, {0xFF, 0xFF}, {0x00, 0x00}}, {-1, 0});
+    pclMyDecoderTester->ValidBinaryHelper<uint32_t, DataType::UINT>({{0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF}, {0xFF, 0xFF, 0x00, 0x00}},{65535U});
+    pclMyDecoderTester->ValidBinaryHelper<int32_t, DataType::INT>({{0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0x7F}, {0x00, 0x00, 0xFF, 0xFF}, {0x00, 0x00, 0x00, 0x00}}, {-65536, 0});
+    pclMyDecoderTester->ValidBinaryHelper<uint32_t, DataType::ULONG>({{0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF}, {0xFF, 0xFF, 0x00, 0x00}}, {65535U});
+    pclMyDecoderTester->ValidBinaryHelper<int32_t, DataType::LONG>({{0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0x7F}, {0x00, 0x00, 0xFF, 0xFF}, {0x00, 0x00, 0x00, 0x00}}, {-65536, 0});
+    pclMyDecoderTester->ValidBinaryHelper<uint64_t, DataType::ULONGLONG>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}}, {});
+    pclMyDecoderTester->ValidBinaryHelper<int64_t, DataType::LONGLONG>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F}}, {});
+    pclMyDecoderTester->ValidBinaryHelper<float, DataType::FLOAT>({{0x00, 0x00, 0x80, 0x00}, {0xFF, 0xFF, 0x7F, 0x7F}, {0x9A, 0x99, 0x99, 0x3F}, {0xCD, 0xCC, 0xBC, 0xC0}}, {1.2F, -5.9F});
+    pclMyDecoderTester->ValidBinaryHelper<double, DataType::DOUBLE>({{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xEF, 0x7F}, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}}, {0.0});
 }
 
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "", 1, DataType::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
 
     unsigned char* testInput = nullptr;
@@ -363,7 +363,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::UNKNOWN, "", 1, DataType::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
 
     unsigned char* testInput = nullptr;
@@ -373,24 +373,24 @@ TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 
 TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%hu", 2, DATA_TYPE::USHORT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%hd", 2, DATA_TYPE::SHORT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%u", 4, DATA_TYPE::UINT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lu", 4, DATA_TYPE::ULONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::INT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%ld", 4, DATA_TYPE::LONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%llu", 8, DATA_TYPE::ULONGLONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lld", 8, DATA_TYPE::LONGLONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%f", 4, DATA_TYPE::FLOAT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lf", 8, DATA_TYPE::DOUBLE));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%d", 4, DataType::BOOL));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%hu", 2, DataType::USHORT));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%hd", 2, DataType::SHORT));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%u", 4, DataType::UINT));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%lu", 4, DataType::ULONG));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%d", 4, DataType::INT));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%ld", 4, DataType::LONG));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%llu", 8, DataType::ULONGLONG));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%lld", 8, DataType::LONGLONG));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%f", 4, DataType::FLOAT));
+    MsgDefFields.emplace_back(new BaseField("", FieldType::SIMPLE, "%lf", 8, DataType::DOUBLE));
 
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(MsgDefFields.size());
 
     const auto* testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
 
-    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat));
+    ASSERT_EQ(Status::SUCCESS, pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat));
     // TODO: Keep this here or make a file for testing common encoder?
     //unsigned char aucEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     //unsigned char* pucEncodeBuffer = aucEncodeBuffer;

@@ -77,8 +77,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
-    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
+    EncodeFormat eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
+    if (eEncodeFormat == EncodeFormat::UNSPECIFIED)
     {
         pclLogger->error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY");
         return 1;
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     Logger::AddRotatingFileLogger(clFilter.GetLogger());
 
     // Initialize structures and error codes
-    auto eStatus = STATUS::UNKNOWN;
+    auto eStatus = Status::UNKNOWN;
 
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
@@ -136,12 +136,12 @@ int main(int argc, char* argv[])
     tStart = std::chrono::high_resolution_clock::now();
     tLoop = std::chrono::high_resolution_clock::now();
 
-    while (eStatus != STATUS::STREAM_EMPTY)
+    while (eStatus != Status::STREAM_EMPTY)
     {
         try
         {
             eStatus = clFileParser.Read(stMessageData, stMetaData);
-            if (eStatus == STATUS::SUCCESS)
+            if (eStatus == Status::SUCCESS)
             {
                 clConvertedLogsOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';

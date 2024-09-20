@@ -95,16 +95,16 @@ enum class NovAtelFrameState
 };
 
 //-----------------------------------------------------------------------
-//! \enum ASCII_HEADER
+//! \enum AsciiHeader
 //! \brief Ascii Message header format sequence.
 //-----------------------------------------------------------------------
-enum class ASCII_HEADER
+enum class AsciiHeader
 {
     MESSAGE_NAME,        //!< Ascii log Name.
     PORT,                //!< Receiver logging port.
     SEQUENCE,            //!< Embedded log sequence number.
     IDLE_TIME,           //!< Receiver Idle time.
-    TIME_STATUS,         //!< GPS reference time status.
+    TimeStatus,          //!< GPS reference time status.
     WEEK,                //!< GPS Week number.
     SECONDS,             //!< GPS week seconds.
     RECEIVER_STATUS,     //!< Receiver status.
@@ -113,7 +113,7 @@ enum class ASCII_HEADER
 };
 
 // Constellations
-enum class CONSTELLATION
+enum class Constellation
 {
     UNKNOWN,
     GLONASS,
@@ -129,15 +129,15 @@ enum class CONSTELLATION
 //-----------------------------------------------------------------------
 struct MetaDataStruct : public MetaDataBase
 {
-    MEASUREMENT_SOURCE eMeasurementSource{MEASUREMENT_SOURCE::PRIMARY};
-    TIME_STATUS eTimeStatus{TIME_STATUS::UNKNOWN};
-    CONSTELLATION constellation{CONSTELLATION::UNKNOWN};
+    MeasurementSource eMeasurementSource{MeasurementSource::PRIMARY};
+    TimeStatus eTimeStatus{TimeStatus::UNKNOWN};
+    Constellation constellation{Constellation::UNKNOWN};
 
     MetaDataStruct() = default;
 
-    MetaDataStruct(const HEADER_FORMAT eFormat_) { eFormat = eFormat_; }
+    MetaDataStruct(const HeaderFormat eFormat_) { eFormat = eFormat_; }
 
-    MetaDataStruct(const HEADER_FORMAT eFormat_, const uint32_t uiLength_)
+    MetaDataStruct(const HeaderFormat eFormat_, const uint32_t uiLength_)
     {
         eFormat = eFormat_;
         uiLength = uiLength_;
@@ -242,7 +242,7 @@ struct Oem4BinaryHeader
         ucSync3 = OEM4_BINARY_SYNC3;
         ucHeaderLength = OEM4_BINARY_HEADER_LENGTH;
         usMsgNumber = stInterHeader_.usMessageId;
-        ucMsgType = stInterHeader_.ucMessageType & (~static_cast<uint32_t>(MESSAGE_TYPE_MASK::MSGFORMAT));
+        ucMsgType = stInterHeader_.ucMessageType & (~static_cast<uint32_t>(MessageTypeMask::MSGFORMAT));
         ucPort = static_cast<uint8_t>(stInterHeader_.uiPortAddress);
         usLength = stInterHeader_.usLength;
         usSequenceNumber = stInterHeader_.usSequence;

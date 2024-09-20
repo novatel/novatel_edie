@@ -73,7 +73,7 @@ class FileStream
      *
      *   File Operations Enumeration.
      */
-    enum class FILE_MODES
+    enum class FileModes
     {
         APPEND,  /*!< Append may refer to the process of attaching or combining data with another
                     file or set of data.*/
@@ -137,7 +137,7 @@ class FileStream
      *  \remark If eMode is not valid exception ("") will be thrown.
      *          If open fails exception("File mode not valid") will be thrown.
      */
-    void OpenFile(FILE_MODES eMode);
+    void OpenFile(FileModes eMode);
 
     /*! \brief Close the file.
      *

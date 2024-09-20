@@ -181,7 +181,7 @@ TEST_F(MultiOutputFileStreamTest, WriteData)
     pMyTestCommand->ConfigureBaseFileName("Log.txt");
 
     char pcCommand[] = "HELLO";
-    int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, std::string("BESTPOS"), 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
+    int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, std::string("BESTPOS"), 0, novatel::edie::TimeStatus::UNKNOWN, 0, 0.0);
     ASSERT_TRUE(iLen == 5);
 
     std::ifstream ifile("Log_BESTPOS.txt");
@@ -206,7 +206,7 @@ TEST_F(MultiOutputFileStreamTest, WriteDataWideFile)
     pMyTestCommand->ConfigureBaseFileName(U"Log不同.txt");
 
     char pcCommand[] = "HELLO";
-    int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "BESTPOS", 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
+    int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "BESTPOS", 0, novatel::edie::TimeStatus::UNKNOWN, 0, 0.0);
     ASSERT_TRUE(iLen == 5);
 
     std::filesystem::path clUnicodePath(U"Log不同_BESTPOS.txt");
@@ -236,7 +236,7 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitBySize)
     pMyTestCommand->ConfigureBaseFileName("Log.txt");
 
     char pcCommand[] = "HELLO";
-    int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "", 1, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.0);
+    int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "", 1, novatel::edie::TimeStatus::UNKNOWN, 0, 0.0);
     ASSERT_TRUE(iLen == 5);
 
     std::ifstream ifile("Log_Part0.txt");
@@ -273,7 +273,7 @@ TEST_F(MultiOutputFileStreamTest, ConfigureSplitByTime)
     pMyTestCommand->ConfigureBaseFileName("Log.txt");
 
     char pcCommand[] = "HELLO";
-    int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "", 0, novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.01);
+    int32_t iLen = pMyTestCommand->WriteData(pcCommand, 5, "", 0, novatel::edie::TimeStatus::UNKNOWN, 0, 0.01);
     ASSERT_TRUE(iLen == 5);
 
     std::ifstream ifile("Log_Part0.txt");
@@ -307,14 +307,14 @@ TEST_F(MultiOutputFileStreamTest, SelectTimeFile)
     pMyTestCommand = new MultiOutputFileStream();
     pMyTestCommand->ConfigureSplitByTime(0.01);
     pMyTestCommand->SelectFileStream("Log.txt");
-    pMyTestCommand->SelectTimeFile(novatel::edie::TIME_STATUS::UNKNOWN, 0, 0.01);
+    pMyTestCommand->SelectTimeFile(novatel::edie::TimeStatus::UNKNOWN, 0, 0.01);
 
     ASSERT_TRUE(GetTimeInSeconds() == 0.0);
     ASSERT_TRUE(GetStartTimeInSecs() == 0.0);
     ASSERT_TRUE(GetWeek() == 0);
     ASSERT_TRUE(GetStartWeek() == 0);
 
-    pMyTestCommand->SelectTimeFile(novatel::edie::TIME_STATUS::SATTIME, 0, 0.0);
+    pMyTestCommand->SelectTimeFile(novatel::edie::TimeStatus::SATTIME, 0, 0.0);
 
     ASSERT_TRUE(GetTimeInSeconds() == 0.0);
     ASSERT_TRUE(GetStartTimeInSecs() == 0.0);
