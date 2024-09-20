@@ -82,6 +82,15 @@ bool Framer::IsAbbrevAsciiResponse() const
 void Framer::ResetState() { eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC; }
 
 // -------------------------------------------------------------------------------------------------------
+void Framer::ResetStateAndByteCount()
+{
+    eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
+    uiMyByteCount = 0;
+    uiMyExpectedMessageLength = 0;
+    uiMyExpectedPayloadLength = 0;
+}
+
+// -------------------------------------------------------------------------------------------------------
 STATUS
 Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_, uint32_t& uiFrameBufferOffset_)
 {
@@ -223,6 +232,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             if (ucDataByte != OEM4_ABBREV_ASCII_SEPARATOR && isalpha(ucDataByte))
             {
                 eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_HEADER;
+                uiFrameBufferOffset_ = uiMyByteCount - 2;
                 return STATUS::SYNC_BYTES_FOUND;
             }
             else

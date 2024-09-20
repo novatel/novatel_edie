@@ -75,6 +75,7 @@ inline std::string StatusToString(const STATUS eStatus_)
            : eStatus_ == STATUS::UNSUPPORTED            ? "UNSUPPORTED"
            : eStatus_ == STATUS::MALFORMED_INPUT        ? "MALFORMED_INPUT"
            : eStatus_ == STATUS::DECOMPRESSION_FAILURE  ? "DECOMPRESSION_FAILURE"
+           : eStatus_ == STATUS::SYNC_BYTES_FOUND       ? "SYNC_BYTES_FOUND"
                                                         : "UNKNOWN";
 }
 

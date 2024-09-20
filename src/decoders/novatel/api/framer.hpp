@@ -58,6 +58,7 @@ class Framer : public FramerBase
 
   public:
     void ResetState() override;
+    void ResetStateAndByteCount();
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
     //----------------------------------------------------------------------------
