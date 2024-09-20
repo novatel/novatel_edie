@@ -92,7 +92,7 @@ class RangeDecompressor
     // differential data for the System, Signal type and PRN. We must keep track of which
     // measurement source the reference block came from so any subsequent differential blocks are
     // correctly decompressed.
-    std::map<System, std::map<RangeCmp4::SignalType,
+    std::map<System, std::map<range_cmp4::SignalType,
                               std::map<uint32_t, std::pair<RangeCmp4MeasurementBlockHeaderStruct, RangeCmp4MeasurementSignalBlockStruct>>>>
         ammmMyReferenceBlocks[static_cast<uint32_t>(MeasurementSource::MAX)];
 

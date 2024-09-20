@@ -64,7 +64,7 @@ CheckOptions:
     value: CamelCase
   #- key: readability-identifier-naming.FunctionCase
   #  value: lower_case
-  #- key: readability-identifier-naming.NamespaceCase
-  #  value: lower_case
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
   #- key: readability-identifier-naming.ParameterSuffix
   #  value: '_'

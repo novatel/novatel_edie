@@ -70,44 +70,44 @@ constexpr float afTheRangeCmp2ADRStdDevValues[] = {
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#L1_E1_B1_Scaling
 //-----------------------------------------------------------------------
 
-static std::map<System, std::map<RangeCmp2::SignalType, const double>> mmTheRangeCmp2SignalScalingMapping = {
+static std::map<System, std::map<range_cmp2::SignalType, const double>> mmTheRangeCmp2SignalScalingMapping = {
     {System::GPS,
-     {{RangeCmp2::SignalType::GPS_L1C, (1.0)},
-      {RangeCmp2::SignalType::GPS_L1CA, (1.0)},
-      {RangeCmp2::SignalType::GPS_L2Y, (154.0 / 120.0)},
-      {RangeCmp2::SignalType::GPS_L2CM, (154.0 / 120.0)},
-      {RangeCmp2::SignalType::GPS_L5Q, (154.0 / 115.0)}}},
+     {{range_cmp2::SignalType::GPS_L1C, (1.0)},
+      {range_cmp2::SignalType::GPS_L1CA, (1.0)},
+      {range_cmp2::SignalType::GPS_L2Y, (154.0 / 120.0)},
+      {range_cmp2::SignalType::GPS_L2CM, (154.0 / 120.0)},
+      {range_cmp2::SignalType::GPS_L5Q, (154.0 / 115.0)}}},
     {System::GLONASS,
-     {{RangeCmp2::SignalType::GLONASS_L1CA, (1.0)},
-      {RangeCmp2::SignalType::GLONASS_L2CA, (9.0 / 7.0)},
-      {RangeCmp2::SignalType::GLONASS_L2P, (9.0 / 7.0)},
-      {RangeCmp2::SignalType::GLONASS_L3Q, (313.0 / 235.0)}}},
-    {System::SBAS, {{RangeCmp2::SignalType::SBAS_L1CA, (1.0)}, {RangeCmp2::SignalType::SBAS_L5I, (154.0 / 115.0)}}},
+     {{range_cmp2::SignalType::GLONASS_L1CA, (1.0)},
+      {range_cmp2::SignalType::GLONASS_L2CA, (9.0 / 7.0)},
+      {range_cmp2::SignalType::GLONASS_L2P, (9.0 / 7.0)},
+      {range_cmp2::SignalType::GLONASS_L3Q, (313.0 / 235.0)}}},
+    {System::SBAS, {{range_cmp2::SignalType::SBAS_L1CA, (1.0)}, {range_cmp2::SignalType::SBAS_L5I, (154.0 / 115.0)}}},
     {System::GALILEO,
-     {{RangeCmp2::SignalType::GALILEO_E1C, (1.0)},
-      {RangeCmp2::SignalType::GALILEO_E5AQ, (154.0 / 115.0)},
-      {RangeCmp2::SignalType::GALILEO_E5BQ, (154.0 / 118.0)},
-      {RangeCmp2::SignalType::GALILEO_ALTBOCQ, (154.0 / 116.5)},
-      {RangeCmp2::SignalType::GALILEO_E6C, (154.0 / 125.0)},
-      {RangeCmp2::SignalType::GALILEO_E6B, (154.0 / 125.0)}}},
+     {{range_cmp2::SignalType::GALILEO_E1C, (1.0)},
+      {range_cmp2::SignalType::GALILEO_E5AQ, (154.0 / 115.0)},
+      {range_cmp2::SignalType::GALILEO_E5BQ, (154.0 / 118.0)},
+      {range_cmp2::SignalType::GALILEO_ALTBOCQ, (154.0 / 116.5)},
+      {range_cmp2::SignalType::GALILEO_E6C, (154.0 / 125.0)},
+      {range_cmp2::SignalType::GALILEO_E6B, (154.0 / 125.0)}}},
     {System::BEIDOU,
-     {{RangeCmp2::SignalType::BEIDOU_B1D1I, (1.0)},
-      {RangeCmp2::SignalType::BEIDOU_B1D2I, (1.0)},
-      {RangeCmp2::SignalType::BEIDOU_B1CP, (1526.0 / 1540.0)},
-      {RangeCmp2::SignalType::BEIDOU_B2D1I, (1526.0 / 1180.0)},
-      {RangeCmp2::SignalType::BEIDOU_B2D2I, (1526.0 / 1180.0)},
-      {RangeCmp2::SignalType::BEIDOU_B2AP, (1526.0 / 1150.0)},
-      {RangeCmp2::SignalType::BEIDOU_B2B_I, (1526.0 / 1180.0)},
-      {RangeCmp2::SignalType::BEIDOU_B3D1I, (1526.0 / 1240.0)},
-      {RangeCmp2::SignalType::BEIDOU_B3D2I, (1526.0 / 1240.0)}}},
+     {{range_cmp2::SignalType::BEIDOU_B1D1I, (1.0)},
+      {range_cmp2::SignalType::BEIDOU_B1D2I, (1.0)},
+      {range_cmp2::SignalType::BEIDOU_B1CP, (1526.0 / 1540.0)},
+      {range_cmp2::SignalType::BEIDOU_B2D1I, (1526.0 / 1180.0)},
+      {range_cmp2::SignalType::BEIDOU_B2D2I, (1526.0 / 1180.0)},
+      {range_cmp2::SignalType::BEIDOU_B2AP, (1526.0 / 1150.0)},
+      {range_cmp2::SignalType::BEIDOU_B2B_I, (1526.0 / 1180.0)},
+      {range_cmp2::SignalType::BEIDOU_B3D1I, (1526.0 / 1240.0)},
+      {range_cmp2::SignalType::BEIDOU_B3D2I, (1526.0 / 1240.0)}}},
     {System::QZSS,
-     {{RangeCmp2::SignalType::QZSS_L1C, (1.0)},
-      {RangeCmp2::SignalType::QZSS_L1CA, (1.0)},
-      {RangeCmp2::SignalType::QZSS_L2CM, (154.0 / 120.0)},
-      {RangeCmp2::SignalType::QZSS_L5Q, (154.0 / 115.0)},
-      {RangeCmp2::SignalType::QZSS_L6P, (154.0 / 125.0)}}},
-    {System::LBAND, {{RangeCmp2::SignalType::LBAND, (1.0)}}},
-    {System::NAVIC, {{RangeCmp2::SignalType::NAVIC_L5SPS, (1.0)}}}};
+     {{range_cmp2::SignalType::QZSS_L1C, (1.0)},
+      {range_cmp2::SignalType::QZSS_L1CA, (1.0)},
+      {range_cmp2::SignalType::QZSS_L2CM, (154.0 / 120.0)},
+      {range_cmp2::SignalType::QZSS_L5Q, (154.0 / 115.0)},
+      {range_cmp2::SignalType::QZSS_L6P, (154.0 / 125.0)}}},
+    {System::LBAND, {{range_cmp2::SignalType::LBAND, (1.0)}}},
+    {System::NAVIC, {{range_cmp2::SignalType::NAVIC_L5SPS, (1.0)}}}};
 
 //-----------------------------------------------------------------------
 //! A list of bitmasks to iterate easily through a RANGECMP4 message, the
@@ -129,27 +129,27 @@ constexpr System aeTheRangeCmp4SatelliteSystems[RC4_HEADER_BLOCK_SYSTEM_COUNT]{
 //! satellite and signal blocks defined in the RANGECMP4 documentation:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=RANGECMP#Signal
 //-----------------------------------------------------------------------
-static std::map<System, std::vector<RangeCmp4::SignalType>> mvTheRangeCmp4SystemSignalMasks = {
+static std::map<System, std::vector<range_cmp4::SignalType>> mvTheRangeCmp4SystemSignalMasks = {
     {System::GPS,
-     {RangeCmp4::SignalType::GPS_L1CA, RangeCmp4::SignalType::GPS_L2Y, RangeCmp4::SignalType::GPS_L2C, RangeCmp4::SignalType::GPS_L2P,
-      RangeCmp4::SignalType::GPS_L5Q, RangeCmp4::SignalType::GPS_L1C}},
+     {range_cmp4::SignalType::GPS_L1CA, range_cmp4::SignalType::GPS_L2Y, range_cmp4::SignalType::GPS_L2C, range_cmp4::SignalType::GPS_L2P,
+      range_cmp4::SignalType::GPS_L5Q, range_cmp4::SignalType::GPS_L1C}},
     {System::GLONASS,
      {
 
-         RangeCmp4::SignalType::GLONASS_L1CA, RangeCmp4::SignalType::GLONASS_L2CA, RangeCmp4::SignalType::GLONASS_L2P,
-         RangeCmp4::SignalType::GLONASS_L3}},
-    {System::SBAS, {RangeCmp4::SignalType::SBAS_L1CA, RangeCmp4::SignalType::SBAS_L5I}},
+         range_cmp4::SignalType::GLONASS_L1CA, range_cmp4::SignalType::GLONASS_L2CA, range_cmp4::SignalType::GLONASS_L2P,
+         range_cmp4::SignalType::GLONASS_L3}},
+    {System::SBAS, {range_cmp4::SignalType::SBAS_L1CA, range_cmp4::SignalType::SBAS_L5I}},
     {System::GALILEO,
-     {RangeCmp4::SignalType::GALILEO_E1, RangeCmp4::SignalType::GALILEO_E5A, RangeCmp4::SignalType::GALILEO_E5B,
-      RangeCmp4::SignalType::GALILEO_ALTBOC, RangeCmp4::SignalType::GALILEO_E6C, RangeCmp4::SignalType::GALILEO_E6B}},
+     {range_cmp4::SignalType::GALILEO_E1, range_cmp4::SignalType::GALILEO_E5A, range_cmp4::SignalType::GALILEO_E5B,
+      range_cmp4::SignalType::GALILEO_ALTBOC, range_cmp4::SignalType::GALILEO_E6C, range_cmp4::SignalType::GALILEO_E6B}},
     {System::BEIDOU,
-     {RangeCmp4::SignalType::BEIDOU_B1I, RangeCmp4::SignalType::BEIDOU_B1GEO, RangeCmp4::SignalType::BEIDOU_B2I, RangeCmp4::SignalType::BEIDOU_B2GEO,
-      RangeCmp4::SignalType::BEIDOU_B3I, RangeCmp4::SignalType::BEIDOU_B3GEO, RangeCmp4::SignalType::BEIDOU_B1CP, RangeCmp4::SignalType::BEIDOU_B2AP,
-      RangeCmp4::SignalType::BEIDOU_B2BI}},
+     {range_cmp4::SignalType::BEIDOU_B1I, range_cmp4::SignalType::BEIDOU_B1GEO, range_cmp4::SignalType::BEIDOU_B2I,
+      range_cmp4::SignalType::BEIDOU_B2GEO, range_cmp4::SignalType::BEIDOU_B3I, range_cmp4::SignalType::BEIDOU_B3GEO,
+      range_cmp4::SignalType::BEIDOU_B1CP, range_cmp4::SignalType::BEIDOU_B2AP, range_cmp4::SignalType::BEIDOU_B2BI}},
     {System::QZSS,
-     {RangeCmp4::SignalType::QZSS_L1CA, RangeCmp4::SignalType::QZSS_L2C, RangeCmp4::SignalType::QZSS_L5Q, RangeCmp4::SignalType::QZSS_L1C,
-      RangeCmp4::SignalType::QZSS_L6D, RangeCmp4::SignalType::QZSS_L6P}},
-    {System::NAVIC, {RangeCmp4::SignalType::NAVIC_L5SPS}}};
+     {range_cmp4::SignalType::QZSS_L1CA, range_cmp4::SignalType::QZSS_L2C, range_cmp4::SignalType::QZSS_L5Q, range_cmp4::SignalType::QZSS_L1C,
+      range_cmp4::SignalType::QZSS_L6D, range_cmp4::SignalType::QZSS_L6P}},
+    {System::NAVIC, {range_cmp4::SignalType::NAVIC_L5SPS}}};
 
 //-----------------------------------------------------------------------
 //! List of pre-defined floats used as translations for RANGECMP4 PSR
@@ -718,7 +718,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
             const auto& stRangeCmp2SigBlock =
                 reinterpret_cast<const RangeCmp2SignalBlockStruct&>(stRangeCmp2Message_.aucRangeData[uiRangeDataBytesDecompressed]);
 
-            const auto eSignalType = static_cast<RangeCmp2::SignalType>(stRangeCmp2SigBlock.uiCombinedField1 & RC2_SIG_SIGNAL_TYPE_MASK);
+            const auto eSignalType = static_cast<range_cmp2::SignalType>(stRangeCmp2SigBlock.uiCombinedField1 & RC2_SIG_SIGNAL_TYPE_MASK);
             const auto ucPSRBitfield =
                 static_cast<uint8_t>((stRangeCmp2SigBlock.ulCombinedField2 & RC2_SIG_PSR_STDDEV_MASK) >> RC2_SIG_PSR_STDDEV_SHIFT);
             const auto ucADRBitfield =
@@ -776,7 +776,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
     if (dSecondOffset == 0.0) { ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)].clear(); }
 
-    std::vector<RangeCmp4::SignalType> vSignals;   // All available signals
+    std::vector<range_cmp4::SignalType> vSignals;  // All available signals
     std::vector<uint32_t> vPRNs;                   // All available PRNs
     std::map<uint32_t, uint64_t> mIncludedSignals; // IncludedSignal bitmasks for each PRN.
 
@@ -818,7 +818,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
             usSignals = static_cast<uint16_t>(GetBitfieldFromBuffer(&pucTempDataPointer, RC4_SIGNALS_BITS));
 
             // Collect the signals tracked in this satellite system.
-            for (RangeCmp4::SignalType eCurrentSignalType : mvTheRangeCmp4SystemSignalMasks[aeTheRangeCmp4SatelliteSystem])
+            for (range_cmp4::SignalType eCurrentSignalType : mvTheRangeCmp4SystemSignalMasks[aeTheRangeCmp4SatelliteSystem])
             {
                 if ((usSignals & (1UL << static_cast<uint16_t>(eCurrentSignalType))) != 0U) { vSignals.push_back(eCurrentSignalType); }
             }
@@ -864,7 +864,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
                 uiSignalsForPRN = 0;
                 uiSignalBitMaskShift = 0;
                 bPrimaryBlock = true; // Reset to true for the first reference block from each PRN.
-                for (RangeCmp4::SignalType eCurrentSignalType : vSignals)
+                for (range_cmp4::SignalType eCurrentSignalType : vSignals)
                 {
                     // Get the included signals bitmask for this PRN.
                     try
