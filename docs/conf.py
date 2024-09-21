@@ -15,7 +15,6 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-import textwrap
 
 # -- Project information -----------------------------------------------------
 
@@ -81,11 +80,5 @@ exhale_args = {
     # TIP: if using the sphinx-bootstrap-theme, you need
     # "treeViewIsBootstrap": True,
     "exhaleExecutesDoxygen": True,
-    "exhaleDoxygenStdin":    textwrap.dedent('''
-      INPUT = ../src/decoders/common/api
-      INPUT += ../src/decoders/dynamic_library/api
-      INPUT += ../src/decoders/novatel/api
-      INPUT += ../src/hw_interface/dynamic_library/api
-      INPUT += ../src/hw_interface/stream_interface/api
-    ''')
+    "exhaleDoxygenStdin":    "INPUT = ../include",
 }

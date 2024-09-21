@@ -24,9 +24,9 @@
 // ! \file common.cpp
 // ===============================================================================
 
-#include "common.hpp"
+#include "novatel_edie/decoders/common/common.hpp"
 
-#include "json_reader.hpp"
+#include "novatel_edie/decoders/common/json_reader.hpp"
 
 using namespace novatel::edie;
 

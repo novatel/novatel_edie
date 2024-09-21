@@ -80,9 +80,10 @@ endif()
 string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 string(TOLOWER ${CMAKE_SYSTEM_NAME} OPERATING_SYSTEM)
 string(TOLOWER ${CMAKE_CXX_COMPILER_ID} COMPILER)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${CMAKE_BUILD_TYPE}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${CMAKE_BUILD_TYPE}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${CMAKE_BUILD_TYPE}")
+set(OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${CMAKE_BUILD_TYPE}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
 
 # Find Git package, if not need to install manually or through .yml file
 find_package(Git)
@@ -98,26 +99,24 @@ endif()
 if(GIT_EXECUTABLE)
     execute_process(COMMAND ${CMAKE_COMMAND}
         -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
-        -D DST=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h
+        -D DST=${CMAKE_CURRENT_SOURCE_DIR}/include/novatel_edie/version.h
         -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
         -D GIT_BRANCH=${GIT_BRANCH}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
 endif()
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-
 # Build EDIE components
-add_subdirectory(src/hw_interface)
-add_subdirectory(src/decoders)
+add_subdirectory(src/common)
+add_subdirectory(src/stream_interface)
+add_subdirectory(src/decoders/common)
+add_subdirectory(src/decoders/oem)
 
 if(BUILD_TESTS)
     enable_testing()
+    add_subdirectory(src/common/test)
+    add_subdirectory(src/stream_interface/test)
     add_subdirectory(src/decoders/common/test)
-    add_subdirectory(src/decoders/novatel/test)
-    add_subdirectory(src/hw_interface/stream_interface/test)
+    add_subdirectory(src/decoders/oem/test)
 endif()
 
 if(BUILD_EXAMPLES)

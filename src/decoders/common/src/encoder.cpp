@@ -24,7 +24,7 @@
 // ! \file encoder.cpp
 // ===============================================================================
 
-#include "decoders/common/api/encoder.hpp"
+#include "novatel_edie/decoders/common/encoder.hpp"
 
 #include <bitset>
 
