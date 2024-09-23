@@ -1,4 +1,4 @@
-# Source: https://github.com/conan-io/cmake-conan/blob/82284c0204e87f36c7d5706bf2963bae735904a4/conan_provider.cmake
+# Source: https://github.com/valgur/cmake-conan/blob/7672df47f779f7be3e46ecc2aab62d993d42699d/conan_provider.cmake
 
 # The MIT License (MIT)
 #
@@ -22,8 +22,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(CONAN_MINIMUM_VERSION 2.0.5)
+# Configurable variables
+set(CONAN_MINIMUM_VERSION "2.0.5" CACHE STRING "Minimum required Conan version")
+set(CONAN_HOST_PROFILE "default;auto-cmake" CACHE STRING "Conan host profile")
+set(CONAN_BUILD_PROFILE "default" CACHE STRING "Conan build profile")
+set(CONAN_INSTALL_ARGS "--build=missing" CACHE STRING "Command line arguments for conan install")
+set(CONAN_DOWNLOAD "if-missing" CACHE STRING "Download the Conan client (always, if-missing or never)")
+set(CONAN_DOWNLOAD_VERSION "latest" CACHE STRING "Download a specific Conan version")
+set(CONAN_ISOLATE_HOME "if-downloaded" CACHE STRING "Set $CONAN_HOME to \${CMAKE_BINARY_DIR}/conan_home (always, if-downloaded or never)")
 
+# Create a new policy scope and set the minimum required cmake version so the
+# features behind a policy setting like if(... IN_LIST ...) behaves as expected
+# even if the parent project does not specify a minimum cmake version or a minimum
+# version less than this module requires (e.g. 3.0) before the first project() call.
+# (see: https://cmake.org/cmake/help/latest/variable/CMAKE_PROJECT_TOP_LEVEL_INCLUDES.html)
+#
+# The policy-affecting calls like cmake_policy(SET...) or `cmake_minimum_required` only
+# affects the current policy scope, i.e. between the PUSH and POP in this case.
+#
+# https://cmake.org/cmake/help/book/mastering-cmake/chapter/Policies.html#the-policy-stack
+cmake_policy(PUSH)
+cmake_minimum_required(VERSION 3.24)
 
 function(detect_os OS OS_API_LEVEL OS_SDK OS_SUBSYSTEM OS_VERSION)
     # it could be cross compilation
@@ -173,7 +192,7 @@ function(detect_lib_cxx LIB_CXX)
         set(${LIB_CXX} "libstdc++${_CONAN_GNU_LIBSTDCXX_SUFFIX}" PARENT_SCOPE)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
         set(${LIB_CXX} "libc++" PARENT_SCOPE)
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
         # Check for libc++
         detect_libcxx()
         if(_CONAN_IS_LIBCXX)
@@ -313,9 +332,12 @@ endmacro()
 macro(append_compiler_executables_configuration)
     set(_conan_c_compiler "")
     set(_conan_cpp_compiler "")
+    set(_conan_rc_compiler "")
+    set(_conan_compilers_list "")
     if(CMAKE_C_COMPILER)
-        set(_conan_c_compiler "\"c\":\"${CMAKE_C_COMPILER}\",")
+        set(_conan_c_compiler "\"c\":\"${CMAKE_C_COMPILER}\"")
         set_conan_compiler_if_appleclang(C cc _conan_c_compiler)
+        list(APPEND _conan_compilers_list ${_conan_c_compiler})
     else()
         message(WARNING "CMake-Conan: The C compiler is not defined. "
                         "Please define CMAKE_C_COMPILER or enable the C language.")
@@ -323,16 +345,24 @@ macro(append_compiler_executables_configuration)
     if(CMAKE_CXX_COMPILER)
         set(_conan_cpp_compiler "\"cpp\":\"${CMAKE_CXX_COMPILER}\"")
         set_conan_compiler_if_appleclang(CXX c++ _conan_cpp_compiler)
+        list(APPEND _conan_compilers_list ${_conan_cpp_compiler})
     else()
         message(WARNING "CMake-Conan: The C++ compiler is not defined. "
                         "Please define CMAKE_CXX_COMPILER or enable the C++ language.")
     endif()
-
-    if(NOT "x${_conan_c_compiler}${_conan_cpp_compiler}" STREQUAL "x")
-        string(APPEND PROFILE "tools.build:compiler_executables={${_conan_c_compiler}${_conan_cpp_compiler}}\n")
+    if(CMAKE_RC_COMPILER)
+        set(_conan_rc_compiler "\"rc\":\"${CMAKE_RC_COMPILER}\"")
+        list(APPEND _conan_compilers_list ${_conan_rc_compiler})
+        # Not necessary to warn if RC not defined
+    endif()
+    if(NOT "x${_conan_compilers_list}" STREQUAL "x")
+        string(REPLACE ";" "," _conan_compilers_list "${_conan_compilers_list}")
+        string(APPEND PROFILE "tools.build:compiler_executables={${_conan_compilers_list}}\n")
     endif()
     unset(_conan_c_compiler)
     unset(_conan_cpp_compiler)
+    unset(_conan_rc_compiler)
+    unset(_conan_compilers_list)
 endmacro()
 
 
@@ -435,7 +465,7 @@ function(conan_install)
     set(CONAN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/conan)
     # Invoke "conan install" with the provided arguments
     set(CONAN_ARGS ${CONAN_ARGS} -of=${CONAN_OUTPUT_FOLDER})
-    message(STATUS "CMake-Conan: conan install ${CMAKE_SOURCE_DIR} ${CONAN_ARGS} ${ARGN}")
+    message(STATUS "CMake-Conan: ${CONAN_COMMAND} install ${CMAKE_SOURCE_DIR} ${CONAN_ARGS} ${ARGN}")
 
 
     # In case there was not a valid cmake executable in the PATH, we inject the
@@ -463,13 +493,13 @@ function(conan_install)
     # the files are generated in a folder that depends on the layout used, if
     # one is specified, but we don't know a priori where this is.
     # TODO: this can be made more robust if Conan can provide this in the json output
-    string(JSON CONAN_GENERATORS_FOLDER GET ${conan_stdout} graph nodes 0 generators_folder)
+    string(JSON CONAN_GENERATORS_FOLDER GET "${conan_stdout}" graph nodes 0 generators_folder)
     cmake_path(CONVERT ${CONAN_GENERATORS_FOLDER} TO_CMAKE_PATH_LIST CONAN_GENERATORS_FOLDER)
     # message("conan stdout: ${conan_stdout}")
     message(STATUS "CMake-Conan: CONAN_GENERATORS_FOLDER=${CONAN_GENERATORS_FOLDER}")
     set_property(GLOBAL PROPERTY CONAN_GENERATORS_FOLDER "${CONAN_GENERATORS_FOLDER}")
     # reconfigure on conanfile changes
-    string(JSON CONANFILE GET ${conan_stdout} graph nodes 0 label)
+    string(JSON CONANFILE GET "${conan_stdout}" graph nodes 0 label)
     message(STATUS "CMake-Conan: CONANFILE=${CMAKE_SOURCE_DIR}/${CONANFILE}")
     set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/${CONANFILE}")
     # success
@@ -486,7 +516,7 @@ function(conan_get_version conan_command conan_current_version)
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     if(conan_result)
-        message(FATAL_ERROR "CMake-Conan: Error when trying to run Conan")
+        message(FATAL_ERROR "CMake-Conan: Error when trying to run '${conan_command} --version'")
     endif()
 
     string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" conan_version ${conan_output})
@@ -496,7 +526,7 @@ endfunction()
 
 function(conan_version_check)
     set(options )
-    set(oneValueArgs MINIMUM CURRENT)
+    set(oneValueArgs MINIMUM CURRENT RESULT)
     set(multiValueArgs )
     cmake_parse_arguments(CONAN_VERSION_CHECK
         "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -504,13 +534,102 @@ function(conan_version_check)
     if(NOT CONAN_VERSION_CHECK_MINIMUM)
         message(FATAL_ERROR "CMake-Conan: Required parameter MINIMUM not set!")
     endif()
-        if(NOT CONAN_VERSION_CHECK_CURRENT)
+    if(NOT CONAN_VERSION_CHECK_CURRENT)
         message(FATAL_ERROR "CMake-Conan: Required parameter CURRENT not set!")
     endif()
 
     if(CONAN_VERSION_CHECK_CURRENT VERSION_LESS CONAN_VERSION_CHECK_MINIMUM)
-        message(FATAL_ERROR "CMake-Conan: Conan version must be ${CONAN_VERSION_CHECK_MINIMUM} or later")
+        if(CONAN_VERSION_CHECK_RESULT)
+            set(${CONAN_VERSION_CHECK_RESULT} FALSE PARENT_SCOPE)
+        endif()
+        if(CONAN_DOWNLOAD STREQUAL "if-missing")
+            message(STATUS "CMake-Conan: Found Conan but its version (${CONAN_VERSION_CHECK_CURRENT}) is older than "
+                           "required (${CONAN_VERSION_CHECK_MINIMUM}). Will download the latest version instead.")
+        else()
+            message(FATAL_ERROR "CMake-Conan: Conan version must be ${CONAN_VERSION_CHECK_MINIMUM} or later")
+        endif()
+    else()
+        if(CONAN_VERSION_CHECK_RESULT)
+            set(${CONAN_VERSION_CHECK_RESULT} TRUE PARENT_SCOPE)
+        endif()
     endif()
+endfunction()
+
+
+function(get_latest_conan_version VERSION_VARIABLE)
+    set(json_file "${CMAKE_BINARY_DIR}/conan_latest_release.json")
+    foreach(_retry_counter RANGE 3)
+        file(DOWNLOAD "https://api.github.com/repos/conan-io/conan/releases/latest"
+                      "${json_file}"
+                      INACTIVITY_TIMEOUT 15
+                      STATUS status)
+        list(GET status 0 status_code)
+        if(NOT status_code EQUAL 0)
+            list(GET status 1 message)
+            message(WARNING "CMake-Conan: Failed to get the latest Conan version info: ${message} (${status_code})")
+            continue()
+        endif()
+        break()
+    endforeach()
+    file(READ "${json_file}" json ENCODING UTF-8)
+    string(REGEX MATCH "\"tag_name\": \"([^\"]+)\"" _ "${json}")
+    if(NOT _)
+        message(FATAL_ERROR "CMake-Conan: Failed to parse the latest Conan version info from: '${json_file}'")
+    endif()
+    set(${VERSION_VARIABLE} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+endfunction()
+
+
+function(download_conan)
+    set(options "")
+    set(oneValueArgs VERSION DESTINATION)
+    set(multiValueArgs "")
+    include(CMakeParseArguments)
+    cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    if(NOT ARG_VERSION)
+        message(FATAL_ERROR "CMake-Conan: Required parameter VERSION not set!")
+    endif()
+    if(NOT ARG_DESTINATION)
+        message(FATAL_ERROR "CMake-Conan: Required parameter DESTINATION not set!")
+    endif()
+
+    if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "AMD64|amd64|x86_64|x64")
+        set(HOST_ARCH "x86_64")
+    elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "X86|i686|i386")
+        set(HOST_ARCH "i686")
+    elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+        set(HOST_ARCH "arm64")
+    else()
+        message(FATAL_ERROR "CMake-Conan: Pre-packaged Conan is not available for ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+    endif()
+
+    set(FILE_EXT "tgz")
+    if(WIN32 AND HOST_ARCH MATCHES "x86_64|i686")
+        set(HOST_OS "windows")
+        set(FILE_EXT "zip")
+    elseif(APPLE AND HOST_ARCH MATCHES "x86_64|arm64")
+        set(HOST_OS "macos")
+    elseif(LINUX AND HOST_ARCH STREQUAL "x86_64")
+        set(HOST_OS "linux")
+    else()
+        message(FATAL_ERROR "CMake-Conan: Pre-packaged Conan is not available for ${CMAKE_SYSTEM_NAME} ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+    endif()
+
+    set(CONAN_VERSION ${ARG_VERSION})
+    set(CONAN_FILE "conan-${CONAN_VERSION}-${HOST_OS}-${HOST_ARCH}.${FILE_EXT}")
+    set(CONAN_URL "https://github.com/conan-io/conan/releases/download/${CONAN_VERSION}/${CONAN_FILE}")
+
+    message(STATUS "CMake-Conan: Downloading Conan ${CONAN_VERSION} from ${CONAN_URL}")
+    include(FetchContent)
+    FetchContent_Declare(
+        Conan
+        URL "${CONAN_URL}"
+        DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
+        SOURCE_DIR "${ARG_DESTINATION}"
+        DOWNLOAD_EXTRACT_TIMESTAMP 1
+    )
+    FetchContent_MakeAvailable(Conan)
 endfunction()
 
 
@@ -536,9 +655,37 @@ macro(conan_provide_dependency method package_name)
     set_property(GLOBAL PROPERTY CONAN_PROVIDE_DEPENDENCY_INVOKED TRUE)
     get_property(_conan_install_success GLOBAL PROPERTY CONAN_INSTALL_SUCCESS)
     if(NOT _conan_install_success)
-        find_program(CONAN_COMMAND "conan" REQUIRED)
-        conan_get_version(${CONAN_COMMAND} CONAN_CURRENT_VERSION)
-        conan_version_check(MINIMUM ${CONAN_MINIMUM_VERSION} CURRENT ${CONAN_CURRENT_VERSION})
+        if(NOT CONAN_DOWNLOAD STREQUAL "always")
+            find_program(CONAN_COMMAND "conan" QUIET)
+            if(CONAN_COMMAND)
+                conan_get_version(${CONAN_COMMAND} CONAN_CURRENT_VERSION)
+                conan_version_check(MINIMUM ${CONAN_MINIMUM_VERSION} CURRENT ${CONAN_CURRENT_VERSION}
+                                    RESULT _conan_version_check_result)
+                if(NOT _conan_version_check_result)
+                    set(CONAN_COMMAND "-NOTFOUND")
+                endif()
+            endif()
+        endif()
+        if(NOT CONAN_COMMAND)
+            if(CONAN_DOWNLOAD STREQUAL "never")
+                message(FATAL_ERROR "CMake-Conan: Conan executable not found. "
+                                    "Please install Conan, set CONAN_COMMAND or enable CONAN_DOWNLOAD")
+            endif()
+            if(CONAN_DOWNLOAD_VERSION STREQUAL "latest")
+                get_latest_conan_version(_download_version)
+            else()
+                set(_download_version ${CONAN_DOWNLOAD_VERSION})
+            endif()
+            download_conan(VERSION ${_download_version} DESTINATION "${CMAKE_BINARY_DIR}/conan_client")
+            set(CONAN_COMMAND "${CMAKE_BINARY_DIR}/conan_client/conan")
+            set(_conan_downloaded TRUE)
+        endif()
+
+        if(CONAN_ISOLATE_HOME STREQUAL "always" OR (CONAN_ISOLATE_HOME STREQUAL "if-downloaded" AND _conan_downloaded))
+            message(STATUS "CMake-Conan: Setting CONAN_HOME to '${CMAKE_BINARY_DIR}/conan_home'")
+            set(ENV{CONAN_HOME} "${CMAKE_BINARY_DIR}/conan_home")
+        endif()
+
         message(STATUS "CMake-Conan: first find_package() found. Installing dependencies with Conan")
         if("default" IN_LIST CONAN_HOST_PROFILE OR "default" IN_LIST CONAN_BUILD_PROFILE)
             conan_profile_detect_default()
@@ -639,13 +786,10 @@ endmacro()
 # to check if the dependency provider was invoked at all.
 cmake_language(DEFER DIRECTORY "${CMAKE_SOURCE_DIR}" CALL conan_provide_dependency_check)
 
-# Configurable variables for Conan profiles
-set(CONAN_HOST_PROFILE "default;auto-cmake" CACHE STRING "Conan host profile")
-set(CONAN_BUILD_PROFILE "default" CACHE STRING "Conan build profile")
-set(CONAN_INSTALL_ARGS "--build=missing" CACHE STRING "Command line arguments for conan install")
-
 find_program(_cmake_program NAMES cmake NO_PACKAGE_ROOT_PATH NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
 if(NOT _cmake_program)
     get_filename_component(PATH_TO_CMAKE_BIN "${CMAKE_COMMAND}" DIRECTORY)
     set(PATH_TO_CMAKE_BIN "${PATH_TO_CMAKE_BIN}" CACHE INTERNAL "Path where the CMake executable is")
 endif()
+
+cmake_policy(POP)
