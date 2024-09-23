@@ -82,8 +82,7 @@ bool Framer::IsAbbrevAsciiResponse() const
 void Framer::ResetState() { eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC; }
 
 // -------------------------------------------------------------------------------------------------------
-Status
-Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_)
+Status Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_)
 {
     if (pucFrameBuffer_ == nullptr) { return Status::NULL_PROVIDED; }
 
