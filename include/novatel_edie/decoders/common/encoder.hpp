@@ -52,12 +52,9 @@ constexpr bool IsCommaSeparated(const BaseField* pstFieldDef_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-[[nodiscard]] inline bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, ...)
+template <typename... Args> [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, Args&&... args_)
 {
-    va_list args;
-    va_start(args, szFormat_);
-    const uint32_t uiBytesBuffered = vsnprintf(*ppcBuffer_, uiBytesLeft_, szFormat_, args);
-    va_end(args);
+    const uint32_t uiBytesBuffered = std::snprintf(*ppcBuffer_, uiBytesLeft_, szFormat_, std::forward<Args>(args_)...);
     if (uiBytesLeft_ < uiBytesBuffered) { return false; }
     *ppcBuffer_ += uiBytesBuffered;
     uiBytesLeft_ -= uiBytesBuffered;

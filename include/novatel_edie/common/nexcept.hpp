@@ -27,7 +27,6 @@
 #ifndef NEXCEPT_H
 #define NEXCEPT_H
 
-#include <cstdarg>
 #include <cstdio>
 #include <cstring>
 
@@ -56,15 +55,12 @@ class NExcept
     //! \brief Exception class with variable number of arguments which included.
     //
     //! \param[in] szFormat_ String formatting.
-    //! \param[in] ...
+    //! \param[in] args_ Variable number of arguments.
     //----------------------------------------------------------------------------
-    NExcept(const char* szFormat_, ...)
+    template <typename... Args> NExcept(const char* szFormat_, Args&&... args_)
     {
-        va_list argPtr;
-        va_start(argPtr, szFormat_);
-        vsprintf(buffer, szFormat_, argPtr);
+        std::snprintf(buffer, sizeof(buffer), szFormat_, std::forward<Args>(args_)...);
         perror(buffer);
-        va_end(argPtr);
     }
 
     //----------------------------------------------------------------------------
@@ -80,15 +76,12 @@ class NExcept
     //! \brief Method to print exception with variable arguments which included.
     //
     //! \param[in] szFormat_ String formatting.
-    //! \param[in] ...
+    //! \param[in] args_ Variable number of arguments.
     //----------------------------------------------------------------------------
-    void Printf(const char* szFormat_, ...)
+    template <typename... Args> void Printf(const char* szFormat_, Args&&... args_)
     {
-        va_list argPtr;
-        va_start(argPtr, szFormat_);
-        vsprintf(buffer, szFormat_, argPtr);
+        std::snprintf(buffer, sizeof(buffer), szFormat_, std::forward<Args>(args_)...);
         perror(buffer);
-        va_end(argPtr);
     }
 
     //----------------------------------------------------------------------------
