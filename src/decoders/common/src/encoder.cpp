@@ -56,16 +56,16 @@ void EncoderBase::InitFieldMaps()
     // =========================================================
     // ASCII Field Mapping
     // =========================================================
-    asciiFieldMap[CalculateBlockCrc32("%UB")] = BasicMapEntry<uint8_t>("%u");
-    asciiFieldMap[CalculateBlockCrc32("%B")] = BasicMapEntry<int8_t>("%d");
-    asciiFieldMap[CalculateBlockCrc32("%XB")] = BasicMapEntry<uint8_t>("%02x");
+    asciiFieldMap[CalculateBlockCrc32("UB")] = BasicMapEntry<uint8_t>("%u");
+    asciiFieldMap[CalculateBlockCrc32("B")] = BasicMapEntry<int8_t>("%d");
+    asciiFieldMap[CalculateBlockCrc32("XB")] = BasicMapEntry<uint8_t>("%02x");
 
     // =========================================================
     // Json Field Mapping
     // =========================================================
-    asciiFieldMap[CalculateBlockCrc32("%UB")] = BasicMapEntry<uint8_t>("%u");
-    asciiFieldMap[CalculateBlockCrc32("%B")] = BasicMapEntry<int8_t>("%d");
-    asciiFieldMap[CalculateBlockCrc32("%XB")] = BasicMapEntry<uint8_t>("%02x");
+    asciiFieldMap[CalculateBlockCrc32("UB")] = BasicMapEntry<uint8_t>("%u");
+    asciiFieldMap[CalculateBlockCrc32("B")] = BasicMapEntry<int8_t>("%d");
+    asciiFieldMap[CalculateBlockCrc32("XB")] = BasicMapEntry<uint8_t>("%02x");
 }
 
 // -------------------------------------------------------------------------------------------------------

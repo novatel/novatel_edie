@@ -64,25 +64,25 @@ void MessageDecoderBase::InitFieldMaps()
     // ASCII Field Mapping
     // =========================================================
     // asciiFieldMap[CalculateBlockCRC32("%c")] = SimpleAsciiMapEntry<int8_t>();
-    asciiFieldMap[CalculateBlockCrc32("%hd")] = SimpleAsciiMapEntry<int16_t>();
-    asciiFieldMap[CalculateBlockCrc32("%ld")] = SimpleAsciiMapEntry<int32_t>();
-    asciiFieldMap[CalculateBlockCrc32("%lld")] = SimpleAsciiMapEntry<int64_t>();
+    asciiFieldMap[CalculateBlockCrc32("hd")] = SimpleAsciiMapEntry<int16_t>();
+    asciiFieldMap[CalculateBlockCrc32("ld")] = SimpleAsciiMapEntry<int32_t>();
+    asciiFieldMap[CalculateBlockCrc32("lld")] = SimpleAsciiMapEntry<int64_t>();
     // asciiFieldMap[CalculateBlockCRC32("%uc")] = SimpleAsciiMapEntry<uint8_t>();
-    asciiFieldMap[CalculateBlockCrc32("%hu")] = SimpleAsciiMapEntry<uint16_t>();
-    asciiFieldMap[CalculateBlockCrc32("%lu")] = SimpleAsciiMapEntry<uint32_t>();
-    asciiFieldMap[CalculateBlockCrc32("%llu")] = SimpleAsciiMapEntry<uint64_t>();
-    asciiFieldMap[CalculateBlockCrc32("%lx")] = SimpleAsciiMapEntry<uint32_t, 16>();
-    asciiFieldMap[CalculateBlockCrc32("%B")] = SimpleAsciiMapEntry<int8_t>();
-    asciiFieldMap[CalculateBlockCrc32("%UB")] = SimpleAsciiMapEntry<uint8_t>();
-    asciiFieldMap[CalculateBlockCrc32("%XB")] = SimpleAsciiMapEntry<uint8_t, 16>();
-    asciiFieldMap[CalculateBlockCrc32("%lf")] = SimpleAsciiMapEntry<double>();
-    asciiFieldMap[CalculateBlockCrc32("%le")] = SimpleAsciiMapEntry<double>();
-    asciiFieldMap[CalculateBlockCrc32("%g")] = SimpleAsciiMapEntry<float>();
-    asciiFieldMap[CalculateBlockCrc32("%lg")] = SimpleAsciiMapEntry<double>();
+    asciiFieldMap[CalculateBlockCrc32("hu")] = SimpleAsciiMapEntry<uint16_t>();
+    asciiFieldMap[CalculateBlockCrc32("lu")] = SimpleAsciiMapEntry<uint32_t>();
+    asciiFieldMap[CalculateBlockCrc32("llu")] = SimpleAsciiMapEntry<uint64_t>();
+    asciiFieldMap[CalculateBlockCrc32("lx")] = SimpleAsciiMapEntry<uint32_t, 16>();
+    asciiFieldMap[CalculateBlockCrc32("B")] = SimpleAsciiMapEntry<int8_t>();
+    asciiFieldMap[CalculateBlockCrc32("UB")] = SimpleAsciiMapEntry<uint8_t>();
+    asciiFieldMap[CalculateBlockCrc32("XB")] = SimpleAsciiMapEntry<uint8_t, 16>();
+    asciiFieldMap[CalculateBlockCrc32("lf")] = SimpleAsciiMapEntry<double>();
+    asciiFieldMap[CalculateBlockCrc32("le")] = SimpleAsciiMapEntry<double>();
+    asciiFieldMap[CalculateBlockCrc32("g")] = SimpleAsciiMapEntry<float>();
+    asciiFieldMap[CalculateBlockCrc32("lg")] = SimpleAsciiMapEntry<double>();
 
-    asciiFieldMap[CalculateBlockCrc32("%e")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("e")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 [[maybe_unused]] JsonReader* pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
@@ -91,9 +91,9 @@ void MessageDecoderBase::InitFieldMaps()
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("%f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 [[maybe_unused]] JsonReader* pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
@@ -102,9 +102,9 @@ void MessageDecoderBase::InitFieldMaps()
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("%d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 [[maybe_unused]] JsonReader* pclMsgDb_) {
         if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
         {
             vIntermediateFormat_.emplace_back(std::string(*ppcToken_, tokenLength_) == "TRUE", pstMessageDataType_);
@@ -112,9 +112,9 @@ void MessageDecoderBase::InitFieldMaps()
         else { vIntermediateFormat_.emplace_back(static_cast<int32_t>(strtol(*ppcToken_, nullptr, 10)), pstMessageDataType_); }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("%u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 [[maybe_unused]] JsonReader* pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 10)), pstMessageDataType_); return;
@@ -125,9 +125,9 @@ void MessageDecoderBase::InitFieldMaps()
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("%x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 [[maybe_unused]] JsonReader* pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 16)), pstMessageDataType_); return;
@@ -138,43 +138,43 @@ void MessageDecoderBase::InitFieldMaps()
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("%X")] = asciiFieldMap[CalculateBlockCrc32("%x")];
+    asciiFieldMap[CalculateBlockCrc32("X")] = asciiFieldMap[CalculateBlockCrc32("x")];
 
-    asciiFieldMap[CalculateBlockCrc32("%c")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("c")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 [[maybe_unused]] JsonReader* pclMsgDb_) {
         vIntermediateFormat_.emplace_back(static_cast<int8_t>(**ppcToken_), pstMessageDataType_);
     };
 
-    asciiFieldMap[CalculateBlockCrc32("%uc")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                   char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                   [[maybe_unused]] JsonReader* pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("uc")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
         vIntermediateFormat_.emplace_back(static_cast<uint8_t>(**ppcToken_), pstMessageDataType_);
     };
 
     // =========================================================
     // Json Field Mapping
     // =========================================================
-    jsonFieldMap[CalculateBlockCrc32("%ld")] = SimpleJsonMapEntry<int32_t>();
-    jsonFieldMap[CalculateBlockCrc32("%hd")] = SimpleJsonMapEntry<int16_t>();
-    jsonFieldMap[CalculateBlockCrc32("%lld")] = SimpleJsonMapEntry<int64_t>();
-    jsonFieldMap[CalculateBlockCrc32("%lu")] = SimpleJsonMapEntry<uint32_t>();
-    jsonFieldMap[CalculateBlockCrc32("%hu")] = SimpleJsonMapEntry<uint16_t>();
-    jsonFieldMap[CalculateBlockCrc32("%llu")] = SimpleJsonMapEntry<uint64_t>();
-    jsonFieldMap[CalculateBlockCrc32("%lx")] = SimpleJsonMapEntry<uint32_t>();
-    jsonFieldMap[CalculateBlockCrc32("%c")] = SimpleJsonMapEntry<int8_t>();
-    jsonFieldMap[CalculateBlockCrc32("%uc")] = SimpleJsonMapEntry<uint8_t>();
-    jsonFieldMap[CalculateBlockCrc32("%B")] = SimpleJsonMapEntry<int8_t>();
-    jsonFieldMap[CalculateBlockCrc32("%UB")] = SimpleJsonMapEntry<uint8_t>();
-    jsonFieldMap[CalculateBlockCrc32("%XB")] = SimpleJsonMapEntry<uint8_t>();
-    jsonFieldMap[CalculateBlockCrc32("%lf")] = SimpleJsonMapEntry<double>();
-    jsonFieldMap[CalculateBlockCrc32("%e")] = SimpleJsonMapEntry<float>();
-    jsonFieldMap[CalculateBlockCrc32("%le")] = SimpleJsonMapEntry<double>();
-    jsonFieldMap[CalculateBlockCrc32("%g")] = SimpleJsonMapEntry<float>();
-    jsonFieldMap[CalculateBlockCrc32("%lg")] = SimpleJsonMapEntry<double>();
+    jsonFieldMap[CalculateBlockCrc32("ld")] = SimpleJsonMapEntry<int32_t>();
+    jsonFieldMap[CalculateBlockCrc32("hd")] = SimpleJsonMapEntry<int16_t>();
+    jsonFieldMap[CalculateBlockCrc32("lld")] = SimpleJsonMapEntry<int64_t>();
+    jsonFieldMap[CalculateBlockCrc32("lu")] = SimpleJsonMapEntry<uint32_t>();
+    jsonFieldMap[CalculateBlockCrc32("hu")] = SimpleJsonMapEntry<uint16_t>();
+    jsonFieldMap[CalculateBlockCrc32("llu")] = SimpleJsonMapEntry<uint64_t>();
+    jsonFieldMap[CalculateBlockCrc32("lx")] = SimpleJsonMapEntry<uint32_t>();
+    jsonFieldMap[CalculateBlockCrc32("c")] = SimpleJsonMapEntry<int8_t>();
+    jsonFieldMap[CalculateBlockCrc32("uc")] = SimpleJsonMapEntry<uint8_t>();
+    jsonFieldMap[CalculateBlockCrc32("B")] = SimpleJsonMapEntry<int8_t>();
+    jsonFieldMap[CalculateBlockCrc32("UB")] = SimpleJsonMapEntry<uint8_t>();
+    jsonFieldMap[CalculateBlockCrc32("XB")] = SimpleJsonMapEntry<uint8_t>();
+    jsonFieldMap[CalculateBlockCrc32("lf")] = SimpleJsonMapEntry<double>();
+    jsonFieldMap[CalculateBlockCrc32("e")] = SimpleJsonMapEntry<float>();
+    jsonFieldMap[CalculateBlockCrc32("le")] = SimpleJsonMapEntry<double>();
+    jsonFieldMap[CalculateBlockCrc32("g")] = SimpleJsonMapEntry<float>();
+    jsonFieldMap[CalculateBlockCrc32("lg")] = SimpleJsonMapEntry<double>();
 
-    jsonFieldMap[CalculateBlockCrc32("%f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                 const json& clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
+    jsonFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                const json& clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 4: vIntermediateFormat_.emplace_back(clJsonField_.get<float>(), pstMessageDataType_); return;
@@ -183,8 +183,8 @@ void MessageDecoderBase::InitFieldMaps()
         }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("%d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                 const json& clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
+    jsonFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                const json& clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
         if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
         {
             vIntermediateFormat_.emplace_back(clJsonField_.get<bool>(), pstMessageDataType_);
@@ -192,8 +192,8 @@ void MessageDecoderBase::InitFieldMaps()
         else { vIntermediateFormat_.emplace_back(clJsonField_.get<int32_t>(), pstMessageDataType_); }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("%u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                 const json& clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
+    jsonFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                const json& clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1: vIntermediateFormat_.emplace_back(clJsonField_.get<uint8_t>(), pstMessageDataType_); return;
@@ -204,8 +204,8 @@ void MessageDecoderBase::InitFieldMaps()
         }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("%x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                 const json& clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
+    jsonFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
+                                                const json& clJsonField_, [[maybe_unused]] JsonReader* pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1: vIntermediateFormat_.emplace_back(clJsonField_.get<uint8_t>(), pstMessageDataType_); return;
@@ -216,7 +216,7 @@ void MessageDecoderBase::InitFieldMaps()
         }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("%X")] = jsonFieldMap[CalculateBlockCrc32("%x")];
+    jsonFieldMap[CalculateBlockCrc32("X")] = jsonFieldMap[CalculateBlockCrc32("x")];
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -518,7 +518,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField*>& vMsgDefFie
 
             for (uint32_t i = 0; i < uiArraySize; ++i)
             {
-                if (field->conversionHash == CalculateBlockCrc32("%Z"))
+                if (field->conversionHash == CalculateBlockCrc32("Z"))
                 {
                     uint32_t uiValueRead = 0;
                     if (sscanf(pcPosition, "%02x", &uiValueRead) != 1)
@@ -660,8 +660,8 @@ MessageDecoderBase::DecodeJson(const std::vector<BaseField*>& vMsgDefFields_, js
                 pvFieldContainer.reserve(clField.size());
                 for (const auto& it : clField)
                 {
-                    if (field->conversionHash == CalculateBlockCrc32("%Z")) { pvFieldContainer.emplace_back(it.get<uint8_t>(), field); }
-                    else if (field->conversionHash == CalculateBlockCrc32("%P")) { pvFieldContainer.emplace_back(it.get<int8_t>(), field); }
+                    if (field->conversionHash == CalculateBlockCrc32("Z")) { pvFieldContainer.emplace_back(it.get<uint8_t>(), field); }
+                    else if (field->conversionHash == CalculateBlockCrc32("P")) { pvFieldContainer.emplace_back(it.get<int8_t>(), field); }
                 }
             }
             break;

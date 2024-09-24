@@ -41,14 +41,16 @@ constexpr bool PrintAsString(const BaseField* pstFieldDef_)
     // Printing as a string means two things:
     // 1. The field will be surrounded by quotes
     // 2. The field will not contain null-termination or padding
-    return pstFieldDef_->type == FIELD_TYPE::STRING || pstFieldDef_->sConversionStripped == "%s" || pstFieldDef_->sConversionStripped == "%S";
+    return pstFieldDef_->type == FIELD_TYPE::STRING || pstFieldDef_->conversionHash == CalculateBlockCrc32("s") ||
+           pstFieldDef_->conversionHash == CalculateBlockCrc32("S");
 }
 
 // -------------------------------------------------------------------------------------------------------
 constexpr bool IsCommaSeparated(const BaseField* pstFieldDef_)
 {
     // In certain cases there are no separators printed between array elements
-    return !PrintAsString(pstFieldDef_) && pstFieldDef_->sConversionStripped != "%Z" && pstFieldDef_->sConversionStripped != "%P";
+    return !PrintAsString(pstFieldDef_) && pstFieldDef_->conversionHash != CalculateBlockCrc32("Z") &&
+           pstFieldDef_->conversionHash != CalculateBlockCrc32("P");
 }
 
 // -------------------------------------------------------------------------------------------------------

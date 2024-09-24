@@ -133,7 +133,7 @@ inline std::string DataTypeConversion(const DATA_TYPE eType_)
            : eType_ == DATA_TYPE::DOUBLE      ? "%lf"
            : eType_ == DATA_TYPE::HEXBYTE     ? "%Z" // these are not valid default conversion strings
            : eType_ == DATA_TYPE::SATELLITEID ? "%id"
-                                              : "";
+                                              : "%";
 }
 
 //!< Mapping from String to data type enums.
@@ -235,7 +235,6 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
-    std::string sConversionStripped;
     uint32_t conversionHash{0ULL};
     int32_t conversionBeforePoint{0};
     int32_t conversionAfterPoint{0};
@@ -258,52 +257,42 @@ struct BaseField
     void SetConversion(const std::string& sConversion_)
     {
         conversion = sConversion_;
-        ParseConversion(sConversionStripped, conversionBeforePoint, conversionAfterPoint);
-        conversionHash = CalculateBlockCrc32(sConversionStripped.c_str());
-    }
 
-    void ParseConversion(std::string& strStrippedConversionString_, int32_t& iBeforePoint_, int32_t& iAfterPoint_) const
-    {
         const char* sConvertString = conversion.c_str();
-        int32_t* iSelectedPoint = &iBeforePoint_;
 
-        while (*sConvertString != 0)
+        if (*sConvertString != '%') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
+
+        ++sConvertString;
+
+        if (std::isdigit(*sConvertString))
         {
-            // "0x" could be a prefix on a hex field (0x%...) or a valid conversion string (%0x).
-            // Prevent these two cases from occurring at the same time.
-            if ((0 == memcmp(sConvertString, "0x", 2)) && (0 != strcmp(sConvertString, "0x"))) { sConvertString += 2; }
-
-            // If the value "10" or greater is found from the conversion string, two bytes would
-            // need to be consumed from the string to move past that value. Otherwise, only one byte
-            // is necessary to consume.
-            if (*sConvertString >= '0' && *sConvertString <= '9')
-            {
-                if (sscanf(sConvertString, "%d.", iSelectedPoint) != 1) { throw std::runtime_error("Failed to parse integer value"); }
-                sConvertString = sConvertString + (*iSelectedPoint > 9 ? 2 : 1); // Skip the numerals
-            }
-
-            if ((std::isalpha(*sConvertString) != 0) || *sConvertString == '%')
-            {
-                strStrippedConversionString_.push_back(sConvertString[0]);
-                sConvertString++;
-            }
-
-            if (*sConvertString == '.')
-            {
-                iSelectedPoint = &iAfterPoint_;
-                sConvertString++;
-            }
+            conversionBeforePoint = std::stoi(sConvertString);
+            sConvertString += std::to_string(conversionBeforePoint).length();
         }
+
+        if (*sConvertString == '.') { ++sConvertString; }
+
+        if (std::isdigit(*sConvertString))
+        {
+            conversionAfterPoint = std::stoi(sConvertString);
+            sConvertString += std::to_string(conversionAfterPoint).length();
+        }
+
+        conversionHash = 0;
+
+        while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
+
+        if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
     }
 
     [[nodiscard]] bool IsString() const
     {
-        return type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("%s") || conversionHash == CalculateBlockCrc32("%S");
+        return type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
     }
 
     [[nodiscard]] bool IsCsv() const
     {
-        return !IsString() && conversionHash != CalculateBlockCrc32("%Z") && conversionHash != CalculateBlockCrc32("%P");
+        return !IsString() && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
     }
 };
 
@@ -665,19 +654,19 @@ class JsonReader
     std::vector<MessageDefinition>::iterator GetMessageIt(uint32_t iMsgId_)
     {
         return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                            [iMsgId_](const MessageDefinition& elem_) { return (elem_.logID == iMsgId_); });
+                            [iMsgId_](const MessageDefinition& elem_) { return elem_.logID == iMsgId_; });
     }
 
     std::vector<MessageDefinition>::iterator GetMessageIt(const std::string& strMessage_)
     {
         return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                            [strMessage_](const MessageDefinition& elem_) { return (elem_.name == strMessage_); });
+                            [strMessage_](const MessageDefinition& elem_) { return elem_.name == strMessage_; });
     }
 
     std::vector<EnumDefinition>::iterator GetEnumIt(const std::string& strEnumeration_)
     {
         return std::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
-                            [strEnumeration_](const EnumDefinition& elem_) { return (elem_.name == strEnumeration_); });
+                            [strEnumeration_](const EnumDefinition& elem_) { return elem_.name == strEnumeration_; });
     }
 };
 

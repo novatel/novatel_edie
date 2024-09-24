@@ -306,7 +306,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 {
-    MsgDefFields.emplace_back(new BaseField("MESSAGE", FIELD_TYPE::STRING, "", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(new BaseField("MESSAGE", FIELD_TYPE::STRING, "%", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(1);
 
@@ -353,7 +353,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
 
     unsigned char* testInput = nullptr;
@@ -363,7 +363,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "%", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
 
     unsigned char* testInput = nullptr;
