@@ -76,7 +76,7 @@ class OutputStreamInterface
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
-    virtual void ConfigureBaseFileName(const std::string& /*unused*/) {}
+    virtual void ConfigureBaseFileName(std::string_view /*unused*/) {}
 
     /** A virtual member.
      *  \brief Split file into different output file with defined size.
@@ -109,7 +109,7 @@ class OutputStreamInterface
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
-    virtual void ConfigureBaseFileName(const std::u32string& /*unused*/) {}
+    virtual void ConfigureBaseFileName(std::u32string_view /*unused*/) {}
     // #endif
 
   private:

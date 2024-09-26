@@ -80,7 +80,7 @@ std::string GetEnumString(const EnumDefinition* const stEnumDef_, const uint32_t
 }
 
 //-----------------------------------------------------------------------
-int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, const std::string& strEnum_)
+int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, std::string_view strEnum_)
 {
     if (stEnumDef_ != nullptr)
     {
@@ -94,7 +94,7 @@ int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, const std::string& 
 }
 
 //-----------------------------------------------------------------------
-int32_t GetResponseId(const EnumDefinition* const stRespDef_, const std::string& strResp_)
+int32_t GetResponseId(const EnumDefinition* const stRespDef_, std::string_view strResp_)
 {
     if (stRespDef_ != nullptr)
     {
@@ -112,7 +112,7 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, const std::string&
 int32_t ToDigit(const char c_) { return c_ - '0'; }
 
 //-----------------------------------------------------------------------
-bool ConsumeAbbrevFormatting(const uint64_t ullTokenLength_, char** ppcMessageBuffer_)
+bool ConsumeAbbrevFormatting(const uint64_t ullTokenLength_, const char** ppcMessageBuffer_)
 {
     bool bIsAbbrev = false;
 

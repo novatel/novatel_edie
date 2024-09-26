@@ -49,28 +49,28 @@ void MessageDecoder::InitOemFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("lk")] = SimpleAsciiMapEntry<double>();
 
     asciiFieldMap[CalculateBlockCrc32("ucb")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                   char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                   const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                    [[maybe_unused]] JsonReader* pclMsgDb_) {
         vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::bitset<8>(*ppcToken_).to_ulong()), pstMessageDataType_);
     };
 
     asciiFieldMap[CalculateBlockCrc32("T")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
         vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::llround(strtod(*ppcToken_, nullptr) * SEC_TO_MILLI_SEC)), pstMessageDataType_);
     };
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
         vIntermediateFormat_.emplace_back(pclMsgDb_->MsgNameToMsgId(std::string(*ppcToken_, tokenLength_)), pstMessageDataType_);
     };
 
     asciiFieldMap[CalculateBlockCrc32("id")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                  char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                   [[maybe_unused]] JsonReader* pclMsgDb_) {
-        auto* pcDelimiter = static_cast<char*>(memchr(*ppcToken_, '+', tokenLength_));
-        if (pcDelimiter == nullptr) { pcDelimiter = static_cast<char*>(memchr(*ppcToken_, '-', tokenLength_)); }
+        const auto* pcDelimiter = static_cast<const char*>(memchr(*ppcToken_, '+', tokenLength_));
+        if (pcDelimiter == nullptr) { pcDelimiter = static_cast<const char*>(memchr(*ppcToken_, '-', tokenLength_)); }
 
         auto usSlot = static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 10));
         int16_t sFreq = pcDelimiter != nullptr ? static_cast<int16_t>(strtol(pcDelimiter, nullptr, 10)) : 0;
@@ -80,7 +80,7 @@ void MessageDecoder::InitOemFieldMaps()
     };
 
     asciiFieldMap[CalculateBlockCrc32("R")] = [](std::vector<FieldContainer>& vIntermediateFormat_, const BaseField* pstMessageDataType_,
-                                                 char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
         // RXCONFIG in ASCII is always #COMMANDNAMEA
         const MessageDefinition* pclMessageDef = pclMsgDb_->GetMsgDef(std::string(*ppcToken_ + 1, tokenLength_ - 2)); // + 1 to Skip the '#'

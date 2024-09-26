@@ -38,9 +38,13 @@ int main(int argc, char** argv)
 
     if (argc != 2) { throw std::invalid_argument("1 argument required.\nUsage: <project root>"); }
 
-    std::string strDatabaseVar = "TEST_DATABASE_PATH=" + std::string(argv[1]) + "/database/messages_public.json";
+    std::string strDatabaseVar = std::string(argv[1]) + "/database/messages_public.json";
 
-    if (putenv(const_cast<char*>(strDatabaseVar.c_str())) != 0) { throw std::runtime_error("Failed to set db path."); }
+#ifdef _WIN32
+    if (_putenv_s("TEST_DATABASE_PATH", strDatabaseVar.c_str()) != 0) { throw std::runtime_error("Failed to set db path."); }
+#else
+    if (setenv("TEST_DATABASE_PATH", strDatabaseVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set db path."); }
+#endif
 
     return RUN_ALL_TESTS();
 }

@@ -48,25 +48,17 @@ using nlohmann::json;
 class JsonReaderFailure : public std::exception
 {
   private:
-    const char* func;
-    const char* file;
-    int32_t line;
-    std::filesystem::path clFilePath;
-    const char* failure;
-    char acWhatString[256]{};
+    std::string whatString;
 
   public:
-    JsonReaderFailure(const char* func_, const char* file_, const int32_t line_, std::filesystem::path jsonFile_, const char* failure_)
-        : func(func_), file(file_), line(line_), clFilePath(std::move(jsonFile_)), failure(failure_)
+    JsonReaderFailure(const char* func_, const char* file_, const int32_t line_, const std::filesystem::path& json_, const char* failure_)
     {
+        std::ostringstream oss;
+        oss << "In file \"" << file_ << "\" : " << func_ << "() (Line " << line_ << ")\n\t\"" << json_.generic_string() << ": " << failure_ << ".\"";
+        whatString = oss.str();
     }
 
-    [[nodiscard]] const char* what() const noexcept override
-    {
-        sprintf(const_cast<char*>(acWhatString), "In file \"%s\" : %s() (Line %d)\n\t\"%s: %s.\"", file, func, line,
-                clFilePath.generic_string().c_str(), failure);
-        return acWhatString;
-    }
+    [[nodiscard]] const char* what() const noexcept override { return whatString.c_str(); }
 };
 
 //-----------------------------------------------------------------------
@@ -386,6 +378,7 @@ struct MessageDefinition
     uint32_t latestMessageCrc{0};
 
     MessageDefinition() = default;
+
     MessageDefinition(const MessageDefinition& that_)
     {
         for (const auto& fieldDefinition : that_.fields)
@@ -542,14 +535,14 @@ class JsonReader
     //! \param[in] strEnumeration_ The enumeration name
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void RemoveEnumeration(const std::string& strEnumeration_, bool bGenerateMappings_);
+    void RemoveEnumeration(std::string_view strEnumeration_, bool bGenerateMappings_);
 
     //----------------------------------------------------------------------------
     //! \brief Parse the Json string provided.
     //
     //! \param[in] strJsonData_ A string containing Json objects.
     //----------------------------------------------------------------------------
-    void ParseJson(const std::string& strJsonData_);
+    void ParseJson(std::string_view strJsonData_);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
@@ -657,13 +650,13 @@ class JsonReader
                             [iMsgId_](const MessageDefinition& elem_) { return elem_.logID == iMsgId_; });
     }
 
-    std::vector<MessageDefinition>::iterator GetMessageIt(const std::string& strMessage_)
+    std::vector<MessageDefinition>::iterator GetMessageIt(std::string_view strMessage_)
     {
         return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
                             [strMessage_](const MessageDefinition& elem_) { return elem_.name == strMessage_; });
     }
 
-    std::vector<EnumDefinition>::iterator GetEnumIt(const std::string& strEnumeration_)
+    std::vector<EnumDefinition>::iterator GetEnumIt(std::string_view strEnumeration_)
     {
         return std::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
                             [strEnumeration_](const EnumDefinition& elem_) { return elem_.name == strEnumeration_; });

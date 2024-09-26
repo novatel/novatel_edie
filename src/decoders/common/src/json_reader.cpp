@@ -188,16 +188,12 @@ template <typename T> void JsonReader::LoadFile(T filePath_)
         json jDefinitions = json::parse(jsonFile);
 
         vMessageDefinitions.clear();
-        for (const auto& msg : jDefinitions["messages"])
-        {
-            vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
-        }
+        // The JSON object is converted to a MessageDefinition object here
+        for (const auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(msg); }
 
         vEnumDefinitions.clear();
-        for (const auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        // The JSON object is converted to a EnumDefinition object here
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
@@ -217,17 +213,12 @@ template <> void JsonReader::LoadFile<std::string>(std::string filePath_)
         json jDefinitions = json::parse(jsonFile);
 
         vMessageDefinitions.clear();
-
-        for (auto& msg : jDefinitions["messages"])
-        {
-            vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
-        }
+        // The JSON object is converted to a MessageDefinition object here
+        for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(msg); }
 
         vEnumDefinitions.clear();
-        for (auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        // The JSON object is converted to a EnumDefinition object here
+        for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
@@ -279,10 +270,8 @@ template <typename T> void JsonReader::AppendEnumerations(T filePath_)
         jsonFile.open(std::filesystem::path(filePath_));
         json jDefinitions = json::parse(jsonFile);
 
-        for (const auto& enm : jDefinitions["enums"])
-        {
-            vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-        }
+        // The JSON object is converted to a EnumDefinition object here
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
         GenerateMappings();
     }
@@ -320,7 +309,7 @@ void JsonReader::RemoveMessage(const uint32_t iMsgId_, const bool bGenerateMappi
 }
 
 //-----------------------------------------------------------------------
-void JsonReader::RemoveEnumeration(const std::string& strEnumeration_, const bool bGenerateMappings_)
+void JsonReader::RemoveEnumeration(std::string_view strEnumeration_, const bool bGenerateMappings_)
 {
     const auto iTer = GetEnumIt(strEnumeration_);
 
@@ -334,21 +323,17 @@ void JsonReader::RemoveEnumeration(const std::string& strEnumeration_, const boo
 }
 
 //-----------------------------------------------------------------------
-void JsonReader::ParseJson(const std::string& strJsonData_)
+void JsonReader::ParseJson(std::string_view strJsonData_)
 {
     json jDefinitions = json::parse(strJsonData_);
 
     vMessageDefinitions.clear();
-    for (const auto& msg : jDefinitions["logs"])
-    {
-        vMessageDefinitions.push_back(msg); // The JSON object is converted to a MessageDefinition object here
-    }
+    // The JSON object is converted to a MessageDefinition object here
+    for (const auto& msg : jDefinitions["logs"]) { vMessageDefinitions.push_back(msg); }
 
     vEnumDefinitions.clear();
-    for (const auto& enm : jDefinitions["enums"])
-    {
-        vEnumDefinitions.push_back(enm); // The JSON object is converted to a EnumDefinition object here
-    }
+    // The JSON object is converted to a EnumDefinition object here
+    for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(enm); }
 
     GenerateMappings();
 }
