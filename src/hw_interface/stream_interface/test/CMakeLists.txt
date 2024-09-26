@@ -12,7 +12,7 @@ add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "hw_interface/tests")
 
 get_directory_property( DirDefs COMPILE_DEFINITIONS )
-message( "COMPILE_DEFINITIONS = ${DirDefs}" )
+message(DEBUG "COMPILE_DEFINITIONS = ${DirDefs}" )
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../decoders/common/api)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../decoders/novatel/api)

@@ -18,7 +18,7 @@ else()
 	# Find Git package, if not need to install manually or through .yml file
 	find_package(Git)
 	if(Git_FOUND)
-	  message("Git found: ${GIT_EXECUTABLE}")
+	  message(DEBUG "Git found: ${GIT_EXECUTABLE}")
 	endif()
 
 	if(GIT_EXECUTABLE)
