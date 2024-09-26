@@ -54,19 +54,20 @@ FramerManager::FramerManager(const std::string& strLoggerName_, std::shared_ptr<
 {
     uint32_t uiNovatelFrameBufferOffset = 0;
     STATUS novatelStatus = novatelFramer->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, novatelMetaDataStruct, uiNovatelFrameBufferOffset);
-    STATUS nmeaStatus = novatelFramer->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, novatelMetaDataStruct, uiNovatelFrameBufferOffset);
-    if (novatelStatus == STATUS::UNKNOWN) { HandleUnknownBytes(novatelFramer, pucFrameBuffer_, uiNovatelFrameBufferOffset); }
-    return novatelStatus;
+    if (novatelStatus == STATUS::SUCCESS || novatelStatus == STATUS::SYNC_BYTES_FOUND) { return novatelStatus; }
+    if (novatelStatus == STATUS::UNKNOWN)
+    {
+        HandleUnknownBytes(pucFrameBuffer_, uiNovatelFrameBufferOffset);
+        return STATUS::UNKNOWN;
+    }
+
+    return STATUS::INCOMPLETE;
 }
 
-void FramerManager::HandleUnknownBytes(std::unique_ptr<oem::Framer>& framer, unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
+void FramerManager::HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
 {
     if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyCircularDataBuffer->Copy(pucBuffer_, uiUnknownBytes_); }
     pclMyCircularDataBuffer->Discard(uiUnknownBytes_);
 
-    uiMyByteCount = 0;
-    uiMyExpectedMessageLength = 0;
-    uiMyExpectedPayloadLength = 0;
-
-    framer->ResetState();
+    novatelFramer->ResetStateAndByteCount();
 }

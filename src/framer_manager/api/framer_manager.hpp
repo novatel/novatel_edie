@@ -103,7 +103,7 @@ class FramerManager
 
     // TODO: reorder the functions below this
     // Repurposed Framer Functions
-    void HandleUnknownBytes(std::unique_ptr<oem::Framer>& framer, unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_);
+    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_);
 
 
   public:
