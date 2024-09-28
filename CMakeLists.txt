@@ -127,7 +127,7 @@ if(BUILD_EXAMPLES)
 endif()
 
 # Copy third-party shared libs to the build directory for tests
-copy_third_shared_libraries("${OUTPUT_DIR}")
+copy_third_party_shared_libs("${OUTPUT_DIR}")
 
 # Copy the C++ runtime DLL for non-MSVC compilers on Windows
 if(WIN32 AND NOT MSVC)

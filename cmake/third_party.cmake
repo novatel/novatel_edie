@@ -38,7 +38,7 @@ endif()
 
 set(CONAN_DEPLOYER_DIR "${CMAKE_BINARY_DIR}/full_deploy/host")
 
-function(copy_third_shared_libraries target_dir)
+function(copy_third_party_shared_libs target_dir)
     if(WIN32)
         set(pattern "*.dll")
     elseif(APPLE)
