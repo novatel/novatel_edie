@@ -65,7 +65,10 @@ jobs:
         run: cmake --build out/build --parallel --config ${{ env.BUILD_TYPE }}
 
       - name: Inspect build outputs
-        run: ls -lh out/build/bin/*
+        if: env.OPERATING_SYSTEM == 'linux'
+        run: |
+          ls -lh out/build/bin/*
+          (cd out/build/bin/* && for f in *; do echo $f; objdump -p $f | grep -P 'RUNPATH|RPATH' || true; done)
 
       - name: Unit Tests
         run: ctest --test-dir out/build --build-config ${{ env.BUILD_TYPE }} --output-on-failure

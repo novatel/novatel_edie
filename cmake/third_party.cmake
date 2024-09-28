@@ -46,6 +46,22 @@ function(copy_third_party_shared_libs target_dir)
     else()
         set(pattern "*.so*")
     endif()
+
     file(GLOB_RECURSE libs "${CONAN_DEPLOYER_DIR}/*/${pattern}")
     file(COPY ${libs} DESTINATION "${target_dir}")
+
+    # Set RPATH to $ORIGIN for the copied libraries
+    if(NOT WIN32)
+        file(GLOB_RECURSE PATCHELF_EXECUTABLE "${CMAKE_BINARY_DIR}/full_deploy/build/*/patchelf")
+        foreach(lib ${libs})
+            get_filename_component(lib_name ${lib} NAME)
+            if(APPLE)
+                execute_process(COMMAND install_name_tool -add_rpath @loader_path "${target_dir}/${lib_name}"
+                    COMMAND_ERROR_IS_FATAL ANY)
+            else()
+                execute_process(COMMAND "${PATCHELF_EXECUTABLE}" --set-rpath \$ORIGIN "${target_dir}/${lib_name}"
+                    COMMAND_ERROR_IS_FATAL ANY)
+            endif()
+        endforeach()
+    endif()
 endfunction()
