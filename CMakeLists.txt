@@ -38,6 +38,10 @@ else()
     message(WARNING "Unable to identify OS. Update script to support distribution or OS")
 endif()
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 if(MSVC)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
     if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
