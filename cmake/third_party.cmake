@@ -38,13 +38,14 @@ endif()
 
 set(CONAN_DEPLOYER_DIR "${CMAKE_BINARY_DIR}/full_deploy/host")
 
-function(copy_third_party_dlls)
-    # Convert build type, operating system, and compiler to lowercase/uppercase as needed
-    string(TOLOWER ${CMAKE_SYSTEM_NAME} OPERATING_SYSTEM)
-    string(TOLOWER ${CMAKE_CXX_COMPILER_ID} COMPILER)
-
-    # Copy all third-party DLLs to the target directory
-    file(GLOB_RECURSE dll_files "${CONAN_DEPLOYER_DIR}/*/*.dll")
-    set(TARGET_DIR "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${CMAKE_BUILD_TYPE}")
-    file(COPY ${dll_files} DESTINATION "${TARGET_DIR}")
+function(copy_third_shared_libraries target_dir)
+    if(WIN32)
+        set(pattern "*.dll")
+    elseif(APPLE)
+        set(pattern "*.dylib")
+    else()
+        set(pattern "*.so*")
+    endif()
+    file(GLOB_RECURSE libs "${CONAN_DEPLOYER_DIR}/*/${pattern}")
+    file(COPY ${libs} DESTINATION "${target_dir}")
 endfunction()

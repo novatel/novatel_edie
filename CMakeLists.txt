@@ -85,6 +85,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
 
+# Look for shared libs in the same directory as the executable when running tests
+set(CMAKE_BUILD_RPATH "\$ORIGIN")
+
 # Find Git package, if not need to install manually or through .yml file
 find_package(Git)
 if(NOT Git_FOUND)
@@ -123,21 +126,20 @@ if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if(WIN32)
-    # Copy third-party DLLs to the build directory for tests
-    copy_third_party_dlls()
-    # Copy C++ runtime DLL for non-MSVC compilers
-    if(NOT MSVC)
-        if(NOT EXISTS CMAKE_CXX_COMPILER)
-            find_program(CXX_COMPILER_PATH NAMES "${CMAKE_CXX_COMPILER}")
-        else()
-            set(CXX_COMPILER_PATH "${CMAKE_CXX_COMPILER}")
-        endif()
-        get_filename_component(COMPILER_BIN_DIR "${CXX_COMPILER_PATH}" DIRECTORY)
-        foreach(stdcpp_library libstdc++-6.dll libc++.dll)
-            if(EXISTS "${COMPILER_BIN_DIR}/${stdcpp_library}")
-                file(COPY "${COMPILER_BIN_DIR}/${stdcpp_library}" DESTINATION "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${CMAKE_BUILD_TYPE}")
-            endif()
-        endforeach()
+# Copy third-party shared libs to the build directory for tests
+copy_third_shared_libraries("${OUTPUT_DIR}")
+
+# Copy the C++ runtime DLL for non-MSVC compilers on Windows
+if(WIN32 AND NOT MSVC)
+    if(NOT EXISTS CMAKE_CXX_COMPILER)
+        find_program(CXX_COMPILER_PATH NAMES "${CMAKE_CXX_COMPILER}")
+    else()
+        set(CXX_COMPILER_PATH "${CMAKE_CXX_COMPILER}")
     endif()
+    get_filename_component(COMPILER_BIN_DIR "${CXX_COMPILER_PATH}" DIRECTORY)
+    foreach(stdcpp_library libstdc++-6.dll libc++.dll)
+        if(EXISTS "${COMPILER_BIN_DIR}/${stdcpp_library}")
+            file(COPY "${COMPILER_BIN_DIR}/${stdcpp_library}" DESTINATION "${OUTPUT_DIR}")
+        endif()
+    endforeach()
 endif()
