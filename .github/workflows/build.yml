@@ -64,6 +64,9 @@ jobs:
       - name: Build
         run: cmake --build out/build --parallel --config ${{ env.BUILD_TYPE }}
 
+      - name: Inspect build outputs
+        run: ls -lh out/build/bin/*
+
       - name: Unit Tests
         run: ctest --test-dir out/build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
