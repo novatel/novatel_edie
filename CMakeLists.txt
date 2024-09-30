@@ -8,19 +8,10 @@ option(CMAKE_POSITION_INDEPENDENT_CODE "Set -fPIC" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
 
-if(NOT DEFINED CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 include(GNUInstallDirs)
+include(cmake/SetDefaultProfile.cmake)
 include(cmake/CompilerOptions.cmake)
 include(cmake/Utils.cmake)
 # For custom Find*.cmake modules

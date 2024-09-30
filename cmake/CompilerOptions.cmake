@@ -1,13 +1,5 @@
 if(MSVC)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-    if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
-        if(BUILD_SHARED_LIBS)
-            # shared spdlog requires MultiThreadedDLL
-            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-        else()
-            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-        endif()
-    endif()
     add_definitions(-DWIN32 -D_WINDOWS)
     add_compile_options(/W4 /GR /EHsc /utf-8 /wd4244 /wd4996)
     add_compile_options("$<$<CONFIG:Release>:/Ox;/Ob2>")
