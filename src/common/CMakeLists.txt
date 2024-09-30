@@ -1,7 +1,6 @@
 set(TARGET_NAME "common")
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(${TARGET_NAME} STATIC ${SOURCES})
-add_library(novatel_edie::${TARGET_NAME} ALIAS ${TARGET_NAME})
 set_target_properties(${TARGET_NAME} PROPERTIES
     OUTPUT_NAME "edie_${TARGET_NAME}"
     FOLDER "common"

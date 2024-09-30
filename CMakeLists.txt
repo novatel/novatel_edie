@@ -118,6 +118,16 @@ add_subdirectory(src/stream_interface)
 add_subdirectory(src/decoders/common)
 add_subdirectory(src/decoders/oem)
 
+# Add an aggregate target for all components
+add_library(novatel_edie INTERFACE)
+add_library(novatel_edie::novatel_edie ALIAS novatel_edie)
+target_link_libraries(novatel_edie INTERFACE
+    common
+    stream_interface
+    decoders_common
+    oem_decoder
+)
+
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(src/common/test)
