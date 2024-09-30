@@ -11,7 +11,7 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
-NB_MODULE(hw_interface_bindings, m)
+NB_MODULE(stream_interface_bindings, m)
 {
     // # stream_interface/common.hpp
 

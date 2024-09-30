@@ -1,9 +1,9 @@
 from novatel_edie import novatel
-from novatel_edie import hw_interface
+from novatel_edie import stream_interface
 import os
 
 print(os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources\\bestpos.bin"))
-in_file = hw_interface.InputFileStream(os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources/bestpos.bin"))
+in_file = stream_interface.InputFileStream(os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources/bestpos.bin"))
 decoder = novatel.Decoder(in_file)
 
 for log in decoder:

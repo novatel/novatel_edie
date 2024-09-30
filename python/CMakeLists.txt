@@ -21,14 +21,14 @@ endif()
 
 add_compile_definitions(VERSION_INFO=${SKBUILD_PROJECT_VERSION})
 
-nanobind_add_module(hw_interface_bindings STABLE_ABI NB_STATIC LTO
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/hw_interface.cpp
+nanobind_add_module(stream_interface_bindings STABLE_ABI NB_STATIC LTO
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/stream_interface.cpp
 )
 nanobind_add_module(decoders_bindings STABLE_ABI NB_STATIC LTO
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/decoders.cpp
 )
 
-target_link_libraries(hw_interface_bindings PRIVATE stream_interface)
+target_link_libraries(stream_interface_bindings PRIVATE stream_interface)
 target_link_libraries(decoders_bindings PRIVATE oem_decoder)
 
 if(DEFINED SKBUILD_PROJECT_NAME)
@@ -37,7 +37,7 @@ elseif(NOT DEFINED PYTHON_INSTALL_DIR)
     set(PYTHON_INSTALL_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/novatel_edie)
 endif()
 
-install(TARGETS hw_interface_bindings decoders_bindings
+install(TARGETS stream_interface_bindings decoders_bindings
     LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
     COMPONENT python)
 install(DIRECTORY novatel_edie/
