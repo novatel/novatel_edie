@@ -1,4 +1,4 @@
-set(TARGET_NAME "novatel_test")
+set(TARGET_NAME "oem_test")
 file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_executable(${TARGET_NAME} ${SOURCES})
 set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "decoders/tests")
