@@ -1,7 +1,7 @@
 set(TARGET_NAME "stream_interface_test")
 file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_executable(${TARGET_NAME} ${SOURCES})
-set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "hw_interface/tests")
+set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "stream_interface/tests")
 find_package(GTest REQUIRED CONFIG)
 target_link_libraries(${TARGET_NAME} PUBLIC
     stream_interface
