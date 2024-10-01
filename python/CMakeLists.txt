@@ -14,6 +14,11 @@ if(NOT DEFINED nanobind_DIR)
 endif()
 find_package(nanobind CONFIG REQUIRED)
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+    # Disable CMAKE_CXX_EXTENSIONS=OFF warnings for nanobind
+    add_compile_options(-Wno-pedantic -Wno-zero-length-array -Wno-nested-anon-types)
+endif()
+
 add_compile_definitions(VERSION_INFO=${SKBUILD_PROJECT_VERSION})
 
 nanobind_add_module(hw_interface_bindings STABLE_ABI NB_STATIC LTO
