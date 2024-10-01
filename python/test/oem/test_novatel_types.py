@@ -340,7 +340,7 @@ def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_VALID(helper):
     helper.create_base_field("Sec1", FIELD_TYPE.SIMPLE, "%e", 4, DATA_TYPE.FLOAT)
     helper.create_base_field("Sec2", FIELD_TYPE.SIMPLE, "%e", 4, DATA_TYPE.FLOAT)
     helper.create_base_field("Sec3", FIELD_TYPE.SIMPLE, "%e", 4, DATA_TYPE.FLOAT)
-    helper.create_base_field("Sec4", FIELD_TYPE.SIMPLE, "%e", 4, DATA_TYPE.FLOAT)
+    helper.create_base_field("Sec4", FIELD_TYPE.SIMPLE, "%g", 5, DATA_TYPE.FLOAT)
 
     input = b"-1.0,0.0,1.175494351e-38,3.402823466e+38"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
@@ -352,18 +352,11 @@ def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_VALID(helper):
     assert intermediate_format.Sec4 == approx(3.402823466e+38, rel=1e-6)
 
 
-def test_ASCII_SCIENTIFIC_NOTATION_FLOAT_INVALID(helper):
-    helper.create_base_field("Sec4", FIELD_TYPE.SIMPLE, "%g", 5, DATA_TYPE.FLOAT)
-    input = b"-1.0"
-    with pytest.raises(RuntimeError):
-        helper.test_decode_ascii(helper.msg_def_fields, input)
-
-
 def test_ASCII_SCIENTIFIC_NOTATION_DOUBLE_VALID(helper):
     helper.create_base_field("Sec1", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
     helper.create_base_field("Sec2", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
     helper.create_base_field("Sec3", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
-    helper.create_base_field("Sec4", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
+    helper.create_base_field("Sec4", FIELD_TYPE.SIMPLE, "%lg", 8, DATA_TYPE.DOUBLE)
 
     input = b"-1.0,0.0,2.2250738585072014e-308,1.7976931348623158e+308"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
@@ -376,9 +369,9 @@ def test_ASCII_SCIENTIFIC_NOTATION_DOUBLE_VALID(helper):
 
 
 def test_ASCII_ULONG_VALID(helper):
-    helper.create_base_field("rx_chars1", FIELD_TYPE.SIMPLE, "%hhu", 1, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars2", FIELD_TYPE.SIMPLE, "%hhu", 1, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars3", FIELD_TYPE.SIMPLE, "%hhu", 1, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars1", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars2", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars3", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.ULONG)
     helper.create_base_field("rx_chars4", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
     helper.create_base_field("rx_chars5", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
     helper.create_base_field("rx_chars6", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
@@ -443,7 +436,7 @@ def test_ASCII_EMPTY_STRING_VALID(helper):
 
 def test_ASCII_TYPE_INVALID(helper):
     helper.create_base_field("", FIELD_TYPE.UNKNOWN, "UNKNOWN", 1, DATA_TYPE.UNKNOWN)
-    input = b""
+    input = b"123"
     with pytest.raises(RuntimeError) as excinfo:
         helper.test_decode_ascii(helper.msg_def_fields, input)
     assert excinfo.value.args[0] == "DecodeAscii(): Unknown field type"
