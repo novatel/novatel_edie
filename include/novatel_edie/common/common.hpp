@@ -32,11 +32,11 @@
 namespace novatel::edie {
 
 //-----------------------------------------------------------------------
-//! \enum TIME_STATUS
+//! \enum TimeStatus
 //! \brief Enumeration describing the time status on a NovAtel receiver
 //! when a log is produced. See GPS Reference Time Status.
 //-----------------------------------------------------------------------
-enum class TIME_STATUS
+enum class TimeStatus
 {
     UNKNOWN = 20,             //!< Time validity is unknown.
     APPROXIMATE = 60,         //!< Time is set approximately.

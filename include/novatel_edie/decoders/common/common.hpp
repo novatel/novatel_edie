@@ -130,28 +130,6 @@ inline std::ostream& operator<<(std::ostream& os_, const EncodeFormat eFormat_)
 }
 
 //-----------------------------------------------------------------------
-//! \enum TimeStatus
-//! \brief Enumeration describing the time status on a NovAtel receiver
-//! when a log is produced. See GPS Reference Time Status.
-//-----------------------------------------------------------------------
-enum class TimeStatus
-{
-    UNKNOWN = 20,             //!< Time validity is unknown.
-    APPROXIMATE = 60,         //!< Time is set approximately.
-    COARSEADJUSTING = 80,     //!< Time is approaching coarse precision.
-    COARSE = 100,             //!< This time is valid to coarse precision.
-    COARSESTEERING = 120,     //!< Time is coarse set and is being steered.
-    FREEWHEELING = 130,       //!< Position is lost and the range bias cannot be calculated.
-    FINEADJUSTING = 140,      //!< Time is adjusting to fine precision.
-    FINE = 160,               //!< Time has fine precision.
-    FINEBACKUPSTEERING = 170, //!< Time is fine set and is being steered by the backup system.
-    FINESTEERING = 180,       //!< Time is fine set and is being steered.
-    SATTIME = 200,            //!< Time from satellite. Only used in logs containing satellite data such as ephemeris and almanac.
-    EXTERN = 220,             //!< Time source is external to the Receiver.
-    EXACT = 240               //!< Time is exact.
-};
-
-//-----------------------------------------------------------------------
 //! \enum HeaderFormat
 //! \brief Header formats of messages.
 //-----------------------------------------------------------------------
