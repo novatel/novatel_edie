@@ -28,8 +28,8 @@
 
 #include <gtest/gtest.h>
 
-#include "decoders/common/api/common.hpp"
-#include "decoders/common/api/json_reader.hpp"
+#include "novatel_edie/decoders/common/common.hpp"
+#include "novatel_edie/decoders/common/json_reader.hpp"
 
 using namespace novatel::edie;
 

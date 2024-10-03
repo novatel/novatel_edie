@@ -64,6 +64,12 @@ jobs:
       - name: Build
         run: cmake --build out/build --parallel --config ${{ env.BUILD_TYPE }}
 
+      - name: Inspect build outputs
+        if: env.OPERATING_SYSTEM == 'linux'
+        run: |
+          ls -lh out/build/bin/*
+          (cd out/build/bin/* && for f in *; do echo $f; objdump -p $f | grep -P 'RUNPATH|RPATH' || true; done)
+
       - name: Unit Tests
         run: ctest --test-dir out/build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
@@ -103,7 +109,7 @@ jobs:
         sudo apt-get install -y clang-format
 
     - name: Check code formatting
-      run: find src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -n {} + || (echo "Clang-format failed! See the README if you don't know how to fix this." && exit 1)
+      run: find include src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -n {} + || (echo "Clang-format failed! See the README if you don't know how to fix this." && exit 1)
 
   # =========================================================
   # Editor Config Job
@@ -122,7 +128,7 @@ jobs:
       run: find . \( -name 'CMakeLists.txt' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed! See the README if you don't know how to fix this."; exit 1; }
 
     - name: Check C++ formatting
-      run: find src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed! See the README if you don't know how to fix this."; exit 1; }
+      run: find include src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed! See the README if you don't know how to fix this."; exit 1; }
 
   # =========================================================
   # Clang Tidy Job
@@ -185,10 +191,10 @@ jobs:
     - name: Generate HTML code coverage reports
       run: | 
         mkdir out/build/code-coverage
-        gcovr -r ./src/ ./out/build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --html --html-details -o ./out/build/code-coverage/index.html
+        gcovr -r ./src/ ./out/build/ --exclude='.*/test/.*' --exclude='.*/version.h' --html --html-details -o ./out/build/code-coverage/index.html
     
     - name: Coverage visualization in pipeline summary
-      run: gcovr -r ./src/ ./out/build/ --exclude='.*/test/.*' --exclude='.*/dynamic_library/.*' --exclude='.*/version.h' --exclude-unreachable-branches --print-summary -o ./out/build/coverage.xml
+      run: gcovr -r ./src/ ./out/build/ --exclude='.*/test/.*' --exclude='.*/version.h' --exclude-unreachable-branches --print-summary -o ./out/build/coverage.xml
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4.3.0

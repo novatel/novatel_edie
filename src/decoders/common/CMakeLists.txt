@@ -1,19 +1,25 @@
-set(TARGET_NAME "common")
+set(TARGET_NAME "decoders_common")
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-add_library(${TARGET_NAME} STATIC ${SOURCES})
-add_custom_command(TARGET ${TARGET_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/api/ ${CMAKE_SOURCE_DIR}/bin/api/decoders/${TARGET_NAME}/api/)
-set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "decoders")
-target_include_directories(${TARGET_NAME} PUBLIC api)
-
+add_library(${TARGET_NAME} ${SOURCES})
+set_target_properties(${TARGET_NAME} PROPERTIES
+    OUTPUT_NAME "edie_${TARGET_NAME}"
+    FOLDER "decoders"
+)
+target_include_directories(${TARGET_NAME} PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
 
 find_package(nlohmann_json REQUIRED CONFIG)
-find_package(spdlog REQUIRED CONFIG)
-find_package(spdlog_setup REQUIRED CONFIG)
-
 target_link_libraries(${TARGET_NAME} PUBLIC
+    common
     nlohmann_json::nlohmann_json
-    spdlog_setup::spdlog_setup
-    $<TARGET_NAME_IF_EXISTS:spdlog::spdlog>
-    $<TARGET_NAME_IF_EXISTS:spdlog::spdlog_header_only>
+)
+
+install(TARGETS ${TARGET_NAME}
+    EXPORT novatel_edie-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )

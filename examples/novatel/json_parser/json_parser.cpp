@@ -27,10 +27,11 @@
 #include <chrono>
 #include <filesystem>
 
-#include <decoders/novatel/api/parser.hpp>
-#include <hw_interface/stream_interface/api/inputfilestream.hpp>
-#include <hw_interface/stream_interface/api/outputfilestream.hpp>
-#include <version.h>
+#include <novatel_edie/common/logger.hpp>
+#include <novatel_edie/decoders/oem/parser.hpp>
+#include <novatel_edie/stream_interface/inputfilestream.hpp>
+#include <novatel_edie/stream_interface/outputfilestream.hpp>
+#include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
 
@@ -77,8 +78,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
-    if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
+    EncodeFormat eEncodeFormat = StringToEncodeFormat(sEncodeFormat);
+    if (eEncodeFormat == EncodeFormat::UNSPECIFIED)
     {
         pclLogger->error("Unspecified output format.\n\tASCII\n\tBINARY\n\tFLATTENED_BINARY");
         return 1;
@@ -142,11 +143,11 @@ int main(int argc, char* argv[])
         stReadStatus = clIfs.ReadData(stReadData);
         clParser.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
 
-        STATUS eStatus = clParser.Read(stMessageData, stMetaData);
+        Status eStatus = clParser.Read(stMessageData, stMetaData);
 
-        while (eStatus != STATUS::BUFFER_EMPTY)
+        while (eStatus != Status::BUFFER_EMPTY)
         {
-            if (eStatus == STATUS::SUCCESS)
+            if (eStatus == Status::SUCCESS)
             {
                 clConvertedLogsOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';

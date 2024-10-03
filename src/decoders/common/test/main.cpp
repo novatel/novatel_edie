@@ -29,7 +29,7 @@
 
 #include <gtest/gtest.h>
 
-#include "src/decoders/common/api/logger.hpp"
+#include "novatel_edie/common/logger.hpp"
 
 int main(int argc, char** argv)
 {

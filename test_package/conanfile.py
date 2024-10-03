@@ -25,8 +25,7 @@ class TestPackageConan(ConanFile):
     def test(self):
         if can_run(self):
             bin_path = os.path.join(self.cpp.build.bindir, "CommandEncoding")
-            datadir = self.dependencies["novatel_edie"].cpp_info.resdirs[0]
-            database_json = os.path.join(datadir, "messages_public.json")
+            database_json = self.dependencies["novatel_edie"].runenv_info.vars(self).get("EDIE_DATABASE_FILE")
             format = "ASCII"
             command = "RTKTIMEOUT 30"
             self.run(f"{bin_path} {database_json} {format} {command}", env="conanrun")

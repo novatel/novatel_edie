@@ -7,6 +7,6 @@ bin/
 venv/
 CMakeSettings.json
 CMakeUserPresets.json
-/src/version.h
+/include/novatel_edie/version.h
 edie.*.log
 edie.log
