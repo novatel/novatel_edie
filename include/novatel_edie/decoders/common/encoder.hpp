@@ -129,8 +129,8 @@ class EncoderBase
     EnumDefinition* vMyPortAddressDefinitions{nullptr};
     EnumDefinition* vMyGpsTimeStatusDefinitions{nullptr};
 
-    static std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] JsonReader*)>> asciiFieldMap;
-    static std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] JsonReader*)>> jsonFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] JsonReader*)>> asciiFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] JsonReader*)>> jsonFieldMap;
     // is there a way to do this with static variables instead?
     [[nodiscard]] virtual char SeparatorAscii() const { return ','; }
     [[nodiscard]] virtual char SeparatorAbbAscii() const { return ' '; }
@@ -152,7 +152,7 @@ class EncoderBase
     [[nodiscard]] bool EncodeJsonBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
     virtual void InitEnumDefinitions();
-    static void InitFieldMaps();
+    virtual void InitFieldMaps();
 
   public:
     //----------------------------------------------------------------------------
