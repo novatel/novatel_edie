@@ -68,9 +68,11 @@ if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-# Copy shared libs to the build output directory for tests
-copy_cpp_runtime_dlls("${OUTPUT_DIR}")
-copy_third_party_shared_libs("${OUTPUT_DIR}")
+if(BUILD_TESTS OR BUILD_EXAMPLES)
+    # Copy shared libs to the build output directory for tests and examples
+    copy_cpp_runtime_dlls("${OUTPUT_DIR}")
+    copy_third_party_shared_libs("${OUTPUT_DIR}")
+endif()
 
 # Install
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
