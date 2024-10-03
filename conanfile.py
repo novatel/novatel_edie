@@ -8,7 +8,7 @@ from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeDeps
 from conan.tools.files import copy, rmdir
 
-required_conan_version = ">=2.0"
+required_conan_version = ">=2.4.0"
 
 class NovatelEdieConan(ConanFile):
     name = "novatel_edie"
