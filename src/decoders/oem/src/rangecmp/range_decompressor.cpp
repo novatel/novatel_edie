@@ -616,7 +616,10 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
     default: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_); break;
     }
 
-    if (stRangeData_.usPRN == 0) { throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits"); }
+    if (stChannelTrackingStatus_.eSatelliteSystem != ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
+    {
+        throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits");
+    }
 
     // any fields flagged as invalid are set to NaN and appear in the log as such
     stRangeData_.sGLONASSFrequency = static_cast<int16_t>(static_cast<unsigned char>(cGLONASSFrequencyNumber_));
