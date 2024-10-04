@@ -29,8 +29,9 @@
 #include <cstdlib>
 #include <filesystem>
 
-#include <decoders/novatel/api/commander.hpp>
-#include <hw_interface/stream_interface/api/outputfilestream.hpp>
+#include <novatel_edie/common/logger.hpp>
+#include <novatel_edie/decoders/oem/commander.hpp>
+#include <novatel_edie/stream_interface/outputfilestream.hpp>
 
 namespace fs = std::filesystem;
 

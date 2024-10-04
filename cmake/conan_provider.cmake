@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(CONAN_MINIMUM_VERSION 2.0.5)
+set(CONAN_MINIMUM_VERSION 2.4.0)
 
 
 function(detect_os OS OS_API_LEVEL OS_SDK OS_SUBSYSTEM OS_VERSION)
@@ -214,9 +214,7 @@ function(detect_compiler COMPILER COMPILER_VERSION COMPILER_RUNTIME COMPILER_RUN
     message(STATUS "CMake-Conan: CMake compiler=${_COMPILER}")
     message(STATUS "CMake-Conan: CMake compiler version=${_COMPILER_VERSION}")
 
-    if(_COMPILER MATCHES MSVC)
-        set(_COMPILER "msvc")
-        string(SUBSTRING ${MSVC_VERSION} 0 3 _COMPILER_VERSION)
+    if(MSVC)
         # Configure compiler.runtime and compiler.runtime_type settings for MSVC
         if(CMAKE_MSVC_RUNTIME_LIBRARY)
             set(_msvc_runtime_library ${CMAKE_MSVC_RUNTIME_LIBRARY})
@@ -252,9 +250,11 @@ function(detect_compiler COMPILER COMPILER_VERSION COMPILER_RUNTIME COMPILER_RUN
             endif()
             message(STATUS "CMake-Conan: CMake compiler.runtime_type=${_COMPILER_RUNTIME_TYPE}")
         endif()
+    endif()
 
-        unset(_KNOWN_MSVC_RUNTIME_VALUES)
-
+    if(_COMPILER MATCHES MSVC)
+        set(_COMPILER "msvc")
+        string(SUBSTRING ${MSVC_VERSION} 0 3 _COMPILER_VERSION)
     elseif(_COMPILER MATCHES AppleClang)
         set(_COMPILER "apple-clang")
         string(REPLACE "." ";" VERSION_LIST ${CMAKE_CXX_COMPILER_VERSION})

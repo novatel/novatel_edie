@@ -1,4 +1,4 @@
 set(TARGET_NAME "converter_parser")
 add_executable(${TARGET_NAME} ${TARGET_NAME}.cpp)
-target_link_libraries(${TARGET_NAME} common novatel stream_interface)
+target_link_libraries(${TARGET_NAME} novatel_edie::novatel_edie)
 set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "examples")

@@ -24,15 +24,11 @@
 // ! \file encoder.cpp
 // ===============================================================================
 
-#include "decoders/common/api/encoder.hpp"
+#include "novatel_edie/decoders/common/encoder.hpp"
 
 #include <bitset>
 
 using namespace novatel::edie;
-
-// initialize static members
-std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] JsonReader*)>> EncoderBase::asciiFieldMap;
-std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] JsonReader*)>> EncoderBase::jsonFieldMap;
 
 // -------------------------------------------------------------------------------------------------------
 EncoderBase::EncoderBase(JsonReader* pclJsonDb_)
