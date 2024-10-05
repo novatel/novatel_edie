@@ -31,14 +31,7 @@
 using namespace novatel::edie;
 
 //-----------------------------------------------------------------------
-bool IsEqual(const double dVal1_, const double dVal2_, const double dEpsilon_)
-{
-    double dDiff = dVal1_ - dVal2_;
-
-    if (dDiff < 0) { dDiff *= -1.0; }
-
-    return dDiff < dEpsilon_;
-}
+bool IsEqual(const double dVal1_, const double dVal2_, const double dEpsilon_) { return std::abs(dVal1_ - dVal2_) < dEpsilon_; }
 
 //-----------------------------------------------------------------------
 uint32_t CreateMsgId(const uint32_t uiMessageId_, const uint32_t uiSiblingId_, const uint32_t uiMsgFormat_, const uint32_t uiResponse_)

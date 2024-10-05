@@ -242,7 +242,7 @@ struct Oem4BinaryHeader
         ucSync3 = OEM4_BINARY_SYNC3;
         ucHeaderLength = OEM4_BINARY_HEADER_LENGTH;
         usMsgNumber = stInterHeader_.usMessageId;
-        ucMsgType = stInterHeader_.ucMessageType & (~static_cast<uint32_t>(MESSAGE_TYPE_MASK::MSGFORMAT));
+        ucMsgType = stInterHeader_.ucMessageType & ~static_cast<uint32_t>(MESSAGE_TYPE_MASK::MSGFORMAT);
         ucPort = static_cast<uint8_t>(stInterHeader_.uiPortAddress);
         usLength = stInterHeader_.usLength;
         usSequenceNumber = stInterHeader_.usSequence;

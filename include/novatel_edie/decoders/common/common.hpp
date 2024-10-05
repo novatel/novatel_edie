@@ -260,7 +260,7 @@ class MetaDataBase
     uint32_t uiHeaderLength{0};
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
-    char acMessageName[uiMessageNameMax + 1]{'\0'};
+    char acMessageName[uiMessageNameMax + 1]{};
 
     [[nodiscard]] std::string MessageName() const { return {acMessageName}; }
 
