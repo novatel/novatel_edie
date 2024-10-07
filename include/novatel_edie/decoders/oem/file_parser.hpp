@@ -51,7 +51,6 @@ class FileParser
     [[nodiscard]] bool ReadStream();
 
   public:
-    //! TODO: Manage copy/move/assignment constructors better.
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
     FileParser(const FileParser&) = delete;
