@@ -388,30 +388,30 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
     switch (eFormat_)
     {
     case ENCODE_FORMAT::ASCII:
-        if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                     : !EncodeAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
+        if (IsShort(stMetaData_.eFormat) ? !EncodeAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
+                                         : !EncodeAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
     case ENCODE_FORMAT::ABBREV_ASCII:
-        if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeAbbrevAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                     : !EncodeAbbrevAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
+        if (IsShort(stMetaData_.eFormat) ? !EncodeAbbrevAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
+                                         : !EncodeAbbrevAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
     case ENCODE_FORMAT::FLATTENED_BINARY: [[fallthrough]];
     case ENCODE_FORMAT::BINARY:
-        if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeBinaryShortHeader(stHeader_, &pucTempBuffer, uiBufferSize_)
-                                                     : !EncodeBinaryHeader(stHeader_, &pucTempBuffer, uiBufferSize_))
+        if (IsShort(stMetaData_.eFormat) ? !EncodeBinaryShortHeader(stHeader_, &pucTempBuffer, uiBufferSize_)
+                                         : !EncodeBinaryHeader(stHeader_, &pucTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
     case ENCODE_FORMAT::JSON:
-        if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeJsonShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                     : !EncodeJsonHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
+        if (IsShort(stMetaData_.eFormat) ? !EncodeJsonShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
+                                         : !EncodeJsonHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }

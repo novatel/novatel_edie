@@ -135,7 +135,8 @@ inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
 //-----------------------------------------------------------------------
 enum class HEADER_FORMAT
 {
-    // Bit 0-4: Reserved
+    // Bit 0-3: Reserved
+    // Bit 4: Abbreviated
     // Bit 5: Short
     // Bit 6: ASCII
     // Bit 7: Binary
@@ -152,9 +153,10 @@ enum class HEADER_FORMAT
     ALL = 0b11111111
 };
 
-constexpr bool IsBinaryHeaderFormat(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 7; }
-constexpr bool IsAsciiHeaderFormat(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 6; }
-constexpr bool IsShortHeaderFormat(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 5; }
+constexpr bool IsBinary(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 7; }
+constexpr bool IsAscii(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 6; }
+constexpr bool IsShort(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 5; }
+constexpr bool IsAbbreviated(const HEADER_FORMAT eFormat_) { return static_cast<int32_t>(eFormat_) & 1 << 4; }
 
 //-----------------------------------------------------------------------
 //! \enum MESSAGE_FORMAT
