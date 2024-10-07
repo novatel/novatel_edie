@@ -1057,14 +1057,10 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
     // Re-encode to the original format if a format was not specified.
     if (eFormat_ == ENCODE_FORMAT::UNSPECIFIED)
     {
-        eFormat_ =
-            (eInitialFormat == HEADER_FORMAT::BINARY || eInitialFormat == HEADER_FORMAT::SHORT_BINARY ||
-             eInitialFormat == HEADER_FORMAT::PROPRIETARY_BINARY)
-                ? ENCODE_FORMAT::BINARY
-            : (eInitialFormat == HEADER_FORMAT::ASCII || eInitialFormat == HEADER_FORMAT::SHORT_ASCII || eInitialFormat == HEADER_FORMAT::ABB_ASCII)
-                ? ENCODE_FORMAT::ASCII
-            : (eInitialFormat == HEADER_FORMAT::JSON) ? ENCODE_FORMAT::JSON
-                                                      : ENCODE_FORMAT::ASCII; // Default to ASCII
+        eFormat_ = IsBinary(eInitialFormat)                ? ENCODE_FORMAT::BINARY
+                   : IsAscii(eInitialFormat)               ? ENCODE_FORMAT::ASCII
+                   : eInitialFormat == HEADER_FORMAT::JSON ? ENCODE_FORMAT::JSON
+                                                           : ENCODE_FORMAT::ASCII; // Default to ASCII
     }
 
     // Re-encode the data back into the range message buffer.
