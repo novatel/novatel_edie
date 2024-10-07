@@ -743,10 +743,11 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
     stInterMessage_.reserve(pvCurrentMsgFields->size());
 
     // Decode the detected format
-    return IsBinary(stMetaData_.eFormat)  ? DecodeBinary(*pvCurrentMsgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength)
-           : IsAscii(stMetaData_.eFormat) ? (IsAbbreviated(stMetaData_.eFormat)
-                                                 ? DecodeAscii<true>(*pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_)
-                                                 : DecodeAscii<false>(*pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_))
+    return IsBinary(stMetaData_.eFormat) ? DecodeBinary(*pvCurrentMsgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength)
+           : IsAscii(stMetaData_.eFormat)
+               ? (IsAbbreviated(stMetaData_.eFormat)
+                      ? DecodeAscii<true>(*pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_)
+                      : DecodeAscii<false>(*pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_))
            : stMetaData_.eFormat == HEADER_FORMAT::JSON ? DecodeJson(*pvCurrentMsgFields, json::parse(pucTempInData)["body"], stInterMessage_)
                                                         : STATUS::UNKNOWN;
 }
