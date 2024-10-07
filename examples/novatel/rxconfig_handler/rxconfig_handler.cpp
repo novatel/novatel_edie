@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
                     uint32_t uiFlippedCrc = strtoul(pcCrcBegin, nullptr, 16) ^ 0xFFFFFFFF;
                     snprintf(pcCrcBegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", uiFlippedCrc);
                     clStrippedRxConfigOfs.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
-                    clStrippedRxConfigOfs.WriteData(const_cast<char*>("\r\n"), 2);
+                    clStrippedRxConfigOfs.WriteData("\r\n", 2);
                 }
                 else if (eEncodeFormat == ENCODE_FORMAT::BINARY)
                 {
@@ -148,8 +148,8 @@ int main(int argc, char* argv[])
                 else if (eEncodeFormat == ENCODE_FORMAT::JSON)
                 {
                     // Write in a comma and CRLF to make the files parse-able by JSON readers.
-                    clConvertedRxConfigOfs.WriteData(const_cast<char*>(",\r\n"), 3);
-                    clStrippedRxConfigOfs.WriteData(const_cast<char*>(",\r\n"), 3);
+                    clConvertedRxConfigOfs.WriteData(",\r\n", 3);
+                    clStrippedRxConfigOfs.WriteData(",\r\n", 3);
                 }
             }
 

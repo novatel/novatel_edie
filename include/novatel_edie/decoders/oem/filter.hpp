@@ -207,7 +207,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(const std::string& szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL,
+    void IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL,
                             MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
 
     //----------------------------------------------------------------------------

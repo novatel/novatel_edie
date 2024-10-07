@@ -113,13 +113,13 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
-    void ConfigureBaseFileName(const std::u32string& s32FileName_) override;
+    void ConfigureBaseFileName(std::u32string_view s32FileName_) override;
 
     /*! \brief Sets the output file name  from the log name from strMsgName_.
      *  \param[in] strMsgName_
      *  \remark Sets output file name like "base_name_log_name".
      */
-    void SelectWCLogFile(std::string strMsgName_);
+    void SelectWCLogFile(std::string_view strMsgName_);
 
     /*! \brief Sets the output file name(with Wide Characters) included with the split size
      *  \param[in] uiSize_
@@ -147,7 +147,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
      */
-    uint32_t WriteData(const char* pcData_, uint32_t uiDataLength_, const std::string& strMsgName_, uint32_t uiSize_,
+    uint32_t WriteData(const char* pcData_, uint32_t uiDataLength_, std::string_view strMsgName_, uint32_t uiSize_,
                        novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
 
     /*! \brief Write Buffer to output file.
@@ -172,7 +172,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \remark Sets Base file name (before '.' in file name)
      *          Sets Extension of the file.
      */
-    void ConfigureBaseFileName(const std::string& stFileName) override;
+    void ConfigureBaseFileName(std::string_view stFileName) override;
 
     /*! \brief Delete all the output files associated FileStream objects.
      *  \remark Clears the map in which all the output file stream objects will be saved.
@@ -190,7 +190,7 @@ class MultiOutputFileStream : public OutputStreamInterface
      *  \param[in] strMsgName_
      *  \remark Sets output file name like "base_name_log_name".
      */
-    void SelectLogFile(const std::string& strMsgName_);
+    void SelectLogFile(std::string_view strMsgName_);
 
     /*! \brief Split file into different output file with defined size.
      *  \param[in] ullFileSplitSize
@@ -232,8 +232,8 @@ class MultiOutputFileStream : public OutputStreamInterface
     /*! \brief Sets the extension name of the output file
      *  \param[in] strExt std::string - Output file name
      */
-    void SetExtensionName(const std::string& strExt) { stMyExtensionName = strExt; }
-    void SetExtensionName(const std::u32string& strExt) { s32MyExtensionName = strExt; }
+    void SetExtensionName(std::string_view strExt) { stMyExtensionName = strExt; }
+    void SetExtensionName(std::u32string_view strExt) { s32MyExtensionName = strExt; }
 
     /*! Friend class to test private methods. */
     friend class MultiOutputFileStreamTest;
