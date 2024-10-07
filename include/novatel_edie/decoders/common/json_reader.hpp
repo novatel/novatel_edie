@@ -249,30 +249,40 @@ struct BaseField
     void SetConversion(const std::string& sConversion_)
     {
         conversion = sConversion_;
+        std::string sConversionStripped;
 
         const char* sConvertString = conversion.c_str();
+        int32_t* iSelectedPoint = &conversionBeforePoint;
 
-        if (*sConvertString != '%') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
-
-        ++sConvertString;
-
-        if (std::isdigit(*sConvertString))
+        while (*sConvertString != 0)
         {
-            conversionBeforePoint = std::stoi(sConvertString);
-            sConvertString += std::to_string(conversionBeforePoint).length();
+            // "0x" could be a prefix on a hex field (0x%...) or a valid conversion string (%0x).
+            // Prevent these two cases from occurring at the same time.
+            if ((0 == memcmp(sConvertString, "0x", 2)) && (0 != strcmp(sConvertString, "0x"))) { sConvertString += 2; }
+
+            // If the value "10" or greater is found from the conversion string, two bytes would
+            // need to be consumed from the string to move past that value. Otherwise, only one byte
+            // is necessary to consume.
+            if (*sConvertString >= '0' && *sConvertString <= '9')
+            {
+                if (sscanf(sConvertString, "%d.", iSelectedPoint) != 1) { throw std::runtime_error("Failed to parse integer value"); }
+                sConvertString = sConvertString + (*iSelectedPoint > 9 ? 2 : 1); // Skip the numerals
+            }
+
+            if (std::isalpha(*sConvertString) != 0 || *sConvertString == '%')
+            {
+                sConversionStripped.push_back(sConvertString[0]);
+                sConvertString++;
+            }
+
+            if (*sConvertString == '.')
+            {
+                iSelectedPoint = &conversionAfterPoint;
+                sConvertString++;
+            }
         }
 
-        if (*sConvertString == '.') { ++sConvertString; }
-
-        if (std::isdigit(*sConvertString))
-        {
-            conversionAfterPoint = std::stoi(sConvertString);
-            sConvertString += std::to_string(conversionAfterPoint).length();
-        }
-
-        conversionHash = 0;
-
-        while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
+        conversionHash = CalculateBlockCrc32(sConversionStripped.c_str());
 
         if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
     }
