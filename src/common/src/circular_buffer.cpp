@@ -50,11 +50,10 @@ void CircularBuffer::SetCapacity(const uint32_t uiCapacity_)
         Copy(pucBuffer.get(), uiMyLength);
 
         // Free the old buffer and take ownership of the new buffer
-        delete[] pucMyBuffer;
-        pucMyBuffer = pucBuffer.release();
+        pucMyBuffer = std::move(pucBuffer);
 
         // Update pointers to point into the new buffer
-        pucMyHead = pucMyBuffer;
+        pucMyHead = pucMyBuffer.get();
         pucMyTail = pucMyHead + uiMyLength;
         uiMyCapacity = uiCapacity_;
     }
@@ -82,7 +81,7 @@ uint32_t CircularBuffer::Append(const unsigned char* pucData_, uint32_t uiBytes_
     // Append data to buffer. Do this in 2 steps, in case of wrap around.
     // Don't need to worry about overwriting data, because we enlarged the
     // buffer to guarantee a fit.
-    auto uiCopyBytes = std::min(static_cast<uint32_t>(pucMyBuffer + uiMyCapacity - pucMyTail), uiBytes_);
+    auto uiCopyBytes = std::min(static_cast<uint32_t>(pucMyBuffer.get() + uiMyCapacity - pucMyTail), uiBytes_);
 
     memcpy(pucMyTail, pucData_, uiCopyBytes);
 
@@ -97,8 +96,8 @@ uint32_t CircularBuffer::Append(const unsigned char* pucData_, uint32_t uiBytes_
     if (uiCopyBytes > 0)
     {
         // Could only have got here if wraparound occurred.
-        assert(pucMyTail >= pucMyBuffer + uiMyCapacity);
-        pucMyTail = pucMyBuffer;
+        assert(pucMyTail >= pucMyBuffer.get() + uiMyCapacity);
+        pucMyTail = pucMyBuffer.get();
 
         memcpy(pucMyTail, pucData_, uiCopyBytes);
         uiMyLength += uiCopyBytes;
@@ -116,7 +115,7 @@ unsigned char CircularBuffer::GetByte(const int32_t iIndex_) const
     if (iIndex_ < 0 || static_cast<uint32_t>(iIndex_) >= uiMyLength) { return '\0'; }
 
     const unsigned char* pucChar = pucMyHead + iIndex_;
-    if (pucChar >= pucMyBuffer + uiMyCapacity) { pucChar -= uiMyCapacity; }
+    if (pucChar >= pucMyBuffer.get() + uiMyCapacity) { pucChar -= uiMyCapacity; }
 
     return *pucChar;
 }
@@ -132,14 +131,14 @@ uint32_t CircularBuffer::Copy(unsigned char* pucTarget_, uint32_t uiBytes_) cons
         // Copy data from our buffer to the target buffer, beginning
         // at the logical beginning of our buffer. We do this in two
         // steps, in case of wraparound.
-        auto uiCopyBytes = std::min(static_cast<uint32_t>(pucMyBuffer + uiMyCapacity - pucMyHead), uiBytes_);
+        auto uiCopyBytes = std::min(static_cast<uint32_t>(pucMyBuffer.get() + uiMyCapacity - pucMyHead), uiBytes_);
 
         memcpy(pucTarget_, pucMyHead, uiCopyBytes);
         pucTarget_ += uiCopyBytes;
 
         // Now copy the rest of the requested data
         uiCopyBytes = uiBytes_ - uiCopyBytes;
-        if (uiCopyBytes > 0) { memcpy(pucTarget_, pucMyBuffer, uiCopyBytes); }
+        if (uiCopyBytes > 0) { memcpy(pucTarget_, pucMyBuffer.get(), uiCopyBytes); }
     }
 
     return uiBytes_;
@@ -156,5 +155,5 @@ void CircularBuffer::Discard(uint32_t uiBytes_)
     uiMyLength -= uiBytes_;
 
     // Check for wraparound
-    if (pucMyHead >= pucMyBuffer + uiMyCapacity) { pucMyHead -= uiMyCapacity; }
+    if (pucMyHead >= pucMyBuffer.get() + uiMyCapacity) { pucMyHead -= uiMyCapacity; }
 }

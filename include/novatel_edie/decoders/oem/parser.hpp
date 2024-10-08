@@ -65,9 +65,9 @@ class Parser
     Filter clMyRangeCmpFilter;
     Filter clMyRxConfigFilter;
 
-    unsigned char* const pcMyEncodeBuffer{nullptr};
+    std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
     unsigned char* pucMyEncodeBufferPointer{nullptr};
-    unsigned char* const pcMyFrameBuffer{nullptr};
+    std::unique_ptr<unsigned char[]> pcMyFrameBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
     unsigned char* pucMyFrameBufferPointer{nullptr};
 
     // Configuration options
@@ -106,11 +106,6 @@ class Parser
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     Parser(JsonReader* pclJsonDb_ = nullptr);
-
-    //----------------------------------------------------------------------------
-    //! \brief A destructor for the Parser class.
-    //----------------------------------------------------------------------------
-    ~Parser();
 
     //----------------------------------------------------------------------------
     //! \brief Load a JsonReader object.

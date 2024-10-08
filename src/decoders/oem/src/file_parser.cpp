@@ -30,39 +30,30 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::string& sDbPath_)
-    : clMyParser(Parser(sDbPath_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiParserInternalBufferSize])
+FileParser::FileParser(const std::string& sDbPath_) : clMyParser(Parser(sDbPath_))
 {
-    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-    stMyReadData.uiDataSize = Parser::uiParserInternalBufferSize;
     pclMyInputStream = nullptr;
     pclMyLogger->debug("FileParser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::u32string& sDbPath_)
-    : clMyParser(Parser(sDbPath_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiParserInternalBufferSize])
+FileParser::FileParser(const std::u32string& sDbPath_) : clMyParser(Parser(sDbPath_))
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
-    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-    stMyReadData.uiDataSize = Parser::uiParserInternalBufferSize;
     pclMyInputStream = nullptr;
     pclMyLogger->debug("FileParser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(JsonReader* pclJsonDb_)
-    : clMyParser(Parser(pclJsonDb_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiParserInternalBufferSize])
+FileParser::FileParser(JsonReader* pclJsonDb_) : clMyParser(Parser(pclJsonDb_))
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
-    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-    stMyReadData.uiDataSize = Parser::uiParserInternalBufferSize;
     pclMyInputStream = nullptr;
     pclMyLogger->debug("FileParser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::~FileParser() { delete[] pcMyStreamReadBuffer; }
+FileParser::~FileParser() = default;
 
 // -------------------------------------------------------------------------------------------------------
 void FileParser::LoadJsonDb(JsonReader* pclJsonDb_)
@@ -151,7 +142,7 @@ bool FileParser::ReadStream()
     stMyReadData.uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
     stMyStreamReadStatus = pclMyInputStream->ReadData(stMyReadData);
     return stMyStreamReadStatus.uiCurrentStreamRead > 0 &&
-           clMyParser.Write(reinterpret_cast<unsigned char*>(stMyReadData.cData), stMyStreamReadStatus.uiCurrentStreamRead) ==
+           clMyParser.Write(reinterpret_cast<unsigned char*>(stMyReadData.cData.get()), stMyStreamReadStatus.uiCurrentStreamRead) ==
                stMyStreamReadStatus.uiCurrentStreamRead;
 }
 

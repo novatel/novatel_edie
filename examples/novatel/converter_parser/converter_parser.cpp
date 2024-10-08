@@ -112,10 +112,7 @@ int main(int argc, char* argv[])
 
     // Initialize FS structures and buffers
     StreamReadStatus stReadStatus;
-    ReadDataStructure stReadData;
-    unsigned char acIfsReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
-    stReadData.uiDataSize = sizeof(acIfsReadBuffer);
+    ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
 
     // Set up file streams
     InputFileStream clIfs(pathInFilename.string().c_str());
@@ -130,9 +127,9 @@ int main(int argc, char* argv[])
 
     while (!stReadStatus.bEOS)
     {
-        stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
+        // stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
         stReadStatus = clIfs.ReadData(stReadData);
-        clParser.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
+        clParser.Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
 
         STATUS eStatus = clParser.Read(stMessageData, stMetaData);
 

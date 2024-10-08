@@ -86,20 +86,15 @@ class FramerTest : public ::testing::Test
         pclMyIFS = std::make_unique<InputFileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
 
         StreamReadStatus stReadStatus;
-        ReadDataStructure stReadData;
-        stReadData.cData = new char[MAX_ASCII_MESSAGE_LENGTH];
-        stReadData.uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
+        ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
         uint32_t uiBytesWritten = 0;
 
         while (!stReadStatus.bEOS)
         {
             stReadStatus = pclMyIFS->ReadData(stReadData);
-            uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
+            uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
             ASSERT_EQ(uiBytesWritten, stReadStatus.uiCurrentStreamRead);
         }
-
-        delete[] stReadData.cData;
-        stReadData.cData = nullptr;
 
         pclMyIFS = nullptr;
     }

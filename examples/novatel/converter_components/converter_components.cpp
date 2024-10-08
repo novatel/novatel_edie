@@ -144,10 +144,7 @@ int main(int argc, char* argv[])
 
     // Initialize FS structures and buffers
     StreamReadStatus stReadStatus;
-    ReadDataStructure stReadData;
-    unsigned char acIfsReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
-    stReadData.uiDataSize = sizeof(acIfsReadBuffer);
+    ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
 
     // Setup file streams
     InputFileStream clIfs(pathInFilename.string().c_str());
@@ -159,7 +156,7 @@ int main(int argc, char* argv[])
     while (!stReadStatus.bEOS)
     {
         stReadStatus = clIfs.ReadData(stReadData);
-        clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
+        clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 

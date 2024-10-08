@@ -45,17 +45,17 @@ enum class FileSplitMethodEnum
  */
 struct ReadDataStructure
 {
-    uint32_t uiDataSize; /*!< Size of decoded log */
-    char* cData;         /*!< Memory pointer*/
+    uint32_t uiDataSize;           /*!< Size of decoded log */
+    std::unique_ptr<char[]> cData; /*!< Smart pointer for memory management */
 
-    /*! Default Initializer */
-    ReadDataStructure()
-    {
-        uiDataSize = 0;
-        cData = nullptr;
-    }
+    /*! Default Constructor */
+    ReadDataStructure() : uiDataSize(0), cData(nullptr) {}
 
-    ReadDataStructure(uint32_t uiDataSize, char* cData) : uiDataSize(uiDataSize), cData(cData) {}
+    /*! Parameterized Constructor */
+    ReadDataStructure(uint32_t uiDataSize, std::unique_ptr<char[]> cData) : uiDataSize(uiDataSize), cData(std::move(cData)) {}
+
+    /*! Initialize with size and allocate memory */
+    ReadDataStructure(uint32_t uiDataSize) : uiDataSize(uiDataSize), cData(std::make_unique<char[]>(uiDataSize)) {}
 };
 
 /*! A Structure

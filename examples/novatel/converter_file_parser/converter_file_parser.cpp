@@ -115,10 +115,7 @@ int main(int argc, char* argv[])
     clFileParser.SetEncodeFormat(eEncodeFormat);
 
     // Initialize FS structures and buffers
-    ReadDataStructure stReadData;
-    unsigned char acIfsReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
-    stReadData.uiDataSize = sizeof(acIfsReadBuffer);
+    ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
 
     // Set up file streams
     InputFileStream clIfs(pathInFilename.string().c_str());

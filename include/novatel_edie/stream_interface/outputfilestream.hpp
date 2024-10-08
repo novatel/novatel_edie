@@ -75,7 +75,7 @@ class OutputFileStream : public OutputStreamInterface
 
     /*! FileStream Class object.
      */
-    FileStream* pOutFileStream;
+    std::unique_ptr<FileStream> pOutFileStream;
 
     /*! \brief Write data to output file.
      *  \param[in] cData Buffer pointer.

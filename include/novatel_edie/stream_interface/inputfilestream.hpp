@@ -72,10 +72,10 @@ class InputFileStream : public InputStreamInterface
     const InputFileStream& operator=(const InputFileStream& clTemp_) = delete;
 
     /*! A default destructor */
-    ~InputFileStream() override;
+    ~InputFileStream() override = default;
 
     /*! FileStream pointer to hold created FileStream object in constructor */
-    FileStream* pInFileStream;
+    std::unique_ptr<FileStream> pInFileStream;
 
     /*! \brief Hold/copy decoded log and size of it in ReadDataStructure
      *

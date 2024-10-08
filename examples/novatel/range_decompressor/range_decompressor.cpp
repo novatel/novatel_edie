@@ -118,10 +118,7 @@ int main(int argc, char* argv[])
     clFramer.SetPayloadOnly(false);
     clFramer.SetReportUnknownBytes(true);
 
-    unsigned char acFileStreamBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    ReadDataStructure stReadData;
-    stReadData.cData = reinterpret_cast<char*>(acFileStreamBuffer);
-    stReadData.uiDataSize = sizeof(acFileStreamBuffer);
+    ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
 
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
@@ -196,7 +193,7 @@ int main(int argc, char* argv[])
                 break;
             }
 
-            clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
+            clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
         }
     }
 

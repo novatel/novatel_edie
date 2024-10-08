@@ -29,23 +29,19 @@
 // ---------------------------------------------------------
 OutputFileStream::OutputFileStream(const std::u32string& s32FileName)
 {
-    pOutFileStream = new FileStream(s32FileName);
+    pOutFileStream = std::make_unique<FileStream>(s32FileName);
     pOutFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
 }
 
 // ---------------------------------------------------------
 OutputFileStream::OutputFileStream(const char* pcFileName)
 {
-    pOutFileStream = new FileStream(pcFileName);
+    pOutFileStream = std::make_unique<FileStream>(pcFileName);
     pOutFileStream->OpenFile(FileStream::FILE_MODES::OUTPUT);
 }
 
 // ---------------------------------------------------------
-OutputFileStream::~OutputFileStream()
-{
-    pOutFileStream->CloseFile();
-    delete pOutFileStream;
-}
+OutputFileStream::~OutputFileStream() { pOutFileStream->CloseFile(); }
 
 // ---------------------------------------------------------
 uint32_t OutputFileStream::WriteData(const char* cData, uint32_t uiSize) { return pOutFileStream->WriteFile(cData, uiSize); }

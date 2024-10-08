@@ -45,8 +45,7 @@ class FileParser
     Parser clMyParser;
     InputFileStream* pclMyInputStream;
     StreamReadStatus stMyStreamReadStatus;
-    ReadDataStructure stMyReadData;
-    unsigned char* const pcMyStreamReadBuffer;
+    ReadDataStructure stMyReadData{Parser::uiParserInternalBufferSize};
 
     [[nodiscard]] bool ReadStream();
 

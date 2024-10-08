@@ -29,31 +29,25 @@
 #include <codecvt>
 
 // ---------------------------------------------------------
-InputFileStream::InputFileStream(const std::u32string& s32FileName_)
+InputFileStream::InputFileStream(const std::u32string& s32FileName_) : pInFileStream(std::make_unique<FileStream>(s32FileName_))
 {
-    pInFileStream = new FileStream(s32FileName_);
     pInFileStream->OpenFile(FileStream::FILE_MODES::INPUT);
     pInFileStream->GetFileSize();
     bEnableWideCharSupport = true;
 }
 
 // ---------------------------------------------------------
-InputFileStream::InputFileStream(const char* pFileName_)
+InputFileStream::InputFileStream(const char* pFileName_) : pInFileStream(std::make_unique<FileStream>(pFileName_))
 {
-    pInFileStream = new FileStream(pFileName_);
     pInFileStream->OpenFile(FileStream::FILE_MODES::INPUT);
     pInFileStream->GetFileSize();
-
     bEnableWideCharSupport = false;
 }
 
 // ---------------------------------------------------------
-InputFileStream::~InputFileStream() { delete pInFileStream; }
-
-// ---------------------------------------------------------
 StreamReadStatus InputFileStream::ReadData(ReadDataStructure& pReadDataStructure)
 {
-    return pInFileStream->ReadFile(pReadDataStructure.cData, pReadDataStructure.uiDataSize);
+    return pInFileStream->ReadFile(pReadDataStructure.cData.get(), pReadDataStructure.uiDataSize);
 }
 
 // ---------------------------------------------------------
@@ -64,9 +58,11 @@ void InputFileStream::Reset(std::streamoff offset, std::ios_base::seekdir dir) {
 
 // ---------------------------------------------------------
 uint64_t InputFileStream::GetCurrentFilePosition() { return pInFileStream->GetCurrentFileSize(); }
+
 // ---------------------------------------------------------
 void InputFileStream::SetCurrentFileOffset(uint64_t ullCurrentFileOffset) { pInFileStream->SetCurrentFileOffset(ullCurrentFileOffset); }
 
+// ---------------------------------------------------------
 uint64_t InputFileStream::GetCurrentFileOffset() const { return pInFileStream->GetCurrentFileOffset(); }
 
 // ---------------------------------------------------------

@@ -105,7 +105,6 @@ class MultiOutputFileStream : public OutputStreamInterface
     /*! \brief Delete all the output files associated Wide Character FileStream objects.
      *  \remark Clears the map in which all the output file stream objects will be saved.
      */
-
     void ClearWCFileStreamMap();
 
     /*! \brief Gets base file name with wide characters and extension of it.
@@ -219,16 +218,6 @@ class MultiOutputFileStream : public OutputStreamInterface
      */
     void SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_);
 
-    /*! \brief Gets the output file map
-     *  \return Map with filename and FileStream Struct as key-value pair
-     */
-    std::map<std::string, FileStream*> GetFileMap() { return mMyFstreamMap; }
-
-    /*! \brief Gets the output file map
-     *  \return Map with filename and FileStream Struct as key-value pair
-     */
-    std::map<std::u32string, FileStream*> Get32FileMap() { return wmMyFstreamMap; }
-
     /*! \brief Sets the extension name of the output file
      *  \param[in] strExt std::string - Output file name
      */
@@ -282,10 +271,8 @@ class MultiOutputFileStream : public OutputStreamInterface
     /*! Wide Character extension name of the output file */
     std::u32string s32MyExtensionName{U"DefaultExt"};
 
-    /*! std::map to save output file name with wide character and associated FileStream class object. */
-    using WCFstreamMap = std::map<std::u32string, FileStream*>;
     /*! Wide Character file Map variable */
-    WCFstreamMap wmMyFstreamMap;
+    std::map<std::u32string, FileStream*> wmMyFstreamMap;
     /*! Enable or Disable Wide Character support of file names.*/
 #ifdef WIDE_CHAR_SUPPORT
     bool bEnableWideCharSupport{true};
@@ -296,10 +283,8 @@ class MultiOutputFileStream : public OutputStreamInterface
     std::string stMyBaseName{"DefaultBase"};
     /*! Extension name of the output file */
     std::string stMyExtensionName{"DefaultExt"};
-    /*! std::map to save output file name and associated FileStream class object. */
-    using FstreamMap = std::map<std::string, FileStream*>;
     /*! Map variable */
-    FstreamMap mMyFstreamMap;
+    std::map<std::string, FileStream*> mMyFstreamMap;
     /*! The split output file size */
     uint64_t ullMyFileSplitSize{0ULL};
     /*! Total File size */
