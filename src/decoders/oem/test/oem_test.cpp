@@ -41,7 +41,6 @@
 #include "novatel_edie/decoders/oem/framer.hpp"
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 #include "novatel_edie/stream_interface/inputfilestream.hpp"
-#include "novatel_edie/stream_interface/inputstreaminterface.hpp"
 #include "resources/novatel_message_definitions.hpp"
 
 using namespace novatel::edie;

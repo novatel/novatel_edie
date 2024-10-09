@@ -28,15 +28,13 @@
 #define INPUT_FILE_STREAM_HPP
 
 #include "novatel_edie/stream_interface/filestream.hpp"
-#include "novatel_edie/stream_interface/inputstreaminterface.hpp"
 
 /*! \class InputFileStream
  *   \brief A Derived class will be used by decoder, if the decoded input is file.
  *
- *  Derived from base class InputStreamInterface. Will also support
- *  File names with Wide characters.
+ *  Will also support file names with Wide characters.
  */
-class InputFileStream : public InputStreamInterface
+class InputFileStream
 {
   public:
     /*! A Constructor
@@ -71,9 +69,6 @@ class InputFileStream : public InputStreamInterface
      */
     const InputFileStream& operator=(const InputFileStream& clTemp_) = delete;
 
-    /*! A default destructor */
-    ~InputFileStream() override = default;
-
     /*! FileStream pointer to hold created FileStream object in constructor */
     std::unique_ptr<FileStream> pInFileStream;
 
@@ -82,13 +77,13 @@ class InputFileStream : public InputStreamInterface
      *  \param[in] pReadDataStructure ReadDataStructure pointer to hold decoded log
      *  \return StreamReadStatus read data statistics
      */
-    StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure) override;
+    StreamReadStatus ReadData(ReadDataStructure& pReadDataStructure);
     /*! \brief Read one line from the file.
      *
      *  \param[in] szLine String pointer to hold one line dats read from the file.
      *  \return Returns Read statistics structure (StreamReadStatus)
      */
-    StreamReadStatus ReadLine(std::string& szLine) override;
+    StreamReadStatus ReadLine(std::string& szLine);
 
     /*! \brief Set/Reset File Position from which next read will be done.
      *
@@ -97,33 +92,33 @@ class InputFileStream : public InputStreamInterface
      *
      *  \remark After reset, the current file size will be changed accordingly.
      */
-    void Reset(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg) override;
+    void Reset(std::streamoff offset = 0, std::ios_base::seekdir dir = std::ios::beg);
 
     /*! \return the extension of the input file to be decoded.
      *
      *  \return  std::string - File Extension name
      */
-    [[nodiscard]] std::string GetFileExtension() const override;
-    [[nodiscard]] std::string GetFileName() const override;
+    [[nodiscard]] std::string GetFileExtension() const;
+    [[nodiscard]] std::string GetFileName() const;
 
     /*! \return the current file position from which next read will be done.
      *
      *  \return uint64_t  - File current offset
      */
-    uint64_t GetCurrentFilePosition() override;
+    uint64_t GetCurrentFilePosition();
 
     /*! \brief Sets the current file offset. It could be read bytes so far.
      *
      *  \param[in] ullCurrentFileOffset Size of the data from one read size,
      *  Will be appended to calculate read bytes so far
      */
-    void SetCurrentFileOffset(uint64_t ullCurrentFileOffset) override;
+    void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
 
     /*! \return Current file offset.
      *
      *  \return Current file offset.
      */
-    [[nodiscard]] uint64_t GetCurrentFileOffset() const override;
+    [[nodiscard]] uint64_t GetCurrentFileOffset() const;
 
   private:
     /*! \brief Provides file extension name.
