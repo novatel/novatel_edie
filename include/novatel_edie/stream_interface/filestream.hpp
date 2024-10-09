@@ -43,13 +43,6 @@ class FileStream
 
     uint64_t ullMyFileLength;        /**< Total File Length */
     uint64_t ullMyCurrentFileSize;   /**< Read size so far from the file */
-    uint64_t ullMyCurrentFileOffset; /**< Current File offset pointer from which next read will commence */
-    /*! Input/output stream class to operate on files.
-     *  Objects of this class maintain a file buf object as their internal stream buffer, which
-     *  performs input/output operations on the file they are associated with (if any). File streams
-     *  are associated with files on construction itself in this class.
-     */
-    std::fstream MyStream;
 
     /*! Private Copy Constructor
      *
@@ -69,6 +62,13 @@ class FileStream
     void CalculateFileSize();
 
   public:
+    /*! Input/output stream class to operate on files.
+     *  Objects of this class maintain a file buf object as their internal stream buffer, which
+     *  performs input/output operations on the file they are associated with (if any). File streams
+     *  are associated with files on construction itself in this class.
+     */
+    std::fstream MyStream;
+
     /*! An enum.
      *
      *   File Operations Enumeration.
@@ -139,14 +139,6 @@ class FileStream
      */
     void OpenFile(FILE_MODES eMode);
 
-    /*! \brief Close the file.
-     *
-     *  \remark This function may not be required, Because fstream closes
-     *  the files when out of scope. This may be helpful if somebody wants to check the close
-     * status.
-     */
-    void CloseFile();
-
     /*! \brief Calculates the percentage of current file read.
      *
      *  \param[in] ullCurrentFileRead uint64_t current file read length
@@ -183,10 +175,6 @@ class FileStream
      */
     void GetFileSize();
 
-    /*! \brief  clears the internal buffer of the file.
-     */
-    void FlushFile();
-
     /*! \brief Set File Position from which next read will be done.
      *
      *  \param[in] offset the position of the file pointer to read.
@@ -219,16 +207,9 @@ class FileStream
      */
     StreamReadStatus ReadLine(std::string& szLine);
 
-    /*! \brief Sets the current file offset. It could be read bytes so far.
-     *
-     *  \param[in] ullCurrentFileOffset Size of the data from one read size,
-     *  Will be appended to calculate read bytes so far
-     */
-    void SetCurrentFileOffset(uint64_t ullCurrentFileOffset);
-
     /*! \return current file offset.
      */
-    [[nodiscard]] uint64_t GetCurrentFileOffset() const { return ullMyCurrentFileOffset; }
+    [[nodiscard]] uint64_t GetCurrentFileOffset() { return MyStream.tellg(); }
 
     /*! \return u32string filename.
      */

@@ -39,7 +39,6 @@ FileStream::FileStream(const std::u32string& s32FileName_)
 
     ullMyFileLength = 0;
     ullMyCurrentFileSize = 0;
-    ullMyCurrentFileOffset = 0;
 }
 
 // ---------------------------------------------------------
@@ -51,7 +50,6 @@ FileStream::FileStream(const char* pcFileName_)
 
     ullMyFileLength = 0;
     ullMyCurrentFileSize = 0;
-    ullMyCurrentFileOffset = 0;
 }
 
 // ---------------------------------------------------------
@@ -94,23 +92,6 @@ void FileStream::OpenFile(FILE_MODES eMode)
 
     default: throw NExcept("file does not exist");
     }
-}
-
-// ---------------------------------------------------------
-// This function may not be required ,because fstream closes
-// the files when out of scope. This may be helpful
-// if somebody wants to check the close status.
-void FileStream::CloseFile()
-{
-    MyStream.close();
-    if (MyStream.fail()) { throw NExcept("\"%s\" close file failed", clFilePath.u32string().c_str()); }
-}
-
-// ---------------------------------------------------------
-void FileStream::FlushFile()
-{
-    MyStream.flush();
-    if (MyStream.fail()) { throw NExcept("\"%s\" flush file failed", clFilePath.string().c_str()); }
 }
 
 // ---------------------------------------------------------
@@ -165,7 +146,7 @@ uint32_t FileStream::WriteFile(const char* cData, uint32_t uiSize)
 {
     MyStream.write(cData, uiSize);
     if (MyStream.bad()) { throw NExcept("\"%s\" file  write failed", clFilePath.generic_u32string().c_str()); }
-    FlushFile();
+    MyStream.flush();
     return uiSize;
 }
 
@@ -203,8 +184,4 @@ void FileStream::SetFilePosition(std::streamoff offset, std::ios_base::seekdir d
     MyStream.clear();
     MyStream.seekg(offset, dir);
     ullMyCurrentFileSize = MyStream.tellg();
-    ullMyCurrentFileOffset = ullMyCurrentFileSize;
 }
-
-// ---------------------------------------------------------
-void FileStream::SetCurrentFileOffset(uint64_t ullCurrentFileOffset) { ullMyCurrentFileOffset += ullCurrentFileOffset; }

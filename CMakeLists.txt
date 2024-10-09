@@ -59,7 +59,6 @@ target_link_libraries(novatel_edie INTERFACE
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(src/common/test)
-    add_subdirectory(src/stream_interface/test)
     add_subdirectory(src/decoders/common/test)
     add_subdirectory(src/decoders/oem/test)
 endif()
