@@ -83,7 +83,7 @@ class OutputFileStream
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
      */
-    uint32_t WriteData(const char* cData, uint32_t uiSize);
+    uint32_t WriteData(const char* cData, uint32_t uiSize) const;
 
   private:
 };
