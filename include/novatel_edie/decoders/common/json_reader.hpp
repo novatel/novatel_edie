@@ -88,44 +88,50 @@ enum class DATA_TYPE
 //!< returns the size associated with a datatype
 constexpr size_t DataTypeSize(const DATA_TYPE eType_)
 {
-    return eType_ == DATA_TYPE::BOOL          ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::HEXBYTE     ? sizeof(uint8_t)
-           : eType_ == DATA_TYPE::CHAR        ? sizeof(int8_t)
-           : eType_ == DATA_TYPE::UCHAR       ? sizeof(uint8_t)
-           : eType_ == DATA_TYPE::SHORT       ? sizeof(int16_t)
-           : eType_ == DATA_TYPE::USHORT      ? sizeof(uint16_t)
-           : eType_ == DATA_TYPE::INT         ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::UINT        ? sizeof(uint32_t)
-           : eType_ == DATA_TYPE::LONG        ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::ULONG       ? sizeof(uint32_t)
-           : eType_ == DATA_TYPE::LONGLONG    ? sizeof(int64_t)
-           : eType_ == DATA_TYPE::ULONGLONG   ? sizeof(uint64_t)
-           : eType_ == DATA_TYPE::FLOAT       ? sizeof(float)
-           : eType_ == DATA_TYPE::DOUBLE      ? sizeof(double)
-           : eType_ == DATA_TYPE::SATELLITEID ? sizeof(uint32_t)
-                                              : 0;
+    switch (eType_)
+    {
+    case DATA_TYPE::BOOL: return sizeof(int32_t);
+    case DATA_TYPE::HEXBYTE: return sizeof(uint8_t);
+    case DATA_TYPE::CHAR: return sizeof(int8_t);
+    case DATA_TYPE::UCHAR: return sizeof(uint8_t);
+    case DATA_TYPE::SHORT: return sizeof(int16_t);
+    case DATA_TYPE::USHORT: return sizeof(uint16_t);
+    case DATA_TYPE::INT: return sizeof(int32_t);
+    case DATA_TYPE::UINT: return sizeof(uint32_t);
+    case DATA_TYPE::LONG: return sizeof(int32_t);
+    case DATA_TYPE::ULONG: return sizeof(uint32_t);
+    case DATA_TYPE::LONGLONG: return sizeof(int64_t);
+    case DATA_TYPE::ULONGLONG: return sizeof(uint64_t);
+    case DATA_TYPE::FLOAT: return sizeof(float);
+    case DATA_TYPE::DOUBLE: return sizeof(double);
+    case DATA_TYPE::SATELLITEID: return sizeof(uint32_t);
+    default: return 0;
+    }
 }
 
 // TODO: this table is misleading, as one DATA_TYPE may correspond to many different conversion strings
 //!< returns conversion string associated with a datatype
 inline std::string DataTypeConversion(const DATA_TYPE eType_)
 {
-    return eType_ == DATA_TYPE::BOOL          ? "%d"
-           : eType_ == DATA_TYPE::CHAR        ? "%c"
-           : eType_ == DATA_TYPE::UCHAR       ? "%uc"
-           : eType_ == DATA_TYPE::SHORT       ? "%hd"
-           : eType_ == DATA_TYPE::USHORT      ? "%hu"
-           : eType_ == DATA_TYPE::INT         ? "%d"
-           : eType_ == DATA_TYPE::UINT        ? "%u"
-           : eType_ == DATA_TYPE::LONG        ? "%ld"
-           : eType_ == DATA_TYPE::ULONG       ? "%lu"
-           : eType_ == DATA_TYPE::LONGLONG    ? "%lld"
-           : eType_ == DATA_TYPE::ULONGLONG   ? "%llu"
-           : eType_ == DATA_TYPE::FLOAT       ? "%f"
-           : eType_ == DATA_TYPE::DOUBLE      ? "%lf"
-           : eType_ == DATA_TYPE::HEXBYTE     ? "%Z" // these are not valid default conversion strings
-           : eType_ == DATA_TYPE::SATELLITEID ? "%id"
-                                              : "%";
+    switch (eType_)
+    {
+    case DATA_TYPE::BOOL: return "%d";
+    case DATA_TYPE::CHAR: return "%c";
+    case DATA_TYPE::UCHAR: return "%uc";
+    case DATA_TYPE::SHORT: return "%hd";
+    case DATA_TYPE::USHORT: return "%hu";
+    case DATA_TYPE::INT: return "%d";
+    case DATA_TYPE::UINT: return "%u";
+    case DATA_TYPE::LONG: return "%ld";
+    case DATA_TYPE::ULONG: return "%lu";
+    case DATA_TYPE::LONGLONG: return "%lld";
+    case DATA_TYPE::ULONGLONG: return "%llu";
+    case DATA_TYPE::FLOAT: return "%f";
+    case DATA_TYPE::DOUBLE: return "%lf";
+    case DATA_TYPE::HEXBYTE: return "%Z"; // these are not valid default conversion strings
+    case DATA_TYPE::SATELLITEID: return "%id";
+    default: return "%";
+    }
 }
 
 //!< Mapping from String to data type enums.
