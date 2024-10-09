@@ -57,8 +57,8 @@ class Helper:
         self.encoder = ne.Encoder(db)
         self.msg_def_fields = []
 
-    def create_base_field(self, name, field_type, conversion, length, DATA_TYPE):
-        field = ne.BaseField(name, field_type, conversion, length, DATA_TYPE)
+    def create_base_field(self, name, field_type, conversion, length, data_type):
+        field = ne.BaseField(name, field_type, conversion, length, data_type)
         self.msg_def_fields.append(field)
 
     def create_enum_field(self, name, value, description):
@@ -415,7 +415,7 @@ def test_ASCII_ENUM_VALID(helper):
 
 
 def test_ASCII_STRING_VALID(helper):
-    helper.create_base_field("MESSAGE", FIELD_TYPE.STRING, "UNKNOWN", 1, DATA_TYPE.UNKNOWN)
+    helper.create_base_field("MESSAGE", FIELD_TYPE.STRING, "%", 1, DATA_TYPE.UNKNOWN)
 
     input = b"#RAWEPHEMA,COM1,100"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
@@ -425,7 +425,7 @@ def test_ASCII_STRING_VALID(helper):
 
 
 def test_ASCII_EMPTY_STRING_VALID(helper):
-    helper.create_base_field("MESSAGE", FIELD_TYPE.STRING, "UNKNOWN", 1, DATA_TYPE.UNKNOWN)
+    helper.create_base_field("MESSAGE", FIELD_TYPE.STRING, "%", 1, DATA_TYPE.UNKNOWN)
 
     input = b"\"\""
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
@@ -435,7 +435,7 @@ def test_ASCII_EMPTY_STRING_VALID(helper):
 
 
 def test_ASCII_TYPE_INVALID(helper):
-    helper.create_base_field("", FIELD_TYPE.UNKNOWN, "UNKNOWN", 1, DATA_TYPE.UNKNOWN)
+    helper.create_base_field("", FIELD_TYPE.UNKNOWN, "%", 1, DATA_TYPE.UNKNOWN)
     input = b"123"
     with pytest.raises(RuntimeError) as excinfo:
         helper.test_decode_ascii(helper.msg_def_fields, input)
@@ -443,8 +443,8 @@ def test_ASCII_TYPE_INVALID(helper):
 
 
 def test_BINARY_BOOL_VALID(helper):
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.BOOL)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.BOOL)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.BOOL)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.BOOL)
 
     input = bytes([1, 0])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
@@ -455,9 +455,9 @@ def test_BINARY_BOOL_VALID(helper):
 
 
 def test_BINARY_HEXBYTE_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.HEXBYTE)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.HEXBYTE)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.HEXBYTE)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.HEXBYTE)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.HEXBYTE)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.HEXBYTE)
 
     input = bytes([0x00, 0x01, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
@@ -469,11 +469,11 @@ def test_BINARY_HEXBYTE_VALID(helper):
 
 
 def test_BINARY_uint8_t_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("field4", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.UCHAR)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.UCHAR)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.UCHAR)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.UCHAR)
+    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.UCHAR)
+    helper.create_base_field("field4", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.UCHAR)
 
     input = bytes([0x23, 0x41, 0x3B, 0x00, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
@@ -487,10 +487,10 @@ def test_BINARY_uint8_t_VALID(helper):
 
 
 def test_BINARY_USHORT_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 2, DATA_TYPE.USHORT)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 2, DATA_TYPE.USHORT)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 2, DATA_TYPE.USHORT)
-    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "UNKNOWN", 2, DATA_TYPE.USHORT)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 2, DATA_TYPE.USHORT)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 2, DATA_TYPE.USHORT)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 2, DATA_TYPE.USHORT)
+    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "%", 2, DATA_TYPE.USHORT)
 
     input = bytes([0x00, 0x00, 0x01, 0x00, 0x10, 0x00, 0xFF, 0xFF])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
@@ -503,10 +503,10 @@ def test_BINARY_USHORT_VALID(helper):
 
 
 def test_BINARY_SHORT_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 2, DATA_TYPE.SHORT)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 2, DATA_TYPE.SHORT)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 2, DATA_TYPE.SHORT)
-    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "UNKNOWN", 2, DATA_TYPE.SHORT)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 2, DATA_TYPE.SHORT)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 2, DATA_TYPE.SHORT)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 2, DATA_TYPE.SHORT)
+    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "%", 2, DATA_TYPE.SHORT)
 
     input = bytes([0x00, 0x80, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x7F])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
@@ -519,10 +519,10 @@ def test_BINARY_SHORT_VALID(helper):
 
 
 def test_BINARY_INT_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.INT)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.INT)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.INT)
-    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.INT)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.INT)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.INT)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.INT)
+    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.INT)
 
     input = bytes([
         0x00, 0x00, 0x00, 0x80,
@@ -540,10 +540,10 @@ def test_BINARY_INT_VALID(helper):
 
 
 def test_BINARY_UINT_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.UINT)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.UINT)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.UINT)
-    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.UINT)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.UINT)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.UINT)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.UINT)
+    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.UINT)
 
     input = bytes([
         0x00, 0x00, 0x00, 0x80,
@@ -561,10 +561,10 @@ def test_BINARY_UINT_VALID(helper):
 
 
 def test_BINARY_ULONG_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.ULONG)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.ULONG)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.ULONG)
-    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.ULONG)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.ULONG)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.ULONG)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.ULONG)
+    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.ULONG)
 
     input = bytes([
         0x00, 0x00, 0x00, 0x80,
@@ -582,10 +582,10 @@ def test_BINARY_ULONG_VALID(helper):
 
 
 def test_BINARY_CHAR_BYTE_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.CHAR)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.CHAR)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.CHAR)
-    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.CHAR)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.CHAR)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.CHAR)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.CHAR)
+    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.CHAR)
 
     input = bytes([0x80, 0xFF, 0x00, 0x7F])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
@@ -598,8 +598,8 @@ def test_BINARY_CHAR_BYTE_VALID(helper):
 
 
 def test_BINARY_FLOAT_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.FLOAT)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 4, DATA_TYPE.FLOAT)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.FLOAT)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 4, DATA_TYPE.FLOAT)
 
     input = bytes([0x9A, 0x99, 0x99, 0x3F, 0xCD, 0xCC, 0xBC, 0xC0])
     status, intermediate_format = helper.test_decode_binary(helper.msg_def_fields, input)
@@ -610,10 +610,10 @@ def test_BINARY_FLOAT_VALID(helper):
 
 
 def test_BINARY_DOUBLE_VALID(helper):
-    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "UNKNOWN", 8, DATA_TYPE.DOUBLE)
-    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "UNKNOWN", 8, DATA_TYPE.DOUBLE)
-    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "UNKNOWN", 8, DATA_TYPE.DOUBLE)
-    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "UNKNOWN", 8, DATA_TYPE.DOUBLE)
+    helper.create_base_field("field0", FIELD_TYPE.SIMPLE, "%", 8, DATA_TYPE.DOUBLE)
+    helper.create_base_field("field1", FIELD_TYPE.SIMPLE, "%", 8, DATA_TYPE.DOUBLE)
+    helper.create_base_field("field2", FIELD_TYPE.SIMPLE, "%", 8, DATA_TYPE.DOUBLE)
+    helper.create_base_field("field3", FIELD_TYPE.SIMPLE, "%", 8, DATA_TYPE.DOUBLE)
 
     input = bytes([
         0x12, 0x71, 0x1C, 0x31, 0xE5, 0x8E, 0x49, 0x40,
@@ -631,14 +631,14 @@ def test_BINARY_DOUBLE_VALID(helper):
 
 
 def test_BINARY_SIMPLE_TYPE_INVALID(helper):
-    helper.create_base_field("", FIELD_TYPE.SIMPLE, "UNKNOWN", 1, DATA_TYPE.UNKNOWN)
+    helper.create_base_field("", FIELD_TYPE.SIMPLE, "%", 1, DATA_TYPE.UNKNOWN)
     input = None
     with pytest.raises(Exception):
         helper.test_decode_binary(helper.msg_def_fields, input)
 
 
 def test_BINARY_TYPE_INVALID(helper):
-    helper.create_base_field("", FIELD_TYPE.UNKNOWN, "UNKNOWN", 1, DATA_TYPE.UNKNOWN)
+    helper.create_base_field("", FIELD_TYPE.UNKNOWN, "%", 1, DATA_TYPE.UNKNOWN)
     input = None
     with pytest.raises(Exception):
         helper.test_decode_binary(helper.msg_def_fields, input)
