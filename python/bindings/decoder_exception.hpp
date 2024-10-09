@@ -2,8 +2,8 @@
 
 #include <exception>
 
-#include "novatel_edie/decoders/common/common.hpp"
 #include "nanobind/nanobind.h"
+#include "novatel_edie/decoders/common/common.hpp"
 
 namespace nb = nanobind;
 

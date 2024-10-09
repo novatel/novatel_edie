@@ -60,16 +60,16 @@ constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_)
 constexpr uint32_t CalculateBlockCrc32(uint32_t uiCount_, uint32_t uiCrc_, const unsigned char* ucBuffer_)
 {
     while (uiCount_-- != 0) { CalculateCharacterCrc32(uiCrc_, *ucBuffer_++); }
-    return (uiCrc_);
+    return uiCrc_;
 }
 
 // --------------------------------------------------------------------------
 // Calculates the CRC-32 for a string
 // --------------------------------------------------------------------------
-constexpr uint32_t CalculateBlockCrc32(const char* ucBuffer_)
+constexpr uint32_t CalculateBlockCrc32(std::string_view buffer_)
 {
     uint32_t uiCrc = 0;
-    while (*ucBuffer_ != '\0') { CalculateCharacterCrc32(uiCrc, static_cast<unsigned char>(*ucBuffer_++)); }
+    for (const char c : buffer_) { CalculateCharacterCrc32(uiCrc, static_cast<unsigned char>(c)); }
     return uiCrc;
 }
 

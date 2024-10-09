@@ -56,9 +56,9 @@ struct FieldContainer
     template <class T> FieldContainer(T tFieldValue_, BaseField::ConstPtr pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_) {}
 
     // [[deprecated("Avoid copying of FieldContainer objects")]]
-    // FieldContainer([[maybe_unused]] const FieldContainer& obj) = default;
+    // FieldContainer([[maybe_unused]] const FieldContainer& obj_) = default;
     // [[deprecated("Avoid copying of FieldContainer objects")]]
-    // FieldContainer& operator=([[maybe_unused]] const FieldContainer& obj) = default;
+    // FieldContainer& operator=([[maybe_unused]] const FieldContainer& obj_) = default;
 };
 
 //============================================================================
@@ -87,31 +87,34 @@ class MessageDecoderBase
     void CreateResponseMsgDefinitions();
 
   protected:
-    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, char**, [[maybe_unused]] size_t,
+    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, const char**, [[maybe_unused]] size_t,
                                                     [[maybe_unused]] JsonReader&)>>
         asciiFieldMap;
     std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, json, [[maybe_unused]] JsonReader&)>>
         jsonFieldMap;
 
-    [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefFields_, unsigned char** ppucLogBuf_,
+    [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefFields_, const unsigned char** ppucLogBuf_,
                                       std::vector<FieldContainer>& vIntermediateFormat_, uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
-    [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, char** ppcLogBuf_,
+    [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, const char** ppcLogBuf_,
                                      std::vector<FieldContainer>& vIntermediateFormat_) const;
     [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, json clJsonFields_,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
-    static void DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, unsigned char** ppucLogBuf_,
+    static void DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, const unsigned char** ppucLogBuf_,
                                   std::vector<FieldContainer>& vIntermediateFormat_);
-    void DecodeAsciiField(BaseField::ConstPtr pstMessageDataType_, char** ppcToken_, size_t tokenLength_,
+    void DecodeAsciiField(BaseField::ConstPtr pstMessageDataType_, const char** ppcToken_, size_t tokenLength_,
                           std::vector<FieldContainer>& vIntermediateFormat_) const;
     void DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, const json& clJsonField_, std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(std::vector<FieldContainer>&, novatel::edie::BaseField::ConstPtr, char**, size_t, JsonReader&)> SimpleAsciiMapEntry()
+    static std::function<void(std::vector<FieldContainer>&, novatel::edie::BaseField::ConstPtr, const char**, size_t, JsonReader&)>
+    SimpleAsciiMapEntry()
     {
-        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstField_, char** ppcToken_,
+        static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
+
+        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstField_, const char** ppcToken_,
                   [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] JsonReader& pclMsgDb_) {
             if constexpr (std::is_same_v<T, int8_t>)
             {
@@ -207,7 +210,7 @@ class MessageDecoderBase
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataBase& stMetaData_) const;
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataBase& stMetaData_) const;
 };
 
 } // namespace novatel::edie

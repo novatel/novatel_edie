@@ -56,16 +56,16 @@ void EncoderBase::InitFieldMaps()
     // =========================================================
     // ASCII Field Mapping
     // =========================================================
-    asciiFieldMap[CalculateBlockCrc32("%UB")] = BasicMapEntry<uint8_t>("%u");
-    asciiFieldMap[CalculateBlockCrc32("%B")] = BasicMapEntry<int8_t>("%d");
-    asciiFieldMap[CalculateBlockCrc32("%XB")] = BasicMapEntry<uint8_t>("%02x");
+    asciiFieldMap[CalculateBlockCrc32("UB")] = BasicMapEntry<uint8_t>("%u");
+    asciiFieldMap[CalculateBlockCrc32("B")] = BasicMapEntry<int8_t>("%d");
+    asciiFieldMap[CalculateBlockCrc32("XB")] = BasicMapEntry<uint8_t>("%02x");
 
     // =========================================================
     // Json Field Mapping
     // =========================================================
-    asciiFieldMap[CalculateBlockCrc32("%UB")] = BasicMapEntry<uint8_t>("%u");
-    asciiFieldMap[CalculateBlockCrc32("%B")] = BasicMapEntry<int8_t>("%d");
-    asciiFieldMap[CalculateBlockCrc32("%XB")] = BasicMapEntry<uint8_t>("%02x");
+    asciiFieldMap[CalculateBlockCrc32("UB")] = BasicMapEntry<uint8_t>("%u");
+    asciiFieldMap[CalculateBlockCrc32("B")] = BasicMapEntry<int8_t>("%d");
+    asciiFieldMap[CalculateBlockCrc32("XB")] = BasicMapEntry<uint8_t>("%02x");
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -147,12 +147,10 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
                 {
                     auto* arrayField = dynamic_cast<const ArrayField*>(field.fieldDef.get());
                     const uint32_t uiMaxArraySize = arrayField->arrayLength * field.fieldDef->dataType.length;
-                    if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < uiMaxArraySize)
+                    if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < uiMaxArraySize &&
+                        !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
                     {
-                        if (!SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
             }
@@ -289,9 +287,8 @@ bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermedia
                     {
                         for (const auto& clFieldArray : vCurrentFieldArrayField)
                         {
-                            if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
-
-                            if (!EncodeAsciiBody<true>(std::get<std::vector<FieldContainer>>(clFieldArray.fieldValue), ppcOutBuf_, uiBytesLeft_,
+                            if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n") ||
+                                !EncodeAsciiBody<true>(std::get<std::vector<FieldContainer>>(clFieldArray.fieldValue), ppcOutBuf_, uiBytesLeft_,
                                                        uiIndentationLevel_ + 1))
                             {
                                 return false;
@@ -317,32 +314,28 @@ bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermedia
                 const bool bIsCommaSeparated = IsCommaSeparated(*field.fieldDef);
 
                 // if the field is a variable array, print the size first
-                if (field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY &&
-                    !PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%d%c", vFcCurrentVectorField.size(), separator))
+                if ((field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY &&
+                     !PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%d%c", vFcCurrentVectorField.size(), separator)) ||
+                    (bPrintAsString && !PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"")))
                 {
                     return false;
                 }
-
-                if (bPrintAsString && !PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"")) { return false; }
 
                 // This is an array of simple elements
                 for (const auto& arrayField : vFcCurrentVectorField)
                 {
                     // If we are printing a string, don't print the null terminator or any padding bytes
-                    if (bPrintAsString)
+                    if (bPrintAsString &&
+                        ((std::holds_alternative<int8_t>(arrayField.fieldValue) && std::get<int8_t>(arrayField.fieldValue) == '\0') ||
+                         (std::holds_alternative<uint8_t>(arrayField.fieldValue) && std::get<uint8_t>(arrayField.fieldValue) == '\0')))
                     {
-                        if ((std::holds_alternative<int8_t>(arrayField.fieldValue) && std::get<int8_t>(arrayField.fieldValue) == '\0') ||
-                            (std::holds_alternative<uint8_t>(arrayField.fieldValue) && std::get<uint8_t>(arrayField.fieldValue) == '\0'))
-                        {
-                            break;
-                        }
+                        break;
                     }
 
-                    if (!FieldToAscii(arrayField, ppcOutBuf_, uiBytesLeft_)) { return false; }
-
-                    if (bIsCommaSeparated)
+                    if (!FieldToAscii(arrayField, ppcOutBuf_, uiBytesLeft_) ||
+                        (bIsCommaSeparated && !PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", separator)))
                     {
-                        if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", separator)) { return false; }
+                        return false;
                     }
                 }
                 // Quoted elements need a trailing comma
@@ -351,10 +344,7 @@ bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermedia
                     if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"%c", separator)) { return false; }
                 }
                 // Non-quoted, non-internally-separated elements also need a trailing comma
-                else if (!bIsCommaSeparated)
-                {
-                    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", separator)) { return false; }
-                }
+                else if (!bIsCommaSeparated && !PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", separator)) { return false; }
             }
         }
         else
@@ -377,13 +367,10 @@ bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermedia
                         return false;
                     }
                 }
-                else
+                else if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c",
+                                        GetEnumString(enumField->enumDef, std::get<int32_t>(field.fieldValue)).c_str(), separator))
                 {
-                    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c",
-                                       GetEnumString(enumField->enumDef, std::get<int32_t>(field.fieldValue)).c_str(), separator))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
                 break;
             }
@@ -456,11 +443,11 @@ bool EncoderBase::EncodeJsonBody(const std::vector<FieldContainer>& vIntermediat
                 {
                     for (const auto& clFieldArray : vCurrentFieldArrayField)
                     {
-                        if (!EncodeJsonBody(std::get<std::vector<FieldContainer>>(clFieldArray.fieldValue), ppcOutBuf_, uiBytesLeft_))
+                        if (!EncodeJsonBody(std::get<std::vector<FieldContainer>>(clFieldArray.fieldValue), ppcOutBuf_, uiBytesLeft_) ||
+                            !CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, ","))
                         {
                             return false;
                         }
-                        if (!CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, ",")) { return false; }
                     }
                     *(*ppcOutBuf_ - 1) = ']';
                     if (!CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, ",")) { return false; }
@@ -474,27 +461,28 @@ bool EncoderBase::EncodeJsonBody(const std::vector<FieldContainer>& vIntermediat
                 {
                     if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%s": ")", field.fieldDef->name.c_str())) { return false; }
                 }
-                else
+                // This is an array of simple elements
+                else if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%s": [)", field.fieldDef->name.c_str()) ||
+                         (vFcCurrentVectorField.empty() && !CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "]")))
                 {
-                    // This is an array of simple elements
-                    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%s": [)", field.fieldDef->name.c_str())) { return false; }
-                    if (vFcCurrentVectorField.empty())
-                    {
-                        if (!CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "]")) { return false; }
-                    }
+                    return false;
                 }
 
                 for (const auto& arrayField : vFcCurrentVectorField)
                 {
                     // If we are printing a string, don't print the null terminator or any padding bytes
-                    if (bPrintAsString)
+                    if (bPrintAsString &&
+                        ((std::holds_alternative<int8_t>(arrayField.fieldValue) && std::get<int8_t>(arrayField.fieldValue) == '\0') ||
+                         (std::holds_alternative<uint8_t>(arrayField.fieldValue) && std::get<uint8_t>(arrayField.fieldValue) == '\0')))
                     {
-                        if (std::holds_alternative<int8_t>(arrayField.fieldValue) && std::get<int8_t>(arrayField.fieldValue) == '\0') { break; }
-                        if (std::holds_alternative<uint8_t>(arrayField.fieldValue) && std::get<uint8_t>(arrayField.fieldValue) == '\0') { break; }
+                        break;
                     }
 
-                    if (!FieldToJson(arrayField, ppcOutBuf_, uiBytesLeft_)) { return false; }
-                    if (!bPrintAsString && !CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, ",")) { return false; }
+                    if (!FieldToJson(arrayField, ppcOutBuf_, uiBytesLeft_) ||
+                        (!bPrintAsString && !CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, ",")))
+                    {
+                        return false;
+                    }
                 }
 
                 // Quoted elements need a trailing comma

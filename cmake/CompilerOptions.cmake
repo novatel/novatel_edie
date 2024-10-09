@@ -7,7 +7,7 @@ if(MSVC)
         add_compile_options(/WX)
     endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
-    add_compile_options(-Wall -Wextra -pedantic)
+    add_compile_options(-Wall -Wextra -pedantic -Wno-format-security)
     add_compile_options("$<$<CONFIG:Release>:-O3>")
 
     if(CMAKE_HOST_WIN32)

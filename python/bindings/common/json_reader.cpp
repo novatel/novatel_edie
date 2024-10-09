@@ -89,13 +89,11 @@ void init_common_json_reader(nb::module_& m)
         .def_rw("type", &BaseField::type)
         .def_rw("description", &BaseField::description)
         .def_rw("conversion", &BaseField::conversion)
-        .def_rw("conversion_stripped", &BaseField::sConversionStripped)
         .def_rw("conversion_before_point", &BaseField::conversionBeforePoint)
         .def_rw("conversion_after_point", &BaseField::conversionAfterPoint)
         .def_rw("data_type", &BaseField::dataType)
         .def("clone", &BaseField::Clone)
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
-        .def("parse_conversion", &BaseField::ParseConversion, "str_stripped_conversion_string"_a, "before_point"_a, "after_point"_a)
         .def("__repr__", [](const BaseField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             if (desc.empty() && field.conversion.empty())

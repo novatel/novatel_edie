@@ -2381,7 +2381,7 @@ class FilterTest : public ::testing::Test
     {
         MetaDataStruct stMetaData;
         IntermediateHeader stHeader;
-        const STATUS eStatus = pclMyHeaderDecoder->Decode(const_cast<unsigned char*>(pucMessage_), stHeader, stMetaData);
+        const STATUS eStatus = pclMyHeaderDecoder->Decode(pucMessage_, stHeader, stMetaData);
         if (STATUS::SUCCESS != eStatus && STATUS::UNSUPPORTED != eStatus)
         {
             printf("HeaderDecoder Failed!\n");
@@ -2393,7 +2393,7 @@ class FilterTest : public ::testing::Test
 
     static bool TestFilter(const std::initializer_list<unsigned char>& data)
     {
-        return TestFilter(reinterpret_cast<const unsigned char*>(data.begin()));
+        return TestFilter(data.begin());
     }
 
     static bool TestFilter(const char* str)
@@ -2909,10 +2909,10 @@ class NovatelTypesTest : public ::testing::Test
         STATUS TestDecodeAscii(const std::vector<BaseField::Ptr> MsgDefFields_, const char** ppcLogBuf_,
                                std::vector<FieldContainer>& vIntermediateFormat_)
         {
-            return DecodeAscii<false>(MsgDefFields_, const_cast<char**>(ppcLogBuf_), vIntermediateFormat_);
+            return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr> MsgDefFields_, unsigned char** ppucLogBuf_,
+        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr> MsgDefFields_, const unsigned char** ppucLogBuf_,
                                 std::vector<FieldContainer>& vIntermediateFormat_)
         {
             uint16_t MsgDefFieldsSize = 0;
@@ -2986,7 +2986,7 @@ class NovatelTypesTest : public ::testing::Test
 
     void TearDown() override { Logger::Shutdown(); }
 
-    void CreateEnumField(const std::string& strName, const std::string& strDescription, int32_t iValue)
+    void CreateEnumField(std::string_view strName, std::string_view strDescription, int32_t iValue)
     {
         auto stField = std::make_shared<EnumField>();
         auto enumDef = std::make_shared<EnumDefinition>();

@@ -110,7 +110,7 @@ void MultiOutputFileStream::ConfigureSplitByLog(bool bStatus)
 }
 
 // ---------------------------------------------------------
-void MultiOutputFileStream::ConfigureBaseFileName(const std::u32string& s32FileName_)
+void MultiOutputFileStream::ConfigureBaseFileName(std::u32string_view s32FileName_)
 {
     bEnableWideCharSupport = true;
     size_t BaseNameLength = s32FileName_.find_last_of(U'.');
@@ -122,7 +122,7 @@ void MultiOutputFileStream::ConfigureBaseFileName(const std::u32string& s32FileN
     else { s32MyBaseName = s32FileName_; }
 }
 
-void MultiOutputFileStream::ConfigureBaseFileName(const std::string& stFileName)
+void MultiOutputFileStream::ConfigureBaseFileName(std::string_view stFileName)
 {
     size_t BaseNameLength = stFileName.find_last_of('.');
     if (BaseNameLength != std::string::npos)
@@ -134,7 +134,7 @@ void MultiOutputFileStream::ConfigureBaseFileName(const std::string& stFileName)
 }
 
 // ---------------------------------------------------------
-void MultiOutputFileStream::SelectWCLogFile(std::string strMsgName_)
+void MultiOutputFileStream::SelectWCLogFile(std::string_view strMsgName_)
 {
     bEnableWideCharSupport = true;
     std::u32string wstMessageName(strMsgName_.begin(), strMsgName_.end());
@@ -145,12 +145,13 @@ void MultiOutputFileStream::SelectWCLogFile(std::string strMsgName_)
 }
 
 // ---------------------------------------------------------
-void MultiOutputFileStream::SelectLogFile(const std::string& strMsgName_)
+void MultiOutputFileStream::SelectLogFile(std::string_view strMsgName_)
 {
+    std::string stMessageName(strMsgName_);
     std::string stLocalBaseName = stMyBaseName;
     std::string stLocalExtensionName = stMyExtensionName;
-    if (stMyExtensionName != "DefaultExt") { SelectFileStream(stLocalBaseName + "_" + strMsgName_ + "." + stLocalExtensionName); }
-    else { SelectFileStream(stMyBaseName + "_" + strMsgName_); }
+    if (stMyExtensionName != "DefaultExt") { SelectFileStream(stLocalBaseName + "_" + stMessageName + "." + stLocalExtensionName); }
+    else { SelectFileStream(stMyBaseName + "_" + stMessageName); }
 }
 
 // ---------------------------------------------------------
@@ -304,7 +305,7 @@ void MultiOutputFileStream::SelectTimeFile(novatel::edie::TIME_STATUS eStatus_, 
 }
 
 // ---------------------------------------------------------
-uint32_t MultiOutputFileStream::WriteData(const char* pcData_, uint32_t uiDataLength_, const std::string& strMsgName_, uint32_t uiSize_,
+uint32_t MultiOutputFileStream::WriteData(const char* pcData_, uint32_t uiDataLength_, std::string_view strMsgName_, uint32_t uiSize_,
                                           novatel::edie::TIME_STATUS eStatus_, uint16_t usWeek_, double dMilliseconds_)
 {
     if (bMyFileSplit)

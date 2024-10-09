@@ -34,9 +34,12 @@ int main(int argc, char** argv)
 
     if (argc != 2) { throw std::invalid_argument("1 argument required.\nUsage: <project root>"); }
 
-    std::string strResourceVar = "TEST_RESOURCE_PATH=" + std::string(argv[1]) + "/src/stream_interface/test/resources/";
+    std::string strResourceVar = std::string(argv[1]) + "/src/stream_interface/test/resources/";
 
-    if (putenv(const_cast<char*>(strResourceVar.c_str())) != 0) { throw std::runtime_error("Failed to set resource path."); }
-
+#ifdef _WIN32
+    if (_putenv_s("TEST_RESOURCE_PATH", strResourceVar.c_str()) != 0) { throw std::runtime_error("Failed to set resource path."); }
+#else
+    if (setenv("TEST_RESOURCE_PATH", strResourceVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set resource path."); }
+#endif
     return RUN_ALL_TESTS();
 }

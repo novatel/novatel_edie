@@ -105,7 +105,7 @@ enum class ENCODE_FORMAT
     UNSPECIFIED       //!< No encode format was specified.
 };
 
-inline ENCODE_FORMAT StringToEncodeFormat(const std::string& sEnumName_)
+inline ENCODE_FORMAT StringToEncodeFormat(std::string_view sEnumName_)
 {
     return sEnumName_ == "FLATTENED_BINARY" ? ENCODE_FORMAT::FLATTENED_BINARY
            : sEnumName_ == "ASCII"          ? ENCODE_FORMAT::ASCII
@@ -262,13 +262,13 @@ class MetaDataBase
     uint32_t uiHeaderLength{0};
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
-    char acMessageName[uiMessageNameMax + 1]{'\0'};
+    char acMessageName[uiMessageNameMax + 1]{};
 
     [[nodiscard]] std::string MessageName() const { return {acMessageName}; }
 
-    void MessageName(const std::string& strMessageName_)
+    void MessageName(std::string_view strMessageName_)
     {
-        memcpy(acMessageName, strMessageName_.c_str(), strMessageName_.length());
+        memcpy(acMessageName, strMessageName_.data(), strMessageName_.length());
         acMessageName[strMessageName_.length()] = '\0';
     }
 };
@@ -333,8 +333,8 @@ std::string GetEnumString(const novatel::edie::EnumDefinition::ConstPtr& stEnumD
 //
 //! \return The enum in integer form.
 //-----------------------------------------------------------------------
-int32_t GetEnumValue(const novatel::edie::EnumDefinition* stEnumDef_, const std::string& strEnum_);
-int32_t GetEnumValue(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, std::string strEnum_);
+int32_t GetEnumValue(const novatel::edie::EnumDefinition* stEnumDef_, std::string_view strEnum_);
+int32_t GetEnumValue(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, std::string_view strEnum_);
 
 //-----------------------------------------------------------------------
 //! \brief Get the value of a response string in integer form.
@@ -344,8 +344,8 @@ int32_t GetEnumValue(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, 
 //
 //! \return The response in integer form.
 //-----------------------------------------------------------------------
-int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, const std::string& strResp_);
-int32_t GetResponseId(const novatel::edie::EnumDefinition::ConstPtr& stRespDef_, std::string strResp_);
+int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, std::string_view strResp_);
+int32_t GetResponseId(const novatel::edie::EnumDefinition::ConstPtr& stRespDef_, std::string_view strEnum_);
 
 //-----------------------------------------------------------------------
 //! \brief Strip abbreviated ASCII formatting from the front of the
@@ -360,7 +360,7 @@ int32_t GetResponseId(const novatel::edie::EnumDefinition::ConstPtr& stRespDef_,
 //! ASCII or not. Regardless of this return, the function will attempt
 //! to strip any abbreviated ASCII bytes.
 //-----------------------------------------------------------------------
-bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, char** ppcMessageBuffer_);
+bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, const char** ppcMessageBuffer_);
 
 //-----------------------------------------------------------------------
 //! \struct SatelliteId

@@ -29,7 +29,7 @@ nb::object convert_field(const FieldContainer& field)
             // Fixed-length, variable-length and field arrays are stored as a field
             // with a list of sub-fields of the same type and name.
             // This needs to be un-nested for the translated Python structure.
-            if (field.fieldDef->sConversionStripped == "%s")
+            if (field.fieldDef->conversion == "%s")
             {
                 // The array is actually a string
                 std::string str;
@@ -52,7 +52,7 @@ nb::object convert_field(const FieldContainer& field)
             return nb::cast(PyIntermediateMessage(message_field));
         }
     }
-    else if (field.fieldDef->sConversionStripped == "%id")
+    else if (field.fieldDef->conversion == "%id")
     {
         const uint32_t temp_id = std::get<uint32_t>(field.fieldValue);
         SatelliteId sat_id;
@@ -141,13 +141,13 @@ std::string PyIntermediateMessage::repr() const
 class DecoderTester : public oem::MessageDecoder
 {
   public:
-    [[nodiscard]] STATUS TestDecodeBinary(const std::vector<BaseField::Ptr> MsgDefFields_, unsigned char** ppucLogBuf_,
+    [[nodiscard]] STATUS TestDecodeBinary(const std::vector<BaseField::Ptr> MsgDefFields_, const unsigned char** ppucLogBuf_,
                                           IntermediateMessage& vIntermediateFormat_, uint32_t uiMessageLength_)
     {
         return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, uiMessageLength_);
     }
 
-    [[nodiscard]] STATUS TestDecodeAscii(const std::vector<BaseField::Ptr> MsgDefFields_, char** ppcLogBuf_,
+    [[nodiscard]] STATUS TestDecodeAscii(const std::vector<BaseField::Ptr> MsgDefFields_, const char** ppcLogBuf_,
                                          IntermediateMessage& vIntermediateFormat_)
     {
         return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
@@ -195,7 +195,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 // Copy to ensure that the byte string is zero-delimited
                 std::string body_str(message_body.c_str(), message_body.size());
                 const char* data_ptr = body_str.c_str();
-                STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, (char**)&data_ptr, message);
+                STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, &data_ptr, message);
                 return nb::make_tuple(status, PyIntermediateMessage(std::move(message)));
             },
             "msg_def_fields"_a, "message_body"_a)
@@ -204,8 +204,8 @@ void init_novatel_message_decoder(nb::module_& m)
             [](oem::MessageDecoder& decoder, const std::vector<BaseField::Ptr>& msg_def_fields, nb::bytes message_body, uint32_t message_length) {
                 IntermediateMessage message;
                 const char* data_ptr = message_body.c_str();
-                STATUS status =
-                    static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(msg_def_fields, (unsigned char**)&data_ptr, message, message_length);
+                STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(
+                    msg_def_fields, reinterpret_cast<const unsigned char**>(&data_ptr), message, message_length);
                 return nb::make_tuple(status, PyIntermediateMessage(std::move(message)));
             },
             "msg_def_fields"_a, "message_body"_a, "message_length"_a);

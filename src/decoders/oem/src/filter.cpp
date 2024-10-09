@@ -120,7 +120,7 @@ void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, ME
 void Filter::InvertMessageIdFilter(bool bInvert_) { bMyInvertMessageIdFilter = bInvert_; }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageName(const std::string& szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+void Filter::IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
     vMyMessageNameFilters.emplace_back(szMsgName_, eFormat_, eSource_);
     PushUnique(&Filter::FilterMessage);

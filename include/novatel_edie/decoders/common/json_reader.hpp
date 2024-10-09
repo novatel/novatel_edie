@@ -48,25 +48,17 @@ using nlohmann::json;
 class JsonReaderFailure : public std::exception
 {
   private:
-    const char* func;
-    const char* file;
-    int32_t line;
-    std::filesystem::path clFilePath;
-    const char* failure;
-    char acWhatString[256]{};
+    std::string whatString;
 
   public:
-    JsonReaderFailure(const char* func_, const char* file_, const int32_t line_, std::filesystem::path jsonFile_, const char* failure_)
-        : func(func_), file(file_), line(line_), clFilePath(std::move(jsonFile_)), failure(failure_)
+    JsonReaderFailure(const char* func_, const char* file_, const int32_t line_, const std::filesystem::path& json_, const char* failure_)
     {
+        std::ostringstream oss;
+        oss << "In file \"" << file_ << "\" : " << func_ << "() (Line " << line_ << ")\n\t\"" << json_.generic_string() << ": " << failure_ << ".\"";
+        whatString = oss.str();
     }
 
-    [[nodiscard]] const char* what() const noexcept override
-    {
-        sprintf(const_cast<char*>(acWhatString), "In file \"%s\" : %s() (Line %d)\n\t\"%s: %s.\"", file, func, line,
-                clFilePath.generic_string().c_str(), failure);
-        return acWhatString;
-    }
+    [[nodiscard]] const char* what() const noexcept override { return whatString.c_str(); }
 };
 
 //-----------------------------------------------------------------------
@@ -133,7 +125,7 @@ inline std::string DataTypeConversion(const DATA_TYPE eType_)
            : eType_ == DATA_TYPE::DOUBLE      ? "%lf"
            : eType_ == DATA_TYPE::HEXBYTE     ? "%Z" // these are not valid default conversion strings
            : eType_ == DATA_TYPE::SATELLITEID ? "%id"
-                                              : "";
+                                              : "%";
 }
 
 //!< Mapping from String to data type enums.
@@ -242,7 +234,6 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
-    std::string sConversionStripped;
     uint32_t conversionHash{0ULL};
     int32_t conversionBeforePoint{0};
     int32_t conversionAfterPoint{0};
@@ -265,52 +256,42 @@ struct BaseField
     void SetConversion(const std::string& sConversion_)
     {
         conversion = sConversion_;
-        ParseConversion(sConversionStripped, conversionBeforePoint, conversionAfterPoint);
-        conversionHash = CalculateBlockCrc32(sConversionStripped.c_str());
-    }
 
-    void ParseConversion(std::string& strStrippedConversionString_, int32_t& iBeforePoint_, int32_t& iAfterPoint_) const
-    {
         const char* sConvertString = conversion.c_str();
-        int32_t* iSelectedPoint = &iBeforePoint_;
 
-        while (*sConvertString != 0)
+        if (*sConvertString != '%') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
+
+        ++sConvertString;
+
+        if (std::isdigit(*sConvertString))
         {
-            // "0x" could be a prefix on a hex field (0x%...) or a valid conversion string (%0x).
-            // Prevent these two cases from occurring at the same time.
-            if ((0 == memcmp(sConvertString, "0x", 2)) && (0 != strcmp(sConvertString, "0x"))) { sConvertString += 2; }
-
-            // If the value "10" or greater is found from the conversion string, two bytes would
-            // need to be consumed from the string to move past that value. Otherwise, only one byte
-            // is necessary to consume.
-            if (*sConvertString >= '0' && *sConvertString <= '9')
-            {
-                if (sscanf(sConvertString, "%d.", iSelectedPoint) != 1) { throw std::runtime_error("Failed to parse integer value"); }
-                sConvertString = sConvertString + (*iSelectedPoint > 9 ? 2 : 1); // Skip the numerals
-            }
-
-            if ((std::isalpha(*sConvertString) != 0) || *sConvertString == '%')
-            {
-                strStrippedConversionString_.push_back(sConvertString[0]);
-                sConvertString++;
-            }
-
-            if (*sConvertString == '.')
-            {
-                iSelectedPoint = &iAfterPoint_;
-                sConvertString++;
-            }
+            conversionBeforePoint = std::stoi(sConvertString);
+            sConvertString += std::to_string(conversionBeforePoint).length();
         }
+
+        if (*sConvertString == '.') { ++sConvertString; }
+
+        if (std::isdigit(*sConvertString))
+        {
+            conversionAfterPoint = std::stoi(sConvertString);
+            sConvertString += std::to_string(conversionAfterPoint).length();
+        }
+
+        conversionHash = 0;
+
+        while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
+
+        if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
     }
 
     [[nodiscard]] bool IsString() const
     {
-        return type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("%s") || conversionHash == CalculateBlockCrc32("%S");
+        return type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
     }
 
     [[nodiscard]] bool IsCsv() const
     {
-        return !IsString() && conversionHash != CalculateBlockCrc32("%Z") && conversionHash != CalculateBlockCrc32("%P");
+        return !IsString() && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
     }
 
     using Ptr = std::shared_ptr<BaseField>;
@@ -411,6 +392,7 @@ struct MessageDefinition
     uint32_t latestMessageCrc{0};
 
     MessageDefinition() = default;
+
     MessageDefinition(const MessageDefinition& that_)
     {
         for (const auto& fieldDefinition : that_.fields)
@@ -562,14 +544,14 @@ class JsonReader
     //! \param[in] strEnumeration_ The enumeration name
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void RemoveEnumeration(const std::string& strEnumeration_, bool bGenerateMappings_);
+    void RemoveEnumeration(std::string_view strEnumeration_, bool bGenerateMappings_);
 
     //----------------------------------------------------------------------------
     //! \brief Parse the Json string provided.
     //
     //! \param[in] strJsonData_ A string containing Json objects.
     //----------------------------------------------------------------------------
-    void ParseJson(const std::string& strJsonData_);
+    void ParseJson(std::string_view strJsonData_);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
@@ -679,19 +661,19 @@ class JsonReader
     std::vector<MessageDefinition::Ptr>::iterator GetMessageIt(uint32_t iMsgId_)
     {
         return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                            [iMsgId_](const MessageDefinition::Ptr& elem_) { return (elem_->logID == iMsgId_); });
+                            [iMsgId_](const MessageDefinition::Ptr& elem_) { return elem_->logID == iMsgId_; });
     }
 
-    std::vector<MessageDefinition::Ptr>::iterator GetMessageIt(const std::string& strMessage_)
+    std::vector<MessageDefinition::Ptr>::iterator GetMessageIt(std::string_view strMessage_)
     {
         return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                            [strMessage_](const MessageDefinition::Ptr& elem_) { return (elem_->name == strMessage_); });
+                            [strMessage_](const MessageDefinition::Ptr& elem_) { return elem_->name == strMessage_; });
     }
 
-    std::vector<EnumDefinition::Ptr>::iterator GetEnumIt(const std::string& strEnumeration_)
+    std::vector<EnumDefinition::Ptr>::iterator GetEnumIt(std::string_view strEnumeration_)
     {
         return std::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
-                            [strEnumeration_](const EnumDefinition::Ptr& elem_) { return (elem_->name == strEnumeration_); });
+                            [strEnumeration_](const EnumDefinition::Ptr& elem_) { return elem_->name == strEnumeration_; });
     }
 
   public:
