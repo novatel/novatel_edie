@@ -37,9 +37,8 @@ class MemoryStream;
 /*! \class OutputStreamInterface
  *  \brief An Interface Class used by application to write data to the output.
  *  \details Output stream is an interface for writing data to file and port handles.
- *  Output Stream has three derived classes to support file and port access, OutputFileStream,
- * OutputPortStream and MultiOutputFileStream. The ideal usage of Output Stream is to support
- * Encoder to write the converted data to given stream object.
+ *  Output Stream has a derived class OutputFileStream to support file and port access.
+ * The ideal usage of Output Stream is to support Encoder to write the converted data to given stream object.
  */
 class OutputStreamInterface
 {
