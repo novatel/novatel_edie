@@ -28,7 +28,6 @@
 #define OUTPUT_FILE_STREAM_HPP
 
 #include "novatel_edie/stream_interface/filestream.hpp"
-#include "novatel_edie/stream_interface/outputstreaminterface.hpp"
 
 /*! \class OutputFileStream
  *  \brief A Derived class from parent interface class OutputStreamInterface.
@@ -36,7 +35,7 @@
  *  More detailed FileStream class description. It will also support
  *  File names with Wide characters.
  */
-class OutputFileStream : public OutputStreamInterface
+class OutputFileStream
 {
   public:
     /*! A Constructor.
@@ -68,10 +67,10 @@ class OutputFileStream : public OutputStreamInterface
      */
     const OutputFileStream& operator=(const OutputFileStream& clTemp_) = delete;
 
-    /*! A virtual destructor.
+    /*! A destructor.
      *  \brief  Clears MessageDataFilter and FileStream objects.
      */
-    ~OutputFileStream() override;
+    ~OutputFileStream();
 
     /*! FileStream Class object.
      */
@@ -84,7 +83,7 @@ class OutputFileStream : public OutputStreamInterface
      *  \remark Set Split type and write data to output files. If split type was not set,
      *  Then writing can be done to only one file.
      */
-    uint32_t WriteData(const char* cData, uint32_t uiSize) override;
+    uint32_t WriteData(const char* cData, uint32_t uiSize);
 
   private:
 };
