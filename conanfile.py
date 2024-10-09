@@ -61,7 +61,7 @@ class NovatelEdieConan(ConanFile):
 
     def build_requirements(self):
         self.test_requires("gtest/[>=1.14 <1.15]")
-        if self.settings.os in ["Linux", "FreeBSD"]:
+        if self.settings.os != "Windows":
             self.tool_requires("patchelf/[*]")
 
     def generate(self):
