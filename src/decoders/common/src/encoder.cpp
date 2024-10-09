@@ -116,7 +116,7 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
                 // For a flattened version of the log, fill in the remaining fields with 0x00.
                 if constexpr (Flatten)
                 {
-                    auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(field.fieldDef.get());
+                    const auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(field.fieldDef.get());
                     if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < fieldArrayField->fieldSize &&
                         !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0',
                                      fieldArrayField->fieldSize - static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
@@ -145,7 +145,7 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
                 // For a flattened version of the log, fill in the remaining fields with 0x00.
                 if constexpr (Flatten)
                 {
-                    auto* arrayField = dynamic_cast<const ArrayField*>(field.fieldDef.get());
+                    const auto* arrayField = dynamic_cast<const ArrayField*>(field.fieldDef.get());
                     const uint32_t uiMaxArraySize = arrayField->arrayLength * field.fieldDef->dataType.length;
                     if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < uiMaxArraySize &&
                         !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
@@ -166,7 +166,7 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
                 // For a flattened version of the log, fill in the remaining characters with 0x00.
                 if constexpr (Flatten)
                 {
-                    auto arrayField = dynamic_cast<const ArrayField*>(field.fieldDef.get());
+                    const auto* arrayField = dynamic_cast<const ArrayField*>(field.fieldDef.get());
                     const auto uiStringLength = static_cast<uint32_t>(strlen(szString));
                     const uint32_t uiMaxArraySize = arrayField->arrayLength * field.fieldDef->dataType.length;
                     if (uiStringLength < uiMaxArraySize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - uiStringLength))

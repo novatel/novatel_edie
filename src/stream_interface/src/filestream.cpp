@@ -33,7 +33,7 @@
 // ---------------------------------------------------------
 FileStream::FileStream(const std::u32string& s32FileName_)
 {
-    if (s32FileName_.length() == 0) { throw NExcept("file name is not valid"); }
+    if (s32FileName_.empty()) { throw NExcept("file name is not valid"); }
 
     clFilePath = std::filesystem::path(s32FileName_);
 

@@ -114,7 +114,7 @@ ENCODE_FORMAT FileParser::GetEncodeFormat() const { return clMyParser.GetEncodeF
 const Filter::Ptr& FileParser::GetFilter() const { return clMyParser.GetFilter(); }
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::SetFilter(const Filter::Ptr& pclFilter_) { return clMyParser.SetFilter(pclFilter_); }
+void FileParser::SetFilter(const Filter::Ptr& pclFilter_) { clMyParser.SetFilter(pclFilter_); }
 
 // -------------------------------------------------------------------------------------------------------
 uint32_t FileParser::GetPercentRead() const { return stMyStreamReadStatus.uiPercentStreamRead; }
@@ -166,10 +166,10 @@ bool FileParser::ReadStream()
         {
         case STATUS::SUCCESS: return STATUS::SUCCESS;
         case STATUS::UNKNOWN: return STATUS::UNKNOWN;
-        case STATUS::BUFFER_EMPTY:
-            return ReadStream()                                                            ? STATUS::BUFFER_EMPTY
-                   : clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS
-                                                                                           : STATUS::STREAM_EMPTY;
+        case STATUS::BUFFER_EMPTY: {
+            if (ReadStream()) { return STATUS::BUFFER_EMPTY; }
+            return clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
+        }
         default: pclMyLogger->info("Encountered an error: {}\n", static_cast<int32_t>(eStatus)); return eStatus;
         }
     }

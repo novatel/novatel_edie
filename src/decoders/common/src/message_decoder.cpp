@@ -743,12 +743,20 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
     stInterMessage_.reserve(pvCurrentMsgFields.size());
 
     // Decode the detected format
-    return stMetaData_.eFormat == HEADER_FORMAT::ASCII || stMetaData_.eFormat == HEADER_FORMAT::SHORT_ASCII
-               ? DecodeAscii<false>(pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_)
-           : stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII || stMetaData_.eFormat == HEADER_FORMAT::SHORT_ABB_ASCII
-               ? DecodeAscii<true>(pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_)
-           : stMetaData_.eFormat == HEADER_FORMAT::BINARY || stMetaData_.eFormat == HEADER_FORMAT::SHORT_BINARY
-               ? DecodeBinary(pvCurrentMsgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength)
-           : stMetaData_.eFormat == HEADER_FORMAT::JSON ? DecodeJson(pvCurrentMsgFields, json::parse(pucTempInData)["body"], stInterMessage_)
-                                                        : STATUS::UNKNOWN;
+    switch (stMetaData_.eFormat)
+    {
+    case HEADER_FORMAT::ASCII: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_ASCII: //
+        return DecodeAscii<false>(pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_);
+    case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_ABB_ASCII: //
+        return DecodeAscii<true>(pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_);
+    case HEADER_FORMAT::BINARY: [[fallthrough]];
+    case HEADER_FORMAT::SHORT_BINARY: //
+        return DecodeBinary(pvCurrentMsgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
+    case HEADER_FORMAT::JSON: //
+        return DecodeJson(pvCurrentMsgFields, json::parse(pucTempInData)["body"], stInterMessage_);
+    default: //
+        return STATUS::UNKNOWN;
+    }
 }

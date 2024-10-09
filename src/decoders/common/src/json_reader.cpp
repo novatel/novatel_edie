@@ -403,11 +403,11 @@ std::string JsonReader::MsgIdToMsgName(const uint32_t uiMessageId_) const
     MessageDefinition::ConstPtr pstMessageDefinition = GetMsgDef(usLogId);
     std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions[0], usLogId);
 
-    std::string strMessageFormatSuffix = uiResponse != 0U                                                   ? "R"
-                                         : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY) ? "B"
-                                         : uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)
-                                             ? "A"
-                                             : ""; // default to abbreviated ASCII format
+    std::string strMessageFormatSuffix;
+    if (uiResponse != 0U) { strMessageFormatSuffix = "R"; }
+    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY)) { strMessageFormatSuffix = "B"; }
+    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)) { strMessageFormatSuffix = "A"; }
+    else { strMessageFormatSuffix = ""; } // default to abbreviated ASCII format
 
     if (uiSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
 

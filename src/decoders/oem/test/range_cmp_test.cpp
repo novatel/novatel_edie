@@ -104,18 +104,21 @@ TEST_F(RangeCmpTest, LOGGER)
 TEST_F(RangeCmpTest, CHANNEL_TRACKING_STATUS_WORD_1)
 {
    constexpr uint32_t uiCTS = 0x1810BC04;
+   // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
    ASSERT_EQ(uiCTS, ChannelTrackingStatusStruct(uiCTS).GetAsWord());
 }
 
 TEST_F(RangeCmpTest, CHANNEL_TRACKING_STATUS_WORD_2)
 {
    constexpr uint32_t uiCTS = 0x69129D54;
+   // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
    ASSERT_EQ(uiCTS, ChannelTrackingStatusStruct(uiCTS).GetAsWord());
 }
 
 TEST_F(RangeCmpTest, CHANNEL_TRACKING_STATUS_WORD_3)
 {
    constexpr uint32_t uiCTS = 0xFBF7FFFF;
+   // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
    ASSERT_EQ(uiCTS, ChannelTrackingStatusStruct(uiCTS).GetAsWord());
 }
 

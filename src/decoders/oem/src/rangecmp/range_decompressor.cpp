@@ -236,55 +236,77 @@ double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatusStruct&
     switch (stChannelTrackingStatus_.eSatelliteSystem)
     {
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GPS:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L1CA   ? WAVELENGTH_GPS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L1CP ? WAVELENGTH_GPS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2P  ? WAVELENGTH_GPS_L2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2Y  ? WAVELENGTH_GPS_L2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2CM ? WAVELENGTH_GPS_L2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L5Q  ? WAVELENGTH_GPS_L5
-                                                                                                            : 0.0;
+        switch (stChannelTrackingStatus_.eSignalType)
+        {
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L1CA: return WAVELENGTH_GPS_L1;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L1CP: return WAVELENGTH_GPS_L1;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2P: return WAVELENGTH_GPS_L2;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2Y: return WAVELENGTH_GPS_L2;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L2CM: return WAVELENGTH_GPS_L2;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GPS_L5Q: return WAVELENGTH_GPS_L5;
+        default: return 0.0;
+        }
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GLONASS:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L1CA
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + (sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ))
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L2CA
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + (sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ))
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L2P
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + (sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ))
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L3Q ? WAVELENGTH_GLO_L3
-                                                                                                               : 0.0;
+        switch (stChannelTrackingStatus_.eSignalType)
+        {
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L1CA:
+            return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ);
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L2CA:
+            return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ);
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L2P:
+            return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ);
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GLONASS_L3Q: return WAVELENGTH_GLO_L3;
+        default: return 0.0;
+        }
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::SBAS:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::SBAS_L1CA  ? WAVELENGTH_GPS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::SBAS_L5I ? WAVELENGTH_GPS_L5
-                                                                                                            : 0.0;
+        switch (stChannelTrackingStatus_.eSignalType)
+        {
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::SBAS_L1CA: return WAVELENGTH_GPS_L1;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::SBAS_L5I: return WAVELENGTH_GPS_L5;
+        default: return 0.0;
+        }
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GALILEO:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E1C         ? WAVELENGTH_GAL_E1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E6B       ? WAVELENGTH_GAL_E6
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E6C       ? WAVELENGTH_GAL_E6
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5AQ      ? WAVELENGTH_GAL_E5AQ
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5BQ      ? WAVELENGTH_GAL_E5BQ
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5ALTBOCQ ? WAVELENGTH_GAL_ALTBQ
-                                                                                                                     : 0.0;
+        switch (stChannelTrackingStatus_.eSignalType)
+        {
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E1C: return WAVELENGTH_GAL_E1;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E6B:
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E6C: return WAVELENGTH_GAL_E6;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5AQ: return WAVELENGTH_GAL_E5AQ;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5BQ: return WAVELENGTH_GAL_E5BQ;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::GALILEO_E5ALTBOCQ: return WAVELENGTH_GAL_ALTBQ;
+        default: return 0.0;
+        }
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::BEIDOU:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1ID1   ? WAVELENGTH_BDS_B1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1ID2 ? WAVELENGTH_BDS_B1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2ID1 ? WAVELENGTH_BDS_B2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2ID2 ? WAVELENGTH_BDS_B2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B3ID1 ? WAVELENGTH_BDS_B3
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B3ID2 ? WAVELENGTH_BDS_B3
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1CP  ? WAVELENGTH_BDS_B1C
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2AP  ? WAVELENGTH_BDS_B2A
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2BI  ? WAVELENGTH_BDS_B2B
-                                                                                                                : 0.0;
+        switch (stChannelTrackingStatus_.eSignalType)
+        {
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1ID1: return WAVELENGTH_BDS_B1;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1ID2: return WAVELENGTH_BDS_B1;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2ID1: return WAVELENGTH_BDS_B2;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2ID2: return WAVELENGTH_BDS_B2;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B3ID1: return WAVELENGTH_BDS_B3;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B3ID2: return WAVELENGTH_BDS_B3;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B1CP: return WAVELENGTH_BDS_B1C;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2AP: return WAVELENGTH_BDS_B2A;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::BEIDOU_B2BI: return WAVELENGTH_BDS_B2B;
+        default: return 0.0;
+        }
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::QZSS:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L1CA   ? WAVELENGTH_QZSS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L1CP ? WAVELENGTH_QZSS_L1
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L2CM ? WAVELENGTH_QZSS_L2
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L5Q  ? WAVELENGTH_QZSS_L5
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L6P  ? WAVELENGTH_QZSS_L6
-               : stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L6D  ? WAVELENGTH_QZSS_L6
-                                                                                                             : 0.0;
+        switch (stChannelTrackingStatus_.eSignalType)
+        {
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L1CA: return WAVELENGTH_QZSS_L1;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L1CP: return WAVELENGTH_QZSS_L1;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L2CM: return WAVELENGTH_QZSS_L2;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L5Q: return WAVELENGTH_QZSS_L5;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L6P: return WAVELENGTH_QZSS_L6;
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::QZSS_L6D: return WAVELENGTH_QZSS_L6;
+        default: return 0.0;
+        }
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::NAVIC:
-        return stChannelTrackingStatus_.eSignalType == ChannelTrackingStatusStruct::SIGNAL_TYPE::NAVIC_L5SPS ? WAVELENGTH_NAVIC_L5 : 0.0;
+        switch (stChannelTrackingStatus_.eSignalType)
+        {
+        case ChannelTrackingStatusStruct::SIGNAL_TYPE::NAVIC_L5SPS: return WAVELENGTH_NAVIC_L5;
+        default: return 0.0;
+        }
     default: return 0.0;
     }
 }
@@ -356,17 +378,14 @@ double RangeDecompressor::DetermineRangeCmp2ObservationLockTime(const MetaDataSt
                                                                 ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                                 ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_)
 {
-    double fLocktimeMilliseconds = static_cast<double>(uiLockTimeBits_);
+    double fLocktimeMilliseconds = uiLockTimeBits_;
 
     RangeCmp2LockTimeInfoStruct& stLocktimeInfo =
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
     if (uiLockTimeBits_ == (RC2_SIG_LOCKTIME_MASK >> RC2_SIG_LOCKTIME_SHIFT))
     {
         // If the locktime was already saturated, use the stored time to add the missing offset.
-        if (stLocktimeInfo.bLockTimeSaturated)
-        {
-            fLocktimeMilliseconds += static_cast<double>(stMetaData_.dMilliseconds - stLocktimeInfo.dLockTimeSaturatedMilliseconds);
-        }
+        if (stLocktimeInfo.bLockTimeSaturated) { fLocktimeMilliseconds += stMetaData_.dMilliseconds - stLocktimeInfo.dLockTimeSaturatedMilliseconds; }
         else // If the locktime is not already saturated, store this information if this
              // observation is seen again.
         {
@@ -503,7 +522,7 @@ double RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataSt
     }
     stLocktimeInfo.dLocktimeMilliseconds =
         (stMetaData_.dMilliseconds - stLocktimeInfo.dLastBitfieldChangeMilliseconds) + afTheRangeCmp4LockTimeValues[stLocktimeInfo.ucLocktimeBits];
-    return static_cast<double>(stLocktimeInfo.dLocktimeMilliseconds) / SEC_TO_MILLI_SEC;
+    return stLocktimeInfo.dLocktimeMilliseconds / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
@@ -602,19 +621,30 @@ void RangeDecompressor::PopulateNextRangeData(RangeDataStruct& stRangeData_, con
         // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - cGLONASSFrequencyNumber_. However, this
         // would output the PRN as an actual valid Slot ID, which is not true. We will
         // set this to 0 here because 0 is considered an unknown/invalid GLONASS Slot ID.
-        stRangeData_.usPRN = (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT)
+        stRangeData_.usPRN = GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT
                                  ? 0
                                  : static_cast<uint16_t>(uiPRN_) + GLONASS_SLOT_OFFSET - 1;
         break;
     case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::SBAS:
-        stRangeData_.usPRN = (SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT)
-                                 ? static_cast<uint16_t>(uiPRN_ + SBAS_PRN_OFFSET_120 - 1)
-                             : (SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT)
-                                 ? static_cast<uint16_t>(uiPRN_ + SBAS_PRN_OFFSET_130 - 1)
-                                 : 0;
+        if (SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT)
+        {
+            stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_ + SBAS_PRN_OFFSET_120 - 1);
+        }
+        else if (SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT)
+        {
+            stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_ + SBAS_PRN_OFFSET_130 - 1);
+        }
+        else //
+        {
+            stRangeData_.usPRN = 0;
+        }
         break;
-    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_ + QZSS_PRN_OFFSET - 1); break;
-    default: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_); break;
+    case ChannelTrackingStatusStruct::SATELLITE_SYSTEM::QZSS: //
+        stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_ + QZSS_PRN_OFFSET - 1);
+        break;
+    default: //
+        stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_);
+        break;
     }
 
     if (stChannelTrackingStatus_.eSatelliteSystem != ChannelTrackingStatusStruct::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
@@ -995,10 +1025,9 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
     MessageDataStruct stMessageData;
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
-    auto eStatus = STATUS::UNKNOWN;
 
     unsigned char* pucTempMessagePointer = pucRangeMessageBuffer_;
-    eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stHeader, stMetaData_);
+    STATUS eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stHeader, stMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     if (!clMyRangeCmpFilter.DoFiltering(stMetaData_)) { return STATUS::UNSUPPORTED; }
@@ -1058,14 +1087,17 @@ RangeDecompressor::Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t ui
     // Re-encode to the original format if a format was not specified.
     if (eFormat_ == ENCODE_FORMAT::UNSPECIFIED)
     {
-        eFormat_ =
-            (eInitialFormat == HEADER_FORMAT::BINARY || eInitialFormat == HEADER_FORMAT::SHORT_BINARY ||
-             eInitialFormat == HEADER_FORMAT::PROPRIETARY_BINARY)
-                ? ENCODE_FORMAT::BINARY
-            : (eInitialFormat == HEADER_FORMAT::ASCII || eInitialFormat == HEADER_FORMAT::SHORT_ASCII || eInitialFormat == HEADER_FORMAT::ABB_ASCII)
-                ? ENCODE_FORMAT::ASCII
-            : (eInitialFormat == HEADER_FORMAT::JSON) ? ENCODE_FORMAT::JSON
-                                                      : ENCODE_FORMAT::ASCII; // Default to ASCII
+        switch (eInitialFormat)
+        {
+        case HEADER_FORMAT::BINARY: [[fallthrough]];
+        case HEADER_FORMAT::SHORT_BINARY: [[fallthrough]];
+        case HEADER_FORMAT::PROPRIETARY_BINARY: eFormat_ = ENCODE_FORMAT::BINARY; break;
+        case HEADER_FORMAT::ASCII: [[fallthrough]];
+        case HEADER_FORMAT::SHORT_ASCII: [[fallthrough]];
+        case HEADER_FORMAT::ABB_ASCII: eFormat_ = ENCODE_FORMAT::ASCII; break;
+        case HEADER_FORMAT::JSON: eFormat_ = ENCODE_FORMAT::JSON; break;
+        default: eFormat_ = ENCODE_FORMAT::ASCII; break; // Default to ASCII
+        }
     }
 
     // Re-encode the data back into the range message buffer.

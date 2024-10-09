@@ -345,7 +345,7 @@ int32_t GetEnumValue(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, 
 //! \return The response in integer form.
 //-----------------------------------------------------------------------
 int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, std::string_view strResp_);
-int32_t GetResponseId(const novatel::edie::EnumDefinition::ConstPtr& stRespDef_, std::string_view strEnum_);
+int32_t GetResponseId(const novatel::edie::EnumDefinition::ConstPtr& stRespDef_, std::string_view strResp_);
 
 //-----------------------------------------------------------------------
 //! \brief Strip abbreviated ASCII formatting from the front of the

@@ -171,7 +171,7 @@ class MessageDecoderTypesTest : public ::testing::Test
         }
         catch (JsonReaderFailure& e)
         {
-            std::cout << e.what() << std::endl;
+            std::cout << e.what() << '\n';
             MsgDefFields.clear();
         }
     }

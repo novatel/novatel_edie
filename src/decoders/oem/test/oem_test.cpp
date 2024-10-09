@@ -948,7 +948,7 @@ class DecodeEncodeTest : public ::testing::Test
   public:
     using logChecker = void (*)(char*, char*);
 
-    enum
+    enum : uint8_t
     {
         SUCCESS,
         HEADER_DECODER_ERROR,
@@ -1035,9 +1035,9 @@ class DecodeEncodeTest : public ::testing::Test
         int32_t iRetCode = DecodeEncode(eFormat_, pstExpectedMessageData_->pucMessage, pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, stMessageData);
 
         return iRetCode != SUCCESS                                                                                   ? iRetCode
-               : eFormat_ != ENCODE_FORMAT::JSON && stMetaData.uiHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR
-               : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength                           ? LENGTH_ERROR
-               : stMessageData != *pstExpectedMessageData_                                                           ? MESSAGE_DATA_COMPARISON_ERROR
+               : eFormat_ != ENCODE_FORMAT::JSON && stMetaData.uiHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR // NOLINT
+               : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength                           ? LENGTH_ERROR // NOLINT
+               : stMessageData != *pstExpectedMessageData_                                                           ? MESSAGE_DATA_COMPARISON_ERROR // NOLINT
                                                                                                                      : SUCCESS;
     }
 
@@ -1052,9 +1052,9 @@ class DecodeEncodeTest : public ::testing::Test
         int32_t iRetCode = DecodeEncode(eFormat_, pucMessageBuffer_, pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, stMessageData);
 
         return iRetCode != SUCCESS                                                                     ? iRetCode
-               : pstExpectedMessageData_->uiMessageHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR
-               : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength             ? LENGTH_ERROR
-               : stMessageData != *pstExpectedMessageData_                                             ? MESSAGE_DATA_COMPARISON_ERROR
+               : pstExpectedMessageData_->uiMessageHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR // NOLINT
+               : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength             ? LENGTH_ERROR // NOLINT
+               : stMessageData != *pstExpectedMessageData_                                             ? MESSAGE_DATA_COMPARISON_ERROR // NOLINT
                                                                                                        : SUCCESS;
     }
 };
@@ -2916,7 +2916,7 @@ class NovatelTypesTest : public ::testing::Test
                                 std::vector<FieldContainer>& vIntermediateFormat_)
         {
             uint16_t MsgDefFieldsSize = 0;
-            for (auto& field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
+            for (const auto& field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
             return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
         }
     };

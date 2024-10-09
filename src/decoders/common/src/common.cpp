@@ -105,12 +105,12 @@ std::string GetEnumString(const std::shared_ptr<const EnumDefinition>& stEnumDef
 
 int32_t GetEnumValue(const std::shared_ptr<const EnumDefinition>& stEnumDef_, std::string_view strEnum_)
 {
-    return GetEnumValue(stEnumDef_.get(), std::move(strEnum_));
+    return GetEnumValue(stEnumDef_.get(), strEnum_);
 }
 
 int32_t GetResponseId(const std::shared_ptr<const EnumDefinition>& stRespDef_, std::string_view strResp_)
 {
-    return GetResponseId(stRespDef_.get(), std::move(strResp_));
+    return GetResponseId(stRespDef_.get(), strResp_);
 }
 
 //-----------------------------------------------------------------------
