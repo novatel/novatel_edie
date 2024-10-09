@@ -27,6 +27,7 @@ template <> struct type_caster<std::u32string>
         str += 4; // skip BOM
         size -= 4;
         value = std::u32string(reinterpret_cast<const char32_t*>(str), (size_t)size / sizeof(char32_t));
+        Py_DECREF(utf32_str);
         return true;
     }
 
