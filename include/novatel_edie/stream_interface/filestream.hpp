@@ -167,6 +167,8 @@ class FileStream
      */
     StreamReadStatus ReadFile(char* cData, uint32_t uiSize);
 
+    StreamReadStatus ReadFile(ReadDataStructure st) { return ReadFile(st.cData.get(), st.uiDataSize); }
+
     /*! \brief Writes the first uiSize character pointed by cData into fstream
      *
      *  \param[in] cData Data to be written to the fstream.

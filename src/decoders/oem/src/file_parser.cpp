@@ -114,7 +114,7 @@ uint32_t FileParser::GetPercentRead() const { return stMyStreamReadStatus.uiPerc
 unsigned char* FileParser::GetInternalBuffer() const { return clMyParser.GetInternalBuffer(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool FileParser::SetStream(InputFileStream* pclInputStream_)
+bool FileParser::SetStream(FileStream* pclInputStream_)
 {
     if (pclInputStream_ == nullptr) { return false; }
     // TODO: This call is not implemented and returns false in the interface.
@@ -127,7 +127,7 @@ bool FileParser::SetStream(InputFileStream* pclInputStream_)
     // Are there any bytes left to read in the stream?
     uint32_t uiReadSizeSave = stMyReadData.uiDataSize;
     stMyReadData.uiDataSize = 0;
-    stMyStreamReadStatus = pclInputStream_->ReadData(stMyReadData);
+    stMyStreamReadStatus = pclInputStream_->ReadFile(stMyReadData.cData.get(), stMyReadData.uiDataSize);
     if (stMyStreamReadStatus.bEOS || stMyStreamReadStatus.uiPercentStreamRead >= 100) { return false; }
     stMyReadData.uiDataSize = uiReadSizeSave;
     pclMyInputStream = pclInputStream_;
@@ -140,7 +140,7 @@ bool FileParser::SetStream(InputFileStream* pclInputStream_)
 bool FileParser::ReadStream()
 {
     stMyReadData.uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
-    stMyStreamReadStatus = pclMyInputStream->ReadData(stMyReadData);
+    stMyStreamReadStatus = pclMyInputStream->ReadFile(stMyReadData.cData.get(), stMyReadData.uiDataSize);
     return stMyStreamReadStatus.uiCurrentStreamRead > 0 &&
            clMyParser.Write(reinterpret_cast<unsigned char*>(stMyReadData.cData.get()), stMyStreamReadStatus.uiCurrentStreamRead) ==
                stMyStreamReadStatus.uiCurrentStreamRead;
@@ -170,7 +170,7 @@ bool FileParser::ReadStream()
 bool FileParser::Reset()
 {
     Flush();
-    if (pclMyInputStream != nullptr) { pclMyInputStream->Reset(0, std::ios::beg); }
+    if (pclMyInputStream != nullptr) { pclMyInputStream->SetFilePosition(0, std::ios::beg); }
     return true;
 }
 

@@ -40,7 +40,7 @@
 #include "novatel_edie/decoders/oem/filter.hpp"
 #include "novatel_edie/decoders/oem/framer.hpp"
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
-#include "novatel_edie/stream_interface/inputfilestream.hpp"
+#include "novatel_edie/stream_interface/filestream.hpp"
 #include "resources/novatel_message_definitions.hpp"
 
 using namespace novatel::edie;
@@ -50,7 +50,7 @@ class FramerTest : public ::testing::Test
 {
   protected:
     static std::unique_ptr<Framer> pclMyFramer;
-    static std::unique_ptr<InputFileStream> pclMyIFS;
+    static std::unique_ptr<FileStream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
 
     // Per-test-suite setup
@@ -82,7 +82,9 @@ class FramerTest : public ::testing::Test
 
     static void WriteFileStreamToFramer(std::string sFilename_)
     {
-        pclMyIFS = std::make_unique<InputFileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
+        pclMyIFS = std::make_unique<FileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
+        pclMyIFS->OpenFile(FileStream::FILE_MODES::INPUT);
+        pclMyIFS->GetFileSize();
 
         StreamReadStatus stReadStatus;
         ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
@@ -90,7 +92,7 @@ class FramerTest : public ::testing::Test
 
         while (!stReadStatus.bEOS)
         {
-            stReadStatus = pclMyIFS->ReadData(stReadData);
+            stReadStatus = pclMyIFS->ReadFile(stReadData.cData.get(), stReadData.uiDataSize);
             uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
             ASSERT_EQ(uiBytesWritten, stReadStatus.uiCurrentStreamRead);
         }
@@ -110,7 +112,7 @@ class FramerTest : public ::testing::Test
 };
 
 std::unique_ptr<Framer> FramerTest::pclMyFramer = nullptr;
-std::unique_ptr<InputFileStream> FramerTest::pclMyIFS = nullptr;
+std::unique_ptr<FileStream> FramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> FramerTest::pucMyTestFrameBuffer = nullptr;
 
 // TODO: we disable clang-format because of the long strings
@@ -2851,7 +2853,9 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
     ASSERT_EQ(pclFp->GetFilter(), &clFilter);
 
     std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
-    InputFileStream clInputFileStream(test_gps_file.string().c_str());
+    FileStream clInputFileStream(test_gps_file.string().c_str());
+    clInputFileStream.OpenFile(FileStream::FILE_MODES::INPUT);
+    clInputFileStream.GetFileSize();
     ASSERT_TRUE(pclFp->SetStream(&clInputFileStream));
 
     MetaDataStruct stMetaData;

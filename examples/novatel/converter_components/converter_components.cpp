@@ -36,8 +36,7 @@
 #include <novatel_edie/decoders/oem/framer.hpp>
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
-#include <novatel_edie/stream_interface/inputfilestream.hpp>
-#include <novatel_edie/stream_interface/outputfilestream.hpp>
+#include <novatel_edie/stream_interface/filestream.hpp>
 #include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
@@ -147,15 +146,19 @@ int main(int argc, char* argv[])
     ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
 
     // Setup file streams
-    InputFileStream clIfs(pathInFilename.string().c_str());
-    OutputFileStream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str());
-    OutputFileStream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str());
+    FileStream clIfs(pathInFilename.string().c_str());
+    FileStream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str());
+    FileStream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str());
+    clIfs.OpenFile(FileStream::FILE_MODES::INPUT);
+    clIfs.GetFileSize();
+    clConvertedLogsOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
+    clUnknownBytesOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
 
     tStart = std::chrono::high_resolution_clock::now();
 
     while (!stReadStatus.bEOS)
     {
-        stReadStatus = clIfs.ReadData(stReadData);
+        stReadStatus = clIfs.ReadFile(stReadData.cData.get(), stReadData.uiDataSize);
         clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
@@ -169,7 +172,7 @@ int main(int argc, char* argv[])
             {
                 if (stMetaData.bResponse)
                 {
-                    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                    clUnknownBytesOfs.WriteFile(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
                     continue;
                 }
 
@@ -196,37 +199,36 @@ int main(int argc, char* argv[])
 
                         if (eEncoderStatus == STATUS::SUCCESS)
                         {
-                            clConvertedLogsOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                            clConvertedLogsOfs.WriteFile(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                             stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                             pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(pucEncodedMessageBuffer));
                         }
                         else
                         {
-                            clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
+                            clUnknownBytesOfs.WriteFile(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                             pclLogger->warn("Encoder returned with status code {}", static_cast<int>(eEncoderStatus));
                         }
                     }
                     else
                     {
-                        clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
+                        clUnknownBytesOfs.WriteFile(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                         pclLogger->warn("MessageDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
                     }
                 }
                 else
                 {
-                    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                    clUnknownBytesOfs.WriteFile(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
                     pclLogger->warn("HeaderDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
                 }
             }
-            else if (eFramerStatus == STATUS::UNKNOWN) { clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
+            else if (eFramerStatus == STATUS::UNKNOWN) { clUnknownBytesOfs.WriteFile(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
             else { pclLogger->warn("Framer returned with status code {}", static_cast<int>(eFramerStatus)); }
         }
     }
 
     // Clean up
     uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
-    clUnknownBytesOfs.WriteData(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
-
+    clUnknownBytesOfs.WriteFile(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
     Logger::Shutdown();
     return 0;
 }

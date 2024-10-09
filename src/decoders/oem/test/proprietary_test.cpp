@@ -27,7 +27,7 @@
 #include <gtest/gtest.h>
 
 #include "novatel_edie/decoders/oem/framer.hpp"
-#include "novatel_edie/stream_interface/inputfilestream.hpp"
+#include "novatel_edie/stream_interface/filestream.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -36,7 +36,7 @@ class ProprietaryFramerTest : public ::testing::Test
 {
   protected:
     static std::unique_ptr<Framer> pclMyFramer;
-    static std::unique_ptr<InputFileStream> pclMyIFS;
+    static std::unique_ptr<FileStream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
 
     // Per-test-suite setup
@@ -60,7 +60,9 @@ class ProprietaryFramerTest : public ::testing::Test
   public:
     static void WriteFileStreamToFramer(const std::string& sFilename_)
     {
-        pclMyIFS = std::make_unique<InputFileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
+        pclMyIFS = std::make_unique<FileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
+        pclMyIFS->OpenFile(FileStream::FILE_MODES::INPUT);
+        pclMyIFS->GetFileSize();
 
         StreamReadStatus stReadStatus;
         ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
@@ -68,7 +70,7 @@ class ProprietaryFramerTest : public ::testing::Test
 
         while (!stReadStatus.bEOS)
         {
-            stReadStatus = pclMyIFS->ReadData(stReadData);
+            stReadStatus = pclMyIFS->ReadFile(stReadData.cData.get(), stReadData.uiDataSize);
             uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
             ASSERT_EQ(uiBytesWritten, stReadStatus.uiCurrentStreamRead);
         }
@@ -86,7 +88,7 @@ class ProprietaryFramerTest : public ::testing::Test
 };
 
 std::unique_ptr<Framer> ProprietaryFramerTest::pclMyFramer = nullptr;
-std::unique_ptr<InputFileStream> ProprietaryFramerTest::pclMyIFS = nullptr;
+std::unique_ptr<FileStream> ProprietaryFramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> ProprietaryFramerTest::pucMyTestFrameBuffer = nullptr;
 
 // -------------------------------------------------------------------------------------------------------

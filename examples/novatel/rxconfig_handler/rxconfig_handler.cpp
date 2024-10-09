@@ -30,8 +30,7 @@
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/common/common.hpp>
 #include <novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp>
-#include <novatel_edie/stream_interface/inputfilestream.hpp>
-#include <novatel_edie/stream_interface/outputfilestream.hpp>
+#include <novatel_edie/stream_interface/filestream.hpp>
 #include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
@@ -96,9 +95,13 @@ int main(int argc, char* argv[])
     ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
 
     // Set up file streams
-    InputFileStream clIfs(pathInFilename.string().c_str());
-    OutputFileStream clConvertedRxConfigOfs((pathInFilename.string() + std::string(".").append(sEncodeFormat)).c_str());
-    OutputFileStream clStrippedRxConfigOfs((pathInFilename.string() + std::string(".STRIPPED.").append(sEncodeFormat)).c_str());
+    FileStream clIfs(pathInFilename.string().c_str());
+    FileStream clConvertedRxConfigOfs((pathInFilename.string() + std::string(".").append(sEncodeFormat)).c_str());
+    FileStream clStrippedRxConfigOfs((pathInFilename.string() + std::string(".STRIPPED.").append(sEncodeFormat)).c_str());
+    clIfs.OpenFile(FileStream::FILE_MODES::INPUT);
+    clIfs.GetFileSize();
+    clConvertedRxConfigOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
+    clStrippedRxConfigOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
 
     MetaDataStruct stMetaData;
     MetaDataStruct stEmbeddedMetaData;
@@ -110,7 +113,7 @@ int main(int argc, char* argv[])
     while (!stReadStatus.bEOS)
     {
         // stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
-        stReadStatus = clIfs.ReadData(stReadData);
+        stReadStatus = clIfs.ReadFile(stReadData.cData.get(), stReadData.uiDataSize);
         clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
 
         STATUS eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
@@ -121,7 +124,7 @@ int main(int argc, char* argv[])
             {
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
-                clConvertedRxConfigOfs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                clConvertedRxConfigOfs.WriteFile(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
 
                 // Make the embedded message valid by flipping the CRC.
                 if (eEncodeFormat == ENCODE_FORMAT::ASCII)
@@ -131,8 +134,8 @@ int main(int argc, char* argv[])
                         reinterpret_cast<char*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) - OEM4_ASCII_CRC_LENGTH);
                     uint32_t uiFlippedCrc = strtoul(pcCrcBegin, nullptr, 16) ^ 0xFFFFFFFF;
                     snprintf(pcCrcBegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", uiFlippedCrc);
-                    clStrippedRxConfigOfs.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
-                    clStrippedRxConfigOfs.WriteData("\r\n", 2);
+                    clStrippedRxConfigOfs.WriteFile(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
+                    clStrippedRxConfigOfs.WriteFile("\r\n", 2);
                 }
                 else if (eEncodeFormat == ENCODE_FORMAT::BINARY)
                 {
@@ -140,13 +143,13 @@ int main(int argc, char* argv[])
                     auto* puiCrcBegin = reinterpret_cast<uint32_t*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) -
                                                                     OEM4_BINARY_CRC_LENGTH);
                     *puiCrcBegin ^= 0xFFFFFFFF;
-                    clStrippedRxConfigOfs.WriteData(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
+                    clStrippedRxConfigOfs.WriteFile(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
                 }
                 else if (eEncodeFormat == ENCODE_FORMAT::JSON)
                 {
                     // Write in a comma and CRLF to make the files parse-able by JSON readers.
-                    clConvertedRxConfigOfs.WriteData(",\r\n", 3);
-                    clStrippedRxConfigOfs.WriteData(",\r\n", 3);
+                    clConvertedRxConfigOfs.WriteFile(",\r\n", 3);
+                    clStrippedRxConfigOfs.WriteFile(",\r\n", 3);
                 }
             }
 

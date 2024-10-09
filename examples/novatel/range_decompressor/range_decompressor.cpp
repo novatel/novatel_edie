@@ -34,8 +34,7 @@
 #include <novatel_edie/decoders/oem/framer.hpp>
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp>
-#include <novatel_edie/stream_interface/inputfilestream.hpp>
-#include <novatel_edie/stream_interface/outputfilestream.hpp>
+#include <novatel_edie/stream_interface/filestream.hpp>
 #include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
@@ -124,8 +123,11 @@ int main(int argc, char* argv[])
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
-    InputFileStream clIfs(pathInFilename.string().c_str());
-    OutputFileStream clOfs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
+    FileStream clIfs(pathInFilename.string().c_str());
+    FileStream clOfs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
+    clIfs.OpenFile(FileStream::FILE_MODES::INPUT);
+    clIfs.GetFileSize();
+    clOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
     StreamReadStatus stReadStatus;
 
     auto eStatus = STATUS::UNKNOWN;
@@ -154,7 +156,7 @@ int main(int argc, char* argv[])
                 if (eStatus == STATUS::SUCCESS)
                 {
                     uiCompletedMessages++;
-                    uint32_t uiBytesWritten = clOfs.WriteData(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
+                    uint32_t uiBytesWritten = clOfs.WriteFile(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
                     if (stMetaData.uiLength == uiBytesWritten)
                     {
                         pucReadBuffer[stMetaData.uiLength] = '\0';
@@ -186,7 +188,7 @@ int main(int argc, char* argv[])
         else if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE)
         {
             // Read from file, write to framer.
-            stReadStatus = clIfs.ReadData(stReadData);
+            stReadStatus = clIfs.ReadFile(stReadData.cData.get(), stReadData.uiDataSize);
             if (stReadStatus.uiCurrentStreamRead == 0)
             {
                 pclLogger->info("Stream finished");

@@ -29,7 +29,7 @@
 
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/parser.hpp"
-#include "novatel_edie/stream_interface/inputfilestream.hpp"
+#include "novatel_edie/stream_interface/filestream.hpp"
 
 namespace novatel::edie::oem {
 
@@ -43,7 +43,7 @@ class FileParser
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
 
     Parser clMyParser;
-    InputFileStream* pclMyInputStream;
+    FileStream* pclMyInputStream;
     StreamReadStatus stMyStreamReadStatus;
     ReadDataStructure stMyReadData{Parser::uiParserInternalBufferSize};
 
@@ -197,7 +197,7 @@ class FileParser
     //
     //! \return A boolean describing if the operation was successful
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool SetStream(InputFileStream* pclInputStream_);
+    [[nodiscard]] bool SetStream(FileStream* pclInputStream_);
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the FileParser.
