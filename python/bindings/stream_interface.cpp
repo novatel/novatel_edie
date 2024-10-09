@@ -2,6 +2,7 @@
 
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 
 #include "novatel_edie/stream_interface/common.hpp"
 #include "novatel_edie/stream_interface/filestream.hpp"
@@ -101,7 +102,9 @@ void init_stream_interface(nb::module_& m)
         .def(nb::init<>())
         .def("select_file_stream", nb::overload_cast<const std::u32string&>(&MultiOutputFileStream::SelectFileStream), "file_name"_a)
         .def("clear_file_stream_map", &MultiOutputFileStream::ClearWCFileStreamMap)
-        .def("configure_base_file_name", nb::overload_cast<std::u32string_view>(&MultiOutputFileStream::ConfigureBaseFileName), "file_name"_a)
+        .def(
+            "configure_base_file_name", [](MultiOutputFileStream& self, const std::u32string base_name) { self.ConfigureBaseFileName(base_name); },
+            "base_name"_a)
         .def("select_log_file", &MultiOutputFileStream::SelectWCLogFile, "log_name"_a)
         .def("select_size_file", &MultiOutputFileStream::SelectWCSizeFile, "size"_a)
         .def("select_time_file", &MultiOutputFileStream::SelectWCTimeFile, "status"_a, "week"_a, "milliseconds"_a)
@@ -121,7 +124,9 @@ void init_stream_interface(nb::module_& m)
                          for (const auto& [key, value] : self.Get32FileMap()) py_map[nb::cast(key)] = nb::cast(value, nb::rv_policy::reference);
                          return py_map;
                      })
-        .def("set_extension_name", nb::overload_cast<std::u32string_view>(&MultiOutputFileStream::SetExtensionName), "ext"_a)
+        .def(
+            "set_extension_name", [](MultiOutputFileStream& self, const std::u32string& extension_name) { self.SetExtensionName(extension_name); },
+            "ext"_a)
         // For unit tests only
         .def_prop_ro("_base_name", &MultiOutputFileStreamTest::GetBase32FileName)
         .def_prop_ro("_extension_name", &MultiOutputFileStreamTest::Get32ExtensionName)
