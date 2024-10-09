@@ -13,7 +13,7 @@ dependencies = [
 requires = [
     "scikit-build-core >=0.4.3",
     "nanobind >=1.6.0",
-    "conan >=2.0.5",
+    "conan >=2.4.0",
 ]
 build-backend = "scikit_build_core.build"
 

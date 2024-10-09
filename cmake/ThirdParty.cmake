@@ -12,6 +12,8 @@ if(USE_CONAN)
         message(FATAL_ERROR "Automatic Conan integration requires CMake 3.24 or later.")
     endif()
     include("${CMAKE_CURRENT_LIST_DIR}/SetDefaultProfile.cmake")
+    # Set build cppstd for patchelf
+    set(CONAN_INSTALL_ARGS --build missing --settings:build compiler.cppstd=17 CACHE INTERNAL "")
     list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/conan_provider.cmake)
 endif()
 
