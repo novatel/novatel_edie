@@ -81,8 +81,7 @@ class FramerTest : public ::testing::Test
 
     static void WriteFileStreamToFramer(std::string sFilename_)
     {
-        pclMyIFS = std::make_unique<std::ifstream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str(),
-                                                   std::ios::binary);
+        pclMyIFS = std::make_unique<std::ifstream>(std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_, std::ios::binary);
 
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         uint32_t uiBytesWritten = 0;
@@ -91,6 +90,7 @@ class FramerTest : public ::testing::Test
         {
             pclMyIFS->read(cData.data(), cData.size());
             uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount());
+            ASSERT_NE(uiBytesWritten, 0);
             ASSERT_EQ(uiBytesWritten, pclMyIFS->gcount());
         }
 
