@@ -66,7 +66,7 @@ class ProprietaryFramerTest : public ::testing::Test
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         uint32_t uiBytesWritten = 0;
 
-        while (!pclMyIFS->gcount())
+        while (!pclMyIFS->eof())
         {
             pclMyIFS->read(cData.data(), cData.size());
             uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount());
