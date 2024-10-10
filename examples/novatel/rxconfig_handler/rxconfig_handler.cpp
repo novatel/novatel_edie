@@ -93,8 +93,8 @@ int main(int argc, char* argv[])
 
     // Set up file streams
     std::ifstream ifs(pathInFilename, std::ios::binary);
-    std::ofstream convertedOfs((pathInFilename.string() + std::string(".").append(sEncodeFormat)).c_str(), std::ios::binary);
-    std::ofstream strippedOfs((pathInFilename.string() + std::string(".STRIPPED.").append(sEncodeFormat)).c_str(), std::ios::binary);
+    std::ofstream convertedOfs(pathInFilename.string() + "." + sEncodeFormat, std::ios::binary);
+    std::ofstream strippedOfs(pathInFilename.string() + ".STRIPPED." + sEncodeFormat, std::ios::binary);
 
     MetaDataStruct stMetaData;
     MetaDataStruct stEmbeddedMetaData;

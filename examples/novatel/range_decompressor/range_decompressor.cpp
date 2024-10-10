@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
     std::ifstream ifs(pathInFilename, std::ios::binary);
-    std::ofstream ofs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str(), std::ios::binary);
+    std::ofstream ofs(pathInFilename.string() + ".DECOMPRESSED." + sEncodeFormat, std::ios::binary);
 
     auto eStatus = STATUS::UNKNOWN;
 
