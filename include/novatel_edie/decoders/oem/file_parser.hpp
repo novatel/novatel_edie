@@ -40,10 +40,8 @@ class FileParser
 {
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
-
     Parser clMyParser;
     std::ifstream* pclMyInputStream{nullptr};
-    std::unique_ptr<char[]> cData{std::make_unique<char[]>(MAX_ASCII_MESSAGE_LENGTH)};
 
     [[nodiscard]] bool ReadStream();
 

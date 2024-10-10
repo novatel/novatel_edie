@@ -107,11 +107,7 @@ unsigned char* FileParser::GetInternalBuffer() const { return clMyParser.GetInte
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::SetStream(std::ifstream* pclInputStream_)
 {
-    if (pclInputStream_ == nullptr) { return false; }
-
-    // Are there any bytes left to read in the stream?
-    pclInputStream_->read(cData.get(), 0);
-    if (pclInputStream_->eof()) { return false; }
+    if (pclInputStream_ == nullptr || pclInputStream_->eof()) { return false; }
     pclMyInputStream = pclInputStream_;
     Reset();
     return true;
@@ -120,9 +116,10 @@ bool FileParser::SetStream(std::ifstream* pclInputStream_)
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::ReadStream()
 {
-    pclMyInputStream->read(cData.get(), MAX_ASCII_MESSAGE_LENGTH);
+    std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
+    pclMyInputStream->read(cData.data(), cData.size());
     return pclMyInputStream->gcount() > 0 &&
-           clMyParser.Write(reinterpret_cast<unsigned char*>(cData.get()), pclMyInputStream->gcount()) == pclMyInputStream->gcount();
+           clMyParser.Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyInputStream->gcount()) == pclMyInputStream->gcount();
 }
 
 // -------------------------------------------------------------------------------------------------------
