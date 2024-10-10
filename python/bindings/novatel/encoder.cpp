@@ -2,7 +2,7 @@
 
 #include "bindings_core.hpp"
 #include "json_db_singleton.hpp"
-#include "py_intermediate_message.hpp"
+#include "py_decoded_message.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -20,7 +20,7 @@ void init_novatel_encoder(nb::module_& m)
         .def_prop_ro("logger", [](const oem::Encoder& encoder) { return encoder.GetLogger(); })
         .def(
             "encode",
-            [](oem::Encoder& encoder, const oem::IntermediateHeader& header, const PyIntermediateMessage& py_message,
+            [](oem::Encoder& encoder, const oem::IntermediateHeader& header, const PyDecodedMessage& py_message,
                const oem::MetaDataStruct& metadata, ENCODE_FORMAT format) {
                 MessageDataStruct message_data;
                 if (format == ENCODE_FORMAT::JSON)
@@ -31,7 +31,7 @@ void init_novatel_encoder(nb::module_& m)
                     uint8_t buffer[MESSAGE_SIZE_MAX * 3];
                     auto* buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
                     uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
-                    STATUS status = encoder.Encode(&buf_ptr, buf_size, header, py_message.message, message_data, metadata, format);
+                    STATUS status = encoder.Encode(&buf_ptr, buf_size, header, py_message.fields, message_data, metadata, format);
                     return nb::make_tuple(status, oem::PyMessageData(message_data));
                 }
                 else
@@ -39,7 +39,7 @@ void init_novatel_encoder(nb::module_& m)
                     uint8_t buffer[MESSAGE_SIZE_MAX];
                     auto buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
                     uint32_t buf_size = MESSAGE_SIZE_MAX;
-                    STATUS status = encoder.Encode(&buf_ptr, buf_size, header, py_message.message, message_data, metadata, format);
+                    STATUS status = encoder.Encode(&buf_ptr, buf_size, header, py_message.fields, message_data, metadata, format);
                     return nb::make_tuple(status, oem::PyMessageData(message_data));
                 }
             },
