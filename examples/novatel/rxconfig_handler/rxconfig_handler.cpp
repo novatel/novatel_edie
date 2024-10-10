@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     while (!clIfs.eof())
     {
         clIfs.read(cData.data(), cData.size());
-        clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(cData.size()), clIfs.gcount());
+        clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(cData.data()), clIfs.gcount());
 
         STATUS eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
 
