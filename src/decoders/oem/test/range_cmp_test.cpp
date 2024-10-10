@@ -47,10 +47,10 @@ class RangeCmpTest : public ::testing::Test
         void SetBytesRemaining(uint32_t uiByteCount_) { uiMyBytesRemaining = uiByteCount_; }
 
         // Access protected member of RangeDecompressor
-        uint32_t GetBytesRemaining() { return uiMyBytesRemaining; }
+        uint32_t GetBytesRemaining() const { return uiMyBytesRemaining; }
 
         // Access protected member of RangeDecompressor
-        uint64_t GetBitfield(uint8_t** ppucBytes_, uint32_t uiBitfieldSize_) { return GetBitfieldFromBuffer(ppucBytes_, uiBitfieldSize_); }
+        uint64_t GetBitfield(const uint8_t** ppucBytes_, uint32_t uiBitfieldSize_) { return GetBitfieldFromBuffer(ppucBytes_, uiBitfieldSize_); }
 
         void ResetLockTimes()
         {
@@ -133,8 +133,8 @@ TEST_F(RangeCmpTest, BITFIELD_1)
    // Expected bitfield 1: XXXX XXXX X111 0110 1101 1111 (0x76DF)
    // Expected bitfield 2: XXXX X000 0... .... .... .... (0x0)
    // Expected bitfield 3: 1000 1... .... .... .... .... (0x11)
-   uint8_t aucBytes[] = {0xDF, 0x76, 0x88};
-   uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
+   const uint8_t aucBytes[] = {0xDF, 0x76, 0x88};
+   const uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 
    pclMyRangeDecompressor->SetBitOffset(0);
    pclMyRangeDecompressor->SetBytesRemaining(sizeof(aucBytes));
@@ -149,8 +149,8 @@ TEST_F(RangeCmpTest, BITFIELD_2)
    // Endianness:          -----------------------------------------------------------
    // Binary bit values:   1011 0000 1010 0000 0111 1100 1101 1000 0001 1111 0110 0001
    // Expected bitfield:   XXXX XXX^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ .... (0xA07CD81F6)
-   uint8_t aucBytes[] = {0x61, 0x1F, 0xD8, 0x7C, 0xA0, 0xB0};
-   uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
+   const uint8_t aucBytes[] = {0x61, 0x1F, 0xD8, 0x7C, 0xA0, 0xB0};
+   const uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 
    pclMyRangeDecompressor->SetBitOffset(4);
    pclMyRangeDecompressor->SetBytesRemaining(sizeof(aucBytes));
@@ -160,8 +160,8 @@ TEST_F(RangeCmpTest, BITFIELD_2)
 TEST_F(RangeCmpTest, BITFIELD_3)
 {
    // 9 bytes, 72 bits. We should not be able to ask for more than 64 bits from this function.
-   uint8_t aucBytes[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-   uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
+   const uint8_t aucBytes[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+   const uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 
    pclMyRangeDecompressor->SetBitOffset(0);
    pclMyRangeDecompressor->SetBytesRemaining(sizeof(aucBytes));
@@ -189,8 +189,8 @@ TEST_F(RangeCmpTest, BITFIELD_4)
    // Expected bitfield 14: XX1X XXXX XXXX XXXX (0x1)
    // Expected bitfield 15: X0XX XXXX XXXX XXXX (0x0)
    // Expected bitfield 16: 1XXX XXXX XXXX XXXX (0x1)
-   uint8_t aucBytes[] = {0xAA, 0xAA};
-   uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
+   const uint8_t aucBytes[] = {0xAA, 0xAA};
+   const uint8_t* pucBytesPointer = &aucBytes[0]; // GetBitfield() will advance this pointer.
 
    pclMyRangeDecompressor->SetBitOffset(0);
    pclMyRangeDecompressor->SetBytesRemaining(sizeof(aucBytes));

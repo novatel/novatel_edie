@@ -316,7 +316,7 @@ double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatusStruct&
 //! from the provided buffer pointer. It will keep an internal track of the
 //! current bit offset within a given byte.
 //------------------------------------------------------------------------------
-uint64_t RangeDecompressor::GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uint32_t uiBitsInBitfield_)
+uint64_t RangeDecompressor::GetBitfieldFromBuffer(const uint8_t** ppucDataBuffer_, uint32_t uiBitsInBitfield_)
 {
     // If the user is asking for too many bits, don't do anything.
     if (uiBitsInBitfield_ > (sizeof(uint64_t) * BITS_PER_BYTE))
@@ -530,7 +530,7 @@ double RangeDecompressor::DetermineRangeCmp4ObservationLockTime(const MetaDataSt
 //! provided reference block struct.
 //------------------------------------------------------------------------------
 template <bool bSecondary>
-void RangeDecompressor::DecompressReferenceBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_,
+void RangeDecompressor::DecompressReferenceBlock(const uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_,
                                                  MEASUREMENT_SOURCE eMeasurementSource_)
 {
     // These fields are the same size regardless of the reference block being primary or secondary.
@@ -573,7 +573,7 @@ void RangeDecompressor::DecompressReferenceBlock(uint8_t** ppucDataPointer_, Ran
 //! reference block from the same RANGECMP4 message.
 //------------------------------------------------------------------------------
 template <bool bIsSecondary>
-void RangeDecompressor::DecompressDifferentialBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stDifferentialBlock_,
+void RangeDecompressor::DecompressDifferentialBlock(const uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stDifferentialBlock_,
                                                     const RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_, double dSecondOffset_)
 {
     // These fields are the same size regardless of the reference block being primary or secondary.
@@ -801,9 +801,9 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Messa
 //! Decompress a buffer containing a RANGECMP4 message and translate it into
 //! a RANGE message.
 //------------------------------------------------------------------------------
-void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& stMetaData_)
+void RangeDecompressor::RangeCmp4ToRange(const uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& stMetaData_)
 {
-    uint8_t* pucTempDataPointer = pucCompressedData_;
+    const uint8_t* pucTempDataPointer = pucCompressedData_;
 
     MEASUREMENT_SOURCE eMeasurementSource = stMetaData_.eMeasurementSource;
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
@@ -834,7 +834,7 @@ void RangeDecompressor::RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruc
     // Pull out the first few fields.
     // We have to set uiMyBytesRemaining by typecasting because GetBitfieldFromBuffer() relies on
     // it.
-    uiMyBytesRemaining = *reinterpret_cast<uint32_t*>(pucTempDataPointer);
+    uiMyBytesRemaining = *reinterpret_cast<const uint32_t*>(pucTempDataPointer);
     pucTempDataPointer += sizeof(uint32_t);
     usSatelliteSystems = static_cast<uint16_t>(GetBitfieldFromBuffer(&pucTempDataPointer, RC4_SATELLITE_SYSTEMS_BITS));
 

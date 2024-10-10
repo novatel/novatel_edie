@@ -20,7 +20,9 @@ std::string default_json_db_path()
     nb::object path_ctx = ir.attr("as_file")(ir.attr("files")("novatel_edie").attr("joinpath")("messages_public.json"));
     auto py_path = path_ctx.attr("__enter__")();
     if (!nb::cast<bool>(py_path.attr("is_file")()))
+    {
         throw NExcept((std::string("Could not find the default JSON DB file at ") + nb::str(py_path).c_str()).c_str());
+    }
     auto path = nb::cast<std::string>(nb::str(py_path));
     path_ctx.attr("__exit__")(nb::none(), nb::none(), nb::none());
     return path;
@@ -80,7 +82,7 @@ void init_novatel_common(nb::module_& m)
         .value("RECEIVER_STATUS", oem::ASCII_HEADER::RECEIVER_STATUS, "Receiver status.")
         .value("MSG_DEF_CRC", oem::ASCII_HEADER::MSG_DEF_CRC, "Reserved Field.")
         .value("RECEIVER_SW_VERSION", oem::ASCII_HEADER::RECEIVER_SW_VERSION, "Receiver software version.")
-        .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
+        .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
 
     nb::enum_<novatel::edie::HEADER_FORMAT>(m, "HEADER_FORMAT")
         .value("UNKNOWN", novatel::edie::HEADER_FORMAT::UNKNOWN)
@@ -94,10 +96,10 @@ void init_novatel_common(nb::module_& m)
         .value("JSON", novatel::edie::HEADER_FORMAT::JSON)
         .value("SHORT_ABB_ASCII", novatel::edie::HEADER_FORMAT::SHORT_ABB_ASCII)
         .value("ALL", novatel::edie::HEADER_FORMAT::ALL)
-        .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
+        .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
 
     nb::class_<oem::MetaDataStruct>(m, "MetaData")
-        .def(nb::init<>())
+        .def(nb::init())
         .def(nb::init<novatel::edie::HEADER_FORMAT, uint32_t>(), "format"_a, "length"_a)
         .def_rw("format", &oem::MetaDataStruct::eFormat)
         .def_rw("measurement_source", &oem::MetaDataStruct::eMeasurementSource)
@@ -112,25 +114,25 @@ void init_novatel_common(nb::module_& m)
         .def_rw("message_id", &oem::MetaDataStruct::usMessageId)
         .def_rw("message_crc", &oem::MetaDataStruct::uiMessageCrc)
         .def_prop_rw(
-            "message_name", [](oem::MetaDataStruct& self) { return nb::cast(self.acMessageName); },
-            [](oem::MetaDataStruct& self, std::string message_name) {
-                if (message_name.length() > oem::OEM4_ASCII_MESSAGE_NAME_MAX) throw std::runtime_error("Message name is too long");
+            "message_name", [](const oem::MetaDataStruct& self) { return nb::cast(self.acMessageName); },
+            [](oem::MetaDataStruct& self, const std::string& message_name) {
+                if (message_name.length() > oem::OEM4_ASCII_MESSAGE_NAME_MAX) { throw std::runtime_error("Message name is too long"); }
                 memcpy(self.acMessageName, message_name.c_str(), message_name.length());
                 self.acMessageName[message_name.length()] = '\0';
             })
         .def_prop_ro("message_description",
-                     [](oem::MetaDataStruct& self) {
+                     [](const oem::MetaDataStruct& self) {
                          auto msg_def = JsonDbSingleton::get()->GetMsgDef(self.usMessageId);
                          return msg_def ? nb::cast(msg_def->description) : nb::none();
                      })
         .def_prop_ro("message_fields",
-                     [](oem::MetaDataStruct& self) {
+                     [](const oem::MetaDataStruct& self) {
                          auto msg_def = JsonDbSingleton::get()->GetMsgDef(self.usMessageId);
-                         if (!msg_def) return nb::none();
+                         if (!msg_def) { return nb::none(); }
                          auto fields_it = msg_def->fields.find(self.uiMessageCrc);
                          return fields_it == msg_def->fields.end() ? nb::none() : nb::cast(fields_it->second);
                      })
-        .def("__repr__", [](nb::handle self) {
+        .def("__repr__", [](const nb::handle self) {
             auto& metadata = nb::cast<oem::MetaDataStruct&>(self);
             return nb::str("MetaData(message_name={!r}, format={!r}, measurement_source={!r}, time_status={!r}, response={!r}, "
                            "week={!r}, milliseconds={!r}, binary_msg_length={!r}, length={!r}, header_length={!r}, message_id={!r}, "
@@ -141,7 +143,7 @@ void init_novatel_common(nb::module_& m)
         });
 
     nb::class_<oem::IntermediateHeader>(m, "Header")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_rw("message_id", &oem::IntermediateHeader::usMessageId)
         .def_rw("message_type", &oem::IntermediateHeader::ucMessageType)
         .def_rw("port_address", &oem::IntermediateHeader::uiPortAddress)
@@ -154,7 +156,7 @@ void init_novatel_common(nb::module_& m)
         .def_rw("receiver_status", &oem::IntermediateHeader::uiReceiverStatus)
         .def_rw("message_definition_crc", &oem::IntermediateHeader::uiMessageDefinitionCrc)
         .def_rw("receiver_sw_version", &oem::IntermediateHeader::usReceiverSwVersion)
-        .def("__repr__", [](nb::handle self) {
+        .def("__repr__", [](const nb::handle self) {
             auto& header = nb::cast<oem::IntermediateHeader&>(self);
             return nb::str("Header(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
                            "idle_time={!r}, time_status={!r}, week={!r}, milliseconds={!r}, receiver_status={!r}, "
@@ -165,16 +167,16 @@ void init_novatel_common(nb::module_& m)
         });
 
     nb::class_<oem::Oem4BinaryHeader>(m, "Oem4BinaryHeader")
-        .def(nb::init<>())
+        .def(nb::init())
         .def("__init__",
-             [](oem::Oem4BinaryHeader* t, nb::bytes header_data) {
+             [](oem::Oem4BinaryHeader* t, const nb::bytes& header_data) {
                  if (nb::len(header_data) < sizeof(oem::Oem4BinaryHeader))
                  {
                      throw nb::value_error(nb::str("Invalid header data length: {} instead of {} bytes")
                                                .format(nb::len(header_data), sizeof(oem::Oem4BinaryHeader))
                                                .c_str());
                  }
-                 auto* header = new (t) oem::Oem4BinaryHeader();
+                 auto* header = new (t) oem::Oem4BinaryHeader(); // NOLINT(*.NewDeleteLeaks)
                  memcpy(header, header_data.c_str(), sizeof(oem::Oem4BinaryHeader));
              })
         .def_rw("sync1", &oem::Oem4BinaryHeader::ucSync1, "First sync byte of Header.")
@@ -193,27 +195,27 @@ void init_novatel_common(nb::module_& m)
         .def_rw("status", &oem::Oem4BinaryHeader::uiStatus, "Status of the log.")
         .def_rw("msg_def_crc", &oem::Oem4BinaryHeader::usMsgDefCrc, "Message def CRC of binary log.")
         .def_rw("receiver_sw_version", &oem::Oem4BinaryHeader::usReceiverSwVersion, "Receiver Software version.")
-        .def("__bytes__", [](oem::Oem4BinaryHeader& self) { return nb::bytes((char*)&self, sizeof(oem::Oem4BinaryHeader)); })
-        .def("__repr__", [](oem::Oem4BinaryHeader& self) {
+        .def("__bytes__", [](const oem::Oem4BinaryHeader& self) { return nb::bytes(&self, sizeof(oem::Oem4BinaryHeader)); })
+        .def("__repr__", [](const oem::Oem4BinaryHeader& self) {
             return nb::str("Oem4BinaryHeader(sync1={!r}, sync2={!r}, sync3={!r}, header_length={!r}, msg_number={!r}, "
                            "msg_type={!r}, port={!r}, length={!r}, sequence_number={!r}, idle_time={!r}, time_status={}, "
                            "week_no={!r}, week_milliseconds={!r}, status={!r}, msg_def_crc={!r}, receiver_sw_version={!r})")
                 .format(self.ucSync1, self.ucSync2, self.ucSync3, self.ucHeaderLength, self.usMsgNumber, self.ucMsgType, self.ucPort, self.usLength,
-                        self.usSequenceNumber, self.ucIdleTime, TIME_STATUS(self.ucTimeStatus), self.usWeekNo, self.uiWeekMSec, self.uiStatus,
-                        self.usMsgDefCrc, self.usReceiverSwVersion);
+                        self.usSequenceNumber, self.ucIdleTime, static_cast<TIME_STATUS>(self.ucTimeStatus), self.usWeekNo, self.uiWeekMSec,
+                        self.uiStatus, self.usMsgDefCrc, self.usReceiverSwVersion);
         });
 
     nb::class_<oem::Oem4BinaryShortHeader>(m, "Oem4BinaryShortHeader")
-        .def(nb::init<>())
+        .def(nb::init())
         .def("__init__",
-             [](oem::Oem4BinaryShortHeader* t, nb::bytes header_data) {
+             [](oem::Oem4BinaryShortHeader* t, const nb::bytes& header_data) {
                  if (nb::len(header_data) != sizeof(oem::Oem4BinaryShortHeader))
                  {
                      throw nb::value_error(nb::str("Invalid header data length: {} instead of {}")
                                                .format(nb::len(header_data), sizeof(oem::Oem4BinaryShortHeader))
                                                .c_str());
                  }
-                 auto* header = new (t) oem::Oem4BinaryShortHeader();
+                 auto* header = new (t) oem::Oem4BinaryShortHeader(); // NOLINT(*.NewDeleteLeaks)
                  memcpy(header, header_data.c_str(), sizeof(oem::Oem4BinaryShortHeader));
              })
         .def_rw("sync1", &oem::Oem4BinaryShortHeader::ucSync1, "First sync byte of Header.")
@@ -223,8 +225,8 @@ void init_novatel_common(nb::module_& m)
         .def_rw("message_id", &oem::Oem4BinaryShortHeader::usMessageId, "Message ID of the log.")
         .def_rw("week_no", &oem::Oem4BinaryShortHeader::usWeekNo, "GPS Week number.")
         .def_rw("week_msec", &oem::Oem4BinaryShortHeader::uiWeekMSec, "GPS Week seconds.")
-        .def("__bytes__", [](oem::Oem4BinaryShortHeader& self) { return nb::bytes((char*)&self, sizeof(oem::Oem4BinaryShortHeader)); })
-        .def("__repr__", [](oem::Oem4BinaryShortHeader& self) {
+        .def("__bytes__", [](const oem::Oem4BinaryShortHeader& self) { return nb::bytes(&self, sizeof(oem::Oem4BinaryShortHeader)); })
+        .def("__repr__", [](const oem::Oem4BinaryShortHeader& self) {
             return nb::str("Oem4BinaryShortHeader(sync1={!r}, sync2={!r}, sync3={!r}, length={!r}, message_id={!r}, "
                            "week_no={!r}, week_msec={!r})")
                 .format(self.ucSync1, self.ucSync2, self.ucSync3, self.ucLength, self.usMessageId, self.usWeekNo, self.uiWeekMSec);

@@ -51,7 +51,7 @@ void init_common_json_reader(nb::module_& m)
     m.attr("str_to_FIELD_TYPE") = FieldTypeEnumLookup;
 
     nb::class_<EnumDataType>(m, "EnumDataType", "Enum Data Type representing contents of UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def(nb::init<std::string, uint32_t, std::string>(), "name"_a, "value"_a, "description"_a = "")
         .def_rw("value", &EnumDataType::value)
         .def_rw("name", &EnumDataType::name)
@@ -64,7 +64,7 @@ void init_common_json_reader(nb::module_& m)
         });
 
     nb::class_<EnumDefinition>(m, "EnumDefinition", "Enum Definition representing contents of UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_rw("id", &EnumDefinition::_id)
         .def_rw("name", &EnumDefinition::name)
         .def_rw("enumerators", &EnumDefinition::enumerators)
@@ -73,17 +73,17 @@ void init_common_json_reader(nb::module_& m)
         });
 
     nb::class_<BaseDataType>(m, "BaseDataType", "Struct containing basic elements of data type fields in the UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_rw("name", &BaseDataType::name)
         .def_rw("length", &BaseDataType::length)
         .def_rw("description", &BaseDataType::description);
 
     nb::class_<SimpleDataType, BaseDataType>(m, "SimpleDataType", "Struct containing elements of simple data type fields in the UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_rw("enums", &SimpleDataType::enums);
 
     nb::class_<BaseField>(m, "BaseField", "Struct containing elements of basic fields in the UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def(nb::init<std::string, FIELD_TYPE, std::string, size_t, DATA_TYPE>(), "name"_a, "type"_a, "conversion"_a, "length"_a, "data_type"_a)
         .def_rw("name", &BaseField::name)
         .def_rw("type", &BaseField::type)
@@ -97,20 +97,22 @@ void init_common_json_reader(nb::module_& m)
         .def("__repr__", [](const BaseField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             if (desc.empty() && field.conversion.empty())
+            {
                 return nb::str("BaseField(name={!r}, type={}, data_type={})").format(field.name, nb::cast(field.type), field.dataType.name);
+            }
             return nb::str("BaseField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r})")
                 .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion);
         });
 
     nb::class_<EnumField, BaseField>(m, "EnumField", "Struct containing elements of enum fields in the UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def(
             "__init__",
             [](EnumField* t, std::string name, std::vector<EnumDataType> enumerators) {
                 auto enum_def = std::make_shared<EnumDefinition>();
                 enum_def->name = name;
                 enum_def->enumerators = std::move(enumerators);
-                auto* field = new (t) EnumField;
+                auto* field = new (t) EnumField; // NOLINT(*.NewDeleteLeaks)
                 field->name = name;
                 field->enumDef = std::move(enum_def);
                 field->type = FIELD_TYPE::ENUM;
@@ -127,7 +129,7 @@ void init_common_json_reader(nb::module_& m)
         });
 
     nb::class_<ArrayField, BaseField>(m, "ArrayField", "Struct containing elements of array fields in the UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_rw("array_length", &ArrayField::arrayLength)
         .def("clone", &ArrayField::Clone)
         .def("__repr__", [](const ArrayField& field) {
@@ -137,7 +139,7 @@ void init_common_json_reader(nb::module_& m)
         });
 
     nb::class_<FieldArrayField, BaseField>(m, "FieldArrayField", "Struct containing elements of field array fields in the UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_rw("field_size", &FieldArrayField::fieldSize)
         .def_rw("fields", &FieldArrayField::fields, nb::rv_policy::reference_internal)
@@ -151,7 +153,7 @@ void init_common_json_reader(nb::module_& m)
         });
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_rw("id", &MessageDefinition::_id)
         .def_rw("log_id", &MessageDefinition::logID)
         .def_rw("name", &MessageDefinition::name)
@@ -159,7 +161,7 @@ void init_common_json_reader(nb::module_& m)
         .def_prop_ro("fields",
                      [](MessageDefinition& self) {
                          nb::dict py_map;
-                         for (const auto& [id, value] : self.fields) py_map[nb::cast(id)] = nb::cast(value);
+                         for (const auto& [id, value] : self.fields) { py_map[nb::cast(id)] = nb::cast(value); }
                          return py_map;
                      })
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)
@@ -170,13 +172,13 @@ void init_common_json_reader(nb::module_& m)
         });
 
     nb::class_<JsonReader>(m, "JsonReader")
-        .def(nb::init<>())
+        .def(nb::init())
         .def(
             "__init__",
             [](JsonReader* t, std::u32string path) {
                 JsonReader reader;
                 reader.LoadFile(path);
-                new (t) JsonReader(reader);
+                new (t) JsonReader(reader); // NOLINT(*.NewDeleteLeaks)
             },
             "file_path"_a)
         .def("load_file", &JsonReader::LoadFile<std::u32string>, "file_path"_a)

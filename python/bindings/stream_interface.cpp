@@ -43,12 +43,12 @@ void init_stream_interface(nb::module_& m)
         .export_values();
 
     nb::class_<ReadDataStructure>(m, "ReadDataStructure")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_ro("size", &ReadDataStructure::uiDataSize)
         .def_ro("data", &ReadDataStructure::cData);
 
     nb::class_<StreamReadStatus>(m, "StreamReadStatus")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_ro("percent_read", &StreamReadStatus::uiPercentStreamRead)
         .def_ro("last_count", &StreamReadStatus::uiCurrentStreamRead)
         .def_ro("length", &StreamReadStatus::ullStreamLength)
@@ -99,7 +99,7 @@ void init_stream_interface(nb::module_& m)
     // # stream_interface/multioutputfilestream.hpp
 
     nb::class_<MultiOutputFileStream>(m, "MultiOutputFileStream")
-        .def(nb::init<>())
+        .def(nb::init())
         .def("select_file_stream", nb::overload_cast<const std::u32string&>(&MultiOutputFileStream::SelectFileStream), "file_name"_a)
         .def("clear_file_stream_map", &MultiOutputFileStream::ClearWCFileStreamMap)
         .def(
@@ -109,10 +109,11 @@ void init_stream_interface(nb::module_& m)
         .def("select_size_file", &MultiOutputFileStream::SelectWCSizeFile, "size"_a)
         .def("select_time_file", &MultiOutputFileStream::SelectWCTimeFile, "status"_a, "week"_a, "milliseconds"_a)
         .def(
-            "write", [](MultiOutputFileStream& self, nb::bytes& data) { return self.WriteData(data.c_str(), data.size()); }, "data"_a)
+            "write", [](MultiOutputFileStream& self, const nb::bytes& data) { return self.WriteData(data.c_str(), data.size()); }, "data"_a)
         .def(
             "write",
-            [](MultiOutputFileStream& self, nb::bytes& data, std::string msg_name, uint32_t size, novatel::edie::TIME_STATUS status, uint16_t week,
+            [](MultiOutputFileStream& self, const nb::bytes& data, std::string msg_name, uint32_t size, novatel::edie::TIME_STATUS status,
+               uint16_t week,
                double milliseconds) { return self.WriteData(data.c_str(), data.size(), std::move(msg_name), size, status, week, milliseconds); },
             "data"_a, "msg_name"_a, "size"_a, "status"_a, "week"_a, "milliseconds"_a)
         .def("configure_split_by_log", &MultiOutputFileStream::ConfigureSplitByLog, "status"_a)
@@ -121,7 +122,7 @@ void init_stream_interface(nb::module_& m)
         .def_prop_ro("file_map",
                      [](MultiOutputFileStream& self) {
                          nb::dict py_map;
-                         for (const auto& [key, value] : self.Get32FileMap()) py_map[nb::cast(key)] = nb::cast(value, nb::rv_policy::reference);
+                         for (const auto& [key, value] : self.Get32FileMap()) { py_map[nb::cast(key)] = nb::cast(value, nb::rv_policy::reference); }
                          return py_map;
                      })
         .def(
@@ -183,6 +184,6 @@ void init_stream_interface(nb::module_& m)
     nb::class_<OutputFileStream>(m, "OutputFileStream")
         .def(nb::init<const std::u32string>(), "file_name"_a)
         .def(
-            "write", [](OutputFileStream& self, nb::bytes& data) { return self.WriteData(data.c_str(), data.size()); }, "data"_a)
+            "write", [](OutputFileStream& self, const nb::bytes& data) { return self.WriteData(data.c_str(), data.size()); }, "data"_a)
         .def_ro("file_stream", &OutputFileStream::pOutFileStream);
 }

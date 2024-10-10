@@ -37,13 +37,13 @@ nb::object convert_field(const FieldContainer& field)
                 for (const auto& sub_field : message_field)
                 {
                     auto c = std::get<uint8_t>(sub_field.fieldValue);
-                    if (c == 0) break;
+                    if (c == 0) { break; }
                     str.push_back(c);
                 }
                 return nb::cast(str);
             }
-            std::vector<nb::object> sub_values;
-            for (const auto& sub_field : message_field) sub_values.push_back(convert_field(sub_field));
+            std::vector<nb::object> sub_values(message_field.size());
+            std::transform(message_field.begin(), message_field.end(), sub_values.begin(), convert_field);
             return nb::cast(sub_values);
         }
         else
@@ -73,7 +73,7 @@ nb::dict& PyIntermediateMessage::values() const
 {
     if (cached_values_.size() == 0)
     {
-        for (const auto& field : message) cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field);
+        for (const auto& field : message) { cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field); }
     }
     return cached_values_;
 }
@@ -82,7 +82,7 @@ nb::dict& PyIntermediateMessage::fields() const
 {
     if (cached_fields_.size() == 0)
     {
-        for (const auto& field : message) cached_fields_[nb::cast(field.fieldDef->name)] = field.fieldDef;
+        for (const auto& field : message) { cached_fields_[nb::cast(field.fieldDef->name)] = field.fieldDef; }
     }
     return cached_fields_;
 }
@@ -90,29 +90,27 @@ nb::dict& PyIntermediateMessage::fields() const
 nb::dict PyIntermediateMessage::to_dict() const
 {
     nb::dict dict;
-    for (const auto& item : values())
+    for (const auto& [field_name, value] : values())
     {
-        if (nb::isinstance<PyIntermediateMessage>(item.second)) { dict[item.first] = nb::cast<PyIntermediateMessage>(item.second).to_dict(); }
-        else if (nb::isinstance<std::vector<nb::object>>(item.second))
+        if (nb::isinstance<PyIntermediateMessage>(value)) { dict[field_name] = nb::cast<PyIntermediateMessage>(value).to_dict(); }
+        else if (nb::isinstance<std::vector<nb::object>>(value))
         {
             nb::list list;
-            for (const auto& sub_item : nb::cast<std::vector<nb::object>>(item.second))
+            for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value))
             {
-                if (nb::isinstance<PyIntermediateMessage>(sub_item))
-                    list.append(nb::cast<PyIntermediateMessage>(sub_item).to_dict());
-                else
-                    list.append(sub_item);
+                if (nb::isinstance<PyIntermediateMessage>(sub_item)) { list.append(nb::cast<PyIntermediateMessage>(sub_item).to_dict()); }
+                else { list.append(sub_item); }
             }
-            dict[item.first] = list;
+            dict[field_name] = list;
         }
-        else { dict[item.first] = item.second; }
+        else { dict[field_name] = value; }
     }
     return dict;
 }
 
 nb::object PyIntermediateMessage::getattr(nb::str field_name) const
 {
-    if (!contains(field_name)) throw nb::attribute_error(field_name.c_str());
+    if (!contains(field_name)) { throw nb::attribute_error(field_name.c_str()); }
     return values()[std::move(field_name)];
 }
 
@@ -127,11 +125,11 @@ std::string PyIntermediateMessage::repr() const
     std::stringstream repr;
     repr << "(";
     bool first = true;
-    for (const auto& item : values())
+    for (const auto& [field_name, value] : values())
     {
         if (!first) { repr << ", "; }
         first = false;
-        repr << nb::str("{}={!r}").format(item.first, item.second).c_str();
+        repr << nb::str("{}={!r}").format(field_name, value).c_str();
     }
     repr << ")";
     return repr.str();
@@ -141,14 +139,14 @@ std::string PyIntermediateMessage::repr() const
 class DecoderTester : public oem::MessageDecoder
 {
   public:
-    [[nodiscard]] STATUS TestDecodeBinary(const std::vector<BaseField::Ptr> MsgDefFields_, const unsigned char** ppucLogBuf_,
-                                          IntermediateMessage& vIntermediateFormat_, uint32_t uiMessageLength_)
+    [[nodiscard]] STATUS TestDecodeBinary(const std::vector<BaseField::Ptr> MsgDefFields_, const uint8_t** ppucLogBuf_,
+                                          IntermediateMessage& vIntermediateFormat_, uint32_t uiMessageLength_) const
     {
         return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, uiMessageLength_);
     }
 
     [[nodiscard]] STATUS TestDecodeAscii(const std::vector<BaseField::Ptr> MsgDefFields_, const char** ppcLogBuf_,
-                                         IntermediateMessage& vIntermediateFormat_)
+                                         IntermediateMessage& vIntermediateFormat_) const
     {
         return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
     }
@@ -176,14 +174,14 @@ void init_novatel_message_decoder(nb::module_& m)
 
     nb::class_<oem::MessageDecoder>(m, "MessageDecoder")
         .def(nb::init<JsonReader::Ptr>(), "json_db"_a)
-        .def("__init__", [](oem::MessageDecoder* t) { new (t) oem::MessageDecoder(JsonDbSingleton::get()); })
+        .def("__init__", [](oem::MessageDecoder* t) { new (t) oem::MessageDecoder(JsonDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
         .def("load_json_db", &oem::MessageDecoder::LoadJsonDb, "json_db"_a)
         .def_prop_ro("logger", [](oem::MessageDecoder& decoder) { return decoder.GetLogger(); })
         .def(
             "decode",
-            [](oem::MessageDecoder& decoder, nb::bytes message_body, oem::MetaDataStruct& metadata) {
+            [](const oem::MessageDecoder& decoder, const nb::bytes& message_body, oem::MetaDataStruct& metadata) {
                 IntermediateMessage message;
-                STATUS status = decoder.Decode((unsigned char*)message_body.c_str(), message, metadata);
+                STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(message_body.c_str()), message, metadata);
                 return nb::make_tuple(status, PyIntermediateMessage(std::move(message)));
             },
             "message_body"_a, "metadata"_a)
@@ -205,7 +203,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 IntermediateMessage message;
                 const char* data_ptr = message_body.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(
-                    msg_def_fields, reinterpret_cast<const unsigned char**>(&data_ptr), message, message_length);
+                    msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr), message, message_length);
                 return nb::make_tuple(status, PyIntermediateMessage(std::move(message)));
             },
             "msg_def_fields"_a, "message_body"_a, "message_length"_a);

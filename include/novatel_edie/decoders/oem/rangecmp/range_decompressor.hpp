@@ -114,10 +114,10 @@ class RangeDecompressor
                                                  ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
                                                  ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
     template <bool bIsSecondary>
-    void DecompressReferenceBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_,
+    void DecompressReferenceBlock(const uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_,
                                   MEASUREMENT_SOURCE eMeasurementSource_);
     template <bool bIsSecondary>
-    void DecompressDifferentialBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stDifferentialBlock_,
+    void DecompressDifferentialBlock(const uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stDifferentialBlock_,
                                      const RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_, double dSecondOffset_);
     void PopulateNextRangeData(RangeDataStruct& stRangeData_, const RangeCmp4MeasurementSignalBlockStruct& stBlock_,
                                const MetaDataStruct& stMetaData_, const ChannelTrackingStatusStruct& stChannelTrackingStatus_, uint32_t uiPRN_,
@@ -125,13 +125,13 @@ class RangeDecompressor
 
     static void RangeCmpToRange(const RangeCmpStruct& stRangeCmpMessage_, RangeStruct& stRangeMessage_);
     void RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Message_, RangeStruct& stRangeMessage_, const MetaDataStruct& stMetaData_);
-    void RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& pstMetaData_);
+    void RangeCmp4ToRange(const uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& pstMetaData_);
 
     // Protected members to be accessed by test child classes.
   protected:
     uint32_t uiMyBytesRemaining{0U};
     uint32_t uiMyBitOffset{0U};
-    uint64_t GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uint32_t uiBitsInBitfield_);
+    uint64_t GetBitfieldFromBuffer(const uint8_t** ppucDataBuffer_, uint32_t uiBitsInBitfield_);
 };
 
 } // namespace novatel::edie::oem

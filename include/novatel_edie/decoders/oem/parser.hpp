@@ -231,7 +231,7 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_);
+    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_);
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.

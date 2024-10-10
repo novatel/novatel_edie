@@ -53,10 +53,10 @@ void init_common_logger(nb::module_& m)
         .def_prop_ro("flush_level", &spd::logger::flush_level)
         .def("set_error_handler", &spd::logger::set_error_handler, "handler"_a)
         .def("clone", &spd::logger::clone, "logger_name"_a)
-        .def("__repr__", [](spd::logger& logger) { return nb::str("<_SpdlogLogger: {}, {}>").format(logger.name(), logger.level()); });
+        .def("__repr__", [](const spd::logger& logger) { return nb::str("<_SpdlogLogger: {}, {}>").format(logger.name(), logger.level()); });
 
     nb::class_<Logger>(m, "Logging")
-        .def(nb::init<>())
+        .def(nb::init())
         // .def(nb::init<std::string>(), "logger_config_path_"_a)
         .def_static("get", spdlog::get, "logger_name"_a, "Returns spdlog::get(logger_name).")
         .def_static("shutdown", &Logger::Shutdown, "Stop any running threads started by spdlog and clean registry loggers")

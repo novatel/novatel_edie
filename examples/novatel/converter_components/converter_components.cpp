@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
     while (!stReadStatus.bEOS)
     {
         stReadStatus = clIfs.ReadData(stReadData);
-        clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
+        clFramer.Write(reinterpret_cast<const unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 

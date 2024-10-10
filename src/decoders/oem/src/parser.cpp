@@ -187,7 +187,7 @@ ENCODE_FORMAT Parser::GetEncodeFormat() const { return eMyEncodeFormat; }
 unsigned char* Parser::GetInternalBuffer() const { return pucMyFrameBufferPointer; }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t Parser::Write(unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+uint32_t Parser::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS

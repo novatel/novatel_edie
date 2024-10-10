@@ -8,14 +8,14 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-novatel::edie::DecoderException::DecoderException(nb::handle_t<STATUS> status, std::string message) : msg(std::move(message))
+DecoderException::DecoderException(nb::handle_t<STATUS> status, std::string message) : msg(std::move(message))
 {
     std::string name = nb::str(status).c_str();
-    if (!msg.empty()) msg += " - ";
+    if (!msg.empty()) { msg += " - "; }
     msg += name + ": " + nb::cast<std::string>(status.doc());
 }
 
-const char* novatel::edie::DecoderException::what() const noexcept { return msg.c_str(); }
+const char* DecoderException::what() const noexcept { return msg.c_str(); }
 
 void init_common_common(nb::module_& m)
 {
@@ -103,7 +103,7 @@ void init_common_common(nb::module_& m)
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
     nb::class_<SatelliteId>(m, "SatelliteId")
-        .def(nb::init<>())
+        .def(nb::init())
         .def_rw("prn_or_slot", &SatelliteId::usPrnOrSlot)
         .def_rw("frequency_channel", &SatelliteId::sFrequencyChannel)
         .def("__repr__", [](SatelliteId id) {
