@@ -111,9 +111,9 @@ int main(int argc, char* argv[])
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 
     // Set up file streams
-    std::ifstream clIfs(pathInFilename, std::ios::binary);
-    std::ofstream clConvertedLogsOfs(pathInFilename.string() + "." + sEncodeFormat, std::ios::binary);
-    std::ofstream clUnknownBytesOfs(pathInFilename.string() + "." + sEncodeFormat + ".UNKNOWN", std::ios::binary);
+    std::ifstream ifs(pathInFilename, std::ios::binary);
+    std::ofstream convertedOfs(pathInFilename.string() + "." + sEncodeFormat, std::ios::binary);
+    std::ofstream unknownOfs(pathInFilename.string() + "." + sEncodeFormat + ".UNKNOWN", std::ios::binary);
 
     uint32_t uiCompleteMessages = 0;
     uint32_t uiCounter = 0;
@@ -121,10 +121,10 @@ int main(int argc, char* argv[])
     tStart = std::chrono::high_resolution_clock::now();
     tLoop = std::chrono::high_resolution_clock::now();
 
-    while (!clIfs.eof())
+    while (!ifs.eof())
     {
-        clIfs.read(cData.data(), cData.size());
-        clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), clIfs.gcount());
+        ifs.read(cData.data(), cData.size());
+        clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
 
         STATUS eStatus = clParser.Read(stMessageData, stMetaData);
 
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
         {
             if (eStatus == STATUS::SUCCESS)
             {
-                clConvertedLogsOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
                 uiCompleteMessages++;

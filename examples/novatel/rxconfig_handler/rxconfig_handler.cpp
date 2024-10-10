@@ -92,9 +92,9 @@ int main(int argc, char* argv[])
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 
     // Set up file streams
-    std::ifstream clIfs(pathInFilename, std::ios::binary);
-    std::ofstream clConvertedRxConfigOfs((pathInFilename.string() + std::string(".").append(sEncodeFormat)).c_str(), std::ios::binary);
-    std::ofstream clStrippedRxConfigOfs((pathInFilename.string() + std::string(".STRIPPED.").append(sEncodeFormat)).c_str(), std::ios::binary);
+    std::ifstream ifs(pathInFilename, std::ios::binary);
+    std::ofstream convertedOfs((pathInFilename.string() + std::string(".").append(sEncodeFormat)).c_str(), std::ios::binary);
+    std::ofstream strippedOfs((pathInFilename.string() + std::string(".STRIPPED.").append(sEncodeFormat)).c_str(), std::ios::binary);
 
     MetaDataStruct stMetaData;
     MetaDataStruct stEmbeddedMetaData;
@@ -103,10 +103,10 @@ int main(int argc, char* argv[])
 
     RxConfigHandler clRxConfigHandler(&clJsonDb);
 
-    while (!clIfs.eof())
+    while (!ifs.eof())
     {
-        clIfs.read(cData.data(), cData.size());
-        clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(cData.data()), clIfs.gcount());
+        ifs.read(cData.data(), cData.size());
+        clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
 
         STATUS eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
             {
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
-                clConvertedRxConfigOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
 
                 // Make the embedded message valid by flipping the CRC.
                 if (eEncodeFormat == ENCODE_FORMAT::ASCII)
@@ -126,8 +126,8 @@ int main(int argc, char* argv[])
                         reinterpret_cast<char*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) - OEM4_ASCII_CRC_LENGTH);
                     uint32_t uiFlippedCrc = strtoul(pcCrcBegin, nullptr, 16) ^ 0xFFFFFFFF;
                     snprintf(pcCrcBegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", uiFlippedCrc);
-                    clStrippedRxConfigOfs.write(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
-                    clStrippedRxConfigOfs.write("\r\n", 2);
+                    strippedOfs.write(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
+                    strippedOfs.write("\r\n", 2);
                 }
                 else if (eEncodeFormat == ENCODE_FORMAT::BINARY)
                 {
@@ -135,13 +135,13 @@ int main(int argc, char* argv[])
                     auto* puiCrcBegin = reinterpret_cast<uint32_t*>((stEmbeddedMessageData.pucMessage + stEmbeddedMessageData.uiMessageLength) -
                                                                     OEM4_BINARY_CRC_LENGTH);
                     *puiCrcBegin ^= 0xFFFFFFFF;
-                    clStrippedRxConfigOfs.write(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
+                    strippedOfs.write(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
                 }
                 else if (eEncodeFormat == ENCODE_FORMAT::JSON)
                 {
                     // Write in a comma and CRLF to make the files parse-able by JSON readers.
-                    clConvertedRxConfigOfs.write(",\r\n", 3);
-                    clStrippedRxConfigOfs.write(",\r\n", 3);
+                    convertedOfs.write(",\r\n", 3);
+                    strippedOfs.write(",\r\n", 3);
                 }
             }
 

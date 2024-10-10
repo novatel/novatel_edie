@@ -122,8 +122,8 @@ int main(int argc, char* argv[])
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
-    std::ifstream clIfs(pathInFilename, std::ios::binary);
-    std::ofstream clOfs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str(), std::ios::binary);
+    std::ifstream ifs(pathInFilename, std::ios::binary);
+    std::ofstream ofs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str(), std::ios::binary);
 
     auto eStatus = STATUS::UNKNOWN;
 
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
                 if (eStatus == STATUS::SUCCESS)
                 {
                     uiCompletedMessages++;
-                    clOfs.write(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
+                    ofs.write(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
                 }
                 else if (eStatus == STATUS::UNSUPPORTED)
                 {
@@ -177,14 +177,14 @@ int main(int argc, char* argv[])
         else if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE)
         {
             // Read from file, write to framer.
-            clIfs.read(cData.data(), cData.size());
-            if (clIfs.gcount() == 0)
+            ifs.read(cData.data(), cData.size());
+            if (ifs.gcount() == 0)
             {
                 pclLogger->info("Stream finished");
                 break;
             }
 
-            clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), clIfs.gcount());
+            clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
         }
     }
 
