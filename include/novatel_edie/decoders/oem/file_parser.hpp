@@ -43,8 +43,7 @@ class FileParser
 
     Parser clMyParser;
     std::ifstream* pclMyInputStream{nullptr};
-    uint32_t uiDataSize{Parser::uiParserInternalBufferSize}; // TODO: delete this?
-    std::unique_ptr<char[]> cData{std::make_unique<char[]>(Parser::uiParserInternalBufferSize)};
+    std::unique_ptr<char[]> cData{std::make_unique<char[]>(MAX_ASCII_MESSAGE_LENGTH)};
 
     [[nodiscard]] bool ReadStream();
 

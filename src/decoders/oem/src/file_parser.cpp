@@ -120,8 +120,7 @@ bool FileParser::SetStream(std::ifstream* pclInputStream_)
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::ReadStream()
 {
-    uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
-    pclMyInputStream->read(cData.get(), uiDataSize);
+    pclMyInputStream->read(cData.get(), MAX_ASCII_MESSAGE_LENGTH);
     return pclMyInputStream->gcount() > 0 &&
            clMyParser.Write(reinterpret_cast<unsigned char*>(cData.get()), pclMyInputStream->gcount()) == pclMyInputStream->gcount();
 }
