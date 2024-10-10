@@ -29,7 +29,6 @@
 
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/oem/parser.hpp>
-#include <novatel_edie/stream_interface/filestream.hpp>
 #include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
@@ -109,18 +108,12 @@ int main(int argc, char* argv[])
 
     clParser.SetFilter(&clFilter);
 
-    // Initialize FS structures and buffers
-    StreamReadStatus stReadStatus;
-    ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
+    std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 
     // Set up file streams
-    FileStream clIfs(pathInFilename.string().c_str());
-    FileStream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str());
-    FileStream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str());
-    clIfs.OpenFile(FileStream::FILE_MODES::INPUT);
-    clIfs.GetFileSize();
-    clConvertedLogsOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
-    clUnknownBytesOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
+    std::ifstream clIfs(pathInFilename.string().c_str(), std::ios::binary);
+    std::ofstream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str(), std::ios::binary);
+    std::ofstream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str(), std::ios::binary);
 
     uint32_t uiCompleteMessages = 0;
     uint32_t uiCounter = 0;
@@ -128,11 +121,10 @@ int main(int argc, char* argv[])
     tStart = std::chrono::high_resolution_clock::now();
     tLoop = std::chrono::high_resolution_clock::now();
 
-    while (!stReadStatus.bEOS)
+    while (!clIfs.eof())
     {
-        // stReadData.cData = reinterpret_cast<char*>(acIfsReadBuffer);
-        stReadStatus = clIfs.ReadFile(stReadData.cData.get(), stReadData.uiDataSize);
-        clParser.Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
+        clIfs.read(cData.data(), cData.size());
+        clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), clIfs.gcount());
 
         STATUS eStatus = clParser.Read(stMessageData, stMetaData);
 
@@ -140,7 +132,8 @@ int main(int argc, char* argv[])
         {
             if (eStatus == STATUS::SUCCESS)
             {
-                clConvertedLogsOfs.WriteFile(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                clConvertedLogsOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                clConvertedLogsOfs.flush();
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
                 uiCompleteMessages++;

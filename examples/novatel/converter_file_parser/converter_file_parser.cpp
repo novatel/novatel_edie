@@ -31,7 +31,6 @@
 
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/oem/file_parser.hpp>
-#include <novatel_edie/stream_interface/filestream.hpp>
 #include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
@@ -113,17 +112,10 @@ int main(int argc, char* argv[])
     clFileParser.SetFilter(&clFilter);
     clFileParser.SetEncodeFormat(eEncodeFormat);
 
-    // Initialize FS structures and buffers
-    ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
-
     // Set up file streams
-    FileStream clIfs(pathInFilename.string().c_str());
-    FileStream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str());
-    FileStream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str());
-    clIfs.OpenFile(FileStream::FILE_MODES::INPUT);
-    clIfs.GetFileSize();
-    clConvertedLogsOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
-    clUnknownBytesOfs.OpenFile(FileStream::FILE_MODES::OUTPUT);
+    std::ifstream clIfs(pathInFilename.string().c_str(), std::ios::binary);
+    std::ofstream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str(), std::ios::binary);
+    std::ofstream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str(), std::ios::binary);
 
     if (!clFileParser.SetStream(&clIfs))
     {
@@ -143,7 +135,8 @@ int main(int argc, char* argv[])
             eStatus = clFileParser.Read(stMessageData, stMetaData);
             if (eStatus == STATUS::SUCCESS)
             {
-                clConvertedLogsOfs.WriteFile(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                clConvertedLogsOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                clConvertedLogsOfs.flush();
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
                 uiCompleteMessages++;
@@ -158,7 +151,7 @@ int main(int argc, char* argv[])
         if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tLoop).count() > 1000)
         {
             uiCounter++;
-            pclLogger->info("{}% {} logs/s", clFileParser.GetPercentRead(), uiCompleteMessages / uiCounter);
+            pclLogger->info("{} logs/s", uiCompleteMessages / uiCounter);
             tLoop = std::chrono::high_resolution_clock::now();
         }
     }

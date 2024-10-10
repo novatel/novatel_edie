@@ -30,17 +30,12 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::string& sDbPath_) : clMyParser(Parser(sDbPath_))
-{
-    pclMyInputStream = nullptr;
-    pclMyLogger->debug("FileParser initialized");
-}
+FileParser::FileParser(const std::string& sDbPath_) : clMyParser(Parser(sDbPath_)) { pclMyLogger->debug("FileParser initialized"); }
 
 // -------------------------------------------------------------------------------------------------------
 FileParser::FileParser(const std::u32string& sDbPath_) : clMyParser(Parser(sDbPath_))
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
-    pclMyInputStream = nullptr;
     pclMyLogger->debug("FileParser initialized");
 }
 
@@ -48,7 +43,6 @@ FileParser::FileParser(const std::u32string& sDbPath_) : clMyParser(Parser(sDbPa
 FileParser::FileParser(JsonReader* pclJsonDb_) : clMyParser(Parser(pclJsonDb_))
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
-    pclMyInputStream = nullptr;
     pclMyLogger->debug("FileParser initialized");
 }
 
@@ -108,28 +102,19 @@ Filter* FileParser::GetFilter() const { return clMyParser.GetFilter(); }
 void FileParser::SetFilter(Filter* pclFilter_) { return clMyParser.SetFilter(pclFilter_); }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t FileParser::GetPercentRead() const { return stMyStreamReadStatus.uiPercentStreamRead; }
-
-// -------------------------------------------------------------------------------------------------------
 unsigned char* FileParser::GetInternalBuffer() const { return clMyParser.GetInternalBuffer(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool FileParser::SetStream(FileStream* pclInputStream_)
+bool FileParser::SetStream(std::ifstream* pclInputStream_)
 {
     if (pclInputStream_ == nullptr) { return false; }
-    // TODO: This call is not implemented and returns false in the interface.
-    // Is the stream available?
-    // if (!pclInputStream_->IsStreamAvailable())
-    // {
-    //    return false;
-    // }
 
     // Are there any bytes left to read in the stream?
-    uint32_t uiReadSizeSave = stMyReadData.uiDataSize;
-    stMyReadData.uiDataSize = 0;
-    stMyStreamReadStatus = pclInputStream_->ReadFile(stMyReadData.cData.get(), stMyReadData.uiDataSize);
-    if (stMyStreamReadStatus.bEOS || stMyStreamReadStatus.uiPercentStreamRead >= 100) { return false; }
-    stMyReadData.uiDataSize = uiReadSizeSave;
+    uint32_t uiReadSizeSave = uiDataSize;
+    uiDataSize = 0;
+    pclInputStream_->read(cData.get(), uiDataSize);
+    if (pclInputStream_->eof()) { return false; }
+    uiDataSize = uiReadSizeSave;
     pclMyInputStream = pclInputStream_;
     Reset();
 
@@ -139,11 +124,10 @@ bool FileParser::SetStream(FileStream* pclInputStream_)
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::ReadStream()
 {
-    stMyReadData.uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
-    stMyStreamReadStatus = pclMyInputStream->ReadFile(stMyReadData.cData.get(), stMyReadData.uiDataSize);
-    return stMyStreamReadStatus.uiCurrentStreamRead > 0 &&
-           clMyParser.Write(reinterpret_cast<unsigned char*>(stMyReadData.cData.get()), stMyStreamReadStatus.uiCurrentStreamRead) ==
-               stMyStreamReadStatus.uiCurrentStreamRead;
+    uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
+    pclMyInputStream->read(cData.get(), uiDataSize);
+    return pclMyInputStream->gcount() > 0 &&
+           clMyParser.Write(reinterpret_cast<unsigned char*>(cData.get()), pclMyInputStream->gcount()) == pclMyInputStream->gcount();
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -170,7 +154,11 @@ bool FileParser::ReadStream()
 bool FileParser::Reset()
 {
     Flush();
-    if (pclMyInputStream != nullptr) { pclMyInputStream->SetFilePosition(0, std::ios::beg); }
+    if (pclMyInputStream != nullptr)
+    {
+        pclMyInputStream->clear();
+        pclMyInputStream->seekg(0, std::ios::beg);
+    }
     return true;
 }
 

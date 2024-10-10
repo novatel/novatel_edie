@@ -29,7 +29,6 @@
 
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/parser.hpp"
-#include "novatel_edie/stream_interface/filestream.hpp"
 
 namespace novatel::edie::oem {
 
@@ -43,9 +42,9 @@ class FileParser
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
 
     Parser clMyParser;
-    FileStream* pclMyInputStream;
-    StreamReadStatus stMyStreamReadStatus;
-    ReadDataStructure stMyReadData{Parser::uiParserInternalBufferSize};
+    std::ifstream* pclMyInputStream{nullptr};
+    uint32_t uiDataSize{Parser::uiParserInternalBufferSize};                                     /*!< Size of decoded log */
+    std::unique_ptr<char[]> cData{std::make_unique<char[]>(Parser::uiParserInternalBufferSize)}; /*!< Smart pointer for memory management */
 
     [[nodiscard]] bool ReadStream();
 
@@ -128,13 +127,6 @@ class FileParser
     [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const;
 
     //----------------------------------------------------------------------------
-    //! \brief Get the percent of the InputFileStream that has been parsed.
-    //
-    //! \return An integer percentage.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] uint32_t GetPercentRead() const;
-
-    //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
     //
     //! \param[in] bDecompressRangeCmp_ true to decompress RANGECMP messages.
@@ -197,7 +189,7 @@ class FileParser
     //
     //! \return A boolean describing if the operation was successful
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool SetStream(FileStream* pclInputStream_);
+    [[nodiscard]] bool SetStream(std::ifstream* pclInputStream_);
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the FileParser.

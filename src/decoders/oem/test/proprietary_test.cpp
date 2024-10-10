@@ -24,10 +24,11 @@
 // ! \file proprietary_test.cpp
 // ===============================================================================
 
+#include <filesystem>
+
 #include <gtest/gtest.h>
 
 #include "novatel_edie/decoders/oem/framer.hpp"
-#include "novatel_edie/stream_interface/filestream.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -36,7 +37,7 @@ class ProprietaryFramerTest : public ::testing::Test
 {
   protected:
     static std::unique_ptr<Framer> pclMyFramer;
-    static std::unique_ptr<FileStream> pclMyIFS;
+    static std::unique_ptr<std::ifstream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
 
     // Per-test-suite setup
@@ -60,19 +61,17 @@ class ProprietaryFramerTest : public ::testing::Test
   public:
     static void WriteFileStreamToFramer(const std::string& sFilename_)
     {
-        pclMyIFS = std::make_unique<FileStream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str());
-        pclMyIFS->OpenFile(FileStream::FILE_MODES::INPUT);
-        pclMyIFS->GetFileSize();
+        pclMyIFS = std::make_unique<std::ifstream>((std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_).string().c_str(),
+                                                   std::ios::binary);
 
-        StreamReadStatus stReadStatus;
-        ReadDataStructure stReadData(MAX_ASCII_MESSAGE_LENGTH);
+        std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         uint32_t uiBytesWritten = 0;
 
-        while (!stReadStatus.bEOS)
+        while (!pclMyIFS->gcount())
         {
-            stReadStatus = pclMyIFS->ReadFile(stReadData.cData.get(), stReadData.uiDataSize);
-            uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(stReadData.cData.get()), stReadStatus.uiCurrentStreamRead);
-            ASSERT_EQ(uiBytesWritten, stReadStatus.uiCurrentStreamRead);
+            pclMyIFS->read(cData.data(), cData.size());
+            uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount());
+            ASSERT_EQ(uiBytesWritten, pclMyIFS->gcount());
         }
     }
 
@@ -88,7 +87,7 @@ class ProprietaryFramerTest : public ::testing::Test
 };
 
 std::unique_ptr<Framer> ProprietaryFramerTest::pclMyFramer = nullptr;
-std::unique_ptr<FileStream> ProprietaryFramerTest::pclMyIFS = nullptr;
+std::unique_ptr<std::ifstream> ProprietaryFramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> ProprietaryFramerTest::pucMyTestFrameBuffer = nullptr;
 
 // -------------------------------------------------------------------------------------------------------
