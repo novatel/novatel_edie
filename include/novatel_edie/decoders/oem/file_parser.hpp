@@ -43,8 +43,8 @@ class FileParser
 
     Parser clMyParser;
     std::ifstream* pclMyInputStream{nullptr};
-    uint32_t uiDataSize{Parser::uiParserInternalBufferSize};                                     /*!< Size of decoded log */
-    std::unique_ptr<char[]> cData{std::make_unique<char[]>(Parser::uiParserInternalBufferSize)}; /*!< Smart pointer for memory management */
+    uint32_t uiDataSize{Parser::uiParserInternalBufferSize}; // TODO: delete this?
+    std::unique_ptr<char[]> cData{std::make_unique<char[]>(Parser::uiParserInternalBufferSize)};
 
     [[nodiscard]] bool ReadStream();
 

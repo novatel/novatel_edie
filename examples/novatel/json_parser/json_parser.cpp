@@ -142,7 +142,6 @@ int main(int argc, char* argv[])
             if (eStatus == STATUS::SUCCESS)
             {
                 clConvertedLogsOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
-                clConvertedLogsOfs.flush();
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
                 uiCompleteMessages++;

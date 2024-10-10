@@ -152,7 +152,6 @@ int main(int argc, char* argv[])
                 {
                     uiCompletedMessages++;
                     clOfs.write(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
-                    clOfs.flush();
                 }
                 else if (eStatus == STATUS::UNSUPPORTED)
                 {

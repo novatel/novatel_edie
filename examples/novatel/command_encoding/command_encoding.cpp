@@ -95,6 +95,5 @@ int main(int argc, char* argv[])
     std::string sOutFilename = std::string("COMMAND.").append(strEncodeFormat);
     std::ofstream clOutputFs(sOutFilename.c_str(), std::ios::binary);
     clOutputFs.write(pcEncodedMessageBuffer, uiEncodeBufferLength);
-    clOutputFs.flush();
     return 0;
 }

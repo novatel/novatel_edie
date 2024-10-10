@@ -166,7 +166,6 @@ int main(int argc, char* argv[])
                 if (stMetaData.bResponse)
                 {
                     clUnknownBytesOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
-                    clUnknownBytesOfs.flush();
                     continue;
                 }
 
@@ -194,36 +193,28 @@ int main(int argc, char* argv[])
                         if (eEncoderStatus == STATUS::SUCCESS)
                         {
                             clConvertedLogsOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
-                            clConvertedLogsOfs.flush();
                             stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                             pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(pucEncodedMessageBuffer));
                         }
                         else
                         {
                             clUnknownBytesOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
-                            clUnknownBytesOfs.flush();
                             pclLogger->warn("Encoder returned with status code {}", static_cast<int>(eEncoderStatus));
                         }
                     }
                     else
                     {
                         clUnknownBytesOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
-                        clUnknownBytesOfs.flush();
                         pclLogger->warn("MessageDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
                     }
                 }
                 else
                 {
                     clUnknownBytesOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
-                    clUnknownBytesOfs.flush();
                     pclLogger->warn("HeaderDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
                 }
             }
-            else if (eFramerStatus == STATUS::UNKNOWN)
-            {
-                clUnknownBytesOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
-                clUnknownBytesOfs.flush();
-            }
+            else if (eFramerStatus == STATUS::UNKNOWN) { clUnknownBytesOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
             else { pclLogger->warn("Framer returned with status code {}", static_cast<int>(eFramerStatus)); }
         }
     }
@@ -231,7 +222,6 @@ int main(int argc, char* argv[])
     // Clean up
     uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
     clUnknownBytesOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
-    clUnknownBytesOfs.flush();
     Logger::Shutdown();
     return 0;
 }

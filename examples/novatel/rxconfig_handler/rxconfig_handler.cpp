@@ -117,7 +117,6 @@ int main(int argc, char* argv[])
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
                 pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
                 clConvertedRxConfigOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
-                clConvertedRxConfigOfs.flush();
 
                 // Make the embedded message valid by flipping the CRC.
                 if (eEncodeFormat == ENCODE_FORMAT::ASCII)
@@ -128,9 +127,7 @@ int main(int argc, char* argv[])
                     uint32_t uiFlippedCrc = strtoul(pcCrcBegin, nullptr, 16) ^ 0xFFFFFFFF;
                     snprintf(pcCrcBegin, OEM4_ASCII_CRC_LENGTH + 1, "%08x", uiFlippedCrc);
                     clStrippedRxConfigOfs.write(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
-                    clStrippedRxConfigOfs.flush();
                     clStrippedRxConfigOfs.write("\r\n", 2);
-                    clStrippedRxConfigOfs.flush();
                 }
                 else if (eEncodeFormat == ENCODE_FORMAT::BINARY)
                 {
@@ -139,15 +136,12 @@ int main(int argc, char* argv[])
                                                                     OEM4_BINARY_CRC_LENGTH);
                     *puiCrcBegin ^= 0xFFFFFFFF;
                     clStrippedRxConfigOfs.write(reinterpret_cast<char*>(stEmbeddedMessageData.pucMessage), stEmbeddedMessageData.uiMessageLength);
-                    clStrippedRxConfigOfs.flush();
                 }
                 else if (eEncodeFormat == ENCODE_FORMAT::JSON)
                 {
                     // Write in a comma and CRLF to make the files parse-able by JSON readers.
                     clConvertedRxConfigOfs.write(",\r\n", 3);
-                    clConvertedRxConfigOfs.flush();
                     clStrippedRxConfigOfs.write(",\r\n", 3);
-                    clStrippedRxConfigOfs.flush();
                 }
             }
 
