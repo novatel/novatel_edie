@@ -68,7 +68,7 @@ nb::object convert_field(const FieldContainer& field)
 }
 
 PyDecodedMessage::PyDecodedMessage(std::vector<FieldContainer> message_, const oem::MetaDataStruct& meta_)
-    : fields(std::move(message_)), message_id(meta_.usMessageId), message_name(meta_.acMessageName), time(meta_),
+    : fields(std::move(message_)), message_id(meta_.usMessageId), message_crc(meta_.uiMessageCrc), message_name(meta_.acMessageName), time(meta_),
       measurement_source(meta_.eMeasurementSource), constellation(meta_.constellation)
 {
 }
@@ -168,6 +168,7 @@ void init_novatel_message_decoder(nb::module_& m)
 
     nb::class_<PyDecodedMessage>(m, "Message")
         .def_rw("message_id", &PyDecodedMessage::message_id)
+        .def_rw("message_crc", &PyDecodedMessage::message_crc)
         .def_rw("message_name", &PyDecodedMessage::message_name)
         .def_rw("message_time", &PyDecodedMessage::time)
         .def_rw("message_measurement_source", &PyDecodedMessage::measurement_source)

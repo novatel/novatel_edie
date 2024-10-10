@@ -33,6 +33,7 @@ struct PyDecodedMessage
 
     // MetaDataStruct with all fields that are no longer relevant after decoding dropped.
     uint16_t message_id;
+    uint32_t message_crc;
     std::string message_name;
     PyGpsTime time;
     MEASUREMENT_SOURCE measurement_source{MEASUREMENT_SOURCE::PRIMARY};
