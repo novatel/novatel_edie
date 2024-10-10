@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     while (!ifs.eof())
     {
         ifs.read(cData.data(), cData.size());
-        clParser.Write(reinterpret_cast<unsigned char*>(cData.size()), ifs.gcount());
+        clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
 
         STATUS eStatus = clParser.Read(stMessageData, stMetaData);
 
