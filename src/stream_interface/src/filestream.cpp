@@ -33,7 +33,7 @@
 // ---------------------------------------------------------
 FileStream::FileStream(const std::u32string& s32FileName_)
 {
-    if (s32FileName_.length() == 0) { throw NExcept("file name is not valid"); }
+    if (s32FileName_.empty()) { throw NExcept("file name is not valid"); }
 
     clFilePath = std::filesystem::path(s32FileName_);
 
@@ -103,7 +103,7 @@ void FileStream::OpenFile(FILE_MODES eMode)
 void FileStream::CloseFile()
 {
     MyStream.close();
-    if (MyStream.fail()) { throw NExcept("\"%s\" close file failed", clFilePath.u32string().c_str()); }
+    if (MyStream.fail()) { throw NExcept("\"%ls\" close file failed", clFilePath.u32string().c_str()); }
 }
 
 // ---------------------------------------------------------
@@ -122,7 +122,7 @@ StreamReadStatus FileStream::ReadFile(char* cData, uint32_t uiSize)
     StreamReadStatus stFileReadStatus;
 
     MyStream.read(cData, uiSize);
-    if (MyStream.bad()) { throw NExcept("\"%s\" file  read failed", clFilePath.generic_u32string().c_str()); }
+    if (MyStream.bad()) { throw NExcept("\"%ls\" file  read failed", clFilePath.generic_u32string().c_str()); }
 
     // This size will be used to calculate file read percentage
     ullMyCurrentFileSize = ullMyCurrentFileSize + MyStream.gcount();
@@ -164,7 +164,7 @@ StreamReadStatus FileStream::ReadLine(std::string& szLine)
 uint32_t FileStream::WriteFile(const char* cData, uint32_t uiSize)
 {
     MyStream.write(cData, uiSize);
-    if (MyStream.bad()) { throw NExcept("\"%s\" file  write failed", clFilePath.generic_u32string().c_str()); }
+    if (MyStream.bad()) { throw NExcept("\"%ls\" file  write failed", clFilePath.generic_u32string().c_str()); }
     FlushFile();
     return uiSize;
 }

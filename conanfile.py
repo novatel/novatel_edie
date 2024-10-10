@@ -47,7 +47,7 @@ class NovatelEdieConan(ConanFile):
 
     def requirements(self):
         self.requires("nlohmann_json/[>=3.11 <3.12]", transitive_headers=True)
-        self.requires("spdlog/[>=1.13 <2]", transitive_headers=True, transitive_libs=True)
+        self.requires("spdlog/[>=1.14 <2]", transitive_headers=True, transitive_libs=True, force=True)
         self.requires("gegles-spdlog_setup/[>=1.1 <2]", transitive_headers=True)
 
     def validate(self):
@@ -61,7 +61,7 @@ class NovatelEdieConan(ConanFile):
 
     def build_requirements(self):
         self.test_requires("gtest/[>=1.14 <1.15]")
-        if self.settings.os in ["Linux", "FreeBSD"]:
+        if self.settings.os != "Windows":
             self.tool_requires("patchelf/[*]")
 
     def generate(self):

@@ -4,6 +4,7 @@ project(novatel_edie VERSION 3.3.7 LANGUAGES CXX)
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
+option(BUILD_PYTHON "Build Python bindings" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Set -fPIC" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
@@ -66,6 +67,10 @@ endif()
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(BUILD_PYTHON)
+    add_subdirectory(python)
 endif()
 
 if(BUILD_TESTS OR BUILD_EXAMPLES)

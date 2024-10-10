@@ -90,10 +90,10 @@ int main(int argc, char* argv[])
     }
 
     // Load the database
-    JsonReader clJsonDb;
+    auto clJsonDb = std::make_shared<JsonReader>();
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(pathJsonDb.string());
+    clJsonDb->LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
@@ -106,17 +106,17 @@ int main(int argc, char* argv[])
     clFramer.SetPayloadOnly(false);
     clFramer.SetFrameJson(false);
 
-    HeaderDecoder clHeaderDecoder(&clJsonDb);
+    HeaderDecoder clHeaderDecoder(clJsonDb);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clHeaderDecoder.GetLogger());
     Logger::AddRotatingFileLogger(clHeaderDecoder.GetLogger());
 
-    MessageDecoder clMessageDecoder(&clJsonDb);
+    MessageDecoder clMessageDecoder(clJsonDb);
     clMessageDecoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clMessageDecoder.GetLogger());
     Logger::AddRotatingFileLogger(clMessageDecoder.GetLogger());
 
-    Encoder clEncoder(&clJsonDb);
+    Encoder clEncoder(clJsonDb);
     clEncoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clEncoder.GetLogger());
     Logger::AddRotatingFileLogger(clEncoder.GetLogger());
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
     while (!stReadStatus.bEOS)
     {
         stReadStatus = clIfs.ReadData(stReadData);
-        clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
+        clFramer.Write(reinterpret_cast<const unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 

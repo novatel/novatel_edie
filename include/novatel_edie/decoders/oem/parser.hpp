@@ -27,6 +27,8 @@
 #ifndef NOVATEL_PARSER_HPP
 #define NOVATEL_PARSER_HPP
 
+#include <memory>
+
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
@@ -50,8 +52,8 @@ class Parser
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_parser")};
 
-    JsonReader clMyJsonReader;
-    Filter* pclMyUserFilter{nullptr};
+    JsonReader::Ptr pclMyJsonReader;
+    Filter::Ptr pclMyUserFilter;
     Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
@@ -77,7 +79,7 @@ class Parser
     ENCODE_FORMAT eMyEncodeFormat{ENCODE_FORMAT::ASCII};
 
   public:
-    //! \brief uiPARSER_INTERNAL_BUFFER_SIZE: the size of the parser's internal buffer.
+    //! \brief uiParserInternalBufferSize: the size of the parser's internal buffer.
     static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX;
 
     //! TODO: Manage copy/move/assignment constructors better.
@@ -106,7 +108,7 @@ class Parser
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Parser(JsonReader* pclJsonDb_ = nullptr);
+    Parser(JsonReader::Ptr pclJsonDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief A destructor for the Parser class.
@@ -118,7 +120,7 @@ class Parser
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -205,14 +207,14 @@ class Parser
     //
     //! \param[in] pclFilter_ A pointer to an OEM message Filter object.
     //----------------------------------------------------------------------------
-    void SetFilter(Filter* pclFilter_);
+    void SetFilter(const Filter::Ptr& pclFilter_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the config for the FileParser.
     //
     //! \return A pointer to the FileParser's OEM message Filter object.
     //----------------------------------------------------------------------------
-    [[nodiscard]] Filter* GetFilter() const;
+    const Filter::Ptr& GetFilter() const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a pointer to the current framed log raw data.
@@ -229,7 +231,7 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_);
+    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_);
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.

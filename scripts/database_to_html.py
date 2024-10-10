@@ -8,7 +8,7 @@ import argparse
 import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, List
 
 from json2html import *
 
@@ -23,7 +23,7 @@ class Enum(TypedDict):
     name: str
 
 
-Enums = list[Enum]
+Enums = List[Enum]
 
 
 def filter_dictionary(dictionary: dict, keys: list) -> dict:
