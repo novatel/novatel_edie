@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
-    std::ifstream clIfs(pathInFilename.string().c_str(), std::ios::binary);
+    std::ifstream clIfs(pathInFilename, std::ios::binary);
     std::ofstream clOfs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str(), std::ios::binary);
 
     auto eStatus = STATUS::UNKNOWN;

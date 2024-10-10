@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 
     // Set up file streams
-    std::ifstream clIfs(pathInFilename.string().c_str(), std::ios::binary);
+    std::ifstream clIfs(pathInFilename, std::ios::binary);
     std::ofstream clConvertedRxConfigOfs((pathInFilename.string() + std::string(".").append(sEncodeFormat)).c_str(), std::ios::binary);
     std::ofstream clStrippedRxConfigOfs((pathInFilename.string() + std::string(".STRIPPED.").append(sEncodeFormat)).c_str(), std::ios::binary);
 

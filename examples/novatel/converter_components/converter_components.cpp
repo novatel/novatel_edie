@@ -143,9 +143,9 @@ int main(int argc, char* argv[])
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 
     // Setup file streams
-    std::ifstream clIfs(pathInFilename.string().c_str(), std::ios::binary);
-    std::ofstream clConvertedLogsOfs(pathInFilename.string().append(".").append(sEncodeFormat).c_str(), std::ios::binary);
-    std::ofstream clUnknownBytesOfs(pathInFilename.string().append(".").append(sEncodeFormat).append(".UNKNOWN").c_str(), std::ios::binary);
+    std::ifstream clIfs(pathInFilename, std::ios::binary);
+    std::ofstream clConvertedLogsOfs(pathInFilename.string() + "." + sEncodeFormat, std::ios::binary);
+    std::ofstream clUnknownBytesOfs(pathInFilename.string() + "." + sEncodeFormat + ".UNKNOWN", std::ios::binary);
 
     tStart = std::chrono::high_resolution_clock::now();
 
