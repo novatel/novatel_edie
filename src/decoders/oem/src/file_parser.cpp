@@ -110,14 +110,10 @@ bool FileParser::SetStream(std::ifstream* pclInputStream_)
     if (pclInputStream_ == nullptr) { return false; }
 
     // Are there any bytes left to read in the stream?
-    uint32_t uiReadSizeSave = uiDataSize;
-    uiDataSize = 0;
-    pclInputStream_->read(cData.get(), uiDataSize);
+    pclInputStream_->read(cData.get(), 0);
     if (pclInputStream_->eof()) { return false; }
-    uiDataSize = uiReadSizeSave;
     pclMyInputStream = pclInputStream_;
     Reset();
-
     return true;
 }
 
