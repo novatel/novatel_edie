@@ -34,8 +34,6 @@
 #include <novatel_edie/decoders/oem/framer.hpp>
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp>
-#include <novatel_edie/stream_interface/inputfilestream.hpp>
-#include <novatel_edie/stream_interface/outputfilestream.hpp>
 #include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
@@ -118,18 +116,14 @@ int main(int argc, char* argv[])
     clFramer.SetPayloadOnly(false);
     clFramer.SetReportUnknownBytes(true);
 
-    unsigned char acFileStreamBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    ReadDataStructure stReadData;
-    stReadData.cData = reinterpret_cast<char*>(acFileStreamBuffer);
-    stReadData.uiDataSize = sizeof(acFileStreamBuffer);
+    std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
-    InputFileStream clIfs(pathInFilename.string().c_str());
-    OutputFileStream clOfs(pathInFilename.string().append(".DECOMPRESSED.").append(sEncodeFormat).c_str());
-    StreamReadStatus stReadStatus;
+    std::ifstream ifs(pathInFilename, std::ios::binary);
+    std::ofstream ofs(pathInFilename.string() + ".DECOMPRESSED." + sEncodeFormat, std::ios::binary);
 
     auto eStatus = STATUS::UNKNOWN;
 
@@ -157,13 +151,7 @@ int main(int argc, char* argv[])
                 if (eStatus == STATUS::SUCCESS)
                 {
                     uiCompletedMessages++;
-                    uint32_t uiBytesWritten = clOfs.WriteData(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
-                    if (stMetaData.uiLength == uiBytesWritten)
-                    {
-                        pucReadBuffer[stMetaData.uiLength] = '\0';
-                        pclLogger->info("Decompressed: ({}) {}", stMetaData.uiLength, reinterpret_cast<char*>(pucReadBuffer));
-                    }
-                    else { pclLogger->error("Could only write {}/{} bytes.", uiBytesWritten, stMessageData.uiMessageLength); }
+                    ofs.write(reinterpret_cast<char*>(pucReadBuffer), stMetaData.uiLength);
                 }
                 else if (eStatus == STATUS::UNSUPPORTED)
                 {
@@ -189,14 +177,14 @@ int main(int argc, char* argv[])
         else if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE)
         {
             // Read from file, write to framer.
-            stReadStatus = clIfs.ReadData(stReadData);
-            if (stReadStatus.uiCurrentStreamRead == 0)
+            ifs.read(cData.data(), cData.size());
+            if (ifs.gcount() == 0)
             {
                 pclLogger->info("Stream finished");
                 break;
             }
 
-            clFramer.Write(reinterpret_cast<unsigned char*>(stReadData.cData), stReadStatus.uiCurrentStreamRead);
+            clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
         }
     }
 
