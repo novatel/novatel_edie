@@ -28,6 +28,7 @@
 #define CIRCULAR_BUFFER_HPP
 
 #include <cstdint>
+#include <memory>
 
 //============================================================================
 //! \class CircularBuffer
@@ -36,11 +37,11 @@
 class CircularBuffer
 {
   private:
-    unsigned char* pucMyBuffer{nullptr}; //!< Data buffer (circular buffer)
-    uint32_t uiMyCapacity{0};            //!< Capacity of data buffer (bytes)
-    uint32_t uiMyLength{0};              //!< Amount of data currently in buffer (bytes)
-    unsigned char* pucMyHead{nullptr};   //!< Logical beginning of buffer
-    unsigned char* pucMyTail{nullptr};   //!< Logical tail of buffer (could be computed, but maintained as a convenience)
+    std::unique_ptr<unsigned char[]> pucMyBuffer; //!< Data buffer (circular buffer)
+    uint32_t uiMyCapacity{0};                     //!< Capacity of data buffer (bytes)
+    uint32_t uiMyLength{0};                       //!< Amount of data currently in buffer (bytes)
+    unsigned char* pucMyHead{nullptr};            //!< Logical beginning of buffer
+    unsigned char* pucMyTail{nullptr};            //!< Logical tail of buffer (could be computed, but maintained as a convenience)
 
   public:
     //----------------------------------------------------------------------------
@@ -49,11 +50,6 @@ class CircularBuffer
     //! And Capacity of Buffer and current length of data will be set to 0.
     //----------------------------------------------------------------------------
     CircularBuffer() = default;
-
-    //----------------------------------------------------------------------------
-    //! \brief Circular buffer class Destructor.
-    //----------------------------------------------------------------------------
-    ~CircularBuffer() { delete[] pucMyBuffer; }
 
     //----------------------------------------------------------------------------
     //! \brief Sets the size of the circular buffer (bytes)
@@ -143,7 +139,7 @@ inline uint32_t CircularBuffer::GetLength() const { return uiMyLength; }
 
 inline void CircularBuffer::Clear() { Discard(uiMyLength); }
 
-inline unsigned char* CircularBuffer::GetBuffer() const { return pucMyBuffer; }
+inline unsigned char* CircularBuffer::GetBuffer() const { return pucMyBuffer.get(); }
 
 inline unsigned char CircularBuffer::operator[](const int32_t iIndex_) const { return GetByte(iIndex_); }
 

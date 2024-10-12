@@ -33,7 +33,7 @@ using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
 void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHeader_)
-{ // TODO: should this be a private member?
+{
     const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
 
     // Append sibling i.e. the _1 of RANGEA_1

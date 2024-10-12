@@ -97,7 +97,6 @@ class NovatelEdieConan(ConanFile):
         self.cpp_info.libs = [
             # Note: the order of the listed libs matters when linking statically.
             "edie_oem_decoder",
-            "edie_stream_interface",
             "edie_decoders_common",
             "edie_common",
         ]
