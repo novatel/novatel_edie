@@ -27,8 +27,11 @@
 #ifndef NOVATEL_FRAMER_HPP
 #define NOVATEL_FRAMER_HPP
 
-#include "decoders/common/api/framer.hpp"
 #include "decoders/novatel/api/common.hpp"
+
+#include "decoders/common/api/framer.hpp"
+
+// MetaDataBase MUST be defined before FramerBase | Forward Declaration
 
 namespace novatel::edie::oem {
 
@@ -36,15 +39,13 @@ namespace novatel::edie::oem {
 //! \class Framer
 //! \brief Search bytes for patterns that could be OEM message.
 //============================================================================
-class Framer : public FramerBase
+class Framer : public FramerBase<Framer, MetaDataStruct>
 {
   private:
     NovAtelFrameState eMyFrameState{NovAtelFrameState::WAITING_FOR_SYNC};
 
     uint32_t uiMyJsonObjectOpenBraces{0};
     uint32_t uiMyAbbrevAsciiHeaderPosition{0};
-
-
 
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
@@ -57,6 +58,8 @@ class Framer : public FramerBase
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
   public:
+
+    // TODO uncomment this
     void ResetState() override;
     void ResetStateAndByteCount();
     //----------------------------------------------------------------------------

@@ -32,19 +32,22 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("novatel_framer", circularBuffer) {}
+novatel::edie::oem::Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase<Framer,MetaDataStruct>("novatel_framer", circularBuffer) {}
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }
+bool novatel::edie::oem::Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const
+{
+    return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH);
+}
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsAbbrevSeparatorCrlf(const uint32_t uiCircularBufferPosition_) const
+bool novatel::edie::oem::Framer::IsAbbrevSeparatorCrlf(const uint32_t uiCircularBufferPosition_) const
 {
     return IsCrlf(uiCircularBufferPosition_ + 1) && (*pclMyCircularDataBuffer)[uiCircularBufferPosition_] == OEM4_ABBREV_ASCII_SEPARATOR;
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const
+bool novatel::edie::oem::Framer::IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const
 {
     while ((*pclMyCircularDataBuffer)[uiCircularBufferPosition_--] == OEM4_ABBREV_ASCII_SEPARATOR)
     {
@@ -55,7 +58,7 @@ bool Framer::IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsAbbrevAsciiResponse() const
+bool novatel::edie::oem::Framer::IsAbbrevAsciiResponse() const
 {
     constexpr uint32_t errorLen = 5;
     constexpr uint32_t okLen = 2;
@@ -79,10 +82,10 @@ bool Framer::IsAbbrevAsciiResponse() const
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Framer::ResetState() { eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC; }
+void novatel::edie::oem::Framer::ResetState() { eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC; }
 
 // -------------------------------------------------------------------------------------------------------
-void Framer::ResetStateAndByteCount()
+void novatel::edie::oem::Framer::ResetStateAndByteCount()
 {
     eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
     uiMyByteCount = 0;
@@ -92,7 +95,8 @@ void Framer::ResetStateAndByteCount()
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_, uint32_t& uiFrameBufferOffset_)
+novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_,
+                                     uint32_t& uiFrameBufferOffset_)
 {
     if (pucFrameBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
@@ -153,9 +157,9 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 stMetaData_.eFormat = HEADER_FORMAT::SHORT_ASCII;
                 eMyFrameState = NovAtelFrameState::WAITING_FOR_ASCII_HEADER_AND_BODY;
                 break;
-            //case NMEA_SYNC:
-            //    stMetaData_.eFormat = HEADER_FORMAT::NMEA;
-            //    eMyFrameState = NovAtelFrameState::WAITING_FOR_NMEA_BODY;
+                // case NMEA_SYNC:
+                //     stMetaData_.eFormat = HEADER_FORMAT::NMEA;
+                //     eMyFrameState = NovAtelFrameState::WAITING_FOR_NMEA_BODY;
                 break;
             case OEM4_ABBREV_ASCII_SYNC:
                 stMetaData_.eFormat = HEADER_FORMAT::ABB_ASCII;
@@ -556,27 +560,27 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             }
             break;
         }
-        //case NovAtelFrameState::WAITING_FOR_NMEA_BODY:
-        //    if (ucDataByte == OEM4_ASCII_CRC_DELIMITER) { eMyFrameState = NovAtelFrameState::WAITING_FOR_NMEA_CRC; }
-        //    else if (uiMyByteCount >= MAX_NMEA_MESSAGE_LENGTH)
-        //    {
-        //        uiMyByteCount = NMEA_SYNC_LENGTH;
-        //        uiMyExpectedPayloadLength = 0;
-        //        ResetState();
-        //    }
-        //    else { uiMyCalculatedCrc32 ^= ucDataByte; }
-        //    break;
+        // case NovAtelFrameState::WAITING_FOR_NMEA_BODY:
+        //     if (ucDataByte == OEM4_ASCII_CRC_DELIMITER) { eMyFrameState = NovAtelFrameState::WAITING_FOR_NMEA_CRC; }
+        //     else if (uiMyByteCount >= MAX_NMEA_MESSAGE_LENGTH)
+        //     {
+        //         uiMyByteCount = NMEA_SYNC_LENGTH;
+        //         uiMyExpectedPayloadLength = 0;
+        //         ResetState();
+        //     }
+        //     else { uiMyCalculatedCrc32 ^= ucDataByte; }
+        //     break;
 
-        //case NovAtelFrameState::WAITING_FOR_NMEA_CRC: {
-        //    if (ucDataByte == '\n')
-        //    {
-        //        uiMyExpectedPayloadLength = 0;
-        //        char acCrc[NMEA_CRC_LENGTH + 1];
-        //        for (int32_t iOffset = NMEA_CRC_LENGTH; iOffset > 0; iOffset--)
-        //        {
-        //            acCrc[NMEA_CRC_LENGTH - iOffset] = (*pclMyCircularDataBuffer)[uiMyByteCount - iOffset - 2];
-        //        }
-        //        acCrc[NMEA_CRC_LENGTH] = '\0';
+        // case NovAtelFrameState::WAITING_FOR_NMEA_CRC: {
+        //     if (ucDataByte == '\n')
+        //     {
+        //         uiMyExpectedPayloadLength = 0;
+        //         char acCrc[NMEA_CRC_LENGTH + 1];
+        //         for (int32_t iOffset = NMEA_CRC_LENGTH; iOffset > 0; iOffset--)
+        //         {
+        //             acCrc[NMEA_CRC_LENGTH - iOffset] = (*pclMyCircularDataBuffer)[uiMyByteCount - iOffset - 2];
+        //         }
+        //         acCrc[NMEA_CRC_LENGTH] = '\0';
 
         //        uint32_t uiMessageCrc;
         //        if (sscanf(acCrc, "%x", &uiMessageCrc) > 0 && uiMyCalculatedCrc32 == uiMessageCrc)

@@ -27,24 +27,18 @@
 #ifndef FRAMER_MANAGER_HPP
 #define FRAMER_MANAGER_HPP
 
-#include <algorithm>
-#include <deque>
 #include <memory>
-#include <vector>
 
 #include "novatel-edie/src/decoders/common/api/circular_buffer.hpp"
 #include "novatel-edie/src/decoders/common/api/crc32.hpp"
 #include "novatel-edie/src/decoders/common/api/logger.hpp"
-#include "novatel-edie/src/decoders/common/api/common.hpp"
-#include "novatel-edie/src/decoders/common/api/framer.h"
-#include "novatel-edie/src/framer_manager/api/framer_manager.hpp"
 
 // Type-Specific Framers
 // #include "src/decoders/automotive/api/common.hpp"
 // #include "src/decoders/automotive/api/framer.hpp"
 //
-#include "src/decoders/nmea/api/common.hpp"
-#include "src/decoders/nmea/api/framer.hpp"
+// #include "src/decoders/nmea/api/common.hpp"
+// #include "src/decoders/nmea/api/framer.hpp"
 //
 #include "novatel-edie/src/decoders/novatel/api/common.hpp"
 #include "novatel-edie/src/decoders/novatel/api/framer.hpp"
@@ -55,85 +49,43 @@
 // #include "src/decoders/waas/api/common.hpp"
 // #include "src/decoders/waas/api/framer.hpp"
 
-//----------------------------------------------------------------------------
-//! \brief A constructor for the FramerBase class.
-//
-//! \param[in] strLoggerName_ String to name the internal logger.
-//----------------------------------------------------------------------------
-#include <iostream>
-
 namespace novatel::edie {
 
-enum class FRAMER_ID
+//-----------------------------------------------------------------------
+//! \enum FRAMER_MANAGER_FRAME_STATE
+//! \brief Enumeration for state machine used while framing the log.
+//-----------------------------------------------------------------------
+enum class FRAMER_MANAGER_FRAME_STATE
 {
-    NOVATEL,
-    NMEA,
-    UNKNOWN
+    WAITING_FOR_SYNC,
+    WAITING_FOR_HEADER,
+    WAITING_FOR_BODY,
+    COMPLETE_MESSAGE
 };
-
-//// TODO : Remove these operator overloads
-//// Overload the << operator to print the enum as a string
-// inline std::ostream& operator<<(std::ostream& os, const FRAMER_ID id_)
-//{
-//     switch (id_)
-//     {
-//     case FRAMER_ID::NOVATEL: os << "NOVATEL"; break;
-//     case FRAMER_ID::NMEA: os << "NMEA"; break;
-//     case FRAMER_ID::UNKNOWN: os << "UNKNOWN"; break;
-//     default: os << "Other Shit"; break;
-//     }
-//     return os;
-// }
-
-struct FramerElement
+template <typename T>
+class FramerRegistry
 {
-    FRAMER_ID framer;
-    uint32_t offset;
-    STATUS status;
 
-    // FramerElement() : framer(FRAMER_ID::UNKNOWN), offset(0), status(STATUS::UNKNOWN) {}
+  private:
+    std::unordered_map<std::string, std::unique_ptr<T>> objects;
 
-    FramerElement(FRAMER_ID framer_, uint32_t offset_, STATUS status_) : framer(framer_), offset(offset_), status(status_) {}
+    // Private constructors to enforce singleton pattern
+    Registry() = default;
+    Registry(const Registry&) = delete;
+    Registry& operator=(const Registry&) = delete;
+
+  public:
+    // singleton
+    static FramerRegistry& getInstance()
+    {
+        static FramerRegistry framerRegistryInstance;
+        return framerRegistryInstance;
+    }
 };
-
-// class FramerRegistry
-//{
-//   private:
-//     std::map<FRAMER_ID, std::unique_ptr<MetaDataBase>> objects;
-//     FramerRegistry() = default;
-//     FramerRegistry(const FramerRegistry&) = delete;
-//     FramerRegistry& operator=(const FramerRegistry&) = delete;
-//
-//   public:
-//     static FramerRegistry& GetInstance()
-//     {
-//         static FramerRegistry instance; // Singleton
-//         return instance;
-//     }
-//     template <typename DerivedFramer>
-//     void RegisterFramer(const FRAMER_ID id_, std::unique_ptr<DerivedFramer> obj_)
-//     {
-//         static_assert(std::is_base_of<FramerBase, DerivedFramer>::value, "Derived Framer must derive from Base")
-//         objects[id_] = std::move(obj_);
-//     }
-//
-//     //template <typename DerivedFramer> DerivedFramer* getObject(FRAMER_ID id_) const
-//     //{
-//     //    auto it = objects.find(id_);
-//     //    if (it != objects.end()) { return it->second.get(); }
-//     //    return nullptr;
-//     //}
-// };
 
 class FramerManager
 {
-  private:
-    std::map<FRAMER_ID, std::unique_ptr<MetaDataBase>> framerRegistry;
-    FramerManager() = default;
-    FramerManager(const FramerManager&) = delete;
-    FramerManager& operator=(const FramerManager&) = delete;
-
-
+  public:
     // FRAMER_MANAGER_FRAME_STATE eMyFrameState{FRAMER_MANAGER_FRAME_STATE::WAITING_FOR_SYNC};
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
@@ -143,10 +95,10 @@ class FramerManager
     // automotive::Framer automotiveFramer;
     // automotive::MetaDataStruct automotiveMetaDataStruct;
 
-    // std::unique_ptr<nmea::NmeaFramer> nmeaFramer;
-    // std::unique_ptr<oem::Framer> novatelFramer;
+    // nmea::NmeaFramer nmeaFramer;
+    // nmea::MetaDataStruct nmeaMetaDataStruct;
 
-    // std::unique_ptr<oem::Framer> novatelFramer;
+    std::unique_ptr<oem::Framer> novatelFramer;
 
     // pim::Framer pimtpFramer;
     // pim::MetaDataStruct pimtpMetaDataStruct;
@@ -154,38 +106,27 @@ class FramerManager
     // waas::Framer giiiFramer;
     // waas::MetaDataStruct giiiMetaDataStruct;
 
-    // uint32_t uiMyCalculatedCrc32{0U};
-    // uint32_t uiMyByteCount{0U};
-    // uint32_t uiMyExpectedPayloadLength{0U};
-    // uint32_t uiMyExpectedMessageLength{0U};
+    uint32_t uiMyCalculatedCrc32{0U};
+    uint32_t uiMyByteCount{0U};
+    uint32_t uiMyExpectedPayloadLength{0U};
+    uint32_t uiMyExpectedMessageLength{0U};
 
-    // bool bMyReportUnknownBytes{true};
-    // bool bMyPayloadOnly{false};
-    // bool bMyFrameJson{false};
+    bool bMyReportUnknownBytes{true};
+    bool bMyPayloadOnly{false};
+    bool bMyFrameJson{false};
 
-    // void ResetInactiveFramerStates(const FRAMER_ID& activeFramer_);
-
-    // void ResetFramerStack();
-
-    // STATUS DerivedFramerGetFrame(std::unique_ptr<FramerBase>& basePtr, unsigned char* pucFrameBuffer_, uint32_t& uiFrameBufferSize_,
-    //                              uint32_t& uiFrameBufferOffset);
-
-    /*   std::deque<FramerElement> framerStack;*/
-
-    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_, FRAMER_ID& framerId_);
-
-  public:
-
-
-    static FramerManager& GetInstance()
+    [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
-        static FramerManager instance; // Singleton
-        return instance;
+        return uiPosition_ + 1 < pclMyCircularDataBuffer->GetLength() && (*pclMyCircularDataBuffer)[uiPosition_] == '\r' &&
+               (*pclMyCircularDataBuffer)[uiPosition_ + 1] == '\n';
     }
 
-    void RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<novatel::edie::FramerBase> framer_);
+    // TODO: reorder the functions below this
+    // Repurposed Framer Functions
+    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_);
 
-    // nmea::MetaDataStruct nmeaMetaDataStruct;
+  public:
+    oem::MetaDataStruct novatelMetaDataStruct;
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FramerBase class.
     //
@@ -194,12 +135,16 @@ class FramerManager
     FramerManager(const std::string& strLoggerName_);
 
     //----------------------------------------------------------------------------
+    //! \brief A constructor for the FramerBase class that is called with a shared circular buffer.
+    //
+    //! \param[in] strLoggerName_ String to name the internal logger.
+    //----------------------------------------------------------------------------
+    FramerManager(const std::string& strLoggerName_, std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer_);
+
+    //----------------------------------------------------------------------------
     //! \brief A destructor for the FramerBase class.
     //----------------------------------------------------------------------------
     ~FramerManager() = default;
-
-    //// TODO write note about the template function
-    template <typename DerivedFramer> void RegisterFramer(FRAMER_ID framerId_, std::unique_ptr<DerivedFramer> framerType_);
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -210,28 +155,31 @@ class FramerManager
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_);
+    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
+    {
+        return pclMyCircularDataBuffer->Append(pucDataBuffer_, uiDataBytes_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
     //
     //! \return Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
     //
     //! \param[in] eLevel_ Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(const spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
     //----------------------------------------------------------------------------
-    void ShutdownLogger();
+    static void ShutdownLogger() { Logger::Shutdown(); }
 
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, FRAMER_ID& eActiveFramerId_);
+    virtual [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_);
 };
 } // namespace novatel::edie
 
