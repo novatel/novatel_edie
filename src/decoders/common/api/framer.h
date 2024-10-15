@@ -7,8 +7,17 @@
 #include "logger.hpp"
 
 namespace novatel::edie {
+// Forward Declaration of overridden MetaDataStruct arguments
+class MetaDataStruct;
+
+// Forward Declaration of Derived Framer classes
+class Framer;
+
+//// Just enough for it to know
+// class MetaDataBase;
+
 // Base Class Template | declaration
-class FramerBase
+template <typename DerivedFramer, typename DerivedMetaDataStruct> class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
