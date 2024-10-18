@@ -31,7 +31,6 @@ using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
 Parser::Parser(const std::string& sDbPath_)
-    : pcMyEncodeBuffer(new unsigned char[uiParserInternalBufferSize]), pcMyFrameBuffer(new unsigned char[uiParserInternalBufferSize])
 {
     pclMyJsonReader = std::make_shared<JsonReader>();
     pclMyJsonReader->LoadFile(sDbPath_);
@@ -58,7 +57,6 @@ Parser::Parser(const std::string& sDbPath_)
 
 // -------------------------------------------------------------------------------------------------------
 Parser::Parser(const std::u32string& sDbPath_)
-    : pcMyEncodeBuffer(new unsigned char[uiParserInternalBufferSize]), pcMyFrameBuffer(new unsigned char[uiParserInternalBufferSize])
 {
     pclMyJsonReader = std::make_shared<JsonReader>();
     pclMyJsonReader->LoadFile(sDbPath_);
@@ -85,7 +83,6 @@ Parser::Parser(const std::u32string& sDbPath_)
 
 // -------------------------------------------------------------------------------------------------------
 Parser::Parser(JsonReader::Ptr pclJsonDb_)
-    : pcMyEncodeBuffer(new unsigned char[uiParserInternalBufferSize]), pcMyFrameBuffer(new unsigned char[uiParserInternalBufferSize])
 {
     if (pclJsonDb_ != nullptr)
     {
@@ -93,13 +90,6 @@ Parser::Parser(JsonReader::Ptr pclJsonDb_)
         pclMyJsonReader = pclJsonDb_;
     }
     pclMyLogger->debug("Parser initialized");
-}
-
-// -------------------------------------------------------------------------------------------------------
-Parser::~Parser()
-{
-    delete[] pcMyFrameBuffer;
-    delete[] pcMyEncodeBuffer;
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -198,8 +188,8 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
 
     while (true)
     {
-        pucMyFrameBufferPointer = pcMyFrameBuffer;   //!< Reset the buffer.
-        pucMyEncodeBufferPointer = pcMyEncodeBuffer; //!< Reset the buffer.
+        pucMyFrameBufferPointer = pcMyFrameBuffer.get();   //!< Reset the buffer.
+        pucMyEncodeBufferPointer = pcMyEncodeBuffer.get(); //!< Reset the buffer.
         auto eStatus = clMyFramer.GetFrame(pucMyFrameBufferPointer, uiParserInternalBufferSize, stMetaData_);
 
         // Datasets ending with an Abbreviated ASCII message will always return an incomplete framing status

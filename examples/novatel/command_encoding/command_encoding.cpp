@@ -31,7 +31,6 @@
 
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/oem/commander.hpp>
-#include <novatel_edie/stream_interface/outputfilestream.hpp>
 
 namespace fs = std::filesystem;
 
@@ -94,7 +93,7 @@ int main(int argc, char* argv[])
     }
 
     std::string sOutFilename = std::string("COMMAND.").append(strEncodeFormat);
-    OutputFileStream clOutputFs(sOutFilename.c_str());
-    clOutputFs.WriteData(pcEncodedMessageBuffer, uiEncodeBufferLength);
+    std::ofstream ofs(sOutFilename.c_str(), std::ios::binary);
+    ofs.write(pcEncodedMessageBuffer, uiEncodeBufferLength);
     return 0;
 }

@@ -30,39 +30,24 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::string& sDbPath_)
-    : clMyParser(Parser(sDbPath_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiParserInternalBufferSize])
-{
-    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-    stMyReadData.uiDataSize = Parser::uiParserInternalBufferSize;
-    pclMyInputStream = nullptr;
-    pclMyLogger->debug("FileParser initialized");
-}
+FileParser::FileParser(const std::string& sDbPath_) : clMyParser(Parser(sDbPath_)) { pclMyLogger->debug("FileParser initialized"); }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::u32string& sDbPath_)
-    : clMyParser(Parser(sDbPath_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiParserInternalBufferSize])
+FileParser::FileParser(const std::u32string& sDbPath_) : clMyParser(Parser(sDbPath_))
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
-    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-    stMyReadData.uiDataSize = Parser::uiParserInternalBufferSize;
-    pclMyInputStream = nullptr;
     pclMyLogger->debug("FileParser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(JsonReader::Ptr pclJsonDb_)
-    : clMyParser(Parser(pclJsonDb_)), pcMyStreamReadBuffer(new unsigned char[Parser::uiParserInternalBufferSize])
+FileParser::FileParser(JsonReader::Ptr pclJsonDb_) : clMyParser(Parser(pclJsonDb_))
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
-    stMyReadData.cData = reinterpret_cast<char*>(pcMyStreamReadBuffer);
-    stMyReadData.uiDataSize = Parser::uiParserInternalBufferSize;
-    pclMyInputStream = nullptr;
     pclMyLogger->debug("FileParser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::~FileParser() { delete[] pcMyStreamReadBuffer; }
+FileParser::~FileParser() = default;
 
 // -------------------------------------------------------------------------------------------------------
 void FileParser::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
@@ -117,42 +102,24 @@ const Filter::Ptr& FileParser::GetFilter() const { return clMyParser.GetFilter()
 void FileParser::SetFilter(const Filter::Ptr& pclFilter_) { clMyParser.SetFilter(pclFilter_); }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t FileParser::GetPercentRead() const { return stMyStreamReadStatus.uiPercentStreamRead; }
-
-// -------------------------------------------------------------------------------------------------------
 unsigned char* FileParser::GetInternalBuffer() const { return clMyParser.GetInternalBuffer(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool FileParser::SetStream(InputFileStream* pclInputStream_)
+bool FileParser::SetStream(std::ifstream* pclInputStream_)
 {
-    if (pclInputStream_ == nullptr) { return false; }
-    // TODO: This call is not implemented and returns false in the interface.
-    // Is the stream available?
-    // if (!pclInputStream_->IsStreamAvailable())
-    // {
-    //    return false;
-    // }
-
-    // Are there any bytes left to read in the stream?
-    uint32_t uiReadSizeSave = stMyReadData.uiDataSize;
-    stMyReadData.uiDataSize = 0;
-    stMyStreamReadStatus = pclInputStream_->ReadData(stMyReadData);
-    if (stMyStreamReadStatus.bEOS || stMyStreamReadStatus.uiPercentStreamRead >= 100) { return false; }
-    stMyReadData.uiDataSize = uiReadSizeSave;
+    if (pclInputStream_ == nullptr || pclInputStream_->eof()) { return false; }
     pclMyInputStream = pclInputStream_;
     Reset();
-
     return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::ReadStream()
 {
-    stMyReadData.uiDataSize = MAX_ASCII_MESSAGE_LENGTH;
-    stMyStreamReadStatus = pclMyInputStream->ReadData(stMyReadData);
-    return stMyStreamReadStatus.uiCurrentStreamRead > 0 &&
-           clMyParser.Write(reinterpret_cast<unsigned char*>(stMyReadData.cData), stMyStreamReadStatus.uiCurrentStreamRead) ==
-               stMyStreamReadStatus.uiCurrentStreamRead;
+    std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData{};
+    pclMyInputStream->read(cData.data(), cData.size());
+    return pclMyInputStream->gcount() > 0 &&
+           clMyParser.Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyInputStream->gcount()) == pclMyInputStream->gcount();
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -179,7 +146,11 @@ bool FileParser::ReadStream()
 bool FileParser::Reset()
 {
     Flush();
-    if (pclMyInputStream != nullptr) { pclMyInputStream->Reset(0, std::ios::beg); }
+    if (pclMyInputStream != nullptr)
+    {
+        pclMyInputStream->clear();
+        pclMyInputStream->seekg(0, std::ios::beg);
+    }
     return true;
 }
 

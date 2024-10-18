@@ -395,13 +395,11 @@ template <bool Abbreviated>
 STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, const char** ppcLogBuf_,
                                        std::vector<FieldContainer>& vIntermediateFormat_) const
 {
-    constexpr char cDelimiter1 = Abbreviated ? ' ' : ','; // TODO: give all these better names
-    constexpr char cDelimiter2 = Abbreviated ? '\r' : '*';
-    constexpr char cDelimiter3 = Abbreviated ? '\n' : '\0'; // TODO: might be able to get away without cDelimiter3, acDelimiter3
-    constexpr char acDelimiter1[3] = {cDelimiter1, cDelimiter2, '\0'};
-    constexpr char acDelimiter2[3] = {'\"', cDelimiter2, '\0'};
-    constexpr char acDelimiter3[4] = {cDelimiter1, cDelimiter2, cDelimiter3, '\0'};
-    constexpr char acDelimiterResponse[2] = {cDelimiter2, '\0'};
+    constexpr auto delimiters = Abbreviated ? std::array<char, 3>{' ', '\r', '\n'} : std::array<char, 3>{',', '*', '\0'};
+    constexpr std::array<char, 3> unquotedStringDelimiters = {delimiters[0], delimiters[1], '\0'};
+    constexpr std::array<char, 3> quotedStringDelimiters = {'\"', delimiters[1], '\0'};
+    constexpr std::array<char, 4> tokenDelimiters = {delimiters[0], delimiters[1], delimiters[2], '\0'};
+    constexpr std::array<char, 2> responseDelimiters = {delimiters[1], '\0'};
 
     const char* pcBufEnd = *ppcLogBuf_ + strlen(*ppcLogBuf_);
 
@@ -409,17 +407,16 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
     {
         if (*ppcLogBuf_ >= pcBufEnd) { return STATUS::MALFORMED_INPUT; } // We encountered the end of the buffer unexpectedly
 
-        size_t tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); // TODO: do we need to use acDelimiter3?
+        size_t tokenLength = strcspn(*ppcLogBuf_, tokenDelimiters.data());
 
         if constexpr (Abbreviated)
         {
-            if (ConsumeAbbrevFormatting(tokenLength, ppcLogBuf_)) { tokenLength = strcspn(*ppcLogBuf_, acDelimiter3); }
+            if (ConsumeAbbrevFormatting(tokenLength, ppcLogBuf_)) { tokenLength = strcspn(*ppcLogBuf_, tokenDelimiters.data()); }
 
-            // TODO: previously, we didn't do these malformed input checks in ascii, but I assume this was a bug
             if (tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
         }
 
-        bool bEarlyEndOfMessage = (*(*ppcLogBuf_ + tokenLength) == cDelimiter2);
+        bool bEarlyEndOfMessage = (*(*ppcLogBuf_ + tokenLength) == delimiters[1]);
 
         switch (field->type)
         {
@@ -450,24 +447,24 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             else if (0 == strcspn(*ppcLogBuf_, "\""))
             {
                 // If a field delimiter character is in the string, the previous tokenLength value is invalid.
-                tokenLength = strcspn(*ppcLogBuf_ + 1, acDelimiter2); // Look for LAST '\"' character, skipping past the first.
+                tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '\"' character, skipping past the first.
                 vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to traverse opening double-quote.
                 // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
-                *ppcLogBuf_ += 1 + tokenLength + strcspn(*ppcLogBuf_ + tokenLength, acDelimiter1);
+                *ppcLogBuf_ += 1 + tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data());
             }
             // Unquoted String
             else
             {
                 // String that isn't surrounded by quotes
-                tokenLength = strcspn(*ppcLogBuf_, acDelimiter1); // Look for LAST '\"' or '*' character, skipping past the first.
+                tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '\"' or '*' character, skipping past the first.
                 vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field); // +1 to traverse opening double-quote.
                 // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
-                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, acDelimiter1) + 1;
+                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
             }
             break;
         case FIELD_TYPE::RESPONSE_ID: {
             // Ensure we get the whole response (skip over delimiters in responses)
-            tokenLength = strcspn(*ppcLogBuf_, acDelimiterResponse);
+            tokenLength = strcspn(*ppcLogBuf_, responseDelimiters.data());
             std::string sResponse(*ppcLogBuf_, tokenLength);
             if (sResponse == "OK") { vIntermediateFormat_.emplace_back(1, field); }
             // Note: This won't match responses with format specifiers in them (%d, %s, etc.), they will be given id=0
@@ -478,7 +475,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         }
         case FIELD_TYPE::RESPONSE_STR:
             // Response strings aren't surrounded by double quotes, ensure we get the whole response (skip over certain delimiters in responses)
-            tokenLength = strcspn(*ppcLogBuf_, acDelimiterResponse);
+            tokenLength = strcspn(*ppcLogBuf_, responseDelimiters.data());
             vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field);
             *ppcLogBuf_ += tokenLength + 1;
             break;
@@ -497,7 +494,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                 }
 
                 *ppcLogBuf_ += tokenLength + 1;
-                tokenLength = strcspn(*ppcLogBuf_, acDelimiter1);
+                tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data());
             }
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
@@ -511,7 +508,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             if (bPrintAsString)
             {
                 // Ensure we grabbed the whole string, it might contain delimiters
-                tokenLength = strcspn(*ppcLogBuf_ + 1, acDelimiter2);
+                tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data());
                 tokenLength += 2; // Add the back in the quotes so we process them
                 pcPosition++;     // Start of string, skip first double-quote
             }
@@ -568,7 +565,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                     // Simple type
                     else
                     {
-                        tokenLength = strcspn(*ppcLogBuf_, acDelimiter1);
+                        tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data());
                         DecodeAsciiField(field, ppcLogBuf_, tokenLength, pvFieldContainer);
                         *ppcLogBuf_ += tokenLength + 1;
                     }
@@ -608,7 +605,6 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             throw std::runtime_error("DecodeAscii(): Unknown field type");
         }
 
-        // TODO: previously, we didn't check for early end in abbreviated ascii, but I assume this was a bug
         if constexpr (!Abbreviated)
         {
             if (bEarlyEndOfMessage) { break; }
