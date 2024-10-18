@@ -29,7 +29,6 @@
 
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/parser.hpp"
-#include "novatel_edie/stream_interface/inputfilestream.hpp"
 
 namespace novatel::edie::oem {
 
@@ -41,17 +40,12 @@ class FileParser
 {
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
-
     Parser clMyParser;
-    InputFileStream* pclMyInputStream;
-    StreamReadStatus stMyStreamReadStatus;
-    ReadDataStructure stMyReadData;
-    unsigned char* const pcMyStreamReadBuffer;
+    std::ifstream* pclMyInputStream{nullptr};
 
     [[nodiscard]] bool ReadStream();
 
   public:
-    //! TODO: Manage copy/move/assignment constructors better.
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
     FileParser(const FileParser&) = delete;
@@ -130,13 +124,6 @@ class FileParser
     [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const;
 
     //----------------------------------------------------------------------------
-    //! \brief Get the percent of the InputFileStream that has been parsed.
-    //
-    //! \return An integer percentage.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] uint32_t GetPercentRead() const;
-
-    //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
     //
     //! \param[in] bDecompressRangeCmp_ true to decompress RANGECMP messages.
@@ -199,7 +186,7 @@ class FileParser
     //
     //! \return A boolean describing if the operation was successful
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool SetStream(InputFileStream* pclInputStream_);
+    [[nodiscard]] bool SetStream(std::ifstream* pclInputStream_);
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the FileParser.

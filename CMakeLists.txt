@@ -42,7 +42,6 @@ execute_process(COMMAND ${CMAKE_COMMAND}
 
 # Build EDIE components
 add_subdirectory(src/common)
-add_subdirectory(src/stream_interface)
 add_subdirectory(src/decoders/common)
 add_subdirectory(src/decoders/oem)
 
@@ -51,7 +50,6 @@ add_library(novatel_edie INTERFACE)
 add_library(novatel_edie::novatel_edie ALIAS novatel_edie)
 target_link_libraries(novatel_edie INTERFACE
     common
-    stream_interface
     decoders_common
     oem_decoder
 )
@@ -59,7 +57,6 @@ target_link_libraries(novatel_edie INTERFACE
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(src/common/test)
-    add_subdirectory(src/stream_interface/test)
     add_subdirectory(src/decoders/common/test)
     add_subdirectory(src/decoders/oem/test)
 endif()
