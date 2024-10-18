@@ -28,7 +28,6 @@ void init_novatel_file_parser(nb::module_& m)
              "filename"_a = "edie.log")
         .def_prop_rw("ignore_abbreviated_ascii_responses", &oem::FileParser::GetIgnoreAbbreviatedAsciiResponses,
                      &oem::FileParser::SetIgnoreAbbreviatedAsciiResponses)
-        .def_prop_ro("percent_read", &oem::FileParser::GetPercentRead)
         .def_prop_rw("decompress_range_cmp", &oem::FileParser::GetDecompressRangeCmp, &oem::FileParser::SetDecompressRangeCmp)
         .def_prop_rw("return_unknown_bytes", &oem::FileParser::GetReturnUnknownBytes, &oem::FileParser::SetReturnUnknownBytes)
         .def_prop_rw("encode_format", &oem::FileParser::GetEncodeFormat, &oem::FileParser::SetEncodeFormat)

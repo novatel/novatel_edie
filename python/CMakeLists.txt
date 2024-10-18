@@ -23,7 +23,6 @@ add_compile_definitions(VERSION_INFO=${SKBUILD_PROJECT_VERSION})
 
 nanobind_add_module(python_bindings STABLE_ABI NB_STATIC LTO
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/bindings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/stream_interface.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/common.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/json_reader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/logger.cpp
@@ -43,7 +42,7 @@ nanobind_add_module(python_bindings STABLE_ABI NB_STATIC LTO
 
 set_target_properties(python_bindings PROPERTIES OUTPUT_NAME bindings)
 target_include_directories(python_bindings PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/bindings)
-target_link_libraries(python_bindings PRIVATE stream_interface oem_decoder)
+target_link_libraries(python_bindings PRIVATE oem_decoder)
 
 target_compile_definitions(python_bindings PRIVATE
     VERSION_INFO=${SKBUILD_PROJECT_VERSION}
