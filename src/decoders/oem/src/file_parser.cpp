@@ -105,7 +105,7 @@ void FileParser::SetFilter(const Filter::Ptr& pclFilter_) { clMyParser.SetFilter
 unsigned char* FileParser::GetInternalBuffer() const { return clMyParser.GetInternalBuffer(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool FileParser::SetStream(std::ifstream* pclInputStream_)
+bool FileParser::SetStream(std::istream* pclInputStream_)
 {
     if (pclInputStream_ == nullptr || pclInputStream_->eof()) { return false; }
     pclMyInputStream = pclInputStream_;

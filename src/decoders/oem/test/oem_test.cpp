@@ -49,7 +49,7 @@ class FramerTest : public ::testing::Test
 {
   protected:
     static std::unique_ptr<Framer> pclMyFramer;
-    static std::unique_ptr<std::ifstream> pclMyIFS;
+    static std::unique_ptr<std::istream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
 
     // Per-test-suite setup
@@ -109,7 +109,7 @@ class FramerTest : public ::testing::Test
 };
 
 std::unique_ptr<Framer> FramerTest::pclMyFramer = nullptr;
-std::unique_ptr<std::ifstream> FramerTest::pclMyIFS = nullptr;
+std::unique_ptr<std::istream> FramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> FramerTest::pucMyTestFrameBuffer = nullptr;
 
 // TODO: we disable clang-format because of the long strings

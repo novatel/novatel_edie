@@ -26,6 +26,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <iostream>
 
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/oem/parser.hpp>

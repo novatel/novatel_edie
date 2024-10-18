@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <ostream>
 
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/oem/commander.hpp>
