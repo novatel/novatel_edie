@@ -3,6 +3,7 @@
 #include "bindings_core.hpp"
 #include "json_db_singleton.hpp"
 #include "py_message_data.hpp"
+#include "pystream.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -32,7 +33,9 @@ void init_novatel_file_parser(nb::module_& m)
         .def_prop_rw("return_unknown_bytes", &oem::FileParser::GetReturnUnknownBytes, &oem::FileParser::SetReturnUnknownBytes)
         .def_prop_rw("encode_format", &oem::FileParser::GetEncodeFormat, &oem::FileParser::SetEncodeFormat)
         .def_prop_rw("filter", &oem::FileParser::GetFilter, &oem::FileParser::SetFilter)
-        .def("set_stream", &oem::FileParser::SetStream, "input_stream"_a)
+        .def(
+            "set_stream", [](oem::FileParser& self, nb::object stream) { return self.SetStream(std::make_shared<pystream::istream>(stream, 0)); },
+            "input_stream"_a)
         .def("read",
              [](oem::FileParser& self) {
                  MessageDataStruct message_data;

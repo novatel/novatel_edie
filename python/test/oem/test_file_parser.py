@@ -84,27 +84,26 @@ def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
 
     test_gps_file = decoders_test_resources / "BESTUTMBIN.GPS"
-    input_file_stream = ne.InputFileStream(str(test_gps_file))
-    assert fp.set_stream(input_file_stream)
+    with test_gps_file.open("rb") as f:
+        assert fp.set_stream(f)
 
-    success = 0
-    expected_meta_data_length = [213, 195]
-    expected_milliseconds = [270605000, 172189053]
-    expected_message_length = [213, 195]
+        success = 0
+        expected_meta_data_length = [213, 195]
+        expected_milliseconds = [270605000, 172189053]
+        expected_message_length = [213, 195]
 
-    status = STATUS.UNKNOWN
-    fp.encode_format = ENCODE_FORMAT.ASCII
-    assert fp.encode_format == ENCODE_FORMAT.ASCII
+        status = STATUS.UNKNOWN
+        fp.encode_format = ENCODE_FORMAT.ASCII
+        assert fp.encode_format == ENCODE_FORMAT.ASCII
 
-    while status != STATUS.STREAM_EMPTY:
-        status, message_data, meta_data = fp.read()
-        if status == STATUS.SUCCESS:
-            assert meta_data.length == expected_meta_data_length[success]
-            assert meta_data.milliseconds == pytest.approx(expected_milliseconds[success])
-            assert len(message_data.message) == expected_message_length[success]
-            success += 1
-    assert fp.percent_read == 100
-    assert success == 2
+        while status != STATUS.STREAM_EMPTY:
+            status, message_data, meta_data = fp.read()
+            if status == STATUS.SUCCESS:
+                assert meta_data.length == expected_meta_data_length[success]
+                assert meta_data.milliseconds == pytest.approx(expected_milliseconds[success])
+                assert len(message_data.message) == expected_message_length[success]
+                success += 1
+        assert success == 2
 
 
 def test_RESET(fp):

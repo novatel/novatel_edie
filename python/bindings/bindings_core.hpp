@@ -10,4 +10,3 @@
 #include <nanobind/stl/vector.h>
 
 #include "decoder_exception.hpp"
-#include "u32string.h"
