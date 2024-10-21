@@ -26,6 +26,8 @@
 
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 
+#include <istream>
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -105,7 +107,7 @@ void FileParser::SetFilter(const Filter::Ptr& pclFilter_) { clMyParser.SetFilter
 unsigned char* FileParser::GetInternalBuffer() const { return clMyParser.GetInternalBuffer(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool FileParser::SetStream(std::istream* pclInputStream_)
+bool FileParser::SetStream(std::shared_ptr<std::istream> pclInputStream_)
 {
     if (pclInputStream_ == nullptr || pclInputStream_->eof()) { return false; }
     pclMyInputStream = pclInputStream_;

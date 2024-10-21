@@ -27,7 +27,7 @@
 #ifndef NOVATEL_FILE_PARSER_HPP
 #define NOVATEL_FILE_PARSER_HPP
 
-#include <istream>
+#include <iosfwd>
 #include <memory>
 
 #include "novatel_edie/decoders/common/common.hpp"
@@ -44,7 +44,7 @@ class FileParser
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
     Parser clMyParser;
-    std::istream* pclMyInputStream{nullptr};
+    std::shared_ptr<std::istream> pclMyInputStream{nullptr};
 
     [[nodiscard]] bool ReadStream();
 
@@ -189,7 +189,7 @@ class FileParser
     //
     //! \return A boolean describing if the operation was successful
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool SetStream(std::istream* pclInputStream_);
+    [[nodiscard]] bool SetStream(std::shared_ptr<std::istream> pclInputStream_);
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the FileParser.

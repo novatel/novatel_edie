@@ -114,11 +114,11 @@ int main(int argc, char* argv[])
     clFileParser.SetEncodeFormat(eEncodeFormat);
 
     // Set up file streams
-    std::ifstream ifs(pathInFilename, std::ios::binary);
+    auto ifs = std::make_shared<std::ifstream>(pathInFilename, std::ios::binary);
     std::ofstream convertedOfs(pathInFilename.string() + "." + sEncodeFormat, std::ios::binary);
     std::ofstream unknownOfs(pathInFilename.string() + "." + sEncodeFormat + ".UNKNOWN", std::ios::binary);
 
-    if (!clFileParser.SetStream(&ifs))
+    if (!clFileParser.SetStream(ifs))
     {
         pclLogger->error("Input stream could not be set. The stream is either unavailable or exhausted.");
         exit(-1);

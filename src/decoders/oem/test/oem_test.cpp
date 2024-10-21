@@ -2848,8 +2848,8 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
     ASSERT_EQ(pclFp->GetFilter(), clFilter);
 
     std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
-    std::ifstream clInputFileStream(test_gps_file.string().c_str(), std::ios::binary);
-    ASSERT_TRUE(pclFp->SetStream(&clInputFileStream));
+    auto clInputFileStream = std::make_shared<std::ifstream>(test_gps_file.string().c_str(), std::ios::binary);
+    ASSERT_TRUE(pclFp->SetStream(clInputFileStream));
 
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
