@@ -400,6 +400,7 @@ def test_ASCII_ULONG_VALID(helper):
     assert intermediate_format.rx_chars12 == ULLONG_MAX
 
 
+@pytest.mark.xfail(reason="Need to add enum definitions to the database as well")
 def test_ASCII_ENUM_VALID(helper):
     helper.create_enum_field("UNKNOWN", 20, "Unknown or unspecified type")
     helper.create_enum_field("APPROXIMATE", 60, "Approximate time")

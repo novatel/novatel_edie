@@ -16,7 +16,19 @@ NB_MAKE_OPAQUE(std::vector<FieldContainer>);
 
 nb::object convert_field(const FieldContainer& field)
 {
-    if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
+    if (field.fieldDef->type == FIELD_TYPE::ENUM)
+    {
+        const std::string& enumId = static_cast<const EnumField*>(field.fieldDef.get())->enumId;
+        auto it = JsonDbSingleton::getEnumsByIdMap().find(enumId);
+        if (it == JsonDbSingleton::getEnumsByIdMap().end())
+        {
+            throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumId +
+                                     "' not found in the JSON database");
+        }
+        nb::object enum_type = it->second;
+        return std::visit([&](auto&& value) { return enum_type(value); }, field.fieldValue);
+    }
+    else if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
     {
         const auto& message_field = std::get<std::vector<FieldContainer>>(field.fieldValue);
         if (message_field.empty())
