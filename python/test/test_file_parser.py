@@ -79,7 +79,6 @@ def test_UNKNOWN_BYTES(fp):
 
 
 def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
-    # Reset the FileParser with the database because a previous test assigns it to the nullptr
     fp.filter = ne.Filter()
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
 
@@ -98,6 +97,26 @@ def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
 
         while status != STATUS.STREAM_EMPTY:
             status, message_data, meta_data = fp.read()
+            if status == STATUS.SUCCESS:
+                assert meta_data.length == expected_meta_data_length[success]
+                assert meta_data.milliseconds == pytest.approx(expected_milliseconds[success])
+                assert len(message_data.message) == expected_message_length[success]
+                success += 1
+        assert success == 2
+
+
+def test_file_parser_iterator(fp, decoders_test_resources):
+    fp.filter = ne.Filter()
+    fp.filter.logger.set_level(ne.LogLevel.DEBUG)
+    test_gps_file = decoders_test_resources / "BESTUTMBIN.GPS"
+    with test_gps_file.open("rb") as f:
+        assert fp.set_stream(f)
+        success = 0
+        expected_meta_data_length = [213, 195]
+        expected_milliseconds = [270605000, 172189053]
+        expected_message_length = [213, 195]
+        fp.encode_format = ENCODE_FORMAT.ASCII
+        for status, message_data, meta_data in fp:
             if status == STATUS.SUCCESS:
                 assert meta_data.length == expected_meta_data_length[success]
                 assert meta_data.milliseconds == pytest.approx(expected_milliseconds[success])
