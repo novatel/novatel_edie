@@ -28,6 +28,7 @@
 # \brief Demonstrate how to use the Python API for converting OEM
 # messages using the FileParser.
 ########################################################################
+
 import argparse
 import atexit
 import os
@@ -72,33 +73,29 @@ def main():
     _configure_logging(file_parser.logger)
     _configure_logging(file_parser.filter.logger)
 
-    # Set up file streams
-    input_stream = ne.InputFileStream(args.input_file)
-    converted_logs_stream = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
+    with (open(args.input_file, "rb") as input_stream,
+          open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream):
+        if not file_parser.set_stream(input_stream):
+            logger.error("Input stream could not be set.  The stream is either unavailable or exhausted.")
+            exit(-1)
 
-    if not file_parser.set_stream(input_stream):
-        logger.error("Input stream could not be set.  The stream is either unavailable or exhausted.")
-        exit(-1)
+        complete_messages = 0
+        counter = 0
+        start = timeit.default_timer()
+        loop = timeit.default_timer()
+        for status, message_data, meta in file_parser:
+            if status != ne.STATUS.SUCCESS:
+                logger.error(f"Failed to read a message: {status}: {status.__doc__}")
+                continue
 
-    meta = ne.MetaData()
-    complete_messages = 0
-    counter = 0
-    start = timeit.default_timer()
-    loop = timeit.default_timer()
-    status = ne.STATUS.UNKNOWN
-    while status != ne.STATUS.STREAM_EMPTY:
-        status, message_data = file_parser.read(meta)
-        if status != ne.STATUS.SUCCESS:
-            logger.error(f"Failed to read a message: {status}: {status.__doc__}")
-            continue
-        converted_logs_stream.write(message_data.message)
-        logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
-        complete_messages += 1
+            converted_logs_stream.write(message_data.message)
+            logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
+            complete_messages += 1
 
-        if timeit.default_timer() - loop > 1:
-            counter += 1
-            logger.info(f"{file_parser.percent_read}% {complete_messages / counter} logs/s")
-            loop = timeit.default_timer()
+            if timeit.default_timer() - loop > 1:
+                counter += 1
+                logger.info(f"{file_parser.percent_read}% {complete_messages / counter} logs/s")
+                loop = timeit.default_timer()
 
     elapsed_seconds = timeit.default_timer() - start
     logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")

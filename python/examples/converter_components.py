@@ -28,27 +28,18 @@
 # \brief Demonstrate how to use the Python API for converting OEM
 # messages using the low-level components.
 ########################################################################
+
 import argparse
-import atexit
-from binascii import hexlify
 import os
+from binascii import hexlify
 
 import novatel_edie as ne
-from novatel_edie import Logging, LogLevel, STATUS
-
-
-def configure_logging():
-    root_logger = Logging().get("root")
-    root_logger.set_level(LogLevel.INFO)
-    Logging.add_console_logging(root_logger)
-    Logging.add_rotating_file_logger(root_logger)
-    atexit.register(Logging.shutdown)
+from novatel_edie import STATUS
 
 
 def read_frames(input_file, framer):
     # Write unrecognized and incomplete messages to a separate file.
-    unknown_bytes_stream = ne.OutputFileStream(f"{input_file}.UNKNOWN")
-    with open(input_file, "rb") as input_stream:
+    with open(input_file, "rb") as input_stream, open(f"{input_file}.UNKNOWN", "wb") as unknown_bytes_stream:
         while read_data := input_stream.read(ne.MESSAGE_SIZE_MAX):
             framer.write(read_data)
             while True:
@@ -59,7 +50,8 @@ def read_frames(input_file, framer):
                     unknown_bytes_stream.write(frame)
                     continue
                 yield status, frame, meta
-    unknown_bytes_stream.write(framer.flush())
+        unknown_bytes_stream.write(framer.flush())
+
 
 def format_frame(frame, frame_format):
     if frame_format in [ne.HEADER_FORMAT.BINARY, ne.HEADER_FORMAT.SHORT_BINARY, ne.HEADER_FORMAT.PROPRIETARY_BINARY,
@@ -67,10 +59,9 @@ def format_frame(frame, frame_format):
         return hexlify(frame, sep=" ").decode("ascii").upper()
     return frame
 
-def main():
-    configure_logging()
-    logger = Logging().register_logger("converter")
 
+def main():
+    logger = ne.Logging.register_logger("converter")
     parser = argparse.ArgumentParser(description="Convert OEM log files using low-level components.")
     parser.add_argument("input_file", help="Input file")
     parser.add_argument(
@@ -102,34 +93,33 @@ def main():
     encoder = ne.Encoder()
     filter = ne.Filter()
 
-    converted_logs_stream = ne.OutputFileStream(f"{args.input_file}.{encode_format}")
+    with open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream:
+        for framer_status, frame, meta in read_frames(args.input_file, framer):
+            try:
+                framer_status.raise_on_error("Framer.get_frame() failed")
+                logger.info(f"Framed ({len(frame)}): {format_frame(frame, meta.format)}")
 
-    for framer_status, frame, meta in read_frames(args.input_file, framer):
-        try:
-            framer_status.raise_on_error("Framer.get_frame() failed")
-            logger.info(f"Framed ({len(frame)}): {format_frame(frame, meta.format)}")
+                # Decode the header.
+                status, header = header_decoder.decode(frame, meta)
+                status.raise_on_error("HeaderDecoder.decode() failed")
 
-            # Decode the header.
-            status, header = header_decoder.decode(frame, meta)
-            status.raise_on_error("HeaderDecoder.decode() failed")
+                # Filter the log, pass over it if we don't want it.
+                if not filter.do_filtering(meta):
+                    continue
 
-            # Filter the log, pass over it if we don't want it.
-            if not filter.do_filtering(meta):
-                continue
+                # Decode the log body.
+                body = frame[meta.header_length:]
+                status, message = message_decoder.decode(body, meta)
+                status.raise_on_error("MessageDecoder.decode() failed")
 
-            # Decode the log body.
-            body = frame[meta.header_length :]
-            status, message = message_decoder.decode(body, meta)
-            status.raise_on_error("MessageDecoder.decode() failed")
+                # Re-encode the log and write it to the output file.
+                status, encoded_message = encoder.encode(header, message, meta, encode_format)
+                status.raise_on_error("Encoder.encode() failed")
 
-            # Re-encode the log and write it to the output file.
-            status, encoded_message = encoder.encode(header, message, meta, encode_format)
-            status.raise_on_error("Encoder.encode() failed")
-
-            converted_logs_stream.write(encoded_message.message)
-            logger.info(f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
-        except ne.DecoderException as e:
-            logger.warn(str(e))
+                converted_logs_stream.write(encoded_message.message)
+                logger.info( f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
+            except ne.DecoderException as e:
+                logger.warn(str(e))
 
 
 if __name__ == "__main__":
