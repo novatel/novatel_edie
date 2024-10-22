@@ -612,18 +612,12 @@ class JsonReader
     //----------------------------------------------------------------------------
     //! \brief Returns all defined enums.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const std::vector<EnumDefinition::Ptr>& EnumDefinitions() const
-    {
-        return vEnumDefinitions;
-    }
+    [[nodiscard]] const std::vector<EnumDefinition::Ptr>& EnumDefinitions() const { return vEnumDefinitions; }
 
     //----------------------------------------------------------------------------
     //! \brief Returns all defined message types.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const std::vector<MessageDefinition::Ptr>& MessageDefinitions() const
-    {
-        return vMessageDefinitions;
-    }
+    [[nodiscard]] const std::vector<MessageDefinition::Ptr>& MessageDefinitions() const { return vMessageDefinitions; }
 
   private:
     void GenerateMappings()
