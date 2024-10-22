@@ -29,9 +29,9 @@
 
 #include <cstdint>
 #include <cstring>
+#include <iosfwd>
 #include <memory>
 #include <string>
-#include <iostream>
 
 #include "json_reader.hpp"
 #include "novatel_edie/common/common.hpp"
