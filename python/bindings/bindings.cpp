@@ -14,6 +14,7 @@ void init_novatel_filter(nb::module_&);
 void init_novatel_framer(nb::module_&);
 void init_novatel_header_decoder(nb::module_&);
 void init_novatel_message_decoder(nb::module_&);
+void init_novatel_oem_enums(nb::module_&);
 void init_novatel_parser(nb::module_&);
 void init_novatel_range_decompressor(nb::module_&);
 void init_novatel_rxconfig_handler(nb::module_&);
@@ -32,6 +33,7 @@ NB_MODULE(bindings, m)
     init_novatel_framer(m);
     init_novatel_header_decoder(m);
     init_novatel_message_decoder(m);
+    init_novatel_oem_enums(m);
     init_novatel_parser(m);
     init_novatel_range_decompressor(m);
     init_novatel_rxconfig_handler(m);

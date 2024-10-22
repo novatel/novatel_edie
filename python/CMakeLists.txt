@@ -35,6 +35,7 @@ nanobind_add_module(python_bindings STABLE_ABI NB_STATIC LTO
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/framer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/header_decoder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/message_decoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/oem_enums.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/range_decompressor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/rxconfig_handler.cpp
