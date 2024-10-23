@@ -2,6 +2,7 @@
 * text=auto
 
 # These are unit test files and should use crlf
+regression/targets/* eol=crlf
 *.ASC text eol=crlf
 *.asc text eol=crlf
 *.txt text eol=crlf
