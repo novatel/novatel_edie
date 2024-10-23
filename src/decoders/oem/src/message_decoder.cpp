@@ -44,7 +44,13 @@ void MessageDecoder::InitOemFieldMaps()
     // =========================================================
     // ASCII Field Mapping
     // =========================================================
-    asciiFieldMap[CalculateBlockCrc32("c")] = SimpleAsciiMapEntry<uint32_t>();
+    asciiFieldMap[CalculateBlockCrc32("c")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                                                 [[maybe_unused]] JsonReader& pclMsgDb_) {
+        // TODO: check that the character is printable
+        // if (!isprint(**ppcToken_)) { throw ... }
+        vIntermediateFormat_.emplace_back(static_cast<uint32_t>(**ppcToken_), pstMessageDataType_);
+    };
     asciiFieldMap[CalculateBlockCrc32("k")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("lk")] = SimpleAsciiMapEntry<double>();
 

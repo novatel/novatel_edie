@@ -152,7 +152,6 @@ def test_ASCII_UCHAR_BYTE_INVALID(helper):
     assert intermediate_format.INT_1 == 0
 
 
-@pytest.mark.xfail(reason="%c is broken")
 def test_ASCII_CHAR_VALID(helper):
     helper.create_base_field("CHAR_1", FIELD_TYPE.SIMPLE, "%c", 1, DATA_TYPE.CHAR)
     helper.create_base_field("CHAR_2", FIELD_TYPE.SIMPLE, "%c", 1, DATA_TYPE.CHAR)
@@ -167,7 +166,6 @@ def test_ASCII_CHAR_VALID(helper):
     assert intermediate_format.CHAR_3 == ord(';')
 
 
-@pytest.mark.xfail(reason="%c is broken")
 def test_ASCII_CHAR_INVALID(helper):
     helper.create_base_field("CHAR", FIELD_TYPE.SIMPLE, "%c", 2, DATA_TYPE.CHAR)
     input = b""
