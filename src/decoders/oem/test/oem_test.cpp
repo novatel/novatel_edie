@@ -2900,9 +2900,9 @@ class NovatelTypesTest : public ::testing::Test
       public:
         DecoderTester(JsonReader* pclJsonDb_) : MessageDecoder(pclJsonDb_) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char** ppcLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
+        STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char* ppcLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
         {
-            return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
+            return DecodeAscii<false>(MsgDefFields_, &ppcLogBuf_, vIntermediateFormat_);
         }
 
         STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, const unsigned char** ppucLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
@@ -3009,9 +3009,9 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(4);
 
-    const auto* testInput = "-1.000,0.000,604800.000,4294967295.000";
+    constexpr char testInput[] = "-1.000,0.000,604800.000,4294967295.000";
 
-    STATUS stDecoderStatus = pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
+    STATUS stDecoderStatus = pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInput, vIntermediateFormat_);
 
     ASSERT_EQ(stDecoderStatus, STATUS::SUCCESS);
     // If GPS time exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong

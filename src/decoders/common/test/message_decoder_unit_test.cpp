@@ -38,18 +38,17 @@ class MessageDecoderTypesTest : public ::testing::Test
       public:
         DecoderTester(JsonReader* pclJsonDb_) : MessageDecoderBase(pclJsonDb_) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char** ppcLogBuf_,
-                               std::vector<FieldContainer>& vIntermediateFormat_)
+        STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char* ppcLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
         {
-            return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
+            return DecodeAscii<false>(MsgDefFields_, &ppcLogBuf_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, const unsigned char** ppucLogBuf_,
+        STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, const unsigned char* ppucLogBuf_,
                                 std::vector<FieldContainer>& vIntermediateFormat_)
         {
             uint16_t MsgDefFieldsSize = 0;
             for (BaseField* field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
-            return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
+            return DecodeBinary(MsgDefFields_, &ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
         }
 
         template <typename T, DATA_TYPE D> void ValidSimpleASCIIHelper(std::vector<std::string> vstrTestInput, std::vector<T> vTargets)
@@ -237,6 +236,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
     pclMyDecoderTester->ValidSimpleASCIIHelper<double, DATA_TYPE::DOUBLE>({"2.2250738585072014e-308", "1.7976931348623157e+308", "0.0"}, {0.0});
 }
 
+// TODO: disabled because we don't usually do any checking to verify if the size is correct for the conversion string
 TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_SIMPLE_INVALID_SIZE)
 {
     pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<bool, DATA_TYPE::BOOL>("FALSE");
@@ -261,8 +261,9 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    const auto* testInput = "4";
-    pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
+    constexpr char testInput[] = "4";
+
+    pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInput, vIntermediateFormat_);
 
     ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_[0].fieldValue), '4');
 }
@@ -273,8 +274,9 @@ TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    const auto* testInput = "True";
-    pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
+    constexpr char testInput[] = "True";
+
+    pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInput, vIntermediateFormat_);
 
     ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), false);
 }
@@ -291,9 +293,9 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(vTestInput.size());
 
-    const auto* testInput = "UNKNOWN,APPROXIMATE,SATTIME";
+    constexpr char testInput[] = "UNKNOWN,APPROXIMATE,SATTIME";
 
-    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat), STATUS::SUCCESS);
+    ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInput, vIntermediateFormat), STATUS::SUCCESS);
     ASSERT_EQ(vIntermediateFormat.size(), vTestInput.size());
 
     for (size_t sz = 0; sz < vTestInput.size(); ++sz)
@@ -313,7 +315,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 
     for (size_t sz = 0; sz < testInputs.size(); ++sz)
     {
-        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
+        ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
         ASSERT_EQ(std::get<std::string>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
 
         vIntermediateFormat.clear();
@@ -326,9 +328,9 @@ TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    const auto* testInput = "garbage";
+    constexpr char testInput[] = "garbage";
 
-    ASSERT_THROW(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
+    ASSERT_THROW(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInput, vIntermediateFormat_), std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, BINARY_VALID)
@@ -354,9 +356,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
     MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
 
-    const unsigned char* testInput = nullptr;
-
-    ASSERT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
+    ASSERT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, nullptr, vIntermediateFormat_), std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
@@ -364,9 +364,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
     MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "%", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
 
-    const unsigned char* testInput = nullptr;
-
-    ASSERT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
+    ASSERT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, nullptr, vIntermediateFormat_), std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
@@ -386,33 +384,7 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(MsgDefFields.size());
 
-    const auto* testInput = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
+    constexpr char testInput[] = "TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
 
-    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat));
-    // TODO: Keep this here or make a file for testing common encoder?
-    //unsigned char aucEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    //unsigned char* pucEncodeBuffer = aucEncodeBuffer;
-
-    //ASSERT_TRUE(pclMyEncoderTester->TestEncodeBinaryBody(vIntermediateFormat, &pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH));
-    //
-    //vIntermediateFormat.clear();
-    //pucEncodeBuffer = aucEncodeBuffer;
-    //pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &pucEncodeBuffer, vIntermediateFormat);
-    //
-    //size_t sz = 0;
-    //
-    //ASSERT_EQ(std::get<bool>(vIntermediateFormat.at(sz++).field_value), true);
-    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).field_value), 99);
-    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).field_value), 227);
-    //ASSERT_EQ(std::get<int8_t>(vIntermediateFormat.at(sz++).field_value), 56);
-    //ASSERT_EQ(std::get<uint16_t>(vIntermediateFormat.at(sz++).field_value), 2734);
-    //ASSERT_EQ(std::get<int16_t>(vIntermediateFormat.at(sz++).field_value), -3842);
-    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).field_value), 38283U);
-    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).field_value), 54244U);
-    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).field_value), -4359);
-    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).field_value), 5293);
-    //ASSERT_EQ(std::get<uint64_t>(vIntermediateFormat.at(sz++).field_value), 79338432ULL);
-    //ASSERT_EQ(std::get<int64_t>(vIntermediateFormat.at(sz++).field_value), -289834LL);
-    //ASSERT_NEAR(std::get<float>(vIntermediateFormat.at(sz++).field_value), 2.54, 0.001);
-    //ASSERT_NEAR(std::get<double>(vIntermediateFormat.at(sz++).field_value), 5.44061788e+03, 0.000001);
+    ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(MsgDefFields, testInput, vIntermediateFormat));
 }
