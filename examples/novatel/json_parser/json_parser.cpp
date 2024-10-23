@@ -26,6 +26,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <iostream>
 
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/oem/parser.hpp>
@@ -84,38 +85,38 @@ int main(int argc, char* argv[])
     }
 
     // Load the database
-    JsonReader clJsonDb;
+    auto clJsonDb = std::make_shared<JsonReader>();
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(pathJsonDb.string());
+    clJsonDb->LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     pclLogger->info("Appending Message...");
     tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.AppendMessages(sAppendMsg);
+    clJsonDb->AppendMessages(sAppendMsg);
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     // Set up timers
     auto tLoop = std::chrono::high_resolution_clock::now();
 
-    Parser clParser(&clJsonDb);
+    Parser clParser(clJsonDb);
     clParser.SetEncodeFormat(eEncodeFormat);
     clParser.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clParser.GetLogger());
     Logger::AddRotatingFileLogger(clParser.GetLogger());
 
-    Filter clFilter;
-    clFilter.SetLoggerLevel(spdlog::level::debug);
-    Logger::AddConsoleLogging(clFilter.GetLogger());
-    Logger::AddRotatingFileLogger(clFilter.GetLogger());
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    Logger::AddConsoleLogging(clFilter->GetLogger());
+    Logger::AddRotatingFileLogger(clFilter->GetLogger());
 
     // Initialize structures
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
-    clParser.SetFilter(&clFilter);
+    clParser.SetFilter(clFilter);
 
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 

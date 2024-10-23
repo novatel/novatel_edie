@@ -157,7 +157,7 @@ MessageDataStruct stMessageData;
 
 // Initialize the FileParser and return messages in ASCII.
 FileParser clFileParser("database\messages_public.json");
-clFileParser.SetEncodeFormat(ENCODEFORMAT::ASCII);
+clFileParser.SetEncodeFormat(ENCODE_FORMAT::ASCII);
 
 // Initialize a filter for Fine Steering time status and BESTPOS messages.
 Filter clFilter;
@@ -229,7 +229,7 @@ uint32_t uiEncodeBufferLength = MAX_ASCII_MESSAGE_LENGTH;
 std::string strCommand("INSTHRESHOLDS LOW 0.0 0.0 0.0");
 
 // Encode the message.
-STATUS eCommanderStatus = clCommander.Encode(strCommand.c_str(), strCommand.length(), acEncodeBuffer, uiEncodeBufferLength, ENCODEFORMAT::ASCII);
+STATUS eCommanderStatus = clCommander.Encode(strCommand.c_str(), strCommand.length(), acEncodeBuffer, uiEncodeBufferLength, ENCODE_FORMAT::ASCII);
 if (eCommanderStatus == STATUS::SUCCESS) {
     // Copy the encoded command into a new string.
     std::string strEncodedCommand(acEncodeBuffer, uiEncodeBufferLength);

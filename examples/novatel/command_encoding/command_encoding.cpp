@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <ostream>
 
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/oem/commander.hpp>
@@ -71,13 +72,13 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    JsonReader clJsonDb;
+    auto clJsonDb = std::make_shared<JsonReader>();
     auto tStart = std::chrono::high_resolution_clock::now();
     logger->info("Loading Database... ");
-    clJsonDb.LoadFile(pathJsonDb.string());
+    clJsonDb->LoadFile(pathJsonDb.string());
     logger->info("Done in {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
-    Commander clCommander(&clJsonDb);
+    Commander clCommander(clJsonDb);
 
     char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     char* pcEncodedMessageBuffer = acEncodeBuffer;

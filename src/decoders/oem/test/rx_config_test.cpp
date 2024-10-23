@@ -40,15 +40,15 @@ using namespace novatel::edie::oem;
 class RxConfigTest : public ::testing::Test
 {
   protected:
-    static std::unique_ptr<JsonReader> pclMyJsonDb;
+    static JsonReader::Ptr pclMyJsonDb;
     static std::unique_ptr<RxConfigHandler> pclMyRxConfigHandler;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyJsonDb = std::make_unique<JsonReader>();
+        pclMyJsonDb = std::make_shared<JsonReader>();
         pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-        pclMyRxConfigHandler = std::make_unique<RxConfigHandler>(pclMyJsonDb.get());
+        pclMyRxConfigHandler = std::make_unique<RxConfigHandler>(pclMyJsonDb);
     }
 
     // Per-test-suite teardown
@@ -83,7 +83,7 @@ class RxConfigTest : public ::testing::Test
     }
 };
 
-std::unique_ptr<JsonReader> RxConfigTest::pclMyJsonDb = nullptr;
+JsonReader::Ptr RxConfigTest::pclMyJsonDb = nullptr;
 std::unique_ptr<RxConfigHandler> RxConfigTest::pclMyRxConfigHandler = nullptr;
 
 // -------------------------------------------------------------------------------------------------------

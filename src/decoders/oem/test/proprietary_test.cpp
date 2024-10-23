@@ -37,7 +37,7 @@ class ProprietaryFramerTest : public ::testing::Test
 {
   protected:
     static std::unique_ptr<Framer> pclMyFramer;
-    static std::unique_ptr<std::ifstream> pclMyIFS;
+    static std::unique_ptr<std::istream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
 
     // Per-test-suite setup
@@ -87,7 +87,7 @@ class ProprietaryFramerTest : public ::testing::Test
 };
 
 std::unique_ptr<Framer> ProprietaryFramerTest::pclMyFramer = nullptr;
-std::unique_ptr<std::ifstream> ProprietaryFramerTest::pclMyIFS = nullptr;
+std::unique_ptr<std::istream> ProprietaryFramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> ProprietaryFramerTest::pucMyTestFrameBuffer = nullptr;
 
 // -------------------------------------------------------------------------------------------------------

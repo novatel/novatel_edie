@@ -88,44 +88,50 @@ enum class DATA_TYPE
 //!< returns the size associated with a datatype
 constexpr size_t DataTypeSize(const DATA_TYPE eType_)
 {
-    return eType_ == DATA_TYPE::BOOL          ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::HEXBYTE     ? sizeof(uint8_t)
-           : eType_ == DATA_TYPE::CHAR        ? sizeof(int8_t)
-           : eType_ == DATA_TYPE::UCHAR       ? sizeof(uint8_t)
-           : eType_ == DATA_TYPE::SHORT       ? sizeof(int16_t)
-           : eType_ == DATA_TYPE::USHORT      ? sizeof(uint16_t)
-           : eType_ == DATA_TYPE::INT         ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::UINT        ? sizeof(uint32_t)
-           : eType_ == DATA_TYPE::LONG        ? sizeof(int32_t)
-           : eType_ == DATA_TYPE::ULONG       ? sizeof(uint32_t)
-           : eType_ == DATA_TYPE::LONGLONG    ? sizeof(int64_t)
-           : eType_ == DATA_TYPE::ULONGLONG   ? sizeof(uint64_t)
-           : eType_ == DATA_TYPE::FLOAT       ? sizeof(float)
-           : eType_ == DATA_TYPE::DOUBLE      ? sizeof(double)
-           : eType_ == DATA_TYPE::SATELLITEID ? sizeof(uint32_t)
-                                              : 0;
+    switch (eType_)
+    {
+    case DATA_TYPE::BOOL: return sizeof(int32_t);
+    case DATA_TYPE::HEXBYTE: return sizeof(uint8_t);
+    case DATA_TYPE::CHAR: return sizeof(int8_t);
+    case DATA_TYPE::UCHAR: return sizeof(uint8_t);
+    case DATA_TYPE::SHORT: return sizeof(int16_t);
+    case DATA_TYPE::USHORT: return sizeof(uint16_t);
+    case DATA_TYPE::INT: return sizeof(int32_t);
+    case DATA_TYPE::UINT: return sizeof(uint32_t);
+    case DATA_TYPE::LONG: return sizeof(int32_t);
+    case DATA_TYPE::ULONG: return sizeof(uint32_t);
+    case DATA_TYPE::LONGLONG: return sizeof(int64_t);
+    case DATA_TYPE::ULONGLONG: return sizeof(uint64_t);
+    case DATA_TYPE::FLOAT: return sizeof(float);
+    case DATA_TYPE::DOUBLE: return sizeof(double);
+    case DATA_TYPE::SATELLITEID: return sizeof(uint32_t);
+    default: return 0;
+    }
 }
 
 // TODO: this table is misleading, as one DATA_TYPE may correspond to many different conversion strings
 //!< returns conversion string associated with a datatype
 inline std::string DataTypeConversion(const DATA_TYPE eType_)
 {
-    return eType_ == DATA_TYPE::BOOL          ? "%d"
-           : eType_ == DATA_TYPE::CHAR        ? "%c"
-           : eType_ == DATA_TYPE::UCHAR       ? "%uc"
-           : eType_ == DATA_TYPE::SHORT       ? "%hd"
-           : eType_ == DATA_TYPE::USHORT      ? "%hu"
-           : eType_ == DATA_TYPE::INT         ? "%d"
-           : eType_ == DATA_TYPE::UINT        ? "%u"
-           : eType_ == DATA_TYPE::LONG        ? "%ld"
-           : eType_ == DATA_TYPE::ULONG       ? "%lu"
-           : eType_ == DATA_TYPE::LONGLONG    ? "%lld"
-           : eType_ == DATA_TYPE::ULONGLONG   ? "%llu"
-           : eType_ == DATA_TYPE::FLOAT       ? "%f"
-           : eType_ == DATA_TYPE::DOUBLE      ? "%lf"
-           : eType_ == DATA_TYPE::HEXBYTE     ? "%Z" // these are not valid default conversion strings
-           : eType_ == DATA_TYPE::SATELLITEID ? "%id"
-                                              : "%";
+    switch (eType_)
+    {
+    case DATA_TYPE::BOOL: return "%d";
+    case DATA_TYPE::CHAR: return "%c";
+    case DATA_TYPE::UCHAR: return "%uc";
+    case DATA_TYPE::SHORT: return "%hd";
+    case DATA_TYPE::USHORT: return "%hu";
+    case DATA_TYPE::INT: return "%d";
+    case DATA_TYPE::UINT: return "%u";
+    case DATA_TYPE::LONG: return "%ld";
+    case DATA_TYPE::ULONG: return "%lu";
+    case DATA_TYPE::LONGLONG: return "%lld";
+    case DATA_TYPE::ULONGLONG: return "%llu";
+    case DATA_TYPE::FLOAT: return "%f";
+    case DATA_TYPE::DOUBLE: return "%lf";
+    case DATA_TYPE::HEXBYTE: return "%Z"; // these are not valid default conversion strings
+    case DATA_TYPE::SATELLITEID: return "%id";
+    default: return "%";
+    }
 }
 
 //!< Mapping from String to data type enums.
@@ -178,6 +184,10 @@ struct EnumDataType
     std::string description{};
 
     constexpr EnumDataType() = default;
+    EnumDataType(std::string name_, uint32_t value_, std::string description_)
+        : value(value_), name(std::move(name_)), description(std::move(description_))
+    {
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -191,6 +201,9 @@ struct EnumDefinition
     std::vector<EnumDataType> enumerators{};
 
     constexpr EnumDefinition() = default;
+
+    using Ptr = std::shared_ptr<EnumDefinition>;
+    using ConstPtr = std::shared_ptr<const EnumDefinition>;
 };
 
 //-----------------------------------------------------------------------
@@ -286,6 +299,9 @@ struct BaseField
     {
         return !IsString() && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
     }
+
+    using Ptr = std::shared_ptr<BaseField>;
+    using ConstPtr = std::shared_ptr<const BaseField>;
 };
 
 //-----------------------------------------------------------------------
@@ -295,7 +311,7 @@ struct BaseField
 struct EnumField : BaseField
 {
     std::string enumId;
-    EnumDefinition* enumDef{nullptr};
+    EnumDefinition::Ptr enumDef{nullptr};
     uint32_t length{0};
 
     EnumField() = default;
@@ -303,6 +319,9 @@ struct EnumField : BaseField
     ~EnumField() override = default;
 
     EnumField* Clone() override { return new EnumField(*this); }
+
+    using Ptr = std::shared_ptr<EnumField>;
+    using ConstPtr = std::shared_ptr<const EnumField>;
 };
 
 //-----------------------------------------------------------------------
@@ -318,6 +337,9 @@ struct ArrayField : BaseField
     ~ArrayField() override = default;
 
     ArrayField* Clone() override { return new ArrayField(*this); }
+
+    using Ptr = std::shared_ptr<ArrayField>;
+    using ConstPtr = std::shared_ptr<const ArrayField>;
 };
 
 //-----------------------------------------------------------------------
@@ -327,18 +349,13 @@ struct ArrayField : BaseField
 struct FieldArrayField : BaseField
 {
     uint32_t arrayLength{0}, fieldSize{0};
-    std::vector<BaseField*> fields;
+    std::vector<std::shared_ptr<BaseField>> fields;
 
     FieldArrayField() = default;
 
-    ~FieldArrayField() override
-    {
-        for (const auto& field : fields) { delete field; }
-    }
-
     FieldArrayField(const FieldArrayField& that_) : BaseField(that_)
     {
-        for (const auto& field : that_.fields) { fields.emplace_back(field->Clone()); }
+        for (const auto& field : that_.fields) { fields.push_back(std::shared_ptr<BaseField>(field->Clone())); }
 
         arrayLength = that_.arrayLength;
         fieldSize = that_.fieldSize;
@@ -351,7 +368,7 @@ struct FieldArrayField : BaseField
             BaseField::operator=(that_);
 
             fields.clear();
-            for (const auto& field : that_.fields) { fields.emplace_back(field->Clone()); }
+            for (const auto& field : that_.fields) { fields.push_back(std::shared_ptr<BaseField>(field->Clone())); }
 
             arrayLength = that_.arrayLength;
             fieldSize = that_.fieldSize;
@@ -361,6 +378,9 @@ struct FieldArrayField : BaseField
     }
 
     FieldArrayField* Clone() override { return new FieldArrayField(*this); }
+
+    using Ptr = std::shared_ptr<FieldArrayField>;
+    using ConstPtr = std::shared_ptr<const FieldArrayField>;
 };
 
 //-----------------------------------------------------------------------
@@ -374,7 +394,7 @@ struct MessageDefinition
     uint32_t logID{0};
     std::string name;
     std::string description;
-    std::unordered_map<uint32_t, std::vector<BaseField*>> fields; // map of crc keys to field definitions
+    std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields; // map of crc keys to field definitions
     uint32_t latestMessageCrc{0};
 
     MessageDefinition() = default;
@@ -385,7 +405,7 @@ struct MessageDefinition
         {
             uint32_t key = fieldDefinition.first;
             // Ensure a 0-length vector exists for this key in the case the message has no fields.
-            fields[key] = std::vector<BaseField*>();
+            fields[key].clear();
             for (const auto& field : fieldDefinition.second) { fields[key].emplace_back(field->Clone()); }
         }
 
@@ -394,14 +414,6 @@ struct MessageDefinition
         name = that_.name;
         description = that_.description;
         latestMessageCrc = that_.latestMessageCrc;
-    }
-
-    ~MessageDefinition()
-    {
-        for (auto& item : fields)
-        {
-            for (auto* f : item.second) { delete f; }
-        }
     }
 
     MessageDefinition& operator=(MessageDefinition that_)
@@ -413,7 +425,7 @@ struct MessageDefinition
             {
                 uint32_t key = fieldDefinition.first;
                 // Ensure a 0-length vector exists for this key in the case the message has no fields.
-                fields[key] = std::vector<BaseField*>();
+                fields[key].clear();
                 for (const auto& field : fieldDefinition.second) { fields[key].emplace_back(field->Clone()); }
             }
 
@@ -427,7 +439,10 @@ struct MessageDefinition
         return *this;
     }
 
-    const std::vector<BaseField*>* GetMsgDefFromCrc(const std::shared_ptr<spdlog::logger>& pclLogger_, uint32_t& uiMsgDefCrc_) const;
+    const std::vector<BaseField::Ptr>& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
+
+    using Ptr = std::shared_ptr<MessageDefinition>;
+    using ConstPtr = std::shared_ptr<const MessageDefinition>;
 };
 
 // Forward declaration of from_json
@@ -442,7 +457,7 @@ void from_json(const json& j_, MessageDefinition& md_);
 void from_json(const json& j_, EnumDefinition& ed_);
 
 // Forward declaration of parse_fields and parse_enumerators
-uint32_t ParseFields(const json& j_, std::vector<BaseField*>& vFields_);
+uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_);
 void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
 
 //============================================================================
@@ -452,12 +467,12 @@ void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
 //============================================================================
 class JsonReader
 {
-    std::vector<MessageDefinition> vMessageDefinitions;
-    std::vector<EnumDefinition> vEnumDefinitions;
-    std::unordered_map<std::string, MessageDefinition*> mMessageName;
-    std::unordered_map<int32_t, MessageDefinition*> mMessageId;
-    std::unordered_map<std::string, EnumDefinition*> mEnumName;
-    std::unordered_map<std::string, EnumDefinition*> mEnumId;
+    std::vector<MessageDefinition::Ptr> vMessageDefinitions;
+    std::vector<EnumDefinition::Ptr> vEnumDefinitions;
+    std::unordered_map<std::string, MessageDefinition::Ptr> mMessageName;
+    std::unordered_map<int32_t, MessageDefinition::Ptr> mMessageId;
+    std::unordered_map<std::string, EnumDefinition::Ptr> mEnumName;
+    std::unordered_map<std::string, EnumDefinition::Ptr> mEnumId;
 
   public:
     //----------------------------------------------------------------------------
@@ -549,14 +564,14 @@ class JsonReader
     //
     //! \param[in] strMsgName_ A string containing the message name.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const MessageDefinition* GetMsgDef(const std::string& strMsgName_) const;
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(const std::string& strMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message ID.
     //
     //! \param[in] iMsgId_ The message ID.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const MessageDefinition* GetMsgDef(int32_t iMsgId_) const;
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t iMsgId_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Convert a message name string to a message ID number.
@@ -577,7 +592,7 @@ class JsonReader
     //
     //! \param[in] sEnumId_ The enum ID.
     //----------------------------------------------------------------------------
-    [[nodiscard]] EnumDefinition* GetEnumDefId(const std::string& sEnumId_) const
+    [[nodiscard]] EnumDefinition::Ptr GetEnumDefId(const std::string& sEnumId_) const
     {
         const auto it = mEnumId.find(sEnumId_);
         return it != mEnumId.end() ? it->second : nullptr;
@@ -588,39 +603,54 @@ class JsonReader
     //
     //! \param[in] sEnumName_ The enum name.
     //----------------------------------------------------------------------------
-    [[nodiscard]] EnumDefinition* GetEnumDefName(const std::string& sEnumName_) const
+    [[nodiscard]] EnumDefinition::Ptr GetEnumDefName(const std::string& sEnumName_) const
     {
         auto it = mEnumName.find(sEnumName_);
         return it != mEnumName.end() ? it->second : nullptr;
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Returns all defined enums.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] const std::vector<EnumDefinition::Ptr>& EnumDefinitions() const { return vEnumDefinitions; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Returns all defined message types.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] const std::vector<MessageDefinition::Ptr>& MessageDefinitions() const { return vMessageDefinitions; }
+
   private:
     void GenerateMappings()
     {
-        for (EnumDefinition& enm : vEnumDefinitions)
+        for (auto& enm : vEnumDefinitions)
         {
-            mEnumName[enm.name] = &enm;
-            mEnumId[enm._id] = &enm;
+            mEnumName[enm->name] = enm;
+            mEnumId[enm->_id] = enm;
         }
 
-        for (MessageDefinition& msg : vMessageDefinitions)
+        for (auto& msg : vMessageDefinitions)
         {
-            mMessageName[msg.name] = &msg;
-            mMessageId[msg.logID] = &msg;
+            mMessageName[msg->name] = msg;
+            mMessageId[msg->logID] = msg;
 
-            for (const auto& item : msg.fields) { MapMessageEnumFields(item.second); }
+            for (const auto& item : msg->fields) { MapMessageEnumFields(item.second); }
         }
     }
 
-    void MapMessageEnumFields(const std::vector<BaseField*>& vMsgDefFields_)
+    void MapMessageEnumFields(const std::vector<std::shared_ptr<BaseField>>& vMsgDefFields_)
     {
         for (const auto& field : vMsgDefFields_)
         {
             if (field->type == FIELD_TYPE::ENUM)
             {
-                dynamic_cast<EnumField*>(field)->enumDef = GetEnumDefId(dynamic_cast<const EnumField*>(field)->enumId);
+                auto* enumField = dynamic_cast<EnumField*>(field.get());
+                enumField->enumDef = GetEnumDefId(enumField->enumId);
             }
-            else if (field->type == FIELD_TYPE::FIELD_ARRAY) { MapMessageEnumFields(dynamic_cast<FieldArrayField*>(field)->fields); }
+            else if (field->type == FIELD_TYPE::FIELD_ARRAY)
+            {
+                auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
+                MapMessageEnumFields(fieldArrayField->fields);
+            }
         }
     }
 
@@ -644,23 +674,27 @@ class JsonReader
         if (itId != mEnumId.end()) { mEnumId.erase(itId); }
     }
 
-    std::vector<MessageDefinition>::iterator GetMessageIt(uint32_t iMsgId_)
+    std::vector<MessageDefinition::Ptr>::iterator GetMessageIt(uint32_t iMsgId_)
     {
         return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                            [iMsgId_](const MessageDefinition& elem_) { return elem_.logID == iMsgId_; });
+                            [iMsgId_](const MessageDefinition::Ptr& elem_) { return elem_->logID == iMsgId_; });
     }
 
-    std::vector<MessageDefinition>::iterator GetMessageIt(std::string_view strMessage_)
+    std::vector<MessageDefinition::Ptr>::iterator GetMessageIt(std::string_view strMessage_)
     {
         return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                            [strMessage_](const MessageDefinition& elem_) { return elem_.name == strMessage_; });
+                            [strMessage_](const MessageDefinition::Ptr& elem_) { return elem_->name == strMessage_; });
     }
 
-    std::vector<EnumDefinition>::iterator GetEnumIt(std::string_view strEnumeration_)
+    std::vector<EnumDefinition::Ptr>::iterator GetEnumIt(std::string_view strEnumeration_)
     {
         return std::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
-                            [strEnumeration_](const EnumDefinition& elem_) { return elem_.name == strEnumeration_; });
+                            [strEnumeration_](const EnumDefinition::Ptr& elem_) { return elem_->name == strEnumeration_; });
     }
+
+  public:
+    using Ptr = std::shared_ptr<JsonReader>;
+    using ConstPtr = std::shared_ptr<const JsonReader>;
 };
 
 } // namespace novatel::edie

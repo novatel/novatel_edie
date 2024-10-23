@@ -27,6 +27,9 @@
 #ifndef NOVATEL_FILE_PARSER_HPP
 #define NOVATEL_FILE_PARSER_HPP
 
+#include <iosfwd>
+#include <memory>
+
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/parser.hpp"
 
@@ -41,7 +44,7 @@ class FileParser
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
     Parser clMyParser;
-    std::ifstream* pclMyInputStream{nullptr};
+    std::shared_ptr<std::istream> pclMyInputStream{nullptr};
 
     [[nodiscard]] bool ReadStream();
 
@@ -71,7 +74,7 @@ class FileParser
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    FileParser(JsonReader* pclJsonDb_ = nullptr);
+    FileParser(JsonReader::Ptr pclJsonDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief A destructor for the FileParser class.
@@ -83,7 +86,7 @@ class FileParser
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -170,14 +173,14 @@ class FileParser
     //
     //! \param[in] pclFilter_ A pointer to an OEM message Filter object.
     //----------------------------------------------------------------------------
-    void SetFilter(Filter* pclFilter_);
+    void SetFilter(const Filter::Ptr& pclFilter_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the config for the FileParser.
     //
     //! \return A pointer to the FileParser's OEM message Filter object.
     //----------------------------------------------------------------------------
-    [[nodiscard]] Filter* GetFilter() const;
+    [[nodiscard]] const Filter::Ptr& GetFilter() const;
 
     //----------------------------------------------------------------------------
     //! \brief Set the InputFileStream for the FileParser.
@@ -186,7 +189,7 @@ class FileParser
     //
     //! \return A boolean describing if the operation was successful
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool SetStream(std::ifstream* pclInputStream_);
+    [[nodiscard]] bool SetStream(std::shared_ptr<std::istream> pclInputStream_);
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the FileParser.

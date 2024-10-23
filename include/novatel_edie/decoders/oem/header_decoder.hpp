@@ -42,10 +42,10 @@ class HeaderDecoder
 {
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_header_decoder")};
-    JsonReader* pclMyMsgDb{nullptr};
-    EnumDefinition* vMyCommandDefinitions{nullptr};
-    EnumDefinition* vMyPortAddressDefinitions{nullptr};
-    EnumDefinition* vMyGpsTimeStatusDefinitions{nullptr};
+    JsonReader::Ptr pclMyMsgDb{nullptr};
+    EnumDefinition::Ptr vMyCommandDefinitions{nullptr};
+    EnumDefinition::Ptr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::Ptr vMyGpsTimeStatusDefinitions{nullptr};
     MessageDefinition stMyResponseDefinition;
 
     // Decode novatel headers
@@ -59,14 +59,14 @@ class HeaderDecoder
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    HeaderDecoder(JsonReader* pclJsonDb_ = nullptr);
+    HeaderDecoder(JsonReader::Ptr pclJsonDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief Load a JsonReader object.
     //
     //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
