@@ -355,7 +355,7 @@ int32_t GetResponseId(const novatel::edie::EnumDefinition* stRespDef_, std::stri
 //! ASCII or not. Regardless of this return, the function will attempt
 //! to strip any abbreviated ASCII bytes.
 //-----------------------------------------------------------------------
-bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, const char** ppcMessageBuffer_);
+bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, const char*& ppcMessageBuffer_);
 
 //-----------------------------------------------------------------------
 //! \struct SatelliteId

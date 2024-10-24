@@ -105,27 +105,27 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, std::string_view s
 int32_t ToDigit(const char c_) { return c_ - '0'; }
 
 //-----------------------------------------------------------------------
-bool ConsumeAbbrevFormatting(const uint64_t ullTokenLength_, const char** ppcMessageBuffer_)
+bool ConsumeAbbrevFormatting(const uint64_t ullTokenLength_, const char*& ppcMessageBuffer_)
 {
     bool bIsAbbrev = false;
 
     if ((ullTokenLength_ == 0 || ullTokenLength_ == 1) &&
-        (static_cast<int8_t>(**ppcMessageBuffer_) == '\r' || static_cast<int8_t>(**ppcMessageBuffer_) == '\n' ||
-         static_cast<int8_t>(**ppcMessageBuffer_) == '<'))
+        (static_cast<int8_t>(*ppcMessageBuffer_) == '\r' || static_cast<int8_t>(*ppcMessageBuffer_) == '\n' ||
+         static_cast<int8_t>(*ppcMessageBuffer_) == '<'))
     {
         // Skip over '\r\n<     '
         while (true)
         {
-            switch (**ppcMessageBuffer_)
+            switch (*ppcMessageBuffer_)
             {
             case '\r': [[fallthrough]];
-            case '\n': *ppcMessageBuffer_ += sizeof(int8_t); break;
+            case '\n': ppcMessageBuffer_ += sizeof(int8_t); break;
             case '<':
-                *ppcMessageBuffer_ += sizeof(int8_t);
+                ppcMessageBuffer_ += sizeof(int8_t);
                 bIsAbbrev = true;
                 break;
             case ' ':
-                if (bIsAbbrev) { *ppcMessageBuffer_ += sizeof(int8_t); }
+                if (bIsAbbrev) { ppcMessageBuffer_ += sizeof(int8_t); }
                 break;
             default: return bIsAbbrev;
             }

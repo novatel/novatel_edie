@@ -40,7 +40,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
         STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char* ppcLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
         {
-            return DecodeAscii<false>(MsgDefFields_, &ppcLogBuf_, vIntermediateFormat_);
+            return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
         }
 
         STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, const unsigned char* ppucLogBuf_,
@@ -48,7 +48,7 @@ class MessageDecoderTypesTest : public ::testing::Test
         {
             uint16_t MsgDefFieldsSize = 0;
             for (BaseField* field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
-            return DecodeBinary(MsgDefFields_, &ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
+            return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
         }
 
         template <typename T, DATA_TYPE D> void ValidSimpleASCIIHelper(std::vector<std::string> vstrTestInput, std::vector<T> vTargets)
@@ -71,7 +71,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // vector so we can iterate through every possible valid combination of a basefield
                 const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
-                DecodeAsciiField(&stMessageDataType, &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
+                DecodeAsciiField(&stMessageDataType, tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {
@@ -89,7 +89,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
             const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
             const char* tempStr = strTestInput.c_str();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(&stMessageDataType, &tempStr, strTestInput.length(), vIntermediateFormat),
+            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(&stMessageDataType, tempStr, strTestInput.length(), vIntermediateFormat),
                          std::runtime_error);
         }
 
@@ -111,7 +111,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 // there should be a better way to do this
                 const uint8_t* pucTestInput = vvucTestInput[sz].data();
-                DecodeBinaryField(&stMessageDataType, &pucTestInput, vIntermediateFormat_);
+                DecodeBinaryField(&stMessageDataType, pucTestInput, vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {

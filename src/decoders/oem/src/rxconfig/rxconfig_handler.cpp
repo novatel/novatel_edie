@@ -101,7 +101,8 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         // Abbreviated ASCII RXCONFIG logs have indentations on the embedded header. The
         // HeaderDecoder does not expect this and the spaces must be removed. Remove "<     ", then
         // put '<' back at the beginning so the header is treated correctly.
-        ConsumeAbbrevFormatting(0, const_cast<const char**>(reinterpret_cast<char**>(&pucTempMessagePointer)));
+        const char* temp = const_cast<const char*>(reinterpret_cast<char*>(pucTempMessagePointer));
+        ConsumeAbbrevFormatting(0, temp);
         pucTempMessagePointer -= OEM4_ASCII_SYNC_LENGTH;
         *pucTempMessagePointer = OEM4_ABBREV_ASCII_SYNC;
     }

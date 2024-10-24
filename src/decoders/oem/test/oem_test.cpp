@@ -2902,10 +2902,10 @@ class NovatelTypesTest : public ::testing::Test
 
         STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char* ppcLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
         {
-            return DecodeAscii<false>(MsgDefFields_, &ppcLogBuf_, vIntermediateFormat_);
+            return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, const unsigned char** ppucLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
+        STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, const unsigned char* ppucLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
         {
             uint16_t MsgDefFieldsSize = 0;
             for (BaseField* field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }

@@ -82,44 +82,44 @@ class MessageDecoderBase
     void CreateResponseMsgDefinitions();
 
   protected:
-    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, const BaseField*, const char**, [[maybe_unused]] size_t,
+    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, const BaseField*, const char*&, [[maybe_unused]] size_t,
                                                     [[maybe_unused]] JsonReader*)>>
         asciiFieldMap;
     std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, const BaseField*, json, [[maybe_unused]] JsonReader*)>>
         jsonFieldMap;
 
-    [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, const unsigned char** ppucLogBuf_,
+    [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField*>& vMsgDefFields_, const unsigned char*& ppucLogBuf_,
                                       std::vector<FieldContainer>& vIntermediateFormat_, uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
-    [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField*>& vMsgDefFields_, const char** ppcLogBuf_,
+    [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField*>& vMsgDefFields_, const char*& ppcLogBuf_,
                                      std::vector<FieldContainer>& vIntermediateFormat_) const;
     [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField*>& vMsgDefFields_, json clJsonFields_,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
-    static void DecodeBinaryField(const BaseField* pstMessageDataType_, const unsigned char** ppucLogBuf_,
+    static void DecodeBinaryField(const BaseField* pstMessageDataType_, const unsigned char*& ppucLogBuf_,
                                   std::vector<FieldContainer>& vIntermediateFormat_);
-    void DecodeAsciiField(const BaseField* pstMessageDataType_, const char** ppcToken_, size_t tokenLength_,
+    void DecodeAsciiField(const BaseField* pstMessageDataType_, const char*& ppcToken_, size_t tokenLength_,
                           std::vector<FieldContainer>& vIntermediateFormat_) const;
     void DecodeJsonField(const BaseField* pstMessageDataType_, const json& clJsonField_, std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(std::vector<FieldContainer>&, const BaseField*, const char**, size_t, JsonReader*)> SimpleAsciiMapEntry()
+    static std::function<void(std::vector<FieldContainer>&, const BaseField*, const char*&, size_t, JsonReader*)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
-        return [](std::vector<FieldContainer>& vIntermediate_, const BaseField* pstField_, const char** ppcToken_,
+        return [](std::vector<FieldContainer>& vIntermediate_, const BaseField* pstField_, const char*& ppcToken_,
                   [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] JsonReader* pclMsgDb_) {
-            if constexpr (std::is_same_v<T, int8_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, int16_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, int32_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, int64_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoll(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, uint8_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, uint16_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, uint32_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, uint64_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoull(*ppcToken_, nullptr, R)), pstField_); }
-            if constexpr (std::is_same_v<T, float>) { vIntermediate_.emplace_back(strtof(*ppcToken_, nullptr), pstField_); }
-            if constexpr (std::is_same_v<T, double>) { vIntermediate_.emplace_back(strtod(*ppcToken_, nullptr), pstField_); }
+            if constexpr (std::is_same_v<T, int8_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(ppcToken_, nullptr, R)), pstField_); }
+            if constexpr (std::is_same_v<T, int16_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(ppcToken_, nullptr, R)), pstField_); }
+            if constexpr (std::is_same_v<T, int32_t>) { vIntermediate_.emplace_back(static_cast<T>(strtol(ppcToken_, nullptr, R)), pstField_); }
+            if constexpr (std::is_same_v<T, int64_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoll(ppcToken_, nullptr, R)), pstField_); }
+            if constexpr (std::is_same_v<T, uint8_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(ppcToken_, nullptr, R)), pstField_); }
+            if constexpr (std::is_same_v<T, uint16_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(ppcToken_, nullptr, R)), pstField_); }
+            if constexpr (std::is_same_v<T, uint32_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoul(ppcToken_, nullptr, R)), pstField_); }
+            if constexpr (std::is_same_v<T, uint64_t>) { vIntermediate_.emplace_back(static_cast<T>(strtoull(ppcToken_, nullptr, R)), pstField_); }
+            if constexpr (std::is_same_v<T, float>) { vIntermediate_.emplace_back(strtof(ppcToken_, nullptr), pstField_); }
+            if constexpr (std::is_same_v<T, double>) { vIntermediate_.emplace_back(strtod(ppcToken_, nullptr), pstField_); }
         };
     }
 
