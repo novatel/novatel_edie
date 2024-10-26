@@ -151,11 +151,11 @@ double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatus& stCha
                                                                   : 0.0;
     case System::GLONASS:
         return stChannelStatus_.eSignalType == Signal::GLONASS_L1CA
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + (sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ))
+                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ)
                : stChannelStatus_.eSignalType == Signal::GLONASS_L2CA
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + (sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ))
+                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ)
                : stChannelStatus_.eSignalType == Signal::GLONASS_L2P
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + (sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ))
+                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ)
                : stChannelStatus_.eSignalType == Signal::GLONASS_L3Q ? WAVELENGTH_GLO_L3
                                                                      : 0.0;
     case System::SBAS:
@@ -267,17 +267,14 @@ float RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_,
                                               ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_, ChannelTrackingStatus::SIGNAL_TYPE eSignal_,
                                               uint16_t usPRN_)
 {
-    auto fLocktimeMilliseconds = static_cast<float>(uiLockTimeBits_);
+    float fLocktimeMilliseconds = uiLockTimeBits_;
 
     RangeCmp2LockTimeInfo& stLocktimeInfo =
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
-    if (uiLockTimeBits_ == (RC2_SIG_LOCKTIME_MASK >> CountTrailingZeros(RC2_SIG_LOCKTIME_MASK)))
+    if (uiLockTimeBits_ == RC2_SIG_LOCKTIME_MASK >> Lsb(RC2_SIG_LOCKTIME_MASK))
     {
         // If the locktime was already saturated, use the stored time to add the missing offset.
-        if (stLocktimeInfo.bLockTimeSaturated)
-        {
-            fLocktimeMilliseconds += static_cast<float>(stMetaData_.dMilliseconds - stLocktimeInfo.dLockTimeSaturatedMilliseconds);
-        }
+        if (stLocktimeInfo.bLockTimeSaturated) { fLocktimeMilliseconds += stMetaData_.dMilliseconds - stLocktimeInfo.dLockTimeSaturatedMilliseconds; }
         // If the locktime is not already saturated, store this information if this observation is seen again.
         else
         {
@@ -370,7 +367,7 @@ float RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_,
         ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][uiPRN_];
 
     // Is the locktime relative and has a ullBitfield change been found?
-    if ((!stLocktimeInfo.bLocktimeAbsolute) && (ucLockTimeBits_ != stLocktimeInfo.ucLocktimeBits))
+    if (!stLocktimeInfo.bLocktimeAbsolute && ucLockTimeBits_ != stLocktimeInfo.ucLocktimeBits)
     {
         // Set locktime as absolute if bits are 0 or transitioning from relative to absolute.
         if (ucLockTimeBits_ == 0 || (stLocktimeInfo.ucLocktimeBits != 0xFF && ucLockTimeBits_ > stLocktimeInfo.ucLocktimeBits))
@@ -414,7 +411,7 @@ float RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_,
     }
     stLocktimeInfo.dLocktimeMilliseconds =
         stMetaData_.dMilliseconds - stLocktimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLocktimeInfo.ucLocktimeBits];
-    return static_cast<float>(stLocktimeInfo.dLocktimeMilliseconds) / SEC_TO_MILLI_SEC;
+    return stLocktimeInfo.dLocktimeMilliseconds / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
@@ -443,12 +440,12 @@ void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint
     if (iDopplerBitfield & RC4_RBLK_DOPPLER_SIGNBIT_MASK[bSecondary]) { iDopplerBitfield |= RC4_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
 
     stRefBlock_.bValidPSR = llPSRBitfield != RC4_RBLK_INVALID_PSR[bSecondary];
-    stRefBlock_.dPSR = static_cast<double>(llPSRBitfield) * RC4_SIG_BLK_PSR_SCALE_FACTOR +
+    stRefBlock_.dPSR = llPSRBitfield * RC4_SIG_BLK_PSR_SCALE_FACTOR +
                        (bSecondary ? astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(eMeasurementSource_)].dPSR : 0);
     stRefBlock_.bValidPhaseRange = iPhaseRangeBitfield != RC4_SIG_RBLK_INVALID_PHASERANGE;
-    stRefBlock_.dPhaseRange = static_cast<double>(iPhaseRangeBitfield) * RC4_SIG_BLK_PHASERANGE_SCALE_FACTOR + stRefBlock_.dPSR;
+    stRefBlock_.dPhaseRange = iPhaseRangeBitfield * RC4_SIG_BLK_PHASERANGE_SCALE_FACTOR + stRefBlock_.dPSR;
     stRefBlock_.bValidDoppler = iDopplerBitfield != RC4_PSIG_RBLK_INVALID_DOPPLER;
-    stRefBlock_.dDoppler = static_cast<double>(iDopplerBitfield) * RC4_SIG_BLK_DOPPLER_SCALE_FACTOR +
+    stRefBlock_.dDoppler = iDopplerBitfield * RC4_SIG_BLK_DOPPLER_SCALE_FACTOR +
                            (bSecondary ? astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(eMeasurementSource_)].dDoppler : 0);
 
     if constexpr (!bSecondary)
@@ -474,20 +471,19 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
     stDiffBlock_.ucPSRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_BLK_PSR_STDDEV_BITS);
     stDiffBlock_.ucADRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_BLK_ADR_STDDEV_BITS);
 
-    auto iPSRBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_DBLK_PSR_BITS);
-    if (iPSRBitfield & RC4_SIG_DBLK_PSR_SIGNBIT_MASK) { iPSRBitfield |= RC4_SIG_DBLK_PSR_SIGNEXT_MASK; }
-    auto iPhaseRangeBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_DBLK_PHASERANGE_BITS);
-    if (iPhaseRangeBitfield & RC4_SIG_DBLK_PHASERANGE_SIGNBIT_MASK) { iPhaseRangeBitfield |= RC4_SIG_DBLK_PHASERANGE_SIGNEXT_MASK; }
-    auto iDopplerBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_DBLK_DOPPLER_BITS[bSecondary]);
-    if (iDopplerBitfield & RC4_DBLK_DOPPLER_SIGNBIT_MASK[bSecondary]) { iDopplerBitfield |= RC4_DBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
+    auto iPSR = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_DBLK_PSR_BITS);
+    if (iPSR & RC4_SIG_DBLK_PSR_SIGNBIT_MASK) { iPSR |= RC4_SIG_DBLK_PSR_SIGNEXT_MASK; }
+    auto iPhaseRange = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_DBLK_PHASERANGE_BITS);
+    if (iPhaseRange & RC4_SIG_DBLK_PHASERANGE_SIGNBIT_MASK) { iPhaseRange |= RC4_SIG_DBLK_PHASERANGE_SIGNEXT_MASK; }
+    auto iDoppler = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_DBLK_DOPPLER_BITS[bSecondary]);
+    if (iDoppler & RC4_DBLK_DOPPLER_SIGNBIT_MASK[bSecondary]) { iDoppler |= RC4_DBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
 
-    stDiffBlock_.bValidPSR = iPSRBitfield != RC4_SIG_DBLK_INVALID_PSR;
-    stDiffBlock_.dPSR = static_cast<double>(iPSRBitfield) * RC4_SIG_BLK_PSR_SCALE_FACTOR + stRefBlock_.dPSR + (stRefBlock_.dDoppler * dSecondOffset_);
-    stDiffBlock_.bValidPhaseRange = iPhaseRangeBitfield != RC4_SIG_DBLK_INVALID_PHASERANGE;
-    stDiffBlock_.dPhaseRange = static_cast<double>(iPhaseRangeBitfield) * RC4_SIG_BLK_PHASERANGE_SCALE_FACTOR + stRefBlock_.dPhaseRange +
-                               stRefBlock_.dDoppler * dSecondOffset_;
-    stDiffBlock_.bValidDoppler = iDopplerBitfield != RC4_DBLK_INVALID_DOPPLER[bSecondary];
-    stDiffBlock_.dDoppler = static_cast<double>(iDopplerBitfield) * RC4_SIG_BLK_DOPPLER_SCALE_FACTOR + stRefBlock_.dDoppler;
+    stDiffBlock_.bValidPSR = iPSR != RC4_SIG_DBLK_INVALID_PSR;
+    stDiffBlock_.dPSR = iPSR * RC4_SIG_BLK_PSR_SCALE_FACTOR + stRefBlock_.dPSR + (stRefBlock_.dDoppler * dSecondOffset_);
+    stDiffBlock_.bValidPhaseRange = iPhaseRange != RC4_SIG_DBLK_INVALID_PHASERANGE;
+    stDiffBlock_.dPhaseRange = iPhaseRange * RC4_SIG_BLK_PHASERANGE_SCALE_FACTOR + stRefBlock_.dPhaseRange + stRefBlock_.dDoppler * dSecondOffset_;
+    stDiffBlock_.bValidDoppler = iDoppler != RC4_DBLK_INVALID_DOPPLER[bSecondary];
+    stDiffBlock_.dDoppler = iDoppler * RC4_SIG_BLK_DOPPLER_SCALE_FACTOR + stRefBlock_.dDoppler;
 }
 
 //------------------------------------------------------------------------------
@@ -517,8 +513,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const Ran
     constexpr std::array<float, 16> stdDevAdrScaling = {0.003F, 0.005F, 0.007F, 0.009F, 0.012F, 0.016F, 0.022F, 0.029F,
                                                         0.039F, 0.052F, 0.070F, 0.093F, 0.124F, 0.166F, 0.222F, 0.222F};
 
-    double dSignalWavelength =
-        GetSignalWavelength(stChannelStatus_, static_cast<int16_t>(cGLONASSFrequencyNumber_ - GLONASS_FREQUENCY_NUMBER_OFFSET));
+    double dSignalWavelength = GetSignalWavelength(stChannelStatus_, cGLONASSFrequencyNumber_ - GLONASS_FREQUENCY_NUMBER_OFFSET);
 
     //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
@@ -529,19 +524,17 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const Ran
         // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - cGLONASSFrequencyNumber_. However, this
         // would output the PRN as an actual valid Slot ID, which is not true. We will
         // set this to 0 here because 0 is considered an unknown/invalid GLONASS Slot ID.
-        stRangeData_.usPRN = (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT)
-                                 ? 0
-                                 : static_cast<uint16_t>(uiPRN_) + GLONASS_SLOT_OFFSET - 1;
+        stRangeData_.usPRN =
+            (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT) ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
         break;
     case ChannelTrackingStatus::SATELLITE_SYSTEM::SBAS:
-        stRangeData_.usPRN = (SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT)
-                                 ? static_cast<uint16_t>(uiPRN_ + SBAS_PRN_OFFSET_120 - 1)
-                             : (SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT)
-                                 ? static_cast<uint16_t>(uiPRN_ + SBAS_PRN_OFFSET_130 - 1)
-                                 : 0;
+        stRangeData_.usPRN =
+            (SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT)   ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
+            : (SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT) ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
+                                                                                                       : 0;
         break;
-    case ChannelTrackingStatus::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_ + QZSS_PRN_OFFSET - 1); break;
-    default: stRangeData_.usPRN = static_cast<uint16_t>(uiPRN_); break;
+    case ChannelTrackingStatus::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
+    default: stRangeData_.usPRN = uiPRN_; break;
     }
 
     if (stChannelStatus_.eSatelliteSystem != ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
@@ -550,13 +543,12 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const Ran
     }
 
     // any fields flagged as invalid are set to NaN and appear in the log as such
-    stRangeData_.sGLONASSFrequency = static_cast<int16_t>(static_cast<unsigned char>(cGLONASSFrequencyNumber_));
+    stRangeData_.sGLONASSFrequency = static_cast<unsigned char>(cGLONASSFrequencyNumber_);
     stRangeData_.dPSR = stBlock_.bValidPSR ? stBlock_.dPSR : std::numeric_limits<double>::quiet_NaN();
     stRangeData_.fPSRStdDev = stdDevPsrScaling[stBlock_.ucPSRBitfield];
     stRangeData_.dADR = stBlock_.bValidPhaseRange ? -stBlock_.dPhaseRange / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
     stRangeData_.fADRStdDev = stdDevAdrScaling[stBlock_.ucADRBitfield];
-    stRangeData_.fDopplerFrequency =
-        stBlock_.bValidDoppler ? static_cast<float>(-stBlock_.dDoppler / dSignalWavelength) : std::numeric_limits<float>::quiet_NaN();
+    stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
     stRangeData_.fLockTime =
         GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stChannelStatus_.eSatelliteSystem, stChannelStatus_.eSignalType, uiPRN_);
@@ -588,24 +580,22 @@ void RangeDecompressor::RangeCmpToRange(const RangeCmp& stRangeCmpMessage_, Rang
         ChannelTrackingStatus stChannelTrackingStatus(stRangeCmpData.uiChannelTrackingStatus);
 
         stRangeData.uiChannelTrackingStatus = stRangeCmpData.uiChannelTrackingStatus;
-        stRangeData.usPRN = static_cast<uint16_t>(stRangeCmpData.ucPRN);
+        stRangeData.usPRN = stRangeCmpData.ucPRN;
 
-        // Extend the sign
         auto iDoppler = GetBitfield<int32_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_DOPPLER_FREQUENCY_MASK);
         if ((iDoppler & RC_DOPPLER_FREQUENCY_SIGNBIT_MASK) != 0) { iDoppler |= RC_DOPPLER_FREQUENCY_SIGNEXT_MASK; }
-        stRangeData.fDopplerFrequency = static_cast<float>(iDoppler / RC_DOPPLER_FREQUENCY_SCALE_FACTOR);
+        stRangeData.fDopplerFrequency = iDoppler >> RC_DOPPLER_FREQUENCY_SHIFT;
 
-        stRangeData.dPSR = GetBitfield<double>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_PSR_MEASUREMENT_MASK) / RC_PSR_MEASUREMENT_SCALE_FACTOR;
+        stRangeData.dPSR = GetBitfield<uint64_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_PSR_MEASUREMENT_MASK) >> RC_PSR_MEASUREMENT_SHIFT;
         stRangeData.fPSRStdDev = stdDevPsrScaling[stRangeCmpData.ucStdDevPSRStdDevADR & RC_PSR_STDDEV_MASK];
         stRangeData.fADRStdDev =
-            (GetBitfield<float>(stRangeCmpData.ucStdDevPSRStdDevADR, RC_ADR_STDDEV_MASK) + RC_ADR_STDDEV_SCALE_OFFSET) / RC_ADR_STDDEV_SCALE_FACTOR;
-        stRangeData.fLockTime = GetBitfield<float>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_LOCK_TIME_MASK) / RC_LOCK_TIME_SCALE_FACTOR;
-        stRangeData.fCNo = GetBitfield<float>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_CNO_MASK) + RC_CNO_SCALE_OFFSET;
+            (GetBitfield<uint32_t>(stRangeCmpData.ucStdDevPSRStdDevADR, RC_ADR_STDDEV_MASK) + RC_ADR_STDDEV_SCALE_OFFSET) >> RC_ADR_STDDEV_SHIFT;
+        stRangeData.fLockTime = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_LOCK_TIME_MASK) >> RC_LOCK_TIME_SHIFT;
+        stRangeData.fCNo = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_CNO_MASK) + RC_CNO_SCALE_OFFSET;
         stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_GLONASS_FREQUENCY_MASK);
 
         double dWavelength = GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency);
-
-        stRangeData.dADR = static_cast<double>(stRangeCmpData.uiADR) / RC_ADR_SCALE_FACTOR;
+        stRangeData.dADR = stRangeCmpData.uiADR >> RC_ADR_SHIFT;
         double dADRRolls = ((stRangeData.dPSR / dWavelength) + stRangeData.dADR) / MAX_VALUE;
         stRangeData.dADR -= MAX_VALUE * static_cast<uint64_t>(std::round(dADRRolls));
     }
@@ -638,15 +628,12 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, R
     {
         const auto& stSatBlock = reinterpret_cast<const RangeCmp2SatelliteBlock&>(stRangeCmp2Message_.aucRangeData[uiRangeDataBytesDecompressed]);
 
-        // Decompress the Satellite Block
         const auto eSystem = GetBitfield<SYSTEM>(stSatBlock.ulCombinedField, RC2_SAT_SATELLITE_SYSTEM_ID_MASK);
         const auto ucSignalBlockCount = GetBitfield<uint8_t>(stSatBlock.ulCombinedField, RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK);
 
-        // Extend the sign
         auto iPSRBase = GetBitfield<int32_t>(stSatBlock.ulCombinedField, RC2_SAT_SATELLITE_PSR_BASE_MASK);
         if ((iPSRBase & RC2_SAT_SATELLITE_PSR_BASE_SIGNBIT_MASK) != 0) { iPSRBase |= RC2_SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK; }
 
-        // Extend the sign
         auto iDopplerBase = GetBitfield<int32_t>(stSatBlock.ulCombinedField, RC2_SAT_SATELLITE_DOPPLER_BASE_MASK);
         if ((iDopplerBase & RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNBIT_MASK) != 0) { iDopplerBase |= RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK; }
 
@@ -655,21 +642,17 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, R
         // Decompress the Signal Blocks associated with the Satellite Block
         for (uint8_t ucSignalBlockIndex = 0; ucSignalBlockIndex < ucSignalBlockCount; ucSignalBlockIndex++)
         {
+            // Decompress the signal block
             const auto& stSigBlock = reinterpret_cast<const RangeCmp2SignalBlock&>(stRangeCmp2Message_.aucRangeData[uiRangeDataBytesDecompressed]);
 
             const auto eSignalType = GetBitfield<rangecmp2::SIGNAL_TYPE>(stSigBlock.uiCombinedField1, RC2_SIG_SIGNAL_TYPE_MASK);
             const auto ucPSRBitfield = GetBitfield<uint8_t>(stSigBlock.ullCombinedField2, RC2_SIG_PSR_STDDEV_MASK);
             const auto ucADRBitfield = GetBitfield<uint8_t>(stSigBlock.ullCombinedField2, RC2_SIG_ADR_STDDEV_MASK);
             const auto uiLocktimeBits = GetBitfield<uint32_t>(stSigBlock.uiCombinedField1, RC2_SIG_LOCKTIME_MASK);
-            const auto usPRN = static_cast<uint16_t>(stSatBlock.ucSatelliteIdentifier + (eSystem == SYSTEM::GLONASS ? GLONASS_SLOT_OFFSET - 1 : 0));
+            const auto usPRN = stSatBlock.ucSatelliteIdentifier + (eSystem == SYSTEM::GLONASS ? GLONASS_SLOT_OFFSET - 1 : 0);
 
-            // Extend the sign
             auto iDopplerBitfield = GetBitfield<int32_t>(stSigBlock.ullCombinedField2, RC2_SIG_DOPPLER_DIFF_MASK);
             if ((iDopplerBitfield & RC2_SIG_DOPPLER_DIFF_SIGNBIT_MASK) != 0) { iDopplerBitfield |= RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK; }
-
-            const auto fPSRDiff = GetBitfield<float>(stSigBlock.ullCombinedField2, RC2_SIG_PSR_DIFF_MASK);
-            const auto fPhaseRangeDiff = GetBitfield<float>(stSigBlock.ullCombinedField2, RC2_SIG_PHASERANGE_DIFF_MASK);
-            const auto fScaledDopplerDiff = static_cast<float>(static_cast<float>(iDopplerBitfield) / RC2_SIG_DOPPLER_DIFF_SCALE_FACTOR);
 
             ChannelTrackingStatus stChannelTrackingStatus(stSatBlock, stSigBlock);
 
@@ -677,15 +660,15 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, R
             RangeData& stRangeData = stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++];
             stRangeData.usPRN = usPRN;
             stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stSatBlock.ulCombinedField, RC2_SAT_GLONASS_FREQUENCY_ID_MASK);
-            stRangeData.dPSR = static_cast<double>(iPSRBase + static_cast<double>(fPSRDiff / RC2_SIG_PSR_DIFF_SCALE_FACTOR));
+            stRangeData.dPSR = iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, RC2_SIG_PSR_DIFF_MASK) >> RC2_SIG_PSR_DIFF_SHIFT);
             stRangeData.fPSRStdDev = stdDevPsrScaling[ucPSRBitfield];
-            stRangeData.dADR = -static_cast<double>(iPSRBase) +
-                               static_cast<double>(fPhaseRangeDiff / RC2_SIG_PHASERANGE_DIFF_SCALE_FACTOR) /
-                                   (GetSignalWavelength(stChannelTrackingStatus, (stRangeData.sGLONASSFrequency - GLONASS_FREQUENCY_NUMBER_OFFSET)));
+            stRangeData.dADR =
+                -((iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, RC2_SIG_PHASERANGE_DIFF_MASK) >> RC2_SIG_PHASERANGE_DIFF_SHIFT)) /
+                  GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency - GLONASS_FREQUENCY_NUMBER_OFFSET));
             stRangeData.fADRStdDev = stdDevAdrScaling[ucADRBitfield];
             stRangeData.fDopplerFrequency =
-                static_cast<float>(iDopplerBase + fScaledDopplerDiff) / static_cast<float>(mmTheRangeCmp2SignalScalingMapping[eSystem][eSignalType]);
-            stRangeData.fCNo = RC2_SIG_CNO_SCALE_OFFSET + GetBitfield<float>(stSigBlock.ullCombinedField2, RC2_SIG_CNO_MASK);
+                (iDopplerBase + (iDopplerBitfield >> RC2_SIG_DOPPLER_DIFF_SHIFT)) / mmTheRangeCmp2SignalScalingMapping[eSystem][eSignalType];
+            stRangeData.fCNo = RC2_SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, RC2_SIG_CNO_MASK);
             stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLocktimeBits, stChannelTrackingStatus.eSatelliteSystem,
                                                          stChannelTrackingStatus.eSignalType, usPRN);
             stRangeData.uiChannelTrackingStatus = stChannelTrackingStatus.GetAsWord();
@@ -736,7 +719,6 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
             // Collect the satellite PRNs tracked in this satellite system.
             for (uint8_t ucBitPosition = 0; ucBitPosition < RC4_SATELLITES_BITS; ucBitPosition++)
             {
-                // Note that ucBitPosition contains the PRN value at this point.
                 if ((ullSatellites & (1ULL << ucBitPosition)) != 0) { vPRNs.push_back(ucBitPosition + 1); } // Bit position is PRN - 1, so + 1 here
             }
 

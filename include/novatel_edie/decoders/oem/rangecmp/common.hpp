@@ -159,16 +159,16 @@ constexpr uint32_t CTS_CHANNEL_ASSIGNMENT_MASK = 0x80000000;
 constexpr uint64_t RC_DOPPLER_FREQUENCY_MASK = 0x000000000FFFFFFF;
 constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNBIT_MASK = 0x08000000;
 constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNEXT_MASK = 0xF0000000;
-constexpr float RC_DOPPLER_FREQUENCY_SCALE_FACTOR = 256.0F;
+constexpr uint32_t RC_DOPPLER_FREQUENCY_SHIFT = 8;
 constexpr uint64_t RC_PSR_MEASUREMENT_MASK = 0xFFFFFFFFF0000000;
-constexpr double RC_PSR_MEASUREMENT_SCALE_FACTOR = 128.0;
-constexpr double RC_ADR_SCALE_FACTOR = 256.0;
+constexpr uint32_t RC_PSR_MEASUREMENT_SHIFT = 7;
+constexpr uint32_t RC_ADR_SHIFT = 8;
 constexpr uint32_t RC_PSR_STDDEV_MASK = 0x0F;
 constexpr uint32_t RC_ADR_STDDEV_MASK = 0xF0;
-constexpr double RC_ADR_STDDEV_SCALE_FACTOR = 512.0;
+constexpr uint32_t RC_ADR_STDDEV_SHIFT = 9;
 constexpr uint32_t RC_ADR_STDDEV_SCALE_OFFSET = 1;
 constexpr uint32_t RC_LOCK_TIME_MASK = 0x001FFFFF;
-constexpr double RC_LOCK_TIME_SCALE_FACTOR = 32.0;
+constexpr uint32_t RC_LOCK_TIME_SHIFT = 5;
 constexpr uint32_t RC_CNO_MASK = 0x03E00000;
 constexpr uint32_t RC_CNO_SCALE_OFFSET = 20;
 constexpr uint32_t RC_GLONASS_FREQUENCY_MASK = 0xFC000000;
@@ -209,11 +209,11 @@ constexpr uint32_t RC2_SIG_CNO_SCALE_OFFSET = 20;
 constexpr uint64_t RC2_SIG_PSR_STDDEV_MASK = 0x00000000000001E0;
 constexpr uint64_t RC2_SIG_ADR_STDDEV_MASK = 0x0000000000001E00;
 constexpr uint64_t RC2_SIG_PSR_DIFF_MASK = 0x0000000007FFE000;
-constexpr double RC2_SIG_PSR_DIFF_SCALE_FACTOR = 128.0;
+constexpr uint32_t RC2_SIG_PSR_DIFF_SHIFT = 7;
 constexpr uint64_t RC2_SIG_PHASERANGE_DIFF_MASK = 0x00007FFFF8000000;
-constexpr double RC2_SIG_PHASERANGE_DIFF_SCALE_FACTOR = 2048.0;
+constexpr uint32_t RC2_SIG_PHASERANGE_DIFF_SHIFT = 11;
 constexpr uint64_t RC2_SIG_DOPPLER_DIFF_MASK = 0xFFFF800000000000;
-constexpr double RC2_SIG_DOPPLER_DIFF_SCALE_FACTOR = 256.0;
+constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SHIFT = 8;
 constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SIGNBIT_MASK = 0x00010000;
 constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK = 0xFFFE0000;
 
@@ -288,24 +288,28 @@ constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0
 constexpr std::array<int64_t, 2> RC4_RBLK_INVALID_PSR = {137438953471, -524288};
 
 // replace this with std::countr_zero when C++20 is available
-constexpr uint32_t CountTrailingZeros(uint64_t value)
+constexpr uint32_t Lsb(uint64_t value)
 {
-    uint32_t count = 0;
-    while ((value & 1) == 0)
-    {
-        value >>= 1;
-        ++count;
-    }
-    return count;
+    if (value == 0) { return 64; } // Indicate no bits are set
+
+#ifdef _MSC_VER
+    unsigned long index;
+    _BitScanForward64(&index, value);
+    return static_cast<uint32_t>(index);
+#else
+    return __builtin_ctzll(value);
+#endif
 }
 
 template <typename T> constexpr T GetBitfield(uint64_t value, uint64_t mask)
 {
-    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_enum_v<T>,
-                  "GetBitfield only returns integral, floating point, or enum types.");
+    static_assert(std::is_integral<T>::value || std::is_enum_v<T>, "GetBitfield only returns integral or enum types.");
     // TODO: need to do some checking to ensure that the mask is valid (not too large) for the type of T
-    return static_cast<T>((value & mask) >> CountTrailingZeros(mask));
+    return static_cast<T>((value & mask) >> Lsb(mask));
 }
+
+// TODO: need to do some checking to ensure that the result is valid
+constexpr uint32_t EncodeBitfield(uint32_t value, uint32_t mask) { return value << Lsb(mask) & mask; }
 
 //-----------------------------------------------------------------------
 //! \enum SYSTEM
@@ -490,7 +494,7 @@ enum class SIGNAL_TYPE
 struct RangeCmp2
 {
     uint32_t uiNumberOfRangeDataBytes{0};
-    uint8_t aucRangeData[(RANGE_RECORD_MAX * (sizeof(RangeCmp2SatelliteBlock) + sizeof(RangeCmp2SignalBlock)))]{0};
+    uint8_t aucRangeData[RANGE_RECORD_MAX * (sizeof(RangeCmp2SatelliteBlock) + sizeof(RangeCmp2SignalBlock))]{};
 
     RangeCmp2() = default;
 };
@@ -546,10 +550,10 @@ struct RangeCmp4MeasurementSignalBlock
 //-----------------------------------------------------------------------
 struct RangeCmp4LocktimeInfo
 {
-    double dLocktimeMilliseconds{0.0};           // The current running locktime for this observation.
-    double dLastBitfieldChangeMilliseconds{0.0}; // The last time (milliseconds from OEM header) locktime was updated.
-    uint8_t ucLocktimeBits{UINT8_MAX};           // The last recorded bit pattern.
-    bool bLocktimeAbsolute{false};               // Is the lock time absolute or relative?
+    double dLocktimeMilliseconds{0.0};                           // The current running locktime for this observation.
+    double dLastBitfieldChangeMilliseconds{0.0};                 // The last time (milliseconds from OEM header) locktime was updated.
+    uint8_t ucLocktimeBits{std::numeric_limits<uint8_t>::max()}; // The last recorded bit pattern.
+    bool bLocktimeAbsolute{false};                               // Is the lock time absolute or relative?
 
     RangeCmp4LocktimeInfo() = default;
 };
@@ -780,8 +784,7 @@ struct ChannelTrackingStatus
             eSatelliteSystem, GetBitfield<rangecmp2::SIGNAL_TYPE>(stRangeCmp2SigBlock_.uiCombinedField1, RC2_SIG_SIGNAL_TYPE_MASK));
     }
 
-    //! Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block
-    //! pair.
+    //! Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block pair.
     ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_, const RangeCmp4MeasurementSignalBlock& stMeasurementBlock_)
     {
         // Defaults that cannot be determined:
@@ -790,8 +793,7 @@ struct ChannelTrackingStatus
         bPRNLocked = false;
         bChannelAssignmentForced = false;
         bDigitalFilteringOnSignal = false;
-        bGrouped = false; // Note that bGrouped can be changed once the number of signals for this
-                          // PRN have been determined.
+        bGrouped = false; // Note that bGrouped can be changed once the number of signals for this PRN have been determined.
 
         eSatelliteSystem = SystemToSatelliteSystem(eSystem_);
         eSignalType = RangeCmp4SignalTypeToSignalType(eSatelliteSystem, eSignalType_);
@@ -938,17 +940,15 @@ struct ChannelTrackingStatus
                                              : SATELLITE_SYSTEM::OTHER;
     }
 
-    //! Combine the channel tracking status fields into a single 4-byte value according to
-    //! documentation:
+    //! Combine the channel tracking status fields into a single 4-byte value according to documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus
     [[nodiscard]] uint32_t GetAsWord() const
     {
-        // TODO: make EncodeBitfield function
-        uint32_t uiWord = (static_cast<uint32_t>(eTrackingState) & CTS_TRACKING_STATE_MASK) |
-                          ((static_cast<uint32_t>(eCorrelatorType) << CountTrailingZeros(CTS_CORRELATOR_MASK)) & CTS_CORRELATOR_MASK) |
-                          ((static_cast<uint32_t>(eSatelliteSystem) << CountTrailingZeros(CTS_SATELLITE_SYSTEM_MASK)) & CTS_SATELLITE_SYSTEM_MASK) |
-                          ((static_cast<uint32_t>(eSignalType) << CountTrailingZeros(CTS_SIGNAL_TYPE_MASK)) & CTS_SIGNAL_TYPE_MASK) |
-                          ((static_cast<uint32_t>(uiSVChannelNumber) << CountTrailingZeros(CTS_SV_CHANNEL_NUMBER_MASK)) & CTS_SV_CHANNEL_NUMBER_MASK);
+        uint32_t uiWord = EncodeBitfield(static_cast<uint32_t>(eTrackingState), CTS_TRACKING_STATE_MASK) |
+                          EncodeBitfield(static_cast<uint32_t>(eCorrelatorType), CTS_CORRELATOR_MASK) |
+                          EncodeBitfield(static_cast<uint32_t>(eSatelliteSystem), CTS_SATELLITE_SYSTEM_MASK) |
+                          EncodeBitfield(static_cast<uint32_t>(eSignalType), CTS_SIGNAL_TYPE_MASK) |
+                          EncodeBitfield(uiSVChannelNumber, CTS_SV_CHANNEL_NUMBER_MASK);
 
         if (bPhaseLocked) { uiWord |= CTS_PHASE_LOCK_MASK; }
         if (bParityKnown) { uiWord |= CTS_PARITY_KNOWN_MASK; }
