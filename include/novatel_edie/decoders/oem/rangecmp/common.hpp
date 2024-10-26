@@ -130,43 +130,29 @@ constexpr double WAVELENGTH_QZSS_L6 = SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L6;
 constexpr double WAVELENGTH_NAVIC_L5 = SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
 
 //-----------------------------------------------------------------------
-//! RANGE Channel Tracking Status data field bit masks and shifts.
-//! NOTE: These masks, shifts and offsets will be used to construct or
+//! RANGE Channel Tracking Status data field bit masks.
+//! NOTE: These masks and offsets will be used to construct or
 //! deconstruct ChannelTrackingStatus words which appear in RANGE
 //! messages.
 //! "CTS" == "Channel Tracking Status"
 //-----------------------------------------------------------------------
 constexpr uint32_t CTS_TRACKING_STATE_MASK = 0x0000001F;
-constexpr uint32_t CTS_TRACKING_STATE_SHIFT = 0;
 constexpr uint32_t CTS_SV_CHANNEL_NUMBER_MASK = 0x000003E0;
-constexpr uint32_t CTS_SV_CHANNEL_NUMBER_SHIFT = 5;
 constexpr uint32_t CTS_PHASE_LOCK_MASK = 0x00000400;
-constexpr uint32_t CTS_PHASE_LOCK_SHIFT = 10;
 constexpr uint32_t CTS_PARITY_KNOWN_MASK = 0x00000800;
-constexpr uint32_t CTS_PARITY_KNOWN_SHIFT = 11;
 constexpr uint32_t CTS_CODE_LOCKED_MASK = 0x00001000;
-constexpr uint32_t CTS_CODE_LOCKED_SHIFT = 12;
 constexpr uint32_t CTS_CORRELATOR_MASK = 0x0000E000;
-constexpr uint32_t CTS_CORRELATOR_SHIFT = 13;
 constexpr uint32_t CTS_SATELLITE_SYSTEM_MASK = 0x00070000;
-constexpr uint32_t CTS_SATELLITE_SYSTEM_SHIFT = 16;
 constexpr uint32_t CTS_GROUPING_MASK = 0x00100000;
-constexpr uint32_t CTS_GROUPING_SHIFT = 20;
 constexpr uint32_t CTS_SIGNAL_TYPE_MASK = 0x03E00000;
-constexpr uint32_t CTS_SIGNAL_TYPE_SHIFT = 21;
 constexpr uint32_t CTS_PRIMARY_L1_CHANNEL_MASK = 0x08000000;
-constexpr uint32_t CTS_PRIMARY_L1_CHANNEL_SHIFT = 27;
 constexpr uint32_t CTS_CARRIER_PHASE_MASK = 0x10000000;
-constexpr uint32_t CTS_CARRIER_PHASE_SHIFT = 28;
 constexpr uint32_t CTS_DIGITAL_FILTERING_MASK = 0x20000000;
-constexpr uint32_t CTS_DIGITAL_FILTERING_SHIFT = 29;
 constexpr uint32_t CTS_PRN_LOCK_MASK = 0x40000000;
-constexpr uint32_t CTS_PRN_LOCK_SHIFT = 30;
 constexpr uint32_t CTS_CHANNEL_ASSIGNMENT_MASK = 0x80000000;
-constexpr uint32_t CTS_CHANNEL_ASSIGNMENT_SHIFT = 31;
 
 //-----------------------------------------------------------------------
-//! RANGECMP data field masks, shifts and scale factors.
+//! RANGECMP data field masks and scale factors.
 //! NOTE: RangeCmpData defines a number of fields that can be
 //! masked out from larger data types.
 //-----------------------------------------------------------------------
@@ -175,24 +161,20 @@ constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNBIT_MASK = 0x08000000;
 constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNEXT_MASK = 0xF0000000;
 constexpr float RC_DOPPLER_FREQUENCY_SCALE_FACTOR = 256.0F;
 constexpr uint64_t RC_PSR_MEASUREMENT_MASK = 0xFFFFFFFFF0000000;
-constexpr uint32_t RC_PSR_MEASUREMENT_SHIFT = 28;
 constexpr double RC_PSR_MEASUREMENT_SCALE_FACTOR = 128.0;
 constexpr double RC_ADR_SCALE_FACTOR = 256.0;
 constexpr uint32_t RC_PSR_STDDEV_MASK = 0x0F;
 constexpr uint32_t RC_ADR_STDDEV_MASK = 0xF0;
-constexpr uint32_t RC_ADR_STDDEV_SHIFT = 4;
 constexpr double RC_ADR_STDDEV_SCALE_FACTOR = 512.0;
 constexpr uint32_t RC_ADR_STDDEV_SCALE_OFFSET = 1;
 constexpr uint32_t RC_LOCK_TIME_MASK = 0x001FFFFF;
 constexpr double RC_LOCK_TIME_SCALE_FACTOR = 32.0;
 constexpr uint32_t RC_CNO_MASK = 0x03E00000;
-constexpr uint32_t RC_CNO_SHIFT = 21;
 constexpr uint32_t RC_CNO_SCALE_OFFSET = 20;
 constexpr uint32_t RC_GLONASS_FREQUENCY_MASK = 0xFC000000;
-constexpr uint32_t RC_GLONASS_FREQUENCY_SHIFT = 26;
 
 //-----------------------------------------------------------------------
-//! RANGECMP2 data field masks, shifts and scale factors.
+//! RANGECMP2 data field masks and scale factors.
 //! NOTE: RANGECMP2 contains two kinds of blocks - Satellite (SAT) and
 //! Signal (SIG) - each with oddly sized bitfields. The bitfields can be
 //! masked out of larger fields (that are multiples of bytes) which
@@ -204,49 +186,33 @@ constexpr uint32_t RC_GLONASS_FREQUENCY_SHIFT = 26;
 //-----------------------------------------------------------------------
 constexpr uint64_t RC2_SAT_GLONASS_FREQUENCY_ID_MASK = 0x000000000000000F;
 constexpr uint64_t RC2_SAT_SATELLITE_SYSTEM_ID_MASK = 0x00000000000001F0;
-constexpr uint32_t RC2_SAT_SATELLITE_SYSTEM_ID_SHIFT = 4;
 constexpr uint64_t RC2_SAT_SATELLITE_PSR_BASE_MASK = 0x0000007FFFFFFC00;
-constexpr uint32_t RC2_SAT_SATELLITE_PSR_BASE_SHIFT = 10;
 constexpr uint32_t RC2_SAT_SATELLITE_PSR_BASE_SIGNBIT_MASK = 0x10000000;
 constexpr uint32_t RC2_SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK = 0xE0000000;
 constexpr uint64_t RC2_SAT_SATELLITE_DOPPLER_BASE_MASK = 0x0FFFFF8000000000;
-constexpr uint32_t RC2_SAT_SATELLITE_DOPPLER_BASE_SHIFT = 39;
 constexpr uint32_t RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNBIT_MASK = 0x00100000;
 constexpr uint32_t RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK = 0xFFE00000;
 constexpr uint64_t RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK = 0xF000000000000000;
-constexpr uint32_t RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_SHIFT = 60;
 
 // For combined field uiCombinedField1
 constexpr uint32_t RC2_SIG_SIGNAL_TYPE_MASK = 0x0000001F;
 constexpr uint32_t RC2_SIG_PHASE_LOCK_MASK = 0x00000020;
-constexpr uint32_t RC2_SIG_PHASE_LOCK_SHIFT = 5;
 constexpr uint32_t RC2_SIG_PARITY_KNOWN_MASK = 0x00000040;
-constexpr uint32_t RC2_SIG_PARITY_KNOWN_SHIFT = 6;
 constexpr uint32_t RC2_SIG_CODE_LOCK_MASK = 0x00000080;
-constexpr uint32_t RC2_SIG_CODE_LOCK_SHIFT = 7;
 constexpr uint32_t RC2_SIG_LOCKTIME_MASK = 0x01FFFF00;
-constexpr uint32_t RC2_SIG_LOCKTIME_SHIFT = 8;
 constexpr uint32_t RC2_SIG_CORRELATOR_TYPE_MASK = 0x1E000000;
-constexpr uint32_t RC2_SIG_CORRELATOR_TYPE_SHIFT = 25;
 constexpr uint32_t RC2_SIG_PRIMARY_SIGNAL_MASK = 0x20000000;
-constexpr uint32_t RC2_SIG_PRIMARY_SIGNAL_SHIFT = 29;
 constexpr uint32_t RC2_SIG_CARRIER_PHASE_MEAS_MASK = 0x40000000;
-constexpr uint32_t RC2_SIG_CARRIER_PHASE_MEAS_SHIFT = 30;
 // For combined field ulCombinedField2
 constexpr uint64_t RC2_SIG_CNO_MASK = 0x000000000000001F;
 constexpr uint32_t RC2_SIG_CNO_SCALE_OFFSET = 20;
 constexpr uint64_t RC2_SIG_PSR_STDDEV_MASK = 0x00000000000001E0;
-constexpr uint32_t RC2_SIG_PSR_STDDEV_SHIFT = 5;
 constexpr uint64_t RC2_SIG_ADR_STDDEV_MASK = 0x0000000000001E00;
-constexpr uint32_t RC2_SIG_ADR_STDDEV_SHIFT = 9;
 constexpr uint64_t RC2_SIG_PSR_DIFF_MASK = 0x0000000007FFE000;
-constexpr uint32_t RC2_SIG_PSR_DIFF_SHIFT = 13;
 constexpr double RC2_SIG_PSR_DIFF_SCALE_FACTOR = 128.0;
 constexpr uint64_t RC2_SIG_PHASERANGE_DIFF_MASK = 0x00007FFFF8000000;
-constexpr uint32_t RC2_SIG_PHASERANGE_DIFF_SHIFT = 27;
 constexpr double RC2_SIG_PHASERANGE_DIFF_SCALE_FACTOR = 2048.0;
 constexpr uint64_t RC2_SIG_DOPPLER_DIFF_MASK = 0xFFFF800000000000;
-constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SHIFT = 47;
 constexpr double RC2_SIG_DOPPLER_DIFF_SCALE_FACTOR = 256.0;
 constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SIGNBIT_MASK = 0x00010000;
 constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK = 0xFFFE0000;
@@ -320,6 +286,26 @@ constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_BITS = {26, 14};
 constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNBIT_MASK = {0x02000000, 0x00002000};
 constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RC4_RBLK_INVALID_PSR = {137438953471, -524288};
+
+// replace this with std::countr_zero when C++20 is available
+constexpr uint32_t CountTrailingZeros(uint64_t value)
+{
+    uint32_t count = 0;
+    while ((value & 1) == 0)
+    {
+        value >>= 1;
+        ++count;
+    }
+    return count;
+}
+
+template <typename T> constexpr T GetBitfield(uint64_t value, uint64_t mask)
+{
+    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_enum_v<T>,
+                  "GetBitfield only returns integral, floating point, or enum types.");
+    // TODO: need to do some checking to ensure that the mask is valid (not too large) for the type of T
+    return static_cast<T>((value & mask) >> CountTrailingZeros(mask));
+}
 
 //-----------------------------------------------------------------------
 //! \enum SYSTEM
@@ -757,46 +743,41 @@ struct ChannelTrackingStatus
     //! Constructor from a channel tracking status word.
     ChannelTrackingStatus(uint32_t uiChannelTrackingStatus_)
     {
-        eTrackingState = static_cast<TRACKING_STATE>((uiChannelTrackingStatus_ & CTS_TRACKING_STATE_MASK) >> CTS_TRACKING_STATE_SHIFT);
-        uiSVChannelNumber = static_cast<uint32_t>((uiChannelTrackingStatus_ & CTS_SV_CHANNEL_NUMBER_MASK) >> CTS_SV_CHANNEL_NUMBER_SHIFT);
-        eCorrelatorType = static_cast<CORRELATOR_TYPE>((uiChannelTrackingStatus_ & CTS_CORRELATOR_MASK) >> CTS_CORRELATOR_SHIFT);
-        eSatelliteSystem = static_cast<SATELLITE_SYSTEM>((uiChannelTrackingStatus_ & CTS_SATELLITE_SYSTEM_MASK) >> CTS_SATELLITE_SYSTEM_SHIFT);
-        eSignalType = static_cast<SIGNAL_TYPE>((uiChannelTrackingStatus_ & CTS_SIGNAL_TYPE_MASK) >> CTS_SIGNAL_TYPE_SHIFT);
-
-        bPhaseLocked = static_cast<bool>((uiChannelTrackingStatus_ & CTS_PHASE_LOCK_MASK) >> CTS_PHASE_LOCK_SHIFT);
-        bParityKnown = static_cast<bool>((uiChannelTrackingStatus_ & CTS_PARITY_KNOWN_MASK) >> CTS_PARITY_KNOWN_SHIFT);
-        bCodeLocked = static_cast<bool>((uiChannelTrackingStatus_ & CTS_CODE_LOCKED_MASK) >> CTS_CODE_LOCKED_SHIFT);
-        bGrouped = static_cast<bool>((uiChannelTrackingStatus_ & CTS_GROUPING_MASK) >> CTS_GROUPING_SHIFT);
-        bPrimaryL1Channel = static_cast<bool>((uiChannelTrackingStatus_ & CTS_PRIMARY_L1_CHANNEL_MASK) >> CTS_PRIMARY_L1_CHANNEL_SHIFT);
-        bHalfCycleAdded = static_cast<bool>((uiChannelTrackingStatus_ & CTS_CARRIER_PHASE_MASK) >> CTS_CARRIER_PHASE_SHIFT);
-        bDigitalFilteringOnSignal = static_cast<bool>((uiChannelTrackingStatus_ & CTS_DIGITAL_FILTERING_MASK) >> CTS_DIGITAL_FILTERING_SHIFT);
-        bPRNLocked = static_cast<bool>((uiChannelTrackingStatus_ & CTS_PRN_LOCK_MASK) >> CTS_PRN_LOCK_SHIFT);
-        bChannelAssignmentForced = static_cast<bool>((uiChannelTrackingStatus_ & CTS_CHANNEL_ASSIGNMENT_MASK) >> CTS_CHANNEL_ASSIGNMENT_SHIFT);
+        eTrackingState = GetBitfield<TRACKING_STATE>(uiChannelTrackingStatus_, CTS_TRACKING_STATE_MASK);
+        uiSVChannelNumber = GetBitfield<uint32_t>(uiChannelTrackingStatus_, CTS_SV_CHANNEL_NUMBER_MASK);
+        eCorrelatorType = GetBitfield<CORRELATOR_TYPE>(uiChannelTrackingStatus_, CTS_CORRELATOR_MASK);
+        eSatelliteSystem = GetBitfield<SATELLITE_SYSTEM>(uiChannelTrackingStatus_, CTS_SATELLITE_SYSTEM_MASK);
+        eSignalType = GetBitfield<SIGNAL_TYPE>(uiChannelTrackingStatus_, CTS_SIGNAL_TYPE_MASK);
+        bPhaseLocked = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_PHASE_LOCK_MASK);
+        bParityKnown = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_PARITY_KNOWN_MASK);
+        bCodeLocked = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_CODE_LOCKED_MASK);
+        bGrouped = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_GROUPING_MASK);
+        bPrimaryL1Channel = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_PRIMARY_L1_CHANNEL_MASK);
+        bHalfCycleAdded = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_CARRIER_PHASE_MASK);
+        bDigitalFilteringOnSignal = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_DIGITAL_FILTERING_MASK);
+        bPRNLocked = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_PRN_LOCK_MASK);
+        bChannelAssignmentForced = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_CHANNEL_ASSIGNMENT_MASK);
     }
 
     //! Constructor from the available data from a RANGECMP2 SAT/SIG block pair.
     //! NOTE: Some defaults exist here.
     ChannelTrackingStatus(const RangeCmp2SatelliteBlock& stRangeCmp2SatBlock_, const RangeCmp2SignalBlock& stRangeCmp2SigBlock_)
     {
-        bGrouped = (static_cast<uint64_t>(stRangeCmp2SatBlock_.ulCombinedField & RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK) >>
-                    RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_SHIFT) > 1;
-        bPhaseLocked = static_cast<bool>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_PHASE_LOCK_MASK) >> RC2_SIG_PHASE_LOCK_SHIFT);
-        bParityKnown = static_cast<bool>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_PARITY_KNOWN_MASK) >> RC2_SIG_PARITY_KNOWN_SHIFT);
-        bCodeLocked = static_cast<bool>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_CODE_LOCK_MASK) >> RC2_SIG_CODE_LOCK_SHIFT);
-        bPrimaryL1Channel = static_cast<bool>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_PRIMARY_SIGNAL_MASK) >> RC2_SIG_PRIMARY_SIGNAL_SHIFT);
-        bHalfCycleAdded =
-            static_cast<bool>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_CARRIER_PHASE_MEAS_MASK) >> RC2_SIG_CARRIER_PHASE_MEAS_SHIFT);
+        bGrouped = GetBitfield<uint64_t>(stRangeCmp2SatBlock_.ulCombinedField, RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK) > 1;
+        bPhaseLocked = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, RC2_SIG_PHASE_LOCK_MASK);
+        bParityKnown = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, RC2_SIG_PARITY_KNOWN_MASK);
+        bCodeLocked = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, RC2_SIG_CODE_LOCK_MASK);
+        bPrimaryL1Channel = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, RC2_SIG_PRIMARY_SIGNAL_MASK);
+        bHalfCycleAdded = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, RC2_SIG_CARRIER_PHASE_MEAS_MASK);
         bDigitalFilteringOnSignal = false;
         bChannelAssignmentForced = false;
         bPRNLocked = false;
         uiSVChannelNumber = static_cast<uint32_t>(stRangeCmp2SatBlock_.ucSVChanNumber);
         eTrackingState = bPrimaryL1Channel ? TRACKING_STATE::PHASE_LOCK_LOOP : TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
-        eCorrelatorType =
-            static_cast<CORRELATOR_TYPE>((stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_CORRELATOR_TYPE_MASK) >> RC2_SIG_CORRELATOR_TYPE_SHIFT);
-        eSatelliteSystem = SystemToSatelliteSystem(
-            static_cast<SYSTEM>((stRangeCmp2SatBlock_.ulCombinedField & RC2_SAT_SATELLITE_SYSTEM_ID_MASK) >> RC2_SAT_SATELLITE_SYSTEM_ID_SHIFT));
+        eCorrelatorType = GetBitfield<CORRELATOR_TYPE>(stRangeCmp2SigBlock_.uiCombinedField1, RC2_SIG_CORRELATOR_TYPE_MASK);
+        eSatelliteSystem = SystemToSatelliteSystem(GetBitfield<SYSTEM>(stRangeCmp2SatBlock_.ulCombinedField, RC2_SAT_SATELLITE_SYSTEM_ID_MASK));
         eSignalType = RangeCmp2SignalTypeToSignalType(
-            eSatelliteSystem, static_cast<rangecmp2::SIGNAL_TYPE>(stRangeCmp2SigBlock_.uiCombinedField1 & RC2_SIG_SIGNAL_TYPE_MASK));
+            eSatelliteSystem, GetBitfield<rangecmp2::SIGNAL_TYPE>(stRangeCmp2SigBlock_.uiCombinedField1, RC2_SIG_SIGNAL_TYPE_MASK));
     }
 
     //! Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block
@@ -962,11 +943,12 @@ struct ChannelTrackingStatus
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus
     [[nodiscard]] uint32_t GetAsWord() const
     {
+        // TODO: make EncodeBitfield function
         uint32_t uiWord = (static_cast<uint32_t>(eTrackingState) & CTS_TRACKING_STATE_MASK) |
-                          ((static_cast<uint32_t>(eCorrelatorType) << CTS_CORRELATOR_SHIFT) & CTS_CORRELATOR_MASK) |
-                          ((static_cast<uint32_t>(eSatelliteSystem) << CTS_SATELLITE_SYSTEM_SHIFT) & CTS_SATELLITE_SYSTEM_MASK) |
-                          ((static_cast<uint32_t>(eSignalType) << CTS_SIGNAL_TYPE_SHIFT) & CTS_SIGNAL_TYPE_MASK) |
-                          ((static_cast<uint32_t>(uiSVChannelNumber) << CTS_SV_CHANNEL_NUMBER_SHIFT) & CTS_SV_CHANNEL_NUMBER_MASK);
+                          ((static_cast<uint32_t>(eCorrelatorType) << CountTrailingZeros(CTS_CORRELATOR_MASK)) & CTS_CORRELATOR_MASK) |
+                          ((static_cast<uint32_t>(eSatelliteSystem) << CountTrailingZeros(CTS_SATELLITE_SYSTEM_MASK)) & CTS_SATELLITE_SYSTEM_MASK) |
+                          ((static_cast<uint32_t>(eSignalType) << CountTrailingZeros(CTS_SIGNAL_TYPE_MASK)) & CTS_SIGNAL_TYPE_MASK) |
+                          ((static_cast<uint32_t>(uiSVChannelNumber) << CountTrailingZeros(CTS_SV_CHANNEL_NUMBER_MASK)) & CTS_SV_CHANNEL_NUMBER_MASK);
 
         if (bPhaseLocked) { uiWord |= CTS_PHASE_LOCK_MASK; }
         if (bParityKnown) { uiWord |= CTS_PARITY_KNOWN_MASK; }
