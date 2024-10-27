@@ -20,7 +20,7 @@ struct PyGpsTime
 
 struct PyDecodedMessage
 {
-    explicit PyDecodedMessage(std::vector<FieldContainer> message_, const MetaDataStruct& meta_);
+    explicit PyDecodedMessage(std::vector<FieldContainer> message_, const MetaDataStruct& meta_, PyMessageDatabase::ConstPtr parent_db_);
     nb::dict& get_values() const;
     nb::dict& get_fields() const;
     nb::dict to_dict() const;
@@ -43,6 +43,8 @@ struct PyDecodedMessage
   private:
     mutable nb::dict cached_values_;
     mutable nb::dict cached_fields_;
+
+    PyMessageDatabase::ConstPtr parent_db_;
 };
 
 } // namespace novatel::edie::oem

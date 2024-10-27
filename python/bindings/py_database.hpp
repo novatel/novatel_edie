@@ -20,7 +20,7 @@ class PyMessageDatabase final : public MessageDatabase
 
     explicit PyMessageDatabase(const MessageDatabase& message_db) : MessageDatabase(message_db) { UpdatePythonEnums(); }
 
-    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdMap() { return enums_by_id; }
+    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdMap() const { return enums_by_id; }
 
   private:
     void GenerateMappings() override

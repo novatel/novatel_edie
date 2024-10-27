@@ -260,6 +260,9 @@ void MessageDecoderBase::CreateResponseMsgDefinitions()
 void MessageDecoderBase::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
 // -------------------------------------------------------------------------------------------------------
+MessageDatabase::ConstPtr MessageDecoderBase::MessageDb() const { return std::const_pointer_cast<const MessageDatabase>(pclMyMsgDb); }
+
+// -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, const unsigned char** ppucLogBuf_,
                                            std::vector<FieldContainer>& vIntermediateFormat_)
 {

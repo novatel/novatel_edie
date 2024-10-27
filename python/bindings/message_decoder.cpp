@@ -15,13 +15,13 @@ using namespace novatel::edie::oem;
 
 NB_MAKE_OPAQUE(std::vector<FieldContainer>);
 
-nb::object convert_field(const FieldContainer& field)
+nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::ConstPtr& parent_db)
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
         const std::string& enumId = static_cast<const EnumField*>(field.fieldDef.get())->enumId;
-        auto it = MessageDbSingleton::get()->GetEnumsByIdMap().find(enumId);
-        if (it == MessageDbSingleton::get()->GetEnumsByIdMap().end())
+        auto it = parent_db->GetEnumsByIdMap().find(enumId);
+        if (it == parent_db->GetEnumsByIdMap().end())
         {
             throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumId +
                                      "' not found in the JSON database");
@@ -55,14 +55,15 @@ nb::object convert_field(const FieldContainer& field)
                 }
                 return nb::cast(str);
             }
-            std::vector<nb::object> sub_values(message_field.size());
-            std::transform(message_field.begin(), message_field.end(), sub_values.begin(), convert_field);
+            std::vector<nb::object> sub_values;
+            sub_values.reserve(message_field.size());
+            for (const auto& f : message_field) { sub_values.push_back(convert_field(f, parent_db)); }
             return nb::cast(sub_values);
         }
         else
         {
             // This is an array element of a field array.
-            return nb::cast(PyDecodedMessage(message_field, {}));
+            return nb::cast(PyDecodedMessage(message_field, {}, parent_db));
         }
     }
     else if (field.fieldDef->conversion == "%id")
@@ -80,9 +81,9 @@ nb::object convert_field(const FieldContainer& field)
     }
 }
 
-PyDecodedMessage::PyDecodedMessage(std::vector<FieldContainer> message_, const oem::MetaDataStruct& meta_)
+PyDecodedMessage::PyDecodedMessage(std::vector<FieldContainer> message_, const oem::MetaDataStruct& meta_, PyMessageDatabase::ConstPtr parent_db_)
     : fields(std::move(message_)), message_id(meta_.usMessageId), message_crc(meta_.uiMessageCrc), message_name(meta_.acMessageName), time(meta_),
-      measurement_source(meta_.eMeasurementSource), constellation(meta_.constellation)
+      measurement_source(meta_.eMeasurementSource), constellation(meta_.constellation), parent_db_(std::move(parent_db_))
 {
 }
 
@@ -90,7 +91,7 @@ nb::dict& PyDecodedMessage::get_values() const
 {
     if (cached_values_.size() == 0)
     {
-        for (const auto& field : fields) { cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field); }
+        for (const auto& field : fields) { cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_); }
     }
     return cached_values_;
 }
@@ -170,6 +171,11 @@ class DecoderTester : public oem::MessageDecoder
     }
 };
 
+PyMessageDatabase::ConstPtr get_parent_db(const oem::MessageDecoder& decoder)
+{
+    return std::dynamic_pointer_cast<const PyMessageDatabase>(decoder.MessageDb());
+}
+
 void init_novatel_message_decoder(nb::module_& m)
 {
     nb::class_<PyGpsTime>(m, "GpsTime")
@@ -213,7 +219,7 @@ void init_novatel_message_decoder(nb::module_& m)
             [](const oem::MessageDecoder& decoder, const nb::bytes& message_body, oem::MetaDataStruct& metadata) {
                 std::vector<FieldContainer> fields;
                 STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(message_body.c_str()), fields, metadata);
-                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), metadata));
+                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), metadata, get_parent_db(decoder)));
             },
             "message_body"_a, "metadata"_a)
         // For internal testing purposes only
@@ -225,7 +231,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 std::string body_str(message_body.c_str(), message_body.size());
                 const char* data_ptr = body_str.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, &data_ptr, fields);
-                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), {}));
+                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), {}, get_parent_db(decoder)));
             },
             "msg_def_fields"_a, "message_body"_a)
         .def(
@@ -236,7 +242,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 const char* data_ptr = message_body.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr),
                                                                                         fields, message_length);
-                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), {}));
+                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), {}, get_parent_db(decoder)));
             },
             "msg_def_fields"_a, "message_body"_a, "message_length"_a);
 }

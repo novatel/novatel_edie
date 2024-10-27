@@ -194,6 +194,13 @@ class MessageDecoderBase
     //----------------------------------------------------------------------------
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get the MessageDatabase object.
+    //
+    //! \return A shard pointer to the MessageDatabase object.
+    // ---------------------------------------------------------------------------
+    MessageDatabase::ConstPtr MessageDb() const;
+
     //----------------------------------------------------------------------------
     //! \brief Decode a message body from the provided frame.
     //
