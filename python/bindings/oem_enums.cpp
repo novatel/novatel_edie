@@ -7,10 +7,9 @@ using namespace novatel::edie;
 
 void init_novatel_oem_enums(nb::module_& m)
 {
-    nb::module_ enums_mod = m.def_submodule("enums", "");
-    for (const auto& [_, enum_type] : MessageDbSingleton::get()->GetEnumsByIdMap())
+    nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
+    for (const auto& [name, enum_type] : MessageDbSingleton::get()->GetEnumsByNameDict()) //
     {
-        nb::object name = enum_type.attr("_name");
-        enums_mod.attr(name) = enum_type;
+        enums_mod.attr(name.c_str()) = enum_type;
     }
 }

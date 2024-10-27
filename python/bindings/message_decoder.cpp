@@ -20,8 +20,8 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
         const std::string& enumId = static_cast<const EnumField*>(field.fieldDef.get())->enumId;
-        auto it = parent_db->GetEnumsByIdMap().find(enumId);
-        if (it == parent_db->GetEnumsByIdMap().end())
+        auto it = parent_db->GetEnumsByIdDict().find(enumId);
+        if (it == parent_db->GetEnumsByIdDict().end())
         {
             throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumId +
                                      "' not found in the JSON database");

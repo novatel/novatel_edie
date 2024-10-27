@@ -182,5 +182,6 @@ void init_common_message_database(nb::module_& m)
         .def("get_msg_def", nb::overload_cast<const std::string&>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
         .def("get_msg_def", nb::overload_cast<int32_t>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a);
+        .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a)
+        .def_prop_ro("enums", &PyMessageDatabase::GetEnumsByNameDict);
 }
