@@ -15,12 +15,12 @@ void init_novatel_encoder(nb::module_& m)
 
     nb::class_<oem::Encoder>(m, "Encoder")
         .def("__init__", [](oem::Encoder* t) { new (t) oem::Encoder(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
-        .def(nb::init<MessageDatabase::Ptr&>(), "json_db"_a)
+        .def(nb::init<PyMessageDatabase::Ptr&>(), "json_db"_a)
         .def("open", &oem::Encoder::LoadJsonDb, "json_db"_a)
         .def_prop_ro("logger", [](const oem::Encoder& encoder) { return encoder.GetLogger(); })
         .def(
             "encode",
-            [](oem::Encoder& encoder, const oem::IntermediateHeader& header, const PyDecodedMessage& py_message,
+            [](oem::Encoder& encoder, const oem::IntermediateHeader& header, const oem::PyDecodedMessage& py_message,
                const oem::MetaDataStruct& metadata, ENCODE_FORMAT format) {
                 MessageDataStruct message_data;
                 if (format == ENCODE_FORMAT::JSON)

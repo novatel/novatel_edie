@@ -12,7 +12,7 @@ void init_novatel_rxconfig_handler(nb::module_& m)
 {
     nb::class_<oem::RxConfigHandler>(m, "RxConfigHandler")
         .def("__init__", [](oem::RxConfigHandler* t) { new (t) oem::RxConfigHandler(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
-        .def(nb::init<const MessageDatabase::Ptr&>(), "json_db"_a)
+        .def(nb::init<const PyMessageDatabase::Ptr&>(), "json_db"_a)
         .def("load_json_db", &oem::RxConfigHandler::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::RxConfigHandler::GetLogger)
         .def("write", [](oem::RxConfigHandler& self,

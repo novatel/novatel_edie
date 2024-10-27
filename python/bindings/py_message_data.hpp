@@ -4,10 +4,9 @@
 #include "novatel_edie/decoders/oem/encoder.hpp"
 
 namespace nb = nanobind;
-using namespace nb::literals;
-using namespace novatel::edie;
 
 namespace novatel::edie::oem {
+
 struct PyMessageData
 {
     PyMessageData(MessageDataStruct message_data)
@@ -17,11 +16,11 @@ struct PyMessageData
     {
     }
 
-    const nb::bytes& message() const { return message_; }
+    [[nodiscard]] const nb::bytes& message() const { return message_; }
 
-    nb::object header() const { return message_[nb::slice(header_offset, header_offset + header_size)]; }
+    [[nodiscard]] nb::object header() const { return message_[nb::slice(header_offset, header_offset + header_size)]; }
 
-    nb::object body() const { return message_[nb::slice(body_offset, body_offset + body_size)]; }
+    [[nodiscard]] nb::object body() const { return message_[nb::slice(body_offset, body_offset + body_size)]; }
 
   private:
     const nb::bytes message_;
@@ -30,12 +29,13 @@ struct PyMessageData
     const uint32_t body_offset;
     const uint32_t body_size;
 };
+
 } // namespace novatel::edie::oem
 
 inline void define_pymessagedata(nb::module_& m)
 {
-    nb::class_<oem::PyMessageData>(m, "MessageData")
-        .def_prop_ro("message", &oem::PyMessageData::message)
-        .def_prop_ro("header", &oem::PyMessageData::header)
-        .def_prop_ro("body", &oem::PyMessageData::body);
+    nb::class_<novatel::edie::oem::PyMessageData>(m, "MessageData")
+        .def_prop_ro("message", &novatel::edie::oem::PyMessageData::message)
+        .def_prop_ro("header", &novatel::edie::oem::PyMessageData::header)
+        .def_prop_ro("body", &novatel::edie::oem::PyMessageData::body);
 }

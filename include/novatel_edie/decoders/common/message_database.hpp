@@ -448,7 +448,7 @@ class MessageDatabase
     MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
         : vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_))
     {
-        GenerateMappings();
+        MessageDatabase::GenerateMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -461,7 +461,7 @@ class MessageDatabase
         // TODO: Verify it's calling the copy constructor for the messages
         vEnumDefinitions = that_.vEnumDefinitions;
         vMessageDefinitions = that_.vMessageDefinitions;
-        GenerateMappings();
+        MessageDatabase::GenerateMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -484,7 +484,7 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     //! \brief Destructor for the MessageDatabase class.
     //----------------------------------------------------------------------------
-    ~MessageDatabase() = default;
+    virtual ~MessageDatabase() = default;
 
     //----------------------------------------------------------------------------
     //! \brief Merge the message and enum definitions from another MessageDatabase into this one.
@@ -606,8 +606,8 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     [[nodiscard]] const std::vector<MessageDefinition::ConstPtr>& MessageDefinitions() const { return vMessageDefinitions; }
 
-  private:
-    void GenerateMappings()
+  protected:
+    virtual void GenerateMappings()
     {
         for (auto& enm : vEnumDefinitions)
         {
@@ -624,6 +624,7 @@ class MessageDatabase
         }
     }
 
+  private:
     void MapMessageEnumFields(const std::vector<std::shared_ptr<BaseField>>& vMsgDefFields_)
     {
         for (const auto& field : vMsgDefFields_)

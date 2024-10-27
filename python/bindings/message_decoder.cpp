@@ -11,6 +11,7 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
+using namespace novatel::edie::oem;
 
 NB_MAKE_OPAQUE(std::vector<FieldContainer>);
 
@@ -19,8 +20,8 @@ nb::object convert_field(const FieldContainer& field)
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
         const std::string& enumId = static_cast<const EnumField*>(field.fieldDef.get())->enumId;
-        auto it = MessageDbSingleton::getEnumsByIdMap().find(enumId);
-        if (it == MessageDbSingleton::getEnumsByIdMap().end())
+        auto it = MessageDbSingleton::get()->GetEnumsByIdMap().find(enumId);
+        if (it == MessageDbSingleton::get()->GetEnumsByIdMap().end())
         {
             throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumId +
                                      "' not found in the JSON database");
@@ -204,7 +205,7 @@ void init_novatel_message_decoder(nb::module_& m)
 
     nb::class_<oem::MessageDecoder>(m, "MessageDecoder")
         .def("__init__", [](oem::MessageDecoder* t) { new (t) oem::MessageDecoder(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
-        .def(nb::init<const MessageDatabase::Ptr&>(), "json_db"_a)
+        .def(nb::init<const PyMessageDatabase::Ptr&>(), "json_db"_a)
         .def("load_json_db", &oem::MessageDecoder::LoadJsonDb, "json_db"_a)
         .def_prop_ro("logger", [](oem::MessageDecoder& decoder) { return decoder.GetLogger(); })
         .def(

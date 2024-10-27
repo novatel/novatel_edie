@@ -3,6 +3,7 @@
 #include <nanobind/stl/unordered_map.h>
 
 #include "bindings_core.hpp"
+#include "py_database.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -169,16 +170,17 @@ void init_common_message_database(nb::module_& m)
                 .format(msg_def.name, msg_def._id, msg_def.logID, msg_def.description, self.attr("fields"), msg_def.latestMessageCrc);
         });
 
-    nb::class_<MessageDatabase>(m, "MessageDatabase")
+    nb::class_<PyMessageDatabase>(m, "MessageDatabase")
         .def(nb::init())
         .def(nb::init<std::vector<MessageDefinition::ConstPtr>, std::vector<EnumDefinition::ConstPtr>>(), "msg_defs"_a, "enum_defs"_a)
-        .def("merge", &MessageDatabase::Merge, "other_db"_a)
-        .def("append_messages", &MessageDatabase::AppendMessages, "file_path"_a, "generate_mappings"_a = true)
-        .def("append_enumerations", &MessageDatabase::AppendEnumerations, "file_path"_a, "generate_mappings"_a = true)
-        .def("remove_message", &MessageDatabase::RemoveMessage, "msg_id"_a, "generate_mappings"_a = true)
-        .def("remove_enumeration", &MessageDatabase::RemoveEnumeration, "enumeration"_a, "generate_mappings"_a = true)
-        .def("get_msg_def", nb::overload_cast<const std::string&>(&MessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
-        .def("get_msg_def", nb::overload_cast<int32_t>(&MessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
-        .def("get_enum_def", &MessageDatabase::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def", &MessageDatabase::GetEnumDefName, "enum_name"_a);
+        .def(nb::init<PyMessageDatabase>(), "other_db"_a)
+        .def("merge", &PyMessageDatabase::Merge, "other_db"_a)
+        .def("append_messages", &PyMessageDatabase::AppendMessages, "file_path"_a, "generate_mappings"_a = true)
+        .def("append_enumerations", &PyMessageDatabase::AppendEnumerations, "file_path"_a, "generate_mappings"_a = true)
+        .def("remove_message", &PyMessageDatabase::RemoveMessage, "msg_id"_a, "generate_mappings"_a = true)
+        .def("remove_enumeration", &PyMessageDatabase::RemoveEnumeration, "enumeration"_a, "generate_mappings"_a = true)
+        .def("get_msg_def", nb::overload_cast<const std::string&>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
+        .def("get_msg_def", nb::overload_cast<int32_t>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
+        .def("get_enum_def", &PyMessageDatabase::GetEnumDefId, "enum_id"_a)
+        .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a);
 }

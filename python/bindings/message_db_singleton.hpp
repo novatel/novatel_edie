@@ -1,14 +1,15 @@
 #pragma once
 
 #include "novatel_edie/decoders/common/message_database.hpp"
+#include "py_database.hpp"
+
+namespace novatel::edie {
 
 class MessageDbSingleton
 {
   public:
-    static novatel::edie::MessageDatabase::Ptr& get();
-
-    static const std::unordered_map<std::string, nb::object>& getEnumsByIdMap();
-
-  private:
-    MessageDbSingleton() = default;
+    MessageDbSingleton() = delete;
+    [[nodiscard]] static PyMessageDatabase::Ptr& get();
 };
+
+} // namespace novatel::edie

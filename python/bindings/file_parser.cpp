@@ -14,7 +14,7 @@ void init_novatel_file_parser(nb::module_& m)
     nb::class_<oem::FileParser>(m, "FileParser")
         .def("__init__", [](oem::FileParser* t) { new (t) oem::FileParser(MessageDbSingleton::get()); }) // NOLINT(*-cplusplus.NewDeleteLeaks)
         .def(nb::init<const std::filesystem::path&>(), "json_db_path"_a)
-        .def(nb::init<const MessageDatabase::Ptr&>(), "message_db"_a)
+        .def(nb::init<const PyMessageDatabase::Ptr&>(), "message_db"_a)
         .def("load_json_db", &oem::FileParser::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::FileParser::GetLogger)
         .def("enable_framer_decoder_logging", &oem::FileParser::EnableFramerDecoderLogging, "level"_a = spdlog::level::debug,
