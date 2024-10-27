@@ -502,13 +502,13 @@ def test_FLAT_BINARY_LOG_DECODE_BESTPOS(helper):
     assert log_header.receiver_sw_version == 32768
 
     # SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n"
-    assert bestpos.solution_status == ne.message_enums.SolStatus.SOL_COMPUTED
-    assert bestpos.position_type == ne.message_enums.SolType.SINGLE
+    assert bestpos.solution_status == ne.enums.SolStatus.SOL_COMPUTED
+    assert bestpos.position_type == ne.enums.SolType.SINGLE
     assert bestpos.latitude == 51.15043711386
     assert bestpos.longitude == -114.03067767000
     assert bestpos.orthometric_height == 1097.2099
     assert bestpos.undulation == -17.0000
-    assert bestpos.datum_id == ne.message_enums.Datum.WGS84
+    assert bestpos.datum_id == ne.enums.Datum.WGS84
     assert bestpos.latitude_std_dev == approx(0.9038, abs=1e-5)
     assert bestpos.longitude_std_dev == approx(0.8534, abs=1e-5)
     assert bestpos.height_std_dev == approx(1.7480, abs=1e-5)

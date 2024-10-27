@@ -28,10 +28,10 @@ const std::unordered_map<std::string, nb::object>& JsonDbSingleton::getEnumsById
 
 void init_novatel_oem_enums(nb::module_& m)
 {
-    nb::module_ message_enums_mod = m.def_submodule("message_enums", "");
-    for (const auto& [_, enum_type] : JsonDbSingleton::getEnumsByIdMap()) //
+    nb::module_ enums_mod = m.def_submodule("enums", "");
+    for (const auto& [_, enum_type] : JsonDbSingleton::getEnumsByIdMap())
     {
         nb::object name = enum_type.attr("_name");
-        message_enums_mod.attr(name) = enum_type;
+        enums_mod.attr(name) = enum_type;
     }
 }
