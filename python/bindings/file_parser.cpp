@@ -1,7 +1,7 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 
 #include "bindings_core.hpp"
-#include "json_db_singleton.hpp"
+#include "message_db_singleton.hpp"
 #include "py_message_data.hpp"
 #include "pystream.hpp"
 
@@ -12,18 +12,10 @@ using namespace novatel::edie;
 void init_novatel_file_parser(nb::module_& m)
 {
     nb::class_<oem::FileParser>(m, "FileParser")
-        .def(
-            "__init__",
-            [](oem::FileParser* t, const nb::handle_t<nb::str> json_db_path) {
-                new (t) oem::FileParser(nb::cast<std::u32string>(json_db_path)); // NOLINT(*.NewDeleteLeaks)
-            },
-            "json_db"_a)
-        .def(
-            "__init__",
-            [](oem::FileParser* t, const JsonReader::Ptr& json_db) { new (t) oem::FileParser(json_db); }, // NOLINT(*-cplusplus.NewDeleteLeaks)
-            "json_db"_a)
+        .def("__init__", [](oem::FileParser* t) { new (t) oem::FileParser(MessageDbSingleton::get()); }) // NOLINT(*-cplusplus.NewDeleteLeaks)
+        .def(nb::init<const std::filesystem::path&>(), "json_db_path"_a)
+        .def(nb::init<const MessageDatabase::Ptr&>(), "message_db"_a)
         .def("load_json_db", &oem::FileParser::LoadJsonDb, "json_db_path"_a)
-        .def("__init__", [](oem::FileParser* t) { new (t) oem::FileParser(JsonDbSingleton::get()); }) // NOLINT(*-cplusplus.NewDeleteLeaks)
         .def_prop_ro("logger", &oem::FileParser::GetLogger)
         .def("enable_framer_decoder_logging", &oem::FileParser::EnableFramerDecoderLogging, "level"_a = spdlog::level::debug,
              "filename"_a = "edie.log")

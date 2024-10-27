@@ -26,7 +26,7 @@
 
 #include "novatel_edie/decoders/common/common.hpp"
 
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 
 using namespace novatel::edie;
 

@@ -31,16 +31,16 @@
 using namespace novatel::edie;
 
 // -------------------------------------------------------------------------------------------------------
-EncoderBase::EncoderBase(JsonReader::Ptr pclJsonDb_)
+EncoderBase::EncoderBase(MessageDatabase::Ptr pclMessageDb_)
 {
     InitFieldMaps();
-    if (pclJsonDb_ != nullptr) { LoadJsonDb(pclJsonDb_); }
+    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 }
 
 // -------------------------------------------------------------------------------------------------------
-void EncoderBase::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
+void EncoderBase::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
-    pclMyMsgDb = pclJsonDb_;
+    pclMyMsgDb = pclMessageDb_;
     InitEnumDefinitions();
 }
 

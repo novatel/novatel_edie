@@ -4,7 +4,7 @@
 #include <nanobind/stl/variant.h>
 
 #include "bindings_core.hpp"
-#include "json_db_singleton.hpp"
+#include "message_db_singleton.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "py_decoded_message.hpp"
 
@@ -19,8 +19,8 @@ nb::object convert_field(const FieldContainer& field)
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
         const std::string& enumId = static_cast<const EnumField*>(field.fieldDef.get())->enumId;
-        auto it = JsonDbSingleton::getEnumsByIdMap().find(enumId);
-        if (it == JsonDbSingleton::getEnumsByIdMap().end())
+        auto it = MessageDbSingleton::getEnumsByIdMap().find(enumId);
+        if (it == MessageDbSingleton::getEnumsByIdMap().end())
         {
             throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumId +
                                      "' not found in the JSON database");
@@ -203,8 +203,8 @@ void init_novatel_message_decoder(nb::module_& m)
         });
 
     nb::class_<oem::MessageDecoder>(m, "MessageDecoder")
-        .def(nb::init<JsonReader::Ptr>(), "json_db"_a)
-        .def("__init__", [](oem::MessageDecoder* t) { new (t) oem::MessageDecoder(JsonDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def("__init__", [](oem::MessageDecoder* t) { new (t) oem::MessageDecoder(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def(nb::init<const MessageDatabase::Ptr&>(), "json_db"_a)
         .def("load_json_db", &oem::MessageDecoder::LoadJsonDb, "json_db"_a)
         .def_prop_ro("logger", [](oem::MessageDecoder& decoder) { return decoder.GetLogger(); })
         .def(

@@ -80,7 +80,7 @@ def helper(min_json_db):
 
 def test_get_default_database():
     db = ne.get_default_database()
-    assert isinstance(db, ne.JsonReader)
+    assert isinstance(db, ne.MessageDatabase)
 
 
 def test_LOGGER():

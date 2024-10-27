@@ -26,21 +26,23 @@
 
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
-#include <bitset>
+#include <nlohmann/json.hpp>
 
 using namespace novatel::edie;
 
+using json = nlohmann::json;
+
 // -------------------------------------------------------------------------------------------------------
-MessageDecoderBase::MessageDecoderBase(JsonReader::Ptr pclJsonDb_)
+MessageDecoderBase::MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_)
 {
     InitFieldMaps();
-    if (pclJsonDb_ != nullptr) { LoadJsonDb(std::move(pclJsonDb_)); }
+    if (pclMessageDb_ != nullptr) { LoadJsonDb(std::move(pclMessageDb_)); }
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
+void MessageDecoderBase::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
-    pclMyMsgDb = std::move(pclJsonDb_);
+    pclMyMsgDb = std::move(pclMessageDb_);
     InitEnumDefinitions();
     CreateResponseMsgDefinitions();
 }
@@ -82,7 +84,7 @@ void MessageDecoderBase::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("e")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
@@ -93,7 +95,7 @@ void MessageDecoderBase::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
@@ -104,7 +106,7 @@ void MessageDecoderBase::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
         {
             vIntermediateFormat_.emplace_back(std::string(*ppcToken_, tokenLength_) == "TRUE", pstMessageDataType_);
@@ -114,7 +116,7 @@ void MessageDecoderBase::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 10)), pstMessageDataType_); return;
@@ -127,7 +129,7 @@ void MessageDecoderBase::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 16)), pstMessageDataType_); return;
@@ -142,13 +144,13 @@ void MessageDecoderBase::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("c")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         vIntermediateFormat_.emplace_back(static_cast<int8_t>(**ppcToken_), pstMessageDataType_);
     };
 
     asciiFieldMap[CalculateBlockCrc32("uc")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                   const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         vIntermediateFormat_.emplace_back(static_cast<uint8_t>(**ppcToken_), pstMessageDataType_);
     };
 
@@ -174,7 +176,7 @@ void MessageDecoderBase::InitFieldMaps()
     jsonFieldMap[CalculateBlockCrc32("lg")] = SimpleJsonMapEntry<double>();
 
     jsonFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
-                                                const json& clJsonField_, [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 4: vIntermediateFormat_.emplace_back(clJsonField_.get<float>(), pstMessageDataType_); return;
@@ -184,7 +186,7 @@ void MessageDecoderBase::InitFieldMaps()
     };
 
     jsonFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
-                                                const json& clJsonField_, [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
         {
             vIntermediateFormat_.emplace_back(clJsonField_.get<bool>(), pstMessageDataType_);
@@ -193,7 +195,7 @@ void MessageDecoderBase::InitFieldMaps()
     };
 
     jsonFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
-                                                const json& clJsonField_, [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1: vIntermediateFormat_.emplace_back(clJsonField_.get<uint8_t>(), pstMessageDataType_); return;
@@ -205,7 +207,7 @@ void MessageDecoderBase::InitFieldMaps()
     };
 
     jsonFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
-                                                const json& clJsonField_, [[maybe_unused]] JsonReader& pclMsgDb_) {
+                                                const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1: vIntermediateFormat_.emplace_back(clJsonField_.get<uint8_t>(), pstMessageDataType_); return;

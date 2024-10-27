@@ -31,6 +31,7 @@
 #include <ostream>
 
 #include <novatel_edie/common/logger.hpp>
+#include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/commander.hpp>
 
 namespace fs = std::filesystem;
@@ -72,10 +73,9 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    auto clJsonDb = std::make_shared<JsonReader>();
     auto tStart = std::chrono::high_resolution_clock::now();
     logger->info("Loading Database... ");
-    clJsonDb->LoadFile(pathJsonDb.string());
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(pathJsonDb.string());
     logger->info("Done in {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     Commander clCommander(clJsonDb);

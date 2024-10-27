@@ -26,82 +26,36 @@
 
 #include "novatel_edie/decoders/oem/parser.hpp"
 
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-Parser::Parser(const std::string& sDbPath_)
+Parser::Parser(const std::filesystem::path& sDbPath_)
 {
-    pclMyJsonReader = std::make_shared<JsonReader>();
-    pclMyJsonReader->LoadFile(sDbPath_);
-
-    clMyHeaderDecoder.LoadJsonDb(pclMyJsonReader);
-    clMyMessageDecoder.LoadJsonDb(pclMyJsonReader);
-    clMyEncoder.LoadJsonDb(pclMyJsonReader);
-    clMyRangeDecompressor.LoadJsonDb(pclMyJsonReader);
-    clMyRxConfigHandler.LoadJsonDb(pclMyJsonReader);
-
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-
+    auto pclMessageDb = JsonDbReader::LoadFile(sDbPath_);
+    LoadJsonDb(pclMessageDb);
     pclMyLogger->debug("Parser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-Parser::Parser(const std::u32string& sDbPath_)
+Parser::Parser(MessageDatabase::Ptr pclMessageDb_)
 {
-    pclMyJsonReader = std::make_shared<JsonReader>();
-    pclMyJsonReader->LoadFile(sDbPath_);
-
-    clMyHeaderDecoder.LoadJsonDb(pclMyJsonReader);
-    clMyMessageDecoder.LoadJsonDb(pclMyJsonReader);
-    clMyEncoder.LoadJsonDb(pclMyJsonReader);
-    clMyRangeDecompressor.LoadJsonDb(pclMyJsonReader);
-    clMyRxConfigHandler.LoadJsonDb(pclMyJsonReader);
-
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP2_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-    clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
-
+    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     pclMyLogger->debug("Parser initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-Parser::Parser(JsonReader::Ptr pclJsonDb_)
+void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
-    if (pclJsonDb_ != nullptr)
+    if (pclMessageDb_ != nullptr)
     {
-        LoadJsonDb(pclJsonDb_);
-        pclMyJsonReader = pclJsonDb_;
-    }
-    pclMyLogger->debug("Parser initialized");
-}
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
-{
-    if (pclJsonDb_ != nullptr)
-    {
-        clMyHeaderDecoder.LoadJsonDb(pclJsonDb_);
-        clMyMessageDecoder.LoadJsonDb(pclJsonDb_);
-        clMyEncoder.LoadJsonDb(pclJsonDb_);
-        clMyRangeDecompressor.LoadJsonDb(pclJsonDb_);
-        clMyRxConfigHandler.LoadJsonDb(pclJsonDb_);
+        clMyHeaderDecoder.LoadJsonDb(pclMessageDb_);
+        clMyMessageDecoder.LoadJsonDb(pclMessageDb_);
+        clMyEncoder.LoadJsonDb(pclMessageDb_);
+        clMyRangeDecompressor.LoadJsonDb(pclMessageDb_);
+        clMyRxConfigHandler.LoadJsonDb(pclMessageDb_);
 
         clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
         clMyRangeCmpFilter.IncludeMessageId(RANGECMP_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
@@ -114,7 +68,7 @@ void Parser::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
         clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
         clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
 
-        pclMyJsonReader = pclJsonDb_;
+        pclMyMessageDb = pclMessageDb_;
     }
     else { pclMyLogger->debug("JSON DB is a nullptr."); }
 }

@@ -52,7 +52,7 @@ class Parser
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_parser")};
 
-    JsonReader::Ptr pclMyJsonReader;
+    MessageDatabase::Ptr pclMyMessageDb;
     Filter::Ptr pclMyUserFilter;
     Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
@@ -93,28 +93,21 @@ class Parser
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    Parser(const std::string& sDbPath_);
+    Parser(const std::filesystem::path& sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.
     //
-    //! \param[in] sDbPath_ Filepath to a JSON message DB.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Parser(const std::u32string& sDbPath_);
+    Parser(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the Parser class.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    Parser(JsonReader::Ptr pclJsonDb_ = nullptr);
-
-    //----------------------------------------------------------------------------
-    //! \brief Load a JsonReader object.
-    //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
-    //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
+    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

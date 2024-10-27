@@ -30,7 +30,7 @@
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/encoder.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 
@@ -73,9 +73,9 @@ class Encoder : public EncoderBase
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Encoder class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Encoder(JsonReader::Ptr pclJsonDb_ = nullptr);
+    Encoder(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message from the provided intermediate structures.

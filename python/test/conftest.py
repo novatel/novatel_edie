@@ -70,6 +70,4 @@ def min_json_db():
       "messages": []
     }
     """
-    db = ne.JsonReader()
-    db.parse_json(json)
-    return db
+    return ne.JsonDbReader.parse(json)

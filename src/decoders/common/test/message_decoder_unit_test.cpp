@@ -28,6 +28,7 @@
 
 #include <gtest/gtest.h>
 
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
 using namespace novatel::edie;
@@ -38,7 +39,7 @@ class MessageDecoderTypesTest : public ::testing::Test
     class DecoderTester : public MessageDecoderBase
     {
       public:
-        DecoderTester(JsonReader::Ptr pclJsonDb_) : MessageDecoderBase(std::move(pclJsonDb_)) {}
+        DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoderBase(std::move(pclMessageDb_)) {}
 
         STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_,
                                std::vector<FieldContainer>& vIntermediateFormat_)
@@ -127,7 +128,7 @@ class MessageDecoderTypesTest : public ::testing::Test
     };
 
   public:
-    JsonReader::Ptr pclMyJsonDb;
+    MessageDatabase::Ptr pclMyJsonDb;
     std::unique_ptr<DecoderTester> pclMyDecoderTester;
     std::vector<BaseField::Ptr> MsgDefFields;
     std::string sMinJsonDb;
@@ -165,11 +166,10 @@ class MessageDecoderTypesTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = std::make_shared<JsonReader>();
-            pclMyJsonDb->ParseJson(sMinJsonDb);
+            pclMyJsonDb = JsonDbReader::Parse(sMinJsonDb);
             pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb);
         }
-        catch (JsonReaderFailure& e)
+        catch (JsonDbReaderFailure& e)
         {
             std::cout << e.what() << '\n';
             MsgDefFields.clear();

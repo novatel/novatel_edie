@@ -21,14 +21,33 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file json_reader.cpp
+// ! \file json_db_reader.cpp
 // ===============================================================================
 
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
+
+#include <nlohmann/json.hpp>
 
 #include "novatel_edie/decoders/common/common.hpp"
 
 namespace novatel::edie {
+
+using json = nlohmann::json;
+
+// Forward declaration of from_json
+void from_json(const json& j_, EnumDataType& f_);
+void from_json(const json& j_, BaseDataType& f_);
+void from_json(const json& j_, SimpleDataType& f_);
+void from_json(const json& j_, BaseField& f_);
+void from_json(const json& j_, EnumField& f_);
+void from_json(const json& j_, ArrayField& fd_);
+void from_json(const json& j_, FieldArrayField& fd_);
+void from_json(const json& j_, MessageDefinition& md_);
+void from_json(const json& j_, EnumDefinition& ed_);
+
+// Forward declaration of parse_fields and parse_enumerators
+uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_);
+void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
 
 //-----------------------------------------------------------------------
 void from_json(const json& j_, EnumDataType& f_)
@@ -179,32 +198,7 @@ void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_)
 }
 
 //-----------------------------------------------------------------------
-template <typename T> void JsonReader::LoadFile(T filePath_)
-{
-    try
-    {
-        std::fstream jsonFile;
-        jsonFile.open(std::filesystem::path(filePath_), std::ios::in);
-        json jDefinitions = json::parse(jsonFile);
-
-        vMessageDefinitions.clear();
-        // The JSON object is converted to a MessageDefinition object here
-        for (const auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(std::make_shared<MessageDefinition>(msg)); }
-
-        vEnumDefinitions.clear();
-        // The JSON object is converted to a EnumDefinition object here
-        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm)); }
-
-        GenerateMappings();
-    }
-    catch (std::exception& e)
-    {
-        throw JsonReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
-    }
-}
-
-//-----------------------------------------------------------------------
-template <> void JsonReader::LoadFile<std::string>(std::string filePath_)
+MessageDatabase::Ptr JsonDbReader::LoadFile(const std::filesystem::path& filePath_)
 {
     try
     {
@@ -212,24 +206,47 @@ template <> void JsonReader::LoadFile<std::string>(std::string filePath_)
         jsonFile.open(filePath_, std::ios::in);
         json jDefinitions = json::parse(jsonFile);
 
-        vMessageDefinitions.clear();
+        std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
+        std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
+
         // The JSON object is converted to a MessageDefinition object here
         for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(std::make_shared<MessageDefinition>(msg)); }
 
-        vEnumDefinitions.clear();
         // The JSON object is converted to a EnumDefinition object here
         for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm)); }
-
-        GenerateMappings();
+        return std::make_shared<MessageDatabase>(vMessageDefinitions, vEnumDefinitions);
     }
     catch (std::exception& e)
     {
-        throw JsonReaderFailure(__func__, __FILE__, __LINE__, filePath_.c_str(), e.what());
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_.c_str(), e.what());
     }
 }
 
 //-----------------------------------------------------------------------
-template <typename T> void JsonReader::AppendMessages(T filePath_)
+MessageDatabase::Ptr JsonDbReader::Parse(std::string_view strJsonData_)
+{
+    try
+    {
+        json jDefinitions = json::parse(strJsonData_);
+
+        std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
+        std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
+
+        // The JSON object is converted to a MessageDefinition object here
+        for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(std::make_shared<MessageDefinition>(msg)); }
+
+        // The JSON object is converted to a EnumDefinition object here
+        for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm)); }
+        return std::make_shared<MessageDatabase>(vMessageDefinitions, vEnumDefinitions);
+    }
+    catch (std::exception& e)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, "", e.what());
+    }
+}
+
+//-----------------------------------------------------------------------
+void JsonDbReader::AppendMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
 {
     try
     {
@@ -237,32 +254,30 @@ template <typename T> void JsonReader::AppendMessages(T filePath_)
         jsonFile.open(std::filesystem::path(filePath_));
         json jDefinitions = json::parse(jsonFile);
 
+        std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
         for (const auto& msg : jDefinitions["messages"])
         {
             // Convert JSON object to an MessageDefinition object
-            const MessageDefinition msgDef(msg);
-            RemoveMessage(msgDef.logID, false);
             vMessageDefinitions.push_back(std::make_shared<MessageDefinition>(msg));
         }
+        messageDb_->AppendMessages(vMessageDefinitions, false);
 
+        std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
         for (const auto& enm : jDefinitions["enums"])
         {
             // Convert JSON object to an EnumDefinition object
-            const EnumDefinition enmDef(enm);
-            RemoveEnumeration(enmDef.name, false);
             vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm));
         }
-
-        GenerateMappings();
+        messageDb_->AppendEnumerations(vEnumDefinitions);
     }
     catch (std::exception& e)
     {
-        throw JsonReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
     }
 }
 
 //-----------------------------------------------------------------------
-template <typename T> void JsonReader::AppendEnumerations(T filePath_)
+void JsonDbReader::AppendEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
 {
     try
     {
@@ -270,176 +285,18 @@ template <typename T> void JsonReader::AppendEnumerations(T filePath_)
         jsonFile.open(std::filesystem::path(filePath_));
         json jDefinitions = json::parse(jsonFile);
 
-        // The JSON object is converted to a EnumDefinition object here
-        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm)); }
-
-        GenerateMappings();
+        std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
+        for (const auto& enm : jDefinitions["enums"])
+        {
+            // Convert JSON object to an EnumDefinition object
+            vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm));
+        }
+        messageDb_->AppendEnumerations(vEnumDefinitions);
     }
     catch (std::exception& e)
     {
-        throw JsonReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
     }
-}
-
-// explicit template instantiations
-template void JsonReader::LoadFile<std::u32string>(std::u32string);
-template void JsonReader::LoadFile<char*>(char*);
-template void JsonReader::LoadFile<const char*>(const char*);
-
-template void JsonReader::AppendMessages<std::string>(std::string);
-template void JsonReader::AppendMessages<std::u32string>(std::u32string);
-template void JsonReader::AppendMessages<char*>(char*);
-
-template void JsonReader::AppendEnumerations<std::string>(std::string);
-template void JsonReader::AppendEnumerations<std::u32string>(std::u32string);
-template void JsonReader::AppendEnumerations<char*>(char*);
-
-//-----------------------------------------------------------------------
-void JsonReader::RemoveMessage(const uint32_t iMsgId_, const bool bGenerateMappings_)
-{
-    auto iTer = GetMessageIt(iMsgId_);
-
-    if (iTer != vMessageDefinitions.end())
-    {
-        RemoveMessageMapping(**iTer);
-        vMessageDefinitions.erase(iTer);
-    }
-
-    if (bGenerateMappings_) { GenerateMappings(); }
-}
-
-//-----------------------------------------------------------------------
-void JsonReader::RemoveEnumeration(std::string_view strEnumeration_, const bool bGenerateMappings_)
-{
-    const auto iTer = GetEnumIt(strEnumeration_);
-
-    if (iTer != vEnumDefinitions.end())
-    {
-        RemoveEnumerationMapping(**iTer);
-        vEnumDefinitions.erase(iTer);
-    }
-
-    if (bGenerateMappings_) { GenerateMappings(); }
-}
-
-//-----------------------------------------------------------------------
-void JsonReader::ParseJson(std::string_view strJsonData_)
-{
-    json jDefinitions = json::parse(strJsonData_);
-
-    vMessageDefinitions.clear();
-    // The JSON object is converted to a MessageDefinition object here
-    for (const auto& msg : jDefinitions["logs"]) { vMessageDefinitions.push_back(std::make_shared<MessageDefinition>(msg)); }
-
-    vEnumDefinitions.clear();
-    // The JSON object is converted to a EnumDefinition object here
-    for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm)); }
-
-    GenerateMappings();
-}
-
-//-----------------------------------------------------------------------
-uint32_t JsonReader::MsgNameToMsgId(std::string sMsgName_) const
-{
-    uint32_t uiSiblingId = 0;
-    uint32_t uiMsgFormat;
-    uint32_t uiResponse;
-
-    // Ingest the sibling information, i.e. the _1 from LOGNAMEA_1
-    if (sMsgName_.find_last_of('_') != std::string::npos && sMsgName_.find_last_of('_') == sMsgName_.size() - 2)
-    {
-        uiSiblingId = static_cast<uint32_t>(ToDigit(sMsgName_.back()));
-        sMsgName_.resize(sMsgName_.size() - 2);
-    }
-
-    // If this is an abbrev msg (no format information), we will be able to find the MsgDef
-    MessageDefinition::ConstPtr pclMessageDef = GetMsgDef(sMsgName_);
-    if (pclMessageDef != nullptr)
-    {
-        uiResponse = static_cast<uint32_t>(false);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV);
-
-        return CreateMsgId(pclMessageDef->logID, uiSiblingId, uiMsgFormat, uiResponse);
-    }
-
-    switch (sMsgName_.back())
-    {
-    case 'R': // ASCII Response
-        uiResponse = static_cast<uint32_t>(true);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ASCII);
-        sMsgName_.pop_back();
-        break;
-    case 'A': // ASCII
-        uiResponse = static_cast<uint32_t>(false);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ASCII);
-        sMsgName_.pop_back();
-        break;
-    case 'B': // Binary
-        uiResponse = static_cast<uint32_t>(false);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::BINARY);
-        sMsgName_.pop_back();
-        break;
-    default: // Abbreviated ASCII
-        uiResponse = static_cast<uint32_t>(false);
-        uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV);
-        break;
-    }
-
-    pclMessageDef = GetMsgDef(sMsgName_);
-
-    return pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, uiSiblingId, uiMsgFormat, uiResponse) : 0;
-}
-
-// -------------------------------------------------------------------------------------------------------
-std::string JsonReader::MsgIdToMsgName(const uint32_t uiMessageId_) const
-{
-    uint16_t usLogId = 0;
-    uint32_t uiSiblingId = 0;
-    uint32_t uiMessageFormat = 0;
-    uint32_t uiResponse = 0;
-
-    UnpackMsgId(uiMessageId_, usLogId, uiSiblingId, uiMessageFormat, uiResponse);
-
-    MessageDefinition::ConstPtr pstMessageDefinition = GetMsgDef(usLogId);
-    std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions[0], usLogId);
-
-    std::string strMessageFormatSuffix;
-    if (uiResponse != 0U) { strMessageFormatSuffix = "R"; }
-    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY)) { strMessageFormatSuffix = "B"; }
-    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)) { strMessageFormatSuffix = "A"; }
-    else { strMessageFormatSuffix = ""; } // default to abbreviated ASCII format
-
-    if (uiSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
-
-    return strMessageName.append(strMessageFormatSuffix);
-}
-
-//-----------------------------------------------------------------------
-MessageDefinition::ConstPtr JsonReader::GetMsgDef(const std::string& strMsgName_) const
-{
-    const auto it = mMessageName.find(strMsgName_);
-    return it != mMessageName.end() ? it->second : nullptr;
-}
-
-//-----------------------------------------------------------------------
-// TODO: need to look into the map and find the right crc and return the msg def for that CRC
-MessageDefinition::ConstPtr JsonReader::GetMsgDef(const int32_t iMsgId_) const
-{
-    const auto it = mMessageId.find(iMsgId_);
-    return it != mMessageId.end() ? it->second : nullptr;
-}
-
-// -------------------------------------------------------------------------------------------------------
-const std::vector<novatel::edie::BaseField::Ptr>& MessageDefinition::GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const
-{
-    // If we can't find the correct CRC just default to the latest.
-    if (fields.find(uiMsgDefCrc_) == fields.end())
-    {
-        pclLogger_.info("Log DB is missing the log definition {} - {}.  Defaulting to newest version of the log definition.", name, uiMsgDefCrc_);
-        uiMsgDefCrc_ = latestMessageCrc;
-    }
-
-    return fields.at(uiMsgDefCrc_);
 }
 
 } // namespace novatel::edie

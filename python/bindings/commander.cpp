@@ -1,7 +1,7 @@
 #include "novatel_edie/decoders/oem/commander.hpp"
 
 #include "bindings_core.hpp"
-#include "json_db_singleton.hpp"
+#include "message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -10,8 +10,8 @@ using namespace novatel::edie;
 void init_novatel_commander(nb::module_& m)
 {
     nb::class_<oem::Commander>(m, "Commander")
-        .def(nb::init<JsonReader::Ptr&>(), "json_db"_a)
-        .def("__init__", [](oem::Commander* t) { new (t) oem::Commander(JsonDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def("__init__", [](oem::Commander* t) { new (t) oem::Commander(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def(nb::init<MessageDatabase::Ptr&>(), "json_db"_a)
         .def("open", &oem::Commander::LoadJsonDb, "json_db"_a)
         .def_prop_ro("logger", &oem::Commander::GetLogger)
         .def(

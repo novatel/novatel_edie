@@ -29,6 +29,7 @@
 #include <iostream>
 
 #include <novatel_edie/common/logger.hpp>
+#include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/common/message_decoder.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/filter.hpp>
@@ -90,10 +91,9 @@ int main(int argc, char* argv[])
 
     pclLogger->info("Decoder library information:\n{}", caPrettyPrint);
 
-    auto clJsonDb = std::make_shared<JsonReader>();
     pclLogger->info("Loading Database... ");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb->LoadFile(pathJsonDb.string());
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(pathJsonDb.string());
     pclLogger->info("DONE ({}ms)", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     Framer clFramer;

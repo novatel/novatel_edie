@@ -29,6 +29,7 @@
 #include <iostream>
 
 #include <novatel_edie/common/logger.hpp>
+#include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/parser.hpp>
 #include <novatel_edie/version.h>
 
@@ -85,16 +86,15 @@ int main(int argc, char* argv[])
     }
 
     // Load the database
-    auto clJsonDb = std::make_shared<JsonReader>();
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb->LoadFile(pathJsonDb.string());
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     pclLogger->info("Appending Message...");
     tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb->AppendMessages(sAppendMsg);
+    JsonDbReader::AppendMessages(clJsonDb, sAppendMsg);
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 

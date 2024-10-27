@@ -32,17 +32,10 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::string& sDbPath_) : clMyParser(Parser(sDbPath_)) { pclMyLogger->debug("FileParser initialized"); }
+FileParser::FileParser(const std::filesystem::path& sDbPath_) : clMyParser(Parser(sDbPath_)) { pclMyLogger->debug("FileParser initialized"); }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::u32string& sDbPath_) : clMyParser(Parser(sDbPath_))
-{
-    pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
-    pclMyLogger->debug("FileParser initialized");
-}
-
-// -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(JsonReader::Ptr pclJsonDb_) : clMyParser(Parser(pclJsonDb_))
+FileParser::FileParser(const MessageDatabase::Ptr& pclMessageDb_) : clMyParser(Parser(pclMessageDb_))
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
     pclMyLogger->debug("FileParser initialized");
@@ -52,9 +45,9 @@ FileParser::FileParser(JsonReader::Ptr pclJsonDb_) : clMyParser(Parser(pclJsonDb
 FileParser::~FileParser() = default;
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
+void FileParser::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
 {
-    if (pclJsonDb_ != nullptr) { clMyParser.LoadJsonDb(pclJsonDb_); }
+    if (pclMessageDb_ != nullptr) { clMyParser.LoadJsonDb(pclMessageDb_); }
     else { pclMyLogger->debug("JSON DB is a NULL pointer."); }
 }
 

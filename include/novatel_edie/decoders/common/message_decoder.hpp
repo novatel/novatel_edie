@@ -31,9 +31,12 @@
 #include <utility>
 #include <variant>
 
+#include <nlohmann/json.hpp> // TODO: move to .cpp file
+#include <nlohmann/json_fwd.hpp>
+
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
 namespace novatel::edie {
@@ -72,12 +75,12 @@ class MessageDecoderBase
 
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("message_decoder")};
 
-    JsonReader::Ptr pclMyMsgDb{nullptr};
+    MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
-    EnumDefinition::Ptr vMyResponseDefinitions{nullptr};
-    EnumDefinition::Ptr vMyCommandDefinitions{nullptr};
-    EnumDefinition::Ptr vMyPortAddressDefinitions{nullptr};
-    EnumDefinition::Ptr vMyGpsTimeStatusDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyResponseDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
     MessageDefinition::Ptr stMyRespDef{nullptr};
 
@@ -88,9 +91,10 @@ class MessageDecoderBase
 
   protected:
     std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, const char**, [[maybe_unused]] size_t,
-                                                    [[maybe_unused]] JsonReader&)>>
+                                                    [[maybe_unused]] MessageDatabase&)>>
         asciiFieldMap;
-    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, json, [[maybe_unused]] JsonReader&)>>
+    std::unordered_map<uint32_t,
+                       std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, nlohmann::json, [[maybe_unused]] MessageDatabase&)>>
         jsonFieldMap;
 
     [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefFields_, const unsigned char** ppucLogBuf_,
@@ -98,24 +102,24 @@ class MessageDecoderBase
     template <bool Abbreviated>
     [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, const char** ppcLogBuf_,
                                      std::vector<FieldContainer>& vIntermediateFormat_) const;
-    [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, json clJsonFields_,
+    [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, nlohmann::json clJsonFields_,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     static void DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, const unsigned char** ppucLogBuf_,
                                   std::vector<FieldContainer>& vIntermediateFormat_);
     void DecodeAsciiField(BaseField::ConstPtr pstMessageDataType_, const char** ppcToken_, size_t tokenLength_,
                           std::vector<FieldContainer>& vIntermediateFormat_) const;
-    void DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, const json& clJsonField_, std::vector<FieldContainer>& vIntermediateFormat_) const;
+    void DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, const nlohmann::json& clJsonField_,
+                         std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(std::vector<FieldContainer>&, novatel::edie::BaseField::ConstPtr, const char**, size_t, JsonReader&)>
-    SimpleAsciiMapEntry()
+    static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, const char**, size_t, MessageDatabase&)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
         return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstField_, const char** ppcToken_,
-                  [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] JsonReader& pclMsgDb_) {
+                  [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
             if constexpr (std::is_same_v<T, int8_t>)
             {
                 vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), std::move(pstField_));
@@ -154,26 +158,27 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    template <typename T> static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, json, JsonReader&)> SimpleJsonMapEntry()
+    template <typename T>
+    static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, nlohmann::json, MessageDatabase&)> SimpleJsonMapEntry()
     {
-        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstMessageDataType_, json clJsonField_,
-                  [[maybe_unused]] JsonReader& pclMsgDb_) { vIntermediate_.emplace_back(clJsonField_.get<T>(), pstMessageDataType_); };
+        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstMessageDataType_, nlohmann::json clJsonField_,
+                  [[maybe_unused]] MessageDatabase& pclMsgDb_) { vIntermediate_.emplace_back(clJsonField_.get<T>(), pstMessageDataType_); };
     }
 
   public:
     //----------------------------------------------------------------------------
     //! \brief A constructor for the MessageDecoderBase class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    MessageDecoderBase(JsonReader::Ptr pclJsonDb_ = nullptr);
+    MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
-    //! \brief Load a JsonReader object.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
+    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

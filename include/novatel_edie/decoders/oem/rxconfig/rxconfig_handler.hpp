@@ -28,7 +28,7 @@
 #define RXCONFIG_HANDLER_HPP
 
 #include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"
 #include "novatel_edie/decoders/oem/framer.hpp"
@@ -59,10 +59,10 @@ class RxConfigHandler
     Encoder clMyEncoder;
 
     std::shared_ptr<spdlog::logger> pclMyLogger{nullptr};
-    JsonReader::Ptr pclMyMsgDb{nullptr};
-    EnumDefinition::Ptr vMyCommandDefinitions{nullptr};
-    EnumDefinition::Ptr vMyPortAddressDefinitions{nullptr};
-    EnumDefinition::Ptr vMyGpsTimeStatusDefinitions{nullptr};
+    MessageDatabase::Ptr pclMyMsgDb{nullptr};
+    EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
@@ -89,16 +89,16 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     //! \brief A constructor for the RxConfigHandler class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    RxConfigHandler(JsonReader::Ptr pclJsonDb_ = nullptr);
+    RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
-    //! \brief Load a JsonReader object.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
+    void LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -158,4 +158,4 @@ class RxConfigHandler
 
 } // namespace novatel::edie::oem
 
-#endif // EXTENSION_RXCONFIG_HANDLER_HPP
+#endif // RXCONFIG_HANDLER_HPP

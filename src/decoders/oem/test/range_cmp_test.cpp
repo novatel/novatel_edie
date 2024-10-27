@@ -28,6 +28,7 @@
 
 #include <gtest/gtest.h>
 
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp"
 
 using namespace novatel::edie;
@@ -38,7 +39,7 @@ class RangeCmpTest : public ::testing::Test
     class RangeDecompressorTester : public RangeDecompressor
     {
       public:
-        RangeDecompressorTester(JsonReader::Ptr pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
+        RangeDecompressorTester(MessageDatabase::Ptr pclMessageDb_) : RangeDecompressor(pclMessageDb_) {}
 
         // Access protected member of RangeDecompressor
         void SetBitOffset(uint32_t uiBitOffset_) { uiMyBitOffset = uiBitOffset_; }
@@ -63,13 +64,12 @@ class RangeCmpTest : public ::testing::Test
 
   protected:
     static std::unique_ptr<RangeDecompressorTester> pclMyRangeDecompressor;
-    static JsonReader::Ptr pclMyJsonDb;
+    static MessageDatabase::Ptr pclMyJsonDb;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyJsonDb = std::make_shared<JsonReader>();
-        pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
+        pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
         pclMyRangeDecompressor = std::make_unique<RangeDecompressorTester>(pclMyJsonDb);
     }
 
@@ -80,7 +80,7 @@ class RangeCmpTest : public ::testing::Test
 };
 
 std::unique_ptr<RangeCmpTest::RangeDecompressorTester> RangeCmpTest::pclMyRangeDecompressor = nullptr;
-JsonReader::Ptr RangeCmpTest::pclMyJsonDb = nullptr;
+MessageDatabase::Ptr RangeCmpTest::pclMyJsonDb = nullptr;
 
 // TODO: we disable clang-format because of the long strings
 // clang-format off

@@ -27,6 +27,7 @@
 #ifndef NOVATEL_FILE_PARSER_HPP
 #define NOVATEL_FILE_PARSER_HPP
 
+#include <filesystem>
 #include <iosfwd>
 #include <memory>
 
@@ -60,21 +61,14 @@ class FileParser
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    FileParser(const std::string& sDbPath_);
+    FileParser(const std::filesystem::path& sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
     //
-    //! \param[in] sDbPath_ Filepath to a JSON message DB.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    FileParser(const std::u32string& sDbPath_);
-
-    //----------------------------------------------------------------------------
-    //! \brief A constructor for the FileParser class.
-    //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
-    //----------------------------------------------------------------------------
-    FileParser(JsonReader::Ptr pclJsonDb_ = nullptr);
+    FileParser(const MessageDatabase::Ptr& pclMessageDb_ = {nullptr});
 
     //----------------------------------------------------------------------------
     //! \brief A destructor for the FileParser class.
@@ -82,11 +76,11 @@ class FileParser
     ~FileParser();
 
     //----------------------------------------------------------------------------
-    //! \brief Load a JsonReader object.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader::Ptr pclJsonDb_);
+    void LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

@@ -21,45 +21,20 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file json_reader.hpp
+// ! \file message_database.hpp
 // ===============================================================================
 
-#ifndef JSON_READER_HPP
-#define JSON_READER_HPP
+#ifndef MESSAGE_DATABASE_HPP
+#define MESSAGE_DATABASE_HPP
 
-#include <filesystem>
-#include <fstream>
 #include <string>
 #include <unordered_map>
-
-#include <nlohmann/json.hpp>
+#include <utility>
 
 #include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/common/logger.hpp"
 
 namespace novatel::edie {
-
-using nlohmann::json;
-
-//============================================================================
-//! \class JsonReaderFailure
-//! \brief Exception to be thrown when JsonReader fails to parse a JSON.
-//============================================================================
-class JsonReaderFailure : public std::exception
-{
-  private:
-    std::string whatString;
-
-  public:
-    JsonReaderFailure(const char* func_, const char* file_, const int32_t line_, const std::filesystem::path& json_, const char* failure_)
-    {
-        std::ostringstream oss;
-        oss << "In file \"" << file_ << "\" : " << func_ << "() (Line " << line_ << ")\n\t\"" << json_.generic_string() << ": " << failure_ << ".\"";
-        whatString = oss.str();
-    }
-
-    [[nodiscard]] const char* what() const noexcept override { return whatString.c_str(); }
-};
 
 //-----------------------------------------------------------------------
 //! \enum DATA_TYPE
@@ -311,7 +286,7 @@ struct BaseField
 struct EnumField : BaseField
 {
     std::string enumId;
-    EnumDefinition::Ptr enumDef{nullptr};
+    EnumDefinition::ConstPtr enumDef{nullptr};
     uint32_t length{0};
 
     EnumField() = default;
@@ -445,47 +420,43 @@ struct MessageDefinition
     using ConstPtr = std::shared_ptr<const MessageDefinition>;
 };
 
-// Forward declaration of from_json
-void from_json(const json& j_, EnumDataType& f_);
-void from_json(const json& j_, BaseDataType& f_);
-void from_json(const json& j_, SimpleDataType& f_);
-void from_json(const json& j_, BaseField& f_);
-void from_json(const json& j_, EnumField& f_);
-void from_json(const json& j_, ArrayField& fd_);
-void from_json(const json& j_, FieldArrayField& fd_);
-void from_json(const json& j_, MessageDefinition& md_);
-void from_json(const json& j_, EnumDefinition& ed_);
-
-// Forward declaration of parse_fields and parse_enumerators
-uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_);
-void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
-
 //============================================================================
-//! \class JsonReader
-//! \brief Responsible for translating the Json representation of the
-//! NovAtel UI DB.
+//! \class MessageDatabase
+//! \brief Holds the definitions of NovAtel messages and enums.
 //============================================================================
-class JsonReader
+class MessageDatabase
 {
-    std::vector<MessageDefinition::Ptr> vMessageDefinitions;
-    std::vector<EnumDefinition::Ptr> vEnumDefinitions;
-    std::unordered_map<std::string, MessageDefinition::Ptr> mMessageName;
-    std::unordered_map<int32_t, MessageDefinition::Ptr> mMessageId;
-    std::unordered_map<std::string, EnumDefinition::Ptr> mEnumName;
-    std::unordered_map<std::string, EnumDefinition::Ptr> mEnumId;
+    std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
+    std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
+    std::unordered_map<std::string, MessageDefinition::ConstPtr> mMessageName;
+    std::unordered_map<int32_t, MessageDefinition::ConstPtr> mMessageId;
+    std::unordered_map<std::string, EnumDefinition::ConstPtr> mEnumName;
+    std::unordered_map<std::string, EnumDefinition::ConstPtr> mEnumId;
 
   public:
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the JsonReader class.
+    //! \brief A constructor for the MessageDatabase class.
     //----------------------------------------------------------------------------
-    JsonReader() = default;
+    MessageDatabase() = default;
 
     //----------------------------------------------------------------------------
-    //! \brief A copy constructor for the JsonReader class.
+    //! \brief A constructor for the MessageDatabase class.
     //
-    //! \param[in] that_ The JsonReader object to copy.
+    //! \param[in] vMessageDefinitions_ A vector of message definitions
+    //! \param[in] vEnumDefinitions_ A vector of enum definitions
     //----------------------------------------------------------------------------
-    JsonReader(const JsonReader& that_)
+    MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
+        : vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_))
+    {
+        GenerateMappings();
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief A copy constructor for the MessageDatabase class.
+    //
+    //! \param[in] that_ The MessageDatabase object to copy.
+    //----------------------------------------------------------------------------
+    MessageDatabase(const MessageDatabase& that_)
     {
         // TODO: Verify it's calling the copy constructor for the messages
         vEnumDefinitions = that_.vEnumDefinitions;
@@ -494,11 +465,11 @@ class JsonReader
     }
 
     //----------------------------------------------------------------------------
-    //! \brief Overloaded assignment operator for the JsonReader class.
+    //! \brief Overloaded assignment operator for the MessageDatabase class.
     //
-    //! \param[in] that_ The JsonReader object to assign.
+    //! \param[in] that_ The MessageDatabase object to assign.
     //----------------------------------------------------------------------------
-    JsonReader& operator=(const JsonReader& that_)
+    MessageDatabase& operator=(const MessageDatabase& that_)
     {
         if (this != &that_)
         {
@@ -511,30 +482,53 @@ class JsonReader
     }
 
     //----------------------------------------------------------------------------
-    //! \brief Destructor for the JsonReader class.
+    //! \brief Destructor for the MessageDatabase class.
     //----------------------------------------------------------------------------
-    ~JsonReader() = default;
+    ~MessageDatabase() = default;
 
     //----------------------------------------------------------------------------
-    //! \brief Load a Json DB from the provided filepath.
+    //! \brief Merge the message and enum definitions from another MessageDatabase into this one.
     //
-    //! \param[in] filePath_ The filepath to the Json file.
+    //! \param[in] other_ The other MessageDatabase object to merge.
     //----------------------------------------------------------------------------
-    template <typename T> void LoadFile(T filePath_);
+    void Merge(const MessageDatabase& other_)
+    {
+        AppendEnumerations(other_.vEnumDefinitions, false);
+        AppendMessages(other_.vMessageDefinitions, false);
+        GenerateMappings();
+    }
 
     //----------------------------------------------------------------------------
-    //! \brief Append a message Json DB from the provided filepath.
+    //! \brief Append a list of message definitions to the database.
     //
-    //! \param[in] filePath_ The filepath to the Json file.
+    //! \param[in] vMessageDefinitions_ A vector of message definitions
+    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    template <typename T> void AppendMessages(T filePath_);
+    void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_, bool bGenerateMappings_ = true)
+    {
+        for (const auto& msgDef : vMessageDefinitions_)
+        {
+            RemoveMessage(msgDef->logID, false);
+            vMessageDefinitions.push_back(msgDef);
+        }
+        if (bGenerateMappings_) { GenerateMappings(); }
+    }
 
     //----------------------------------------------------------------------------
-    //! \brief Append an enumeration Json DB from the provided filepath.
+    //! \brief Append a list of enum definitions to the database.
     //
-    //! \param[in] filePath_ The filepath to the Json file.
+    //! \param[in] vEnumDefinitions_ A vector of enum definitions
+    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    template <typename T> void AppendEnumerations(T filePath_);
+    void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_, bool bGenerateMappings_ = true)
+    {
+        for (const auto& enmDef : vEnumDefinitions_)
+        {
+            RemoveEnumeration(enmDef->name, false);
+            vEnumDefinitions.push_back(enmDef);
+        }
+        if (bGenerateMappings_) { GenerateMappings(); }
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Append a message Json DB from the provided filepath.
@@ -551,13 +545,6 @@ class JsonReader
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
     void RemoveEnumeration(std::string_view strEnumeration_, bool bGenerateMappings_);
-
-    //----------------------------------------------------------------------------
-    //! \brief Parse the Json string provided.
-    //
-    //! \param[in] strJsonData_ A string containing Json objects.
-    //----------------------------------------------------------------------------
-    void ParseJson(std::string_view strJsonData_);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
@@ -592,7 +579,7 @@ class JsonReader
     //
     //! \param[in] sEnumId_ The enum ID.
     //----------------------------------------------------------------------------
-    [[nodiscard]] EnumDefinition::Ptr GetEnumDefId(const std::string& sEnumId_) const
+    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(const std::string& sEnumId_) const
     {
         const auto it = mEnumId.find(sEnumId_);
         return it != mEnumId.end() ? it->second : nullptr;
@@ -603,7 +590,7 @@ class JsonReader
     //
     //! \param[in] sEnumName_ The enum name.
     //----------------------------------------------------------------------------
-    [[nodiscard]] EnumDefinition::Ptr GetEnumDefName(const std::string& sEnumName_) const
+    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(const std::string& sEnumName_) const
     {
         auto it = mEnumName.find(sEnumName_);
         return it != mEnumName.end() ? it->second : nullptr;
@@ -612,12 +599,12 @@ class JsonReader
     //----------------------------------------------------------------------------
     //! \brief Returns all defined enums.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const std::vector<EnumDefinition::Ptr>& EnumDefinitions() const { return vEnumDefinitions; }
+    [[nodiscard]] const std::vector<EnumDefinition::ConstPtr>& EnumDefinitions() const { return vEnumDefinitions; }
 
     //----------------------------------------------------------------------------
     //! \brief Returns all defined message types.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const std::vector<MessageDefinition::Ptr>& MessageDefinitions() const { return vMessageDefinitions; }
+    [[nodiscard]] const std::vector<MessageDefinition::ConstPtr>& MessageDefinitions() const { return vMessageDefinitions; }
 
   private:
     void GenerateMappings()
@@ -674,27 +661,27 @@ class JsonReader
         if (itId != mEnumId.end()) { mEnumId.erase(itId); }
     }
 
-    std::vector<MessageDefinition::Ptr>::iterator GetMessageIt(uint32_t iMsgId_)
+    std::vector<MessageDefinition::ConstPtr>::iterator GetMessageIt(uint32_t iMsgId_)
     {
-        return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                            [iMsgId_](const MessageDefinition::Ptr& elem_) { return elem_->logID == iMsgId_; });
+        return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(), //
+                            [iMsgId_](const auto& elem_) { return elem_->logID == iMsgId_; });
     }
 
-    std::vector<MessageDefinition::Ptr>::iterator GetMessageIt(std::string_view strMessage_)
+    std::vector<MessageDefinition::ConstPtr>::iterator GetMessageIt(std::string_view strMessage_)
     {
-        return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(),
-                            [strMessage_](const MessageDefinition::Ptr& elem_) { return elem_->name == strMessage_; });
+        return std::find_if(vMessageDefinitions.begin(), vMessageDefinitions.end(), //
+                            [strMessage_](const auto& elem_) { return elem_->name == strMessage_; });
     }
 
-    std::vector<EnumDefinition::Ptr>::iterator GetEnumIt(std::string_view strEnumeration_)
+    std::vector<EnumDefinition::ConstPtr>::iterator GetEnumIt(std::string_view strEnumeration_)
     {
-        return std::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(),
-                            [strEnumeration_](const EnumDefinition::Ptr& elem_) { return elem_->name == strEnumeration_; });
+        return std::find_if(vEnumDefinitions.begin(), vEnumDefinitions.end(), //
+                            [strEnumeration_](const auto& elem_) { return elem_->name == strEnumeration_; });
     }
 
   public:
-    using Ptr = std::shared_ptr<JsonReader>;
-    using ConstPtr = std::shared_ptr<const JsonReader>;
+    using Ptr = std::shared_ptr<MessageDatabase>;
+    using ConstPtr = std::shared_ptr<const MessageDatabase>;
 };
 
 } // namespace novatel::edie

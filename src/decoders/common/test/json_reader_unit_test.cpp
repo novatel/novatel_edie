@@ -29,11 +29,11 @@
 #include <gtest/gtest.h>
 
 #include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 
 using namespace novatel::edie;
 
-class JsonReaderTest : public testing::Test
+class JsonDbReaderTest : public testing::Test
 {
   public:
     void SetUp() override {}
@@ -41,40 +41,40 @@ class JsonReaderTest : public testing::Test
 };
 
 // -------------------------------------------------------------------------------------------------------
-// JsonReader Unit Tests
+// JsonDbReader Unit Tests
 // -------------------------------------------------------------------------------------------------------
-TEST_F(JsonReaderTest, JsonReaderFailure)
+TEST_F(JsonDbReaderTest, JsonDbReaderFailure)
 {
-    JsonReader clJson;
-    ASSERT_THROW(clJson.LoadFile<std::string>(""), JsonReaderFailure);
+    MessageDatabase clJson;
+    ASSERT_THROW(JsonDbReader::LoadFile(""), JsonDbReaderFailure);
 }
 
-TEST_F(JsonReaderTest, AppendEnumerations)
+TEST_F(JsonDbReaderTest, AppendEnumerations)
 {
     const std::string strId = "008451a05e1e7aa32c75119df950d405265e0904";
 
-    JsonReader clJson;
-    clJson.AppendEnumerations(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")).string());
+    auto clJson = std::make_shared<MessageDatabase>();
+    JsonDbReader::AppendEnumerations(clJson, std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
 
-    EnumDefinition::ConstPtr pstEnumDef = clJson.GetEnumDefId(strId);
+    EnumDefinition::ConstPtr pstEnumDef = clJson->GetEnumDefId(strId);
     ASSERT_NE(pstEnumDef, nullptr);
     ASSERT_EQ(pstEnumDef->name, "Datum");
 
-    clJson.RemoveEnumeration("Datum", true);
-    ASSERT_EQ(clJson.GetEnumDefId(strId), nullptr);
+    clJson->RemoveEnumeration("Datum", true);
+    ASSERT_EQ(clJson->GetEnumDefId(strId), nullptr);
 }
 
-TEST_F(JsonReaderTest, AppendMessages)
+TEST_F(JsonDbReaderTest, AppendMessages)
 {
     constexpr uint32_t uiMsgId = 690;
 
-    JsonReader clJson;
-    clJson.AppendMessages(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")).string());
+    auto clJson = std::make_shared<MessageDatabase>();
+    JsonDbReader::AppendMessages(clJson, std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
 
-    MessageDefinition::ConstPtr pstMsgDef = clJson.GetMsgDef(uiMsgId);
+    MessageDefinition::ConstPtr pstMsgDef = clJson->GetMsgDef(uiMsgId);
     ASSERT_NE(pstMsgDef, nullptr);
     ASSERT_EQ(pstMsgDef->name, "PASSAUX");
 
-    clJson.RemoveMessage(uiMsgId, true);
-    ASSERT_EQ(clJson.GetMsgDef(uiMsgId), nullptr);
+    clJson->RemoveMessage(uiMsgId, true);
+    ASSERT_EQ(clJson->GetMsgDef(uiMsgId), nullptr);
 }

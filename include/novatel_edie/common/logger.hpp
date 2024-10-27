@@ -30,6 +30,7 @@
 // Set the default logging level for SPDLOG_XXX macros
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
 
+#include <filesystem>
 #include <iostream>
 #include <map>
 
@@ -82,7 +83,7 @@ class Logger
         }
     }
 
-    static void InitLogger(std::string sLoggerConfigPath_)
+    static void InitLogger(std::filesystem::path sLoggerConfigPath_)
     {
         std::lock_guard<std::mutex> lock(mLoggerMutex);
         try
@@ -96,7 +97,7 @@ class Logger
 
                 spdlog::set_default_logger(pclMyRootLogger);
                 pclMyRootLogger->flush_on(spdlog::level::debug);
-                pclMyRootLogger->debug("Logger initialized from file: {}", sLoggerConfigPath_);
+                pclMyRootLogger->debug("Logger initialized from file: {}", sLoggerConfigPath_.string());
             }
         }
         catch (const spdlog::spdlog_ex& ex)

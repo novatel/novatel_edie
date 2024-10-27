@@ -3,7 +3,7 @@
 #include <cstring>
 
 #include "bindings_core.hpp"
-#include "json_db_singleton.hpp"
+#include "message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -25,8 +25,8 @@ class RangeDecompressorTester : public oem::RangeDecompressor
 void init_novatel_range_decompressor(nb::module_& m)
 {
     nb::class_<oem::RangeDecompressor>(m, "RangeDecompressor")
-        .def(nb::init<JsonReader::Ptr&>(), "json_db"_a)
-        .def("__init__", [](oem::RangeDecompressor* t) { new (t) oem::RangeDecompressor(JsonDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def("__init__", [](oem::RangeDecompressor* t) { new (t) oem::RangeDecompressor(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def(nb::init<MessageDatabase::Ptr&>(), "json_db"_a)
         .def("load_json_db", &oem::RangeDecompressor::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::RangeDecompressor::GetLogger)
         .def("reset", &oem::RangeDecompressor::Reset)

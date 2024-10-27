@@ -33,8 +33,8 @@
 #include <memory>
 #include <string>
 
-#include "json_reader.hpp"
 #include "novatel_edie/common/common.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 
 namespace novatel::edie {
 

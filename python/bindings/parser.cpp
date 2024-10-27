@@ -1,7 +1,7 @@
 #include "novatel_edie/decoders/oem/parser.hpp"
 
 #include "bindings_core.hpp"
-#include "json_db_singleton.hpp"
+#include "message_db_singleton.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -11,9 +11,9 @@ using namespace novatel::edie;
 void init_novatel_parser(nb::module_& m)
 {
     nb::class_<oem::Parser>(m, "Parser")
-        .def(nb::init<std::u32string>(), "json_db_path"_a)
-        .def(nb::init<JsonReader::Ptr&>(), "json_db"_a)
-        .def("__init__", [](oem::Parser* t) { new (t) oem::Parser(JsonDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def("__init__", [](oem::Parser* t) { new (t) oem::Parser(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def(nb::init<const std::filesystem::path&>(), "json_db_path"_a)
+        .def(nb::init<const MessageDatabase::Ptr&>(), "message_db"_a)
         .def("load_json_db", &oem::Parser::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::Parser::GetLogger)
         .def("enable_framer_decoder_logging", &oem::Parser::EnableFramerDecoderLogging, "level"_a = spdlog::level::debug, "filename"_a = "edie.log")

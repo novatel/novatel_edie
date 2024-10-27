@@ -26,24 +26,26 @@
 
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 
-#include <bitset>
+#include <nlohmann/json.hpp>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+using json = nlohmann::json;
+
 // -------------------------------------------------------------------------------------------------------
-HeaderDecoder::HeaderDecoder(JsonReader::Ptr pclJsonDb_)
+HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
 {
     pclMyLogger->debug("HeaderDecoder initializing...");
 
-    if (pclJsonDb_ != nullptr) { LoadJsonDb(pclJsonDb_); }
+    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     pclMyLogger->debug("HeaderDecoder initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-void HeaderDecoder::LoadJsonDb(JsonReader::Ptr pclJsonDb_)
+void HeaderDecoder::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
-    pclMyMsgDb = pclJsonDb_;
+    pclMyMsgDb = pclMessageDb_;
 
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");

@@ -1,4 +1,4 @@
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 
 #include <nanobind/stl/unordered_map.h>
 
@@ -8,10 +8,8 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-void init_common_json_reader(nb::module_& m)
+void init_common_message_database(nb::module_& m)
 {
-    nb::exception<JsonReaderFailure>(m, "JsonReaderFailure");
-
     nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "Data type name string represented as an enum")
         .value("BOOL", DATA_TYPE::BOOL)
         .value("CHAR", DATA_TYPE::CHAR)
@@ -171,24 +169,16 @@ void init_common_json_reader(nb::module_& m)
                 .format(msg_def.name, msg_def._id, msg_def.logID, msg_def.description, self.attr("fields"), msg_def.latestMessageCrc);
         });
 
-    nb::class_<JsonReader>(m, "JsonReader")
+    nb::class_<MessageDatabase>(m, "MessageDatabase")
         .def(nb::init())
-        .def(
-            "__init__",
-            [](JsonReader* t, std::u32string path) {
-                JsonReader reader;
-                reader.LoadFile(path);
-                new (t) JsonReader(reader); // NOLINT(*.NewDeleteLeaks)
-            },
-            "file_path"_a)
-        .def("load_file", &JsonReader::LoadFile<std::u32string>, "file_path"_a)
-        .def("append_messages", &JsonReader::AppendMessages<std::u32string>, "file_path"_a)
-        .def("append_enumerations", &JsonReader::AppendEnumerations<std::u32string>, "file_path"_a)
-        .def("remove_message", &JsonReader::RemoveMessage, "msg_id"_a, "generate_mappings"_a = true)
-        .def("remove_enumeration", &JsonReader::RemoveEnumeration, "enumeration"_a, "generate_mappings"_a = true)
-        .def("parse_json", &JsonReader::ParseJson, "json_data"_a)
-        .def("get_msg_def", nb::overload_cast<const std::string&>(&JsonReader::GetMsgDef, nb::const_), "msg_name"_a)
-        .def("get_msg_def", nb::overload_cast<int32_t>(&JsonReader::GetMsgDef, nb::const_), "msg_id"_a)
-        .def("get_enum_def", &JsonReader::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def", &JsonReader::GetEnumDefName, "enum_name"_a);
+        .def(nb::init<std::vector<MessageDefinition::ConstPtr>, std::vector<EnumDefinition::ConstPtr>>(), "msg_defs"_a, "enum_defs"_a)
+        .def("merge", &MessageDatabase::Merge, "other_db"_a)
+        .def("append_messages", &MessageDatabase::AppendMessages, "file_path"_a, "generate_mappings"_a = true)
+        .def("append_enumerations", &MessageDatabase::AppendEnumerations, "file_path"_a, "generate_mappings"_a = true)
+        .def("remove_message", &MessageDatabase::RemoveMessage, "msg_id"_a, "generate_mappings"_a = true)
+        .def("remove_enumeration", &MessageDatabase::RemoveEnumeration, "enumeration"_a, "generate_mappings"_a = true)
+        .def("get_msg_def", nb::overload_cast<const std::string&>(&MessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
+        .def("get_msg_def", nb::overload_cast<int32_t>(&MessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
+        .def("get_enum_def", &MessageDatabase::GetEnumDefId, "enum_id"_a)
+        .def("get_enum_def", &MessageDatabase::GetEnumDefName, "enum_name"_a);
 }

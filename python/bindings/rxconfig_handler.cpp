@@ -1,7 +1,7 @@
 #include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
 
 #include "bindings_core.hpp"
-#include "json_db_singleton.hpp"
+#include "message_db_singleton.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -11,8 +11,8 @@ using namespace novatel::edie;
 void init_novatel_rxconfig_handler(nb::module_& m)
 {
     nb::class_<oem::RxConfigHandler>(m, "RxConfigHandler")
-        .def(nb::init<JsonReader::Ptr&>(), "json_db"_a)
-        .def("__init__", [](oem::RxConfigHandler* t) { new (t) oem::RxConfigHandler(JsonDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def("__init__", [](oem::RxConfigHandler* t) { new (t) oem::RxConfigHandler(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def(nb::init<const MessageDatabase::Ptr&>(), "json_db"_a)
         .def("load_json_db", &oem::RxConfigHandler::LoadJsonDb, "json_db_path"_a)
         .def_prop_ro("logger", &oem::RxConfigHandler::GetLogger)
         .def("write", [](oem::RxConfigHandler& self,

@@ -1,46 +1,11 @@
-#include "novatel_edie/decoders/oem/common.hpp"
-
 #include "bindings_core.hpp"
-#include "json_db_singleton.hpp"
+#include "message_db_singleton.hpp"
 #include "novatel_edie/common/nexcept.hpp"
+#include "novatel_edie/decoders/oem/common.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
-
-namespace {
-std::string default_json_db_path()
-{
-    // Does the following, but using nanobind:
-    // import importlib_resources
-    // path_ctx = importlib_resources.as_file(importlib_resources.files("novatel_edie").joinpath("messages_public.json"))
-    // with path_ctx as path:
-    //     return path
-    nb::object ir = nb::module_::import_("importlib_resources");
-    nb::object path_ctx = ir.attr("as_file")(ir.attr("files")("novatel_edie").attr("joinpath")("messages_public.json"));
-    auto py_path = path_ctx.attr("__enter__")();
-    if (!nb::cast<bool>(py_path.attr("is_file")()))
-    {
-        throw NExcept((std::string("Could not find the default JSON DB file at ") + nb::str(py_path).c_str()).c_str());
-    }
-    auto path = nb::cast<std::string>(nb::str(py_path));
-    path_ctx.attr("__exit__")(nb::none(), nb::none(), nb::none());
-    return path;
-}
-} // namespace
-
-JsonReader::Ptr& JsonDbSingleton::get()
-{
-    static JsonReader::Ptr json_db = nullptr;
-    if (!json_db)
-    {
-        // Using a temp variable to avoid an inconsistent state if LoadFile throws
-        auto db = std::make_shared<JsonReader>();
-        db->LoadFile(default_json_db_path());
-        json_db = std::move(db);
-    }
-    return json_db;
-}
 
 void init_novatel_common(nb::module_& m)
 {
@@ -122,12 +87,12 @@ void init_novatel_common(nb::module_& m)
             })
         .def_prop_ro("message_description",
                      [](const oem::MetaDataStruct& self) {
-                         auto msg_def = JsonDbSingleton::get()->GetMsgDef(self.usMessageId);
+                         auto msg_def = MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
                          return msg_def ? nb::cast(msg_def->description) : nb::none();
                      })
         .def_prop_ro("message_fields",
                      [](const oem::MetaDataStruct& self) {
-                         auto msg_def = JsonDbSingleton::get()->GetMsgDef(self.usMessageId);
+                         auto msg_def = MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
                          if (!msg_def) { return nb::none(); }
                          auto fields_it = msg_def->fields.find(self.uiMessageCrc);
                          return fields_it == msg_def->fields.end() ? nb::none() : nb::cast(fields_it->second);
@@ -231,6 +196,4 @@ void init_novatel_common(nb::module_& m)
                            "week_no={!r}, week_msec={!r})")
                 .format(self.ucSync1, self.ucSync2, self.ucSync3, self.ucLength, self.usMessageId, self.usWeekNo, self.uiWeekMSec);
         });
-
-    m.def("get_default_database", &JsonDbSingleton::get, "Get the default JSON database singleton", nb::rv_policy::reference);
 }
