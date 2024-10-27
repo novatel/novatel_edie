@@ -23,22 +23,22 @@ add_compile_definitions(VERSION_INFO=${SKBUILD_PROJECT_VERSION})
 
 nanobind_add_module(python_bindings STABLE_ABI NB_STATIC LTO
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/bindings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/common.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/json_reader.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/logger.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common/nexcept.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/commander.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/common.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/encoder.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/file_parser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/filter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/framer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/header_decoder.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/message_decoder.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/oem_enums.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/parser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/range_decompressor.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/novatel/rxconfig_handler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/commander.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/encoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/file_parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/filter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/framer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/header_decoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/json_reader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/message_decoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/nexcept.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/oem_common.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/oem_enums.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/range_decompressor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/rxconfig_handler.cpp
 )
 
 set_target_properties(python_bindings PROPERTIES OUTPUT_NAME bindings)
