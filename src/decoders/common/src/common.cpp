@@ -26,12 +26,9 @@
 
 #include "novatel_edie/decoders/common/common.hpp"
 
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 
 using namespace novatel::edie;
-
-//-----------------------------------------------------------------------
-bool IsEqual(const double dVal1_, const double dVal2_, const double dEpsilon_) { return std::abs(dVal1_ - dVal2_) < dEpsilon_; }
 
 //-----------------------------------------------------------------------
 uint32_t CreateMsgId(const uint32_t uiMessageId_, const uint32_t uiSiblingId_, const uint32_t uiMsgFormat_, const uint32_t uiResponse_)
@@ -101,8 +98,20 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, std::string_view s
     return 0;
 }
 
-//-----------------------------------------------------------------------
-int32_t ToDigit(const char c_) { return c_ - '0'; }
+std::string GetEnumString(const std::shared_ptr<const EnumDefinition>& stEnumDef_, uint32_t uiEnum_)
+{
+    return GetEnumString(stEnumDef_.get(), uiEnum_);
+}
+
+int32_t GetEnumValue(const std::shared_ptr<const EnumDefinition>& stEnumDef_, std::string_view strEnum_)
+{
+    return GetEnumValue(stEnumDef_.get(), strEnum_);
+}
+
+int32_t GetResponseId(const std::shared_ptr<const EnumDefinition>& stRespDef_, std::string_view strResp_)
+{
+    return GetResponseId(stRespDef_.get(), strResp_);
+}
 
 //-----------------------------------------------------------------------
 bool ConsumeAbbrevFormatting(const uint64_t ullTokenLength_, const char** ppcMessageBuffer_)

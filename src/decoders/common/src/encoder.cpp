@@ -31,16 +31,16 @@
 using namespace novatel::edie;
 
 // -------------------------------------------------------------------------------------------------------
-EncoderBase::EncoderBase(JsonReader* pclJsonDb_)
+EncoderBase::EncoderBase(MessageDatabase::Ptr pclMessageDb_)
 {
     InitFieldMaps();
-    if (pclJsonDb_ != nullptr) { LoadJsonDb(pclJsonDb_); }
+    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 }
 
 // -------------------------------------------------------------------------------------------------------
-void EncoderBase::LoadJsonDb(JsonReader* pclJsonDb_)
+void EncoderBase::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
-    pclMyMsgDb = pclJsonDb_;
+    pclMyMsgDb = pclMessageDb_;
     InitEnumDefinitions();
 }
 
@@ -116,10 +116,10 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
                 // For a flattened version of the log, fill in the remaining fields with 0x00.
                 if constexpr (Flatten)
                 {
-                    if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < dynamic_cast<const FieldArrayField*>(field.fieldDef)->fieldSize &&
+                    const auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(field.fieldDef.get());
+                    if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < fieldArrayField->fieldSize &&
                         !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0',
-                                     dynamic_cast<const FieldArrayField*>(field.fieldDef)->fieldSize -
-                                         static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
+                                     fieldArrayField->fieldSize - static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
                     {
                         return false;
                     }
@@ -145,7 +145,8 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
                 // For a flattened version of the log, fill in the remaining fields with 0x00.
                 if constexpr (Flatten)
                 {
-                    const uint32_t uiMaxArraySize = dynamic_cast<const ArrayField*>(field.fieldDef)->arrayLength * field.fieldDef->dataType.length;
+                    const auto* arrayField = dynamic_cast<const ArrayField*>(field.fieldDef.get());
+                    const uint32_t uiMaxArraySize = arrayField->arrayLength * field.fieldDef->dataType.length;
                     if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < uiMaxArraySize &&
                         !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
                     {
@@ -165,8 +166,9 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
                 // For a flattened version of the log, fill in the remaining characters with 0x00.
                 if constexpr (Flatten)
                 {
+                    const auto* arrayField = dynamic_cast<const ArrayField*>(field.fieldDef.get());
                     const auto uiStringLength = static_cast<uint32_t>(strlen(szString));
-                    const uint32_t uiMaxArraySize = dynamic_cast<const ArrayField*>(field.fieldDef)->arrayLength * field.fieldDef->dataType.length;
+                    const uint32_t uiMaxArraySize = arrayField->arrayLength * field.fieldDef->dataType.length;
                     if (uiStringLength < uiMaxArraySize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - uiStringLength))
                     {
                         return false;
@@ -308,8 +310,8 @@ bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermedia
             }
             else
             {
-                const bool bPrintAsString = PrintAsString(field.fieldDef);
-                const bool bIsCommaSeparated = IsCommaSeparated(field.fieldDef);
+                const bool bPrintAsString = PrintAsString(*field.fieldDef);
+                const bool bIsCommaSeparated = IsCommaSeparated(*field.fieldDef);
 
                 // if the field is a variable array, print the size first
                 if ((field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY &&
@@ -356,7 +358,7 @@ bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermedia
                 }
                 break;
             case FIELD_TYPE::ENUM: {
-                const auto* enumField = dynamic_cast<const EnumField*>(field.fieldDef);
+                const auto* enumField = dynamic_cast<const EnumField*>(field.fieldDef.get());
                 if (enumField->length == 2)
                 {
                     if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c",
@@ -394,7 +396,7 @@ template bool EncoderBase::EncodeAsciiBody<false>(const std::vector<FieldContain
 bool EncoderBase::FieldToAscii(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
     auto it = asciiFieldMap.find(fc_.fieldDef->conversionHash);
-    if (it != asciiFieldMap.end()) { return it->second(fc_, ppcOutBuf_, uiBytesLeft_, pclMyMsgDb); }
+    if (it != asciiFieldMap.end()) { return it->second(fc_, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
     const char* pcConvertString = fc_.fieldDef->conversion.c_str();
 
     switch (fc_.fieldDef->dataType.name)
@@ -453,7 +455,7 @@ bool EncoderBase::EncodeJsonBody(const std::vector<FieldContainer>& vIntermediat
             }
             else
             {
-                const bool bPrintAsString = PrintAsString(field.fieldDef);
+                const bool bPrintAsString = PrintAsString(*field.fieldDef);
 
                 if (bPrintAsString)
                 {
@@ -510,7 +512,7 @@ bool EncoderBase::EncodeJsonBody(const std::vector<FieldContainer>& vIntermediat
             case FIELD_TYPE::ENUM:
                 if (!PrintToBuffer(
                         ppcOutBuf_, uiBytesLeft_, R"("%s": "%s",)", field.fieldDef->name.c_str(),
-                        GetEnumString(dynamic_cast<const EnumField*>(field.fieldDef)->enumDef, std::get<int32_t>(field.fieldValue)).c_str()))
+                        GetEnumString(dynamic_cast<const EnumField*>(field.fieldDef.get())->enumDef, std::get<int32_t>(field.fieldValue)).c_str()))
                 {
                     return false;
                 }
@@ -548,7 +550,7 @@ bool EncoderBase::EncodeJsonBody(const std::vector<FieldContainer>& vIntermediat
 bool EncoderBase::FieldToJson(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
     auto it = jsonFieldMap.find(fc_.fieldDef->conversionHash);
-    if (it != jsonFieldMap.end()) { return it->second(fc_, ppcOutBuf_, uiBytesLeft_, pclMyMsgDb); }
+    if (it != jsonFieldMap.end()) { return it->second(fc_, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
     const char* pcConvertString = fc_.fieldDef->conversion.c_str();
 
     switch (fc_.fieldDef->dataType.name)

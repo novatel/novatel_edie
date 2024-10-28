@@ -641,7 +641,7 @@ cmake_language(DEFER DIRECTORY "${CMAKE_SOURCE_DIR}" CALL conan_provide_dependen
 
 # Configurable variables for Conan profiles
 set(CONAN_HOST_PROFILE "default;auto-cmake" CACHE STRING "Conan host profile")
-set(CONAN_BUILD_PROFILE "default" CACHE STRING "Conan build profile")
+set(CONAN_BUILD_PROFILE "auto-cmake;default" CACHE STRING "Conan build profile")
 set(CONAN_INSTALL_ARGS "--build=missing" CACHE STRING "Command line arguments for conan install")
 
 find_program(_cmake_program NAMES cmake NO_PACKAGE_ROOT_PATH NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)

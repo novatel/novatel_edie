@@ -4,9 +4,14 @@
 build/
 docs/build
 bin/
-venv/
 CMakeSettings.json
 CMakeUserPresets.json
 /include/novatel_edie/version.h
 edie.*.log
 edie.log
+dist/
+venv/
+*.egg-info
+__pycache__/
+.pytest_cache/
+wheelhouse/

@@ -24,8 +24,11 @@
 // ! \file message_decoder_unit_test.cpp
 // ===============================================================================
 
+#include <utility>
+
 #include <gtest/gtest.h>
 
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
 using namespace novatel::edie;
@@ -36,19 +39,19 @@ class MessageDecoderTypesTest : public ::testing::Test
     class DecoderTester : public MessageDecoderBase
     {
       public:
-        DecoderTester(JsonReader* pclJsonDb_) : MessageDecoderBase(pclJsonDb_) {}
+        DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoderBase(std::move(pclMessageDb_)) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char** ppcLogBuf_,
+        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_,
                                std::vector<FieldContainer>& vIntermediateFormat_)
         {
             return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, const unsigned char** ppucLogBuf_,
+        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const unsigned char** ppucLogBuf_,
                                 std::vector<FieldContainer>& vIntermediateFormat_)
         {
             uint16_t MsgDefFieldsSize = 0;
-            for (BaseField* field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
+            for (const auto& field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
             return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
         }
 
@@ -70,9 +73,9 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
-                DecodeAsciiField(&stMessageDataType, &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
+                DecodeAsciiField(stMessageDataType, &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {
@@ -88,9 +91,9 @@ class MessageDecoderTypesTest : public ::testing::Test
             std::vector<FieldContainer> vIntermediateFormat;
             vIntermediateFormat.reserve(1);
 
-            const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
+            const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
             const char* tempStr = strTestInput.c_str();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(&stMessageDataType, &tempStr, strTestInput.length(), vIntermediateFormat),
+            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(stMessageDataType, &tempStr, strTestInput.length(), vIntermediateFormat),
                          std::runtime_error);
         }
 
@@ -109,10 +112,10 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const auto stMessageDataType = BaseField("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 // there should be a better way to do this
                 const uint8_t* pucTestInput = vvucTestInput[sz].data();
-                DecodeBinaryField(&stMessageDataType, &pucTestInput, vIntermediateFormat_);
+                DecodeBinaryField(stMessageDataType, &pucTestInput, vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {
@@ -125,9 +128,9 @@ class MessageDecoderTypesTest : public ::testing::Test
     };
 
   public:
-    std::unique_ptr<JsonReader> pclMyJsonDb;
+    MessageDatabase::Ptr pclMyJsonDb;
     std::unique_ptr<DecoderTester> pclMyDecoderTester;
-    std::vector<BaseField*> MsgDefFields;
+    std::vector<BaseField::Ptr> MsgDefFields;
     std::string sMinJsonDb;
 
     MessageDecoderTypesTest()
@@ -163,16 +166,12 @@ class MessageDecoderTypesTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = std::make_unique<JsonReader>();
-            pclMyJsonDb->ParseJson(sMinJsonDb);
-            pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb.get());
+            pclMyJsonDb = JsonDbReader::Parse(sMinJsonDb);
+            pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb);
         }
-        catch (JsonReaderFailure& e)
+        catch (JsonDbReaderFailure& e)
         {
             std::cout << e.what() << '\n';
-
-            for (auto* it : MsgDefFields) { delete it; }
-
             MsgDefFields.clear();
         }
     }
@@ -180,21 +179,18 @@ class MessageDecoderTypesTest : public ::testing::Test
     void TearDown() override
     {
         Logger::Shutdown();
-
-        for (auto* it : MsgDefFields) { delete it; }
-
         MsgDefFields.clear();
     }
 
     void CreateEnumField(std::string name, std::string description, int32_t value)
     {
-        auto* stField = new EnumField();
-        auto* enumDef = new EnumDefinition();
-        auto* enumDT = new EnumDataType();
-        enumDT->name = name;
-        enumDT->description = description;
-        enumDT->value = value;
-        enumDef->enumerators.push_back(*enumDT);
+        auto stField = std::make_shared<EnumField>();
+        auto enumDef = std::make_shared<EnumDefinition>();
+        EnumDataType enumDT;
+        enumDT.name = std::move(name);
+        enumDT.description = std::move(description);
+        enumDT.value = value;
+        enumDef->enumerators.push_back(enumDT);
         stField->enumDef = enumDef;
         stField->type = FIELD_TYPE::ENUM;
         MsgDefFields.emplace_back(stField);
@@ -212,12 +208,6 @@ TEST_F(MessageDecoderTypesTest, LOGGER)
     std::shared_ptr<spdlog::logger> novatel_message_decoder = pclMyDecoderTester->GetLogger();
     pclMyDecoderTester->SetLoggerLevel(eLevel);
     ASSERT_EQ(novatel_message_decoder->level(), eLevel);
-}
-
-TEST_F(MessageDecoderTypesTest, FIELD_CONTAINER_ERROR_ON_COPY)
-{
-    FieldContainer fc(3, new BaseField());
-    ASSERT_THROW(FieldContainer{fc}, std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
@@ -401,18 +391,18 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     //
     //size_t sz = 0;
     //
-    //ASSERT_EQ(std::get<bool>(vIntermediateFormat.at(sz++).field_value), true);
-    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).field_value), 99);
-    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).field_value), 227);
-    //ASSERT_EQ(std::get<int8_t>(vIntermediateFormat.at(sz++).field_value), 56);
-    //ASSERT_EQ(std::get<uint16_t>(vIntermediateFormat.at(sz++).field_value), 2734);
-    //ASSERT_EQ(std::get<int16_t>(vIntermediateFormat.at(sz++).field_value), -3842);
-    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).field_value), 38283U);
-    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).field_value), 54244U);
-    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).field_value), -4359);
-    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).field_value), 5293);
-    //ASSERT_EQ(std::get<uint64_t>(vIntermediateFormat.at(sz++).field_value), 79338432ULL);
-    //ASSERT_EQ(std::get<int64_t>(vIntermediateFormat.at(sz++).field_value), -289834LL);
-    //ASSERT_NEAR(std::get<float>(vIntermediateFormat.at(sz++).field_value), 2.54, 0.001);
-    //ASSERT_NEAR(std::get<double>(vIntermediateFormat.at(sz++).field_value), 5.44061788e+03, 0.000001);
+    //ASSERT_EQ(std::get<bool>(vIntermediateFormat.at(sz++).fieldValue), true);
+    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).fieldValue), 99);
+    //ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.at(sz++).fieldValue), 227);
+    //ASSERT_EQ(std::get<int8_t>(vIntermediateFormat.at(sz++).fieldValue), 56);
+    //ASSERT_EQ(std::get<uint16_t>(vIntermediateFormat.at(sz++).fieldValue), 2734);
+    //ASSERT_EQ(std::get<int16_t>(vIntermediateFormat.at(sz++).fieldValue), -3842);
+    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).fieldValue), 38283U);
+    //ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.at(sz++).fieldValue), 54244U);
+    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).fieldValue), -4359);
+    //ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.at(sz++).fieldValue), 5293);
+    //ASSERT_EQ(std::get<uint64_t>(vIntermediateFormat.at(sz++).fieldValue), 79338432ULL);
+    //ASSERT_EQ(std::get<int64_t>(vIntermediateFormat.at(sz++).fieldValue), -289834LL);
+    //ASSERT_NEAR(std::get<float>(vIntermediateFormat.at(sz++).fieldValue), 2.54, 0.001);
+    //ASSERT_NEAR(std::get<double>(vIntermediateFormat.at(sz++).fieldValue), 5.44061788e+03, 0.000001);
 }

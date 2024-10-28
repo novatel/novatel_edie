@@ -26,21 +26,16 @@
 
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 
+#include <istream>
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::string& sDbPath_) : clMyParser(Parser(sDbPath_)) { pclMyLogger->debug("FileParser initialized"); }
+FileParser::FileParser(const std::filesystem::path& sDbPath_) : clMyParser(Parser(sDbPath_)) { pclMyLogger->debug("FileParser initialized"); }
 
 // -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(const std::u32string& sDbPath_) : clMyParser(Parser(sDbPath_))
-{
-    pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
-    pclMyLogger->debug("FileParser initialized");
-}
-
-// -------------------------------------------------------------------------------------------------------
-FileParser::FileParser(JsonReader* pclJsonDb_) : clMyParser(Parser(pclJsonDb_))
+FileParser::FileParser(const MessageDatabase::Ptr& pclMessageDb_) : clMyParser(Parser(pclMessageDb_))
 {
     pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
     pclMyLogger->debug("FileParser initialized");
@@ -50,9 +45,9 @@ FileParser::FileParser(JsonReader* pclJsonDb_) : clMyParser(Parser(pclJsonDb_))
 FileParser::~FileParser() = default;
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::LoadJsonDb(JsonReader* pclJsonDb_)
+void FileParser::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
 {
-    if (pclJsonDb_ != nullptr) { clMyParser.LoadJsonDb(pclJsonDb_); }
+    if (pclMessageDb_ != nullptr) { clMyParser.LoadJsonDb(pclMessageDb_); }
     else { pclMyLogger->debug("JSON DB is a NULL pointer."); }
 }
 
@@ -96,16 +91,16 @@ void FileParser::SetEncodeFormat(ENCODE_FORMAT eFormat_) { clMyParser.SetEncodeF
 ENCODE_FORMAT FileParser::GetEncodeFormat() const { return clMyParser.GetEncodeFormat(); }
 
 // -------------------------------------------------------------------------------------------------------
-Filter* FileParser::GetFilter() const { return clMyParser.GetFilter(); }
+const Filter::Ptr& FileParser::GetFilter() const { return clMyParser.GetFilter(); }
 
 // -------------------------------------------------------------------------------------------------------
-void FileParser::SetFilter(Filter* pclFilter_) { return clMyParser.SetFilter(pclFilter_); }
+void FileParser::SetFilter(const Filter::Ptr& pclFilter_) { clMyParser.SetFilter(pclFilter_); }
 
 // -------------------------------------------------------------------------------------------------------
 unsigned char* FileParser::GetInternalBuffer() const { return clMyParser.GetInternalBuffer(); }
 
 // -------------------------------------------------------------------------------------------------------
-bool FileParser::SetStream(std::ifstream* pclInputStream_)
+bool FileParser::SetStream(std::shared_ptr<std::istream> pclInputStream_)
 {
     if (pclInputStream_ == nullptr || pclInputStream_->eof()) { return false; }
     pclMyInputStream = pclInputStream_;
@@ -133,10 +128,10 @@ bool FileParser::ReadStream()
         {
         case STATUS::SUCCESS: return STATUS::SUCCESS;
         case STATUS::UNKNOWN: return STATUS::UNKNOWN;
-        case STATUS::BUFFER_EMPTY:
-            return ReadStream()                                                            ? STATUS::BUFFER_EMPTY
-                   : clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS
-                                                                                           : STATUS::STREAM_EMPTY;
+        case STATUS::BUFFER_EMPTY: {
+            if (ReadStream()) { return STATUS::BUFFER_EMPTY; }
+            return clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
+        }
         default: pclMyLogger->info("Encountered an error: {}\n", static_cast<int32_t>(eStatus)); return eStatus;
         }
     }

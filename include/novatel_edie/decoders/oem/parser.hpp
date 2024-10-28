@@ -27,6 +27,8 @@
 #ifndef NOVATEL_PARSER_HPP
 #define NOVATEL_PARSER_HPP
 
+#include <memory>
+
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
@@ -50,8 +52,8 @@ class Parser
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_parser")};
 
-    JsonReader clMyJsonReader;
-    Filter* pclMyUserFilter{nullptr};
+    MessageDatabase::Ptr pclMyMessageDb;
+    Filter::Ptr pclMyUserFilter;
     Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
@@ -77,7 +79,7 @@ class Parser
     ENCODE_FORMAT eMyEncodeFormat{ENCODE_FORMAT::ASCII};
 
   public:
-    //! \brief uiPARSER_INTERNAL_BUFFER_SIZE: the size of the parser's internal buffer.
+    //! \brief uiParserInternalBufferSize: the size of the parser's internal buffer.
     static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX;
 
     //! NOTE: The following constructors prevent this class from ever being
@@ -91,28 +93,21 @@ class Parser
     //
     //! \param[in] sDbPath_ Filepath to a JSON message DB.
     //----------------------------------------------------------------------------
-    Parser(const std::string& sDbPath_);
+    Parser(const std::filesystem::path& sDbPath_);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.
     //
-    //! \param[in] sDbPath_ Filepath to a JSON message DB.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Parser(const std::u32string& sDbPath_);
+    Parser(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the Parser class.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    Parser(JsonReader* pclJsonDb_ = nullptr);
-
-    //----------------------------------------------------------------------------
-    //! \brief Load a JsonReader object.
-    //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
-    //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -199,14 +194,14 @@ class Parser
     //
     //! \param[in] pclFilter_ A pointer to an OEM message Filter object.
     //----------------------------------------------------------------------------
-    void SetFilter(Filter* pclFilter_);
+    void SetFilter(const Filter::Ptr& pclFilter_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the config for the FileParser.
     //
     //! \return A pointer to the FileParser's OEM message Filter object.
     //----------------------------------------------------------------------------
-    [[nodiscard]] Filter* GetFilter() const;
+    const Filter::Ptr& GetFilter() const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a pointer to the current framed log raw data.
@@ -223,7 +218,7 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_);
+    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_);
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.

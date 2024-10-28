@@ -1,9 +1,16 @@
-name: Build
-
+name: C++
 on:
   push:
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'resources/**'
   pull_request:
-
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'resources/**'
+  workflow_dispatch:
 jobs:
   # =========================================================
   # Build Job

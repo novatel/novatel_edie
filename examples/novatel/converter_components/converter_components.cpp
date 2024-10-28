@@ -28,9 +28,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <iostream>
 
 #include <novatel_edie/common/logger.hpp>
-#include <novatel_edie/decoders/common/json_reader.hpp>
+#include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/filter.hpp>
 #include <novatel_edie/decoders/oem/framer.hpp>
@@ -88,10 +89,9 @@ int main(int argc, char* argv[])
     }
 
     // Load the database
-    JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(pathJsonDb.string());
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
@@ -104,17 +104,17 @@ int main(int argc, char* argv[])
     clFramer.SetPayloadOnly(false);
     clFramer.SetFrameJson(false);
 
-    HeaderDecoder clHeaderDecoder(&clJsonDb);
+    HeaderDecoder clHeaderDecoder(clJsonDb);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clHeaderDecoder.GetLogger());
     Logger::AddRotatingFileLogger(clHeaderDecoder.GetLogger());
 
-    MessageDecoder clMessageDecoder(&clJsonDb);
+    MessageDecoder clMessageDecoder(clJsonDb);
     clMessageDecoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clMessageDecoder.GetLogger());
     Logger::AddRotatingFileLogger(clMessageDecoder.GetLogger());
 
-    Encoder clEncoder(&clJsonDb);
+    Encoder clEncoder(clJsonDb);
     clEncoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clEncoder.GetLogger());
     Logger::AddRotatingFileLogger(clEncoder.GetLogger());
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
     while (!ifs.eof())
     {
         ifs.read(cData.data(), cData.size());
-        clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
+        clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount());
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 
