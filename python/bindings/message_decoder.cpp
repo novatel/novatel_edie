@@ -219,7 +219,7 @@ void init_novatel_message_decoder(nb::module_& m)
             [](const oem::MessageDecoder& decoder, const nb::bytes& message_body, oem::MetaDataStruct& metadata) {
                 std::vector<FieldContainer> fields;
                 STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(message_body.c_str()), fields, metadata);
-                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), metadata, get_parent_db(decoder)));
+                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), metadata, std::move(get_parent_db(decoder))));
             },
             "message_body"_a, "metadata"_a)
         // For internal testing purposes only
@@ -231,7 +231,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 std::string body_str(message_body.c_str(), message_body.size());
                 const char* data_ptr = body_str.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, &data_ptr, fields);
-                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), {}, get_parent_db(decoder)));
+                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), {}, std::move(get_parent_db(decoder))));
             },
             "msg_def_fields"_a, "message_body"_a)
         .def(
@@ -242,7 +242,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 const char* data_ptr = message_body.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr),
                                                                                         fields, message_length);
-                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), {}, get_parent_db(decoder)));
+                return nb::make_tuple(status, PyDecodedMessage(std::move(fields), {}, std::move(get_parent_db(decoder))));
             },
             "msg_def_fields"_a, "message_body"_a, "message_length"_a);
 }

@@ -10,44 +10,18 @@ namespace novatel::edie {
 class PyMessageDatabase final : public MessageDatabase
 {
   public:
-    PyMessageDatabase() { UpdatePythonEnums(); }
-
-    PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
-        : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
-    {
-        UpdatePythonEnums();
-    }
-
-    explicit PyMessageDatabase(const MessageDatabase& message_db) : MessageDatabase(message_db) { UpdatePythonEnums(); }
+    PyMessageDatabase();
+    PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_);
+    explicit PyMessageDatabase(const MessageDatabase& message_db) noexcept;
+    explicit PyMessageDatabase(const MessageDatabase&& message_db) noexcept;
 
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
 
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
 
   private:
-    void GenerateMappings() override
-    {
-        MessageDatabase::GenerateMappings();
-        UpdatePythonEnums();
-    }
-
-    void UpdatePythonEnums()
-    {
-        nb::object IntEnum = nb::module_::import_("enum").attr("IntEnum");
-        enums_by_id.clear();
-        enums_by_name.clear();
-        for (const auto& enum_def : EnumDefinitions())
-        {
-            nb::dict values;
-            const char* enum_name = enum_def->name.c_str();
-            for (const auto& enumerator : enum_def->enumerators) { values[enumerator.name.c_str()] = enumerator.value; }
-            nb::object enum_type = IntEnum(enum_name, values);
-            enum_type.attr("_name") = enum_name;
-            enum_type.attr("_id") = enum_def->_id;
-            enums_by_id[enum_def->_id.c_str()] = enum_type;
-            enums_by_name[enum_name] = enum_type;
-        }
-    }
+    void GenerateMappings() override;
+    void UpdatePythonEnums();
 
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};

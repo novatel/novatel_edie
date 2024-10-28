@@ -44,9 +44,15 @@ void init_common_json_db_reader(nb::module_& m)
         .def_static(
             "load_file",
             [](const std::filesystem::path& file_path) { //
-                return std::make_shared<PyMessageDatabase>(*JsonDbReader::LoadFile(file_path));
+                return std::make_shared<PyMessageDatabase>(std::move(*JsonDbReader::LoadFile(file_path)));
             },
             "file_path"_a)
+        .def_static(
+            "parse",
+            [](const std::string_view json_data) { //
+                return std::make_shared<PyMessageDatabase>(std::move(*JsonDbReader::Parse(json_data)));
+            },
+            "json_data"_a)
         .def_static(
             "append_messages",
             [](const PyMessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_) {
@@ -58,13 +64,7 @@ void init_common_json_db_reader(nb::module_& m)
             [](const PyMessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_) {
                 JsonDbReader::AppendEnumerations(messageDb_, filePath_);
             },
-            "message_db"_a, "file_path"_a)
-        .def_static(
-            "parse",
-            [](const std::string_view json_data) { //
-                return std::make_shared<PyMessageDatabase>(*JsonDbReader::Parse(json_data));
-            },
-            "json_data"_a);
+            "message_db"_a, "file_path"_a);
 
     m.def("get_default_database", &MessageDbSingleton::get, "Get the default JSON database singleton");
 }

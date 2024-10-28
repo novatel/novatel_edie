@@ -456,12 +456,27 @@ class MessageDatabase
     //
     //! \param[in] that_ The MessageDatabase object to copy.
     //----------------------------------------------------------------------------
-    MessageDatabase(const MessageDatabase& that_)
+    MessageDatabase(const MessageDatabase& that_) noexcept
     {
         // TODO: Verify it's calling the copy constructor for the messages
         vEnumDefinitions = that_.vEnumDefinitions;
         vMessageDefinitions = that_.vMessageDefinitions;
         MessageDatabase::GenerateMappings();
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief A move constructor for the MessageDatabase class.
+    //
+    //! \param[in] that_ The MessageDatabase object to move.
+    //----------------------------------------------------------------------------
+    MessageDatabase(const MessageDatabase&& that_) noexcept
+    {
+        vMessageDefinitions = that_.vMessageDefinitions;
+        vEnumDefinitions = that_.vEnumDefinitions;
+        mMessageName = that_.mMessageName;
+        mMessageId = that_.mMessageId;
+        mEnumName = that_.mEnumName;
+        mEnumId = that_.mEnumId;
     }
 
     //----------------------------------------------------------------------------

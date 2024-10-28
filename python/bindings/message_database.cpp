@@ -185,3 +185,40 @@ void init_common_message_database(nb::module_& m)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a)
         .def_prop_ro("enums", &PyMessageDatabase::GetEnumsByNameDict);
 }
+
+PyMessageDatabase::PyMessageDatabase() { UpdatePythonEnums(); }
+
+PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
+                                     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
+    : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
+{
+    UpdatePythonEnums();
+}
+
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db) { UpdatePythonEnums(); }
+
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db) { UpdatePythonEnums(); }
+
+void PyMessageDatabase::GenerateMappings()
+{
+    MessageDatabase::GenerateMappings();
+    UpdatePythonEnums();
+}
+
+inline void PyMessageDatabase::UpdatePythonEnums()
+{
+    nb::object IntEnum = nb::module_::import_("enum").attr("IntEnum");
+    enums_by_id.clear();
+    enums_by_name.clear();
+    for (const auto& enum_def : EnumDefinitions())
+    {
+        nb::dict values;
+        const char* enum_name = enum_def->name.c_str();
+        for (const auto& enumerator : enum_def->enumerators) { values[enumerator.name.c_str()] = enumerator.value; }
+        nb::object enum_type = IntEnum(enum_name, values);
+        enum_type.attr("_name") = enum_name;
+        enum_type.attr("_id") = enum_def->_id;
+        enums_by_id[enum_def->_id.c_str()] = enum_type;
+        enums_by_name[enum_name] = enum_type;
+    }
+}
