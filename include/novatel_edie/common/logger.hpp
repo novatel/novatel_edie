@@ -83,7 +83,7 @@ class Logger
         }
     }
 
-    static void InitLogger(std::filesystem::path sLoggerConfigPath_)
+    static void InitLogger(const std::filesystem::path& sLoggerConfigPath_)
     {
         std::lock_guard<std::mutex> lock(mLoggerMutex);
         try
@@ -92,7 +92,7 @@ class Logger
             if (pclMyRootLogger) { SPDLOG_ERROR("Cannot configure logger from file, root logger already exists"); }
             else
             {
-                spdlog_setup::from_file(sLoggerConfigPath_);
+                spdlog_setup::from_file(sLoggerConfigPath_.string());
                 pclMyRootLogger = spdlog::get("root");
 
                 spdlog::set_default_logger(pclMyRootLogger);
