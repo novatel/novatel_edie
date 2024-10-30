@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1730328950694,
+  "lastUpdate": 1730328952536,
   "repoUrl": "https://github.com/novatel/novatel_edie",
   "entries": {
     "Benchmark": [
@@ -568,6 +568,86 @@ window.BENCHMARK_DATA = {
             "value": 5441.582914455738,
             "unit": "ns/iter",
             "extra": "iterations: 128518\ncpu: 5441.18616847445 ns\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "novatel",
+            "username": "novatel"
+          },
+          "committer": {
+            "name": "novatel",
+            "username": "novatel"
+          },
+          "id": "b00325e38be45acd8d618163ba11f7c3e667b968",
+          "message": "benchmarks",
+          "timestamp": "2024-10-18T17:41:22Z",
+          "url": "https://github.com/novatel/novatel_edie/pull/80/commits/b00325e38be45acd8d618163ba11f7c3e667b968"
+        },
+        "date": 1730328950047,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "DecodeFlattenedBinaryLog",
+            "value": 124.34840158454529,
+            "unit": "ns/iter",
+            "extra": "iterations: 5948954\ncpu: 124.34455788362122 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeAsciiLog",
+            "value": 116.20996946922278,
+            "unit": "ns/iter",
+            "extra": "iterations: 5956285\ncpu: 116.20491917361235 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeAbbrevAsciiLog",
+            "value": 118.06861299035242,
+            "unit": "ns/iter",
+            "extra": "iterations: 5698367\ncpu: 118.06422629500703 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeBinaryLog",
+            "value": 117.35726632146486,
+            "unit": "ns/iter",
+            "extra": "iterations: 5884291\ncpu: 117.35297013692895 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeJsonLog",
+            "value": 147746.80079932805,
+            "unit": "ns/iter",
+            "extra": "iterations: 4754\ncpu: 147737.99852755573 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeFlattenedBinaryLog",
+            "value": 402.6059805368774,
+            "unit": "ns/iter",
+            "extra": "iterations: 1744325\ncpu: 402.5885371132104 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeAsciiLog",
+            "value": 5547.879018800743,
+            "unit": "ns/iter",
+            "extra": "iterations: 125846\ncpu: 5547.18131684758 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeAbbrevAsciiLog",
+            "value": 5180.487048826021,
+            "unit": "ns/iter",
+            "extra": "iterations: 134621\ncpu: 5180.210984913204 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeBinaryLog",
+            "value": 396.91643029669837,
+            "unit": "ns/iter",
+            "extra": "iterations: 1809663\ncpu: 396.8902845446915 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeJsonLog",
+            "value": 5417.156528879554,
+            "unit": "ns/iter",
+            "extra": "iterations: 129088\ncpu: 5416.550756073373 ns\nthreads: 1"
           }
         ]
       }
