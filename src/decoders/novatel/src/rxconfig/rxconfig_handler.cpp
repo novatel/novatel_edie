@@ -88,7 +88,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     // Get an RXCONFIG log.
     uint32_t uiFrameBufferOffset = 0;
-    STATUS eStatus = pclMyFramer->GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_, uiFrameBufferOffset);
+    STATUS eStatus = pclMyFramer->GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 

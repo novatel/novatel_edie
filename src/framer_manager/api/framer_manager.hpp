@@ -33,10 +33,10 @@
 #include <vector>
 
 #include "novatel-edie/src/decoders/common/api/circular_buffer.hpp"
-#include "novatel-edie/src/decoders/common/api/crc32.hpp"
-#include "novatel-edie/src/decoders/common/api/logger.hpp"
 #include "novatel-edie/src/decoders/common/api/common.hpp"
-#include "novatel-edie/src/decoders/common/api/framer.h"
+#include "novatel-edie/src/decoders/common/api/crc32.hpp"
+#include "novatel-edie/src/decoders/common/api/framer.hpp"
+#include "novatel-edie/src/decoders/common/api/logger.hpp"
 #include "novatel-edie/src/framer_manager/api/framer_manager.hpp"
 
 // Type-Specific Framers
@@ -85,17 +85,33 @@ enum class FRAMER_ID
 //     return os;
 // }
 
+// struct FramerStatus
+//{
+//     std::unique_ptr<FramerBase> framer;
+//     uint32_t offset;
+//     STATUS status;
+//
+//     FramerStatus(std::unique_ptr<FramerBase> framer_) : framer(std::move(framer_)), offset(0), status(STATUS::UNKNOWN) {}
+//
+//     FramerStatus(std::unique_ptr<FramerBase> framer_, uint32_t offset_, STATUS status_) : framer(std::move(framer_)), offset(offset_),
+//     status(status_)
+//     {
+//     }
+// };
+
 struct FramerElement
 {
-    FRAMER_ID framer;
-    uint32_t offset;
-    STATUS status;
+    FRAMER_ID framerId;
+    std::unique_ptr<FramerBase> framer;
+    std::unique_ptr<MetaDataBase> metadata;
 
-    // FramerElement() : framer(FRAMER_ID::UNKNOWN), offset(0), status(STATUS::UNKNOWN) {}
-
-    FramerElement(FRAMER_ID framer_, uint32_t offset_, STATUS status_) : framer(framer_), offset(offset_), status(status_) {}
+    FramerElement(FRAMER_ID framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
+        : framerId(framerId_), framer(std::move(framer_)), metadata(std::move(metadata_))
+    {
+    }
 };
 
+// TODO Remove this
 // class FramerRegistry
 //{
 //   private:
@@ -125,19 +141,26 @@ struct FramerElement
 //     //}
 // };
 
+// Forward Declarations of Framers
+class novatel::edie::oem::Framer;
+
 class FramerManager
 {
   private:
-    std::map<FRAMER_ID, std::unique_ptr<MetaDataBase>> framerRegistry;
-    FramerManager() = default;
+    std::deque<FramerElement> framerRegistry;
+    std::list<FRAMER_ID> userFramers;
+    FramerManager();
     FramerManager(const FramerManager&) = delete;
     FramerManager& operator=(const FramerManager&) = delete;
 
-
-    // FRAMER_MANAGER_FRAME_STATE eMyFrameState{FRAMER_MANAGER_FRAME_STATE::WAITING_FOR_SYNC};
-
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
+
+    bool bMyReportUnknownBytes{true};
+
+    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_);
+
+    // FRAMER_MANAGER_FRAME_STATE eMyFrameState{FRAMER_MANAGER_FRAME_STATE::WAITING_FOR_SYNC};
 
     // Framers and Dependencies
     // automotive::Framer automotiveFramer;
@@ -163,43 +186,57 @@ class FramerManager
     // bool bMyPayloadOnly{false};
     // bool bMyFrameJson{false};
 
-    // void ResetInactiveFramerStates(const FRAMER_ID& activeFramer_);
+    void ResetInactiveFramerStates(const FRAMER_ID& activeFramer_);
 
-    // void ResetFramerStack();
+    void ResetFramerStack();
 
     // STATUS DerivedFramerGetFrame(std::unique_ptr<FramerBase>& basePtr, unsigned char* pucFrameBuffer_, uint32_t& uiFrameBufferSize_,
     //                              uint32_t& uiFrameBufferOffset);
 
     /*   std::deque<FramerElement> framerStack;*/
+  protected:
+    void RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
 
-    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_, FRAMER_ID& framerId_);
+    friend class novatel::edie::oem::Framer;
 
   public:
+    void ResetFramerStates();
+    //----------------------------------------------------------------------------
+    //! \brief Configure the framer manager to return unknown bytes in the provided
+    //! buffer.
+    //
+    //! \param[in] bReportUnknownBytes_ Set to true to return unknown bytes.
+    //----------------------------------------------------------------------------
+    void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
-
+    //----------------------------------------------------------------------------
+    //! \brief Get the FramerManager instance.
+    //! \return The FramerManager instance.
+    //----------------------------------------------------------------------------
     static FramerManager& GetInstance()
     {
         static FramerManager instance; // Singleton
         return instance;
     }
 
-    void RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<novatel::edie::FramerBase> framer_);
+    std::shared_ptr<CircularBuffer> GetCircularBuffer() const;
+
+    void AddFramer(const FRAMER_ID framerId_);
 
     // nmea::MetaDataStruct nmeaMetaDataStruct;
-    //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerBase class.
-    //
-    //! \param[in] strLoggerName_ String to name the internal logger.
-    //----------------------------------------------------------------------------
-    FramerManager(const std::string& strLoggerName_);
+    ////----------------------------------------------------------------------------
+    ////! \brief A constructor for the FramerBase class.
+    ////
+    ////! \param[in] strLoggerName_ String to name the internal logger.
+    ////----------------------------------------------------------------------------
+    // FramerManager(const std::string& strLoggerName_);
 
     //----------------------------------------------------------------------------
     //! \brief A destructor for the FramerBase class.
     //----------------------------------------------------------------------------
     ~FramerManager() = default;
 
-    //// TODO write note about the template function
-    template <typename DerivedFramer> void RegisterFramer(FRAMER_ID framerId_, std::unique_ptr<DerivedFramer> framerType_);
+    FramerElement* GetFramerElement(const FRAMER_ID framerId_);
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -211,6 +248,21 @@ class FramerManager
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
     uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_);
+
+    ////----------------------------------------------------------------------------
+    ////! \brief Flush bytes from the internal circular buffer.
+    ////
+    ////! \param[in] pucBuffer_ The buffer to contain the flushed bytes.
+    ////! \param[in] uiBufferSize_ The size of the provided buffer.
+    ////
+    ////! \return The number of bytes flushed from the internal circular buffer.
+    ////----------------------------------------------------------------------------
+    uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+    {
+        const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
+        HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
+        return uiBytesToFlush;
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

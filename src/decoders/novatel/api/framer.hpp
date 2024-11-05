@@ -27,11 +27,8 @@
 #ifndef NOVATEL_FRAMER_HPP
 #define NOVATEL_FRAMER_HPP
 
-#include "decoders/novatel/api/common.hpp"
-
 #include "decoders/common/api/framer.hpp"
-
-// MetaDataBase MUST be defined before FramerBase | Forward Declaration
+#include "decoders/novatel/api/common.hpp"
 
 namespace novatel::edie::oem {
 
@@ -39,7 +36,7 @@ namespace novatel::edie::oem {
 //! \class Framer
 //! \brief Search bytes for patterns that could be OEM message.
 //============================================================================
-class Framer : public FramerBase<Framer, MetaDataStruct>
+class Framer : public FramerBase
 {
   private:
     NovAtelFrameState eMyFrameState{NovAtelFrameState::WAITING_FOR_SYNC};
@@ -58,14 +55,17 @@ class Framer : public FramerBase<Framer, MetaDataStruct>
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
   public:
-
     // TODO uncomment this
     void ResetState() override;
-    void ResetStateAndByteCount();
+    void ResetStateAndByteCount() override;
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
     //----------------------------------------------------------------------------
     Framer(std::shared_ptr<CircularBuffer> circularBuffer);
+
+    Framer();
+
+    STATUS FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_) override;
 
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
@@ -86,8 +86,9 @@ class Framer : public FramerBase<Framer, MetaDataStruct>
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_,
-                                  uint32_t& uiFrameBufferOffset_);
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_) override;
+
+    ~Framer() = default;
 };
 
 } // namespace novatel::edie::oem
