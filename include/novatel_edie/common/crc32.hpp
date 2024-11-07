@@ -57,10 +57,11 @@ constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_)
 // --------------------------------------------------------------------------
 // Calculates the CRC-32 of a block of data all at once
 // --------------------------------------------------------------------------
-constexpr uint32_t CalculateBlockCrc32(uint32_t uiCount_, uint32_t uiCrc_, const unsigned char* ucBuffer_)
+constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t uiCount_)
 {
-    while (uiCount_-- != 0) { CalculateCharacterCrc32(uiCrc_, *ucBuffer_++); }
-    return uiCrc_;
+    uint32_t uiCrc = 0;
+    while (uiCount_-- != 0) { CalculateCharacterCrc32(uiCrc, *ucBuffer_++); }
+    return uiCrc;
 }
 
 // --------------------------------------------------------------------------
