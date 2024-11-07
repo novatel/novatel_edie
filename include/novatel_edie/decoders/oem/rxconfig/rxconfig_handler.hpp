@@ -67,16 +67,6 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer;
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer;
 
-    template <typename... Args>
-    [[nodiscard]] static bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, Args&&... args_)
-    {
-        uint32_t uiBytesBuffered = std::snprintf(*ppcBuffer_, uiBytesLeft_, szFormat_, std::forward<Args>(args_)...);
-        if (uiBytesLeft_ < uiBytesBuffered) { return false; }
-        *ppcBuffer_ += uiBytesBuffered;
-        uiBytesLeft_ -= uiBytesBuffered;
-        return true;
-    }
-
     static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
 
   public:
