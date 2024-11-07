@@ -4,6 +4,7 @@ project(novatel_edie VERSION 3.3.7 LANGUAGES CXX)
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
+option(BUILD_BENCHMARKS "Build benchmarks" ON)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Set -fPIC" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
@@ -54,6 +55,14 @@ target_link_libraries(novatel_edie INTERFACE
     oem_decoder
 )
 
+if(BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()
+
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(src/common/test)
@@ -61,17 +70,11 @@ if(BUILD_TESTS)
     add_subdirectory(src/decoders/oem/test)
 endif()
 
-if(BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
-
-if(BUILD_TESTS OR BUILD_EXAMPLES)
-    # Copy shared libs to the build output directory for tests and examples
+if(BUILD_BENCHMARKS OR BUILD_EXAMPLES OR BUILD_TESTS)
     copy_cpp_runtime_dlls("${OUTPUT_DIR}")
     copy_third_party_shared_libs("${OUTPUT_DIR}")
 endif()
 
-# Install
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES database/messages_public.json DESTINATION ${CMAKE_INSTALL_DATADIR}/novatel_edie)
 install_novatel_edie_cmake_config()
