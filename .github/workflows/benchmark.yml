@@ -3,7 +3,7 @@ name: Benchmark
 on:
   push:
     branches:
-      - dev-jmcdermid-benchmarks
+      - main
 
 jobs:
   benchmark:
@@ -41,9 +41,4 @@ jobs:
           tool: 'googlecpp'
           output-file-path: benchmark_output.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-on-alert: true
-          summary-always: true
-          alert-comment-cc-users: '@jonathanmcdermid'
           auto-push: true
-          alert-threshold: 120%
-          fail-threshold: 200%
