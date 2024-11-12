@@ -263,11 +263,11 @@ template uint64_t RangeDecompressor::ExtractBitfield<uint64_t>(unsigned char**, 
 //! observation, and may not be a true representation of the time the
 //! observation has actually been locked.
 //------------------------------------------------------------------------------
-float RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
-                                              ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_, ChannelTrackingStatus::SIGNAL_TYPE eSignal_,
-                                              uint16_t usPRN_)
+double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
+                                               ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_, ChannelTrackingStatus::SIGNAL_TYPE eSignal_,
+                                               uint16_t usPRN_)
 {
-    float fLocktimeMilliseconds = uiLockTimeBits_;
+    double fLocktimeMilliseconds = uiLockTimeBits_;
 
     RangeCmp2LockTimeInfo& stLocktimeInfo =
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
@@ -347,20 +347,20 @@ float RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_,
 //!   +-------------------------------------------------------------------->
 //!                   Header time (t)
 //------------------------------------------------------------------------------
-float RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
-                                              ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_, ChannelTrackingStatus::SIGNAL_TYPE eSignal_,
-                                              uint32_t uiPRN_)
+double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
+                                               ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_, ChannelTrackingStatus::SIGNAL_TYPE eSignal_,
+                                               uint32_t uiPRN_)
 {
     //-----------------------------------------------------------------------
-    //! List of pre-defined floats used as translations for RANGECMP4 lock
+    //! List of pre-defined doubles used as translations for RANGECMP4 lock
     //! time values defined in the RANGECMP4 documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Lock
     //! NOTE: These values are the lower bound of the range representations.
     //! For more information on decompressing locktime bitfields, see the
     //! comment block above RangeDecompressor::DetermineRangeCmp4ObservationLocktime().
     //-----------------------------------------------------------------------
-    constexpr std::array<float, 16> lockTime = {0.0F,    16.0F,   32.0F,   64.0F,    128.0F,   256.0F,   512.0F,    1024.0F,
-                                                2048.0F, 4096.0F, 8192.0F, 16384.0F, 32768.0F, 65536.0F, 131072.0F, 262144.0F};
+    constexpr std::array<double, 16> lockTime = {0.0,    16.0,   32.0,   64.0,    128.0,   256.0,   512.0,    1024.0,
+                                                 2048.0, 4096.0, 8192.0, 16384.0, 32768.0, 65536.0, 131072.0, 262144.0};
 
     // Store the locktime if it is different than the once we have currently.
     RangeCmp4LocktimeInfo& stLocktimeInfo =
@@ -495,23 +495,23 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const Ran
                                               char cGLONASSFrequencyNumber_)
 {
     //-----------------------------------------------------------------------
-    //! List of pre-defined floats used as translations for RANGECMP4 PSR
+    //! List of pre-defined doubles used as translations for RANGECMP4 PSR
     //! standard deviation values defined in the RANGECMP4 documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Pseudora
     //-----------------------------------------------------------------------
-    constexpr std::array<float, 16> stdDevPsrScaling = {0.020F, 0.030F, 0.045F, 0.066F, 0.099F, 0.148F, 0.220F, 0.329F,
-                                                        0.491F, 0.732F, 1.092F, 1.629F, 2.430F, 3.625F, 5.409F, 5.409F};
+    constexpr std::array<double, 16> stdDevPsrScaling = {0.020, 0.030, 0.045, 0.066, 0.099, 0.148, 0.220, 0.329,
+                                                         0.491, 0.732, 1.092, 1.629, 2.430, 3.625, 5.409, 5.409};
 
     //-----------------------------------------------------------------------
-    //! List of pre-defined floats used as translations for RANGECMP4 ADR
+    //! List of pre-defined doubles used as translations for RANGECMP4 ADR
     //! standard deviation values defined in the RANGECMP4 documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#ADR
     //! Note: LSD have been removed to reduce rouning errors in the range log.
     //!       ADR STD is only 3 decimal places and could round up causing values
     //!       to be greater than values in the table.
     //-----------------------------------------------------------------------
-    constexpr std::array<float, 16> stdDevAdrScaling = {0.003F, 0.005F, 0.007F, 0.009F, 0.012F, 0.016F, 0.022F, 0.029F,
-                                                        0.039F, 0.052F, 0.070F, 0.093F, 0.124F, 0.166F, 0.222F, 0.222F};
+    constexpr std::array<double, 16> stdDevAdrScaling = {0.003, 0.005, 0.007, 0.009, 0.012, 0.016, 0.022, 0.029,
+                                                         0.039, 0.052, 0.070, 0.093, 0.124, 0.166, 0.222, 0.222};
 
     double dSignalWavelength = GetSignalWavelength(stChannelStatus_, cGLONASSFrequencyNumber_ - GLONASS_FREQUENCY_NUMBER_OFFSET);
 
@@ -565,8 +565,8 @@ void RangeDecompressor::RangeCmpToRange(const RangeCmp& stRangeCmpMessage_, Rang
     //! in the RANGECMP documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP.htm?Highlight=rangecmp#StdDevPSRValues
     //-----------------------------------------------------------------------
-    constexpr std::array<float, 16> stdDevPsrScaling = {0.050F, 0.075F, 0.113F, 0.169F, 0.253F,  0.380F,  0.570F,  0.854F,
-                                                        1.281F, 2.375F, 4.750F, 9.500F, 19.000F, 38.000F, 76.000F, 152.000F};
+    constexpr std::array<double, 16> stdDevPsrScaling = {0.050, 0.075, 0.113, 0.169, 0.253,  0.380,  0.570,  0.854,
+                                                         1.281, 2.375, 4.750, 9.500, 19.000, 38.000, 76.000, 152.000};
 
     stRangeMessage_.uiNumberOfObservations = stRangeCmpMessage_.uiNumberOfObservations;
 
@@ -611,16 +611,16 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, R
     //! in the RANGECMP2 documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevPSRScaling
     //-----------------------------------------------------------------------
-    constexpr std::array<float, 16> stdDevPsrScaling = {0.020F, 0.030F, 0.045F, 0.066F, 0.099F, 0.148F, 0.220F, 0.329F,
-                                                        0.491F, 0.732F, 1.092F, 1.629F, 2.430F, 3.625F, 5.409F, 5.409F};
+    constexpr std::array<double, 16> stdDevPsrScaling = {0.020, 0.030, 0.045, 0.066, 0.099, 0.148, 0.220, 0.329,
+                                                         0.491, 0.732, 1.092, 1.629, 2.430, 3.625, 5.409, 5.409};
 
     //-----------------------------------------------------------------------
     //! Table used to expand the scaled Accumulated Doppler Range STDs. This
     //!  is defined in the RANGECMP2 documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#StdDevADRScaling
     //-----------------------------------------------------------------------
-    constexpr std::array<float, 16> stdDevAdrScaling = {0.00391F, 0.00521F, 0.00696F, 0.00929F, 0.01239F, 0.01654F, 0.02208F, 0.02947F,
-                                                        0.03933F, 0.05249F, 0.07006F, 0.09350F, 0.12480F, 0.16656F, 0.22230F, 0.22230F};
+    constexpr std::array<double, 16> stdDevAdrScaling = {0.00391, 0.00521, 0.00696, 0.00929, 0.01239, 0.01654, 0.02208, 0.02947,
+                                                         0.03933, 0.05249, 0.07006, 0.09350, 0.12480, 0.16656, 0.22230, 0.22230};
 
     stRangeMessage_.uiNumberOfObservations = 0;
     uint32_t uiRangeDataBytesDecompressed = 0;
