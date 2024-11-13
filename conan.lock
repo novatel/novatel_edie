@@ -1,0 +1,31 @@
+{
+    "version": "0.5",
+    "requires": [
+        "spdlog/1.14.1#972bbf70be1da4bc57ea589af0efde03%1714610543.14",
+        "nlohmann_json/3.11.3#45828be26eb619a2e04ca517bb7b828d%1701220705.259",
+        "gtest/1.14.0#25e2a474b4d1aecf5ff4f0555dcdf72c%1715096213.863",
+        "gegles-spdlog_setup/1.1.0#5d22bef9c36d2fde3dff74926885bc6d%1715324651.107",
+        "fmt/11.0.2#5c7438ef4d5d69ab106a41e460ce11f3%1721637745.688",
+        "cpptoml/0.1.1#f255e76e447937af1dbb2f1c7a6a8e37%1675986275.915"
+    ],
+    "build_requires": [
+        "patchelf/0.18#8fd87a9183b88f0b4dc55f6abc047a50%1695042003.613",
+        "m4/1.4.19#b38ced39a01e31fef5435bc634461fd2%1700758725.451",
+        "libtool/2.4.6#1afdba66a7fc98afb158f54d767540b4%1702300906.822",
+        "gnu-config/cci.20210814#dc430d754f465e8c74463019672fb97b%1701248168.479",
+        "automake/1.16.5#058bda3e21c36c9aa8425daf3c1faf50%1688481772.751",
+        "autoconf/2.71#f9307992909d7fb3df459340f1932809%1711983104.648"
+    ],
+    "python_requires": [],
+    "overrides": {
+        "spdlog/1.14.1": [
+            null,
+            "spdlog/1.14.1"
+        ],
+        "fmt/10.2.1": [
+            "fmt/[^11]",
+            "fmt/11.0.2"
+        ]
+    },
+    "config_requires": []
+}

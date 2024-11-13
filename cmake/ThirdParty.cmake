@@ -12,6 +12,9 @@ if(USE_CONAN)
         message(FATAL_ERROR "Automatic Conan integration requires CMake 3.24 or later.")
     endif()
     include("${CMAKE_CURRENT_LIST_DIR}/SetDefaultProfile.cmake")
+    # Use a lockfile to keep the Conan recipe revisions fixed.
+    # Can be updated with `conan lock create . -r conancenter`.
+    set(CONAN_INSTALL_ARGS --build=missing --lockfile=${CMAKE_SOURCE_DIR}/conan.lock CACHE STRING "")
     list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/conan_provider.cmake)
 endif()
 

@@ -26,6 +26,7 @@ class NovatelEdieConan(ConanFile):
         "shared": False,
         "fPIC": True,
     }
+    implements = ["auto_shared_fpic"]
 
     exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "LICENSE", "!doc", "!test", "CMakelists.txt"]
 
@@ -33,13 +34,8 @@ class NovatelEdieConan(ConanFile):
         cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
         self.version = re.search(r"novatel_edie VERSION ([\d.]+)", cmakelists_content).group(1)
 
-    def config_options(self):
-        if self.settings.os == "Windows":
-            del self.options.fPIC
-
     def configure(self):
         if self.options.shared:
-            self.options.rm_safe("fPIC")
             self.options["spdlog"].shared = True
 
     def layout(self):
@@ -47,12 +43,12 @@ class NovatelEdieConan(ConanFile):
 
     def requirements(self):
         self.requires("nlohmann_json/[>=3.11 <3.12]", transitive_headers=True)
-        self.requires("spdlog/[>=1.13 <2]", transitive_headers=True, transitive_libs=True)
+        self.requires("spdlog/[>=1.13 <2]", transitive_headers=True, transitive_libs=True, force=True)
         self.requires("gegles-spdlog_setup/[>=1.1 <2]", transitive_headers=True)
+        self.requires("fmt/[^11]", force=True)
 
     def validate(self):
-        if self.settings.compiler.cppstd:
-            check_min_cppstd(self, 17)
+        check_min_cppstd(self, 17)
 
         if self.options.shared and not self.dependencies["spdlog"].options.shared:
             # Statically linking against spdlog causes its singleton registry to be
@@ -75,6 +71,8 @@ class NovatelEdieConan(ConanFile):
         deps.generate()
 
         # A workaround for conan_provider.cmake not loading conan_toolchain.cmake
+        # TODO: replace with conan_cmakedeps_paths.cmake from the new CMakeDeps generator:
+        # https://github.com/conan-io/conan/issues/7240#issuecomment-2443768898
         toolchain_lines = Path(self.generators_folder, "conan_toolchain.cmake").read_text().splitlines()
         runtime_paths = "\n".join(l for l in toolchain_lines if ("CONAN_RUNTIME_LIB_DIRS" in l or "CMAKE_PROGRAM_PATH" in l))
         Path(self.generators_folder, "conan_runtime_paths.cmake").write_text(runtime_paths)
