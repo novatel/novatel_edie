@@ -142,54 +142,74 @@ double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatus& stCha
     switch (stChannelStatus_.eSatelliteSystem)
     {
     case System::GPS:
-        return stChannelStatus_.eSignalType == Signal::GPS_L1CA   ? WAVELENGTH_GPS_L1
-               : stChannelStatus_.eSignalType == Signal::GPS_L1CP ? WAVELENGTH_GPS_L1
-               : stChannelStatus_.eSignalType == Signal::GPS_L2P  ? WAVELENGTH_GPS_L2
-               : stChannelStatus_.eSignalType == Signal::GPS_L2Y  ? WAVELENGTH_GPS_L2
-               : stChannelStatus_.eSignalType == Signal::GPS_L2CM ? WAVELENGTH_GPS_L2
-               : stChannelStatus_.eSignalType == Signal::GPS_L5Q  ? WAVELENGTH_GPS_L5
-                                                                  : 0.0;
+        switch (stChannelStatus_.eSignalType)
+        {
+        case Signal::GPS_L1CA: return WAVELENGTH_GPS_L1;
+        case Signal::GPS_L1CP: return WAVELENGTH_GPS_L1;
+        case Signal::GPS_L2P: return WAVELENGTH_GPS_L2;
+        case Signal::GPS_L2Y: return WAVELENGTH_GPS_L2;
+        case Signal::GPS_L2CM: return WAVELENGTH_GPS_L2;
+        case Signal::GPS_L5Q: return WAVELENGTH_GPS_L5;
+        default: return 0.0;
+        }
     case System::GLONASS:
-        return stChannelStatus_.eSignalType == Signal::GLONASS_L1CA
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ)
-               : stChannelStatus_.eSignalType == Signal::GLONASS_L2CA
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ)
-               : stChannelStatus_.eSignalType == Signal::GLONASS_L2P
-                   ? SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ)
-               : stChannelStatus_.eSignalType == Signal::GLONASS_L3Q ? WAVELENGTH_GLO_L3
-                                                                     : 0.0;
+        switch (stChannelStatus_.eSignalType)
+        {
+        case Signal::GLONASS_L1CA: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ);
+        case Signal::GLONASS_L2CA: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ);
+        case Signal::GLONASS_L2P: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ);
+        case Signal::GLONASS_L3Q: return WAVELENGTH_GLO_L3;
+        default: return 0.0;
+        }
     case System::SBAS:
-        return stChannelStatus_.eSignalType == Signal::SBAS_L1CA  ? WAVELENGTH_GPS_L1
-               : stChannelStatus_.eSignalType == Signal::SBAS_L5I ? WAVELENGTH_GPS_L5
-                                                                  : 0.0;
+        switch (stChannelStatus_.eSignalType)
+        {
+        case Signal::SBAS_L1CA: return WAVELENGTH_GPS_L1;
+        case Signal::SBAS_L5I: return WAVELENGTH_GPS_L5;
+        default: return 0.0;
+        }
     case System::GALILEO:
-        return stChannelStatus_.eSignalType == Signal::GALILEO_E1C         ? WAVELENGTH_GAL_E1
-               : stChannelStatus_.eSignalType == Signal::GALILEO_E6B       ? WAVELENGTH_GAL_E6
-               : stChannelStatus_.eSignalType == Signal::GALILEO_E6C       ? WAVELENGTH_GAL_E6
-               : stChannelStatus_.eSignalType == Signal::GALILEO_E5AQ      ? WAVELENGTH_GAL_E5AQ
-               : stChannelStatus_.eSignalType == Signal::GALILEO_E5BQ      ? WAVELENGTH_GAL_E5BQ
-               : stChannelStatus_.eSignalType == Signal::GALILEO_E5ALTBOCQ ? WAVELENGTH_GAL_ALTBQ
-                                                                           : 0.0;
+        switch (stChannelStatus_.eSignalType)
+        {
+        case Signal::GALILEO_E1C: return WAVELENGTH_GAL_E1;
+        case Signal::GALILEO_E6B: return WAVELENGTH_GAL_E6;
+        case Signal::GALILEO_E6C: return WAVELENGTH_GAL_E6;
+        case Signal::GALILEO_E5AQ: return WAVELENGTH_GAL_E5AQ;
+        case Signal::GALILEO_E5BQ: return WAVELENGTH_GAL_E5BQ;
+        case Signal::GALILEO_E5ALTBOCQ: return WAVELENGTH_GAL_ALTBQ;
+        default: return 0.0;
+        }
     case System::BEIDOU:
-        return stChannelStatus_.eSignalType == Signal::BEIDOU_B1ID1   ? WAVELENGTH_BDS_B1
-               : stChannelStatus_.eSignalType == Signal::BEIDOU_B1ID2 ? WAVELENGTH_BDS_B1
-               : stChannelStatus_.eSignalType == Signal::BEIDOU_B2ID1 ? WAVELENGTH_BDS_B2
-               : stChannelStatus_.eSignalType == Signal::BEIDOU_B2ID2 ? WAVELENGTH_BDS_B2
-               : stChannelStatus_.eSignalType == Signal::BEIDOU_B3ID1 ? WAVELENGTH_BDS_B3
-               : stChannelStatus_.eSignalType == Signal::BEIDOU_B3ID2 ? WAVELENGTH_BDS_B3
-               : stChannelStatus_.eSignalType == Signal::BEIDOU_B1CP  ? WAVELENGTH_BDS_B1C
-               : stChannelStatus_.eSignalType == Signal::BEIDOU_B2AP  ? WAVELENGTH_BDS_B2A
-               : stChannelStatus_.eSignalType == Signal::BEIDOU_B2BI  ? WAVELENGTH_BDS_B2B
-                                                                      : 0.0;
+        switch (stChannelStatus_.eSignalType)
+        {
+        case Signal::BEIDOU_B1ID1: return WAVELENGTH_BDS_B1;
+        case Signal::BEIDOU_B1ID2: return WAVELENGTH_BDS_B1;
+        case Signal::BEIDOU_B2ID1: return WAVELENGTH_BDS_B2;
+        case Signal::BEIDOU_B2ID2: return WAVELENGTH_BDS_B2;
+        case Signal::BEIDOU_B3ID1: return WAVELENGTH_BDS_B3;
+        case Signal::BEIDOU_B3ID2: return WAVELENGTH_BDS_B3;
+        case Signal::BEIDOU_B1CP: return WAVELENGTH_BDS_B1C;
+        case Signal::BEIDOU_B2AP: return WAVELENGTH_BDS_B2A;
+        case Signal::BEIDOU_B2BI: return WAVELENGTH_BDS_B2B;
+        default: return 0.0;
+        }
     case System::QZSS:
-        return stChannelStatus_.eSignalType == Signal::QZSS_L1CA   ? WAVELENGTH_QZSS_L1
-               : stChannelStatus_.eSignalType == Signal::QZSS_L1CP ? WAVELENGTH_QZSS_L1
-               : stChannelStatus_.eSignalType == Signal::QZSS_L2CM ? WAVELENGTH_QZSS_L2
-               : stChannelStatus_.eSignalType == Signal::QZSS_L5Q  ? WAVELENGTH_QZSS_L5
-               : stChannelStatus_.eSignalType == Signal::QZSS_L6P  ? WAVELENGTH_QZSS_L6
-               : stChannelStatus_.eSignalType == Signal::QZSS_L6D  ? WAVELENGTH_QZSS_L6
-                                                                   : 0.0;
-    case System::NAVIC: return stChannelStatus_.eSignalType == Signal::NAVIC_L5SPS ? WAVELENGTH_NAVIC_L5 : 0.0;
+        switch (stChannelStatus_.eSignalType)
+        {
+        case Signal::QZSS_L1CA: return WAVELENGTH_QZSS_L1;
+        case Signal::QZSS_L1CP: return WAVELENGTH_QZSS_L1;
+        case Signal::QZSS_L2CM: return WAVELENGTH_QZSS_L2;
+        case Signal::QZSS_L5Q: return WAVELENGTH_QZSS_L5;
+        case Signal::QZSS_L6P: return WAVELENGTH_QZSS_L6;
+        case Signal::QZSS_L6D: return WAVELENGTH_QZSS_L6;
+        default: return 0.0;
+        }
+    case System::NAVIC:
+        switch (stChannelStatus_.eSignalType)
+        {
+        case Signal::NAVIC_L5SPS: return WAVELENGTH_NAVIC_L5;
+        default: return 0.0;
+        }
     default: return 0.0;
     }
 }
