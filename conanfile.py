@@ -26,16 +26,20 @@ class NovatelEdieConan(ConanFile):
         "shared": False,
         "fPIC": True,
     }
-    implements = ["auto_shared_fpic"]
 
-    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "LICENSE", "!doc", "!test", "CMakelists.txt"]
+    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "LICENSE", "!doc", "!test", "CMakeLists.txt"]
 
     def set_version(self):
         cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
         self.version = re.search(r"novatel_edie VERSION ([\d.]+)", cmakelists_content).group(1)
 
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+
     def configure(self):
         if self.options.shared:
+            self.options.rm_safe("fPIC")
             self.options["spdlog"].shared = True
 
     def layout(self):
