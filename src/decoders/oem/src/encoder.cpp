@@ -388,30 +388,30 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
     switch (eFormat_)
     {
     case ENCODE_FORMAT::ASCII:
-        if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                     : !EncodeAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
+        if (IsShort(stMetaData_.eFormat) ? !EncodeAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
+                                         : !EncodeAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
     case ENCODE_FORMAT::ABBREV_ASCII:
-        if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeAbbrevAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                     : !EncodeAbbrevAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
+        if (IsShort(stMetaData_.eFormat) ? !EncodeAbbrevAsciiShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
+                                         : !EncodeAbbrevAsciiHeader(stHeader_, ppcTempBuffer, uiBufferSize_, bIsEmbeddedHeader_))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
     case ENCODE_FORMAT::FLATTENED_BINARY: [[fallthrough]];
     case ENCODE_FORMAT::BINARY:
-        if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeBinaryShortHeader(stHeader_, &pucTempBuffer, uiBufferSize_)
-                                                     : !EncodeBinaryHeader(stHeader_, &pucTempBuffer, uiBufferSize_))
+        if (IsShort(stMetaData_.eFormat) ? !EncodeBinaryShortHeader(stHeader_, &pucTempBuffer, uiBufferSize_)
+                                         : !EncodeBinaryHeader(stHeader_, &pucTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
     case ENCODE_FORMAT::JSON:
-        if (IsShortHeaderFormat(stMetaData_.eFormat) ? !EncodeJsonShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
-                                                     : !EncodeJsonHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
+        if (IsShort(stMetaData_.eFormat) ? !EncodeJsonShortHeader(stHeader_, ppcTempBuffer, uiBufferSize_)
+                                         : !EncodeJsonHeader(stHeader_, ppcTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
@@ -465,15 +465,11 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         if (stMessageData_.pucMessageHeader == nullptr) { return STATUS::FAILURE; }
         // Go back and set the length field in the header.
         // TODO: this little block of code below is what's blocking us from moving this function to common
-        if (stMetaData_.eFormat == HEADER_FORMAT::ASCII || stMetaData_.eFormat == HEADER_FORMAT::BINARY ||
-            stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII)
-        {
-            reinterpret_cast<Oem4BinaryHeader*>(stMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
-        }
-        else
+        if (IsShort(stMetaData_.eFormat))
         {
             reinterpret_cast<Oem4BinaryShortHeader*>(stMessageData_.pucMessageHeader)->ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
         }
+        else { reinterpret_cast<Oem4BinaryHeader*>(stMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_); }
         uint32_t uiCrc = CalculateBlockCrc32(pucTempBuffer - stMessageData_.pucMessageHeader, 0, stMessageData_.pucMessageHeader);
         if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, &uiCrc)) { return STATUS::BUFFER_FULL; }
         break;
