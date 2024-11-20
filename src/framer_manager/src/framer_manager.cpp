@@ -230,7 +230,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     auto it_not_unknown = std::find_if(framerRegistry.begin(), framerRegistry.end(),
                                        [](const FramerElement& element) { return (element.framer->eMyCurrentFramerStatus != STATUS::UNKNOWN); });
 
-    // it_not_unknown == end -> All framers returned UNKNOWN -> use closest framer to handle unknown bytes
+    // it_not_unknown == end -> All framers returned UNKNOWN -> Handle Unknown Bytes
     if (it_not_unknown == framerRegistry.end())
     {
         // reorderFramers(framerStack);
