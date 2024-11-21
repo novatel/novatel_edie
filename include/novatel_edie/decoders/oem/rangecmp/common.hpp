@@ -66,6 +66,7 @@ constexpr uint32_t RANGECMP_MSG_ID = 140;
 constexpr uint32_t RANGECMP2_MSG_ID = 1273;
 constexpr uint32_t RANGECMP3_MSG_ID = 1734;
 constexpr uint32_t RANGECMP4_MSG_ID = 2050;
+constexpr uint32_t RANGECMP5_MSG_ID = 2537;
 
 //-----------------------------------------------------------------------
 // Frequencies
@@ -287,18 +288,45 @@ constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNBIT_MASK = {0x02000000, 0
 constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RC4_RBLK_INVALID_PSR = {137438953471, -524288};
 
-// replace this with std::countr_zero when C++20 is available
-constexpr uint32_t Lsb(uint64_t value)
+//-----------------------------------------------------------------------
+//! RANGECMP5 data field masks, shifts and scale factors.
+//-----------------------------------------------------------------------
+// Bitfield sizes for the Satellite and Signal Block
+constexpr uint32_t RC5_SATELLITE_SYSTEMS_BITS = 16;
+constexpr uint32_t RC5_SATELLITES_BITS = 64;
+constexpr uint32_t RC5_SIGNALS_BITS = 16;
+
+template <typename T> constexpr uint32_t PopCount(T value) noexcept
 {
-    if (value == 0) { return 64; } // Indicate no bits are set
+    uint32_t count = 0;
+    while (value)
+    {
+        count += value & 1;
+        value >>= 1;
+    }
+    return count;
+}
+
+// replace this with std::countr_zero when C++20 is available
+template <typename T> constexpr uint32_t Lsb(T value)
+{
+    if (value == 0) { return sizeof(T) * 8; } // Indicate no bits are set
 
 #ifdef _MSC_VER
     unsigned long index;
-    _BitScanForward64(&index, value);
+    _BitScanForward64(&index, static_cast<uint64_t>(value));
     return static_cast<uint32_t>(index);
 #else
-    return __builtin_ctzll(value);
+    return __builtin_ctzll(static_cast<uint64_t>(value));
 #endif
+}
+
+template <typename T> constexpr uint32_t PopLsb(T& value)
+{
+    assert(value);
+    const uint32_t index = Lsb(value);
+    value &= value - 1;
+    return index;
 }
 
 template <typename T> constexpr T GetBitfield(uint64_t value, uint64_t mask)
@@ -500,6 +528,7 @@ struct RangeCmp2
 };
 
 #pragma pack(pop)
+
 //! NOTE: None of the RANGECMP4 structures are packed because the method
 //! of decompression is not a cast-based decode operation. The bitfields
 //! are far too complex and oddly-sized such that each field must be
@@ -604,7 +633,6 @@ enum class SIGNAL_TYPE
     QZSS_L2C = 3,
     QZSS_L5Q = 4,
     QZSS_L1C = 8,
-    QZSS_L6D = 10,
     QZSS_L6P = 11,
     // NAVIC
     NAVIC_L5SPS = 1,
@@ -957,7 +985,6 @@ struct ChannelTrackingStatus
             case rangecmp4::SIGNAL_TYPE::QZSS_L2C: return SIGNAL_TYPE::QZSS_L2CM;
             case rangecmp4::SIGNAL_TYPE::QZSS_L5Q: return SIGNAL_TYPE::QZSS_L5Q;
             case rangecmp4::SIGNAL_TYPE::QZSS_L1C: return SIGNAL_TYPE::QZSS_L1CP;
-            case rangecmp4::SIGNAL_TYPE::QZSS_L6D: return SIGNAL_TYPE::QZSS_L6D;
             case rangecmp4::SIGNAL_TYPE::QZSS_L6P: return SIGNAL_TYPE::QZSS_L6P;
             default: return SIGNAL_TYPE::UNKNOWN;
             }

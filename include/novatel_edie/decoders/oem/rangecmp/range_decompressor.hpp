@@ -121,6 +121,7 @@ class RangeDecompressor
     static void RangeCmpToRange(const RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
     void RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);
     void RangeCmp4ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
+    void RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
 };
 
 } // namespace novatel::edie::oem
