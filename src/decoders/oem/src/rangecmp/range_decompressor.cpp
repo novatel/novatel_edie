@@ -97,7 +97,7 @@ static std::map<SYSTEM, std::vector<rangecmp4::SIGNAL_TYPE>> mvTheRangeCmp4Syste
       rangecmp4::SIGNAL_TYPE::BEIDOU_B1CP, rangecmp4::SIGNAL_TYPE::BEIDOU_B2AP, rangecmp4::SIGNAL_TYPE::BEIDOU_B2BI}},
     {SYSTEM::QZSS,
      {rangecmp4::SIGNAL_TYPE::QZSS_L1CA, rangecmp4::SIGNAL_TYPE::QZSS_L2C, rangecmp4::SIGNAL_TYPE::QZSS_L5Q, rangecmp4::SIGNAL_TYPE::QZSS_L1C,
-      rangecmp4::SIGNAL_TYPE::QZSS_L6D, rangecmp4::SIGNAL_TYPE::QZSS_L6P}},
+      rangecmp4::SIGNAL_TYPE::QZSS_L6P}},
     {SYSTEM::NAVIC, {rangecmp4::SIGNAL_TYPE::NAVIC_L5SPS}}};
 
 //------------------------------------------------------------------------------
@@ -116,6 +116,8 @@ RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder
     clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
     clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
     clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP5_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
+    clMyRangeCmpFilter.IncludeMessageId(RANGECMP5_MSG_ID, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
 
     pclMyLogger->debug("RangeDecompressor initialized");
 }
@@ -507,8 +509,7 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
 }
 
 //------------------------------------------------------------------------------
-//! Populates a provided RangeData structure from the RANGECMP4 blocks
-//! provided.
+//! Populates a provided RangeData structure from the RANGECMP4 blocks provided.
 //------------------------------------------------------------------------------
 void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const RangeCmp4MeasurementSignalBlock& stBlock_,
                                               const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_,
@@ -703,172 +704,172 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, R
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_)
 {
-    MEASUREMENT_SOURCE eMeasurementSource = stMetaData_.eMeasurementSource;
+    MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
-    if (dSecondOffset == 0.0) { ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)].clear(); }
-
-    ChannelTrackingStatus stChannelTrackingStatus;
-    RangeCmp4MeasurementBlockHeader stMeasurementBlockHeader;
-    RangeCmp4MeasurementSignalBlock stMeasurementBlock;
+    if (std::abs(dSecondOffset) < std::numeric_limits<double>::epsilon()) { ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)].clear(); }
 
     stRangeMessage_.uiNumberOfObservations = 0;
     uint32_t uiBitOffset = 0;
     uint32_t uiBytesLeft = *reinterpret_cast<uint32_t*>(pucData_);
     pucData_ += sizeof(uint32_t);
-    auto usSatelliteSystems = ExtractBitfield<uint16_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_SATELLITE_SYSTEMS_BITS);
 
-    // Decode measurement block headers and their reference signal blocks for each satellite system.
-    for (const auto satelliteSystem : {SYSTEM::GPS, SYSTEM::GLONASS, SYSTEM::SBAS, SYSTEM::GALILEO, SYSTEM::BEIDOU, SYSTEM::QZSS, SYSTEM::NAVIC})
+    auto systems = ExtractBitfield<uint16_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_SATELLITE_SYSTEMS_BITS);
+
+    while (systems)
     {
-        // Does this message have any data for this satellite system?
-        if ((usSatelliteSystems & (1UL << static_cast<uint16_t>(satelliteSystem))) != 0)
+        auto system = static_cast<SYSTEM>(PopLsb(systems));
+
+        // WARNING: We use arrays instead of vectors for PRNs and Signals to avoid using dynamic memory allocation.
+        // This means that we have to be careful using the size of the array and iterators.
+        auto satellitesTemp = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_SATELLITES_BITS);
+        std::array<uint32_t, RC4_SATELLITES_BITS> aPrns;
+        uint32_t uiPrnCount = 0;
+        while (satellitesTemp) { aPrns[uiPrnCount++] = PopLsb(satellitesTemp) + 1; } // Bit position is PRN - 1, so + 1 here
+
+        auto signalsTemp = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_SIGNALS_BITS);
+        std::array<rangecmp4::SIGNAL_TYPE, RC4_SIGNALS_BITS> aSignals;
+        uint32_t uiSignalCount = 0;
+        while (signalsTemp) { aSignals[uiSignalCount++] = static_cast<rangecmp4::SIGNAL_TYPE>(PopLsb(signalsTemp)); }
+
+        std::array<uint64_t, RC4_SATELLITES_BITS> includedSignals;
+        // Iterate through the PRNs once to collect the signals tracked by each. We need this info before we can start decompressing.
+        for (uint32_t uiPrnIndex = 0; uiPrnIndex < uiPrnCount; ++uiPrnIndex)
         {
-            auto ullSatellites = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_SATELLITES_BITS);
-            auto ullSignals = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_SIGNALS_BITS);
+            // Get the m*n bit matrix that describes the included signals in this RANGECMP4 message.
+            includedSignals[aPrns[uiPrnIndex]] = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, uiSignalCount);
+        }
 
-            std::vector<rangecmp4::SIGNAL_TYPE> vSignals; // All available signals
-            std::vector<uint32_t> vPRNs;                  // All available PRNs
+        // Check each PRN against the signals tracked in this satellite system to see if the signal is included.
+        for (uint32_t uiPrnIndex = 0; uiPrnIndex < uiPrnCount; ++uiPrnIndex)
+        {
+            // Begin decoding Reference Measurement Block Header.
+            RangeCmp4MeasurementBlockHeader stMbHeader;
+            stMbHeader.bIsDifferentialData = ExtractBitfield<bool>(&pucData_, uiBytesLeft, uiBitOffset, RC4_MBLK_HDR_DATAFORMAT_FLAG_BITS);
+            stMbHeader.ucReferenceDataBlockID =
+                ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_MBLK_HDR_REFERENCE_DATABLOCK_ID_BITS);
+            stMbHeader.cGLONASSFrequencyNumber = 0;
 
-            // Collect the signals tracked in this satellite system.
-            for (rangecmp4::SIGNAL_TYPE eCurrentSignalType : mvTheRangeCmp4SystemSignalMasks[satelliteSystem])
+            // This field is only present for GLONASS and reference blocks.
+            if (system == SYSTEM::GLONASS && !stMbHeader.bIsDifferentialData)
             {
-                if ((ullSignals & (1ULL << static_cast<uint64_t>(eCurrentSignalType))) != 0) { vSignals.push_back(eCurrentSignalType); }
+                stMbHeader.cGLONASSFrequencyNumber =
+                    ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS);
             }
 
-            // Collect the satellite PRNs tracked in this satellite system.
-            for (uint8_t ucBitPosition = 0; ucBitPosition < RC4_SATELLITES_BITS; ucBitPosition++)
-            {
-                if ((ullSatellites & (1ULL << ucBitPosition)) != 0) { vPRNs.push_back(ucBitPosition + 1); } // Bit position is PRN - 1, so + 1 here
-            }
+            bool bPrimaryBlock = true;
+            const uint32_t& prn = aPrns[uiPrnIndex];
+            uint64_t& included = includedSignals[prn];
+            const uint32_t uiIncludedSignalCount = PopCount(included);
 
-            std::map<uint32_t, uint64_t> mIncludedSignals; // IncludedSignal bitmasks for each PRN.
-            // Iterate through the PRNs once to collect the signals tracked by each. We need this info before we can start decompressing.
-            for (const auto& uiPRN : vPRNs)
+            while (included)
             {
-                // Get the m*n bit matrix that describes the included signals in this RANGECMP4 message.
-                mIncludedSignals[uiPRN] = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, static_cast<uint32_t>(vSignals.size()));
-            }
+                rangecmp4::SIGNAL_TYPE& signal = aSignals[PopLsb(included)];
+                RangeCmp4MeasurementSignalBlock stMb;
 
-            // Check each PRN against the signals tracked in this satellite system to see if the signal is included.
-            for (const auto& uiPRN : vPRNs)
-            {
-                // Begin decoding Reference Measurement Block Header.
-                stMeasurementBlockHeader.bIsDifferentialData =
-                    ExtractBitfield<bool>(&pucData_, uiBytesLeft, uiBitOffset, RC4_MBLK_HDR_DATAFORMAT_FLAG_BITS);
-                stMeasurementBlockHeader.ucReferenceDataBlockID =
-                    ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_MBLK_HDR_REFERENCE_DATABLOCK_ID_BITS);
-                stMeasurementBlockHeader.cGLONASSFrequencyNumber = 0;
-
-                // This field is only present for GLONASS and reference blocks.
-                if (satelliteSystem == SYSTEM::GLONASS && !stMeasurementBlockHeader.bIsDifferentialData)
+                if (stMbHeader.bIsDifferentialData) // This is a differential block.
                 {
-                    stMeasurementBlockHeader.cGLONASSFrequencyNumber =
-                        ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, RC4_MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS);
-                }
-
-                uint32_t uiSignalsForPRN = 0;
-                uint32_t uiSignalBitMaskShift = 0;
-                bool bPrimaryBlock = true;
-
-                for (rangecmp4::SIGNAL_TYPE eCurrentSignalType : vSignals)
-                {
-                    if (auto it = mIncludedSignals.find(uiPRN); it != mIncludedSignals.end())
+                    try
                     {
-                        // Is the signal included?
-                        if ((it->second & (1ULL << uiSignalBitMaskShift++)) != 0)
+                        const std::pair<RangeCmp4MeasurementBlockHeader, RangeCmp4MeasurementSignalBlock>& stRb =
+                            ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)].at(system).at(signal).at(prn);
+
+                        if (stMbHeader.ucReferenceDataBlockID == stRb.first.ucReferenceDataBlockID)
                         {
-                            if (!stMeasurementBlockHeader.bIsDifferentialData) // This is a reference block.
+                            if (bPrimaryBlock)
                             {
-                                if (bPrimaryBlock)
-                                {
-                                    DecompressReferenceBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stMeasurementBlock, eMeasurementSource);
-                                    bPrimaryBlock = false;
-                                }
-                                else { DecompressReferenceBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stMeasurementBlock, eMeasurementSource); }
-
-                                stChannelTrackingStatus = ChannelTrackingStatus(satelliteSystem, eCurrentSignalType, stMeasurementBlock);
-                                PopulateNextRangeData((stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++]), stMeasurementBlock,
-                                                      stMetaData_, stChannelTrackingStatus, uiPRN, stMeasurementBlockHeader.cGLONASSFrequencyNumber);
-
-                                // Always store reference blocks.
-                                ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)][satelliteSystem][eCurrentSignalType][uiPRN] =
-                                    std::pair(stMeasurementBlockHeader, stMeasurementBlock);
+                                DecompressDifferentialBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stMb, stRb.second, dSecondOffset);
+                                bPrimaryBlock = false;
                             }
-                            else // This is a differential block.
-                            {
-                                RangeCmp4MeasurementBlockHeader* pstRefBlockHeader = nullptr;
-                                RangeCmp4MeasurementSignalBlock* pstRefBlock = nullptr;
-                                try
-                                {
-                                    pstRefBlockHeader = &ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)]
-                                                             .at(satelliteSystem)
-                                                             .at(eCurrentSignalType)
-                                                             .at(uiPRN)
-                                                             .first;
-                                    pstRefBlock = &ammmMyReferenceBlocks[static_cast<uint32_t>(eMeasurementSource)]
-                                                       .at(satelliteSystem)
-                                                       .at(eCurrentSignalType)
-                                                       .at(uiPRN)
-                                                       .second;
-                                }
-                                catch (...)
-                                {
-                                    pclMyLogger->warn("No reference data exists for SATELLITE_SYSTEM {}, SIGNAL_TYPE {}, PRN {}, ID {}",
-                                                      static_cast<int32_t>(satelliteSystem), static_cast<int32_t>(eCurrentSignalType), uiPRN,
-                                                      stMeasurementBlockHeader.ucReferenceDataBlockID);
-                                }
+                            else { DecompressDifferentialBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stMb, stRb.second, dSecondOffset); }
 
-                                // Do nothing if we can't find reference data.
-                                if (pstRefBlockHeader != nullptr && pstRefBlock != nullptr)
-                                {
-                                    if (stMeasurementBlockHeader.ucReferenceDataBlockID == pstRefBlockHeader->ucReferenceDataBlockID)
-                                    {
-                                        if (bPrimaryBlock)
-                                        {
-                                            DecompressDifferentialBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stMeasurementBlock, *pstRefBlock,
-                                                                               dSecondOffset);
-                                            bPrimaryBlock = false;
-                                        }
-                                        else
-                                        {
-                                            DecompressDifferentialBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stMeasurementBlock, *pstRefBlock,
-                                                                              dSecondOffset);
-                                        }
-
-                                        stChannelTrackingStatus = ChannelTrackingStatus(satelliteSystem, eCurrentSignalType, stMeasurementBlock);
-                                        PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++],
-                                                              stMeasurementBlock, stMetaData_, stChannelTrackingStatus, uiPRN,
-                                                              pstRefBlockHeader->cGLONASSFrequencyNumber);
-                                    }
-                                    else
-                                    {
-                                        pclMyLogger->warn("Invalid reference data: Diff ID {} != Ref ID {}",
-                                                          stMeasurementBlockHeader.ucReferenceDataBlockID, pstRefBlockHeader->ucReferenceDataBlockID);
-                                    }
-                                }
-                            }
-
-                            // Track the number of signals from this PRN to update unknown message fields later.
-                            uiSignalsForPRN++;
+                            ChannelTrackingStatus stChannelTrackingStatus(system, signal, stMb);
+                            PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stMb, stMetaData_,
+                                                  stChannelTrackingStatus, prn, stRb.first.cGLONASSFrequencyNumber);
+                        }
+                        else
+                        {
+                            pclMyLogger->warn("Invalid reference data: Diff ID {} != Ref ID {}", stMbHeader.ucReferenceDataBlockID,
+                                              stRb.first.ucReferenceDataBlockID);
                         }
                     }
-                    else
+                    catch (...)
                     {
-                        pclMyLogger->critical("No included signal bitmask for the PRN {}.", uiPRN);
-                        return;
+                        pclMyLogger->warn("No reference data exists for SATELLITE_SYSTEM {}, SIGNAL_TYPE {}, PRN {}, ID {}",
+                                          static_cast<int32_t>(system), static_cast<int32_t>(signal), prn, stMbHeader.ucReferenceDataBlockID);
                     }
                 }
-
-                // Update the grouping bit in the status word if multiple signals for this PRN are counted.
-                if (uiSignalsForPRN > 1 && uiSignalsForPRN <= stRangeMessage_.uiNumberOfObservations)
+                else // This is a reference block.
                 {
-                    for (uint32_t uiIndex = uiSignalsForPRN; uiIndex > 0; uiIndex--)
+                    if (bPrimaryBlock)
                     {
-                        stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations - uiIndex].uiChannelTrackingStatus |= CTS_GROUPING_MASK;
+                        DecompressReferenceBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stMb, eSource);
+                        bPrimaryBlock = false;
                     }
+                    else { DecompressReferenceBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stMb, eSource); }
+
+                    ChannelTrackingStatus stChannelTrackingStatus(system, signal, stMb);
+                    PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stMb, stMetaData_,
+                                          stChannelTrackingStatus, prn, stMbHeader.cGLONASSFrequencyNumber);
+
+                    // Always store reference blocks.
+                    ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)][system][signal][prn] = std::pair(stMbHeader, stMb);
                 }
             }
+
+            // Update the grouping bit in the status word if multiple signals for this PRN are counted.
+            if (uiIncludedSignalCount > 1 && uiIncludedSignalCount <= stRangeMessage_.uiNumberOfObservations)
+            {
+                for (uint32_t uiIndex = uiIncludedSignalCount; uiIndex > 0; uiIndex--)
+                {
+                    stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations - uiIndex].uiChannelTrackingStatus |= CTS_GROUPING_MASK;
+                }
+            }
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+// Convert a RANGECMP5 message into RANGE message.
+//------------------------------------------------------------------------------
+void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, [[maybe_unused]] const MetaDataStruct& stMetaData_)
+{
+    stRangeMessage_.uiNumberOfObservations = 0;
+    uint32_t uiBitOffset = 0;
+    uint32_t uiBytesLeft = *reinterpret_cast<uint32_t*>(pucData_);
+    pucData_ += sizeof(uint32_t);
+
+    auto systems = ExtractBitfield<uint16_t>(&pucData_, uiBytesLeft, uiBitOffset, RC5_SATELLITE_SYSTEMS_BITS);
+
+    while (systems)
+    {
+        [[maybe_unused]] auto system = static_cast<SYSTEM>(PopLsb(systems));
+
+        // WARNING: We use arrays instead of vectors for PRNs and Signals to avoid using dynamic memory allocation.
+        // This means that we have to be careful using the size of the array and iterators.
+        auto satellitesTemp = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, RC5_SATELLITES_BITS);
+        std::array<uint32_t, RC5_SATELLITES_BITS> aPrns;
+        uint32_t uiPrnCount = 0;
+        while (satellitesTemp) { aPrns[uiPrnCount++] = PopLsb(satellitesTemp); }
+
+        auto signalsTemp = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, RC5_SIGNALS_BITS);
+        std::array<rangecmp4::SIGNAL_TYPE, RC5_SIGNALS_BITS> aSignals;
+        uint32_t uiSignalCount = 0;
+        while (signalsTemp) { aSignals[uiSignalCount++] = static_cast<rangecmp4::SIGNAL_TYPE>(PopLsb(signalsTemp)); }
+
+        std::array<uint64_t, RC5_SATELLITES_BITS> includedSignals;
+        // Iterate through the PRNs once to collect the signals tracked by each. We need this info before we can start decompressing.
+        for (uint32_t uiPrnIndex = 0; uiPrnIndex < uiPrnCount; ++uiPrnIndex)
+        {
+            // Get the m*n bit matrix that describes the included signals in this RANGECMP5 message.
+            includedSignals[aPrns[uiPrnIndex]] = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, uiSignalCount);
+        }
+
+        // Check each PRN against the signals tracked in this satellite system to see if the signal is included.
+        for (uint32_t uiPrnIndex = 0; uiPrnIndex < uiPrnCount; ++uiPrnIndex)
+        {
+            // Begin decoding Reference Measurement Block Header.
+
         }
     }
 }
@@ -918,6 +919,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
         case RANGECMP2_MSG_ID: RangeCmp2ToRange(*reinterpret_cast<RangeCmp2*>(pucTempMessagePointer), stRange, stMetaData_); break;
         case RANGECMP3_MSG_ID: [[fallthrough]];
         case RANGECMP4_MSG_ID: RangeCmp4ToRange(pucTempMessagePointer, stRange, stMetaData_); break;
+        case RANGECMP5_MSG_ID: RangeCmp5ToRange(pucTempMessagePointer, stRange, stMetaData_); break;
         default: return STATUS::UNSUPPORTED;
         }
 
