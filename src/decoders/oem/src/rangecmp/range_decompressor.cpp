@@ -577,6 +577,77 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const Ran
 }
 
 //------------------------------------------------------------------------------
+//! Populates a provided RangeData structure from the RANGECMP5 blocks provided.
+//------------------------------------------------------------------------------
+void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const RangeCmp5MeasurementSignalBlock& stBlock_,
+                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_,
+                                              char cGLONASSFrequencyNumber_)
+{
+    //-----------------------------------------------------------------------
+    //! List of pre-defined doubles used as translations for RANGECMP4 PSR
+    //! standard deviation values defined in the RANGECMP4 documentation:
+    //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Pseudora
+    //-----------------------------------------------------------------------
+    constexpr std::array<double, 32> stdDevPsrScaling = {0.00391, 0.00458, 0.00536, 0.00628, 0.00735, 0.00861, 0.01001, 0.1182,
+                                                         0.01385, 0.01621, 0.1900,  0.02223, 0.02607, 0.03054, 0.03577, 0.04190,
+                                                         0.04908, 0.05749, 0.06734, 0.07889, 0.09240, 0.10824, 0.12679, 0.14851,
+                                                         0.17396, 0.20378, 0.23870, 0.27961, 0.32753, 0.38366, 0.44940, 0.44940};
+
+    //-----------------------------------------------------------------------
+    //! List of pre-defined doubles used as translations for RANGECMP5 ADR
+    //! standard deviation values defined in the RANGECMP4 documentation:
+    //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#ADR
+    //! Note: LSD have been removed to reduce rouning errors in the range log.
+    //!       ADR STD is only 3 decimal places and could round up causing values
+    //!       to be greater than values in the table.
+    //-----------------------------------------------------------------------
+    constexpr std::array<double, 32> stdDevAdrScaling = {0.020,  0.030,  0.045,  0.066,  0.099,  0.148,   0.220,   0.329,   0.491,   0.732,  1.092,
+                                                         1.629,  2.430,  3.625,  5.409,  6.876,  8.741,   11.111,  14.125,  17.957,  22.828, 29.020,
+                                                         36.891, 46.898, 59.619, 75.791, 96.349, 122.484, 155.707, 197.943, 251.634, 251.634};
+
+    double dSignalWavelength = GetSignalWavelength(stChannelStatus_, cGLONASSFrequencyNumber_ - GLONASS_FREQUENCY_NUMBER_OFFSET);
+
+    //! Some logic for PRN offsets based on the constellation. See documentation:
+    //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
+    switch (stChannelStatus_.eSatelliteSystem)
+    {
+    case ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS:
+        // If ternary returns true, documentation suggests we should save this PRN as
+        // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - cGLONASSFrequencyNumber_. However, this
+        // would output the PRN as an actual valid Slot ID, which is not true. We will
+        // set this to 0 here because 0 is considered an unknown/invalid GLONASS Slot ID.
+        stRangeData_.usPRN =
+            (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT) ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
+        break;
+    case ChannelTrackingStatus::SATELLITE_SYSTEM::SBAS:
+        stRangeData_.usPRN =
+            (SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT)   ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
+            : (SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT) ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
+                                                                                                       : 0;
+        break;
+    case ChannelTrackingStatus::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
+    default: stRangeData_.usPRN = uiPRN_; break;
+    }
+
+    if (stChannelStatus_.eSatelliteSystem != ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
+    {
+        throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits");
+    }
+
+    // any fields flagged as invalid are set to NaN and appear in the log as such
+    stRangeData_.sGLONASSFrequency = static_cast<unsigned char>(cGLONASSFrequencyNumber_);
+    stRangeData_.dPSR = stBlock_.bValidPseudorange ? stBlock_.dPseudorange : std::numeric_limits<double>::quiet_NaN();
+    stRangeData_.fPSRStdDev = stdDevAdrScaling[stBlock_.ucPseudorangeStdDev];
+    stRangeData_.dADR = stBlock_.bValidPhaserange ? -stBlock_.dPhaserange / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
+    stRangeData_.fADRStdDev = stdDevAdrScaling[stBlock_.ucPhaserangeStdDev];
+    stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
+    stRangeData_.fCNo = stBlock_.fCNo;
+    stRangeData_.fLockTime =
+        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stChannelStatus_.eSatelliteSystem, stChannelStatus_.eSignalType, uiPRN_);
+    stRangeData_.uiChannelTrackingStatus = stChannelStatus_.GetAsWord();
+}
+
+//------------------------------------------------------------------------------
 //! Convert a RANGECMP message into RANGE message.
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmpToRange(const RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_)
@@ -830,6 +901,40 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 }
 
 //------------------------------------------------------------------------------
+//! Decompresses a RANGECMP5 differential measurement block. Populates the
+//! provided reference block struct, but must be given the appropriate
+//! reference block from the same RANGECMP4 message.
+//------------------------------------------------------------------------------
+template <bool bSecondary>
+void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
+                                        RangeCmp5MeasurementSignalBlock& stBlock_)
+{
+    stBlock_.bParityKnown = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_PARITY_FLAG_BITS);
+    stBlock_.bHalfCycleAdded = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_HALF_CYCLE_BITS);
+    stBlock_.fCNo = ExtractBitfield<float>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_CNO_BITS) * RC5_SIG_BLK_CNO_SCALE_FACTOR;
+    stBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_LOCK_TIME_BITS);
+    stBlock_.ucPseudorangeStdDev = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_PSR_STDDEV_BITS);
+    stBlock_.ucPhaserangeStdDev = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_ADR_STDDEV_BITS);
+
+    auto llPSRBitfield = ExtractBitfield<int64_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_RBLK_PSR_BITS[bSecondary]);
+    if constexpr (bSecondary)
+    {
+        if (llPSRBitfield & RC5_SSIG_RBLK_PSR_SIGNBIT_MASK) { llPSRBitfield |= RC5_SSIG_RBLK_PSR_SIGNEXT_MASK; }
+    }
+    auto iPhaseRangeBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_RBLK_PHASERANGE_BITS[bSecondary]);
+    if (iPhaseRangeBitfield & RC5_RBLK_PHASERANGE_SIGNBIT_MASK) { iPhaseRangeBitfield |= RC5_RBLK_PHASERANGE_SIGNEXT_MASK; }
+    auto iDopplerBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_RBLK_DOPPLER_BITS[bSecondary]);
+    if (iDopplerBitfield & RC5_RBLK_DOPPLER_SIGNBIT_MASK[bSecondary]) { iDopplerBitfield |= RC5_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
+
+    stBlock_.bValidPseudorange = llPSRBitfield != RC5_RBLK_INVALID_PSR[bSecondary];
+    stBlock_.dPseudorange = llPSRBitfield * RC5_SIG_BLK_PSR_SCALE_FACTOR;
+    stBlock_.bValidPhaserange = iPhaseRangeBitfield != RC5_SIG_RBLK_INVALID_PHASERANGE;
+    stBlock_.dPhaserange = iPhaseRangeBitfield * RC5_SIG_BLK_PHASERANGE_SCALE_FACTOR + stBlock_.dPseudorange;
+    stBlock_.bValidDoppler = iDopplerBitfield != RC5_PSIG_RBLK_INVALID_DOPPLER;
+    stBlock_.dDoppler = iDopplerBitfield * RC5_SIG_BLK_DOPPLER_SCALE_FACTOR;
+}
+
+//------------------------------------------------------------------------------
 // Convert a RANGECMP5 message into RANGE message.
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, [[maybe_unused]] const MetaDataStruct& stMetaData_)
@@ -843,7 +948,7 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
 
     while (systems)
     {
-        [[maybe_unused]] auto system = static_cast<SYSTEM>(PopLsb(systems));
+        auto system = static_cast<SYSTEM>(PopLsb(systems));
 
         // WARNING: We use arrays instead of vectors for PRNs and Signals to avoid using dynamic memory allocation.
         // This means that we have to be careful using the size of the array and iterators.
@@ -869,7 +974,35 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
         for (uint32_t uiPrnIndex = 0; uiPrnIndex < uiPrnCount; ++uiPrnIndex)
         {
             // Begin decoding Reference Measurement Block Header.
+            RangeCmp5MeasurementBlockHeader stMbHeader;
+            stMbHeader.bDataFormatFlag = ExtractBitfield<bool>(&pucData_, uiBytesLeft, uiBitOffset, 1);
+            stMbHeader.ucReserved = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, 3);
+            stMbHeader.cGLONASSFrequencyNumber = 0;
 
+            // This field is only present for GLONASS and reference blocks.
+            if (system == SYSTEM::GLONASS) { stMbHeader.cGLONASSFrequencyNumber = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, 5); }
+
+            bool bPrimaryBlock = true; // TODO: does bDataFormatFlag indicate if this is a primary block?
+            const uint32_t& prn = aPrns[uiPrnIndex];
+            uint64_t& included = includedSignals[prn];
+            const uint32_t uiIncludedSignalCount = PopCount(included);
+
+            while (included)
+            {
+                rangecmp4::SIGNAL_TYPE& signal = aSignals[PopLsb(included)];
+                RangeCmp5MeasurementSignalBlock stMb;
+
+                if (bPrimaryBlock)
+                {
+                    DecompressBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stMb);
+                    bPrimaryBlock = false;
+                }
+                else { DecompressBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stMb); }
+
+                ChannelTrackingStatus stChannelTrackingStatus(system, signal, stMb);
+                PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stMb, stMetaData_,
+                                      stChannelTrackingStatus, prn, stMbHeader.cGLONASSFrequencyNumber);
+            }
         }
     }
 }
