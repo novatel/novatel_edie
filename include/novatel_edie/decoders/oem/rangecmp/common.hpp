@@ -296,6 +296,54 @@ constexpr uint32_t RC5_SATELLITE_SYSTEMS_BITS = 16;
 constexpr uint32_t RC5_SATELLITES_BITS = 64;
 constexpr uint32_t RC5_SIGNALS_BITS = 16;
 
+// For mapping satellite systems defined in RANGECMP4 to the RANGE value representation.
+constexpr uint32_t RC5_HEADER_BLOCK_SYSTEM_COUNT = 7;
+
+// Valid limits for various Reference/Differential Primary/Secondary Blocks
+constexpr int32_t RC5_SIG_RBLK_INVALID_PHASERANGE = -4194304;
+constexpr int32_t RC5_PSIG_RBLK_INVALID_DOPPLER = -33554432;
+constexpr int32_t RC5_SSIG_RBLK_INVALID_PSR = -524288;
+constexpr int32_t RC5_SIG_DBLK_INVALID_PSR = -262144;
+constexpr int32_t RC5_SIG_DBLK_INVALID_PHASERANGE = -32768;
+
+// Bitfield sizes for the Reference & Differential Signal Measurement Blocks
+constexpr uint32_t RC5_SIG_BLK_PARITY_FLAG_BITS = 1;
+constexpr uint32_t RC5_SIG_BLK_HALF_CYCLE_BITS = 1;
+constexpr uint32_t RC5_SIG_BLK_CNO_BITS = 11;
+constexpr uint32_t RC5_SIG_BLK_LOCK_TIME_BITS = 4;
+constexpr uint32_t RC5_SIG_BLK_PSR_STDDEV_BITS = 4;
+constexpr uint32_t RC5_SIG_BLK_ADR_STDDEV_BITS = 4;
+constexpr float RC5_SIG_BLK_CNO_SCALE_FACTOR = 0.05F;
+constexpr double RC5_SIG_BLK_PSR_SCALE_FACTOR = 0.0005;
+constexpr double RC5_SIG_BLK_PHASERANGE_SCALE_FACTOR = 0.0001;
+constexpr double RC5_SIG_BLK_DOPPLER_SCALE_FACTOR = 0.0001;
+
+// Bitfield sizes for the Differential Header
+constexpr uint32_t RC5_SIG_DBLK_PSR_BITS = 19;
+constexpr uint32_t RC5_SIG_DBLK_PSR_SIGNBIT_MASK = 0x00040000;
+constexpr uint32_t RC5_SIG_DBLK_PSR_SIGNEXT_MASK = 0xFFF80000;
+constexpr uint32_t RC5_SIG_DBLK_PHASERANGE_BITS = 16;
+constexpr uint32_t RC5_SIG_DBLK_PHASERANGE_SIGNBIT_MASK = 0x00008000;
+constexpr uint32_t RC5_SIG_DBLK_PHASERANGE_SIGNEXT_MASK = 0xFFFF0000;
+
+// Bitfield sizes for the Primary and Secondary Reference Signal Measurement Blocks
+constexpr uint64_t RC5_SSIG_RBLK_PSR_SIGNBIT_MASK = 0x0000000000080000;
+constexpr uint64_t RC5_SSIG_RBLK_PSR_SIGNEXT_MASK = 0xFFFFFFFFFFF00000;
+
+constexpr uint32_t RC5_RBLK_PHASERANGE_SIGNBIT_MASK = 0x00400000;
+constexpr uint32_t RC5_RBLK_PHASERANGE_SIGNEXT_MASK = 0xFF800000;
+
+constexpr std::array<int32_t, 2> RC5_DBLK_INVALID_DOPPLER = {-131072, -8192};
+constexpr std::array<uint32_t, 2> RC5_DBLK_DOPPLER_BITS = {18, 14};
+constexpr std::array<uint32_t, 2> RC5_DBLK_DOPPLER_SIGNBIT_MASK = {0x00020000, 0x00002000};
+constexpr std::array<uint32_t, 2> RC5_DBLK_DOPPLER_SIGNEXT_MASK = {0xFFFC0000, 0xFFFFC000};
+constexpr std::array<uint32_t, 2> RC5_RBLK_PSR_BITS = {37, 20};
+constexpr std::array<uint32_t, 2> RC5_RBLK_PHASERANGE_BITS = {23, 23};
+constexpr std::array<uint32_t, 2> RC5_RBLK_DOPPLER_BITS = {26, 14};
+constexpr std::array<uint32_t, 2> RC5_RBLK_DOPPLER_SIGNBIT_MASK = {0x02000000, 0x00002000};
+constexpr std::array<uint32_t, 2> RC5_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
+constexpr std::array<int64_t, 2> RC5_RBLK_INVALID_PSR = {137438953471, -524288};
+
 template <typename T> constexpr uint32_t PopCount(T value) noexcept
 {
     uint32_t count = 0;
@@ -587,6 +635,43 @@ struct RangeCmp4LocktimeInfo
     RangeCmp4LocktimeInfo() = default;
 };
 
+//-----------------------------------------------------------------------
+//! \struct RangeCmp4MeasurementBlockHeader
+//! \brief Measurement Block Header structure to contain the values
+//! within the compressed bitfields for OEM4 RANGECMP4 messages.
+//-----------------------------------------------------------------------
+struct RangeCmp5MeasurementBlockHeader
+{
+    bool bDataFormatFlag{false};
+    uint8_t ucReserved{0};
+    int8_t cGLONASSFrequencyNumber{0};
+
+    RangeCmp5MeasurementBlockHeader() = default;
+};
+
+//-----------------------------------------------------------------------
+//! \struct RangeCmp5MeasurementSignalBlock
+//! \brief Measurement Signal Block structure to contain the
+//! values within the compressed bitfields for OEM4 RANGECMP5 messages.
+//-----------------------------------------------------------------------
+struct RangeCmp5MeasurementSignalBlock
+{
+    bool bParityKnown{false};
+    bool bHalfCycleAdded{false};
+    float fCNo{0.0F};
+    uint8_t ucLockTimeBitfield{0};
+    uint8_t ucPseudorangeStdDev{0};
+    uint8_t ucPhaserangeStdDev{0};
+    double dPseudorange{0.0};
+    bool bValidPseudorange{false};
+    double dPhaserange{0.0};
+    bool bValidPhaserange{false};
+    double dDoppler{0.0};
+    bool bValidDoppler{false};
+
+    RangeCmp5MeasurementSignalBlock() = default;
+};
+
 namespace rangecmp4 {
 //--------------------------------------------------------------------
 //! \enum SIGNAL_TYPE
@@ -829,6 +914,39 @@ struct ChannelTrackingStatus
         bHalfCycleAdded = stMeasurementBlock_.bHalfCycleAdded;
         bCodeLocked = stMeasurementBlock_.bValidPSR;
         bPhaseLocked = stMeasurementBlock_.bValidPhaseRange;
+
+        if (eSignalType_ == rangecmp4::SIGNAL_TYPE::GPS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GLONASS_L1CA ||
+            eSignalType_ == rangecmp4::SIGNAL_TYPE::SBAS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GALILEO_E1 ||
+            eSignalType_ == rangecmp4::SIGNAL_TYPE::BEIDOU_B1I || eSignalType_ == rangecmp4::SIGNAL_TYPE::QZSS_L1CA ||
+            (eSatelliteSystem == SATELLITE_SYSTEM::BEIDOU && eSignalType_ == rangecmp4::SIGNAL_TYPE::BEIDOU_B1GEO))
+        {
+            bPrimaryL1Channel = true;
+            eTrackingState = TRACKING_STATE::PHASE_LOCK_LOOP;
+        }
+        else
+        {
+            bPrimaryL1Channel = false;
+            eTrackingState = TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
+        }
+    }
+
+    //! Constructor from the available data from a RANGECMP5 Primary Block and Measurement Block pair.
+    ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_, const RangeCmp5MeasurementSignalBlock& stMeasurementBlock_)
+    {
+        // Defaults that cannot be determined:
+        eCorrelatorType = CORRELATOR_TYPE::NONE;
+        uiSVChannelNumber = 0;
+        bPRNLocked = false;
+        bChannelAssignmentForced = false;
+        bDigitalFilteringOnSignal = false;
+        bGrouped = false; // Note that bGrouped can be changed once the number of signals for this PRN have been determined.
+
+        eSatelliteSystem = SystemToSatelliteSystem(eSystem_);
+        eSignalType = RangeCmp4SignalTypeToSignalType(eSatelliteSystem, eSignalType_);
+        bParityKnown = stMeasurementBlock_.bParityKnown;
+        bHalfCycleAdded = stMeasurementBlock_.bHalfCycleAdded;
+        bCodeLocked = stMeasurementBlock_.bValidPseudorange;
+        bPhaseLocked = stMeasurementBlock_.bValidPhaserange;
 
         if (eSignalType_ == rangecmp4::SIGNAL_TYPE::GPS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GLONASS_L1CA ||
             eSignalType_ == rangecmp4::SIGNAL_TYPE::SBAS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GALILEO_E1 ||
