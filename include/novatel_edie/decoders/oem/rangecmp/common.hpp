@@ -266,14 +266,13 @@ constexpr uint32_t RC4_SIG_DBLK_PHASERANGE_SIGNEXT_MASK = 0xFFFF0000;
 
 // Bitfield sizes for the Primary and Secondary Reference Signal Measurement Blocks
 constexpr uint64_t RC4_SSIG_RBLK_PSR_SIGNEXT_MASK = 0xFFFFFFFFFFF00000;
-
 constexpr uint32_t RC4_RBLK_PHASERANGE_SIGNEXT_MASK = 0xFF800000;
 
 constexpr std::array<int32_t, 2> RC4_DBLK_INVALID_DOPPLER = {-131072, -8192};
 constexpr std::array<uint32_t, 2> RC4_DBLK_DOPPLER_BITS = {18, 14};
 constexpr std::array<uint32_t, 2> RC4_DBLK_DOPPLER_SIGNEXT_MASK = {0xFFFC0000, 0xFFFFC000};
 constexpr std::array<uint32_t, 2> RC4_RBLK_PSR_BITS = {37, 20};
-constexpr std::array<uint32_t, 2> RC4_RBLK_PHASERANGE_BITS = {23, 23};
+constexpr uint32_t RC4_RBLK_PHASERANGE_BITS = 23;
 constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_BITS = {26, 14};
 constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RC4_RBLK_INVALID_PSR = {137438953471, -524288};
@@ -305,11 +304,10 @@ constexpr double RC5_SIG_BLK_DOPPLER_SCALE_FACTOR = 0.0001;
 
 // Bitfield sizes for the Primary and Secondary Reference Signal Measurement Blocks
 constexpr uint64_t RC5_SSIG_RBLK_PSR_SIGNEXT_MASK = 0xFFFFFFFFFFF00000;
-
 constexpr uint32_t RC5_RBLK_PHASERANGE_SIGNEXT_MASK = 0xFF800000;
 
 constexpr std::array<uint32_t, 2> RC5_RBLK_PSR_BITS = {37, 20};
-constexpr std::array<uint32_t, 2> RC5_RBLK_PHASERANGE_BITS = {23, 23};
+constexpr uint32_t RC5_RBLK_PHASERANGE_BITS = 23;
 constexpr std::array<uint32_t, 2> RC5_RBLK_DOPPLER_BITS = {28, 16};
 constexpr std::array<uint32_t, 2> RC5_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RC5_RBLK_INVALID_PSR = {137438953471, -524288};
@@ -356,7 +354,13 @@ template <typename T> constexpr T GetBitfield(uint64_t value, uint64_t mask)
 // TODO: need to do some checking to ensure that the result is valid
 constexpr uint32_t EncodeBitfield(uint32_t value, uint32_t mask) { return value << Lsb(mask) & mask; }
 
-constexpr uint32_t SignBit(uint32_t signExtensionmask) { return 1 << (Lsb(signExtensionmask) - 1); }
+template <typename IntType, typename MaskType> constexpr void HandleSignExtension(IntType& value, MaskType mask)
+{
+    static_assert(std::is_integral_v<IntType> && std::is_integral_v<MaskType>, "Both value and mask must be integral types.");
+    static_assert(sizeof(IntType) >= sizeof(MaskType), "Value type must be large enough to accommodate the mask.");
+
+    if (value & (IntType(1) << (Lsb(mask) - 1))) { value |= static_cast<IntType>(mask); }
+}
 
 //-----------------------------------------------------------------------
 //! \enum SYSTEM
