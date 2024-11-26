@@ -454,12 +454,12 @@ void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint
     auto llPSRBitfield = ExtractBitfield<int64_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_RBLK_PSR_BITS[bSecondary]);
     if constexpr (bSecondary)
     {
-        if (llPSRBitfield & RC4_SSIG_RBLK_PSR_SIGNBIT_MASK) { llPSRBitfield |= RC4_SSIG_RBLK_PSR_SIGNEXT_MASK; }
+        if (llPSRBitfield & SignBit(RC4_SSIG_RBLK_PSR_SIGNEXT_MASK)) { llPSRBitfield |= RC4_SSIG_RBLK_PSR_SIGNEXT_MASK; }
     }
     auto iPhaseRangeBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_RBLK_PHASERANGE_BITS[bSecondary]);
-    if (iPhaseRangeBitfield & RC4_RBLK_PHASERANGE_SIGNBIT_MASK) { iPhaseRangeBitfield |= RC4_RBLK_PHASERANGE_SIGNEXT_MASK; }
+    if (iPhaseRangeBitfield & SignBit(RC4_RBLK_PHASERANGE_SIGNEXT_MASK)) { iPhaseRangeBitfield |= RC4_RBLK_PHASERANGE_SIGNEXT_MASK; }
     auto iDopplerBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_RBLK_DOPPLER_BITS[bSecondary]);
-    if (iDopplerBitfield & RC4_RBLK_DOPPLER_SIGNBIT_MASK[bSecondary]) { iDopplerBitfield |= RC4_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
+    if (iDopplerBitfield & SignBit(RC4_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary])) { iDopplerBitfield |= RC4_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
 
     stRefBlock_.bValidPSR = llPSRBitfield != RC4_RBLK_INVALID_PSR[bSecondary];
     stRefBlock_.dPSR = llPSRBitfield * RC4_SIG_BLK_PSR_SCALE_FACTOR +
@@ -494,11 +494,11 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
     stDiffBlock_.ucADRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_BLK_ADR_STDDEV_BITS);
 
     auto iPSR = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_DBLK_PSR_BITS);
-    if (iPSR & RC4_SIG_DBLK_PSR_SIGNBIT_MASK) { iPSR |= RC4_SIG_DBLK_PSR_SIGNEXT_MASK; }
+    if (iPSR & SignBit(RC4_SIG_DBLK_PSR_SIGNEXT_MASK)) { iPSR |= RC4_SIG_DBLK_PSR_SIGNEXT_MASK; }
     auto iPhaseRange = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_DBLK_PHASERANGE_BITS);
-    if (iPhaseRange & RC4_SIG_DBLK_PHASERANGE_SIGNBIT_MASK) { iPhaseRange |= RC4_SIG_DBLK_PHASERANGE_SIGNEXT_MASK; }
+    if (iPhaseRange & SignBit(RC4_SIG_DBLK_PHASERANGE_SIGNEXT_MASK)) { iPhaseRange |= RC4_SIG_DBLK_PHASERANGE_SIGNEXT_MASK; }
     auto iDoppler = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_DBLK_DOPPLER_BITS[bSecondary]);
-    if (iDoppler & RC4_DBLK_DOPPLER_SIGNBIT_MASK[bSecondary]) { iDoppler |= RC4_DBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
+    if (iDoppler & SignBit(RC4_DBLK_DOPPLER_SIGNEXT_MASK[bSecondary])) { iDoppler |= RC4_DBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
 
     stDiffBlock_.bValidPSR = iPSR != RC4_SIG_DBLK_INVALID_PSR;
     stDiffBlock_.dPSR = iPSR * RC4_SIG_BLK_PSR_SCALE_FACTOR + stRefBlock_.dPSR + (stRefBlock_.dDoppler * dSecondOffset_);
@@ -675,7 +675,7 @@ void RangeDecompressor::RangeCmpToRange(const RangeCmp& stRangeCmpMessage_, Rang
         stRangeData.usPRN = stRangeCmpData.ucPRN;
 
         auto iDoppler = GetBitfield<int32_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_DOPPLER_FREQUENCY_MASK);
-        if ((iDoppler & RC_DOPPLER_FREQUENCY_SIGNBIT_MASK) != 0) { iDoppler |= RC_DOPPLER_FREQUENCY_SIGNEXT_MASK; }
+        if ((iDoppler & SignBit(RC_DOPPLER_FREQUENCY_SIGNEXT_MASK)) != 0) { iDoppler |= RC_DOPPLER_FREQUENCY_SIGNEXT_MASK; }
         stRangeData.fDopplerFrequency = iDoppler >> RC_DOPPLER_FREQUENCY_SHIFT;
 
         stRangeData.dPSR = GetBitfield<uint64_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_PSR_MEASUREMENT_MASK) >> RC_PSR_MEASUREMENT_SHIFT;
@@ -724,10 +724,10 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, R
         const auto ucSignalBlockCount = GetBitfield<uint8_t>(stSatBlock.ulCombinedField, RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK);
 
         auto iPSRBase = GetBitfield<int32_t>(stSatBlock.ulCombinedField, RC2_SAT_SATELLITE_PSR_BASE_MASK);
-        if ((iPSRBase & RC2_SAT_SATELLITE_PSR_BASE_SIGNBIT_MASK) != 0) { iPSRBase |= RC2_SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK; }
+        if ((iPSRBase & SignBit(RC2_SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK)) != 0) { iPSRBase |= RC2_SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK; }
 
         auto iDopplerBase = GetBitfield<int32_t>(stSatBlock.ulCombinedField, RC2_SAT_SATELLITE_DOPPLER_BASE_MASK);
-        if ((iDopplerBase & RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNBIT_MASK) != 0) { iDopplerBase |= RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK; }
+        if ((iDopplerBase & SignBit(RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK)) != 0) { iDopplerBase |= RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK; }
 
         uiRangeDataBytesDecompressed += sizeof(RangeCmp2SatelliteBlock);
 
@@ -744,7 +744,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, R
             const auto usPRN = stSatBlock.ucSatelliteIdentifier + (eSystem == SYSTEM::GLONASS ? GLONASS_SLOT_OFFSET - 1 : 0);
 
             auto iDopplerBitfield = GetBitfield<int32_t>(stSigBlock.ullCombinedField2, RC2_SIG_DOPPLER_DIFF_MASK);
-            if ((iDopplerBitfield & RC2_SIG_DOPPLER_DIFF_SIGNBIT_MASK) != 0) { iDopplerBitfield |= RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK; }
+            if ((iDopplerBitfield & SignBit(RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK)) != 0) { iDopplerBitfield |= RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK; }
 
             ChannelTrackingStatus stChannelTrackingStatus(stSatBlock, stSigBlock);
 
@@ -919,12 +919,12 @@ void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiB
     auto llPSRBitfield = ExtractBitfield<int64_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_RBLK_PSR_BITS[bSecondary]);
     if constexpr (bSecondary)
     {
-        if (llPSRBitfield & RC5_SSIG_RBLK_PSR_SIGNBIT_MASK) { llPSRBitfield |= RC5_SSIG_RBLK_PSR_SIGNEXT_MASK; }
+        if (llPSRBitfield & SignBit(RC5_SSIG_RBLK_PSR_SIGNEXT_MASK)) { llPSRBitfield |= RC5_SSIG_RBLK_PSR_SIGNEXT_MASK; }
     }
     auto iPhaseRangeBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_RBLK_PHASERANGE_BITS[bSecondary]);
-    if (iPhaseRangeBitfield & RC5_RBLK_PHASERANGE_SIGNBIT_MASK) { iPhaseRangeBitfield |= RC5_RBLK_PHASERANGE_SIGNEXT_MASK; }
+    if (iPhaseRangeBitfield & SignBit(RC5_RBLK_PHASERANGE_SIGNEXT_MASK)) { iPhaseRangeBitfield |= RC5_RBLK_PHASERANGE_SIGNEXT_MASK; }
     auto iDopplerBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_RBLK_DOPPLER_BITS[bSecondary]);
-    if (iDopplerBitfield & RC5_RBLK_DOPPLER_SIGNBIT_MASK[bSecondary]) { iDopplerBitfield |= RC5_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
+    if (iDopplerBitfield & SignBit(RC5_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary])) { iDopplerBitfield |= RC5_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]; }
 
     stBlock_.bValidPseudorange = llPSRBitfield != RC5_RBLK_INVALID_PSR[bSecondary];
     stBlock_.dPseudorange = llPSRBitfield * RC5_SIG_BLK_PSR_SCALE_FACTOR;

@@ -158,7 +158,6 @@ constexpr uint32_t CTS_CHANNEL_ASSIGNMENT_MASK = 0x80000000;
 //! masked out from larger data types.
 //-----------------------------------------------------------------------
 constexpr uint64_t RC_DOPPLER_FREQUENCY_MASK = 0x000000000FFFFFFF;
-constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNBIT_MASK = 0x08000000;
 constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNEXT_MASK = 0xF0000000;
 constexpr uint32_t RC_DOPPLER_FREQUENCY_SHIFT = 8;
 constexpr uint64_t RC_PSR_MEASUREMENT_MASK = 0xFFFFFFFFF0000000;
@@ -188,10 +187,8 @@ constexpr uint32_t RC_GLONASS_FREQUENCY_MASK = 0xFC000000;
 constexpr uint64_t RC2_SAT_GLONASS_FREQUENCY_ID_MASK = 0x000000000000000F;
 constexpr uint64_t RC2_SAT_SATELLITE_SYSTEM_ID_MASK = 0x00000000000001F0;
 constexpr uint64_t RC2_SAT_SATELLITE_PSR_BASE_MASK = 0x0000007FFFFFFC00;
-constexpr uint32_t RC2_SAT_SATELLITE_PSR_BASE_SIGNBIT_MASK = 0x10000000;
 constexpr uint32_t RC2_SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK = 0xE0000000;
 constexpr uint64_t RC2_SAT_SATELLITE_DOPPLER_BASE_MASK = 0x0FFFFF8000000000;
-constexpr uint32_t RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNBIT_MASK = 0x00100000;
 constexpr uint32_t RC2_SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK = 0xFFE00000;
 constexpr uint64_t RC2_SAT_NUM_SIGNAL_BLOCKS_BASE_MASK = 0xF000000000000000;
 
@@ -215,7 +212,6 @@ constexpr uint64_t RC2_SIG_PHASERANGE_DIFF_MASK = 0x00007FFFF8000000;
 constexpr uint32_t RC2_SIG_PHASERANGE_DIFF_SHIFT = 11;
 constexpr uint64_t RC2_SIG_DOPPLER_DIFF_MASK = 0xFFFF800000000000;
 constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SHIFT = 8;
-constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SIGNBIT_MASK = 0x00010000;
 constexpr uint32_t RC2_SIG_DOPPLER_DIFF_SIGNEXT_MASK = 0xFFFE0000;
 
 //-----------------------------------------------------------------------
@@ -264,27 +260,21 @@ constexpr double RC4_SIG_BLK_DOPPLER_SCALE_FACTOR = 0.0001;
 
 // Bitfield sizes for the Differential Header
 constexpr uint32_t RC4_SIG_DBLK_PSR_BITS = 19;
-constexpr uint32_t RC4_SIG_DBLK_PSR_SIGNBIT_MASK = 0x00040000;
 constexpr uint32_t RC4_SIG_DBLK_PSR_SIGNEXT_MASK = 0xFFF80000;
 constexpr uint32_t RC4_SIG_DBLK_PHASERANGE_BITS = 16;
-constexpr uint32_t RC4_SIG_DBLK_PHASERANGE_SIGNBIT_MASK = 0x00008000;
 constexpr uint32_t RC4_SIG_DBLK_PHASERANGE_SIGNEXT_MASK = 0xFFFF0000;
 
 // Bitfield sizes for the Primary and Secondary Reference Signal Measurement Blocks
-constexpr uint64_t RC4_SSIG_RBLK_PSR_SIGNBIT_MASK = 0x0000000000080000;
 constexpr uint64_t RC4_SSIG_RBLK_PSR_SIGNEXT_MASK = 0xFFFFFFFFFFF00000;
 
-constexpr uint32_t RC4_RBLK_PHASERANGE_SIGNBIT_MASK = 0x00400000;
 constexpr uint32_t RC4_RBLK_PHASERANGE_SIGNEXT_MASK = 0xFF800000;
 
 constexpr std::array<int32_t, 2> RC4_DBLK_INVALID_DOPPLER = {-131072, -8192};
 constexpr std::array<uint32_t, 2> RC4_DBLK_DOPPLER_BITS = {18, 14};
-constexpr std::array<uint32_t, 2> RC4_DBLK_DOPPLER_SIGNBIT_MASK = {0x00020000, 0x00002000};
 constexpr std::array<uint32_t, 2> RC4_DBLK_DOPPLER_SIGNEXT_MASK = {0xFFFC0000, 0xFFFFC000};
 constexpr std::array<uint32_t, 2> RC4_RBLK_PSR_BITS = {37, 20};
 constexpr std::array<uint32_t, 2> RC4_RBLK_PHASERANGE_BITS = {23, 23};
 constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_BITS = {26, 14};
-constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNBIT_MASK = {0x02000000, 0x00002000};
 constexpr std::array<uint32_t, 2> RC4_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RC4_RBLK_INVALID_PSR = {137438953471, -524288};
 
@@ -314,16 +304,13 @@ constexpr double RC5_SIG_BLK_PHASERANGE_SCALE_FACTOR = 0.0001;
 constexpr double RC5_SIG_BLK_DOPPLER_SCALE_FACTOR = 0.0001;
 
 // Bitfield sizes for the Primary and Secondary Reference Signal Measurement Blocks
-constexpr uint64_t RC5_SSIG_RBLK_PSR_SIGNBIT_MASK = 0x0000000000080000;
 constexpr uint64_t RC5_SSIG_RBLK_PSR_SIGNEXT_MASK = 0xFFFFFFFFFFF00000;
 
-constexpr uint32_t RC5_RBLK_PHASERANGE_SIGNBIT_MASK = 0x00400000;
 constexpr uint32_t RC5_RBLK_PHASERANGE_SIGNEXT_MASK = 0xFF800000;
 
 constexpr std::array<uint32_t, 2> RC5_RBLK_PSR_BITS = {37, 20};
 constexpr std::array<uint32_t, 2> RC5_RBLK_PHASERANGE_BITS = {23, 23};
 constexpr std::array<uint32_t, 2> RC5_RBLK_DOPPLER_BITS = {28, 16};
-constexpr std::array<uint32_t, 2> RC5_RBLK_DOPPLER_SIGNBIT_MASK = {0x02000000, 0x00002000};
 constexpr std::array<uint32_t, 2> RC5_RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RC5_RBLK_INVALID_PSR = {137438953471, -524288};
 
@@ -342,14 +329,13 @@ template <typename T> constexpr uint32_t PopCount(T value) noexcept
 template <typename T> constexpr uint32_t Lsb(T value)
 {
     if (value == 0) { return sizeof(T) * 8; } // Indicate no bits are set
-
-#ifdef _MSC_VER
-    unsigned long index;
-    _BitScanForward64(&index, static_cast<uint64_t>(value));
-    return static_cast<uint32_t>(index);
-#else
-    return __builtin_ctzll(static_cast<uint64_t>(value));
-#endif
+    uint32_t index = 0;
+    while ((value & 1) == 0)
+    {
+        value >>= 1;
+        ++index;
+    }
+    return index;
 }
 
 template <typename T> constexpr uint32_t PopLsb(T& value)
@@ -369,6 +355,8 @@ template <typename T> constexpr T GetBitfield(uint64_t value, uint64_t mask)
 
 // TODO: need to do some checking to ensure that the result is valid
 constexpr uint32_t EncodeBitfield(uint32_t value, uint32_t mask) { return value << Lsb(mask) & mask; }
+
+constexpr uint32_t SignBit(uint32_t signExtensionmask) { return 1 << (Lsb(signExtensionmask) - 1); }
 
 //-----------------------------------------------------------------------
 //! \enum SYSTEM
