@@ -91,9 +91,6 @@ class RangeDecompressor
     std::shared_ptr<spdlog::logger> pclMyLogger;
     JsonReader* pclMyMsgDB{};
 
-    // Store the last primary reference blocks for each measurement source.
-    RangeCmp4MeasurementSignalBlock astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
-
     // This is an array of map of map of maps. Indexed by SYSTEM, rangecmp4::SIGNAL_TYPE, then PRN
     // (uint32_t). This will store a header and its reference block for whenever we find
     // differential data for the System, Signal type and PRN. We must keep track of which
@@ -110,7 +107,7 @@ class RangeDecompressor
                                 ChannelTrackingStatus::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
     template <bool bSecondary>
     void DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                  RangeCmp4MeasurementSignalBlock& stRefBlock_, MEASUREMENT_SOURCE eMeasurementSource_);
+                                  RangeCmp4MeasurementSignalBlock& stRefBlock_, RangeCmp4MeasurementSignalBlock& stLastPrimaryRefBlock);
     template <bool bSecondary>
     void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
                                      RangeCmp4MeasurementSignalBlock& stDiffBlock_, const RangeCmp4MeasurementSignalBlock& stRefBlock_,
@@ -120,7 +117,8 @@ class RangeDecompressor
     void PopulateNextRangeData(RangeData& stRangeData_, const RangeCmp5MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
                                const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
     template <bool bSecondary>
-    void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, RangeCmp5MeasurementSignalBlock& stBlock_);
+    void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, RangeCmp5MeasurementSignalBlock& stBlock_,
+                         RangeCmp5MeasurementSignalBlock& stLastPrimaryRefBlock);
 
     static void RangeCmpToRange(const RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
     void RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);
