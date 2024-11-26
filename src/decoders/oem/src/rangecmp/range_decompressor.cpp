@@ -442,7 +442,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
 //------------------------------------------------------------------------------
 template <bool bSecondary>
 void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                                 RangeCmp4MeasurementSignalBlock& stRefBlock_, MEASUREMENT_SOURCE eMeasurementSource_)
+                                                 RangeCmp4MeasurementSignalBlock& stRefBlock_, RangeCmp4MeasurementSignalBlock& stLastPrimaryBlock_)
 {
     stRefBlock_.bParityKnown = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_BLK_PARITY_FLAG_BITS);
     stRefBlock_.bHalfCycleAdded = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_BLK_HALF_CYCLE_BITS);
@@ -459,18 +459,14 @@ void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint
     HandleSignExtension(iDopplerBitfield, RC4_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]);
 
     stRefBlock_.bValidPSR = llPSRBitfield != RC4_RBLK_INVALID_PSR[bSecondary];
-    stRefBlock_.dPSR = llPSRBitfield * RC4_SIG_BLK_PSR_SCALE_FACTOR +
-                       (bSecondary ? astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(eMeasurementSource_)].dPSR : 0);
+    stRefBlock_.dPSR = llPSRBitfield * RC4_SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? stLastPrimaryBlock_.dPSR : 0);
     stRefBlock_.bValidPhaseRange = iPhaseRangeBitfield != RC4_SIG_RBLK_INVALID_PHASERANGE;
     stRefBlock_.dPhaseRange = iPhaseRangeBitfield * RC4_SIG_BLK_PHASERANGE_SCALE_FACTOR + stRefBlock_.dPSR;
     stRefBlock_.bValidDoppler = iDopplerBitfield != RC4_PSIG_RBLK_INVALID_DOPPLER;
-    stRefBlock_.dDoppler = iDopplerBitfield * RC4_SIG_BLK_DOPPLER_SCALE_FACTOR +
-                           (bSecondary ? astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(eMeasurementSource_)].dDoppler : 0);
+    stRefBlock_.dDoppler = iDopplerBitfield * RC4_SIG_BLK_DOPPLER_SCALE_FACTOR + (bSecondary ? stLastPrimaryBlock_.dDoppler : 0);
 
-    if constexpr (!bSecondary)
-    { // For subsequent blocks, we're going to need to store this primary block.
-        memcpy(&astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(eMeasurementSource_)], &stRefBlock_, sizeof(RangeCmp4MeasurementSignalBlock));
-    }
+    // For subsequent blocks, we're going to need to store this primary block.
+    if constexpr (!bSecondary) { memcpy(&stLastPrimaryBlock_, &stRefBlock_, sizeof(RangeCmp4MeasurementSignalBlock)); }
 }
 
 //------------------------------------------------------------------------------
@@ -771,7 +767,7 @@ void RangeDecompressor::RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, R
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_)
 {
-    MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
+    const MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
     if (std::abs(dSecondOffset) < std::numeric_limits<double>::epsilon()) { ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)].clear(); }
@@ -828,11 +824,12 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
             const uint32_t& prn = aPrns[uiPrnIndex];
             uint64_t& included = includedSignals[prn];
             const uint32_t uiIncludedSignalCount = PopCount(included);
+            RangeCmp4MeasurementSignalBlock stPrimaryBlock;
 
             while (included)
             {
                 rangecmp4::SIGNAL_TYPE& signal = aSignals[PopLsb(included)];
-                RangeCmp4MeasurementSignalBlock stMb;
+                RangeCmp4MeasurementSignalBlock stBlock;
 
                 if (stMbHeader.bIsDifferentialData) // This is a differential block.
                 {
@@ -845,13 +842,13 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                         {
                             if (bPrimaryBlock)
                             {
-                                DecompressDifferentialBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stMb, stRb.second, dSecondOffset);
+                                DecompressDifferentialBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stRb.second, dSecondOffset);
                                 bPrimaryBlock = false;
                             }
-                            else { DecompressDifferentialBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stMb, stRb.second, dSecondOffset); }
+                            else { DecompressDifferentialBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stRb.second, dSecondOffset); }
 
-                            ChannelTrackingStatus stChannelTrackingStatus(system, signal, stMb);
-                            PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stMb, stMetaData_,
+                            ChannelTrackingStatus stChannelTrackingStatus(system, signal, stBlock);
+                            PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
                                                   stChannelTrackingStatus, prn, stRb.first.cGLONASSFrequencyNumber);
                         }
                         else
@@ -870,17 +867,17 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                 {
                     if (bPrimaryBlock)
                     {
-                        DecompressReferenceBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stMb, eSource);
+                        DecompressReferenceBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stPrimaryBlock);
                         bPrimaryBlock = false;
                     }
-                    else { DecompressReferenceBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stMb, eSource); }
+                    else { DecompressReferenceBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stPrimaryBlock); }
 
-                    ChannelTrackingStatus stChannelTrackingStatus(system, signal, stMb);
-                    PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stMb, stMetaData_,
+                    ChannelTrackingStatus stChannelTrackingStatus(system, signal, stBlock);
+                    PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
                                           stChannelTrackingStatus, prn, stMbHeader.cGLONASSFrequencyNumber);
 
                     // Always store reference blocks.
-                    ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)][system][signal][prn] = std::pair(stMbHeader, stMb);
+                    ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)][system][signal][prn] = std::pair(stMbHeader, stBlock);
                 }
             }
 
@@ -903,7 +900,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 //------------------------------------------------------------------------------
 template <bool bSecondary>
 void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                        RangeCmp5MeasurementSignalBlock& stBlock_)
+                                        RangeCmp5MeasurementSignalBlock& stBlock_, RangeCmp5MeasurementSignalBlock& stLastPrimaryBlock_)
 {
     stBlock_.bParityKnown = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_PARITY_FLAG_BITS);
     stBlock_.bHalfCycleAdded = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_HALF_CYCLE_BITS);
@@ -920,11 +917,14 @@ void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiB
     HandleSignExtension(iDopplerBitfield, RC5_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]);
 
     stBlock_.bValidPseudorange = llPSRBitfield != RC5_RBLK_INVALID_PSR[bSecondary];
-    stBlock_.dPseudorange = llPSRBitfield * RC5_SIG_BLK_PSR_SCALE_FACTOR;
+    stBlock_.dPseudorange = llPSRBitfield * RC5_SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? stLastPrimaryBlock_.dPseudorange : 0);
     stBlock_.bValidPhaserange = iPhaseRangeBitfield != RC5_SIG_RBLK_INVALID_PHASERANGE;
-    stBlock_.dPhaserange = iPhaseRangeBitfield * RC5_SIG_BLK_PHASERANGE_SCALE_FACTOR + stBlock_.dPseudorange;
+    stBlock_.dPhaserange = iPhaseRangeBitfield * RC5_SIG_BLK_PHASERANGE_SCALE_FACTOR + stBlock_.bValidPseudorange;
     stBlock_.bValidDoppler = iDopplerBitfield != RC5_PSIG_RBLK_INVALID_DOPPLER;
-    stBlock_.dDoppler = iDopplerBitfield * RC5_SIG_BLK_DOPPLER_SCALE_FACTOR;
+    stBlock_.dDoppler = iDopplerBitfield * RC5_SIG_BLK_DOPPLER_SCALE_FACTOR + (bSecondary ? stLastPrimaryBlock_.dDoppler : 0);
+
+    // For subsequent blocks, we're going to need to store this primary block.
+    if constexpr (!bSecondary) { memcpy(&stLastPrimaryBlock_, &stBlock_, sizeof(RangeCmp5MeasurementSignalBlock)); }
 }
 
 //------------------------------------------------------------------------------
@@ -932,6 +932,7 @@ void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiB
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, [[maybe_unused]] const MetaDataStruct& stMetaData_)
 {
+    const MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
     stRangeMessage_.uiNumberOfObservations = 0;
     uint32_t uiBitOffset = 0;
     uint32_t uiBytesLeft = *reinterpret_cast<uint32_t*>(pucData_);
@@ -975,25 +976,26 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
             // This field is only present for GLONASS and reference blocks.
             if (system == SYSTEM::GLONASS) { stMbHeader.cGLONASSFrequencyNumber = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, 5); }
 
-            bool bPrimaryBlock = true; // TODO: does bDataFormatFlag indicate if this is a primary block?
+            bool bPrimaryBlock = true;
             const uint32_t& prn = aPrns[uiPrnIndex];
             uint64_t& included = includedSignals[prn];
             const uint32_t uiIncludedSignalCount = PopCount(included);
+            RangeCmp5MeasurementSignalBlock stPrimaryBlock;
 
             while (included)
             {
                 rangecmp4::SIGNAL_TYPE& signal = aSignals[PopLsb(included)];
-                RangeCmp5MeasurementSignalBlock stMb;
+                RangeCmp5MeasurementSignalBlock stBlock;
 
                 if (bPrimaryBlock)
                 {
-                    DecompressBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stMb);
+                    DecompressBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stPrimaryBlock);
                     bPrimaryBlock = false;
                 }
-                else { DecompressBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stMb); }
+                else { DecompressBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stPrimaryBlock); }
 
-                ChannelTrackingStatus stChannelTrackingStatus(system, signal, stMb);
-                PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stMb, stMetaData_,
+                ChannelTrackingStatus stChannelTrackingStatus(system, signal, stBlock);
+                PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
                                       stChannelTrackingStatus, prn, stMbHeader.cGLONASSFrequencyNumber);
             }
         }
