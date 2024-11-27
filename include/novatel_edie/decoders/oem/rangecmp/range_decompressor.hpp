@@ -75,9 +75,9 @@ class RangeDecompressor
                                     ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
 
   protected:
-    std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, RangeCmp2LockTimeInfo>>>
+    std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp2::LockTimeInfo>>>
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
-    std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, RangeCmp4LocktimeInfo>>>
+    std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp4::LocktimeInfo>>>
         ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
 
     template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, uint32_t uiBitsInBitfield_);
@@ -97,7 +97,7 @@ class RangeDecompressor
     // measurement source the reference block came from so any subsequent differential blocks are
     // correctly decompressed.
     std::map<SYSTEM,
-             std::map<rangecmp4::SIGNAL_TYPE, std::map<uint32_t, std::pair<RangeCmp4MeasurementBlockHeader, RangeCmp4MeasurementSignalBlock>>>>
+             std::map<rangecmp4::SIGNAL_TYPE, std::map<uint32_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>>>>
         ammmMyReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
 
     static double GetSignalWavelength(const ChannelTrackingStatus& stChannelStatus_, int16_t sGLONASSFrequency_);
@@ -107,21 +107,21 @@ class RangeDecompressor
                                 ChannelTrackingStatus::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
     template <bool bSecondary>
     void DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                  RangeCmp4MeasurementSignalBlock& stRefBlock_, const double primaryPseudorange, const double primaryDoppler);
+                                  rangecmp4::MeasurementSignalBlock& stRefBlock_, const double primaryPseudorange, const double primaryDoppler);
     template <bool bSecondary>
     void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                     RangeCmp4MeasurementSignalBlock& stDiffBlock_, const RangeCmp4MeasurementSignalBlock& stRefBlock_,
+                                     rangecmp4::MeasurementSignalBlock& stDiffBlock_, const rangecmp4::MeasurementSignalBlock& stRefBlock_,
                                      double dSecondOffset_);
-    void PopulateNextRangeData(RangeData& stRangeData_, const RangeCmp4MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
+    void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
                                const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
-    void PopulateNextRangeData(RangeData& stRangeData_, const RangeCmp5MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
+    void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
                                const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
     template <bool bSecondary>
-    void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, RangeCmp5MeasurementSignalBlock& stBlock_,
+    void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, rangecmp5::MeasurementSignalBlock& stBlock_,
                          const double primaryPseudorange, const double primaryDoppler);
 
-    static void RangeCmpToRange(const RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
-    void RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);
+    static void RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
+    void RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);
     void RangeCmp4ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
     void RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
 };
