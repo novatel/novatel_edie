@@ -107,7 +107,7 @@ class RangeDecompressor
                                 ChannelTrackingStatus::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
     template <bool bSecondary>
     void DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                  RangeCmp4MeasurementSignalBlock& stRefBlock_, RangeCmp4MeasurementSignalBlock& stLastPrimaryRefBlock);
+                                  RangeCmp4MeasurementSignalBlock& stRefBlock_, const double primaryPseudorange, const double primaryDoppler);
     template <bool bSecondary>
     void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
                                      RangeCmp4MeasurementSignalBlock& stDiffBlock_, const RangeCmp4MeasurementSignalBlock& stRefBlock_,
@@ -118,7 +118,7 @@ class RangeDecompressor
                                const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
     template <bool bSecondary>
     void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, RangeCmp5MeasurementSignalBlock& stBlock_,
-                         RangeCmp5MeasurementSignalBlock& stLastPrimaryRefBlock);
+                         const double primaryPseudorange, const double primaryDoppler);
 
     static void RangeCmpToRange(const RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
     void RangeCmp2ToRange(const RangeCmp2& stRangeCmp2Message_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);

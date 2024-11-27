@@ -442,7 +442,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
 //------------------------------------------------------------------------------
 template <bool bSecondary>
 void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                                 RangeCmp4MeasurementSignalBlock& stRefBlock_, RangeCmp4MeasurementSignalBlock& stLastPrimaryBlock_)
+                                                 RangeCmp4MeasurementSignalBlock& stRefBlock_, double primaryPseudorange, double primaryDoppler)
 {
     stRefBlock_.bParityKnown = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_BLK_PARITY_FLAG_BITS);
     stRefBlock_.bHalfCycleAdded = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC4_SIG_BLK_HALF_CYCLE_BITS);
@@ -459,14 +459,11 @@ void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint
     HandleSignExtension(iDopplerBitfield, RC4_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]);
 
     stRefBlock_.bValidPSR = llPSRBitfield != RC4_RBLK_INVALID_PSR[bSecondary];
-    stRefBlock_.dPSR = llPSRBitfield * RC4_SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? stLastPrimaryBlock_.dPSR : 0);
+    stRefBlock_.dPSR = llPSRBitfield * RC4_SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? primaryPseudorange : 0);
     stRefBlock_.bValidPhaseRange = iPhaseRangeBitfield != RC4_SIG_RBLK_INVALID_PHASERANGE;
     stRefBlock_.dPhaseRange = iPhaseRangeBitfield * RC4_SIG_BLK_PHASERANGE_SCALE_FACTOR + stRefBlock_.dPSR;
     stRefBlock_.bValidDoppler = iDopplerBitfield != RC4_PSIG_RBLK_INVALID_DOPPLER;
-    stRefBlock_.dDoppler = iDopplerBitfield * RC4_SIG_BLK_DOPPLER_SCALE_FACTOR + (bSecondary ? stLastPrimaryBlock_.dDoppler : 0);
-
-    // For subsequent blocks, we're going to need to store this primary block.
-    if constexpr (!bSecondary) { memcpy(&stLastPrimaryBlock_, &stRefBlock_, sizeof(RangeCmp4MeasurementSignalBlock)); }
+    stRefBlock_.dDoppler = iDopplerBitfield * RC4_SIG_BLK_DOPPLER_SCALE_FACTOR + (bSecondary ? primaryDoppler : 0);
 }
 
 //------------------------------------------------------------------------------
@@ -824,7 +821,8 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
             const uint32_t& prn = aPrns[uiPrnIndex];
             uint64_t& included = includedSignals[prn];
             const uint32_t uiIncludedSignalCount = PopCount(included);
-            RangeCmp4MeasurementSignalBlock stPrimaryBlock;
+            double primaryPseudorange{};
+            double primaryDoppler{};
 
             while (included)
             {
@@ -867,10 +865,12 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                 {
                     if (bPrimaryBlock)
                     {
-                        DecompressReferenceBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stPrimaryBlock);
+                        DecompressReferenceBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, primaryPseudorange, primaryDoppler);
+                        primaryPseudorange = stBlock.dPSR;
+                        primaryDoppler = stBlock.dDoppler;
                         bPrimaryBlock = false;
                     }
-                    else { DecompressReferenceBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stPrimaryBlock); }
+                    else { DecompressReferenceBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, primaryPseudorange, primaryDoppler); }
 
                     ChannelTrackingStatus stChannelTrackingStatus(system, signal, stBlock);
                     PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
@@ -900,7 +900,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 //------------------------------------------------------------------------------
 template <bool bSecondary>
 void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                        RangeCmp5MeasurementSignalBlock& stBlock_, RangeCmp5MeasurementSignalBlock& stLastPrimaryBlock_)
+                                        RangeCmp5MeasurementSignalBlock& stBlock_, double primaryPseudorange, double primaryDoppler)
 {
     stBlock_.bParityKnown = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_PARITY_FLAG_BITS);
     stBlock_.bHalfCycleAdded = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, RC5_SIG_BLK_HALF_CYCLE_BITS);
@@ -917,14 +917,11 @@ void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiB
     HandleSignExtension(iDopplerBitfield, RC5_RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]);
 
     stBlock_.bValidPseudorange = llPSRBitfield != RC5_RBLK_INVALID_PSR[bSecondary];
-    stBlock_.dPseudorange = llPSRBitfield * RC5_SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? stLastPrimaryBlock_.dPseudorange : 0);
+    stBlock_.dPseudorange = llPSRBitfield * RC5_SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? primaryPseudorange : 0);
     stBlock_.bValidPhaserange = iPhaseRangeBitfield != RC5_SIG_RBLK_INVALID_PHASERANGE;
     stBlock_.dPhaserange = iPhaseRangeBitfield * RC5_SIG_BLK_PHASERANGE_SCALE_FACTOR + stBlock_.bValidPseudorange;
     stBlock_.bValidDoppler = iDopplerBitfield != RC5_PSIG_RBLK_INVALID_DOPPLER;
-    stBlock_.dDoppler = iDopplerBitfield * RC5_SIG_BLK_DOPPLER_SCALE_FACTOR + (bSecondary ? stLastPrimaryBlock_.dDoppler : 0);
-
-    // For subsequent blocks, we're going to need to store this primary block.
-    if constexpr (!bSecondary) { memcpy(&stLastPrimaryBlock_, &stBlock_, sizeof(RangeCmp5MeasurementSignalBlock)); }
+    stBlock_.dDoppler = iDopplerBitfield * RC5_SIG_BLK_DOPPLER_SCALE_FACTOR + (bSecondary ? primaryDoppler : 0);
 }
 
 //------------------------------------------------------------------------------
@@ -980,7 +977,8 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
             const uint32_t& prn = aPrns[uiPrnIndex];
             uint64_t& included = includedSignals[prn];
             const uint32_t uiIncludedSignalCount = PopCount(included);
-            RangeCmp5MeasurementSignalBlock stPrimaryBlock;
+            double primaryPseudorange{};
+            double primaryDoppler{};
 
             while (included)
             {
@@ -989,10 +987,12 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
 
                 if (bPrimaryBlock)
                 {
-                    DecompressBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stPrimaryBlock);
+                    DecompressBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, primaryPseudorange, primaryDoppler);
+                    primaryPseudorange = stBlock.dPseudorange;
+                    primaryDoppler = stBlock.dDoppler;
                     bPrimaryBlock = false;
                 }
-                else { DecompressBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stPrimaryBlock); }
+                else { DecompressBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, primaryPseudorange, primaryDoppler); }
 
                 ChannelTrackingStatus stChannelTrackingStatus(system, signal, stBlock);
                 PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
