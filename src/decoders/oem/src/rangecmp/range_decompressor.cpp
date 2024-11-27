@@ -307,7 +307,8 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 
     double fLocktimeMilliseconds = uiLockTimeBits_;
 
-    rangecmp2::LockTimeInfo& stLocktimeInfo = ammmMyRangeCmp2LockTimes[eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
+    rangecmp2::LockTimeInfo& stLocktimeInfo =
+        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
     if (uiLockTimeBits_ == SIG_LOCKTIME_MASK >> Lsb(SIG_LOCKTIME_MASK))
     {
         // If the locktime was already saturated, use the stored time to add the missing offset.
@@ -400,7 +401,8 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
                                                  2048.0, 4096.0, 8192.0, 16384.0, 32768.0, 65536.0, 131072.0, 262144.0};
 
     // Store the locktime if it is different than the once we have currently.
-    rangecmp4::LocktimeInfo& stLocktimeInfo = ammmMyRangeCmp4LockTimes[eSystem_][eSignal_][uiPRN_];
+    rangecmp4::LocktimeInfo& stLocktimeInfo =
+        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][uiPRN_];
 
     // Is the locktime relative and has a ullBitfield change been found?
     if (!stLocktimeInfo.bLocktimeAbsolute && ucLockTimeBits_ != stLocktimeInfo.ucLocktimeBits)
