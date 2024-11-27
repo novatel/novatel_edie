@@ -89,7 +89,7 @@ template <typename IntType, typename MaskType> constexpr void HandleSignExtensio
     static_assert(sizeof(IntType) >= sizeof(MaskType), "Value type must be large enough to accommodate the mask.");
     // TODO: When calling this function, value tends to be a runtime variable and mask is a compile time constant.
     // Therefore, the computation to find the signbit could be done at compile time. Find a clean way to do this.
-    if (value & (IntType(1) << (Lsb(mask) - 1))) { value |= static_cast<IntType>(mask); }
+    if (value & (static_cast<IntType>(1) << (Lsb(mask) - 1))) { value |= static_cast<IntType>(mask); }
 }
 
 //-----------------------------------------------------------------------
