@@ -65,10 +65,8 @@ class RangeDecompressor
     //----------------------------------------------------------------------------
     void Reset()
     {
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
+        ammmMyRangeCmp2LockTimes.clear();
+        ammmMyRangeCmp4LockTimes.clear();
     }
 
     [[nodiscard]] STATUS Decompress(unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct& stMetaData_,
@@ -76,9 +74,9 @@ class RangeDecompressor
 
   protected:
     std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp2::LockTimeInfo>>>
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+        ammmMyRangeCmp2LockTimes;
     std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp4::LocktimeInfo>>>
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+        ammmMyRangeCmp4LockTimes;
 
     template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, uint32_t uiBitsInBitfield_);
 
