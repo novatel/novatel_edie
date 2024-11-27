@@ -305,25 +305,25 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 {
     using namespace rangecmp2;
 
-    double fLocktimeMilliseconds = uiLockTimeBits_;
+    double fLockTimeMilliseconds = uiLockTimeBits_;
 
-    rangecmp2::LockTimeInfo& stLocktimeInfo =
+    rangecmp2::LockTimeInfo& stLockTimeInfo =
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
     if (uiLockTimeBits_ == SIG_LOCKTIME_MASK >> Lsb(SIG_LOCKTIME_MASK))
     {
         // If the locktime was already saturated, use the stored time to add the missing offset.
-        if (stLocktimeInfo.bLockTimeSaturated) { fLocktimeMilliseconds += stMetaData_.dMilliseconds - stLocktimeInfo.dLockTimeSaturatedMilliseconds; }
+        if (stLockTimeInfo.bLockTimeSaturated) { fLockTimeMilliseconds += stMetaData_.dMilliseconds - stLockTimeInfo.dLockTimeSaturatedMilliseconds; }
         // If the locktime is not already saturated, store this information if this observation is seen again.
         else
         {
-            stLocktimeInfo.dLockTimeSaturatedMilliseconds = stMetaData_.dMilliseconds;
-            stLocktimeInfo.bLockTimeSaturated = true;
+            stLockTimeInfo.dLockTimeSaturatedMilliseconds = stMetaData_.dMilliseconds;
+            stLockTimeInfo.bLockTimeSaturated = true;
         }
     }
     // If the locktime marked as saturated, but is not reported as such from the RANGECMP2 message, clear the flag.
-    else if (stLocktimeInfo.bLockTimeSaturated) { stLocktimeInfo.bLockTimeSaturated = false; }
+    else if (stLockTimeInfo.bLockTimeSaturated) { stLockTimeInfo.bLockTimeSaturated = false; }
 
-    return fLocktimeMilliseconds / SEC_TO_MILLI_SEC;
+    return fLockTimeMilliseconds / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
@@ -360,7 +360,7 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 //!        must be made to allow the decompressor to accurately reflect
 //!        observation locktimes. See the example below:
 //!
-//! Locktime (t)
+//! Lock Time (t)
 //!   ^
 //!   |                                                 . < Continues 1:1
 //!   |                                               .
@@ -394,62 +394,60 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
     //! time values defined in the RANGECMP4 documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm?Highlight=Range#Lock
     //! NOTE: These values are the lower bound of the range representations.
-    //! For more information on decompressing locktime bitfields, see the
-    //! comment block above RangeDecompressor::DetermineRangeCmp4ObservationLocktime().
     //-----------------------------------------------------------------------
     constexpr std::array<double, 16> lockTime = {0.0,    16.0,   32.0,   64.0,    128.0,   256.0,   512.0,    1024.0,
                                                  2048.0, 4096.0, 8192.0, 16384.0, 32768.0, 65536.0, 131072.0, 262144.0};
 
     // Store the locktime if it is different than the once we have currently.
-    rangecmp4::LocktimeInfo& stLocktimeInfo =
+    rangecmp4::LockTimeInfo& stLockTimeInfo =
         ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][uiPRN_];
 
     // Is the locktime relative and has a ullBitfield change been found?
-    if (!stLocktimeInfo.bLocktimeAbsolute && ucLockTimeBits_ != stLocktimeInfo.ucLocktimeBits)
+    if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
     {
         // Set locktime as absolute if bits are 0 or transitioning from relative to absolute.
-        if (ucLockTimeBits_ == 0 || (stLocktimeInfo.ucLocktimeBits != 0xFF && ucLockTimeBits_ > stLocktimeInfo.ucLocktimeBits))
+        if (ucLockTimeBits_ == 0 || (stLockTimeInfo.ucBits != 0xFF && ucLockTimeBits_ > stLockTimeInfo.ucBits))
         {
-            stLocktimeInfo.bLocktimeAbsolute = true;
+            stLockTimeInfo.bAbsolute = true;
 
-            double dLocktimeDeltaMs = std::abs(lockTime[ucLockTimeBits_] - stLocktimeInfo.dLocktimeMilliseconds);
-            if (dLocktimeDeltaMs > std::numeric_limits<double>::epsilon())
+            double dLockTimeDeltaMs = std::abs(lockTime[ucLockTimeBits_] - stLockTimeInfo.dMilliseconds);
+            if (dLockTimeDeltaMs > std::numeric_limits<double>::epsilon())
             {
-                pclMyLogger->warn("Detected a locktime jump of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.", dLocktimeDeltaMs,
+                pclMyLogger->warn("Detected a locktime jump of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.", dLockTimeDeltaMs,
                                   stMetaData_.usWeek, stMetaData_.dMilliseconds, static_cast<int32_t>(eSystem_), static_cast<int32_t>(eSignal_),
                                   uiPRN_);
             }
         }
 
         // Record the last bit change and the ullBitfield that was changed to.
-        stLocktimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        stLocktimeInfo.ucLocktimeBits = ucLockTimeBits_;
+        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
+        stLockTimeInfo.ucBits = ucLockTimeBits_;
     }
     // If the locktime is absolute and the locktime bits have decreased, there was likely an outage.
-    else if (ucLockTimeBits_ < stLocktimeInfo.ucLocktimeBits)
+    else if (ucLockTimeBits_ < stLockTimeInfo.ucBits)
     {
         // In the event of an outage of any kind, reset the locktime to relative.
-        stLocktimeInfo.bLocktimeAbsolute = false;
-        stLocktimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-        stLocktimeInfo.ucLocktimeBits = ucLockTimeBits_;
+        stLockTimeInfo.bAbsolute = false;
+        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
+        stLockTimeInfo.ucBits = ucLockTimeBits_;
 
         pclMyLogger->warn("Detected a locktime slip (perhaps caused by an outage) of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.",
-                          stLocktimeInfo.dLocktimeMilliseconds - lockTime[stLocktimeInfo.ucLocktimeBits], stMetaData_.usWeek,
+                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek,
                           stMetaData_.dMilliseconds, static_cast<int32_t>(eSystem_), static_cast<int32_t>(eSignal_), uiPRN_);
     }
     else
     {
         // If the locktime is absolute and the ullBitfield hasn't changed within the expected time, reset the last change time
-        if (stMetaData_.dMilliseconds - stLocktimeInfo.dLastBitfieldChangeMilliseconds > 2 * lockTime[ucLockTimeBits_])
+        if (stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > 2 * lockTime[ucLockTimeBits_])
         {
-            stLocktimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
+            stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
             pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.", stMetaData_.usWeek,
                               stMetaData_.dMilliseconds, static_cast<int32_t>(eSystem_), static_cast<int32_t>(eSignal_), uiPRN_);
         }
     }
-    stLocktimeInfo.dLocktimeMilliseconds =
-        stMetaData_.dMilliseconds - stLocktimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLocktimeInfo.ucLocktimeBits];
-    return stLocktimeInfo.dLocktimeMilliseconds / SEC_TO_MILLI_SEC;
+    stLockTimeInfo.dMilliseconds =
+        stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLockTimeInfo.ucBits];
+    return stLockTimeInfo.dMilliseconds / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
@@ -753,7 +751,7 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             const auto eSignalType = GetBitfield<SIGNAL_TYPE>(stSigBlock.uiCombinedField1, SIG_SIGNAL_TYPE_MASK);
             const auto ucPSRBitfield = GetBitfield<uint8_t>(stSigBlock.ullCombinedField2, SIG_PSR_STDDEV_MASK);
             const auto ucADRBitfield = GetBitfield<uint8_t>(stSigBlock.ullCombinedField2, SIG_ADR_STDDEV_MASK);
-            const auto uiLocktimeBits = GetBitfield<uint32_t>(stSigBlock.uiCombinedField1, SIG_LOCKTIME_MASK);
+            const auto uiLockTimeBits = GetBitfield<uint32_t>(stSigBlock.uiCombinedField1, SIG_LOCKTIME_MASK);
             const auto usPRN = stSatBlock.ucSatelliteIdentifier + (eSystem == SYSTEM::GLONASS ? GLONASS_SLOT_OFFSET - 1 : 0);
 
             auto iDopplerBitfield = GetBitfield<int32_t>(stSigBlock.ullCombinedField2, SIG_DOPPLER_DIFF_MASK);
@@ -774,7 +772,7 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             stRangeData.fDopplerFrequency =
                 (iDopplerBase + (iDopplerBitfield >> SIG_DOPPLER_DIFF_SHIFT)) / RangeCmp2SignalScaling(eSystem, eSignalType);
             stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_CNO_MASK);
-            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLocktimeBits, stChannelTrackingStatus.eSatelliteSystem,
+            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stChannelTrackingStatus.eSatelliteSystem,
                                                          stChannelTrackingStatus.eSignalType, usPRN);
             stRangeData.uiChannelTrackingStatus = stChannelTrackingStatus.GetAsWord();
 

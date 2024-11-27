@@ -77,7 +77,7 @@ class RangeDecompressor
   protected:
     std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp2::LockTimeInfo>>>
         ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
-    std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp4::LocktimeInfo>>>
+    std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp4::LockTimeInfo>>>
         ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
 
     template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, uint32_t uiBitsInBitfield_);
