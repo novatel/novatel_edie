@@ -31,50 +31,6 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-//-----------------------------------------------------------------------
-//! Two-dimensional map to look up L1/E1/B1 Scaling for RANGECMP2 signals
-//! defined in the RANGECMP2 documentation:
-//! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#L1_E1_B1_Scaling
-//-----------------------------------------------------------------------
-static std::map<SYSTEM, std::map<rangecmp2::SIGNAL_TYPE, const double>> mmTheRangeCmp2SignalScalingMapping = {
-    {SYSTEM::GPS,
-     {{rangecmp2::SIGNAL_TYPE::GPS_L1C, (1.0)},
-      {rangecmp2::SIGNAL_TYPE::GPS_L1CA, (1.0)},
-      {rangecmp2::SIGNAL_TYPE::GPS_L2Y, (154.0 / 120.0)},
-      {rangecmp2::SIGNAL_TYPE::GPS_L2CM, (154.0 / 120.0)},
-      {rangecmp2::SIGNAL_TYPE::GPS_L5Q, (154.0 / 115.0)}}},
-    {SYSTEM::GLONASS,
-     {{rangecmp2::SIGNAL_TYPE::GLONASS_L1CA, (1.0)},
-      {rangecmp2::SIGNAL_TYPE::GLONASS_L2CA, (9.0 / 7.0)},
-      {rangecmp2::SIGNAL_TYPE::GLONASS_L2P, (9.0 / 7.0)},
-      {rangecmp2::SIGNAL_TYPE::GLONASS_L3Q, (313.0 / 235.0)}}},
-    {SYSTEM::SBAS, {{rangecmp2::SIGNAL_TYPE::SBAS_L1CA, (1.0)}, {rangecmp2::SIGNAL_TYPE::SBAS_L5I, (154.0 / 115.0)}}},
-    {SYSTEM::GALILEO,
-     {{rangecmp2::SIGNAL_TYPE::GALILEO_E1C, (1.0)},
-      {rangecmp2::SIGNAL_TYPE::GALILEO_E5AQ, (154.0 / 115.0)},
-      {rangecmp2::SIGNAL_TYPE::GALILEO_E5BQ, (154.0 / 118.0)},
-      {rangecmp2::SIGNAL_TYPE::GALILEO_ALTBOCQ, (154.0 / 116.5)},
-      {rangecmp2::SIGNAL_TYPE::GALILEO_E6C, (154.0 / 125.0)},
-      {rangecmp2::SIGNAL_TYPE::GALILEO_E6B, (154.0 / 125.0)}}},
-    {SYSTEM::BEIDOU,
-     {{rangecmp2::SIGNAL_TYPE::BEIDOU_B1D1I, (1.0)},
-      {rangecmp2::SIGNAL_TYPE::BEIDOU_B1D2I, (1.0)},
-      {rangecmp2::SIGNAL_TYPE::BEIDOU_B1CP, (1526.0 / 1540.0)},
-      {rangecmp2::SIGNAL_TYPE::BEIDOU_B2D1I, (1526.0 / 1180.0)},
-      {rangecmp2::SIGNAL_TYPE::BEIDOU_B2D2I, (1526.0 / 1180.0)},
-      {rangecmp2::SIGNAL_TYPE::BEIDOU_B2AP, (1526.0 / 1150.0)},
-      {rangecmp2::SIGNAL_TYPE::BEIDOU_B2B_I, (1526.0 / 1180.0)},
-      {rangecmp2::SIGNAL_TYPE::BEIDOU_B3D1I, (1526.0 / 1240.0)},
-      {rangecmp2::SIGNAL_TYPE::BEIDOU_B3D2I, (1526.0 / 1240.0)}}},
-    {SYSTEM::QZSS,
-     {{rangecmp2::SIGNAL_TYPE::QZSS_L1C, (1.0)},
-      {rangecmp2::SIGNAL_TYPE::QZSS_L1CA, (1.0)},
-      {rangecmp2::SIGNAL_TYPE::QZSS_L2CM, (154.0 / 120.0)},
-      {rangecmp2::SIGNAL_TYPE::QZSS_L5Q, (154.0 / 115.0)},
-      {rangecmp2::SIGNAL_TYPE::QZSS_L6P, (154.0 / 125.0)}}},
-    {SYSTEM::LBAND, {{rangecmp2::SIGNAL_TYPE::LBAND, (1.0)}}},
-    {SYSTEM::NAVIC, {{rangecmp2::SIGNAL_TYPE::NAVIC_L5SPS, (1.0)}}}};
-
 //------------------------------------------------------------------------------
 RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_)
 {
@@ -99,6 +55,94 @@ void RangeDecompressor::LoadJsonDb(JsonReader* pclJsonDB_)
     clMyHeaderDecoder.LoadJsonDb(pclJsonDB_);
     clMyMessageDecoder.LoadJsonDb(pclJsonDB_);
     clMyEncoder.LoadJsonDb(pclJsonDB_);
+}
+
+//-----------------------------------------------------------------------
+//! Lookup function for L1/E1/B1 Scaling for RANGECMP2 signals
+//! defined in the RANGECMP2 documentation:
+//! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#L1_E1_B1_Scaling
+//-----------------------------------------------------------------------
+double RangeDecompressor::RangeCmp2SignalScaling(SYSTEM system, rangecmp2::SIGNAL_TYPE signal)
+{
+    using namespace rangecmp2;
+
+    switch (system)
+    {
+    case SYSTEM::GPS:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::GPS_L1C: return 1.0;
+        case SIGNAL_TYPE::GPS_L1CA: return 1.0;
+        case SIGNAL_TYPE::GPS_L2Y: return 154.0 / 120.0;
+        case SIGNAL_TYPE::GPS_L2CM: return 154.0 / 120.0;
+        case SIGNAL_TYPE::GPS_L5Q: return 154.0 / 115.0;
+        default: return 0.0;
+        }
+    case SYSTEM::GLONASS:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::GLONASS_L1CA: return 1.0;
+        case SIGNAL_TYPE::GLONASS_L2CA: return 9.0 / 7.0;
+        case SIGNAL_TYPE::GLONASS_L2P: return 9.0 / 7.0;
+        case SIGNAL_TYPE::GLONASS_L3Q: return 313.0 / 235.0;
+        default: return 0.0;
+        }
+    case SYSTEM::SBAS:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::SBAS_L1CA: return 1.0;
+        case SIGNAL_TYPE::SBAS_L5I: return 154.0 / 115.0;
+        default: return 0.0;
+        }
+    case SYSTEM::GALILEO:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::GALILEO_E1C: return 1.0;
+        case SIGNAL_TYPE::GALILEO_E5AQ: return 154.0 / 115.0;
+        case SIGNAL_TYPE::GALILEO_E5BQ: return 154.0 / 118.0;
+        case SIGNAL_TYPE::GALILEO_ALTBOCQ: return 154.0 / 116.5;
+        case SIGNAL_TYPE::GALILEO_E6C: return 154.0 / 125.0;
+        case SIGNAL_TYPE::GALILEO_E6B: return 154.0 / 125.0;
+        default: return 0.0;
+        }
+    case SYSTEM::BEIDOU:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::BEIDOU_B1D1I: return 1.0;
+        case SIGNAL_TYPE::BEIDOU_B1D2I: return 1.0;
+        case SIGNAL_TYPE::BEIDOU_B1CP: return 1526.0 / 1540.0;
+        case SIGNAL_TYPE::BEIDOU_B2D1I: return 1526.0 / 1180.0;
+        case SIGNAL_TYPE::BEIDOU_B2D2I: return 1526.0 / 1180.0;
+        case SIGNAL_TYPE::BEIDOU_B2AP: return 1526.0 / 1150.0;
+        case SIGNAL_TYPE::BEIDOU_B2B_I: return 1526.0 / 1180.0;
+        case SIGNAL_TYPE::BEIDOU_B3D1I: return 1526.0 / 1240.0;
+        case SIGNAL_TYPE::BEIDOU_B3D2I: return 1526.0 / 1240.0;
+        default: return 0.0;
+        }
+    case SYSTEM::QZSS:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::QZSS_L1C: return 1.0;
+        case SIGNAL_TYPE::QZSS_L1CA: return 1.0;
+        case SIGNAL_TYPE::QZSS_L2CM: return 154.0 / 120.0;
+        case SIGNAL_TYPE::QZSS_L5Q: return 154.0 / 115.0;
+        case SIGNAL_TYPE::QZSS_L6P: return 154.0 / 125.0;
+        default: return 0.0;
+        }
+    case SYSTEM::LBAND:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::LBAND: return 1.0;
+        default: return 0.0;
+        }
+    case SYSTEM::NAVIC:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::NAVIC_L5SPS: return 1.0;
+        default: return 0.0;
+        }
+    default: return 0.0;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -725,10 +769,10 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             stRangeData.fPSRStdDev = stdDevPsrScaling[ucPSRBitfield];
             stRangeData.dADR =
                 -((iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_PHASERANGE_DIFF_MASK) >> SIG_PHASERANGE_DIFF_SHIFT)) /
-                  GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency - GLONASS_FREQUENCY_NUMBER_OFFSET));
+                  GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency - GLONASS_FREQUENCY_NUMBER_OFFSET)); // TODO: Bug?
             stRangeData.fADRStdDev = stdDevAdrScaling[ucADRBitfield];
             stRangeData.fDopplerFrequency =
-                (iDopplerBase + (iDopplerBitfield >> SIG_DOPPLER_DIFF_SHIFT)) / mmTheRangeCmp2SignalScalingMapping[eSystem][eSignalType];
+                (iDopplerBase + (iDopplerBitfield >> SIG_DOPPLER_DIFF_SHIFT)) / RangeCmp2SignalScaling(eSystem, eSignalType);
             stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_CNO_MASK);
             stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLocktimeBits, stChannelTrackingStatus.eSatelliteSystem,
                                                          stChannelTrackingStatus.eSignalType, usPRN);
