@@ -35,6 +35,7 @@ namespace novatel::edie::oem {
 //-----------------------------------------------------------------------
 // Generic Constexpr Functions
 //-----------------------------------------------------------------------
+// NOTE: Replace this with std::popcount when C++20 is available
 template <typename T> constexpr uint32_t PopCount(T value) noexcept
 {
     uint32_t count = 0;
