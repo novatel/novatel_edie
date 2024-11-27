@@ -668,17 +668,17 @@ struct MeasurementSignalBlock
 };
 
 //-----------------------------------------------------------------------
-//! \struct LocktimeInfo
+//! \struct LockTimeInfo
 //! \brief Store persistent data for RANGECMP4 locktime extrapolation.
 //-----------------------------------------------------------------------
-struct LocktimeInfo
+struct LockTimeInfo
 {
-    double dLocktimeMilliseconds{0.0};                           // The current running locktime for this observation.
+    double dMilliseconds{0.0};                           // The current running locktime for this observation.
     double dLastBitfieldChangeMilliseconds{0.0};                 // The last time (milliseconds from OEM header) locktime was updated.
-    uint8_t ucLocktimeBits{std::numeric_limits<uint8_t>::max()}; // The last recorded bit pattern.
-    bool bLocktimeAbsolute{false};                               // Is the lock time absolute or relative?
+    uint8_t ucBits{std::numeric_limits<uint8_t>::max()}; // The last recorded bit pattern.
+    bool bAbsolute{false};                               // Is the lock time absolute or relative?
 
-    LocktimeInfo() = default;
+    LockTimeInfo() = default;
 };
 } // namespace rangecmp4
 
