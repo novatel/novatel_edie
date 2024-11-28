@@ -1008,7 +1008,7 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
 
             const uint32_t& prn = aPrns[uiPrnIndex];
             uint64_t& included = includedSignals[prn];
-            // const uint32_t uiIncludedSignalCount = PopCount(included);
+            const uint32_t uiIncludedSignalCount = PopCount(included);
             bool bPrimaryBlock = true;
             double primaryPseudorange{};
             double primaryDoppler{};
@@ -1031,6 +1031,15 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
                 PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
                                       stChannelTrackingStatus, prn, stMbHeader.cGLONASSFrequencyNumber);
             }
+
+            // Update the grouping bit in the status word if multiple signals for this PRN are counted.
+            // if (uiIncludedSignalCount > 1 && uiIncludedSignalCount <= stRangeMessage_.uiNumberOfObservations)
+            // {
+            //     for (uint32_t uiIndex = uiIncludedSignalCount; uiIndex > 0; uiIndex--)
+            //     {
+            //         stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations - uiIndex].uiChannelTrackingStatus |= CTS_GROUPING_MASK;
+            //     }
+            // }
         }
     }
 }
