@@ -675,7 +675,7 @@ struct MeasurementSignalBlock
 struct LockTimeInfo
 {
     double dMilliseconds{0.0};                           // The current running locktime for this observation.
-    double dLastBitfieldChangeMilliseconds{0.0};                 // The last time (milliseconds from OEM header) locktime was updated.
+    double dLastBitfieldChangeMilliseconds{0.0};         // The last time (milliseconds from OEM header) locktime was updated.
     uint8_t ucBits{std::numeric_limits<uint8_t>::max()}; // The last recorded bit pattern.
     bool bAbsolute{false};                               // Is the lock time absolute or relative?
 
