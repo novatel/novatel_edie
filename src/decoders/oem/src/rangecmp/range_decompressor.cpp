@@ -1033,13 +1033,13 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
             }
 
             // Update the grouping bit in the status word if multiple signals for this PRN are counted.
-            // if (uiIncludedSignalCount > 1 && uiIncludedSignalCount <= stRangeMessage_.uiNumberOfObservations)
-            // {
-            //     for (uint32_t uiIndex = uiIncludedSignalCount; uiIndex > 0; uiIndex--)
-            //     {
-            //         stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations - uiIndex].uiChannelTrackingStatus |= CTS_GROUPING_MASK;
-            //     }
-            // }
+            if (uiIncludedSignalCount > 1 && uiIncludedSignalCount <= stRangeMessage_.uiNumberOfObservations)
+            {
+                for (uint32_t uiIndex = uiIncludedSignalCount; uiIndex > 0; uiIndex--)
+                {
+                    stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations - uiIndex].uiChannelTrackingStatus |= CTS_GROUPING_MASK;
+                }
+            }
         }
     }
 }
