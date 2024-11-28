@@ -681,6 +681,13 @@ struct LockTimeInfo
 
     LockTimeInfo() = default;
 };
+
+constexpr uint64_t MakeKey(SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal, MEASUREMENT_SOURCE source)
+{
+    assert(static_cast<uint64_t>(system) < 16 && satellite < 64 && static_cast<uint64_t>(signal) < 16 && static_cast<uint64_t>(source) < 2);
+    return (static_cast<uint64_t>(system) << 11) | (satellite << 5) | static_cast<uint64_t>(signal) << 1 | static_cast<uint64_t>(source);
+}
+
 } // namespace rangecmp4
 
 namespace rangecmp5 {
@@ -834,6 +841,12 @@ struct ChannelTrackingStatus
         // UNKNOWN
         UNKNOWN = 0
     };
+
+    static uint64_t MakeKey(SATELLITE_SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal, MEASUREMENT_SOURCE source)
+    {
+        assert(static_cast<uint64_t>(system) < 16 && satellite < 64 && static_cast<uint64_t>(signal) < 32 && static_cast<uint64_t>(source) < 2);
+        return (static_cast<uint64_t>(system) << 12) | (satellite << 6) | static_cast<uint64_t>(signal) << 1 | static_cast<uint64_t>(source);
+    }
 
     TRACKING_STATE eTrackingState{TRACKING_STATE::IDLE};
     uint32_t uiSVChannelNumber{0U};

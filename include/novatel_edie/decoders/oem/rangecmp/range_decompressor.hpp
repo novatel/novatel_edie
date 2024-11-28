@@ -65,21 +65,14 @@ class RangeDecompressor
     //----------------------------------------------------------------------------
     void Reset()
     {
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
+        for (auto& it : mMyRangeCmp2LockTimes) { it.second = {}; }
+        for (auto& it : mMyRangeCmp4LockTimes) { it.second = {}; }
     }
 
     [[nodiscard]] STATUS Decompress(unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct& stMetaData_,
                                     ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
 
   protected:
-    std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp2::LockTimeInfo>>>
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
-    std::map<ChannelTrackingStatus::SATELLITE_SYSTEM, std::map<ChannelTrackingStatus::SIGNAL_TYPE, std::map<uint32_t, rangecmp4::LockTimeInfo>>>
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
-
     template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, uint32_t uiBitsInBitfield_);
 
   private:
@@ -91,14 +84,9 @@ class RangeDecompressor
     std::shared_ptr<spdlog::logger> pclMyLogger;
     JsonReader* pclMyMsgDB{};
 
-    // This is an array of map of map of maps. Indexed by SYSTEM, rangecmp4::SIGNAL_TYPE, then PRN
-    // (uint32_t). This will store a header and its reference block for whenever we find
-    // differential data for the System, Signal type and PRN. We must keep track of which
-    // measurement source the reference block came from so any subsequent differential blocks are
-    // correctly decompressed.
-    std::map<SYSTEM,
-             std::map<rangecmp4::SIGNAL_TYPE, std::map<uint32_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>>>>
-        ammmMyReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+    std::unordered_map<uint64_t, rangecmp2::LockTimeInfo> mMyRangeCmp2LockTimes;
+    std::unordered_map<uint64_t, rangecmp4::LockTimeInfo> mMyRangeCmp4LockTimes;
+    std::unordered_map<uint64_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>> mMyReferenceBlocks;
 
     static double RangeCmp2SignalScaling(SYSTEM sys, rangecmp2::SIGNAL_TYPE sig);
     static double GetSignalWavelength(const ChannelTrackingStatus& stChannelStatus_, int16_t sGLONASSFrequency_);

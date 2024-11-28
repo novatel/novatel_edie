@@ -308,7 +308,7 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
     double fLockTimeMilliseconds = uiLockTimeBits_;
 
     rangecmp2::LockTimeInfo& stLockTimeInfo =
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][static_cast<uint32_t>(usPRN_)];
+        mMyRangeCmp2LockTimes[ChannelTrackingStatus::MakeKey(eSystem_, usPRN_, eSignal_, stMetaData_.eMeasurementSource)];
     if (uiLockTimeBits_ == SIG_LOCKTIME_MASK >> Lsb(SIG_LOCKTIME_MASK))
     {
         // If the locktime was already saturated, use the stored time to add the missing offset.
@@ -398,9 +398,10 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
     constexpr std::array<double, 16> lockTime = {0.0,    16.0,   32.0,   64.0,    128.0,   256.0,   512.0,    1024.0,
                                                  2048.0, 4096.0, 8192.0, 16384.0, 32768.0, 65536.0, 131072.0, 262144.0};
 
+    using namespace rangecmp4;
+
     // Store the locktime if it is different than the once we have currently.
-    rangecmp4::LockTimeInfo& stLockTimeInfo =
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(stMetaData_.eMeasurementSource)][eSystem_][eSignal_][uiPRN_];
+    LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[ChannelTrackingStatus::MakeKey(eSystem_, uiPRN_, eSignal_, stMetaData_.eMeasurementSource)];
 
     // Is the locktime relative and has a ullBitfield change been found?
     if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
@@ -791,7 +792,13 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
     const MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
-    if (std::abs(dSecondOffset) < std::numeric_limits<double>::epsilon()) { ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)].clear(); }
+    if (std::abs(dSecondOffset) < std::numeric_limits<double>::epsilon())
+    {
+        for (auto& it : mMyReferenceBlocks)
+        {
+            if (static_cast<MEASUREMENT_SOURCE>(it.first & 1) == eSource) { it.second = {}; }
+        }
+    }
 
     stRangeMessage_.uiNumberOfObservations = 0;
     uint32_t uiBitOffset = 0;
@@ -840,24 +847,24 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                     ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS);
             }
 
-            bool bPrimaryBlock = true;
             const uint32_t& prn = aPrns[uiPrnIndex];
             uint64_t& included = includedSignals[prn];
             const uint32_t uiIncludedSignalCount = PopCount(included);
+            bool bPrimaryBlock = true;
             double primaryPseudorange{};
             double primaryDoppler{};
 
             while (included)
             {
-                SIGNAL_TYPE& signal = aSignals[PopLsb(included)];
+                const SIGNAL_TYPE signal = aSignals[PopLsb(included)];
+                const uint64_t key = MakeKey(system, prn, signal, eSource);
                 MeasurementSignalBlock stBlock;
 
                 if (stMbHeader.bIsDifferentialData) // This is a differential block.
                 {
                     try
                     {
-                        const std::pair<MeasurementBlockHeader, MeasurementSignalBlock>& stRb =
-                            ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)].at(system).at(signal).at(prn);
+                        const std::pair<MeasurementBlockHeader, MeasurementSignalBlock>& stRb = mMyReferenceBlocks.at(key);
 
                         if (stMbHeader.ucReferenceDataBlockID == stRb.first.ucReferenceDataBlockID)
                         {
@@ -900,7 +907,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                                           stChannelTrackingStatus, prn, stMbHeader.cGLONASSFrequencyNumber);
 
                     // Always store reference blocks.
-                    ammmMyReferenceBlocks[static_cast<uint32_t>(eSource)][system][signal][prn] = std::pair(stMbHeader, stBlock);
+                    mMyReferenceBlocks[key] = std::pair(stMbHeader, stBlock);
                 }
             }
 
@@ -999,16 +1006,16 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
             // This field is only present for GLONASS and reference blocks.
             if (system == SYSTEM::GLONASS) { stMbHeader.cGLONASSFrequencyNumber = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, 5); }
 
-            bool bPrimaryBlock = true;
             const uint32_t& prn = aPrns[uiPrnIndex];
             uint64_t& included = includedSignals[prn];
             // const uint32_t uiIncludedSignalCount = PopCount(included);
+            bool bPrimaryBlock = true;
             double primaryPseudorange{};
             double primaryDoppler{};
 
             while (included)
             {
-                rangecmp4::SIGNAL_TYPE& signal = aSignals[PopLsb(included)];
+                const rangecmp4::SIGNAL_TYPE signal = aSignals[PopLsb(included)];
                 MeasurementSignalBlock stBlock;
 
                 if (bPrimaryBlock)

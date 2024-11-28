@@ -43,14 +43,6 @@ class RangeCmpTest : public ::testing::Test
         {
             return ExtractBitfield<uint64_t>(ppucBytes_, uiBytesLeft_, uiBitOffset_, uiBitfieldSize_);
         }
-
-        void ResetLockTimes()
-        {
-            ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-            ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-            ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-            ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-        }
     };
 
   protected:
@@ -68,7 +60,7 @@ class RangeCmpTest : public ::testing::Test
     // Per-test-suite teardown
     static void TearDownTestSuite() { Logger::Shutdown(); }
 
-    void SetUp() override { pclMyRangeDecompressor->ResetLockTimes(); }
+    void SetUp() override { pclMyRangeDecompressor->Reset(); }
 };
 
 std::unique_ptr<RangeCmpTest::RangeDecompressorTester> RangeCmpTest::pclMyRangeDecompressor = nullptr;
