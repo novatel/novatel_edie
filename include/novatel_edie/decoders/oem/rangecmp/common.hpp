@@ -220,16 +220,16 @@ namespace rangecmp {
 //-----------------------------------------------------------------------
 constexpr uint64_t RC_DOPPLER_FREQUENCY_MASK = 0x000000000FFFFFFF;
 constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNEXT_MASK = 0xF0000000;
-constexpr uint32_t RC_DOPPLER_FREQUENCY_SHIFT = 8;
+constexpr float RC_DOPPLER_FREQUENCY_SCALE_FACTOR = 256.0F;
 constexpr uint64_t RC_PSR_MEASUREMENT_MASK = 0xFFFFFFFFF0000000;
-constexpr uint32_t RC_PSR_MEASUREMENT_SHIFT = 7;
-constexpr uint32_t RC_ADR_SHIFT = 8;
+constexpr double RC_PSR_MEASUREMENT_SCALE_FACTOR = 128.0;
+constexpr double RC_ADR_SCALE_FACTOR = 256.0;
 constexpr uint32_t RC_PSR_STDDEV_MASK = 0x0F;
 constexpr uint32_t RC_ADR_STDDEV_MASK = 0xF0;
-constexpr uint32_t RC_ADR_STDDEV_SHIFT = 9;
+constexpr double RC_ADR_STDDEV_SCALE_FACTOR = 512.0;
 constexpr uint32_t RC_ADR_STDDEV_SCALE_OFFSET = 1;
 constexpr uint32_t RC_LOCK_TIME_MASK = 0x001FFFFF;
-constexpr uint32_t RC_LOCK_TIME_SHIFT = 5;
+constexpr double RC_LOCK_TIME_SCALE_FACTOR = 32.0;
 constexpr uint32_t RC_CNO_MASK = 0x03E00000;
 constexpr uint32_t RC_CNO_SCALE_OFFSET = 20;
 constexpr uint32_t RC_GLONASS_FREQUENCY_MASK = 0xFC000000;
@@ -270,11 +270,11 @@ constexpr uint32_t SIG_CNO_SCALE_OFFSET = 20;
 constexpr uint64_t SIG_PSR_STDDEV_MASK = 0x00000000000001E0;
 constexpr uint64_t SIG_ADR_STDDEV_MASK = 0x0000000000001E00;
 constexpr uint64_t SIG_PSR_DIFF_MASK = 0x0000000007FFE000;
-constexpr uint32_t SIG_PSR_DIFF_SHIFT = 7;
+constexpr double SIG_PSR_DIFF_SCALE_FACTOR = 128.0;
 constexpr uint64_t SIG_PHASERANGE_DIFF_MASK = 0x00007FFFF8000000;
-constexpr uint32_t SIG_PHASERANGE_DIFF_SHIFT = 11;
+constexpr double SIG_PHASERANGE_DIFF_SCALE_FACTOR = 2048.0;
 constexpr uint64_t SIG_DOPPLER_DIFF_MASK = 0xFFFF800000000000;
-constexpr uint32_t SIG_DOPPLER_DIFF_SHIFT = 8;
+constexpr double SIG_DOPPLER_DIFF_SCALE_FACTOR = 256.0;
 constexpr uint32_t SIG_DOPPLER_DIFF_SIGNEXT_MASK = 0xFFFE0000;
 } // namespace rangecmp2
 

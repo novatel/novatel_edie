@@ -686,18 +686,18 @@ void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMess
 
         auto iDoppler = GetBitfield<int32_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_DOPPLER_FREQUENCY_MASK);
         HandleSignExtension(iDoppler, RC_DOPPLER_FREQUENCY_SIGNEXT_MASK);
-        stRangeData.fDopplerFrequency = iDoppler >> RC_DOPPLER_FREQUENCY_SHIFT;
+        stRangeData.fDopplerFrequency = iDoppler / RC_DOPPLER_FREQUENCY_SCALE_FACTOR;
 
-        stRangeData.dPSR = GetBitfield<uint64_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_PSR_MEASUREMENT_MASK) >> RC_PSR_MEASUREMENT_SHIFT;
+        stRangeData.dPSR = GetBitfield<uint64_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_PSR_MEASUREMENT_MASK) / RC_PSR_MEASUREMENT_SCALE_FACTOR;
         stRangeData.fPSRStdDev = stdDevPsrScaling[stRangeCmpData.ucStdDevPSRStdDevADR & RC_PSR_STDDEV_MASK];
         stRangeData.fADRStdDev =
-            (GetBitfield<uint32_t>(stRangeCmpData.ucStdDevPSRStdDevADR, RC_ADR_STDDEV_MASK) + RC_ADR_STDDEV_SCALE_OFFSET) >> RC_ADR_STDDEV_SHIFT;
-        stRangeData.fLockTime = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_LOCK_TIME_MASK) >> RC_LOCK_TIME_SHIFT;
+            (GetBitfield<uint32_t>(stRangeCmpData.ucStdDevPSRStdDevADR, RC_ADR_STDDEV_MASK) + RC_ADR_STDDEV_SCALE_OFFSET) / RC_ADR_STDDEV_SCALE_FACTOR;
+        stRangeData.fLockTime = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_LOCK_TIME_MASK) / RC_LOCK_TIME_SCALE_FACTOR;
         stRangeData.fCNo = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_CNO_MASK) + RC_CNO_SCALE_OFFSET;
         stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_GLONASS_FREQUENCY_MASK);
 
         double dWavelength = GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency);
-        stRangeData.dADR = stRangeCmpData.uiADR >> RC_ADR_SHIFT;
+        stRangeData.dADR = stRangeCmpData.uiADR / RC_ADR_SCALE_FACTOR;
         double dADRRolls = ((stRangeData.dPSR / dWavelength) + stRangeData.dADR) / MAX_VALUE;
         stRangeData.dADR -= MAX_VALUE * static_cast<uint64_t>(std::round(dADRRolls));
     }
@@ -763,14 +763,14 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             RangeData& stRangeData = stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++];
             stRangeData.usPRN = usPRN;
             stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stSatBlock.ulCombinedField, SAT_GLONASS_FREQUENCY_ID_MASK);
-            stRangeData.dPSR = iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_PSR_DIFF_MASK) >> SIG_PSR_DIFF_SHIFT);
+            stRangeData.dPSR = iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_PSR_DIFF_MASK) / SIG_PSR_DIFF_SCALE_FACTOR);
             stRangeData.fPSRStdDev = stdDevPsrScaling[ucPSRBitfield];
             stRangeData.dADR =
-                -((iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_PHASERANGE_DIFF_MASK) >> SIG_PHASERANGE_DIFF_SHIFT)) /
+                -((iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_PHASERANGE_DIFF_MASK) / SIG_PHASERANGE_DIFF_SCALE_FACTOR)) /
                   GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency - GLONASS_FREQUENCY_NUMBER_OFFSET)); // TODO: Bug?
             stRangeData.fADRStdDev = stdDevAdrScaling[ucADRBitfield];
             stRangeData.fDopplerFrequency =
-                (iDopplerBase + (iDopplerBitfield >> SIG_DOPPLER_DIFF_SHIFT)) / RangeCmp2SignalScaling(eSystem, eSignalType);
+                (iDopplerBase + (iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR)) / RangeCmp2SignalScaling(eSystem, eSignalType);
             stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_CNO_MASK);
             stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stChannelTrackingStatus.eSatelliteSystem,
                                                          stChannelTrackingStatus.eSignalType, usPRN);
