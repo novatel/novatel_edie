@@ -218,21 +218,21 @@ namespace rangecmp {
 //! NOTE: RangeCmpData defines a number of fields that can be
 //! masked out from larger data types.
 //-----------------------------------------------------------------------
-constexpr uint64_t RC_DOPPLER_FREQUENCY_MASK = 0x000000000FFFFFFF;
-constexpr uint32_t RC_DOPPLER_FREQUENCY_SIGNEXT_MASK = 0xF0000000;
-constexpr float RC_DOPPLER_FREQUENCY_SCALE_FACTOR = 256.0F;
-constexpr uint64_t RC_PSR_MEASUREMENT_MASK = 0xFFFFFFFFF0000000;
-constexpr double RC_PSR_MEASUREMENT_SCALE_FACTOR = 128.0;
-constexpr double RC_ADR_SCALE_FACTOR = 256.0;
-constexpr uint32_t RC_PSR_STDDEV_MASK = 0x0F;
-constexpr uint32_t RC_ADR_STDDEV_MASK = 0xF0;
-constexpr double RC_ADR_STDDEV_SCALE_FACTOR = 512.0;
-constexpr uint32_t RC_ADR_STDDEV_SCALE_OFFSET = 1;
-constexpr uint32_t RC_LOCK_TIME_MASK = 0x001FFFFF;
-constexpr double RC_LOCK_TIME_SCALE_FACTOR = 32.0;
-constexpr uint32_t RC_CNO_MASK = 0x03E00000;
-constexpr uint32_t RC_CNO_SCALE_OFFSET = 20;
-constexpr uint32_t RC_GLONASS_FREQUENCY_MASK = 0xFC000000;
+constexpr uint64_t DOPPLER_FREQUENCY_MASK = 0x000000000FFFFFFF;
+constexpr uint32_t DOPPLER_FREQUENCY_SIGNEXT_MASK = 0xF0000000;
+constexpr float DOPPLER_FREQUENCY_SCALE_FACTOR = 256.0F;
+constexpr uint64_t PSR_MEASUREMENT_MASK = 0xFFFFFFFFF0000000;
+constexpr double PSR_MEASUREMENT_SCALE_FACTOR = 128.0;
+constexpr double ADR_SCALE_FACTOR = 256.0;
+constexpr uint32_t PSR_STDDEV_MASK = 0x0F;
+constexpr uint32_t ADR_STDDEV_MASK = 0xF0;
+constexpr double ADR_STDDEV_SCALE_FACTOR = 512.0;
+constexpr uint32_t ADR_STDDEV_SCALE_OFFSET = 1;
+constexpr uint32_t LOCK_TIME_MASK = 0x001FFFFF;
+constexpr double LOCK_TIME_SCALE_FACTOR = 32.0;
+constexpr uint32_t CNO_MASK = 0x03E00000;
+constexpr uint32_t CNO_SCALE_OFFSET = 20;
+constexpr uint32_t GLONASS_FREQUENCY_MASK = 0xFC000000;
 } // namespace rangecmp
 
 namespace rangecmp2 {
@@ -844,8 +844,9 @@ struct ChannelTrackingStatus
 
     static uint64_t MakeKey(SATELLITE_SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal, MEASUREMENT_SOURCE source)
     {
-        assert(static_cast<uint64_t>(system) < 16 && satellite < 64 && static_cast<uint64_t>(signal) < 32 && static_cast<uint64_t>(source) < 2);
-        return (static_cast<uint64_t>(system) << 12) | (satellite << 6) | static_cast<uint64_t>(signal) << 1 | static_cast<uint64_t>(source);
+        // TODO: scale PRNs down based on system?
+        assert(static_cast<uint64_t>(system) < 16 && satellite < 256 && static_cast<uint64_t>(signal) < 32 && static_cast<uint64_t>(source) < 2);
+        return (static_cast<uint64_t>(system) << 14) | (satellite << 6) | static_cast<uint64_t>(signal) << 1 | static_cast<uint64_t>(source);
     }
 
     TRACKING_STATE eTrackingState{TRACKING_STATE::IDLE};
