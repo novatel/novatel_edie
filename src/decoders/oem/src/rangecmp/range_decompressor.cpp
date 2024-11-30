@@ -684,20 +684,20 @@ void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMess
         stRangeData.uiChannelTrackingStatus = stRangeCmpData.uiChannelTrackingStatus;
         stRangeData.usPRN = stRangeCmpData.ucPRN;
 
-        auto iDoppler = GetBitfield<int32_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_DOPPLER_FREQUENCY_MASK);
-        HandleSignExtension(iDoppler, RC_DOPPLER_FREQUENCY_SIGNEXT_MASK);
-        stRangeData.fDopplerFrequency = iDoppler / RC_DOPPLER_FREQUENCY_SCALE_FACTOR;
+        auto iDoppler = GetBitfield<int32_t>(stRangeCmpData.ulDopplerFrequencyPSRField, DOPPLER_FREQUENCY_MASK);
+        HandleSignExtension(iDoppler, DOPPLER_FREQUENCY_SIGNEXT_MASK);
+        stRangeData.fDopplerFrequency = iDoppler / DOPPLER_FREQUENCY_SCALE_FACTOR;
 
-        stRangeData.dPSR = GetBitfield<uint64_t>(stRangeCmpData.ulDopplerFrequencyPSRField, RC_PSR_MEASUREMENT_MASK) / RC_PSR_MEASUREMENT_SCALE_FACTOR;
-        stRangeData.fPSRStdDev = stdDevPsrScaling[stRangeCmpData.ucStdDevPSRStdDevADR & RC_PSR_STDDEV_MASK];
+        stRangeData.dPSR = GetBitfield<uint64_t>(stRangeCmpData.ulDopplerFrequencyPSRField, PSR_MEASUREMENT_MASK) / PSR_MEASUREMENT_SCALE_FACTOR;
+        stRangeData.fPSRStdDev = stdDevPsrScaling[stRangeCmpData.ucStdDevPSRStdDevADR & PSR_STDDEV_MASK];
         stRangeData.fADRStdDev =
-            (GetBitfield<uint32_t>(stRangeCmpData.ucStdDevPSRStdDevADR, RC_ADR_STDDEV_MASK) + RC_ADR_STDDEV_SCALE_OFFSET) / RC_ADR_STDDEV_SCALE_FACTOR;
-        stRangeData.fLockTime = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_LOCK_TIME_MASK) / RC_LOCK_TIME_SCALE_FACTOR;
-        stRangeData.fCNo = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_CNO_MASK) + RC_CNO_SCALE_OFFSET;
-        stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, RC_GLONASS_FREQUENCY_MASK);
+            (GetBitfield<uint32_t>(stRangeCmpData.ucStdDevPSRStdDevADR, ADR_STDDEV_MASK) + ADR_STDDEV_SCALE_OFFSET) / ADR_STDDEV_SCALE_FACTOR;
+        stRangeData.fLockTime = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, LOCK_TIME_MASK) / LOCK_TIME_SCALE_FACTOR;
+        stRangeData.fCNo = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, CNO_MASK) + CNO_SCALE_OFFSET;
+        stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, GLONASS_FREQUENCY_MASK);
 
         double dWavelength = GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency);
-        stRangeData.dADR = stRangeCmpData.uiADR / RC_ADR_SCALE_FACTOR;
+        stRangeData.dADR = stRangeCmpData.uiADR / ADR_SCALE_FACTOR;
         double dADRRolls = ((stRangeData.dPSR / dWavelength) + stRangeData.dADR) / MAX_VALUE;
         stRangeData.dADR -= MAX_VALUE * static_cast<uint64_t>(std::round(dADRRolls));
     }
