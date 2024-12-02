@@ -184,7 +184,7 @@ TEST_F(RangeCmpTest, BITFIELD_4)
    // Expected bitfield 15: X0XX XXXX XXXX XXXX (0x0)
    // Expected bitfield 16: 1XXX XXXX XXXX XXXX (0x1)
    uint8_t aucBytes[] = {0xAA, 0xAA};
-   uint8_t* pucBytesPointer = aucBytes; // GetBitfield() will advance this pointer.
+   uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBytesLeft = sizeof(aucBytes);
    uint32_t uiBitOffset = 0;
 
