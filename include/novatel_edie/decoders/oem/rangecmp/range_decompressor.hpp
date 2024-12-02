@@ -72,9 +72,6 @@ class RangeDecompressor
     [[nodiscard]] STATUS Decompress(unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct& stMetaData_,
                                     ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
 
-  protected:
-    template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, uint32_t uiBitsInBitfield_);
-
   private:
     Filter clMyRangeCmpFilter;
     HeaderDecoder clMyHeaderDecoder;

@@ -90,6 +90,46 @@ template <auto Mask, typename T> constexpr void HandleSignExtension(T& value)
     if (value & signBit) { value |= extensionMask; }
 }
 
+template <typename T>
+T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, const uint32_t uiBitsInBitfield_)
+{
+    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "ExtractBitfield only returns integral or floating point types.");
+
+    constexpr uint32_t typeBitSize = sizeof(T) * BITS_PER_BYTE;
+
+    if (uiBitsInBitfield_ > typeBitSize) { return T{0}; } // return type is too small for the bitfield
+
+    uint32_t uiBytesRequired = (uiBitsInBitfield_ + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
+    if (uiBytesRequired > uiBytesLeft_) { return T{0}; } // not enough bytes left in the buffer
+
+    // Adjust remaining bytes by subtracting required bytes, accounting for any bit offset
+    uiBytesLeft_ -= uiBytesRequired - ((uiBitsInBitfield_ % BITS_PER_BYTE + uiBitOffset_) < BITS_PER_BYTE);
+
+    uint64_t ullBitfield = 0;
+    uint32_t uiByteOffset = 0;
+    unsigned char ucCurrentByte = **ppucData_;
+
+    // Iterate over each bit, adding the bit to the return value if it is set.
+    for (uint32_t uiBitsConsumed = 0; uiBitsConsumed < uiBitsInBitfield_; uiBitsConsumed++)
+    {
+        assert(uiBitOffset_ < 8);
+
+        if ((ucCurrentByte & (1UL << uiBitOffset_)) != 0) { ullBitfield |= 1ULL << uiBitsConsumed; }
+
+        // Rollover to the next byte when we reach the end of the current byte.
+        if (++uiBitOffset_ == BITS_PER_BYTE)
+        {
+            uiBitOffset_ = 0;
+            uiByteOffset++;
+            if (uiBitsConsumed + 1 < uiBitsInBitfield_) { ucCurrentByte = *(*ppucData_ + uiByteOffset); }
+        }
+    }
+
+    *ppucData_ += uiByteOffset;
+
+    return static_cast<T>(ullBitfield);
+}
+
 //-----------------------------------------------------------------------
 // Generic Constants
 //-----------------------------------------------------------------------

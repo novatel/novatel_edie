@@ -37,12 +37,6 @@ class RangeCmpTest : public ::testing::Test
     {
       public:
         RangeDecompressorTester(JsonReader* pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
-
-        // Access protected member of RangeDecompressor
-        uint64_t GetBitfield(uint8_t** ppucBytes_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, uint32_t uiBitfieldSize_)
-        {
-            return ExtractBitfield<uint64_t>(ppucBytes_, uiBytesLeft_, uiBitOffset_, uiBitfieldSize_);
-        }
     };
 
   protected:
@@ -137,12 +131,12 @@ TEST_F(RangeCmpTest, BITFIELD_1)
    // Expected bitfield 2: XXXX X000 0... .... .... .... (0x0)
    // Expected bitfield 3: 1000 1... .... .... .... .... (0x11)
    uint8_t aucBytes[] = {0xDF, 0x76, 0x88};
-   uint8_t* pucBytesPointer = aucBytes; // GetBitfield() will advance this pointer.
+   uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBytesLeft = sizeof(aucBytes);
    uint32_t uiBitOffset = 0;
-   ASSERT_EQ(0x76DF, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 15));
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 4));
-   ASSERT_EQ(0x11, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 5));
+   ASSERT_EQ(0x76DF, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 15));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 4));
+   ASSERT_EQ(0x11, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 5));
 }
 
 TEST_F(RangeCmpTest, BITFIELD_2)
@@ -152,20 +146,20 @@ TEST_F(RangeCmpTest, BITFIELD_2)
    // Binary bit values:   1011 0000 1010 0000 0111 1100 1101 1000 0001 1111 0110 0001
    // Expected bitfield:   XXXX XXX^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ .... (0xA07CD81F6)
    uint8_t aucBytes[] = {0x61, 0x1F, 0xD8, 0x7C, 0xA0, 0xB0};
-   uint8_t* pucBytesPointer = aucBytes; // GetBitfield() will advance this pointer.
+   uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBitOffset = 4;
    uint32_t uiBytesLeft = sizeof(aucBytes);
-   ASSERT_EQ(0xA07CD81F6ULL, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 37));
+   ASSERT_EQ(0xA07CD81F6ULL, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 37));
 }
 
 TEST_F(RangeCmpTest, BITFIELD_3)
 {
    // 9 bytes, 72 bits. We should not be able to ask for more than 64 bits from this function.
    uint8_t aucBytes[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-   uint8_t* pucBytesPointer = aucBytes; // GetBitfield() will advance this pointer.
+   uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBitOffset = 0;
    uint32_t uiBytesLeft = sizeof(aucBytes);
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 65));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 65));
 }
 
 TEST_F(RangeCmpTest, BITFIELD_4)
@@ -194,38 +188,38 @@ TEST_F(RangeCmpTest, BITFIELD_4)
    uint32_t uiBytesLeft = sizeof(aucBytes);
    uint32_t uiBitOffset = 0;
 
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(1U, uiBytesLeft);
 
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, pclMyRangeDecompressor->GetBitfield(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
    ASSERT_EQ(0U, uiBytesLeft);
 }
 

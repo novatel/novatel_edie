@@ -231,62 +231,6 @@ double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatus& stCha
 }
 
 //------------------------------------------------------------------------------
-//! Bitfield helper function. This will collect the number of bits specified
-//! from the provided buffer pointer. It will keep an internal track of the
-//! current bit offset within a given byte.
-//------------------------------------------------------------------------------
-template <typename T>
-T RangeDecompressor::ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, uint32_t uiBitsInBitfield_)
-{
-    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "ExtractBitfield only returns integral or floating point types.");
-
-    constexpr uint32_t typeBitSize = sizeof(T) * BITS_PER_BYTE;
-
-    if (uiBitsInBitfield_ > typeBitSize)
-    {
-        pclMyLogger->critical("Requested {} bits exceeds the maximum size of type T ({} bits).", uiBitsInBitfield_, typeBitSize);
-        return T{0};
-    }
-
-    uint32_t uiBytesRequired = (uiBitsInBitfield_ + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
-    if (uiBytesRequired > uiBytesLeft_)
-    {
-        pclMyLogger->critical("Not enough bytes in this buffer. Required {}, have {}.", uiBytesRequired, uiBytesLeft_);
-        return T{0};
-    }
-
-    // Adjust remaining bytes by subtracting required bytes, accounting for any bit offset
-    uiBytesLeft_ -= uiBytesRequired - ((uiBitsInBitfield_ % BITS_PER_BYTE + uiBitOffset_) < BITS_PER_BYTE);
-
-    uint64_t ullBitfield = 0;
-    uint32_t uiByteOffset = 0;
-    unsigned char ucCurrentByte = **ppucData_;
-
-    // Iterate over each bit, adding the bit to the return value if it is set.
-    for (uint32_t uiBitsConsumed = 0; uiBitsConsumed < uiBitsInBitfield_; uiBitsConsumed++)
-    {
-        assert(uiBitOffset_ < 8);
-
-        if ((ucCurrentByte & (1UL << uiBitOffset_)) != 0) { ullBitfield |= 1ULL << uiBitsConsumed; }
-
-        // Rollover to the next byte when we reach the end of the current byte.
-        if (++uiBitOffset_ == BITS_PER_BYTE)
-        {
-            uiBitOffset_ = 0;
-            uiByteOffset++;
-            if (uiBitsConsumed + 1 < uiBitsInBitfield_) { ucCurrentByte = *(*ppucData_ + uiByteOffset); }
-        }
-    }
-
-    *ppucData_ += uiByteOffset;
-
-    return static_cast<T>(ullBitfield);
-}
-
-// Explicit template instantiations
-template uint64_t RangeDecompressor::ExtractBitfield<uint64_t>(unsigned char**, uint32_t&, uint32_t&, uint32_t);
-
-//------------------------------------------------------------------------------
 //! The locktime can only report up to 131071ms (0x1FFFF). If this value is
 //! reached, the locktime must continue to increment. Once the saturated value
 //! has been reached, store the header time at which the locktime was found to
