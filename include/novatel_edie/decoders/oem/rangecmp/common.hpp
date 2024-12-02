@@ -1189,6 +1189,107 @@ struct ChannelTrackingStatus
         }
     }
 
+     //------------------------------------------------------------------------------
+    //! This function acts as a lookup for a signal wavelength.
+    //! Uses the Satellite System and Signal fields, and in
+    //! the case of GLONASS, it will use the provided GLONASS frequency.
+    //------------------------------------------------------------------------------
+    double GetSignalWavelength(const int16_t sGLONASSFrequency_) const
+    {
+        //// TODO: Size these arrays correctly
+        //constexpr auto glonassL1LookupTable = [] {
+        //    std::array<double, 64> arr{};
+        //    for (int32_t i = 0; i < arr.size(); i++)
+        //    {
+        //        arr[i] = SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + (i - GLONASS_FREQUENCY_OFFSET) * GLONASS_L1_FREQUENCY_SCALE_HZ);
+        //    }
+        //    return arr;
+        //}();
+        //
+        //constexpr auto glonassL2LookupTable = [] {
+        //    std::array<double, 64> arr{};
+        //    for (int32_t i = 0; i < arr.size(); i++)
+        //    {
+        //        arr[i] = SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + (i - GLONASS_FREQUENCY_OFFSET) * GLONASS_L2_FREQUENCY_SCALE_HZ);
+        //    }
+        //    return arr;
+        //}();
+
+        switch (eSatelliteSystem)
+        {
+        case SATELLITE_SYSTEM::GPS:
+            switch (eSignalType)
+            {
+            case SIGNAL_TYPE::GPS_L1CA: return WAVELENGTH_GPS_L1;
+            case SIGNAL_TYPE::GPS_L1CP: return WAVELENGTH_GPS_L1;
+            case SIGNAL_TYPE::GPS_L2P: return WAVELENGTH_GPS_L2;
+            case SIGNAL_TYPE::GPS_L2Y: return WAVELENGTH_GPS_L2;
+            case SIGNAL_TYPE::GPS_L2CM: return WAVELENGTH_GPS_L2;
+            case SIGNAL_TYPE::GPS_L5Q: return WAVELENGTH_GPS_L5;
+            default: return 0.0;
+            }
+        case SATELLITE_SYSTEM::GLONASS:
+            switch (eSignalType)
+            {
+            case SIGNAL_TYPE::GLONASS_L1CA: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ);
+            case SIGNAL_TYPE::GLONASS_L2CA: [[fallthrough]];
+            case SIGNAL_TYPE::GLONASS_L2P: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ);
+            case SIGNAL_TYPE::GLONASS_L3Q: return WAVELENGTH_GLO_L3;
+            default: return 0.0;
+            }
+        case SATELLITE_SYSTEM::SBAS:
+            switch (eSignalType)
+            {
+            case SIGNAL_TYPE::SBAS_L1CA: return WAVELENGTH_GPS_L1;
+            case SIGNAL_TYPE::SBAS_L5I: return WAVELENGTH_GPS_L5;
+            default: return 0.0;
+            }
+        case SATELLITE_SYSTEM::GALILEO:
+            switch (eSignalType)
+            {
+            case SIGNAL_TYPE::GALILEO_E1C: return WAVELENGTH_GAL_E1;
+            case SIGNAL_TYPE::GALILEO_E6B: return WAVELENGTH_GAL_E6;
+            case SIGNAL_TYPE::GALILEO_E6C: return WAVELENGTH_GAL_E6;
+            case SIGNAL_TYPE::GALILEO_E5AQ: return WAVELENGTH_GAL_E5AQ;
+            case SIGNAL_TYPE::GALILEO_E5BQ: return WAVELENGTH_GAL_E5BQ;
+            case SIGNAL_TYPE::GALILEO_E5ALTBOCQ: return WAVELENGTH_GAL_ALTBQ;
+            default: return 0.0;
+            }
+        case SATELLITE_SYSTEM::BEIDOU:
+            switch (eSignalType)
+            {
+            case SIGNAL_TYPE::BEIDOU_B1ID1: return WAVELENGTH_BDS_B1;
+            case SIGNAL_TYPE::BEIDOU_B1ID2: return WAVELENGTH_BDS_B1;
+            case SIGNAL_TYPE::BEIDOU_B2ID1: return WAVELENGTH_BDS_B2;
+            case SIGNAL_TYPE::BEIDOU_B2ID2: return WAVELENGTH_BDS_B2;
+            case SIGNAL_TYPE::BEIDOU_B3ID1: return WAVELENGTH_BDS_B3;
+            case SIGNAL_TYPE::BEIDOU_B3ID2: return WAVELENGTH_BDS_B3;
+            case SIGNAL_TYPE::BEIDOU_B1CP: return WAVELENGTH_BDS_B1C;
+            case SIGNAL_TYPE::BEIDOU_B2AP: return WAVELENGTH_BDS_B2A;
+            case SIGNAL_TYPE::BEIDOU_B2BI: return WAVELENGTH_BDS_B2B;
+            default: return 0.0;
+            }
+        case SATELLITE_SYSTEM::QZSS:
+            switch (eSignalType)
+            {
+            case SIGNAL_TYPE::QZSS_L1CA: return WAVELENGTH_QZSS_L1;
+            case SIGNAL_TYPE::QZSS_L1CP: return WAVELENGTH_QZSS_L1;
+            case SIGNAL_TYPE::QZSS_L2CM: return WAVELENGTH_QZSS_L2;
+            case SIGNAL_TYPE::QZSS_L5Q: return WAVELENGTH_QZSS_L5;
+            case SIGNAL_TYPE::QZSS_L6P: return WAVELENGTH_QZSS_L6;
+            case SIGNAL_TYPE::QZSS_L6D: return WAVELENGTH_QZSS_L6;
+            default: return 0.0;
+            }
+        case SATELLITE_SYSTEM::NAVIC:
+            switch (eSignalType)
+            {
+            case SIGNAL_TYPE::NAVIC_L5SPS: return WAVELENGTH_NAVIC_L5;
+            default: return 0.0;
+            }
+        default: return 0.0;
+        }
+    }
+
     //! Combine the channel tracking status fields into a single 4-byte value according to documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus
     [[nodiscard]] uint32_t GetAsWord() const

@@ -86,7 +86,6 @@ class RangeDecompressor
     std::unordered_map<uint64_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>> mMyReferenceBlocks;
 
     static double RangeCmp2SignalScaling(SYSTEM sys, rangecmp2::SIGNAL_TYPE sig);
-    static double GetSignalWavelength(const ChannelTrackingStatus& stChannelStatus_, int16_t sGLONASSFrequency_);
     double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_,
                                 ChannelTrackingStatus::SIGNAL_TYPE eSignal_, uint16_t usPRN_);
     double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_,
