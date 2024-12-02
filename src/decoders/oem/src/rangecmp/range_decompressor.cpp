@@ -468,11 +468,11 @@ void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint
     stRefBlock_.ucADRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_ADR_STDDEV_BITS);
 
     auto llPSRBitfield = ExtractBitfield<int64_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_PSR_BITS[bSecondary]);
-    if constexpr (bSecondary) { HandleSignExtension(llPSRBitfield, SSIG_RBLK_PSR_SIGNEXT_MASK); }
+    if constexpr (bSecondary) { HandleSignExtension<SSIG_RBLK_PSR_SIGNEXT_MASK>(llPSRBitfield); }
     auto iPhaseRangeBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_PHASERANGE_BITS);
-    HandleSignExtension(iPhaseRangeBitfield, RBLK_PHASERANGE_SIGNEXT_MASK);
+    HandleSignExtension<RBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRangeBitfield);
     auto iDopplerBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_DOPPLER_BITS[bSecondary]);
-    HandleSignExtension(iDopplerBitfield, RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]);
+    HandleSignExtension<RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDopplerBitfield);
 
     stRefBlock_.bValidPSR = llPSRBitfield != RBLK_INVALID_PSR[bSecondary];
     stRefBlock_.dPSR = llPSRBitfield * SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? primaryPseudorange : 0);
@@ -502,11 +502,11 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
     stDiffBlock_.ucADRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_ADR_STDDEV_BITS);
 
     auto iPSR = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_DBLK_PSR_BITS);
-    HandleSignExtension(iPSR, SIG_DBLK_PSR_SIGNEXT_MASK);
+    HandleSignExtension<SIG_DBLK_PSR_SIGNEXT_MASK>(iPSR);
     auto iPhaseRange = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_DBLK_PHASERANGE_BITS);
-    HandleSignExtension(iPhaseRange, SIG_DBLK_PHASERANGE_SIGNEXT_MASK);
+    HandleSignExtension<SIG_DBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRange);
     auto iDoppler = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, DBLK_DOPPLER_BITS[bSecondary]);
-    HandleSignExtension(iDoppler, DBLK_DOPPLER_SIGNEXT_MASK[bSecondary]);
+    HandleSignExtension<DBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDoppler);
 
     stDiffBlock_.bValidPSR = iPSR != SIG_DBLK_INVALID_PSR;
     stDiffBlock_.dPSR = iPSR * SIG_BLK_PSR_SCALE_FACTOR + stRefBlock_.dPSR + (stRefBlock_.dDoppler * dSecondOffset_);
@@ -685,7 +685,7 @@ void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMess
         stRangeData.usPRN = stRangeCmpData.ucPRN;
 
         auto iDoppler = GetBitfield<int32_t, DOPPLER_FREQUENCY_MASK>(stRangeCmpData.ulDopplerFrequencyPSRField);
-        HandleSignExtension(iDoppler, DOPPLER_FREQUENCY_SIGNEXT_MASK);
+        HandleSignExtension<DOPPLER_FREQUENCY_SIGNEXT_MASK>(iDoppler);
         stRangeData.fDopplerFrequency = iDoppler / DOPPLER_FREQUENCY_SCALE_FACTOR;
 
         stRangeData.dPSR = GetBitfield<uint64_t, PSR_MEASUREMENT_MASK>(stRangeCmpData.ulDopplerFrequencyPSRField) / PSR_MEASUREMENT_SCALE_FACTOR;
@@ -736,9 +736,9 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
         const auto ucSignalBlockCount = GetBitfield<uint8_t, SAT_NUM_SIGNAL_BLOCKS_BASE_MASK>(stSatBlock.ulCombinedField);
 
         auto iPSRBase = GetBitfield<int32_t, SAT_SATELLITE_PSR_BASE_MASK>(stSatBlock.ulCombinedField);
-        HandleSignExtension(iPSRBase, SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK);
+        HandleSignExtension<SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK>(iPSRBase);
         auto iDopplerBase = GetBitfield<int32_t, SAT_SATELLITE_DOPPLER_BASE_MASK>(stSatBlock.ulCombinedField);
-        HandleSignExtension(iDopplerBase, SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK);
+        HandleSignExtension<SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK>(iDopplerBase);
 
         uiRangeDataBytesDecompressed += sizeof(SatelliteBlock);
 
@@ -755,7 +755,7 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             const auto usPRN = stSatBlock.ucSatelliteIdentifier + (eSystem == SYSTEM::GLONASS ? GLONASS_SLOT_OFFSET - 1 : 0);
 
             auto iDopplerBitfield = GetBitfield<int32_t, SIG_DOPPLER_DIFF_MASK>(stSigBlock.ullCombinedField2);
-            HandleSignExtension(iDopplerBitfield, SIG_DOPPLER_DIFF_SIGNEXT_MASK);
+            HandleSignExtension<SIG_DOPPLER_DIFF_SIGNEXT_MASK>(iDopplerBitfield);
 
             ChannelTrackingStatus stChannelTrackingStatus(stSatBlock, stSigBlock);
 
@@ -941,11 +941,11 @@ void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiB
     stBlock_.ucPhaserangeStdDev = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_ADR_STDDEV_BITS);
 
     auto llPSRBitfield = ExtractBitfield<int64_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_PSR_BITS[bSecondary]);
-    if constexpr (bSecondary) { HandleSignExtension(llPSRBitfield, SSIG_RBLK_PSR_SIGNEXT_MASK); }
+    if constexpr (bSecondary) { HandleSignExtension<SSIG_RBLK_PSR_SIGNEXT_MASK>(llPSRBitfield); }
     auto iPhaseRangeBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_PHASERANGE_BITS);
-    HandleSignExtension(iPhaseRangeBitfield, RBLK_PHASERANGE_SIGNEXT_MASK);
+    HandleSignExtension<RBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRangeBitfield);
     auto iDopplerBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_DOPPLER_BITS[bSecondary]);
-    HandleSignExtension(iDopplerBitfield, RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]);
+    HandleSignExtension<RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDopplerBitfield);
 
     stBlock_.bValidPseudorange = llPSRBitfield != RBLK_INVALID_PSR[bSecondary];
     stBlock_.dPseudorange = llPSRBitfield * SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? primaryPseudorange : 0);

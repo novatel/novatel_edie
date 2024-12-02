@@ -78,13 +78,16 @@ template <typename T, uint64_t Mask> constexpr T GetBitfield(uint64_t value)
 // TODO: Need to do some checking to ensure that the result is valid
 template <uint32_t Mask> constexpr uint32_t EncodeBitfield(uint32_t value) { return value << Lsb(Mask) & Mask; }
 
-template <typename IntType, typename MaskType> constexpr void HandleSignExtension(IntType& value, MaskType mask)
+template <auto Mask, typename T> constexpr void HandleSignExtension(T& value)
 {
-    static_assert(std::is_integral_v<IntType> && std::is_integral_v<MaskType>, "Both value and mask must be integral types.");
-    static_assert(sizeof(IntType) >= sizeof(MaskType), "Value type must be large enough to accommodate the mask.");
-    // TODO: When calling this function, value tends to be a runtime variable and mask is a compile time constant.
-    // Therefore, the computation to find the signbit could be done at compile time. Find a clean way to do this.
-    if (value & (static_cast<IntType>(1) << (Lsb(mask) - 1))) { value |= static_cast<IntType>(mask); }
+    static_assert(std::is_integral_v<T>, "Value must be an integral type.");
+    static_assert(std::is_integral_v<decltype(Mask)>, "Mask must be an integral constant.");
+    static_assert(sizeof(T) * 8 >= Lsb(Mask), "Mask must fit within the value type.");
+
+    constexpr T signBit = static_cast<T>(1) << (Lsb(Mask) - 1);
+    constexpr T extensionMask = static_cast<T>(Mask);
+
+    if (value & signBit) { value |= extensionMask; }
 }
 
 //-----------------------------------------------------------------------
