@@ -146,91 +146,6 @@ double RangeDecompressor::RangeCmp2SignalScaling(SYSTEM system, rangecmp2::SIGNA
 }
 
 //------------------------------------------------------------------------------
-//! This function acts as a lookup for a signal wavelength based on the provided
-//! ChannelTrackingStatus. Uses the Satellite System and Signal fields, and in
-//! the case of GLONASS, it will use the provided GLONASS frequency.
-//------------------------------------------------------------------------------
-double RangeDecompressor::GetSignalWavelength(const ChannelTrackingStatus& stChannelStatus_, int16_t sGLONASSFrequency_)
-{
-    using Signal = ChannelTrackingStatus::SIGNAL_TYPE;
-    using System = ChannelTrackingStatus::SATELLITE_SYSTEM;
-
-    switch (stChannelStatus_.eSatelliteSystem)
-    {
-    case System::GPS:
-        switch (stChannelStatus_.eSignalType)
-        {
-        case Signal::GPS_L1CA: return WAVELENGTH_GPS_L1;
-        case Signal::GPS_L1CP: return WAVELENGTH_GPS_L1;
-        case Signal::GPS_L2P: return WAVELENGTH_GPS_L2;
-        case Signal::GPS_L2Y: return WAVELENGTH_GPS_L2;
-        case Signal::GPS_L2CM: return WAVELENGTH_GPS_L2;
-        case Signal::GPS_L5Q: return WAVELENGTH_GPS_L5;
-        default: return 0.0;
-        }
-    case System::GLONASS:
-        switch (stChannelStatus_.eSignalType)
-        {
-        case Signal::GLONASS_L1CA: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ);
-        case Signal::GLONASS_L2CA: [[fallthrough]];
-        case Signal::GLONASS_L2P: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ);
-        case Signal::GLONASS_L3Q: return WAVELENGTH_GLO_L3;
-        default: return 0.0;
-        }
-    case System::SBAS:
-        switch (stChannelStatus_.eSignalType)
-        {
-        case Signal::SBAS_L1CA: return WAVELENGTH_GPS_L1;
-        case Signal::SBAS_L5I: return WAVELENGTH_GPS_L5;
-        default: return 0.0;
-        }
-    case System::GALILEO:
-        switch (stChannelStatus_.eSignalType)
-        {
-        case Signal::GALILEO_E1C: return WAVELENGTH_GAL_E1;
-        case Signal::GALILEO_E6B: return WAVELENGTH_GAL_E6;
-        case Signal::GALILEO_E6C: return WAVELENGTH_GAL_E6;
-        case Signal::GALILEO_E5AQ: return WAVELENGTH_GAL_E5AQ;
-        case Signal::GALILEO_E5BQ: return WAVELENGTH_GAL_E5BQ;
-        case Signal::GALILEO_E5ALTBOCQ: return WAVELENGTH_GAL_ALTBQ;
-        default: return 0.0;
-        }
-    case System::BEIDOU:
-        switch (stChannelStatus_.eSignalType)
-        {
-        case Signal::BEIDOU_B1ID1: return WAVELENGTH_BDS_B1;
-        case Signal::BEIDOU_B1ID2: return WAVELENGTH_BDS_B1;
-        case Signal::BEIDOU_B2ID1: return WAVELENGTH_BDS_B2;
-        case Signal::BEIDOU_B2ID2: return WAVELENGTH_BDS_B2;
-        case Signal::BEIDOU_B3ID1: return WAVELENGTH_BDS_B3;
-        case Signal::BEIDOU_B3ID2: return WAVELENGTH_BDS_B3;
-        case Signal::BEIDOU_B1CP: return WAVELENGTH_BDS_B1C;
-        case Signal::BEIDOU_B2AP: return WAVELENGTH_BDS_B2A;
-        case Signal::BEIDOU_B2BI: return WAVELENGTH_BDS_B2B;
-        default: return 0.0;
-        }
-    case System::QZSS:
-        switch (stChannelStatus_.eSignalType)
-        {
-        case Signal::QZSS_L1CA: return WAVELENGTH_QZSS_L1;
-        case Signal::QZSS_L1CP: return WAVELENGTH_QZSS_L1;
-        case Signal::QZSS_L2CM: return WAVELENGTH_QZSS_L2;
-        case Signal::QZSS_L5Q: return WAVELENGTH_QZSS_L5;
-        case Signal::QZSS_L6P: return WAVELENGTH_QZSS_L6;
-        case Signal::QZSS_L6D: return WAVELENGTH_QZSS_L6;
-        default: return 0.0;
-        }
-    case System::NAVIC:
-        switch (stChannelStatus_.eSignalType)
-        {
-        case Signal::NAVIC_L5SPS: return WAVELENGTH_NAVIC_L5;
-        default: return 0.0;
-        }
-    default: return 0.0;
-    }
-}
-
-//------------------------------------------------------------------------------
 //! Bitfield helper function. This will collect the number of bits specified
 //! from the provided buffer pointer. It will keep an internal track of the
 //! current bit offset within a given byte.
@@ -542,7 +457,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     constexpr std::array<double, 16> stdDevAdrScaling = {0.003, 0.005, 0.007, 0.009, 0.012, 0.016, 0.022, 0.029,
                                                          0.039, 0.052, 0.070, 0.093, 0.124, 0.166, 0.222, 0.222};
 
-    double dSignalWavelength = GetSignalWavelength(stChannelStatus_, cGLONASSFrequencyNumber_ - GLONASS_FREQUENCY_NUMBER_OFFSET);
+    double dSignalWavelength = stChannelStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
 
     //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
@@ -613,7 +528,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
                                                          1.629,  2.430,  3.625,  5.409,  6.876,  8.741,   11.111,  14.125,  17.957,  22.828, 29.020,
                                                          36.891, 46.898, 59.619, 75.791, 96.349, 122.484, 155.707, 197.943, 251.634, 251.634};
 
-    double dSignalWavelength = GetSignalWavelength(stChannelStatus_, cGLONASSFrequencyNumber_ - GLONASS_FREQUENCY_NUMBER_OFFSET);
+    double dSignalWavelength = stChannelStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
 
     //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
@@ -696,7 +611,7 @@ void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMess
         stRangeData.fCNo = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, CNO_MASK) + CNO_SCALE_OFFSET;
         stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, GLONASS_FREQUENCY_MASK);
 
-        double dWavelength = GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency);
+        double dWavelength = stChannelTrackingStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency + GLONASS_FREQUENCY_OFFSET);
         stRangeData.dADR = stRangeCmpData.uiADR / ADR_SCALE_FACTOR;
         double dADRRolls = ((stRangeData.dPSR / dWavelength) + stRangeData.dADR) / MAX_VALUE;
         stRangeData.dADR -= MAX_VALUE * static_cast<uint64_t>(std::round(dADRRolls));
@@ -767,7 +682,7 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             stRangeData.fPSRStdDev = stdDevPsrScaling[ucPSRBitfield];
             stRangeData.dADR =
                 -((iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_PHASERANGE_DIFF_MASK) / SIG_PHASERANGE_DIFF_SCALE_FACTOR)) /
-                  GetSignalWavelength(stChannelTrackingStatus, stRangeData.sGLONASSFrequency - GLONASS_FREQUENCY_NUMBER_OFFSET)); // TODO: Bug?
+                  stChannelTrackingStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency)); // TODO: Bug?
             stRangeData.fADRStdDev = stdDevAdrScaling[ucADRBitfield];
             stRangeData.fDopplerFrequency =
                 (iDopplerBase + (iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR)) / RangeCmp2SignalScaling(eSystem, eSignalType);
