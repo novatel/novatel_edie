@@ -90,20 +90,20 @@ template <auto Mask, typename T> constexpr void HandleSignExtension(T& value)
     if (value & signBit) { value |= extensionMask; }
 }
 
-template <typename T>
-T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, const uint32_t uiBitsInBitfield_)
+template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, const uint32_t uiBitsInBitfield_)
 {
     static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "ExtractBitfield only returns integral or floating point types.");
 
-    constexpr uint32_t typeBitSize = sizeof(T) * BITS_PER_BYTE;
+    constexpr uint32_t bitsPerByte = 8;
+    constexpr uint32_t typeBitSize = sizeof(T) * bitsPerByte;
 
     if (uiBitsInBitfield_ > typeBitSize) { return T{0}; } // return type is too small for the bitfield
 
-    uint32_t uiBytesRequired = (uiBitsInBitfield_ + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
+    uint32_t uiBytesRequired = (uiBitsInBitfield_ + bitsPerByte - 1) / bitsPerByte;
     if (uiBytesRequired > uiBytesLeft_) { return T{0}; } // not enough bytes left in the buffer
 
     // Adjust remaining bytes by subtracting required bytes, accounting for any bit offset
-    uiBytesLeft_ -= uiBytesRequired - ((uiBitsInBitfield_ % BITS_PER_BYTE + uiBitOffset_) < BITS_PER_BYTE);
+    uiBytesLeft_ -= uiBytesRequired - ((uiBitsInBitfield_ % bitsPerByte + uiBitOffset_) < bitsPerByte);
 
     uint64_t ullBitfield = 0;
     uint32_t uiByteOffset = 0;
@@ -117,7 +117,7 @@ T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& u
         if ((ucCurrentByte & (1UL << uiBitOffset_)) != 0) { ullBitfield |= 1ULL << uiBitsConsumed; }
 
         // Rollover to the next byte when we reach the end of the current byte.
-        if (++uiBitOffset_ == BITS_PER_BYTE)
+        if (++uiBitOffset_ == 8)
         {
             uiBitOffset_ = 0;
             uiByteOffset++;
@@ -135,7 +135,6 @@ T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& u
 //-----------------------------------------------------------------------
 constexpr uint32_t SPEED_OF_LIGHT = 299792458;
 constexpr uint32_t MAX_VALUE = 0x800000; //!< Also 8388608, defined in RANGECMP documentation for ADR.
-constexpr uint32_t BITS_PER_BYTE = 8;
 
 //! NOTE: See documentation on slot/PRN offsets for specific satellite systems:
 //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm
@@ -1189,31 +1188,33 @@ struct ChannelTrackingStatus
         }
     }
 
-     //------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------
     //! This function acts as a lookup for a signal wavelength.
     //! Uses the Satellite System and Signal fields, and in
     //! the case of GLONASS, it will use the provided GLONASS frequency.
     //------------------------------------------------------------------------------
     double GetSignalWavelength(const int16_t sGLONASSFrequency_) const
     {
-        //// TODO: Size these arrays correctly
-        //constexpr auto glonassL1LookupTable = [] {
-        //    std::array<double, 64> arr{};
-        //    for (int32_t i = 0; i < arr.size(); i++)
-        //    {
-        //        arr[i] = SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + (i - GLONASS_FREQUENCY_OFFSET) * GLONASS_L1_FREQUENCY_SCALE_HZ);
-        //    }
-        //    return arr;
-        //}();
-        //
-        //constexpr auto glonassL2LookupTable = [] {
-        //    std::array<double, 64> arr{};
-        //    for (int32_t i = 0; i < arr.size(); i++)
-        //    {
-        //        arr[i] = SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + (i - GLONASS_FREQUENCY_OFFSET) * GLONASS_L2_FREQUENCY_SCALE_HZ);
-        //    }
-        //    return arr;
-        //}();
+        // TODO: Size these arrays correctly
+        constexpr auto glonassL1LookupTable = [] {
+            std::array<double, 64> arr{};
+            for (int32_t i = 0; i < static_cast<int32_t>(arr.size()); i++)
+            {
+                arr[i] = SPEED_OF_LIGHT /
+                         (FREQUENCY_HZ_GLO_L1 + (i - static_cast<int32_t>(GLONASS_FREQUENCY_NUMBER_OFFSET)) * GLONASS_L1_FREQUENCY_SCALE_HZ);
+            }
+            return arr;
+        }();
+
+        constexpr auto glonassL2LookupTable = [] {
+            std::array<double, 64> arr{};
+            for (int32_t i = 0; i < static_cast<int32_t>(arr.size()); i++)
+            {
+                arr[i] = SPEED_OF_LIGHT /
+                         (FREQUENCY_HZ_GLO_L2 + (i - static_cast<int32_t>(GLONASS_FREQUENCY_NUMBER_OFFSET)) * GLONASS_L2_FREQUENCY_SCALE_HZ);
+            }
+            return arr;
+        }();
 
         switch (eSatelliteSystem)
         {
@@ -1231,9 +1232,9 @@ struct ChannelTrackingStatus
         case SATELLITE_SYSTEM::GLONASS:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::GLONASS_L1CA: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L1 + sGLONASSFrequency_ * GLONASS_L1_FREQUENCY_SCALE_HZ);
+            case SIGNAL_TYPE::GLONASS_L1CA: return glonassL1LookupTable[sGLONASSFrequency_];
             case SIGNAL_TYPE::GLONASS_L2CA: [[fallthrough]];
-            case SIGNAL_TYPE::GLONASS_L2P: return SPEED_OF_LIGHT / (FREQUENCY_HZ_GLO_L2 + sGLONASSFrequency_ * GLONASS_L2_FREQUENCY_SCALE_HZ);
+            case SIGNAL_TYPE::GLONASS_L2P: return glonassL2LookupTable[sGLONASSFrequency_];
             case SIGNAL_TYPE::GLONASS_L3Q: return WAVELENGTH_GLO_L3;
             default: return 0.0;
             }
