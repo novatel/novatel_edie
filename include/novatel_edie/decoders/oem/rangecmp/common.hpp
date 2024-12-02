@@ -76,12 +76,7 @@ template <typename T, uint64_t Mask> constexpr T GetBitfield(uint64_t value)
 }
 
 // TODO: Need to do some checking to ensure that the result is valid
-constexpr uint32_t EncodeBitfield(uint32_t value, uint32_t mask)
-{
-    // TODO: When calling this function, value tends to be a runtime variable and mask is a compile time constant.
-    // Therefore, the computation to find the shift could be done at compile time. Find a clean way to do this.
-    return value << Lsb(mask) & mask;
-}
+template <uint32_t Mask> constexpr uint32_t EncodeBitfield(uint32_t value) { return value << Lsb(Mask) & Mask; }
 
 template <typename IntType, typename MaskType> constexpr void HandleSignExtension(IntType& value, MaskType mask)
 {
@@ -1155,11 +1150,11 @@ struct ChannelTrackingStatus
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus
     [[nodiscard]] uint32_t GetAsWord() const
     {
-        uint32_t uiWord = EncodeBitfield(static_cast<uint32_t>(eTrackingState), CTS_TRACKING_STATE_MASK) |
-                          EncodeBitfield(static_cast<uint32_t>(eCorrelatorType), CTS_CORRELATOR_MASK) |
-                          EncodeBitfield(static_cast<uint32_t>(eSatelliteSystem), CTS_SATELLITE_SYSTEM_MASK) |
-                          EncodeBitfield(static_cast<uint32_t>(eSignalType), CTS_SIGNAL_TYPE_MASK) |
-                          EncodeBitfield(uiSVChannelNumber, CTS_SV_CHANNEL_NUMBER_MASK);
+        uint32_t uiWord = EncodeBitfield<CTS_TRACKING_STATE_MASK>(static_cast<uint32_t>(eTrackingState)) |
+                          EncodeBitfield<CTS_CORRELATOR_MASK>(static_cast<uint32_t>(eCorrelatorType)) |
+                          EncodeBitfield<CTS_SATELLITE_SYSTEM_MASK>(static_cast<uint32_t>(eSatelliteSystem)) |
+                          EncodeBitfield<CTS_SIGNAL_TYPE_MASK>(static_cast<uint32_t>(eSignalType)) |
+                          EncodeBitfield<CTS_SV_CHANNEL_NUMBER_MASK>(uiSVChannelNumber);
 
         if (bPhaseLocked) { uiWord |= CTS_PHASE_LOCK_MASK; }
         if (bParityKnown) { uiWord |= CTS_PARITY_KNOWN_MASK; }
