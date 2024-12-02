@@ -68,11 +68,11 @@ template <typename T> constexpr uint32_t PopLsb(T& value)
     return index;
 }
 
-template <typename T> constexpr T GetBitfield(uint64_t value, uint64_t mask)
+template <typename T, uint64_t Mask> constexpr T GetBitfield(uint64_t value)
 {
     static_assert(std::is_integral<T>::value || std::is_enum_v<T>, "GetBitfield only returns integral or enum types.");
     // TODO: Need to do some checking to ensure that the mask is valid (not too large) for the type of T
-    return static_cast<T>((value & mask) >> Lsb(mask));
+    return static_cast<T>((value & Mask) >> Lsb(Mask));
 }
 
 // TODO: Need to do some checking to ensure that the result is valid
@@ -870,20 +870,20 @@ struct ChannelTrackingStatus
     //! Constructor from a channel tracking status word.
     ChannelTrackingStatus(uint32_t uiChannelTrackingStatus_)
     {
-        eTrackingState = GetBitfield<TRACKING_STATE>(uiChannelTrackingStatus_, CTS_TRACKING_STATE_MASK);
-        uiSVChannelNumber = GetBitfield<uint32_t>(uiChannelTrackingStatus_, CTS_SV_CHANNEL_NUMBER_MASK);
-        eCorrelatorType = GetBitfield<CORRELATOR_TYPE>(uiChannelTrackingStatus_, CTS_CORRELATOR_MASK);
-        eSatelliteSystem = GetBitfield<SATELLITE_SYSTEM>(uiChannelTrackingStatus_, CTS_SATELLITE_SYSTEM_MASK);
-        eSignalType = GetBitfield<SIGNAL_TYPE>(uiChannelTrackingStatus_, CTS_SIGNAL_TYPE_MASK);
-        bPhaseLocked = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_PHASE_LOCK_MASK);
-        bParityKnown = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_PARITY_KNOWN_MASK);
-        bCodeLocked = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_CODE_LOCKED_MASK);
-        bGrouped = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_GROUPING_MASK);
-        bPrimaryL1Channel = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_PRIMARY_L1_CHANNEL_MASK);
-        bHalfCycleAdded = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_CARRIER_PHASE_MASK);
-        bDigitalFilteringOnSignal = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_DIGITAL_FILTERING_MASK);
-        bPRNLocked = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_PRN_LOCK_MASK);
-        bChannelAssignmentForced = GetBitfield<bool>(uiChannelTrackingStatus_, CTS_CHANNEL_ASSIGNMENT_MASK);
+        eTrackingState = GetBitfield<TRACKING_STATE, CTS_TRACKING_STATE_MASK>(uiChannelTrackingStatus_);
+        uiSVChannelNumber = GetBitfield<uint32_t, CTS_SV_CHANNEL_NUMBER_MASK>(uiChannelTrackingStatus_);
+        eCorrelatorType = GetBitfield<CORRELATOR_TYPE, CTS_CORRELATOR_MASK>(uiChannelTrackingStatus_);
+        eSatelliteSystem = GetBitfield<SATELLITE_SYSTEM, CTS_SATELLITE_SYSTEM_MASK>(uiChannelTrackingStatus_);
+        eSignalType = GetBitfield<SIGNAL_TYPE, CTS_SIGNAL_TYPE_MASK>(uiChannelTrackingStatus_);
+        bPhaseLocked = GetBitfield<bool, CTS_PHASE_LOCK_MASK>(uiChannelTrackingStatus_);
+        bParityKnown = GetBitfield<bool, CTS_PARITY_KNOWN_MASK>(uiChannelTrackingStatus_);
+        bCodeLocked = GetBitfield<bool, CTS_CODE_LOCKED_MASK>(uiChannelTrackingStatus_);
+        bGrouped = GetBitfield<bool, CTS_GROUPING_MASK>(uiChannelTrackingStatus_);
+        bPrimaryL1Channel = GetBitfield<bool, CTS_PRIMARY_L1_CHANNEL_MASK>(uiChannelTrackingStatus_);
+        bHalfCycleAdded = GetBitfield<bool, CTS_CARRIER_PHASE_MASK>(uiChannelTrackingStatus_);
+        bDigitalFilteringOnSignal = GetBitfield<bool, CTS_DIGITAL_FILTERING_MASK>(uiChannelTrackingStatus_);
+        bPRNLocked = GetBitfield<bool, CTS_PRN_LOCK_MASK>(uiChannelTrackingStatus_);
+        bChannelAssignmentForced = GetBitfield<bool, CTS_CHANNEL_ASSIGNMENT_MASK>(uiChannelTrackingStatus_);
     }
 
     //! Constructor from the available data from a RANGECMP2 SAT/SIG block pair.
@@ -892,21 +892,21 @@ struct ChannelTrackingStatus
     {
         using namespace rangecmp2;
 
-        bGrouped = GetBitfield<uint64_t>(stRangeCmp2SatBlock_.ulCombinedField, SAT_NUM_SIGNAL_BLOCKS_BASE_MASK) > 1;
-        bPhaseLocked = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, SIG_PHASE_LOCK_MASK);
-        bParityKnown = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, SIG_PARITY_KNOWN_MASK);
-        bCodeLocked = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, SIG_CODE_LOCK_MASK);
-        bPrimaryL1Channel = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, SIG_PRIMARY_SIGNAL_MASK);
-        bHalfCycleAdded = GetBitfield<bool>(stRangeCmp2SigBlock_.uiCombinedField1, SIG_CARRIER_PHASE_MEAS_MASK);
+        bGrouped = GetBitfield<uint64_t, SAT_NUM_SIGNAL_BLOCKS_BASE_MASK>(stRangeCmp2SatBlock_.ulCombinedField) > 1;
+        bPhaseLocked = GetBitfield<bool, SIG_PHASE_LOCK_MASK>(stRangeCmp2SigBlock_.uiCombinedField1);
+        bParityKnown = GetBitfield<bool, SIG_PARITY_KNOWN_MASK>(stRangeCmp2SigBlock_.uiCombinedField1);
+        bCodeLocked = GetBitfield<bool, SIG_CODE_LOCK_MASK>(stRangeCmp2SigBlock_.uiCombinedField1);
+        bPrimaryL1Channel = GetBitfield<bool, SIG_PRIMARY_SIGNAL_MASK>(stRangeCmp2SigBlock_.uiCombinedField1);
+        bHalfCycleAdded = GetBitfield<bool, SIG_CARRIER_PHASE_MEAS_MASK>(stRangeCmp2SigBlock_.uiCombinedField1);
         bDigitalFilteringOnSignal = false;
         bChannelAssignmentForced = false;
         bPRNLocked = false;
         uiSVChannelNumber = static_cast<uint32_t>(stRangeCmp2SatBlock_.ucSVChanNumber);
         eTrackingState = bPrimaryL1Channel ? TRACKING_STATE::PHASE_LOCK_LOOP : TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
-        eCorrelatorType = GetBitfield<CORRELATOR_TYPE>(stRangeCmp2SigBlock_.uiCombinedField1, SIG_CORRELATOR_TYPE_MASK);
-        eSatelliteSystem = SystemToSatelliteSystem(GetBitfield<SYSTEM>(stRangeCmp2SatBlock_.ulCombinedField, SAT_SATELLITE_SYSTEM_ID_MASK));
+        eCorrelatorType = GetBitfield<CORRELATOR_TYPE, SIG_CORRELATOR_TYPE_MASK>(stRangeCmp2SigBlock_.uiCombinedField1);
+        eSatelliteSystem = SystemToSatelliteSystem(GetBitfield<SYSTEM, SAT_SATELLITE_SYSTEM_ID_MASK>(stRangeCmp2SatBlock_.ulCombinedField));
         eSignalType = RangeCmp2SignalTypeToSignalType(
-            eSatelliteSystem, GetBitfield<rangecmp2::SIGNAL_TYPE>(stRangeCmp2SigBlock_.uiCombinedField1, SIG_SIGNAL_TYPE_MASK));
+            eSatelliteSystem, GetBitfield<rangecmp2::SIGNAL_TYPE, SIG_SIGNAL_TYPE_MASK>(stRangeCmp2SigBlock_.uiCombinedField1));
     }
 
     //! Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block pair.

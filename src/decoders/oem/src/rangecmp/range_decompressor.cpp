@@ -599,17 +599,17 @@ void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMess
         stRangeData.uiChannelTrackingStatus = stRangeCmpData.uiChannelTrackingStatus;
         stRangeData.usPRN = stRangeCmpData.ucPRN;
 
-        auto iDoppler = GetBitfield<int32_t>(stRangeCmpData.ulDopplerFrequencyPSRField, DOPPLER_FREQUENCY_MASK);
+        auto iDoppler = GetBitfield<int32_t, DOPPLER_FREQUENCY_MASK>(stRangeCmpData.ulDopplerFrequencyPSRField);
         HandleSignExtension(iDoppler, DOPPLER_FREQUENCY_SIGNEXT_MASK);
         stRangeData.fDopplerFrequency = iDoppler / DOPPLER_FREQUENCY_SCALE_FACTOR;
 
-        stRangeData.dPSR = GetBitfield<uint64_t>(stRangeCmpData.ulDopplerFrequencyPSRField, PSR_MEASUREMENT_MASK) / PSR_MEASUREMENT_SCALE_FACTOR;
+        stRangeData.dPSR = GetBitfield<uint64_t, PSR_MEASUREMENT_MASK>(stRangeCmpData.ulDopplerFrequencyPSRField) / PSR_MEASUREMENT_SCALE_FACTOR;
         stRangeData.fPSRStdDev = stdDevPsrScaling[stRangeCmpData.ucStdDevPSRStdDevADR & PSR_STDDEV_MASK];
         stRangeData.fADRStdDev =
-            (GetBitfield<uint32_t>(stRangeCmpData.ucStdDevPSRStdDevADR, ADR_STDDEV_MASK) + ADR_STDDEV_SCALE_OFFSET) / ADR_STDDEV_SCALE_FACTOR;
-        stRangeData.fLockTime = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, LOCK_TIME_MASK) / LOCK_TIME_SCALE_FACTOR;
-        stRangeData.fCNo = GetBitfield<uint32_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, CNO_MASK) + CNO_SCALE_OFFSET;
-        stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stRangeCmpData.uiLockTimeCNoGLOFreq, GLONASS_FREQUENCY_MASK);
+            (GetBitfield<uint32_t, ADR_STDDEV_MASK>(stRangeCmpData.ucStdDevPSRStdDevADR) + ADR_STDDEV_SCALE_OFFSET) / ADR_STDDEV_SCALE_FACTOR;
+        stRangeData.fLockTime = GetBitfield<uint32_t, LOCK_TIME_MASK>(stRangeCmpData.uiLockTimeCNoGLOFreq) / LOCK_TIME_SCALE_FACTOR;
+        stRangeData.fCNo = GetBitfield<uint32_t, CNO_MASK>(stRangeCmpData.uiLockTimeCNoGLOFreq) + CNO_SCALE_OFFSET;
+        stRangeData.sGLONASSFrequency = GetBitfield<int16_t, GLONASS_FREQUENCY_MASK>(stRangeCmpData.uiLockTimeCNoGLOFreq);
 
         double dWavelength = stChannelTrackingStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency + GLONASS_FREQUENCY_OFFSET);
         stRangeData.dADR = stRangeCmpData.uiADR / ADR_SCALE_FACTOR;
@@ -647,12 +647,12 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
     {
         const auto& stSatBlock = reinterpret_cast<const SatelliteBlock&>(stRangeCmpMessage_.aucRangeData[uiRangeDataBytesDecompressed]);
 
-        const auto eSystem = GetBitfield<SYSTEM>(stSatBlock.ulCombinedField, SAT_SATELLITE_SYSTEM_ID_MASK);
-        const auto ucSignalBlockCount = GetBitfield<uint8_t>(stSatBlock.ulCombinedField, SAT_NUM_SIGNAL_BLOCKS_BASE_MASK);
+        const auto eSystem = GetBitfield<SYSTEM, SAT_SATELLITE_SYSTEM_ID_MASK>(stSatBlock.ulCombinedField);
+        const auto ucSignalBlockCount = GetBitfield<uint8_t, SAT_NUM_SIGNAL_BLOCKS_BASE_MASK>(stSatBlock.ulCombinedField);
 
-        auto iPSRBase = GetBitfield<int32_t>(stSatBlock.ulCombinedField, SAT_SATELLITE_PSR_BASE_MASK);
+        auto iPSRBase = GetBitfield<int32_t, SAT_SATELLITE_PSR_BASE_MASK>(stSatBlock.ulCombinedField);
         HandleSignExtension(iPSRBase, SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK);
-        auto iDopplerBase = GetBitfield<int32_t>(stSatBlock.ulCombinedField, SAT_SATELLITE_DOPPLER_BASE_MASK);
+        auto iDopplerBase = GetBitfield<int32_t, SAT_SATELLITE_DOPPLER_BASE_MASK>(stSatBlock.ulCombinedField);
         HandleSignExtension(iDopplerBase, SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK);
 
         uiRangeDataBytesDecompressed += sizeof(SatelliteBlock);
@@ -663,13 +663,13 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             // Decompress the signal block
             const auto& stSigBlock = reinterpret_cast<const SignalBlock&>(stRangeCmpMessage_.aucRangeData[uiRangeDataBytesDecompressed]);
 
-            const auto eSignalType = GetBitfield<SIGNAL_TYPE>(stSigBlock.uiCombinedField1, SIG_SIGNAL_TYPE_MASK);
-            const auto ucPSRBitfield = GetBitfield<uint8_t>(stSigBlock.ullCombinedField2, SIG_PSR_STDDEV_MASK);
-            const auto ucADRBitfield = GetBitfield<uint8_t>(stSigBlock.ullCombinedField2, SIG_ADR_STDDEV_MASK);
-            const auto uiLockTimeBits = GetBitfield<uint32_t>(stSigBlock.uiCombinedField1, SIG_LOCKTIME_MASK);
+            const auto eSignalType = GetBitfield<SIGNAL_TYPE, SIG_SIGNAL_TYPE_MASK>(stSigBlock.uiCombinedField1);
+            const auto ucPSRBitfield = GetBitfield<uint8_t, SIG_PSR_STDDEV_MASK>(stSigBlock.ullCombinedField2);
+            const auto ucADRBitfield = GetBitfield<uint8_t, SIG_ADR_STDDEV_MASK>(stSigBlock.ullCombinedField2);
+            const auto uiLockTimeBits = GetBitfield<uint32_t, SIG_LOCKTIME_MASK>(stSigBlock.uiCombinedField1);
             const auto usPRN = stSatBlock.ucSatelliteIdentifier + (eSystem == SYSTEM::GLONASS ? GLONASS_SLOT_OFFSET - 1 : 0);
 
-            auto iDopplerBitfield = GetBitfield<int32_t>(stSigBlock.ullCombinedField2, SIG_DOPPLER_DIFF_MASK);
+            auto iDopplerBitfield = GetBitfield<int32_t, SIG_DOPPLER_DIFF_MASK>(stSigBlock.ullCombinedField2);
             HandleSignExtension(iDopplerBitfield, SIG_DOPPLER_DIFF_SIGNEXT_MASK);
 
             ChannelTrackingStatus stChannelTrackingStatus(stSatBlock, stSigBlock);
@@ -677,16 +677,16 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             // Construct the decompressed range data
             RangeData& stRangeData = stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++];
             stRangeData.usPRN = usPRN;
-            stRangeData.sGLONASSFrequency = GetBitfield<int16_t>(stSatBlock.ulCombinedField, SAT_GLONASS_FREQUENCY_ID_MASK);
-            stRangeData.dPSR = iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_PSR_DIFF_MASK) / SIG_PSR_DIFF_SCALE_FACTOR);
+            stRangeData.sGLONASSFrequency = GetBitfield<int16_t, SAT_GLONASS_FREQUENCY_ID_MASK>(stSatBlock.ulCombinedField);
+            stRangeData.dPSR = iPSRBase + (GetBitfield<uint64_t, SIG_PSR_DIFF_MASK>(stSigBlock.ullCombinedField2) / SIG_PSR_DIFF_SCALE_FACTOR);
             stRangeData.fPSRStdDev = stdDevPsrScaling[ucPSRBitfield];
             stRangeData.dADR =
-                -((iPSRBase + (GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_PHASERANGE_DIFF_MASK) / SIG_PHASERANGE_DIFF_SCALE_FACTOR)) /
-                  stChannelTrackingStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency)); // TODO: Bug?
+                -((iPSRBase + (GetBitfield<uint64_t, SIG_PHASERANGE_DIFF_MASK>(stSigBlock.ullCombinedField2) / SIG_PHASERANGE_DIFF_SCALE_FACTOR)) /
+                  stChannelTrackingStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency));
             stRangeData.fADRStdDev = stdDevAdrScaling[ucADRBitfield];
             stRangeData.fDopplerFrequency =
                 (iDopplerBase + (iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR)) / RangeCmp2SignalScaling(eSystem, eSignalType);
-            stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t>(stSigBlock.ullCombinedField2, SIG_CNO_MASK);
+            stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t, SIG_CNO_MASK>(stSigBlock.ullCombinedField2);
             stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stChannelTrackingStatus.eSatelliteSystem,
                                                          stChannelTrackingStatus.eSignalType, usPRN);
             stRangeData.uiChannelTrackingStatus = stChannelTrackingStatus.GetAsWord();
