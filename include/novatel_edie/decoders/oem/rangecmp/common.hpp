@@ -96,7 +96,6 @@ template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiB
 
     if (uiBitsInBitfield_ > sizeof(T) * 8) { throw std::runtime_error("Return type too small for the requested bitfield."); }
     if (uiBitsInBitfield_ > uiBytesLeft_ * 8 - uiBitOffset_) { throw std::runtime_error("Not enough bytes remaining in the buffer."); }
-    if (uiBitsInBitfield_ + uiBitOffset_ > 64) { throw std::runtime_error("Bitfield too large for a single read."); }
 
     uint64_t ullBitfield = 0;
 
@@ -115,16 +114,16 @@ template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiB
     return static_cast<T>(ullBitfield);
 
     // if (uiBitsInBitfield_ + uiBitOffset_ > 64) { throw std::runtime_error("Bitfield too large for a single read."); }
-    // 
+
     // const uint64_t mask = (1ULL << uiBitsInBitfield_) - 1;
     // const uint64_t result = *reinterpret_cast<uint64_t*>(*ppucData_) >> uiBitOffset_;
     // const uint32_t uiBitTotal = uiBitOffset_ + uiBitsInBitfield_;
     // const uint32_t uiBytesConsumed = uiBitTotal / 8;
-    // 
+
     // *ppucData_ += uiBytesConsumed;
     // uiBytesLeft_ -= uiBytesConsumed;
     // uiBitOffset_ = uiBitTotal % 8;
-    // 
+
     // return static_cast<T>(mask & result);
 }
 
