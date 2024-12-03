@@ -94,16 +94,15 @@ template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiB
 {
     static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "ExtractBitfield only returns integral or floating point types.");
 
-    constexpr uint32_t bitsPerByte = 8;
-    constexpr uint32_t typeBitSize = sizeof(T) * bitsPerByte;
+    constexpr uint32_t typeBitSize = sizeof(T) * 8;
 
     if (uiBitsInBitfield_ > typeBitSize) { return T{0}; } // return type is too small for the bitfield
 
-    uint32_t uiBytesRequired = (uiBitsInBitfield_ + bitsPerByte - 1) / bitsPerByte;
+    uint32_t uiBytesRequired = (uiBitsInBitfield_ + 8 - 1) / 8;
     if (uiBytesRequired > uiBytesLeft_) { return T{0}; } // not enough bytes left in the buffer
 
     // Adjust remaining bytes by subtracting required bytes, accounting for any bit offset
-    uiBytesLeft_ -= uiBytesRequired - ((uiBitsInBitfield_ % bitsPerByte + uiBitOffset_) < bitsPerByte);
+    uiBytesLeft_ -= uiBytesRequired - ((uiBitsInBitfield_ % 8 + uiBitOffset_) < 8);
 
     uint64_t ullBitfield = 0;
     uint32_t uiByteOffset = 0;
