@@ -130,6 +130,7 @@ template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiB
 //-----------------------------------------------------------------------
 // Generic Constants
 //-----------------------------------------------------------------------
+constexpr uint32_t SPEED_OF_LIGHT = 299792458;
 constexpr uint32_t MAX_VALUE = 0x800000; //!< Also 8388608, defined in RANGECMP documentation for ADR.
 
 //! NOTE: See documentation on slot/PRN offsets for specific satellite systems:
@@ -160,6 +161,39 @@ constexpr uint32_t RANGECMP2_MSG_ID = 1273;
 constexpr uint32_t RANGECMP3_MSG_ID = 1734;
 constexpr uint32_t RANGECMP4_MSG_ID = 2050;
 constexpr uint32_t RANGECMP5_MSG_ID = 2537;
+
+//-----------------------------------------------------------------------
+// Frequencies
+//-----------------------------------------------------------------------
+constexpr double FREQUENCY_HZ_GPS_L1 = 1575420000;
+constexpr double FREQUENCY_HZ_GPS_L2 = 1227600000;
+constexpr double FREQUENCY_HZ_GPS_L5 = 1176450000;
+
+constexpr double FREQUENCY_HZ_GAL_E1 = FREQUENCY_HZ_GPS_L1;
+constexpr double FREQUENCY_HZ_GAL_E5A = FREQUENCY_HZ_GPS_L5;
+constexpr double FREQUENCY_HZ_GAL_E5B = 1207140000;
+constexpr double FREQUENCY_HZ_GAL_E6 = 1278750000;
+constexpr double FREQUENCY_HZ_GAL_ALTB = 1191795000;
+
+constexpr double FREQUENCY_HZ_BDS_B1 = 1561098000;
+constexpr double FREQUENCY_HZ_BDS_B1C = FREQUENCY_HZ_GPS_L1;
+constexpr double FREQUENCY_HZ_BDS_B2 = FREQUENCY_HZ_GAL_E5B;
+constexpr double FREQUENCY_HZ_BDS_B2A = FREQUENCY_HZ_GPS_L5;
+constexpr double FREQUENCY_HZ_BDS_B2B = FREQUENCY_HZ_BDS_B2;
+constexpr double FREQUENCY_HZ_BDS_B3 = 1268520000;
+
+constexpr double GLONASS_L1_FREQUENCY_SCALE_HZ = 562500.0;
+constexpr double GLONASS_L2_FREQUENCY_SCALE_HZ = 437500.0;
+constexpr double GLONASS_L3_FREQUENCY_SCALE_HZ = GLONASS_L2_FREQUENCY_SCALE_HZ;
+
+constexpr double FREQUENCY_HZ_GLO_L1 = 1602000000;
+constexpr double FREQUENCY_HZ_GLO_L2 = 1246000000;
+constexpr double FREQUENCY_HZ_GLO_L3 = 1202025000;
+
+constexpr double FREQUENCY_HZ_QZSS_L1 = FREQUENCY_HZ_GPS_L1;
+constexpr double FREQUENCY_HZ_QZSS_L2 = FREQUENCY_HZ_GPS_L2;
+constexpr double FREQUENCY_HZ_QZSS_L5 = FREQUENCY_HZ_GPS_L5;
+constexpr double FREQUENCY_HZ_QZSS_L6 = 1278750000;
 
 //-----------------------------------------------------------------------
 //! RANGE Channel Tracking Status data field bit masks.
@@ -362,8 +396,8 @@ constexpr std::array<int64_t, 2> RBLK_INVALID_PSR = {137438953471, -524288};
 //-----------------------------------------------------------------------
 //! \enum SYSTEM
 //! \brief Satellite Constellation System enumerations. These can also
-//! be used to shift a system mask for decoding.
-//! \note These are different from the enumerations for the Satellite
+//! be used to shift a sytem mask for decoding.
+//! \note These are different than the enumerations for the Satellite
 //! System field of the Channel Tracking Status word.
 //-----------------------------------------------------------------------
 enum class SYSTEM
@@ -480,7 +514,7 @@ struct SignalBlock
 //-----------------------------------------------------------------------
 struct LockTimeInfo
 {
-    double dLockTimeSaturatedMilliseconds{0.0}; // The time (milliseconds from OEM header) at which the lock time became saturated.
+    double dLockTimeSaturatedMilliseconds{0.0}; // The time (milliseconds from OEM header) at which the locktime became saturated.
     bool bLockTimeSaturated{false};             // A flag to verify if dLockTimeSaturatedMilliseconds has been set.
 
     LockTimeInfo() = default;
@@ -654,12 +688,12 @@ struct MeasurementSignalBlock
 
 //-----------------------------------------------------------------------
 //! \struct LockTimeInfo
-//! \brief Store persistent data for RANGECMP4 lock time extrapolation.
+//! \brief Store persistent data for RANGECMP4 locktime extrapolation.
 //-----------------------------------------------------------------------
 struct LockTimeInfo
 {
-    double dMilliseconds{0.0};                           // The current running lock time for this observation.
-    double dLastBitfieldChangeMilliseconds{0.0};         // The last time (milliseconds from OEM header) lock time was updated.
+    double dMilliseconds{0.0};                           // The current running locktime for this observation.
+    double dLastBitfieldChangeMilliseconds{0.0};         // The last time (milliseconds from OEM header) locktime was updated.
     uint8_t ucBits{std::numeric_limits<uint8_t>::max()}; // The last recorded bit pattern.
     bool bAbsolute{false};                               // Is the lock time absolute or relative?
 
@@ -1144,52 +1178,23 @@ struct ChannelTrackingStatus
     //------------------------------------------------------------------------------
     double GetSignalWavelength(const int16_t sGLONASSFrequency_) const
     {
-        constexpr double speedOfLight = 299792458.0;
-
-        constexpr double wavelengthGpsL1 = speedOfLight / 1575420000;
-        constexpr double wavelengthGpsL2 = speedOfLight / 1227600000;
-        constexpr double wavelengthGpsL5 = speedOfLight / 1176450000;
-
-        constexpr double wavelengthGalE1 = wavelengthGpsL1;
-        constexpr double wavelengthGalE5A = wavelengthGpsL5;
-        constexpr double wavelengthGalE5B = speedOfLight / 1207140000;
-        constexpr double wavelengthGalE6 = speedOfLight / 1278750000;
-        constexpr double wavelengthGalAlt = speedOfLight / 1191795000;
-
-        constexpr double wavelengthBdsB1 = speedOfLight / 1561098000;
-        constexpr double wavelengthBdsB1C = wavelengthGpsL1;
-        constexpr double wavelengthBdsB2 = wavelengthGalE5B;
-        constexpr double wavelengthBdsB2A = wavelengthGpsL5;
-        constexpr double wavelengthBdsB2B = wavelengthBdsB2;
-        constexpr double wavelengthBdsB3 = speedOfLight / 1268520000;
-
-        constexpr double wavelengthGloL1 = speedOfLight / 1602000000;
-        constexpr double wavelengthGloL2 = speedOfLight / 1246000000;
-        constexpr double wavelengthGloL3 = speedOfLight / 1202025000;
-
-        constexpr double wavelengthQzssL1 = wavelengthGpsL1;
-        constexpr double wavelengthQzssL2 = wavelengthGpsL2;
-        constexpr double wavelengthQzssL5 = wavelengthGpsL5;
-        constexpr double wavelengthQzssL6 = speedOfLight / 1278750000;
-
-        constexpr double glonassL1FrequencyScaleHz = 562500.0;
-        constexpr double glonassL2FrequencyScaleHz = 437500.0;
-
         // TODO: Size these arrays correctly
-        constexpr auto glonassL1LookupTable = [&] {
+        constexpr auto glonassL1LookupTable = [] {
             std::array<double, 64> arr{};
             for (int32_t i = 0; i < static_cast<int32_t>(arr.size()); i++)
             {
-                arr[i] = speedOfLight / (wavelengthGloL1 + (i - static_cast<int32_t>(GLONASS_FREQUENCY_NUMBER_OFFSET)) * glonassL1FrequencyScaleHz);
+                arr[i] = SPEED_OF_LIGHT /
+                         (FREQUENCY_HZ_GLO_L1 + (i - static_cast<int32_t>(GLONASS_FREQUENCY_NUMBER_OFFSET)) * GLONASS_L1_FREQUENCY_SCALE_HZ);
             }
             return arr;
         }();
 
-        constexpr auto glonassL2LookupTable = [&] {
+        constexpr auto glonassL2LookupTable = [] {
             std::array<double, 64> arr{};
             for (int32_t i = 0; i < static_cast<int32_t>(arr.size()); i++)
             {
-                arr[i] = speedOfLight / (wavelengthGloL2 + (i - static_cast<int32_t>(GLONASS_FREQUENCY_NUMBER_OFFSET)) * glonassL2FrequencyScaleHz);
+                arr[i] = SPEED_OF_LIGHT /
+                         (FREQUENCY_HZ_GLO_L2 + (i - static_cast<int32_t>(GLONASS_FREQUENCY_NUMBER_OFFSET)) * GLONASS_L2_FREQUENCY_SCALE_HZ);
             }
             return arr;
         }();
@@ -1200,11 +1205,11 @@ struct ChannelTrackingStatus
             switch (eSignalType)
             {
             case SIGNAL_TYPE::GPS_L1CA: [[fallthrough]];
-            case SIGNAL_TYPE::GPS_L1CP: return wavelengthGpsL1;
+            case SIGNAL_TYPE::GPS_L1CP: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L1;
             case SIGNAL_TYPE::GPS_L2P: [[fallthrough]];
             case SIGNAL_TYPE::GPS_L2Y: [[fallthrough]];
-            case SIGNAL_TYPE::GPS_L2CM: return wavelengthGpsL2;
-            case SIGNAL_TYPE::GPS_L5Q: return wavelengthGpsL5;
+            case SIGNAL_TYPE::GPS_L2CM: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L2;
+            case SIGNAL_TYPE::GPS_L5Q: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::GLONASS:
@@ -1213,56 +1218,56 @@ struct ChannelTrackingStatus
             case SIGNAL_TYPE::GLONASS_L1CA: return glonassL1LookupTable[sGLONASSFrequency_];
             case SIGNAL_TYPE::GLONASS_L2CA: [[fallthrough]];
             case SIGNAL_TYPE::GLONASS_L2P: return glonassL2LookupTable[sGLONASSFrequency_];
-            case SIGNAL_TYPE::GLONASS_L3Q: return wavelengthGloL3;
+            case SIGNAL_TYPE::GLONASS_L3Q: return SPEED_OF_LIGHT / FREQUENCY_HZ_GLO_L3;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::SBAS:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::SBAS_L1CA: return wavelengthGpsL1;
-            case SIGNAL_TYPE::SBAS_L5I: return wavelengthGpsL5;
+            case SIGNAL_TYPE::SBAS_L1CA: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L1;
+            case SIGNAL_TYPE::SBAS_L5I: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::GALILEO:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::GALILEO_E1C: return wavelengthGalE1;
+            case SIGNAL_TYPE::GALILEO_E1C: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E1;
             case SIGNAL_TYPE::GALILEO_E6B: [[fallthrough]];
-            case SIGNAL_TYPE::GALILEO_E6C: return wavelengthGalE6;
-            case SIGNAL_TYPE::GALILEO_E5AQ: return wavelengthGalE5A;
-            case SIGNAL_TYPE::GALILEO_E5BQ: return wavelengthGalE5B;
-            case SIGNAL_TYPE::GALILEO_E5ALTBOCQ: return wavelengthGalAlt;
+            case SIGNAL_TYPE::GALILEO_E6C: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E6;
+            case SIGNAL_TYPE::GALILEO_E5AQ: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E5A;
+            case SIGNAL_TYPE::GALILEO_E5BQ: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E5B;
+            case SIGNAL_TYPE::GALILEO_E5ALTBOCQ: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_ALTB;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::BEIDOU:
             switch (eSignalType)
             {
             case SIGNAL_TYPE::BEIDOU_B1ID1: [[fallthrough]];
-            case SIGNAL_TYPE::BEIDOU_B1ID2: return wavelengthBdsB1;
+            case SIGNAL_TYPE::BEIDOU_B1ID2: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B1;
             case SIGNAL_TYPE::BEIDOU_B2ID1: [[fallthrough]];
-            case SIGNAL_TYPE::BEIDOU_B2ID2: return wavelengthBdsB2;
+            case SIGNAL_TYPE::BEIDOU_B2ID2: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2;
             case SIGNAL_TYPE::BEIDOU_B3ID1: [[fallthrough]];
-            case SIGNAL_TYPE::BEIDOU_B3ID2: return wavelengthBdsB3;
-            case SIGNAL_TYPE::BEIDOU_B1CP: return wavelengthBdsB1C;
-            case SIGNAL_TYPE::BEIDOU_B2AP: return wavelengthBdsB2A;
-            case SIGNAL_TYPE::BEIDOU_B2BI: return wavelengthBdsB2B;
+            case SIGNAL_TYPE::BEIDOU_B3ID2: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B3;
+            case SIGNAL_TYPE::BEIDOU_B1CP: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B1C;
+            case SIGNAL_TYPE::BEIDOU_B2AP: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2A;
+            case SIGNAL_TYPE::BEIDOU_B2BI: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2B;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::QZSS:
             switch (eSignalType)
             {
             case SIGNAL_TYPE::QZSS_L1CA: [[fallthrough]];
-            case SIGNAL_TYPE::QZSS_L1CP: return wavelengthQzssL1;
-            case SIGNAL_TYPE::QZSS_L2CM: return wavelengthQzssL2;
-            case SIGNAL_TYPE::QZSS_L5Q: return wavelengthQzssL5;
+            case SIGNAL_TYPE::QZSS_L1CP: return SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L1;
+            case SIGNAL_TYPE::QZSS_L2CM: return SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L2;
+            case SIGNAL_TYPE::QZSS_L5Q: return SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L5;
             case SIGNAL_TYPE::QZSS_L6P: [[fallthrough]];
-            case SIGNAL_TYPE::QZSS_L6D: return wavelengthQzssL6;
+            case SIGNAL_TYPE::QZSS_L6D: return SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L6;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::NAVIC:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::NAVIC_L5SPS: return wavelengthGpsL5;
+            case SIGNAL_TYPE::NAVIC_L5SPS: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
             default: return 0.0;
             }
         default: return 0.0;
