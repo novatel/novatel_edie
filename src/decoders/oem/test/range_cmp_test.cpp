@@ -159,7 +159,7 @@ TEST_F(RangeCmpTest, BITFIELD_3)
    uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBitOffset = 0;
    uint32_t uiBytesLeft = sizeof(aucBytes);
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 65));
+   ASSERT_THROW(ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 65), std::runtime_error);
 }
 
 TEST_F(RangeCmpTest, BITFIELD_4)
