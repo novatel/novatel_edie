@@ -480,7 +480,7 @@ struct SignalBlock
 //-----------------------------------------------------------------------
 struct LockTimeInfo
 {
-    double dLockTimeSaturatedMilliseconds{0.0}; // The time (milliseconds from OEM header) at which the locktime became saturated.
+    double dLockTimeSaturatedMilliseconds{0.0}; // The time (milliseconds from OEM header) at which the lock time became saturated.
     bool bLockTimeSaturated{false};             // A flag to verify if dLockTimeSaturatedMilliseconds has been set.
 
     LockTimeInfo() = default;
@@ -654,12 +654,12 @@ struct MeasurementSignalBlock
 
 //-----------------------------------------------------------------------
 //! \struct LockTimeInfo
-//! \brief Store persistent data for RANGECMP4 locktime extrapolation.
+//! \brief Store persistent data for RANGECMP4 lock time extrapolation.
 //-----------------------------------------------------------------------
 struct LockTimeInfo
 {
-    double dMilliseconds{0.0};                           // The current running locktime for this observation.
-    double dLastBitfieldChangeMilliseconds{0.0};         // The last time (milliseconds from OEM header) locktime was updated.
+    double dMilliseconds{0.0};                           // The current running lock time for this observation.
+    double dLastBitfieldChangeMilliseconds{0.0};         // The last time (milliseconds from OEM header) lock time was updated.
     uint8_t ucBits{std::numeric_limits<uint8_t>::max()}; // The last recorded bit pattern.
     bool bAbsolute{false};                               // Is the lock time absolute or relative?
 
@@ -1146,34 +1146,34 @@ struct ChannelTrackingStatus
     {
         constexpr double speedOfLight = 299792458.0;
 
-        constexpr double frequencyHzGpsL1 = 1575420000;
-        constexpr double frequencyHzGpsL2 = 1227600000;
-        constexpr double frequencyHzGpsL5 = 1176450000;
+        constexpr double frequencyHzGpsL1 = 1575420000.0;
+        constexpr double frequencyHzGpsL2 = 1227600000.0;
+        constexpr double frequencyHzGpsL5 = 1176450000.0;
 
         constexpr double frequencyHzGalE1 = frequencyHzGpsL1;
         constexpr double frequencyHzGalE5A = frequencyHzGpsL5;
-        constexpr double frequencyHzGalE5B = 1207140000;
-        constexpr double frequencyHzGalE6 = 1278750000;
-        constexpr double frequencyHzGalAltb = 1191795000;
+        constexpr double frequencyHzGalE5B = 1207140000.0;
+        constexpr double frequencyHzGalE6 = 1278750000.0;
+        constexpr double frequencyHzGalAlt = 1191795000.0;
 
-        constexpr double frequencyHzBdsB1 = 1561098000;
+        constexpr double frequencyHzBdsB1 = 1561098000.0;
         constexpr double frequencyHzBdsB1C = frequencyHzGpsL1;
         constexpr double frequencyHzBdsB2 = frequencyHzGalE5B;
         constexpr double frequencyHzBdsB2A = frequencyHzGpsL5;
         constexpr double frequencyHzBdsB2B = frequencyHzBdsB2;
-        constexpr double frequencyHzBdsB3 = 1268520000;
+        constexpr double frequencyHzBdsB3 = 1268520000.0;
 
         constexpr double glonassL1FrequencyScaleHz = 562500.0;
         constexpr double glonassL2FrequencyScaleHz = 437500.0;
 
-        constexpr double frequencyHzGloL1 = 1602000000;
-        constexpr double frequencyHzGloL2 = 1246000000;
-        constexpr double frequencyHzGloL3 = 1202025000;
+        constexpr double frequencyHzGloL1 = 1602000000.0;
+        constexpr double frequencyHzGloL2 = 1246000000.0;
+        constexpr double frequencyHzGloL3 = 1202025000.0;
 
         constexpr double frequencyHzQzssL1 = frequencyHzGpsL1;
         constexpr double frequencyHzQzssL2 = frequencyHzGpsL2;
         constexpr double frequencyHzQzssL5 = frequencyHzGpsL5;
-        constexpr double frequencyHzQzssL6 = 1278750000;
+        constexpr double frequencyHzQzssL6 = 1278750000.0;
 
         // TODO: Size these arrays correctly
         constexpr auto glonassL1LookupTable = [&] {
@@ -1231,7 +1231,7 @@ struct ChannelTrackingStatus
             case SIGNAL_TYPE::GALILEO_E6C: return speedOfLight / frequencyHzGalE6;
             case SIGNAL_TYPE::GALILEO_E5AQ: return speedOfLight / frequencyHzGalE5A;
             case SIGNAL_TYPE::GALILEO_E5BQ: return speedOfLight / frequencyHzGalE5B;
-            case SIGNAL_TYPE::GALILEO_E5ALTBOCQ: return speedOfLight / frequencyHzGalAltb;
+            case SIGNAL_TYPE::GALILEO_E5ALTBOCQ: return speedOfLight / frequencyHzGalAlt;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::BEIDOU:
