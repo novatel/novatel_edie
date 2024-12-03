@@ -163,39 +163,6 @@ constexpr uint32_t RANGECMP4_MSG_ID = 2050;
 constexpr uint32_t RANGECMP5_MSG_ID = 2537;
 
 //-----------------------------------------------------------------------
-// Frequencies
-//-----------------------------------------------------------------------
-constexpr double FREQUENCY_HZ_GPS_L1 = 1575420000;
-constexpr double FREQUENCY_HZ_GPS_L2 = 1227600000;
-constexpr double FREQUENCY_HZ_GPS_L5 = 1176450000;
-
-constexpr double FREQUENCY_HZ_GAL_E1 = FREQUENCY_HZ_GPS_L1;
-constexpr double FREQUENCY_HZ_GAL_E5A = FREQUENCY_HZ_GPS_L5;
-constexpr double FREQUENCY_HZ_GAL_E5B = 1207140000;
-constexpr double FREQUENCY_HZ_GAL_E6 = 1278750000;
-constexpr double FREQUENCY_HZ_GAL_ALTB = 1191795000;
-
-constexpr double FREQUENCY_HZ_BDS_B1 = 1561098000;
-constexpr double FREQUENCY_HZ_BDS_B1C = FREQUENCY_HZ_GPS_L1;
-constexpr double FREQUENCY_HZ_BDS_B2 = FREQUENCY_HZ_GAL_E5B;
-constexpr double FREQUENCY_HZ_BDS_B2A = FREQUENCY_HZ_GPS_L5;
-constexpr double FREQUENCY_HZ_BDS_B2B = FREQUENCY_HZ_BDS_B2;
-constexpr double FREQUENCY_HZ_BDS_B3 = 1268520000;
-
-constexpr double GLONASS_L1_FREQUENCY_SCALE_HZ = 562500.0;
-constexpr double GLONASS_L2_FREQUENCY_SCALE_HZ = 437500.0;
-constexpr double GLONASS_L3_FREQUENCY_SCALE_HZ = GLONASS_L2_FREQUENCY_SCALE_HZ;
-
-constexpr double FREQUENCY_HZ_GLO_L1 = 1602000000;
-constexpr double FREQUENCY_HZ_GLO_L2 = 1246000000;
-constexpr double FREQUENCY_HZ_GLO_L3 = 1202025000;
-
-constexpr double FREQUENCY_HZ_QZSS_L1 = FREQUENCY_HZ_GPS_L1;
-constexpr double FREQUENCY_HZ_QZSS_L2 = FREQUENCY_HZ_GPS_L2;
-constexpr double FREQUENCY_HZ_QZSS_L5 = FREQUENCY_HZ_GPS_L5;
-constexpr double FREQUENCY_HZ_QZSS_L6 = 1278750000;
-
-//-----------------------------------------------------------------------
 //! RANGE Channel Tracking Status data field bit masks.
 //! NOTE: These masks and offsets will be used to construct or
 //! deconstruct ChannelTrackingStatus words which appear in RANGE
@@ -1178,8 +1145,40 @@ struct ChannelTrackingStatus
     //------------------------------------------------------------------------------
     double GetSignalWavelength(const int16_t sGLONASSFrequency_) const
     {
+        //-----------------------------------------------------------------------
+        // Frequencies
+        //-----------------------------------------------------------------------
+        constexpr double FREQUENCY_HZ_GPS_L1 = 1575420000;
+        constexpr double FREQUENCY_HZ_GPS_L2 = 1227600000;
+        constexpr double FREQUENCY_HZ_GPS_L5 = 1176450000;
+
+        constexpr double FREQUENCY_HZ_GAL_E1 = FREQUENCY_HZ_GPS_L1;
+        constexpr double FREQUENCY_HZ_GAL_E5A = FREQUENCY_HZ_GPS_L5;
+        constexpr double FREQUENCY_HZ_GAL_E5B = 1207140000;
+        constexpr double FREQUENCY_HZ_GAL_E6 = 1278750000;
+        constexpr double FREQUENCY_HZ_GAL_ALTB = 1191795000;
+
+        constexpr double FREQUENCY_HZ_BDS_B1 = 1561098000;
+        constexpr double FREQUENCY_HZ_BDS_B1C = FREQUENCY_HZ_GPS_L1;
+        constexpr double FREQUENCY_HZ_BDS_B2 = FREQUENCY_HZ_GAL_E5B;
+        constexpr double FREQUENCY_HZ_BDS_B2A = FREQUENCY_HZ_GPS_L5;
+        constexpr double FREQUENCY_HZ_BDS_B2B = FREQUENCY_HZ_BDS_B2;
+        constexpr double FREQUENCY_HZ_BDS_B3 = 1268520000;
+
+        constexpr double GLONASS_L1_FREQUENCY_SCALE_HZ = 562500.0;
+        constexpr double GLONASS_L2_FREQUENCY_SCALE_HZ = 437500.0;
+
+        constexpr double FREQUENCY_HZ_GLO_L1 = 1602000000;
+        constexpr double FREQUENCY_HZ_GLO_L2 = 1246000000;
+        constexpr double FREQUENCY_HZ_GLO_L3 = 1202025000;
+
+        constexpr double FREQUENCY_HZ_QZSS_L1 = FREQUENCY_HZ_GPS_L1;
+        constexpr double FREQUENCY_HZ_QZSS_L2 = FREQUENCY_HZ_GPS_L2;
+        constexpr double FREQUENCY_HZ_QZSS_L5 = FREQUENCY_HZ_GPS_L5;
+        constexpr double FREQUENCY_HZ_QZSS_L6 = 1278750000;
+
         // TODO: Size these arrays correctly
-        constexpr auto glonassL1LookupTable = [] {
+        constexpr auto glonassL1LookupTable = [&] {
             std::array<double, 64> arr{};
             for (int32_t i = 0; i < static_cast<int32_t>(arr.size()); i++)
             {
@@ -1189,7 +1188,7 @@ struct ChannelTrackingStatus
             return arr;
         }();
 
-        constexpr auto glonassL2LookupTable = [] {
+        constexpr auto glonassL2LookupTable = [&] {
             std::array<double, 64> arr{};
             for (int32_t i = 0; i < static_cast<int32_t>(arr.size()); i++)
             {
