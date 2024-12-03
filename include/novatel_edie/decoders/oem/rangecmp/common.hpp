@@ -92,7 +92,7 @@ template <auto Mask, typename T> constexpr void HandleSignExtension(T& value)
 
 template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, const uint32_t uiBitsInBitfield_)
 {
-    static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "ExtractBitfield only returns integral or floating point types.");
+    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "ExtractBitfield only returns integral or floating point types.");
 
     if (uiBitsInBitfield_ > sizeof(T) * 8) { throw std::runtime_error("Return type too small for the requested bitfield."); }
     if (uiBitsInBitfield_ > uiBytesLeft_ * 8 - uiBitOffset_) { throw std::runtime_error("Not enough bytes remaining in the buffer."); }
@@ -101,7 +101,7 @@ template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiB
 
     for (uint32_t uiBitsConsumed = 0; uiBitsConsumed < uiBitsInBitfield_; uiBitsConsumed++)
     {
-        if ((**ppucData_ & (1UL << uiBitOffset_)) != 0) { ullBitfield |= 1ULL << uiBitsConsumed; }
+        if ((**ppucData_ & 1 << uiBitOffset_) != 0) { ullBitfield |= 1ULL << uiBitsConsumed; }
 
         if (++uiBitOffset_ == 8)
         {
@@ -679,7 +679,7 @@ enum class SIGNAL_TYPE
 //! following structures. These are for containment purposes only.
 
 //-----------------------------------------------------------------------
-//! \struct RangeCmp4MeasurementBlockHeader
+//! \struct MeasurementBlockHeader
 //! \brief Measurement Block Header structure to contain the values
 //! within the compressed bitfields for OEM4 RANGECMP4 messages.
 //-----------------------------------------------------------------------
