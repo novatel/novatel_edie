@@ -95,24 +95,19 @@ template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiB
     static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value, "ExtractBitfield only returns integral or floating point types.");
 
     if (uiBitsInBitfield_ > sizeof(T) * 8) { throw std::runtime_error("Return type too small for the requested bitfield."); }
-
     if (uiBitsInBitfield_ > uiBytesLeft_ * 8 - uiBitOffset_) { throw std::runtime_error("Not enough bytes remaining in the buffer."); }
+    if (uiBitsInBitfield_ + uiBitOffset_ > 64) { throw std::runtime_error("Bitfield too large for a single read."); }
 
-    uint64_t ullBitfield = 0;
+    const uint64_t mask = (1ULL << uiBitsInBitfield_) - 1;
+    const uint64_t result = *reinterpret_cast<uint64_t*>(*ppucData_) >> uiBitOffset_;
+    const uint32_t uiBitTotal = uiBitOffset_ + uiBitsInBitfield_;
+    const uint32_t uiBytesConsumed = uiBitTotal / 8;
 
-    for (uint32_t uiBitsConsumed = 0; uiBitsConsumed < uiBitsInBitfield_; uiBitsConsumed++)
-    {
-        if ((**ppucData_ & (1UL << uiBitOffset_)) != 0) { ullBitfield |= 1ULL << uiBitsConsumed; }
-
-        if (++uiBitOffset_ == 8)
-        {
-            uiBitOffset_ = 0;
-            --uiBytesLeft_;
-            ++*ppucData_;
-        }
-    }
-
-    return static_cast<T>(ullBitfield);
+    *ppucData_ += uiBytesConsumed;
+    uiBytesLeft_ -= uiBytesConsumed;
+    uiBitOffset_ = uiBitTotal % 8;
+    
+    return static_cast<T>(mask & result);
 }
 
 //-----------------------------------------------------------------------

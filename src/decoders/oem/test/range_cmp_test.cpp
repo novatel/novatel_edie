@@ -223,6 +223,16 @@ TEST_F(RangeCmpTest, BITFIELD_4)
    ASSERT_EQ(0U, uiBytesLeft);
 }
 
+TEST_F(RangeCmpTest, BITFIELD_5)
+{
+    // ExtractBitfield cant handle when bit offset + bits in bitfield > 64, so we throw an exception.
+    uint64_t temp = 0ULL;
+    auto pucBytesPointer = reinterpret_cast<uint8_t*>(&temp);
+   uint32_t uiBitOffset = 1;
+   uint32_t uiBytesLeft = sizeof(temp) + 1;
+   ASSERT_THROW(ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 64), std::runtime_error);
+}
+
 // -------------------------------------------------------------------------------------------------------
 // RANGECMP decompression unit tests
 // -------------------------------------------------------------------------------------------------------
