@@ -196,35 +196,6 @@ constexpr double FREQUENCY_HZ_QZSS_L5 = FREQUENCY_HZ_GPS_L5;
 constexpr double FREQUENCY_HZ_QZSS_L6 = 1278750000;
 
 //-----------------------------------------------------------------------
-// Wavelengths
-//-----------------------------------------------------------------------
-constexpr double WAVELENGTH_GPS_L1 = SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L1;
-constexpr double WAVELENGTH_GPS_L2 = SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L2;
-constexpr double WAVELENGTH_GPS_L5 = SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
-
-constexpr double WAVELENGTH_GAL_E5AQ = SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E5A;
-constexpr double WAVELENGTH_GAL_E5BQ = SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E5B;
-constexpr double WAVELENGTH_GAL_ALTBQ = SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_ALTB;
-constexpr double WAVELENGTH_GAL_E1 = SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E1;
-constexpr double WAVELENGTH_GAL_E6 = SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E6;
-
-constexpr double WAVELENGTH_BDS_B1 = SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B1;
-constexpr double WAVELENGTH_BDS_B1C = SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B1C;
-constexpr double WAVELENGTH_BDS_B2 = SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2;
-constexpr double WAVELENGTH_BDS_B2A = SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2A;
-constexpr double WAVELENGTH_BDS_B2B = SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2B;
-constexpr double WAVELENGTH_BDS_B3 = SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B3;
-
-constexpr double WAVELENGTH_GLO_L3 = SPEED_OF_LIGHT / FREQUENCY_HZ_GLO_L3;
-
-constexpr double WAVELENGTH_QZSS_L1 = SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L1;
-constexpr double WAVELENGTH_QZSS_L2 = SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L2;
-constexpr double WAVELENGTH_QZSS_L5 = SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L5;
-constexpr double WAVELENGTH_QZSS_L6 = SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L6;
-
-constexpr double WAVELENGTH_NAVIC_L5 = SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
-
-//-----------------------------------------------------------------------
 //! RANGE Channel Tracking Status data field bit masks.
 //! NOTE: These masks and offsets will be used to construct or
 //! deconstruct ChannelTrackingStatus words which appear in RANGE
@@ -1233,12 +1204,12 @@ struct ChannelTrackingStatus
         case SATELLITE_SYSTEM::GPS:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::GPS_L1CA: return WAVELENGTH_GPS_L1;
-            case SIGNAL_TYPE::GPS_L1CP: return WAVELENGTH_GPS_L1;
-            case SIGNAL_TYPE::GPS_L2P: return WAVELENGTH_GPS_L2;
-            case SIGNAL_TYPE::GPS_L2Y: return WAVELENGTH_GPS_L2;
-            case SIGNAL_TYPE::GPS_L2CM: return WAVELENGTH_GPS_L2;
-            case SIGNAL_TYPE::GPS_L5Q: return WAVELENGTH_GPS_L5;
+            case SIGNAL_TYPE::GPS_L1CA: [[fallthrough]];
+            case SIGNAL_TYPE::GPS_L1CP: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L1;
+            case SIGNAL_TYPE::GPS_L2P: [[fallthrough]];
+            case SIGNAL_TYPE::GPS_L2Y: [[fallthrough]];
+            case SIGNAL_TYPE::GPS_L2CM: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L2;
+            case SIGNAL_TYPE::GPS_L5Q: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::GLONASS:
@@ -1247,56 +1218,56 @@ struct ChannelTrackingStatus
             case SIGNAL_TYPE::GLONASS_L1CA: return glonassL1LookupTable[sGLONASSFrequency_];
             case SIGNAL_TYPE::GLONASS_L2CA: [[fallthrough]];
             case SIGNAL_TYPE::GLONASS_L2P: return glonassL2LookupTable[sGLONASSFrequency_];
-            case SIGNAL_TYPE::GLONASS_L3Q: return WAVELENGTH_GLO_L3;
+            case SIGNAL_TYPE::GLONASS_L3Q: return SPEED_OF_LIGHT / FREQUENCY_HZ_GLO_L3;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::SBAS:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::SBAS_L1CA: return WAVELENGTH_GPS_L1;
-            case SIGNAL_TYPE::SBAS_L5I: return WAVELENGTH_GPS_L5;
+            case SIGNAL_TYPE::SBAS_L1CA: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L1;
+            case SIGNAL_TYPE::SBAS_L5I: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::GALILEO:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::GALILEO_E1C: return WAVELENGTH_GAL_E1;
-            case SIGNAL_TYPE::GALILEO_E6B: return WAVELENGTH_GAL_E6;
-            case SIGNAL_TYPE::GALILEO_E6C: return WAVELENGTH_GAL_E6;
-            case SIGNAL_TYPE::GALILEO_E5AQ: return WAVELENGTH_GAL_E5AQ;
-            case SIGNAL_TYPE::GALILEO_E5BQ: return WAVELENGTH_GAL_E5BQ;
-            case SIGNAL_TYPE::GALILEO_E5ALTBOCQ: return WAVELENGTH_GAL_ALTBQ;
+            case SIGNAL_TYPE::GALILEO_E1C: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E1;
+            case SIGNAL_TYPE::GALILEO_E6B: [[fallthrough]];
+            case SIGNAL_TYPE::GALILEO_E6C: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E6;
+            case SIGNAL_TYPE::GALILEO_E5AQ: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E5A;
+            case SIGNAL_TYPE::GALILEO_E5BQ: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_E5B;
+            case SIGNAL_TYPE::GALILEO_E5ALTBOCQ: return SPEED_OF_LIGHT / FREQUENCY_HZ_GAL_ALTB;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::BEIDOU:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::BEIDOU_B1ID1: return WAVELENGTH_BDS_B1;
-            case SIGNAL_TYPE::BEIDOU_B1ID2: return WAVELENGTH_BDS_B1;
-            case SIGNAL_TYPE::BEIDOU_B2ID1: return WAVELENGTH_BDS_B2;
-            case SIGNAL_TYPE::BEIDOU_B2ID2: return WAVELENGTH_BDS_B2;
-            case SIGNAL_TYPE::BEIDOU_B3ID1: return WAVELENGTH_BDS_B3;
-            case SIGNAL_TYPE::BEIDOU_B3ID2: return WAVELENGTH_BDS_B3;
-            case SIGNAL_TYPE::BEIDOU_B1CP: return WAVELENGTH_BDS_B1C;
-            case SIGNAL_TYPE::BEIDOU_B2AP: return WAVELENGTH_BDS_B2A;
-            case SIGNAL_TYPE::BEIDOU_B2BI: return WAVELENGTH_BDS_B2B;
+            case SIGNAL_TYPE::BEIDOU_B1ID1: [[fallthrough]];
+            case SIGNAL_TYPE::BEIDOU_B1ID2: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B1;
+            case SIGNAL_TYPE::BEIDOU_B2ID1: [[fallthrough]];
+            case SIGNAL_TYPE::BEIDOU_B2ID2: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2;
+            case SIGNAL_TYPE::BEIDOU_B3ID1: [[fallthrough]];
+            case SIGNAL_TYPE::BEIDOU_B3ID2: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B3;
+            case SIGNAL_TYPE::BEIDOU_B1CP: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B1C;
+            case SIGNAL_TYPE::BEIDOU_B2AP: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2A;
+            case SIGNAL_TYPE::BEIDOU_B2BI: return SPEED_OF_LIGHT / FREQUENCY_HZ_BDS_B2B;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::QZSS:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::QZSS_L1CA: return WAVELENGTH_QZSS_L1;
-            case SIGNAL_TYPE::QZSS_L1CP: return WAVELENGTH_QZSS_L1;
-            case SIGNAL_TYPE::QZSS_L2CM: return WAVELENGTH_QZSS_L2;
-            case SIGNAL_TYPE::QZSS_L5Q: return WAVELENGTH_QZSS_L5;
-            case SIGNAL_TYPE::QZSS_L6P: return WAVELENGTH_QZSS_L6;
-            case SIGNAL_TYPE::QZSS_L6D: return WAVELENGTH_QZSS_L6;
+            case SIGNAL_TYPE::QZSS_L1CA: [[fallthrough]];
+            case SIGNAL_TYPE::QZSS_L1CP: return SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L1;
+            case SIGNAL_TYPE::QZSS_L2CM: return SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L2;
+            case SIGNAL_TYPE::QZSS_L5Q: return SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L5;
+            case SIGNAL_TYPE::QZSS_L6P: [[fallthrough]];
+            case SIGNAL_TYPE::QZSS_L6D: return SPEED_OF_LIGHT / FREQUENCY_HZ_QZSS_L6;
             default: return 0.0;
             }
         case SATELLITE_SYSTEM::NAVIC:
             switch (eSignalType)
             {
-            case SIGNAL_TYPE::NAVIC_L5SPS: return WAVELENGTH_NAVIC_L5;
+            case SIGNAL_TYPE::NAVIC_L5SPS: return SPEED_OF_LIGHT / FREQUENCY_HZ_GPS_L5;
             default: return 0.0;
             }
         default: return 0.0;
