@@ -92,18 +92,18 @@ class RangeDecompressor
                                 ChannelTrackingStatus::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
     template <bool bSecondary>
     void DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                  rangecmp4::MeasurementSignalBlock& stRefBlock_, const double primaryPseudorange, const double primaryDoppler);
+                                  rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPseudorange, double primaryDoppler);
     template <bool bSecondary>
     void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
                                      rangecmp4::MeasurementSignalBlock& stDiffBlock_, const rangecmp4::MeasurementSignalBlock& stRefBlock_,
                                      double dSecondOffset_);
     void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
-                               const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
+                               const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
     void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
-                               const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
+                               const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
     template <bool bSecondary>
     void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, rangecmp5::MeasurementSignalBlock& stBlock_,
-                         const double primaryPseudorange, const double primaryDoppler);
+                         double primaryPseudorange, double primaryDoppler);
 
     static void RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
     void RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);

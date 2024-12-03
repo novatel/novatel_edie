@@ -146,15 +146,15 @@ double RangeDecompressor::RangeCmp2SignalScaling(SYSTEM system, rangecmp2::SIGNA
 }
 
 //------------------------------------------------------------------------------
-//! The locktime can only report up to 131071ms (0x1FFFF). If this value is
-//! reached, the locktime must continue to increment. Once the saturated value
-//! has been reached, store the header time at which the locktime was found to
+//! The lock time can only report up to 131071ms (0x1FFFF). If this value is
+//! reached, the lock time must continue to increment. Once the saturated value
+//! has been reached, store the header time at which the lock time was found to
 //! be saturated  and any difference between the header and stored time in the
-//! future can be added to the saturated locktime value to obtain the true
-//! locktime value.
-//! NOTE: that this is only true in the case that locktime is not saturated in
-//! the first observation for this system, signal, PRN. If the locktime is
-//! saturated in the first observation, the locktime is relative to the first
+//! future can be added to the saturated lock time value to obtain the true
+//! lock time value.
+//! NOTE: that this is only true in the case that lock time is not saturated in
+//! the first observation for this system, signal, PRN. If the lock time is
+//! saturated in the first observation, the lock time is relative to the first
 //! observation, and may not be a true representation of the time the
 //! observation has actually been locked.
 //------------------------------------------------------------------------------
@@ -164,60 +164,59 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 {
     using namespace rangecmp2;
 
-    double fLockTimeMilliseconds = uiLockTimeBits_;
+    double dLockTimeMilliseconds = uiLockTimeBits_;
 
-    rangecmp2::LockTimeInfo& stLockTimeInfo =
-        mMyRangeCmp2LockTimes[ChannelTrackingStatus::MakeKey(eSystem_, usPRN_, eSignal_, stMetaData_.eMeasurementSource)];
+    LockTimeInfo& stLockTimeInfo = mMyRangeCmp2LockTimes[ChannelTrackingStatus::MakeKey(eSystem_, usPRN_, eSignal_, stMetaData_.eMeasurementSource)];
     if (uiLockTimeBits_ == SIG_LOCKTIME_MASK >> Lsb(SIG_LOCKTIME_MASK))
     {
-        // If the locktime was already saturated, use the stored time to add the missing offset.
-        if (stLockTimeInfo.bLockTimeSaturated) { fLockTimeMilliseconds += stMetaData_.dMilliseconds - stLockTimeInfo.dLockTimeSaturatedMilliseconds; }
-        // If the locktime is not already saturated, store this information if this observation is seen again.
+        // If the lock time was already saturated, use the stored time to add the missing offset.
+        if (stLockTimeInfo.bLockTimeSaturated) { dLockTimeMilliseconds += stMetaData_.dMilliseconds - stLockTimeInfo.dLockTimeSaturatedMilliseconds; }
+        // If the lock time is not already saturated, store this information if this observation is seen again.
         else
         {
             stLockTimeInfo.dLockTimeSaturatedMilliseconds = stMetaData_.dMilliseconds;
             stLockTimeInfo.bLockTimeSaturated = true;
         }
     }
-    // If the locktime marked as saturated, but is not reported as such from the RANGECMP2 message, clear the flag.
+    // If the lock time is marked as saturated but not reported as such from the RANGECMP2 message, clear the flag.
     else if (stLockTimeInfo.bLockTimeSaturated) { stLockTimeInfo.bLockTimeSaturated = false; }
 
-    return fLockTimeMilliseconds / SEC_TO_MILLI_SEC;
+    return dLockTimeMilliseconds / SEC_TO_MILLI_SEC;
 }
 
 //------------------------------------------------------------------------------
-//! RANGECMP4 locktime information is categorized into certain ranges for a
+//! RANGECMP4 lock time information is categorized into certain ranges for a
 //! given observation. Decompressing this information without knowledge of the
-//! precise time at which lock was acquired can result in initially misledaing
-//! locktimes. There are a number of cases which may occur when decompressing
-//! the locktime bitfields from a RANGECMP4 observation:
-//! NOTE: See lockTime for ullBitfield:locktime translations.
-//!   1. The locktime ullBitfield is b0000:
-//!      - This is the simplest case. The locktime will increase with the time
+//! precise time at which lock was acquired can result in initially misleading
+//! lock times. There are a number of cases which may occur when decompressing
+//! the lock time bitfields from a RANGECMP4 observation:
+//! NOTE: See lockTime for ullBitfield:lock time translations.
+//!   1. The lock time ullBitfield is b0000:
+//!      - This is the simplest case. The lock time will increase with the time
 //!        reported by the message header.
-//!   2. The locktime ullBitfield is b1111:
-//!      - There is no way to determine when the locktime reached that range,
-//!        so as for case 1, the locktime will increase with the time reported
+//!   2. The lock time ullBitfield is b1111:
+//!      - There is no way to determine when the lock time reached that range,
+//!        so as for case 1, the lock time will increase with the time reported
 //!        by the message header.
-//!   3. The locktime ullBitfield is any value from b0001 to b1110:
+//!   3. The lock time ullBitfield is any value from b0001 to b1110:
 //!      - This case is the most complex. Because there is no guarantee that
-//!        the current locktime reported has just transitioned to the lower
+//!        the current lock time reported has just transitioned to the lower
 //!        boundary of the ullBitfield representation, it must be stated that the
-//!        locktime is relative, and not absolute. Only when a change in the
-//!        ullBitfield is detected can it be guaranteed the the locktime is
-//!        absolute. At this point, the locktime can jump or slip to adjust
+//!        lock time is relative, and not absolute. Only when a change in the
+//!        ullBitfield is detected can it be guaranteed that the lock time is
+//!        absolute. At this point, the lock time can jump or slip to adjust
 //!        to the newly found ullBitfield. After the jump or slip occurs, the
-//!        locktime must not change again, as the lower ullBitfield values will
+//!        lock time must not change again, as the lower ullBitfield values will
 //!        produce the highest degree of accuracy.
-//!      - For example, if the locktime ullBitfield is b0111, the observation has
-//!        been locked for at least 1024ms. However it is possible the message
+//!      - For example, if the lock time ullBitfield is b0111, the observation has
+//!        been locked for at least 1024ms. However, it is possible the message
 //!        was produced when the observation was locked for 1800ms. This means
 //!        a 776ms discrepancy exists between what the RangeDecompressor tracks
 //!        and what is reported in the RANGECMP messages. When this discrepancy
-//!        is detected, the locktime can jump to match what the RANGECMP message
+//!        is detected, the lock time can jump to match what the RANGECMP message
 //!        reports. Thus, the distinction between "relative" and "absolute"
 //!        must be made to allow the decompressor to accurately reflect
-//!        observation locktimes. See the example below:
+//!        observation lock times. See the example below:
 //!
 //! Lock Time (t)
 //!   ^
@@ -231,16 +230,16 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 //!   |                                   /   < At this point a ullBitfield change
 //!   |                                 *|      was found. The transition from
 //!   |                               *  |      "relative" to "absolute" time
-//!   |                             *    |      results in a locktime jump as
+//!   |                             *    |      results in a lock time jump as
 //!   |                           *      |      seen here.
 //!   |                         *       /
 //!   |                       *       /
 //!   |                     *       /
 //!   |                   *       /
-//!   | Absolute        *       /   < Relative locktime inferred by the
-//!   | locktime >    *       /       RangeDecompressor. These values
+//!   | Absolute        *       /   < Relative lock time inferred by the
+//!   | lock time >    *       /       RangeDecompressor. These values
 //!   |             *       /         will be output to RANGE message
-//!   |           *       /           locktime fields.
+//!   |           *       /           lock time fields.
 //!   +-------------------------------------------------------------------->
 //!                   Header time (t)
 //------------------------------------------------------------------------------
@@ -259,13 +258,13 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
 
     using namespace rangecmp4;
 
-    // Store the locktime if it is different than the once we have currently.
+    // Store the lock time if it is different from the once we have currently.
     LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[ChannelTrackingStatus::MakeKey(eSystem_, uiPRN_, eSignal_, stMetaData_.eMeasurementSource)];
 
-    // Is the locktime relative and has a ullBitfield change been found?
+    // Is the lock time relative and has a ullBitfield change been found?
     if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
     {
-        // Set locktime as absolute if bits are 0 or transitioning from relative to absolute.
+        // Set lock time as absolute if bits are 0 or transitioning from relative to absolute.
         if (ucLockTimeBits_ == 0 || (stLockTimeInfo.ucBits != 0xFF && ucLockTimeBits_ > stLockTimeInfo.ucBits))
         {
             stLockTimeInfo.bAbsolute = true;
@@ -273,7 +272,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
             double dLockTimeDeltaMs = std::abs(lockTime[ucLockTimeBits_] - stLockTimeInfo.dMilliseconds);
             if (dLockTimeDeltaMs > std::numeric_limits<double>::epsilon())
             {
-                pclMyLogger->warn("Detected a locktime jump of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.", dLockTimeDeltaMs,
+                pclMyLogger->warn("Detected a lock time jump of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.", dLockTimeDeltaMs,
                                   stMetaData_.usWeek, stMetaData_.dMilliseconds, static_cast<int32_t>(eSystem_), static_cast<int32_t>(eSignal_),
                                   uiPRN_);
             }
@@ -283,21 +282,21 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
         stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
         stLockTimeInfo.ucBits = ucLockTimeBits_;
     }
-    // If the locktime is absolute and the locktime bits have decreased, there was likely an outage.
+    // If the lock time is absolute and the lock time bits have decreased, there was likely an outage.
     else if (ucLockTimeBits_ < stLockTimeInfo.ucBits)
     {
-        // In the event of an outage of any kind, reset the locktime to relative.
+        // In the event of an outage of any kind, reset the lock time to relative.
         stLockTimeInfo.bAbsolute = false;
         stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
         stLockTimeInfo.ucBits = ucLockTimeBits_;
 
-        pclMyLogger->warn("Detected a locktime slip (perhaps caused by an outage) of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.",
+        pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.",
                           stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds,
                           static_cast<int32_t>(eSystem_), static_cast<int32_t>(eSignal_), uiPRN_);
     }
     else
     {
-        // If the locktime is absolute and the ullBitfield hasn't changed within the expected time, reset the last change time
+        // If the lock time is absolute and the ullBitfield hasn't changed within the expected time, reset the last change time
         if (stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > 2 * lockTime[ucLockTimeBits_])
         {
             stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
@@ -379,7 +378,7 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
 //! Populates a provided RangeData structure from the RANGECMP4 blocks provided.
 //------------------------------------------------------------------------------
 void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_,
-                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_,
+                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_,
                                               char cGLONASSFrequencyNumber_)
 {
     //-----------------------------------------------------------------------
@@ -401,11 +400,11 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     constexpr std::array<double, 16> stdDevAdrScaling = {0.003, 0.005, 0.007, 0.009, 0.012, 0.016, 0.022, 0.029,
                                                          0.039, 0.052, 0.070, 0.093, 0.124, 0.166, 0.222, 0.222};
 
-    double dSignalWavelength = stChannelStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
+    double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
 
     //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
-    switch (stChannelStatus_.eSatelliteSystem)
+    switch (stCtStatus_.eSatelliteSystem)
     {
     case ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS:
         // If ternary returns true, documentation suggests we should save this PRN as
@@ -413,19 +412,19 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
         // would output the PRN as an actual valid Slot ID, which is not true. We will
         // set this to 0 here because 0 is considered an unknown/invalid GLONASS Slot ID.
         stRangeData_.usPRN =
-            (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT) ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
+            GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
         break;
     case ChannelTrackingStatus::SATELLITE_SYSTEM::SBAS:
-        stRangeData_.usPRN =
-            (SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT)   ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
-            : (SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT) ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
-                                                                                                       : 0;
+        stRangeData_.usPRN = SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
+                             : SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT
+                                 ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
+                                 : 0;
         break;
     case ChannelTrackingStatus::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
     default: stRangeData_.usPRN = uiPRN_; break;
     }
 
-    if (stChannelStatus_.eSatelliteSystem != ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
+    if (stCtStatus_.eSatelliteSystem != ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
     {
         throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits");
     }
@@ -439,15 +438,15 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
     stRangeData_.fLockTime =
-        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stChannelStatus_.eSatelliteSystem, stChannelStatus_.eSignalType, uiPRN_);
-    stRangeData_.uiChannelTrackingStatus = stChannelStatus_.GetAsWord();
+        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_.eSatelliteSystem, stCtStatus_.eSignalType, uiPRN_);
+    stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
 //------------------------------------------------------------------------------
 //! Populates a provided RangeData structure from the RANGECMP5 blocks provided.
 //------------------------------------------------------------------------------
 void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_,
-                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stChannelStatus_, uint32_t uiPRN_,
+                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_,
                                               char cGLONASSFrequencyNumber_)
 {
     //-----------------------------------------------------------------------
@@ -472,11 +471,11 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
                                                          1.629,  2.430,  3.625,  5.409,  6.876,  8.741,   11.111,  14.125,  17.957,  22.828, 29.020,
                                                          36.891, 46.898, 59.619, 75.791, 96.349, 122.484, 155.707, 197.943, 251.634, 251.634};
 
-    double dSignalWavelength = stChannelStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
+    double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
 
     //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
-    switch (stChannelStatus_.eSatelliteSystem)
+    switch (stCtStatus_.eSatelliteSystem)
     {
     case ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS:
         // If ternary returns true, documentation suggests we should save this PRN as
@@ -484,19 +483,19 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
         // would output the PRN as an actual valid Slot ID, which is not true. We will
         // set this to 0 here because 0 is considered an unknown/invalid GLONASS Slot ID.
         stRangeData_.usPRN =
-            (GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT) ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
+            GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
         break;
     case ChannelTrackingStatus::SATELLITE_SYSTEM::SBAS:
-        stRangeData_.usPRN =
-            (SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT)   ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
-            : (SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT) ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
-                                                                                                       : 0;
+        stRangeData_.usPRN = SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
+                             : SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT
+                                 ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
+                                 : 0;
         break;
     case ChannelTrackingStatus::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
     default: stRangeData_.usPRN = uiPRN_; break;
     }
 
-    if (stChannelStatus_.eSatelliteSystem != ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
+    if (stCtStatus_.eSatelliteSystem != ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
     {
         throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits");
     }
@@ -510,8 +509,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
     stRangeData_.fLockTime =
-        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stChannelStatus_.eSatelliteSystem, stChannelStatus_.eSignalType, uiPRN_);
-    stRangeData_.uiChannelTrackingStatus = stChannelStatus_.GetAsWord();
+        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_.eSatelliteSystem, stCtStatus_.eSignalType, uiPRN_);
+    stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
 //------------------------------------------------------------------------------
@@ -538,7 +537,7 @@ void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMess
         const RangeCmpData& stRangeCmpData = stRangeCmpMessage_.astRangeData[uiRangeDataIndex];
 
         // Grab the channel tracking status word and put it into our structure to use it later
-        ChannelTrackingStatus stChannelTrackingStatus(stRangeCmpData.uiChannelTrackingStatus);
+        ChannelTrackingStatus stCtStatus(stRangeCmpData.uiChannelTrackingStatus);
 
         stRangeData.uiChannelTrackingStatus = stRangeCmpData.uiChannelTrackingStatus;
         stRangeData.usPRN = stRangeCmpData.ucPRN;
@@ -555,9 +554,9 @@ void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMess
         stRangeData.fCNo = GetBitfield<uint32_t, CNO_MASK>(stRangeCmpData.uiLockTimeCNoGLOFreq) + CNO_SCALE_OFFSET;
         stRangeData.sGLONASSFrequency = GetBitfield<int16_t, GLONASS_FREQUENCY_MASK>(stRangeCmpData.uiLockTimeCNoGLOFreq);
 
-        double dWavelength = stChannelTrackingStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency + GLONASS_FREQUENCY_NUMBER_OFFSET);
+        double dWavelength = stCtStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency + GLONASS_FREQUENCY_NUMBER_OFFSET);
         stRangeData.dADR = stRangeCmpData.uiADR / ADR_SCALE_FACTOR;
-        double dADRRolls = ((stRangeData.dPSR / dWavelength) + stRangeData.dADR) / MAX_VALUE;
+        double dADRRolls = (stRangeData.dPSR / dWavelength + stRangeData.dADR) / MAX_VALUE;
         stRangeData.dADR -= MAX_VALUE * static_cast<uint64_t>(std::round(dADRRolls));
     }
 }
@@ -616,7 +615,7 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             auto iDopplerBitfield = GetBitfield<int32_t, SIG_DOPPLER_DIFF_MASK>(stSigBlock.ullCombinedField2);
             HandleSignExtension<SIG_DOPPLER_DIFF_SIGNEXT_MASK>(iDopplerBitfield);
 
-            ChannelTrackingStatus stChannelTrackingStatus(stSatBlock, stSigBlock);
+            ChannelTrackingStatus stCtStatus(stSatBlock, stSigBlock);
 
             // Construct the decompressed range data
             RangeData& stRangeData = stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++];
@@ -626,14 +625,13 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             stRangeData.fPSRStdDev = stdDevPsrScaling[ucPSRBitfield];
             stRangeData.dADR =
                 -((iPSRBase + (GetBitfield<uint64_t, SIG_PHASERANGE_DIFF_MASK>(stSigBlock.ullCombinedField2) / SIG_PHASERANGE_DIFF_SCALE_FACTOR)) /
-                  stChannelTrackingStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency));
+                  stCtStatus.GetSignalWavelength(stRangeData.sGLONASSFrequency));
             stRangeData.fADRStdDev = stdDevAdrScaling[ucADRBitfield];
             stRangeData.fDopplerFrequency =
                 (iDopplerBase + (iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR)) / RangeCmp2SignalScaling(eSystem, eSignalType);
             stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t, SIG_CNO_MASK>(stSigBlock.ullCombinedField2);
-            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stChannelTrackingStatus.eSatelliteSystem,
-                                                         stChannelTrackingStatus.eSignalType, usPRN);
-            stRangeData.uiChannelTrackingStatus = stChannelTrackingStatus.GetAsWord();
+            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stCtStatus.eSatelliteSystem, stCtStatus.eSignalType, usPRN);
+            stRangeData.uiChannelTrackingStatus = stCtStatus.GetAsWord();
 
             uiRangeDataBytesDecompressed += sizeof(SignalBlock);
         }
@@ -702,7 +700,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
             if (system == SYSTEM::GLONASS && !stMbHeader.bIsDifferentialData)
             {
                 stMbHeader.cGLONASSFrequencyNumber =
-                    ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS);
+                    ExtractBitfield<int8_t>(&pucData_, uiBytesLeft, uiBitOffset, MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS);
             }
 
             const uint32_t& prn = aPrns[uiPrnIndex];
@@ -733,9 +731,9 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                             }
                             else { DecompressDifferentialBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, stRb.second, dSecondOffset); }
 
-                            ChannelTrackingStatus stChannelTrackingStatus(system, signal, stBlock);
+                            ChannelTrackingStatus stCtStatus(system, signal, stBlock);
                             PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
-                                                  stChannelTrackingStatus, prn, stRb.first.cGLONASSFrequencyNumber);
+                                                  stCtStatus, prn, stRb.first.cGLONASSFrequencyNumber);
                         }
                         else
                         {
@@ -760,9 +758,9 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                     }
                     else { DecompressReferenceBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, primaryPseudorange, primaryDoppler); }
 
-                    ChannelTrackingStatus stChannelTrackingStatus(system, signal, stBlock);
-                    PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
-                                          stChannelTrackingStatus, prn, stMbHeader.cGLONASSFrequencyNumber);
+                    ChannelTrackingStatus stCtStatus(system, signal, stBlock);
+                    PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_, stCtStatus,
+                                          prn, stMbHeader.cGLONASSFrequencyNumber);
 
                     // Always store reference blocks.
                     mMyReferenceBlocks[key] = std::pair(stMbHeader, stBlock);
@@ -862,7 +860,7 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
             stMbHeader.cGLONASSFrequencyNumber = 0;
 
             // This field is only present for GLONASS and reference blocks.
-            if (system == SYSTEM::GLONASS) { stMbHeader.cGLONASSFrequencyNumber = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, 5); }
+            if (system == SYSTEM::GLONASS) { stMbHeader.cGLONASSFrequencyNumber = ExtractBitfield<int8_t>(&pucData_, uiBytesLeft, uiBitOffset, 5); }
 
             const uint32_t& prn = aPrns[uiPrnIndex];
             uint64_t& included = includedSignals[prn];
@@ -885,9 +883,9 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
                 }
                 else { DecompressBlock<true>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, primaryPseudorange, primaryDoppler); }
 
-                ChannelTrackingStatus stChannelTrackingStatus(system, signal, stBlock);
-                PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_,
-                                      stChannelTrackingStatus, prn, stMbHeader.cGLONASSFrequencyNumber);
+                ChannelTrackingStatus stCtStatus(system, signal, stBlock);
+                PopulateNextRangeData(stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++], stBlock, stMetaData_, stCtStatus, prn,
+                                      stMbHeader.cGLONASSFrequencyNumber);
             }
 
             // Update the grouping bit in the status word if multiple signals for this PRN are counted.
@@ -915,10 +913,9 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
     MessageDataStruct stMessageData;
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
-    auto eStatus = STATUS::UNKNOWN;
 
     unsigned char* pucTempMessagePointer = pucBuffer_;
-    eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stHeader, stMetaData_);
+    STATUS eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stHeader, stMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     if (!clMyRangeCmpFilter.DoFiltering(stMetaData_)) { return STATUS::UNSUPPORTED; }
