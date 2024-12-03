@@ -230,6 +230,7 @@ constexpr uint32_t CTS_PRN_LOCK_MASK = 0x40000000;
 constexpr uint32_t CTS_CHANNEL_ASSIGNMENT_MASK = 0x80000000;
 
 namespace rangecmp {
+
 //-----------------------------------------------------------------------
 //! RANGECMP data field masks and scale factors.
 //! NOTE: RangeCmpData defines a number of fields that can be
@@ -250,9 +251,11 @@ constexpr double LOCK_TIME_SCALE_FACTOR = 32.0;
 constexpr uint32_t CNO_MASK = 0x03E00000;
 constexpr uint32_t CNO_SCALE_OFFSET = 20;
 constexpr uint32_t GLONASS_FREQUENCY_MASK = 0xFC000000;
+
 } // namespace rangecmp
 
 namespace rangecmp2 {
+
 //-----------------------------------------------------------------------
 //! RANGECMP2 data field masks and scale factors.
 //! NOTE: RANGECMP2 contains two kinds of blocks - Satellite (SAT) and
@@ -293,9 +296,11 @@ constexpr double SIG_PHASERANGE_DIFF_SCALE_FACTOR = 2048.0;
 constexpr uint64_t SIG_DOPPLER_DIFF_MASK = 0xFFFF800000000000;
 constexpr double SIG_DOPPLER_DIFF_SCALE_FACTOR = 256.0;
 constexpr uint32_t SIG_DOPPLER_DIFF_SIGNEXT_MASK = 0xFFFE0000;
+
 } // namespace rangecmp2
 
 namespace rangecmp4 {
+
 //-----------------------------------------------------------------------
 //! RANGECMP4 data field masks, shifts and scale factors.
 //! NOTE: RANGECMP4 field sizes are defined by the number of bits.
@@ -358,9 +363,11 @@ constexpr uint32_t RBLK_PHASERANGE_BITS = 23;
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_BITS = {26, 14};
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RBLK_INVALID_PSR = {137438953471, -524288};
+
 } // namespace rangecmp4
 
 namespace rangecmp5 {
+
 //-----------------------------------------------------------------------
 //! RANGECMP5 data field masks, shifts and scale factors.
 //-----------------------------------------------------------------------
@@ -395,6 +402,7 @@ constexpr uint32_t RBLK_PHASERANGE_BITS = 23;
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_BITS = {28, 16};
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RBLK_INVALID_PSR = {137438953471, -524288};
+
 } // namespace rangecmp5
 
 //-----------------------------------------------------------------------
@@ -452,6 +460,7 @@ struct Range
 };
 
 namespace rangecmp {
+
 //-----------------------------------------------------------------------
 //! \struct RangeCmpData
 //! \brief Compressed range data from an OEM4 binary RANGECMP message.
@@ -481,9 +490,11 @@ struct RangeCmp
 
     RangeCmp() = default;
 };
+
 } // namespace rangecmp
 
 namespace rangecmp2 {
+
 //-----------------------------------------------------------------------
 //! \struct SatelliteBlock
 //! \brief Compressed satellite block from an OEM4 binary RANGECMP2 message.
@@ -584,11 +595,13 @@ struct RangeCmp
 
     RangeCmp() = default;
 };
+
 } // namespace rangecmp2
 
 #pragma pack(pop)
 
 namespace rangecmp4 {
+
 //--------------------------------------------------------------------
 //! \enum SIGNAL_TYPE
 //! \brief RANGECMP4 message Signal Type value bitfield
@@ -708,6 +721,7 @@ constexpr uint64_t MakeKey(SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal
 } // namespace rangecmp4
 
 namespace rangecmp5 {
+
 //-----------------------------------------------------------------------
 //! \struct MeasurementBlockHeader
 //! \brief Measurement Block Header structure to contain the values
@@ -744,6 +758,7 @@ struct MeasurementSignalBlock
 
     MeasurementSignalBlock() = default;
 };
+
 } // namespace rangecmp5
 
 //-----------------------------------------------------------------------
