@@ -31,6 +31,7 @@
 #include "novatel_edie/decoders/oem/filter.hpp"
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
+#include "novatel_edie/decoders/oem/rangecmp/channel_tracking_status.hpp"
 #include "novatel_edie/decoders/oem/rangecmp/common.hpp"
 
 namespace novatel::edie::oem {
