@@ -694,7 +694,6 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
             MeasurementBlockHeader stMbHeader;
             stMbHeader.bIsDifferentialData = ExtractBitfield<bool>(&pucData_, uiBytesLeft, uiBitOffset, MBLK_HDR_DATAFORMAT_FLAG_BITS);
             stMbHeader.ucReferenceDataBlockID = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, MBLK_HDR_REFERENCE_DATABLOCK_ID_BITS);
-            stMbHeader.cGLONASSFrequencyNumber = 0;
 
             // This field is only present for GLONASS and reference blocks.
             if (system == SYSTEM::GLONASS && !stMbHeader.bIsDifferentialData)
@@ -857,7 +856,6 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
             MeasurementBlockHeader stMbHeader;
             stMbHeader.bDataFormatFlag = ExtractBitfield<bool>(&pucData_, uiBytesLeft, uiBitOffset, 1);
             stMbHeader.ucReserved = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, 3);
-            stMbHeader.cGLONASSFrequencyNumber = 0;
 
             // This field is only present for GLONASS and reference blocks.
             if (system == SYSTEM::GLONASS) { stMbHeader.cGLONASSFrequencyNumber = ExtractBitfield<int8_t>(&pucData_, uiBytesLeft, uiBitOffset, 5); }
