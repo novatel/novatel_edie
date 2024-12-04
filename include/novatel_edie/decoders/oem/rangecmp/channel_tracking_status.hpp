@@ -78,7 +78,7 @@ class ChannelTrackingStatus
     ChannelTrackingStatus(uint32_t uiChannelTrackingStatus_);
 
     //! Constructor from the available data from a RANGECMP2 SAT/SIG block pair.
-    ChannelTrackingStatus(const rangecmp2::SatelliteBlock& stRangeCmp2SatBlock_, const rangecmp2::SignalBlock& stRangeCmp2SigBlock_);
+    ChannelTrackingStatus(const rangecmp2::SatelliteBlock& stSatelliteBlock_, const rangecmp2::SignalBlock& stSignalBlock_);
 
     //! Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block pair.
     ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_, const rangecmp4::MeasurementSignalBlock& stMeasurementBlock_);
@@ -134,9 +134,9 @@ class ChannelTrackingStatus
     };
 
     //-----------------------------------------------------------------------
-    //! \enum SATELLITE_SYSTEM
+    //! \enum CTS_SYSTEM
     //-----------------------------------------------------------------------
-    enum class SATELLITE_SYSTEM
+    enum class CTS_SYSTEM
     {
         GPS = 0,
         GLONASS = 1,
@@ -149,9 +149,9 @@ class ChannelTrackingStatus
     };
 
     //-----------------------------------------------------------------------
-    //! \enum SIGNAL_TYPE
+    //! \enum CTS_SIGNAL
     //-----------------------------------------------------------------------
-    enum class SIGNAL_TYPE
+    enum class CTS_SIGNAL
     {
         // GPS
         GPS_L1CA = 0,
@@ -201,13 +201,13 @@ class ChannelTrackingStatus
     };
 
     //! Convert a SYSTEM enumeration to a channel tracking status SATELLITE_SYSTEM.
-    static SATELLITE_SYSTEM SystemToSatelliteSystem(SYSTEM eSystem_);
+    static CTS_SYSTEM SystemToSatelliteSystem(SYSTEM eSystem_);
 
     //! Convert a RANGECMP2 signal type to the channel tracking status enumeration.
-    static SIGNAL_TYPE RangeCmp2SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, rangecmp2::SIGNAL_TYPE eSignalType_);
+    static CTS_SIGNAL RangeCmp2SignalTypeToSignalType(CTS_SYSTEM eSystem_, rangecmp2::SIGNAL_TYPE eSignalType_);
 
     //! Convert a RANGECMP4 signal type to the channel tracking status enumeration.
-    static SIGNAL_TYPE RangeCmp4SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_);
+    static CTS_SIGNAL RangeCmp4SignalTypeToSignalType(CTS_SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_);
 
     TRACKING_STATE eTrackingState{TRACKING_STATE::IDLE};
     uint32_t uiSVChannelNumber{0U};
@@ -215,9 +215,9 @@ class ChannelTrackingStatus
     bool bParityKnown{false};
     bool bCodeLocked{false};
     CORRELATOR_TYPE eCorrelatorType{CORRELATOR_TYPE::NONE};
-    SATELLITE_SYSTEM eSatelliteSystem{SATELLITE_SYSTEM::GPS};
+    CTS_SYSTEM eSatelliteSystem{CTS_SYSTEM::GPS};
     bool bGrouped{false};
-    SIGNAL_TYPE eSignalType{SIGNAL_TYPE::UNKNOWN};
+    CTS_SIGNAL eSignalType{CTS_SIGNAL::UNKNOWN};
     bool bPrimaryL1Channel{false};
     bool bHalfCycleAdded{false};
     bool bDigitalFilteringOnSignal{false};
