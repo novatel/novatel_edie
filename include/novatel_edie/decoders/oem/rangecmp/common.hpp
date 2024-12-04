@@ -95,6 +95,37 @@ template <auto Mask, typename T> constexpr void HandleSignExtension(T& value)
     if (value & signBit) { value |= extensionMask; }
 }
 
+template <typename T, uint32_t BitfieldBits> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_)
+{
+    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "ExtractBitfield only returns integral or floating point types.");
+    static_assert(BitfieldBits <= sizeof(T) * 8, "Return type too small for the requested bitfield.");
+
+    if (BitfieldBits > uiBytesLeft_ * 8 - uiBitOffset_) { throw std::runtime_error("Not enough bytes remaining in the buffer."); }
+
+    constexpr uint64_t mask = BitfieldBits < 64 ? (1ULL << BitfieldBits) - 1 : ~0ULL;
+    uint64_t result;
+    std::memcpy(&result, *ppucData_, std::min(uiBytesLeft_, 8U));
+    result >>= uiBitOffset_;
+    // A large bitfield with an offset can occupy 9 bytes
+    if constexpr (BitfieldBits > 64 - 8)
+    {
+        const int32_t extraBits = uiBitOffset_ + BitfieldBits - 64;
+        if (extraBits > 0)
+        {
+            uint64_t nextBytes = (*reinterpret_cast<uint64_t*>(*ppucData_ + 8)) & ((1ULL << extraBits) - 1);
+            result |= nextBytes << (64 - uiBitOffset_);
+        }
+    }
+    const uint32_t uiBitTotal = uiBitOffset_ + BitfieldBits;
+    const uint32_t uiBytesConsumed = uiBitTotal / 8;
+
+    *ppucData_ += uiBytesConsumed;
+    uiBytesLeft_ -= uiBytesConsumed;
+    uiBitOffset_ = uiBitTotal % 8;
+
+    return static_cast<T>(mask & result);
+}
+
 template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, const uint32_t uiBitsInBitfield_)
 {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "ExtractBitfield only returns integral or floating point types.");
@@ -102,34 +133,25 @@ template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiB
     if (uiBitsInBitfield_ > sizeof(T) * 8) { throw std::runtime_error("Return type too small for the requested bitfield."); }
     if (uiBitsInBitfield_ > uiBytesLeft_ * 8 - uiBitOffset_) { throw std::runtime_error("Not enough bytes remaining in the buffer."); }
 
-    uint64_t ullBitfield = 0;
-
-    for (uint32_t uiBitsConsumed = 0; uiBitsConsumed < uiBitsInBitfield_; uiBitsConsumed++)
+    uint64_t mask = uiBitsInBitfield_ < 64 ? (1ULL << uiBitsInBitfield_) - 1 : ~0ULL;
+    uint64_t result;
+    std::memcpy(&result, *ppucData_, std::min(uiBytesLeft_, 8U));
+    result >>= uiBitOffset_;
+    // A large bitfield with an offset can occupy 9 bytes
+    const int32_t extraBits = uiBitOffset_ + uiBitsInBitfield_ - 64;
+    if (extraBits > 0)
     {
-        if ((**ppucData_ & 1 << uiBitOffset_) != 0) { ullBitfield |= 1ULL << uiBitsConsumed; }
-
-        if (++uiBitOffset_ == 8)
-        {
-            uiBitOffset_ = 0;
-            --uiBytesLeft_;
-            ++*ppucData_;
-        }
+        uint64_t nextBytes = (*reinterpret_cast<uint64_t*>(*ppucData_ + 8)) & ((1ULL << extraBits) - 1);
+        result |= nextBytes << (64 - uiBitOffset_);
     }
+    const uint32_t uiBitTotal = uiBitOffset_ + uiBitsInBitfield_;
+    const uint32_t uiBytesConsumed = uiBitTotal / 8;
 
-    return static_cast<T>(ullBitfield);
+    *ppucData_ += uiBytesConsumed;
+    uiBytesLeft_ -= uiBytesConsumed;
+    uiBitOffset_ = uiBitTotal % 8;
 
-    // if (uiBitsInBitfield_ + uiBitOffset_ > 64) { throw std::runtime_error("Bitfield too large for a single read."); }
-
-    // const uint64_t mask = (1ULL << uiBitsInBitfield_) - 1;
-    // const uint64_t result = *reinterpret_cast<uint64_t*>(*ppucData_) >> uiBitOffset_;
-    // const uint32_t uiBitTotal = uiBitOffset_ + uiBitsInBitfield_;
-    // const uint32_t uiBytesConsumed = uiBitTotal / 8;
-
-    // *ppucData_ += uiBytesConsumed;
-    // uiBytesLeft_ -= uiBytesConsumed;
-    // uiBitOffset_ = uiBitTotal % 8;
-
-    // return static_cast<T>(mask & result);
+    return static_cast<T>(mask & result);
 }
 
 //-----------------------------------------------------------------------
