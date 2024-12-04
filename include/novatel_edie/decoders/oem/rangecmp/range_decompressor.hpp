@@ -87,10 +87,8 @@ class RangeDecompressor
     std::unordered_map<uint64_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>> mMyReferenceBlocks;
 
     static double RangeCmp2SignalScaling(SYSTEM sys, rangecmp2::SIGNAL_TYPE sig);
-    double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_,
-                                ChannelTrackingStatus::SIGNAL_TYPE eSignal_, uint16_t usPRN_);
-    double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_,
-                                ChannelTrackingStatus::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
+    double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint16_t usPRN_);
+    double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint32_t uiPRN_);
     template <bool bSecondary>
     void DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
                                   rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPseudorange, double primaryDoppler);

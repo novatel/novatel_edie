@@ -30,6 +30,7 @@
 #include <array>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <string_view>
 
 #include "novatel_edie/decoders/common/common.hpp"
