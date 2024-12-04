@@ -30,15 +30,31 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 //------------------------------------------------------------------------------
-uint64_t ChannelTrackingStatus::MakeKey(SATELLITE_SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal, MEASUREMENT_SOURCE source)
+uint64_t ChannelTrackingStatus::MakeKey(const uint32_t prn, const MEASUREMENT_SOURCE source) const
 {
     // TODO: scale PRNs down based on system?
-    assert(static_cast<uint64_t>(system) < 16 && satellite < 256 && static_cast<uint64_t>(signal) < 32 && static_cast<uint64_t>(source) < 2);
-    return (static_cast<uint64_t>(system) << 14) | (satellite << 6) | static_cast<uint64_t>(signal) << 1 | static_cast<uint64_t>(source);
+    assert(static_cast<uint64_t>(eSatelliteSystem) < 16 && prn < 256 && static_cast<uint64_t>(eSignalType) < 32 && static_cast<uint64_t>(source) < 2);
+    return (static_cast<uint64_t>(eSatelliteSystem) << 14) | (prn << 6) | static_cast<uint64_t>(eSignalType) << 1 | static_cast<uint64_t>(source);
 }
 
 //------------------------------------------------------------------------------
-ChannelTrackingStatus::ChannelTrackingStatus(uint32_t uiChannelTrackingStatus_)
+SYSTEM ChannelTrackingStatus::GetSystem() const
+{
+    switch (eSatelliteSystem)
+    {
+    case SATELLITE_SYSTEM::GPS: return SYSTEM::GPS;
+    case SATELLITE_SYSTEM::GLONASS: return SYSTEM::GLONASS;
+    case SATELLITE_SYSTEM::SBAS: return SYSTEM::SBAS;
+    case SATELLITE_SYSTEM::GALILEO: return SYSTEM::GALILEO;
+    case SATELLITE_SYSTEM::BEIDOU: return SYSTEM::BEIDOU;
+    case SATELLITE_SYSTEM::QZSS: return SYSTEM::QZSS;
+    case SATELLITE_SYSTEM::NAVIC: return SYSTEM::NAVIC;
+    default: return SYSTEM::UNKNOWN;
+    }
+}
+
+//------------------------------------------------------------------------------
+ChannelTrackingStatus::ChannelTrackingStatus(const uint32_t uiChannelTrackingStatus_)
 {
     eTrackingState = GetBitfield<TRACKING_STATE, CTS_TRACKING_STATE_MASK>(uiChannelTrackingStatus_);
     uiSVChannelNumber = GetBitfield<uint32_t, CTS_SV_CHANNEL_NUMBER_MASK>(uiChannelTrackingStatus_);
@@ -80,7 +96,7 @@ ChannelTrackingStatus::ChannelTrackingStatus(const rangecmp2::SatelliteBlock& st
 }
 
 //------------------------------------------------------------------------------
-ChannelTrackingStatus::ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_,
+ChannelTrackingStatus::ChannelTrackingStatus(const SYSTEM eSystem_, const rangecmp4::SIGNAL_TYPE eSignalType_,
                                              const rangecmp4::MeasurementSignalBlock& stMeasurementBlock_)
 {
     // Defaults that cannot be determined:
@@ -114,7 +130,7 @@ ChannelTrackingStatus::ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_
 }
 
 //------------------------------------------------------------------------------
-ChannelTrackingStatus::ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_,
+ChannelTrackingStatus::ChannelTrackingStatus(const SYSTEM eSystem_, const rangecmp4::SIGNAL_TYPE eSignalType_,
                                              const rangecmp5::MeasurementSignalBlock& stMeasurementBlock_)
 {
     // Defaults that cannot be determined:
@@ -148,8 +164,8 @@ ChannelTrackingStatus::ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_
 }
 
 //------------------------------------------------------------------------------
-ChannelTrackingStatus::SIGNAL_TYPE ChannelTrackingStatus::RangeCmp2SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_,
-                                                                                          rangecmp2::SIGNAL_TYPE eSignalType_)
+ChannelTrackingStatus::SIGNAL_TYPE ChannelTrackingStatus::RangeCmp2SignalTypeToSignalType(const SATELLITE_SYSTEM eSystem_,
+                                                                                          const rangecmp2::SIGNAL_TYPE eSignalType_)
 {
     switch (eSystem_)
     {
@@ -232,8 +248,8 @@ ChannelTrackingStatus::SIGNAL_TYPE ChannelTrackingStatus::RangeCmp2SignalTypeToS
 }
 
 //------------------------------------------------------------------------------
-ChannelTrackingStatus::SIGNAL_TYPE ChannelTrackingStatus::RangeCmp4SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_,
-                                                                                          rangecmp4::SIGNAL_TYPE eSignalType_)
+ChannelTrackingStatus::SIGNAL_TYPE ChannelTrackingStatus::RangeCmp4SignalTypeToSignalType(const SATELLITE_SYSTEM eSystem_,
+                                                                                          const rangecmp4::SIGNAL_TYPE eSignalType_)
 {
     switch (eSystem_)
     {
@@ -310,7 +326,7 @@ ChannelTrackingStatus::SIGNAL_TYPE ChannelTrackingStatus::RangeCmp4SignalTypeToS
 }
 
 //------------------------------------------------------------------------------
-ChannelTrackingStatus::SATELLITE_SYSTEM ChannelTrackingStatus::SystemToSatelliteSystem(SYSTEM eSystem_)
+ChannelTrackingStatus::SATELLITE_SYSTEM ChannelTrackingStatus::SystemToSatelliteSystem(const SYSTEM eSystem_)
 {
     switch (eSystem_)
     {

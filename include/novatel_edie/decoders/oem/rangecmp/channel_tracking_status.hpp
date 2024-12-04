@@ -68,8 +68,38 @@ constexpr uint32_t CTS_CHANNEL_ASSIGNMENT_MASK = 0x80000000;
 //! tracking status word that cannot be inferred based on the data in the
 //! RANGECMP* log, and certain defaults must be applied.
 //-----------------------------------------------------------------------
-struct ChannelTrackingStatus
+class ChannelTrackingStatus
 {
+  public:
+    //! Default constructor.
+    ChannelTrackingStatus() = default;
+
+    //! Constructor from a channel tracking status word.
+    ChannelTrackingStatus(uint32_t uiChannelTrackingStatus_);
+
+    //! Constructor from the available data from a RANGECMP2 SAT/SIG block pair.
+    ChannelTrackingStatus(const rangecmp2::SatelliteBlock& stRangeCmp2SatBlock_, const rangecmp2::SignalBlock& stRangeCmp2SigBlock_);
+
+    //! Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block pair.
+    ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_, const rangecmp4::MeasurementSignalBlock& stMeasurementBlock_);
+
+    //! Constructor from the available data from a RANGECMP5 Primary Block and Measurement Block pair.
+    ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_, const rangecmp5::MeasurementSignalBlock& stMeasurementBlock_);
+
+    //! Lookup function for a signal wavelength.
+    [[nodiscard]] double GetSignalWavelength(int16_t sGLONASSFrequency_) const;
+
+    //! Combine the channel tracking status fields into a single 4-byte value according to documentation:
+    //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus
+    [[nodiscard]] uint32_t GetAsWord() const;
+
+    //! Generate a unique key.
+    [[nodiscard]] uint64_t MakeKey(uint32_t prn, MEASUREMENT_SOURCE source) const;
+
+    //! Get the satellite system
+    [[nodiscard]] SYSTEM GetSystem() const;
+
+  private:
     //-----------------------------------------------------------------------
     //! \enum TRACKING_STATE
     //-----------------------------------------------------------------------
@@ -170,7 +200,14 @@ struct ChannelTrackingStatus
         UNKNOWN = 0
     };
 
-    static uint64_t MakeKey(SATELLITE_SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal, MEASUREMENT_SOURCE source);
+    //! Convert a SYSTEM enumeration to a channel tracking status SATELLITE_SYSTEM.
+    static SATELLITE_SYSTEM SystemToSatelliteSystem(SYSTEM eSystem_);
+
+    //! Convert a RANGECMP2 signal type to the channel tracking status enumeration.
+    static SIGNAL_TYPE RangeCmp2SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, rangecmp2::SIGNAL_TYPE eSignalType_);
+
+    //! Convert a RANGECMP4 signal type to the channel tracking status enumeration.
+    static SIGNAL_TYPE RangeCmp4SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_);
 
     TRACKING_STATE eTrackingState{TRACKING_STATE::IDLE};
     uint32_t uiSVChannelNumber{0U};
@@ -186,38 +223,6 @@ struct ChannelTrackingStatus
     bool bDigitalFilteringOnSignal{false};
     bool bPRNLocked{false};
     bool bChannelAssignmentForced{false};
-
-    //! Default constructor.
-    ChannelTrackingStatus() = default;
-
-    //! Constructor from a channel tracking status word.
-    ChannelTrackingStatus(uint32_t uiChannelTrackingStatus_);
-
-    //! Constructor from the available data from a RANGECMP2 SAT/SIG block pair.
-    //! NOTE: Some defaults exist here.
-    ChannelTrackingStatus(const rangecmp2::SatelliteBlock& stRangeCmp2SatBlock_, const rangecmp2::SignalBlock& stRangeCmp2SigBlock_);
-
-    //! Constructor from the available data from a RANGECMP4 Primary Block and Measurement Block pair.
-    ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_, const rangecmp4::MeasurementSignalBlock& stMeasurementBlock_);
-
-    //! Constructor from the available data from a RANGECMP5 Primary Block and Measurement Block pair.
-    ChannelTrackingStatus(SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_, const rangecmp5::MeasurementSignalBlock& stMeasurementBlock_);
-
-    //! Convert a RANGECMP2 signal type to the channel tracking status enumeration.
-    static SIGNAL_TYPE RangeCmp2SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, rangecmp2::SIGNAL_TYPE eSignalType_);
-
-    //! Convert a RANGECMP4 signal type to the channel tracking status enumeration.
-    static SIGNAL_TYPE RangeCmp4SignalTypeToSignalType(SATELLITE_SYSTEM eSystem_, rangecmp4::SIGNAL_TYPE eSignalType_);
-
-    //! Convert a SYSTEM enumeration to a channel tracking status SATELLITE_SYSTEM.
-    static SATELLITE_SYSTEM SystemToSatelliteSystem(SYSTEM eSystem_);
-
-    //! Lookup function for a signal wavelength.
-    double GetSignalWavelength(const int16_t sGLONASSFrequency_) const;
-
-    //! Combine the channel tracking status fields into a single 4-byte value according to documentation:
-    //! https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm?Highlight=RANGE#Table_ChannelTrackingStatus
-    [[nodiscard]] uint32_t GetAsWord() const;
 };
 
 } // namespace novatel::edie::oem

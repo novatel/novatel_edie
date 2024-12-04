@@ -158,15 +158,14 @@ double RangeDecompressor::RangeCmp2SignalScaling(SYSTEM system, rangecmp2::SIGNA
 //! observation, and may not be a true representation of the time the
 //! observation has actually been locked.
 //------------------------------------------------------------------------------
-double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
-                                               ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_, ChannelTrackingStatus::SIGNAL_TYPE eSignal_,
+double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_,
                                                uint16_t usPRN_)
 {
     using namespace rangecmp2;
 
     double dLockTimeMilliseconds = uiLockTimeBits_;
 
-    LockTimeInfo& stLockTimeInfo = mMyRangeCmp2LockTimes[ChannelTrackingStatus::MakeKey(eSystem_, usPRN_, eSignal_, stMetaData_.eMeasurementSource)];
+    LockTimeInfo& stLockTimeInfo = mMyRangeCmp2LockTimes[stCtStatus_.MakeKey(usPRN_, stMetaData_.eMeasurementSource)];
     if (uiLockTimeBits_ == SIG_LOCKTIME_MASK >> Lsb(SIG_LOCKTIME_MASK))
     {
         // If the lock time was already saturated, use the stored time to add the missing offset.
@@ -243,8 +242,7 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 //!   +-------------------------------------------------------------------->
 //!                   Header time (t)
 //------------------------------------------------------------------------------
-double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
-                                               ChannelTrackingStatus::SATELLITE_SYSTEM eSystem_, ChannelTrackingStatus::SIGNAL_TYPE eSignal_,
+double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_,
                                                uint32_t uiPRN_)
 {
     //-----------------------------------------------------------------------
@@ -259,7 +257,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
     using namespace rangecmp4;
 
     // Store the lock time if it is different from the once we have currently.
-    LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[ChannelTrackingStatus::MakeKey(eSystem_, uiPRN_, eSignal_, stMetaData_.eMeasurementSource)];
+    LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[stCtStatus_.MakeKey(uiPRN_, stMetaData_.eMeasurementSource)];
 
     // Is the lock time relative and has a ullBitfield change been found?
     if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
@@ -272,9 +270,8 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
             double dLockTimeDeltaMs = std::abs(lockTime[ucLockTimeBits_] - stLockTimeInfo.dMilliseconds);
             if (dLockTimeDeltaMs > std::numeric_limits<double>::epsilon())
             {
-                pclMyLogger->warn("Detected a lock time jump of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.", dLockTimeDeltaMs,
-                                  stMetaData_.usWeek, stMetaData_.dMilliseconds, static_cast<int32_t>(eSystem_), static_cast<int32_t>(eSignal_),
-                                  uiPRN_);
+                pclMyLogger->warn("Detected a lock time jump of {}ms at time {}w, {}ms. PRN: {}.", dLockTimeDeltaMs, stMetaData_.usWeek,
+                                  stMetaData_.dMilliseconds, uiPRN_);
             }
         }
 
@@ -290,9 +287,8 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
         stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
         stLockTimeInfo.ucBits = ucLockTimeBits_;
 
-        pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.",
-                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds,
-                          static_cast<int32_t>(eSystem_), static_cast<int32_t>(eSignal_), uiPRN_);
+        pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms. PRN: {}.",
+                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds, uiPRN_);
     }
     else
     {
@@ -300,8 +296,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
         if (stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > 2 * lockTime[ucLockTimeBits_])
         {
             stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-            pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms. SYSTEM: {}, SIGNAL: {}, PRN: {}.", stMetaData_.usWeek,
-                              stMetaData_.dMilliseconds, static_cast<int32_t>(eSystem_), static_cast<int32_t>(eSignal_), uiPRN_);
+            pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms. PRN: {}.", stMetaData_.usWeek, stMetaData_.dMilliseconds, uiPRN_);
         }
     }
     stLockTimeInfo.dMilliseconds = stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLockTimeInfo.ucBits];
@@ -404,9 +399,9 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
 
     //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
-    switch (stCtStatus_.eSatelliteSystem)
+    switch (stCtStatus_.GetSystem())
     {
-    case ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS:
+    case SYSTEM::GLONASS:
         // If ternary returns true, documentation suggests we should save this PRN as
         // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - cGLONASSFrequencyNumber_. However, this
         // would output the PRN as an actual valid Slot ID, which is not true. We will
@@ -414,20 +409,17 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
         stRangeData_.usPRN =
             GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
         break;
-    case ChannelTrackingStatus::SATELLITE_SYSTEM::SBAS:
+    case SYSTEM::SBAS:
         stRangeData_.usPRN = SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
                              : SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT
                                  ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
                                  : 0;
         break;
-    case ChannelTrackingStatus::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
+    case SYSTEM::QZSS: stRangeData_.usPRN = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
     default: stRangeData_.usPRN = uiPRN_; break;
     }
 
-    if (stCtStatus_.eSatelliteSystem != ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
-    {
-        throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits");
-    }
+    if (stCtStatus_.GetSystem() != SYSTEM::GLONASS && stRangeData_.usPRN == 0) { throw std::runtime_error("PRN outside of limits"); }
 
     // any fields flagged as invalid are set to NaN and appear in the log as such
     stRangeData_.sGLONASSFrequency = static_cast<unsigned char>(cGLONASSFrequencyNumber_);
@@ -437,8 +429,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     stRangeData_.fADRStdDev = stdDevAdrScaling[stBlock_.ucADRBitfield];
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime =
-        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_.eSatelliteSystem, stCtStatus_.eSignalType, uiPRN_);
+    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_, uiPRN_);
     stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
@@ -475,9 +466,9 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
 
     //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
-    switch (stCtStatus_.eSatelliteSystem)
+    switch (stCtStatus_.GetSystem())
     {
-    case ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS:
+    case SYSTEM::GLONASS:
         // If ternary returns true, documentation suggests we should save this PRN as
         // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - cGLONASSFrequencyNumber_. However, this
         // would output the PRN as an actual valid Slot ID, which is not true. We will
@@ -485,20 +476,17 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
         stRangeData_.usPRN =
             GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
         break;
-    case ChannelTrackingStatus::SATELLITE_SYSTEM::SBAS:
+    case SYSTEM::SBAS:
         stRangeData_.usPRN = SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
                              : SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT
                                  ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
                                  : 0;
         break;
-    case ChannelTrackingStatus::SATELLITE_SYSTEM::QZSS: stRangeData_.usPRN = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
+    case SYSTEM::QZSS: stRangeData_.usPRN = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
     default: stRangeData_.usPRN = uiPRN_; break;
     }
 
-    if (stCtStatus_.eSatelliteSystem != ChannelTrackingStatus::SATELLITE_SYSTEM::GLONASS && stRangeData_.usPRN == 0)
-    {
-        throw std::runtime_error("PopulateNextRangeData(): PRN outside of limits");
-    }
+    if (stCtStatus_.GetSystem() != SYSTEM::GLONASS && stRangeData_.usPRN == 0) { throw std::runtime_error("PRN outside of limits"); }
 
     // any fields flagged as invalid are set to NaN and appear in the log as such
     stRangeData_.sGLONASSFrequency = static_cast<unsigned char>(cGLONASSFrequencyNumber_);
@@ -508,8 +496,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     stRangeData_.fADRStdDev = stdDevAdrScaling[stBlock_.ucPhaserangeStdDev];
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime =
-        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_.eSatelliteSystem, stCtStatus_.eSignalType, uiPRN_);
+    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_, uiPRN_);
     stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
@@ -630,7 +617,7 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             stRangeData.fDopplerFrequency =
                 (iDopplerBase + (iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR)) / RangeCmp2SignalScaling(eSystem, eSignalType);
             stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t, SIG_CNO_MASK>(stSigBlock.ullCombinedField2);
-            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stCtStatus.eSatelliteSystem, stCtStatus.eSignalType, usPRN);
+            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stCtStatus, usPRN);
             stRangeData.uiChannelTrackingStatus = stCtStatus.GetAsWord();
 
             uiRangeDataBytesDecompressed += sizeof(SignalBlock);
