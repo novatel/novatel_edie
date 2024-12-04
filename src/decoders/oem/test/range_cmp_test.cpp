@@ -134,9 +134,9 @@ TEST_F(RangeCmpTest, BITFIELD_1)
    uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBytesLeft = sizeof(aucBytes);
    uint32_t uiBitOffset = 0;
-   ASSERT_EQ(0x76DF, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 15));
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 4));
-   ASSERT_EQ(0x11, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 5));
+   ASSERT_EQ(0x76DF, (ExtractBitfield<uint64_t, 15>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 4>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
+   ASSERT_EQ(0x11, (ExtractBitfield<uint64_t, 5>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
 }
 
 TEST_F(RangeCmpTest, BITFIELD_2)
@@ -149,7 +149,7 @@ TEST_F(RangeCmpTest, BITFIELD_2)
    uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBitOffset = 4;
    uint32_t uiBytesLeft = sizeof(aucBytes);
-   ASSERT_EQ(0xA07CD81F6ULL, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 37));
+   ASSERT_EQ(0xA07CD81F6ULL, (ExtractBitfield<uint64_t, 37>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
 }
 
 TEST_F(RangeCmpTest, BITFIELD_3)
@@ -188,50 +188,50 @@ TEST_F(RangeCmpTest, BITFIELD_4)
    uint32_t uiBytesLeft = sizeof(aucBytes);
    uint32_t uiBitOffset = 0;
 
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
 
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 1));
+   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(0U, uiBytesLeft);
 }
 
-// TEST_F(RangeCmpTest, BITFIELD_5)
-// {
-//     // ExtractBitfield cant handle when bit offset + bits in bitfield > 64, so we throw an exception.
-//     uint64_t temp = 0ULL;
-//     auto pucBytesPointer = reinterpret_cast<uint8_t*>(&temp);
-//    uint32_t uiBitOffset = 1;
-//    uint32_t uiBytesLeft = sizeof(temp) + 1;
-//    ASSERT_THROW(ExtractBitfield<uint64_t>(&pucBytesPointer, uiBytesLeft, uiBitOffset, 64), std::runtime_error);
-// }
+TEST_F(RangeCmpTest, BITFIELD_5)
+{
+    // Edge case where bitfield occupies 9 bytes
+    std::array<uint64_t, 2> arr = {0x2, 0x1};
+   auto* pucBytesPointer = reinterpret_cast<uint8_t*>(arr.data());
+   uint32_t uiBytesLeft = sizeof(arr);
+   uint32_t uiBitOffset = 1;
+   ASSERT_EQ(1ULL << 0 | 1ULL << 63, (ExtractBitfield<uint64_t, 64>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
+}
 
 // -------------------------------------------------------------------------------------------------------
 // RANGECMP decompression unit tests

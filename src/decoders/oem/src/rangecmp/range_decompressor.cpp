@@ -313,18 +313,18 @@ void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint
 {
     using namespace rangecmp4;
 
-    stRefBlock_.bParityKnown = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_PARITY_FLAG_BITS);
-    stRefBlock_.bHalfCycleAdded = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_HALF_CYCLE_BITS);
-    stRefBlock_.fCNo = ExtractBitfield<float>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_CNO_BITS) * SIG_BLK_CNO_SCALE_FACTOR;
-    stRefBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_LOCK_TIME_BITS);
-    stRefBlock_.ucPSRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_PSR_STDDEV_BITS);
-    stRefBlock_.ucADRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_ADR_STDDEV_BITS);
+    stRefBlock_.bParityKnown = ExtractBitfield<bool, SIG_BLK_PARITY_FLAG_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stRefBlock_.bHalfCycleAdded = ExtractBitfield<bool, SIG_BLK_HALF_CYCLE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stRefBlock_.fCNo = ExtractBitfield<float, SIG_BLK_CNO_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_) * SIG_BLK_CNO_SCALE_FACTOR;
+    stRefBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t, SIG_BLK_LOCK_TIME_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stRefBlock_.ucPSRBitfield = ExtractBitfield<uint8_t, SIG_BLK_PSR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stRefBlock_.ucADRBitfield = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
 
-    auto llPSRBitfield = ExtractBitfield<int64_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_PSR_BITS[bSecondary]);
+    auto llPSRBitfield = ExtractBitfield<int64_t, RBLK_PSR_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
     if constexpr (bSecondary) { HandleSignExtension<SSIG_RBLK_PSR_SIGNEXT_MASK>(llPSRBitfield); }
-    auto iPhaseRangeBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_PHASERANGE_BITS);
+    auto iPhaseRangeBitfield = ExtractBitfield<int32_t, RBLK_PHASERANGE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
     HandleSignExtension<RBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRangeBitfield);
-    auto iDopplerBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_DOPPLER_BITS[bSecondary]);
+    auto iDopplerBitfield = ExtractBitfield<int32_t, RBLK_DOPPLER_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
     HandleSignExtension<RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDopplerBitfield);
 
     stRefBlock_.bValidPSR = llPSRBitfield != RBLK_INVALID_PSR[bSecondary];
@@ -347,18 +347,18 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
 {
     using namespace rangecmp4;
 
-    stDiffBlock_.bParityKnown = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_PARITY_FLAG_BITS);
-    stDiffBlock_.bHalfCycleAdded = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_HALF_CYCLE_BITS);
-    stDiffBlock_.fCNo = ExtractBitfield<float>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_CNO_BITS) * SIG_BLK_CNO_SCALE_FACTOR;
-    stDiffBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_LOCK_TIME_BITS);
-    stDiffBlock_.ucPSRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_PSR_STDDEV_BITS);
-    stDiffBlock_.ucADRBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_ADR_STDDEV_BITS);
+    stDiffBlock_.bParityKnown = ExtractBitfield<bool, SIG_BLK_PARITY_FLAG_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stDiffBlock_.bHalfCycleAdded = ExtractBitfield<bool, SIG_BLK_HALF_CYCLE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stDiffBlock_.fCNo = ExtractBitfield<float, SIG_BLK_CNO_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_) * SIG_BLK_CNO_SCALE_FACTOR;
+    stDiffBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t, SIG_BLK_LOCK_TIME_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stDiffBlock_.ucPSRBitfield = ExtractBitfield<uint8_t, SIG_BLK_PSR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stDiffBlock_.ucADRBitfield = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
 
-    auto iPSR = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_DBLK_PSR_BITS);
+    auto iPSR = ExtractBitfield<int32_t, SIG_DBLK_PSR_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
     HandleSignExtension<SIG_DBLK_PSR_SIGNEXT_MASK>(iPSR);
-    auto iPhaseRange = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_DBLK_PHASERANGE_BITS);
+    auto iPhaseRange = ExtractBitfield<int32_t, SIG_DBLK_PHASERANGE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
     HandleSignExtension<SIG_DBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRange);
-    auto iDoppler = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, DBLK_DOPPLER_BITS[bSecondary]);
+    auto iDoppler = ExtractBitfield<int32_t, DBLK_DOPPLER_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
     HandleSignExtension<DBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDoppler);
 
     stDiffBlock_.bValidPSR = iPSR != SIG_DBLK_INVALID_PSR;
@@ -648,7 +648,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
     uint32_t uiBytesLeft = *reinterpret_cast<uint32_t*>(pucData_);
     pucData_ += sizeof(uint32_t);
 
-    auto systems = ExtractBitfield<uint16_t>(&pucData_, uiBytesLeft, uiBitOffset, SATELLITE_SYSTEMS_BITS);
+    auto systems = ExtractBitfield<uint16_t, SATELLITE_SYSTEMS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
 
     while (systems)
     {
@@ -656,22 +656,22 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 
         // WARNING: We use arrays instead of vectors for PRNs and Signals to avoid using dynamic memory allocation.
         // This means that we have to be careful using the size of the array and iterators.
-        auto satellitesTemp = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, SATELLITES_BITS);
+        auto satellitesTemp = ExtractBitfield<uint64_t, SATELLITES_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
         std::array<uint32_t, SATELLITES_BITS> aPrns;
         uint32_t uiPrnCount = 0;
         while (satellitesTemp) { aPrns[uiPrnCount++] = PopLsb(satellitesTemp) + 1; } // Bit position is PRN - 1, so + 1 here
 
-        auto signalsTemp = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, SIGNALS_BITS);
+        auto signalsTemp = ExtractBitfield<uint64_t, SIGNALS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
         std::array<SIGNAL_TYPE, SIGNALS_BITS> aSignals;
         uint32_t uiSignalCount = 0;
         while (signalsTemp) { aSignals[uiSignalCount++] = static_cast<SIGNAL_TYPE>(PopLsb(signalsTemp)); }
 
-        std::array<uint64_t, SATELLITES_BITS> includedSignals;
+        std::array<uint16_t, SATELLITES_BITS> includedSignals;
         // Iterate through the PRNs once to collect the signals tracked by each. We need this info before we can start decompressing.
         for (uint32_t uiPrnIndex = 0; uiPrnIndex < uiPrnCount; ++uiPrnIndex)
         {
             // Get the m*n bit matrix that describes the included signals in this RANGECMP4 message.
-            includedSignals[aPrns[uiPrnIndex]] = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, uiSignalCount);
+            includedSignals[aPrns[uiPrnIndex]] = ExtractBitfield<uint16_t>(&pucData_, uiBytesLeft, uiBitOffset, uiSignalCount);
         }
 
         // Check each PRN against the signals tracked in this satellite system to see if the signal is included.
@@ -679,26 +679,25 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
         {
             // Begin decoding Reference Measurement Block Header.
             MeasurementBlockHeader stMbHeader;
-            stMbHeader.bIsDifferentialData = ExtractBitfield<bool>(&pucData_, uiBytesLeft, uiBitOffset, MBLK_HDR_DATAFORMAT_FLAG_BITS);
-            stMbHeader.ucReferenceDataBlockID = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, MBLK_HDR_REFERENCE_DATABLOCK_ID_BITS);
+            stMbHeader.bIsDifferentialData = ExtractBitfield<bool, MBLK_HDR_DATAFORMAT_FLAG_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
+            stMbHeader.ucReferenceDataBlockID = ExtractBitfield<uint8_t, MBLK_HDR_REFERENCE_DATABLOCK_ID_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
 
             // This field is only present for GLONASS and reference blocks.
             if (system == SYSTEM::GLONASS && !stMbHeader.bIsDifferentialData)
             {
                 stMbHeader.cGLONASSFrequencyNumber =
-                    ExtractBitfield<int8_t>(&pucData_, uiBytesLeft, uiBitOffset, MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS);
+                    ExtractBitfield<int8_t, MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
             }
 
             const uint32_t& prn = aPrns[uiPrnIndex];
-            uint64_t& included = includedSignals[prn];
-            const uint32_t uiIncludedSignalCount = PopCount(included);
+            const uint32_t uiIncludedSignalCount = PopCount(includedSignals[prn]);
             bool bPrimaryBlock = true;
             double primaryPseudorange{};
             double primaryDoppler{};
 
-            while (included)
+            while (includedSignals[prn])
             {
-                const SIGNAL_TYPE signal = aSignals[PopLsb(included)];
+                const SIGNAL_TYPE signal = aSignals[PopLsb(includedSignals[prn])];
                 const uint64_t key = MakeKey(system, prn, signal, eSource);
                 MeasurementSignalBlock stBlock;
 
@@ -729,8 +728,8 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                     }
                     catch (...)
                     {
-                        pclMyLogger->warn("No reference data exists for SATELLITE_SYSTEM {}, SIGNAL_TYPE {}, PRN {}, ID {}",
-                                          static_cast<int32_t>(system), static_cast<int32_t>(signal), prn, stMbHeader.ucReferenceDataBlockID);
+                        pclMyLogger->warn("No reference data exists for SYSTEM {}, SIGNAL {}, PRN {}, ID {}", static_cast<int32_t>(system),
+                                          static_cast<int32_t>(signal), prn, stMbHeader.ucReferenceDataBlockID);
                     }
                 }
                 else // This is a reference block.
@@ -776,18 +775,18 @@ void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiB
 {
     using namespace rangecmp5;
 
-    stBlock_.bParityKnown = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_PARITY_FLAG_BITS);
-    stBlock_.bHalfCycleAdded = ExtractBitfield<bool>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_HALF_CYCLE_BITS);
-    stBlock_.fCNo = ExtractBitfield<float>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_CNO_BITS) * SIG_BLK_CNO_SCALE_FACTOR;
-    stBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_LOCK_TIME_BITS);
-    stBlock_.ucPseudorangeStdDev = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_PSR_STDDEV_BITS);
-    stBlock_.ucPhaserangeStdDev = ExtractBitfield<uint8_t>(ppucData_, uiBytesLeft_, uiBitOffset_, SIG_BLK_ADR_STDDEV_BITS);
+    stBlock_.bParityKnown = ExtractBitfield<bool, SIG_BLK_PARITY_FLAG_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stBlock_.bHalfCycleAdded = ExtractBitfield<bool, SIG_BLK_HALF_CYCLE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stBlock_.fCNo = ExtractBitfield<float, SIG_BLK_CNO_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_) * SIG_BLK_CNO_SCALE_FACTOR;
+    stBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t, SIG_BLK_LOCK_TIME_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stBlock_.ucPseudorangeStdDev = ExtractBitfield<uint8_t, SIG_BLK_PSR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stBlock_.ucPhaserangeStdDev = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
 
-    auto llPSRBitfield = ExtractBitfield<int64_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_PSR_BITS[bSecondary]);
+    auto llPSRBitfield = ExtractBitfield<int64_t, RBLK_PSR_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
     if constexpr (bSecondary) { HandleSignExtension<SSIG_RBLK_PSR_SIGNEXT_MASK>(llPSRBitfield); }
-    auto iPhaseRangeBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_PHASERANGE_BITS);
+    auto iPhaseRangeBitfield = ExtractBitfield<int32_t, RBLK_PHASERANGE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
     HandleSignExtension<RBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRangeBitfield);
-    auto iDopplerBitfield = ExtractBitfield<int32_t>(ppucData_, uiBytesLeft_, uiBitOffset_, RBLK_DOPPLER_BITS[bSecondary]);
+    auto iDopplerBitfield = ExtractBitfield<int32_t, RBLK_DOPPLER_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
     HandleSignExtension<RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDopplerBitfield);
 
     stBlock_.bValidPseudorange = llPSRBitfield != RBLK_INVALID_PSR[bSecondary];
@@ -810,7 +809,7 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
     uint32_t uiBytesLeft = *reinterpret_cast<uint32_t*>(pucData_);
     pucData_ += sizeof(uint32_t);
 
-    auto systems = ExtractBitfield<uint16_t>(&pucData_, uiBytesLeft, uiBitOffset, SATELLITE_SYSTEMS_BITS);
+    auto systems = ExtractBitfield<uint16_t, SATELLITE_SYSTEMS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
 
     while (systems)
     {
@@ -818,22 +817,22 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
 
         // WARNING: We use arrays instead of vectors for PRNs and Signals to avoid using dynamic memory allocation.
         // This means that we have to be careful using the size of the array and iterators.
-        auto satellitesTemp = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, SATELLITES_BITS);
+        auto satellitesTemp = ExtractBitfield<uint64_t, SATELLITES_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
         std::array<uint32_t, SATELLITES_BITS> aPrns;
         uint32_t uiPrnCount = 0;
         while (satellitesTemp) { aPrns[uiPrnCount++] = PopLsb(satellitesTemp); }
 
-        auto signalsTemp = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, SIGNALS_BITS);
+        auto signalsTemp = ExtractBitfield<uint64_t, SIGNALS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
         std::array<rangecmp4::SIGNAL_TYPE, SIGNALS_BITS> aSignals;
         uint32_t uiSignalCount = 0;
         while (signalsTemp) { aSignals[uiSignalCount++] = static_cast<rangecmp4::SIGNAL_TYPE>(PopLsb(signalsTemp)); }
 
-        std::array<uint64_t, SATELLITES_BITS> includedSignals;
+        std::array<uint16_t, SATELLITES_BITS> includedSignals;
         // Iterate through the PRNs once to collect the signals tracked by each. We need this info before we can start decompressing.
         for (uint32_t uiPrnIndex = 0; uiPrnIndex < uiPrnCount; ++uiPrnIndex)
         {
             // Get the m*n bit matrix that describes the included signals in this RANGECMP5 message.
-            includedSignals[aPrns[uiPrnIndex]] = ExtractBitfield<uint64_t>(&pucData_, uiBytesLeft, uiBitOffset, uiSignalCount);
+            includedSignals[aPrns[uiPrnIndex]] = ExtractBitfield<uint16_t>(&pucData_, uiBytesLeft, uiBitOffset, uiSignalCount);
         }
 
         // Check each PRN against the signals tracked in this satellite system to see if the signal is included.
@@ -841,22 +840,21 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
         {
             // Begin decoding Reference Measurement Block Header.
             MeasurementBlockHeader stMbHeader;
-            stMbHeader.bDataFormatFlag = ExtractBitfield<bool>(&pucData_, uiBytesLeft, uiBitOffset, 1);
-            stMbHeader.ucReserved = ExtractBitfield<uint8_t>(&pucData_, uiBytesLeft, uiBitOffset, 3);
+            stMbHeader.bDataFormatFlag = ExtractBitfield<bool, 1>(&pucData_, uiBytesLeft, uiBitOffset);
+            stMbHeader.ucReserved = ExtractBitfield<uint8_t, 3>(&pucData_, uiBytesLeft, uiBitOffset);
 
             // This field is only present for GLONASS and reference blocks.
-            if (system == SYSTEM::GLONASS) { stMbHeader.cGLONASSFrequencyNumber = ExtractBitfield<int8_t>(&pucData_, uiBytesLeft, uiBitOffset, 5); }
+            if (system == SYSTEM::GLONASS) { stMbHeader.cGLONASSFrequencyNumber = ExtractBitfield<int8_t, 5>(&pucData_, uiBytesLeft, uiBitOffset); }
 
             const uint32_t& prn = aPrns[uiPrnIndex];
-            uint64_t& included = includedSignals[prn];
-            const uint32_t uiIncludedSignalCount = PopCount(included);
+            const uint32_t uiIncludedSignalCount = PopCount(includedSignals[prn]);
             bool bPrimaryBlock = true;
             double primaryPseudorange{};
             double primaryDoppler{};
 
-            while (included)
+            while (includedSignals[prn])
             {
-                const rangecmp4::SIGNAL_TYPE signal = aSignals[PopLsb(included)];
+                const rangecmp4::SIGNAL_TYPE signal = aSignals[PopLsb(includedSignals[prn])];
                 MeasurementSignalBlock stBlock;
 
                 if (bPrimaryBlock)
