@@ -124,12 +124,6 @@ TEST_F(RangeCmpTest, CHANNEL_TRACKING_STATUS_WORD_3)
 // -------------------------------------------------------------------------------------------------------
 TEST_F(RangeCmpTest, BITFIELD_1)
 {
-   // Binary bit values:   1101 1111 0111 0110 1000 1000
-   // Endianness:          -----------------------------
-   // Swapped byte order:  1000 1000 0111 0110 1101 1111
-   // Expected bitfield 1: XXXX XXXX X111 0110 1101 1111 (0x76DF)
-   // Expected bitfield 2: XXXX X000 0... .... .... .... (0x0)
-   // Expected bitfield 3: 1000 1... .... .... .... .... (0x11)
    uint8_t aucBytes[] = {0xDF, 0x76, 0x88};
    uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBytesLeft = sizeof(aucBytes);
@@ -141,10 +135,6 @@ TEST_F(RangeCmpTest, BITFIELD_1)
 
 TEST_F(RangeCmpTest, BITFIELD_2)
 {
-   // Swap byte order:     0110 0001 0001 1111 1101 1000 0111 1100 1010 0000 1011 0000
-   // Endianness:          -----------------------------------------------------------
-   // Binary bit values:   1011 0000 1010 0000 0111 1100 1101 1000 0001 1111 0110 0001
-   // Expected bitfield:   XXXX XXX^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ ^^^^ .... (0xA07CD81F6)
    uint8_t aucBytes[] = {0x61, 0x1F, 0xD8, 0x7C, 0xA0, 0xB0};
    uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBitOffset = 4;
@@ -164,25 +154,6 @@ TEST_F(RangeCmpTest, BITFIELD_3)
 
 TEST_F(RangeCmpTest, BITFIELD_4)
 {
-   // Binary bit values:    1010 1010 1010 1010
-   // Endianness:           -------------------
-   // Swapped byte order:   1010 1010 1010 1010
-   // Expected bitfield 1:  XXXX XXXX XXXX XXX0 (0x0)
-   // Expected bitfield 2:  XXXX XXXX XXXX XX1X (0x1)
-   // Expected bitfield 3:  XXXX XXXX XXXX X0XX (0x0)
-   // Expected bitfield 4:  XXXX XXXX XXXX 1XXX (0x1)
-   // Expected bitfield 5:  XXXX XXXX XXX0 XXXX (0x0)
-   // Expected bitfield 6:  XXXX XXXX XX1X XXXX (0x1)
-   // Expected bitfield 7:  XXXX XXXX X0XX XXXX (0x0)
-   // Expected bitfield 8:  XXXX XXXX 1XXX XXXX (0x1)
-   // Expected bitfield 9:  XXXX XXX0 XXXX XXXX (0x0)
-   // Expected bitfield 10: XXXX XX1X XXXX XXXX (0x1)
-   // Expected bitfield 11: XXXX X0XX XXXX XXXX (0x0)
-   // Expected bitfield 12: XXXX 1XXX XXXX XXXX (0x1)
-   // Expected bitfield 13: XXX0 XXXX XXXX XXXX (0x0)
-   // Expected bitfield 14: XX1X XXXX XXXX XXXX (0x1)
-   // Expected bitfield 15: X0XX XXXX XXXX XXXX (0x0)
-   // Expected bitfield 16: 1XXX XXXX XXXX XXXX (0x1)
    uint8_t aucBytes[] = {0xAA, 0xAA};
    uint8_t* pucBytesPointer = aucBytes;
    uint32_t uiBytesLeft = sizeof(aucBytes);
@@ -190,37 +161,15 @@ TEST_F(RangeCmpTest, BITFIELD_4)
 
    ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(2U, uiBytesLeft);
-   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
+   ASSERT_EQ(0x55, (ExtractBitfield<uint64_t, 7>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
 
    ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x0, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
-   ASSERT_EQ(1U, uiBytesLeft);
-   ASSERT_EQ(0x1, (ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
+   ASSERT_EQ(0x55, (ExtractBitfield<uint64_t, 7>(&pucBytesPointer, uiBytesLeft, uiBitOffset)));
    ASSERT_EQ(0U, uiBytesLeft);
+
+   ASSERT_THROW((ExtractBitfield<uint64_t, 1>(&pucBytesPointer, uiBytesLeft, uiBitOffset)), std::runtime_error);
 }
 
 TEST_F(RangeCmpTest, BITFIELD_5)
