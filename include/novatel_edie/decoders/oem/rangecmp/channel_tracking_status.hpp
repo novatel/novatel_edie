@@ -96,6 +96,9 @@ class ChannelTrackingStatus
     //! Generate a unique key.
     [[nodiscard]] uint64_t MakeKey(uint32_t prn, MEASUREMENT_SOURCE source) const;
 
+    //! Calculates the PRN based on the system.
+    [[nodiscard]] uint32_t CalculatePrn(uint32_t uiPRN_) const;
+
     //! Get the satellite system
     [[nodiscard]] SYSTEM GetSystem() const;
 

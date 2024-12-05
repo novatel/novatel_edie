@@ -285,36 +285,6 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
 //------------------------------------------------------------------------------
 //! Populates a provided RangeData structure from the RANGECMP4 blocks provided.
 //------------------------------------------------------------------------------
-void RangeDecompressor::CalculatePrn(RangeData& stRangeData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_)
-{
-    //! Some logic for PRN offsets based on the constellation. See documentation:
-    //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
-    switch (stCtStatus_.GetSystem())
-    {
-    case SYSTEM::GLONASS:
-        // If ternary returns true, documentation suggests we should save this PRN as
-        // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - GLONASS frequency number. However, this
-        // would output the PRN as an actual valid Slot ID, which is not true. We will
-        // set this to 0 here because 0 is considered an unknown/invalid GLONASS Slot ID.
-        stRangeData_.usPrn =
-            GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
-        return;
-    case SYSTEM::SBAS:
-        stRangeData_.usPrn = SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
-                             : SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT
-                                 ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
-                                 : 0;
-        break;
-    case SYSTEM::QZSS: stRangeData_.usPrn = uiPRN_ + QZSS_PRN_OFFSET - 1; break;
-    default: stRangeData_.usPrn = uiPRN_; break;
-    }
-    // NOTE: GLONASS control path has returned by this point.
-    if (stRangeData_.usPrn == 0) { throw std::runtime_error("PRN outside of limits"); }
-}
-
-//------------------------------------------------------------------------------
-//! Populates a provided RangeData structure from the RANGECMP4 blocks provided.
-//------------------------------------------------------------------------------
 void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_,
                                               const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_,
                                               char cGLONASSFrequencyNumber_)
@@ -338,7 +308,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     constexpr std::array<double, 16> stdDevAdrScaling = {0.003, 0.005, 0.007, 0.009, 0.012, 0.016, 0.022, 0.029,
                                                          0.039, 0.052, 0.070, 0.093, 0.124, 0.166, 0.222, 0.222};
 
-    CalculatePrn(stRangeData_, stCtStatus_, uiPRN_);
+    stRangeData_.usPrn = stCtStatus_.CalculatePrn(uiPRN_);
+    if (stRangeData_.usPrn == 0 && stCtStatus_.GetSystem() != SYSTEM::GLONASS) { throw std::runtime_error("PRN outside of limits"); } // TODO: GLONASS
 
     const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
 
@@ -380,7 +351,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
                                                          0.04908, 0.05749, 0.06734, 0.07889, 0.09240, 0.10824, 0.12679, 0.14851,
                                                          0.17396, 0.20378, 0.23870, 0.27961, 0.32753, 0.38366, 0.44940, 0.44940};
 
-    CalculatePrn(stRangeData_, stCtStatus_, uiPRN_);
+    stRangeData_.usPrn = stCtStatus_.CalculatePrn(uiPRN_);
+    if (stRangeData_.usPrn == 0 && stCtStatus_.GetSystem() != SYSTEM::GLONASS) { throw std::runtime_error("PRN outside of limits"); } // TODO: GLONASS
 
     const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
 
@@ -813,7 +785,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
         pucTempMessagePointer = stMessageData.pucMessageBody;
     }
 
-    // Convert the RANGECMPx message to a RANGE message.
+    // Convert the RANGECMP* message to a RANGE message.
     try
     {
         Range stRange;
