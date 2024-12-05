@@ -75,7 +75,7 @@ template <typename T> constexpr uint32_t PopLsb(T& value)
 
 template <typename T, uint64_t Mask> constexpr T GetBitfield(uint64_t value)
 {
-    static_assert(std::is_integral<T>::value || std::is_enum_v<T>, "GetBitfield only returns integral or enum types.");
+    static_assert(std::is_integral_v<T> || std::is_enum_v<T>, "GetBitfield only returns integral or enum types.");
     static_assert(PopCount(Mask) <= sizeof(T) * 8, "Mask is too large for the return type");
     static_assert(((Mask >> Lsb(Mask)) & ((Mask >> Lsb(Mask)) + 1)) == 0, "Mask must have contiguous bits.");
 
@@ -561,6 +561,92 @@ struct RangeCmp
 
     RangeCmp() = default;
 };
+
+//-----------------------------------------------------------------------
+//! Lookup function for L1/E1/B1 Scaling for RANGECMP2 signals
+//! defined in the RANGECMP2 documentation:
+//! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#L1_E1_B1_Scaling
+//-----------------------------------------------------------------------
+constexpr double SignalScaling(SYSTEM system, SIGNAL_TYPE signal)
+{
+    switch (system)
+    {
+    case SYSTEM::GPS:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::GPS_L1C: [[fallthrough]];
+        case SIGNAL_TYPE::GPS_L1CA: return 1.0;
+        case SIGNAL_TYPE::GPS_L2Y: [[fallthrough]];
+        case SIGNAL_TYPE::GPS_L2CM: return 154.0 / 120.0;
+        case SIGNAL_TYPE::GPS_L5Q: return 154.0 / 115.0;
+        default: return 0.0;
+        }
+    case SYSTEM::GLONASS:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::GLONASS_L1CA: return 1.0;
+        case SIGNAL_TYPE::GLONASS_L2CA: [[fallthrough]];
+        case SIGNAL_TYPE::GLONASS_L2P: return 9.0 / 7.0;
+        case SIGNAL_TYPE::GLONASS_L3Q: return 313.0 / 235.0;
+        default: return 0.0;
+        }
+    case SYSTEM::SBAS:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::SBAS_L1CA: return 1.0;
+        case SIGNAL_TYPE::SBAS_L5I: return 154.0 / 115.0;
+        default: return 0.0;
+        }
+    case SYSTEM::GALILEO:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::GALILEO_E1C: return 1.0;
+        case SIGNAL_TYPE::GALILEO_E5AQ: return 154.0 / 115.0;
+        case SIGNAL_TYPE::GALILEO_E5BQ: return 154.0 / 118.0;
+        case SIGNAL_TYPE::GALILEO_ALTBOCQ: return 154.0 / 116.5;
+        case SIGNAL_TYPE::GALILEO_E6C: [[fallthrough]];
+        case SIGNAL_TYPE::GALILEO_E6B: return 154.0 / 125.0;
+        default: return 0.0;
+        }
+    case SYSTEM::BEIDOU:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::BEIDOU_B1D1I: [[fallthrough]];
+        case SIGNAL_TYPE::BEIDOU_B1D2I: return 1.0;
+        case SIGNAL_TYPE::BEIDOU_B1CP: return 1526.0 / 1540.0;
+        case SIGNAL_TYPE::BEIDOU_B2D1I: [[fallthrough]];
+        case SIGNAL_TYPE::BEIDOU_B2D2I: [[fallthrough]];
+        case SIGNAL_TYPE::BEIDOU_B2B_I: return 1526.0 / 1180.0;
+        case SIGNAL_TYPE::BEIDOU_B2AP: return 1526.0 / 1150.0;
+        case SIGNAL_TYPE::BEIDOU_B3D1I: [[fallthrough]];
+        case SIGNAL_TYPE::BEIDOU_B3D2I: return 1526.0 / 1240.0;
+        default: return 0.0;
+        }
+    case SYSTEM::QZSS:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::QZSS_L1C: [[fallthrough]];
+        case SIGNAL_TYPE::QZSS_L1CA: return 1.0;
+        case SIGNAL_TYPE::QZSS_L2CM: return 154.0 / 120.0;
+        case SIGNAL_TYPE::QZSS_L5Q: return 154.0 / 115.0;
+        case SIGNAL_TYPE::QZSS_L6P: return 154.0 / 125.0;
+        default: return 0.0;
+        }
+    case SYSTEM::LBAND:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::LBAND: return 1.0;
+        default: return 0.0;
+        }
+    case SYSTEM::NAVIC:
+        switch (signal)
+        {
+        case SIGNAL_TYPE::NAVIC_L5SPS: return 1.0;
+        default: return 0.0;
+        }
+    default: return 0.0;
+    }
+}
 
 } // namespace rangecmp2
 
