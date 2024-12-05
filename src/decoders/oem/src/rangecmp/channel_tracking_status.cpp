@@ -32,7 +32,6 @@ using namespace novatel::edie::oem;
 //------------------------------------------------------------------------------
 uint64_t ChannelTrackingStatus::MakeKey(const uint32_t prn, const MEASUREMENT_SOURCE source) const
 {
-    // TODO: scale PRNs down based on system?
     assert(static_cast<uint64_t>(eSatelliteSystem) < 16 && prn < 256 && static_cast<uint64_t>(eSignalType) < 32 && static_cast<uint64_t>(source) < 2);
     return (static_cast<uint64_t>(eSatelliteSystem) << 14) | (prn << 6) | static_cast<uint64_t>(eSignalType) << 1 | static_cast<uint64_t>(source);
 }
@@ -467,6 +466,27 @@ double ChannelTrackingStatus::GetSignalWavelength(const int16_t sGLONASSFrequenc
         default: return 0.0;
         }
     default: return 0.0;
+    }
+}
+
+uint32_t ChannelTrackingStatus::CalculatePrn(uint32_t uiPRN_) const
+{
+    //! Some logic for PRN offsets based on the constellation. See documentation:
+    //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
+    switch (eSatelliteSystem)
+    {
+    case CTS_SYSTEM::GLONASS:
+        // If ternary returns true, documentation suggests we should save this PRN as
+        // GLONASS_SLOT_UNKNOWN_UPPER_LIMIT - GLONASS frequency number. However, this
+        // would output the PRN as an actual valid Slot ID, which is not true. We will
+        // set this to 0 here because 0 is considered an unknown/invalid GLONASS Slot ID.
+        return GLONASS_SLOT_UNKNOWN_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= GLONASS_SLOT_UNKNOWN_UPPER_LIMIT ? 0 : uiPRN_ + GLONASS_SLOT_OFFSET - 1;
+    case CTS_SYSTEM::SBAS:
+        return SBAS_PRN_OFFSET_120_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_120_UPPER_LIMIT   ? uiPRN_ + SBAS_PRN_OFFSET_120 - 1
+               : SBAS_PRN_OFFSET_130_LOWER_LIMIT <= uiPRN_ && uiPRN_ <= SBAS_PRN_OFFSET_130_UPPER_LIMIT ? uiPRN_ + SBAS_PRN_OFFSET_130 - 1
+                                                                                                        : 0;
+    case CTS_SYSTEM::QZSS: return uiPRN_ + QZSS_PRN_OFFSET - 1;
+    default: return uiPRN_;
     }
 }
 

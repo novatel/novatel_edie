@@ -95,7 +95,6 @@ class RangeDecompressor
     void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
                                      rangecmp4::MeasurementSignalBlock& stDiffBlock_, const rangecmp4::MeasurementSignalBlock& stRefBlock_,
                                      double dSecondOffset_) const;
-    static void CalculatePrn(RangeData& stRangeData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_);
     void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
                                const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
     void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
