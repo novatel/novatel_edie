@@ -57,94 +57,6 @@ void RangeDecompressor::LoadJsonDb(JsonReader* pclJsonDB_)
     clMyEncoder.LoadJsonDb(pclJsonDB_);
 }
 
-//-----------------------------------------------------------------------
-//! Lookup function for L1/E1/B1 Scaling for RANGECMP2 signals
-//! defined in the RANGECMP2 documentation:
-//! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP2.htm?Highlight=RANGECMP2#L1_E1_B1_Scaling
-//-----------------------------------------------------------------------
-double RangeDecompressor::SignalScaling(SYSTEM system, rangecmp2::SIGNAL_TYPE signal)
-{
-    using namespace rangecmp2;
-
-    switch (system)
-    {
-    case SYSTEM::GPS:
-        switch (signal)
-        {
-        case SIGNAL_TYPE::GPS_L1C: return 1.0;
-        case SIGNAL_TYPE::GPS_L1CA: return 1.0;
-        case SIGNAL_TYPE::GPS_L2Y: return 154.0 / 120.0;
-        case SIGNAL_TYPE::GPS_L2CM: return 154.0 / 120.0;
-        case SIGNAL_TYPE::GPS_L5Q: return 154.0 / 115.0;
-        default: return 0.0;
-        }
-    case SYSTEM::GLONASS:
-        switch (signal)
-        {
-        case SIGNAL_TYPE::GLONASS_L1CA: return 1.0;
-        case SIGNAL_TYPE::GLONASS_L2CA: return 9.0 / 7.0;
-        case SIGNAL_TYPE::GLONASS_L2P: return 9.0 / 7.0;
-        case SIGNAL_TYPE::GLONASS_L3Q: return 313.0 / 235.0;
-        default: return 0.0;
-        }
-    case SYSTEM::SBAS:
-        switch (signal)
-        {
-        case SIGNAL_TYPE::SBAS_L1CA: return 1.0;
-        case SIGNAL_TYPE::SBAS_L5I: return 154.0 / 115.0;
-        default: return 0.0;
-        }
-    case SYSTEM::GALILEO:
-        switch (signal)
-        {
-        case SIGNAL_TYPE::GALILEO_E1C: return 1.0;
-        case SIGNAL_TYPE::GALILEO_E5AQ: return 154.0 / 115.0;
-        case SIGNAL_TYPE::GALILEO_E5BQ: return 154.0 / 118.0;
-        case SIGNAL_TYPE::GALILEO_ALTBOCQ: return 154.0 / 116.5;
-        case SIGNAL_TYPE::GALILEO_E6C: return 154.0 / 125.0;
-        case SIGNAL_TYPE::GALILEO_E6B: return 154.0 / 125.0;
-        default: return 0.0;
-        }
-    case SYSTEM::BEIDOU:
-        switch (signal)
-        {
-        case SIGNAL_TYPE::BEIDOU_B1D1I: return 1.0;
-        case SIGNAL_TYPE::BEIDOU_B1D2I: return 1.0;
-        case SIGNAL_TYPE::BEIDOU_B1CP: return 1526.0 / 1540.0;
-        case SIGNAL_TYPE::BEIDOU_B2D1I: return 1526.0 / 1180.0;
-        case SIGNAL_TYPE::BEIDOU_B2D2I: return 1526.0 / 1180.0;
-        case SIGNAL_TYPE::BEIDOU_B2AP: return 1526.0 / 1150.0;
-        case SIGNAL_TYPE::BEIDOU_B2B_I: return 1526.0 / 1180.0;
-        case SIGNAL_TYPE::BEIDOU_B3D1I: return 1526.0 / 1240.0;
-        case SIGNAL_TYPE::BEIDOU_B3D2I: return 1526.0 / 1240.0;
-        default: return 0.0;
-        }
-    case SYSTEM::QZSS:
-        switch (signal)
-        {
-        case SIGNAL_TYPE::QZSS_L1C: return 1.0;
-        case SIGNAL_TYPE::QZSS_L1CA: return 1.0;
-        case SIGNAL_TYPE::QZSS_L2CM: return 154.0 / 120.0;
-        case SIGNAL_TYPE::QZSS_L5Q: return 154.0 / 115.0;
-        case SIGNAL_TYPE::QZSS_L6P: return 154.0 / 125.0;
-        default: return 0.0;
-        }
-    case SYSTEM::LBAND:
-        switch (signal)
-        {
-        case SIGNAL_TYPE::LBAND: return 1.0;
-        default: return 0.0;
-        }
-    case SYSTEM::NAVIC:
-        switch (signal)
-        {
-        case SIGNAL_TYPE::NAVIC_L5SPS: return 1.0;
-        default: return 0.0;
-        }
-    default: return 0.0;
-    }
-}
-
 //------------------------------------------------------------------------------
 //! The lock time can only report up to 131071ms (0x1FFFF). If this value is
 //! reached, the lock time must continue to increment. Once the saturated value
@@ -309,7 +221,8 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
 //------------------------------------------------------------------------------
 template <bool bSecondary>
 void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                                 rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPseudorange, double primaryDoppler)
+                                                 rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPseudorange,
+                                                 double primaryDoppler) const
 {
     using namespace rangecmp4;
 
@@ -343,7 +256,7 @@ void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint
 template <bool bSecondary>
 void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
                                                     rangecmp4::MeasurementSignalBlock& stDiffBlock_,
-                                                    const rangecmp4::MeasurementSignalBlock& stRefBlock_, double dSecondOffset_)
+                                                    const rangecmp4::MeasurementSignalBlock& stRefBlock_, double dSecondOffset_) const
 {
     using namespace rangecmp4;
 
@@ -372,7 +285,7 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
 //------------------------------------------------------------------------------
 //! Populates a provided RangeData structure from the RANGECMP4 blocks provided.
 //------------------------------------------------------------------------------
-void RangeDecompressor::CalculatePrn(RangeData& stRangeData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_) const
+void RangeDecompressor::CalculatePrn(RangeData& stRangeData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_)
 {
     //! Some logic for PRN offsets based on the constellation. See documentation:
     //! https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm#Measurem
@@ -427,7 +340,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
 
     CalculatePrn(stRangeData_, stCtStatus_, uiPRN_);
 
-    double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
+    const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
 
     // Any fields flagged as invalid are set to NaN and appear in the log as such.
     stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGLONASSFrequencyNumber_);
@@ -469,7 +382,7 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
 
     CalculatePrn(stRangeData_, stCtStatus_, uiPRN_);
 
-    double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
+    const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
 
     // Any fields flagged as invalid are set to NaN and appear in the log as such.
     stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGLONASSFrequencyNumber_);
@@ -754,7 +667,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 //------------------------------------------------------------------------------
 template <bool bSecondary>
 void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                        rangecmp5::MeasurementSignalBlock& stBlock_, double primaryPseudorange, double primaryDoppler)
+                                        rangecmp5::MeasurementSignalBlock& stBlock_, double primaryPseudorange, double primaryDoppler) const
 {
     using namespace rangecmp5;
 
