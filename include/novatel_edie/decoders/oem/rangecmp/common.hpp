@@ -76,12 +76,18 @@ template <typename T> constexpr uint32_t PopLsb(T& value)
 template <typename T, uint64_t Mask> constexpr T GetBitfield(uint64_t value)
 {
     static_assert(std::is_integral<T>::value || std::is_enum_v<T>, "GetBitfield only returns integral or enum types.");
-    // TODO: Need to do some checking to ensure that the mask is valid (not too large) for the type of T
+    static_assert(PopCount(Mask) <= sizeof(T) * 8, "Mask is too large for the return type");
+    static_assert(((Mask >> Lsb(Mask)) & ((Mask >> Lsb(Mask)) + 1)) == 0, "Mask must have contiguous bits.");
+
     return static_cast<T>((value & Mask) >> Lsb(Mask));
 }
 
-// TODO: Need to do some checking to ensure that the result is valid
-template <uint32_t Mask> constexpr uint32_t EncodeBitfield(uint32_t value) { return value << Lsb(Mask) & Mask; }
+template <uint32_t Mask> constexpr uint32_t EncodeBitfield(uint32_t value)
+{
+    if (PopCount(value << Lsb(Mask)) != PopCount(value)) { throw std::runtime_error("Lost bits after shift."); }
+
+    return value << Lsb(Mask) & Mask;
+}
 
 template <auto Mask, typename T> constexpr void HandleSignExtension(T& value)
 {
@@ -126,6 +132,7 @@ template <typename T, uint32_t BitfieldBits> T ExtractBitfield(unsigned char** p
     return static_cast<T>(mask & result);
 }
 
+// Slower version of extract bitfield for when the bitfield size isnt known at compile time (included signals).
 template <typename T> T ExtractBitfield(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, const uint32_t uiBitsInBitfield_)
 {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "ExtractBitfield only returns integral or floating point types.");

@@ -377,9 +377,8 @@ double ChannelTrackingStatus::GetSignalWavelength(const int16_t sGLONASSFrequenc
     constexpr double frequencyHzQzssL5 = frequencyHzGpsL5;
     constexpr double frequencyHzQzssL6 = 1278750000.0;
 
-    // TODO: Size these arrays correctly
     constexpr auto glonassL1LookupTable = [&] {
-        std::array<double, 64> arr{};
+        std::array<double, 21> arr{};
         for (int32_t i = 0; i < static_cast<int32_t>(arr.size()); i++)
         {
             arr[i] = speedOfLight / (frequencyHzGloL1 + (i - static_cast<int32_t>(GLONASS_FREQUENCY_NUMBER_OFFSET)) * glonassL1FrequencyScaleHz);
@@ -388,7 +387,7 @@ double ChannelTrackingStatus::GetSignalWavelength(const int16_t sGLONASSFrequenc
     }();
 
     constexpr auto glonassL2LookupTable = [&] {
-        std::array<double, 64> arr{};
+        std::array<double, 21> arr{};
         for (int32_t i = 0; i < static_cast<int32_t>(arr.size()); i++)
         {
             arr[i] = speedOfLight / (frequencyHzGloL2 + (i - static_cast<int32_t>(GLONASS_FREQUENCY_NUMBER_OFFSET)) * glonassL2FrequencyScaleHz);
@@ -412,9 +411,9 @@ double ChannelTrackingStatus::GetSignalWavelength(const int16_t sGLONASSFrequenc
     case CTS_SYSTEM::GLONASS:
         switch (eSignalType)
         {
-        case CTS_SIGNAL::GLONASS_L1CA: return glonassL1LookupTable[sGLONASSFrequency_];
+        case CTS_SIGNAL::GLONASS_L1CA: return glonassL1LookupTable.at(sGLONASSFrequency_);
         case CTS_SIGNAL::GLONASS_L2CA: [[fallthrough]];
-        case CTS_SIGNAL::GLONASS_L2P: return glonassL2LookupTable[sGLONASSFrequency_];
+        case CTS_SIGNAL::GLONASS_L2P: return glonassL2LookupTable.at(sGLONASSFrequency_);
         case CTS_SIGNAL::GLONASS_L3Q: return speedOfLight / frequencyHzGloL3;
         default: return 0.0;
         }
