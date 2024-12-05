@@ -86,7 +86,7 @@ class RangeDecompressor
     std::unordered_map<uint64_t, rangecmp4::LockTimeInfo> mMyRangeCmp4LockTimes;
     std::unordered_map<uint64_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>> mMyReferenceBlocks;
 
-    static double RangeCmp2SignalScaling(SYSTEM sys, rangecmp2::SIGNAL_TYPE sig);
+    static double SignalScaling(SYSTEM sys, rangecmp2::SIGNAL_TYPE sig);
     double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint16_t usPRN_);
     double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint32_t uiPRN_);
     template <bool bSecondary>
@@ -96,6 +96,7 @@ class RangeDecompressor
     void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
                                      rangecmp4::MeasurementSignalBlock& stDiffBlock_, const rangecmp4::MeasurementSignalBlock& stRefBlock_,
                                      double dSecondOffset_);
+    void CalculatePrn(RangeData& stRangeData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_) const;
     void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
                                const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
     void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,

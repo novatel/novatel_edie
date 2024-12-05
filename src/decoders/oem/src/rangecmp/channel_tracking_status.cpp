@@ -86,7 +86,7 @@ ChannelTrackingStatus::ChannelTrackingStatus(const rangecmp2::SatelliteBlock& st
     bDigitalFilteringOnSignal = false;
     bChannelAssignmentForced = false;
     bPRNLocked = false;
-    uiSVChannelNumber = static_cast<uint32_t>(stSatelliteBlock_.ucSVChanNumber);
+    uiSVChannelNumber = static_cast<uint32_t>(stSatelliteBlock_.ucSvChanNumber);
     eTrackingState = bPrimaryL1Channel ? TRACKING_STATE::PHASE_LOCK_LOOP : TRACKING_STATE::AIDED_PHASE_LOCK_LOOP;
     eCorrelatorType = GetBitfield<CORRELATOR_TYPE, SIG_CORRELATOR_TYPE_MASK>(stSignalBlock_.uiCombinedField1);
     eSatelliteSystem = SystemToSatelliteSystem(GetBitfield<SYSTEM, SAT_SATELLITE_SYSTEM_ID_MASK>(stSatelliteBlock_.ulCombinedField));
@@ -109,8 +109,8 @@ ChannelTrackingStatus::ChannelTrackingStatus(const SYSTEM eSystem_, const rangec
     eSignalType = RangeCmp4SignalTypeToSignalType(eSatelliteSystem, eSignalType_);
     bParityKnown = stMeasurementBlock_.bParityKnown;
     bHalfCycleAdded = stMeasurementBlock_.bHalfCycleAdded;
-    bCodeLocked = stMeasurementBlock_.bValidPSR;
-    bPhaseLocked = stMeasurementBlock_.bValidPhaseRange;
+    bCodeLocked = stMeasurementBlock_.bValidPseudorange;
+    bPhaseLocked = stMeasurementBlock_.bValidPhaserange;
 
     if (eSignalType_ == rangecmp4::SIGNAL_TYPE::GPS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GLONASS_L1CA ||
         eSignalType_ == rangecmp4::SIGNAL_TYPE::SBAS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GALILEO_E1 ||

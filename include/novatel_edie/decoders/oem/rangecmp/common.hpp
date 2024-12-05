@@ -399,12 +399,12 @@ enum class SYSTEM
 //-----------------------------------------------------------------------
 struct RangeData
 {
-    uint16_t usPRN{0};
-    int16_t sGLONASSFrequency{0};
-    double dPSR{0};
-    float fPSRStdDev{0};
-    double dADR{0};
-    float fADRStdDev{0};
+    uint16_t usPrn{0};
+    int16_t sGlonassFrequency{0};
+    double dPseudorange{0};
+    float fPseudorangeStdDev{0};
+    double dAdr{0};
+    float fAdrStdDev{0};
     float fDopplerFrequency{0};
     float fCNo{0};
     float fLockTime{0};
@@ -435,9 +435,9 @@ struct RangeCmpData
 {
     uint32_t uiChannelTrackingStatus{0};
     uint64_t ulDopplerFrequencyPSRField{0}; // This is a combination of two fields; Doppler Frequency and PSR.
-    uint32_t uiADR{0};
-    uint8_t ucStdDevPSRStdDevADR{0}; // This is a combination of two fields; PSR Std. and ADR std.
-    uint8_t ucPRN{0};
+    uint32_t uiAdr{0};
+    uint8_t ucStdDevPsrAdr{0}; // This is a combination of two fields; PSR Std. and ADR std.
+    uint8_t ucPrn{0};
     uint32_t uiLockTimeCNoGLOFreq{0}; // This is a combination of two fields; Lock time (21b), C/No
                                       // (5b), and GLONASS Frequency number (8b)
     uint16_t usReserved{0};
@@ -467,7 +467,7 @@ namespace rangecmp2 {
 //-----------------------------------------------------------------------
 struct SatelliteBlock
 {
-    uint8_t ucSVChanNumber{0};
+    uint8_t ucSvChanNumber{0};
     uint8_t ucSatelliteIdentifier{0};
     uint64_t ulCombinedField{0};
 
@@ -636,7 +636,7 @@ struct MeasurementBlockHeader
 {
     bool bIsDifferentialData{false};
     uint8_t ucReferenceDataBlockID{0};
-    int8_t cGLONASSFrequencyNumber{0};
+    int8_t cGlonassFrequencyNumber{0};
 
     MeasurementBlockHeader() = default;
 };
@@ -652,12 +652,12 @@ struct MeasurementSignalBlock
     bool bHalfCycleAdded{false};
     float fCNo{0.0F};
     uint8_t ucLockTimeBitfield{0};
-    uint8_t ucPSRBitfield{0};
-    uint8_t ucADRBitfield{0};
-    double dPSR{0.0};
-    bool bValidPSR{false};
-    double dPhaseRange{0.0};
-    bool bValidPhaseRange{false};
+    uint8_t ucPseudorangeStdDev{0};
+    uint8_t ucPhaserangeStdDev{0};
+    double dPseudorange{0.0};
+    bool bValidPseudorange{false};
+    double dPhaserange{0.0};
+    bool bValidPhaserange{false};
     double dDoppler{0.0};
     bool bValidDoppler{false};
 
@@ -697,7 +697,7 @@ struct MeasurementBlockHeader
 {
     bool bDataFormatFlag{false};
     uint8_t ucReserved{0};
-    int8_t cGLONASSFrequencyNumber{0};
+    int8_t cGlonassFrequencyNumber{0};
 
     MeasurementBlockHeader() = default;
 };
