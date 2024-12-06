@@ -31,6 +31,7 @@
 #include "novatel_edie/decoders/oem/filter.hpp"
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
+#include "novatel_edie/decoders/oem/rangecmp/channel_tracking_status.hpp"
 #include "novatel_edie/decoders/oem/rangecmp/common.hpp"
 
 namespace novatel::edie::oem {
@@ -51,27 +52,25 @@ class RangeDecompressor
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger();
+    std::shared_ptr<spdlog::logger> GetLogger() { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_  The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_);
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Reset the decompressor to handle new datasets
     //----------------------------------------------------------------------------
     void Reset()
     {
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY)].clear();
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::SECONDARY)].clear();
+        for (auto& it : mMyRangeCmp2LockTimes) { it.second = {}; }
+        for (auto& it : mMyRangeCmp4LockTimes) { it.second = {}; }
     }
 
-    [[nodiscard]] STATUS Decompress(unsigned char* pucRangeMessageBuffer_, uint32_t uiRangeMessageBufferSize_, MetaDataStruct& stMetaData_,
+    [[nodiscard]] STATUS Decompress(unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct& stMetaData_,
                                     ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
 
   private:
@@ -83,55 +82,31 @@ class RangeDecompressor
     std::shared_ptr<spdlog::logger> pclMyLogger;
     JsonReader* pclMyMsgDB{};
 
-    // Store the last primary reference blocks for each measurement source.
-    RangeCmp4MeasurementSignalBlockStruct astMyLastPrimaryReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+    std::unordered_map<uint64_t, rangecmp2::LockTimeInfo> mMyRangeCmp2LockTimes;
+    std::unordered_map<uint64_t, rangecmp4::LockTimeInfo> mMyRangeCmp4LockTimes;
+    std::unordered_map<uint64_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>> mMyReferenceBlocks;
 
-    // TODO: Is there a better way to map all this information together?
-    // This is an array of map of map of maps. Indexed by SYSTEM, RangeCmp4::SIGNAL_TYPE, then PRN
-    // (uint32_t). This will store a header and its reference block for whenever we find
-    // differential data for the System, Signal type and PRN. We must keep track of which
-    // measurement source the reference block came from so any subsequent differential blocks are
-    // correctly decompressed.
-    std::map<SYSTEM, std::map<RangeCmp4::SIGNAL_TYPE,
-                              std::map<uint32_t, std::pair<RangeCmp4MeasurementBlockHeaderStruct, RangeCmp4MeasurementSignalBlockStruct>>>>
-        ammmMyReferenceBlocks[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
+    double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint16_t usPRN_);
+    double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint32_t uiPRN_);
+    template <bool bSecondary>
+    void DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
+                                  rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPseudorange, double primaryDoppler) const;
+    template <bool bSecondary>
+    void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
+                                     rangecmp4::MeasurementSignalBlock& stDiffBlock_, const rangecmp4::MeasurementSignalBlock& stRefBlock_,
+                                     double dSecondOffset_) const;
+    void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
+                               const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
+    void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
+                               const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
+    template <bool bSecondary>
+    void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, rangecmp5::MeasurementSignalBlock& stBlock_,
+                         double primaryPseudorange, double primaryDoppler) const;
 
-    // Protected members to be accessed by test child classes.
-  protected:
-    std::map<ChannelTrackingStatusStruct::SATELLITE_SYSTEM,
-             std::map<ChannelTrackingStatusStruct::SIGNAL_TYPE, std::map<uint32_t, RangeCmp2LockTimeInfoStruct>>>
-        ammmMyRangeCmp2LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
-    std::map<ChannelTrackingStatusStruct::SATELLITE_SYSTEM,
-             std::map<ChannelTrackingStatusStruct::SIGNAL_TYPE, std::map<uint32_t, RangeCmp4LocktimeInfoStruct>>>
-        ammmMyRangeCmp4LockTimes[static_cast<uint32_t>(MEASUREMENT_SOURCE::MAX)];
-
-  private:
-    static double GetSignalWavelength(const ChannelTrackingStatusStruct& stChannelTrackingStatus_, int16_t sGLONASSFrequency_);
-    float DetermineRangeCmp2ObservationLockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_,
-                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint16_t usPRN_);
-    float DetermineRangeCmp4ObservationLockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_,
-                                                ChannelTrackingStatusStruct::SATELLITE_SYSTEM eSystem_,
-                                                ChannelTrackingStatusStruct::SIGNAL_TYPE eSignal_, uint32_t uiPRN_);
-    template <bool bIsSecondary>
-    void DecompressReferenceBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_,
-                                  MEASUREMENT_SOURCE eMeasurementSource_);
-    template <bool bIsSecondary>
-    void DecompressDifferentialBlock(uint8_t** ppucDataPointer_, RangeCmp4MeasurementSignalBlockStruct& stDifferentialBlock_,
-                                     const RangeCmp4MeasurementSignalBlockStruct& stReferenceBlock_, double dSecondOffset_);
-    void PopulateNextRangeData(RangeDataStruct& stRangeData_, const RangeCmp4MeasurementSignalBlockStruct& stBlock_,
-                               const MetaDataStruct& stMetaData_, const ChannelTrackingStatusStruct& stChannelTrackingStatus_, uint32_t uiPRN_,
-                               char cGLONASSFrequencyNumber_);
-
-    static void RangeCmpToRange(const RangeCmpStruct& stRangeCmpMessage_, RangeStruct& stRangeMessage_);
-    void RangeCmp2ToRange(const RangeCmp2Struct& stRangeCmp2Message_, RangeStruct& stRangeMessage_, const MetaDataStruct& stMetaData_);
-    void RangeCmp4ToRange(uint8_t* pucCompressedData_, RangeStruct& stRangeMessage_, const MetaDataStruct& pstMetaData_);
-
-    // Protected members to be accessed by test child classes.
-  protected:
-    uint32_t uiMyBytesRemaining{0U};
-    uint32_t uiMyBitOffset{0U};
-    uint64_t GetBitfieldFromBuffer(uint8_t** ppucDataBuffer_, uint32_t uiBitsInBitfield_);
+    static void RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
+    void RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);
+    void RangeCmp4ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
+    void RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
 };
 
 } // namespace novatel::edie::oem
