@@ -104,9 +104,10 @@ struct FramerElement
     FRAMER_ID framerId;
     std::unique_ptr<FramerBase> framer;
     std::unique_ptr<MetaDataBase> metadata;
+    int32_t offset;
 
-    FramerElement(FRAMER_ID framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
-        : framerId(framerId_), framer(std::move(framer_)), metadata(std::move(metadata_))
+    FramerElement(FRAMER_ID framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_, int32_t offset_)
+        : framerId(framerId_), framer(std::move(framer_)), metadata(std::move(metadata_)), offset(offset_)
     {
     }
 };
@@ -188,7 +189,7 @@ class FramerManager
 
     void ResetInactiveFramerStates(const FRAMER_ID& activeFramer_);
 
-    void ResetFramerStack();
+    // void ResetFramerStack();
 
     // STATUS DerivedFramerGetFrame(std::unique_ptr<FramerBase>& basePtr, unsigned char* pucFrameBuffer_, uint32_t& uiFrameBufferSize_,
     //                              uint32_t& uiFrameBufferOffset);
@@ -197,10 +198,27 @@ class FramerManager
   protected:
     void RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
 
+    // Forward Declarations of Framers
     friend class novatel::edie::oem::Framer;
+    friend class nmea::NmeaFramer;
+
+    // TODO delete this
+    void DisplayFramerStack();
 
   public:
-    void ResetFramerStates();
+    //---------------------------------------------------------------------------
+    //! \brief Get the MetaData for a specific framer.
+    //! \param[in] framerId_ The ID of the framer to get the MetaData for.
+    //! \return A pointer to the MetaData for the specified framer.
+    //! \return nullptr if the framer is not found.
+    //---------------------------------------------------------------------------
+    MetaDataBase* GetMetaData(const FRAMER_ID framerId_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Reset the state of all framers in the framer registry.
+    //---------------------------------------------------------------------------
+    void ResetAllFramerStates();
+
     //----------------------------------------------------------------------------
     //! \brief Configure the framer manager to return unknown bytes in the provided
     //! buffer.
@@ -248,6 +266,11 @@ class FramerManager
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
     uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Reorder the framers in the framer registry.
+    //----------------------------------------------------------------------------
+    void ReorderFramers();
 
     ////----------------------------------------------------------------------------
     ////! \brief Flush bytes from the internal circular buffer.

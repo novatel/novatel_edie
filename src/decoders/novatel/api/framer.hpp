@@ -60,12 +60,22 @@ class Framer : public FramerBase
     void ResetStateAndByteCount() override;
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
+    //! \param [in] circularBuffer a shared pointer to the framer manager's circular buffer.
     //----------------------------------------------------------------------------
     Framer(std::shared_ptr<CircularBuffer> circularBuffer);
 
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the Framer class.
+    //----------------------------------------------------------------------------
     Framer();
 
-    STATUS FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_) override;
+    //----------------------------------------------------------------------------
+    //! \brief Find the next sync byte in the circular buffer.
+    //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
+    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
+    //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.
+    //---------------------------------------------------------------------------
+    int32_t FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_) override;
 
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
@@ -88,6 +98,9 @@ class Framer : public FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_) override;
 
+    //----------------------------------------------------------------------------
+    //! \brief A destructor for the Framer class.
+    //----------------------------------------------------------------------------
     ~Framer() = default;
 };
 

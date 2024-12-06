@@ -27,6 +27,7 @@
 #include <gtest/gtest.h>
 
 #include "decoders/novatel/api/framer.hpp"
+#include "framer_manager/api/framer_manager.hpp"
 #include "hw_interface/stream_interface/api/inputfilestream.hpp"
 
 using namespace novatel::edie;
@@ -42,8 +43,15 @@ class ProprietaryFramerTest : public ::testing::Test
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
+
+        novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        clMyFramerManager.SetLoggerLevel(spdlog::level::info);
+        // TODO Delete this
+        std::cout << "DEBUG:FramerTest Constructed Successfully" << std::endl;
+        // pclMyFramer = std::make_unique<Framer>();
+        clMyFramerManager.SetReportUnknownBytes(true);
+
         pclMyFramer = std::make_unique<Framer>();
-        pclMyFramer->SetReportUnknownBytes(true);
         pclMyFramer->SetPayloadOnly(false);
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
