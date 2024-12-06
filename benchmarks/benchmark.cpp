@@ -31,6 +31,7 @@
 #include <benchmark/benchmark.h>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
+#include <novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp>
 
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 
@@ -155,7 +156,7 @@ template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
     for ([[maybe_unused]] auto _ : state)
     {
         unsigned char* bufferPtr = encodeBuffer;
-        (void)encoder.Encode(&bufferPtr, sizeof(encodeBuffer), header, message, messageData, metaData, Format); 
+        (void)encoder.Encode(&bufferPtr, sizeof(encodeBuffer), header, message, messageData, metaData, Format);
     }
 
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
@@ -172,6 +173,29 @@ BENCHMARK(EncodeAsciiLog);
 BENCHMARK(EncodeAbbrevAsciiLog);
 BENCHMARK(EncodeBinaryLog);
 BENCHMARK(EncodeJsonLog);
+
+static void DecompressRangeCmp(benchmark::State& state)
+{
+    JsonReader jsonReader;
+    jsonReader.LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    RangeDecompressor rangeDecompressor(&jsonReader);
+    // clang-format off
+    char aucCompressedData[] = "#RANGECMP4A,COM1,0,81.5,FINESTEERING,1921,228459.000,00000020,fb0e,32768;627,630032090851000000009200dbbf7d8306f822d0a3b2bc897f0010d350428cf31228ea9f7300040050ff5e641cb7c7463d2a00b6a4644f6e5ee2a0fe530a00fe1f829dcfe4cf30d52abaf37f94e01621cd8d8c04a0bafcaf00e43b0761690064e7bfe90f11ce8710a4eb2b573202607403fc28e647c6fe9f550118007a9d839c2680ebfedff6876be81150411adbc972feef4686c483f30a09f01773ff0b0050d8b8a843f41576b94100440e1e4f59ace54fffca2700fc1f62e14720f4facba64affbf9c52ff39ce4b3eef9f14fd0f00244387d00d80fefabfeb0fb3cf456ae97542d410fc9ffab7f601e73580e5efdaff0f00a0b33991fc072ccbaa99ff134efa9fd0dc684bfc61f0fffeff60b020000000008004c0ff3fa0b2f724f7e1eee889e9fb9f3977c0437391ab135877fe0b00301edf93f4bd63c62850fdbf8527e6e5cd438e3a208400e0ff43bb6f5fc2101c75b058daff375c5ea4378f51940022eeffff0fe1c97dcda81887c83a63007c9d5a7ed65ce6f901427bffff3f9c04f735db1d55294a3bfc5f35ccc66df318c412181400140060eedbd7285feaf6a653f9bf9fc7fe27cd653633c0b5fcffff03197b4f8228d4e59d0cfbffa731b2f73b07e9b68078f47f0000a9be7dcdcc51898da269fe839b6191ab9cc67701f21000fc3f0001a1000000008002c03fb4362793b9bfeb657dfcffe6badabb9a4375b77f5bff1fed87bce64454a98ae16c14ff4fec6f7a48f3206b03e8040138fbd0023d225492cd7679a4ffa5623b08810e42bf05fce17fa41f9a9ccfc8e2626231edf2ff208a1225ce6150204067febfef030100000000000028000ca9cc8728bb3306e68af97f921cfce3e632f0d1cf8300c8f701*6de99eb7\r\n";
+    //clang-format on
+    char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    memcpy(aucCompressionBuffer, aucCompressedData, sizeof(aucCompressedData)-1);
+    
+    // Setup the results of the framer as if it had just framed aucCompressedData.
+    MetaDataStruct stMetaData;
+    stMetaData.usMessageId = static_cast<uint16_t>(RANGECMP4_MSG_ID);
+    stMetaData.uiLength = sizeof(aucCompressedData)-1;
+
+    for ([[maybe_unused]] auto _ : state) { (void)rangeDecompressor.Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData); }
+    
+    state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
+}
+
+BENCHMARK(DecompressRangeCmp);
 
 int main(int argc, char** argv)
 {
