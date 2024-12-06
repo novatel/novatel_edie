@@ -22,7 +22,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake -S . -B out/build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_CXX_COMPILER=g++
+          cmake -S . -B out/build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_CXX_COMPILER=g++ -DBUILD_BENCHMARKS=ON
           cmake --build out/build --parallel --config Release
       
       - name: Run benchmark
