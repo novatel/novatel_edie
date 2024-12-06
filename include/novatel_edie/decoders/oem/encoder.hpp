@@ -56,7 +56,7 @@ class Encoder : public EncoderBase
     // Encode binary
     [[nodiscard]] static bool EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
     [[nodiscard]] static bool EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) override;
+    [[nodiscard]] bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const override;
 
     // Encode ascii
     [[nodiscard]] bool EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
@@ -109,7 +109,7 @@ class Encoder : public EncoderBase
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
-                                ENCODE_FORMAT eFormat_);
+                                ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message header from the provided intermediate header.
@@ -142,7 +142,7 @@ class Encoder : public EncoderBase
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                       MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_,
-                                      bool bIsEmbeddedHeader_ = false);
+                                      bool bIsEmbeddedHeader_ = false) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message body from the provided intermediate message.
@@ -172,7 +172,7 @@ class Encoder : public EncoderBase
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
-                                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_);
+                                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_) const;
 };
 
 } // namespace novatel::edie::oem

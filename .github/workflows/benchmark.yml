@@ -1,0 +1,44 @@
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Conan
+        id: conan
+        uses: turtlebrowser/get-conan@main
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Build
+        run: |
+          cmake -S . -B out/build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_CXX_COMPILER=g++ -DBUILD_BENCHMARKS=ON
+          cmake --build out/build --parallel --config Release
+      
+      - name: Run benchmark
+        shell: bash
+        run: ./out/build/bin/linux-x86_64-gnu-Release/benchmark "${{ github.workspace }}" --benchmark_format=json | tee benchmark_output.json
+
+      - name: Download previous benchmark data
+        uses: actions/cache@v4
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
+      
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'googlecpp'
+          output-file-path: benchmark_output.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true

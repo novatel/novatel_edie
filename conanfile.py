@@ -1,7 +1,6 @@
 import os
 import re
 from pathlib import Path
-
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
@@ -51,6 +50,12 @@ class NovatelEdieConan(ConanFile):
         self.requires("gegles-spdlog_setup/[>=1.1 <2]", transitive_headers=True)
         self.requires("fmt/[^11]", force=True)
 
+    def build_requirements(self):
+        self.test_requires("gtest/[>=1.14 <1.15]")
+        self.test_requires("benchmark/[>=1.8 <2]")
+        if self.settings.os in ["Linux", "FreeBSD"]:
+            self.tool_requires("patchelf/[*]")
+
     def validate(self):
         check_min_cppstd(self, 17)
 
@@ -59,15 +64,11 @@ class NovatelEdieConan(ConanFile):
             # re-instantiated in each shared library and executable that links against it.
             raise ConanInvalidConfiguration("spdlog must be dynamically linked when building novatel_edie as a shared library")
 
-    def build_requirements(self):
-        self.test_requires("gtest/[>=1.14 <1.15]")
-        if self.settings.os in ["Linux", "FreeBSD"]:
-            self.tool_requires("patchelf/[*]")
-
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.cache_variables["BUILD_TESTS"] = False
+        tc.cache_variables["BUILD_BENCHMARKS"] = False
         tc.cache_variables["BUILD_EXAMPLES"] = False
+        tc.cache_variables["BUILD_TESTS"] = False
         tc.cache_variables["CMAKE_INSTALL_DATADIR"] = "res"
         tc.generate()
 

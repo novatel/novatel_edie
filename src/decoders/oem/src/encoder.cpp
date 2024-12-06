@@ -96,12 +96,12 @@ void Encoder::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, MakeConversionString<float>(fc_).data(), std::get<float>(fc_.fieldValue));
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, FloatingPointConversionString<float>(fc_).data(), std::get<float>(fc_.fieldValue));
     };
 
     asciiFieldMap[CalculateBlockCrc32("lk")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                   [[maybe_unused]] JsonReader* pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, MakeConversionString<double>(fc_).data(), std::get<double>(fc_.fieldValue));
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, FloatingPointConversionString<double>(fc_).data(), std::get<double>(fc_.fieldValue));
     };
 
     asciiFieldMap[CalculateBlockCrc32("c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -139,12 +139,12 @@ void Encoder::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] JsonReader* pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, MakeConversionString<float>(fc_).data(), std::get<float>(fc_.fieldValue));
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, FloatingPointConversionString<float>(fc_).data(), std::get<float>(fc_.fieldValue));
     };
 
     jsonFieldMap[CalculateBlockCrc32("lk")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] JsonReader* pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, MakeConversionString<double>(fc_).data(), std::get<double>(fc_.fieldValue));
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, FloatingPointConversionString<double>(fc_).data(), std::get<double>(fc_.fieldValue));
     };
 
     jsonFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -177,7 +177,7 @@ bool Encoder::EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, 
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
+bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
     switch (fc_.fieldDef->dataType.name)
     {
@@ -334,7 +334,7 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 STATUS
 Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
-                const ENCODE_FORMAT eFormat_)
+                const ENCODE_FORMAT eFormat_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
@@ -376,7 +376,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_, MessageDataStruct& stMessageData_,
-                      const MetaDataStruct& stMetaData_, const ENCODE_FORMAT eFormat_, const bool bIsEmbeddedHeader_)
+                      const MetaDataStruct& stMetaData_, const ENCODE_FORMAT eFormat_, const bool bIsEmbeddedHeader_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
@@ -428,7 +428,7 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
-                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_)
+                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_) const
 {
     // TODO: this entire function should be in common, only header stuff and map redefinitions belong in this file
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
@@ -442,7 +442,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
     case ENCODE_FORMAT::ASCII: {
         if (!EncodeAsciiBody<false>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pucTempBuffer--; // Remove last delimiter ','
-        const uint32_t uiCrc = CalculateBlockCrc32(pucTempBuffer - stMessageData_.pucMessageHeader - 1, 0, stMessageData_.pucMessageHeader + 1);
+        const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1, pucTempBuffer - stMessageData_.pucMessageHeader - 1);
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "*%08x\r\n", uiCrc)) { return STATUS::BUFFER_FULL; }
         break;
     }
@@ -474,7 +474,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         {
             reinterpret_cast<Oem4BinaryShortHeader*>(stMessageData_.pucMessageHeader)->ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
         }
-        uint32_t uiCrc = CalculateBlockCrc32(pucTempBuffer - stMessageData_.pucMessageHeader, 0, stMessageData_.pucMessageHeader);
+        uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader, pucTempBuffer - stMessageData_.pucMessageHeader);
         if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, &uiCrc)) { return STATUS::BUFFER_FULL; }
         break;
     }
