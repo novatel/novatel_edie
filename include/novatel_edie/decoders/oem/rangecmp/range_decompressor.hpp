@@ -43,37 +43,72 @@ namespace novatel::edie::oem {
 class RangeDecompressor
 {
   public:
-    RangeDecompressor(JsonReader* pclJsonDB_ = nullptr);
+    //! Default constructor.
+    RangeDecompressor(JsonReader* pclJsonDb_ = nullptr);
 
+    //! Load the JSON database for the decompressor.
     void LoadJsonDb(JsonReader* pclJsonDb_);
 
-    //----------------------------------------------------------------------------
-    //! \brief Get the internal logger.
-    //
-    //! \return A shared_ptr to the spdlog::logger.
-    //----------------------------------------------------------------------------
+    //! Get the internal logger.
     std::shared_ptr<spdlog::logger> GetLogger() { return pclMyLogger; }
 
-    //----------------------------------------------------------------------------
-    //! \brief Set the level of detail produced by the internal logger.
-    //
-    //! \param[in] eLevel_  The logging level to enable.
-    //----------------------------------------------------------------------------
+    //! Set the level of detail produced by the internal logger.
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) { pclMyLogger->set_level(eLevel_); }
 
-    //----------------------------------------------------------------------------
-    //! \brief Reset the decompressor to handle new datasets
-    //----------------------------------------------------------------------------
+    //! Reset the decompressor to handle new datasets.
     void Reset()
     {
         for (auto& it : mMyRangeCmp2LockTimes) { it.second = {}; }
         for (auto& it : mMyRangeCmp4LockTimes) { it.second = {}; }
     }
 
+    //! Decompresses a RANGECMP message provided in a buffer and overwrites it with the equivalent RANGE message.
     [[nodiscard]] STATUS Decompress(unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct& stMetaData_,
                                     ENCODE_FORMAT eFormat_ = ENCODE_FORMAT::UNSPECIFIED);
 
   private:
+    //! Get the lock time for a RANGECMP2 message.
+    double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint16_t usPrn_);
+
+    //! Get the lock time for a RANGECMP4 message.
+    double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint32_t uiPrn_);
+
+    //! Decompresses a RANGECMP4 reference measurement block and populates the reference block struct.
+    template <bool Secondary>
+    void DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
+                                  rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPsr, double primaryDoppler) const;
+
+    //! Decompresses a RANGECMP4 differential measurement block and populates the provided reference block struct.
+    template <bool Secondary>
+    void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
+                                     rangecmp4::MeasurementSignalBlock& stDiffBlock_, const rangecmp4::MeasurementSignalBlock& stRefBlock_,
+                                     double dSecondOffset_) const;
+
+    //! Populates a provided RangeData structure from the RANGECMP4 blocks provided.
+    void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
+                               const ChannelTrackingStatus& stCtStatus_, uint32_t uiPrn_, char cGlonassFrequencyNumber_);
+
+    //! Populates a provided RangeData structure from the RANGECMP5 blocks provided.
+    void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
+                               const ChannelTrackingStatus& stCtStatus_, uint32_t uiPrn_, char cGlonassFrequencyNumber_);
+
+    //! Decompresses a RANGECMP5 reference measurement block and populates the reference block struct.
+    template <bool Secondary>
+    void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, rangecmp5::MeasurementSignalBlock& stBlock_,
+                         double primaryPsr, double primaryDoppler) const;
+
+    //! Convert a RANGECMP message into RANGE message.
+    static void RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
+
+    //! Convert a RANGECMP2 message into RANGE message.
+    void RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);
+
+    //! Convert a RANGECMP4 message into RANGE message.
+    void RangeCmp4ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
+
+    //! Convert a RANGECMP5 message into RANGE message.
+    void RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
+
     Filter clMyRangeCmpFilter;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
@@ -85,28 +120,6 @@ class RangeDecompressor
     std::unordered_map<uint64_t, rangecmp2::LockTimeInfo> mMyRangeCmp2LockTimes;
     std::unordered_map<uint64_t, rangecmp4::LockTimeInfo> mMyRangeCmp4LockTimes;
     std::unordered_map<uint64_t, std::pair<rangecmp4::MeasurementBlockHeader, rangecmp4::MeasurementSignalBlock>> mMyReferenceBlocks;
-
-    double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint16_t usPRN_);
-    double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint32_t uiPRN_);
-    template <bool bSecondary>
-    void DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                  rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPseudorange, double primaryDoppler) const;
-    template <bool bSecondary>
-    void DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                     rangecmp4::MeasurementSignalBlock& stDiffBlock_, const rangecmp4::MeasurementSignalBlock& stRefBlock_,
-                                     double dSecondOffset_) const;
-    void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
-                               const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
-    void PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_, const MetaDataStruct& stMetaData_,
-                               const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_, char cGLONASSFrequencyNumber_);
-    template <bool bSecondary>
-    void DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_, rangecmp5::MeasurementSignalBlock& stBlock_,
-                         double primaryPseudorange, double primaryDoppler) const;
-
-    static void RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_);
-    void RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_);
-    void RangeCmp4ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
-    void RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& pstMetaData_);
 };
 
 } // namespace novatel::edie::oem

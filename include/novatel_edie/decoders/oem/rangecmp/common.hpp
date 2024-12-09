@@ -28,10 +28,10 @@
 #define RANGECMP_COMMON_HPP
 
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <iostream>
 #include <limits>
-#include <string_view>
 
 #include "novatel_edie/decoders/common/common.hpp"
 
@@ -257,8 +257,8 @@ constexpr uint64_t SIG_PSR_STDDEV_MASK = 0x00000000000001E0;
 constexpr uint64_t SIG_ADR_STDDEV_MASK = 0x0000000000001E00;
 constexpr uint64_t SIG_PSR_DIFF_MASK = 0x0000000007FFE000;
 constexpr double SIG_PSR_DIFF_SCALE_FACTOR = 128.0;
-constexpr uint64_t SIG_PHASERANGE_DIFF_MASK = 0x00007FFFF8000000;
-constexpr double SIG_PHASERANGE_DIFF_SCALE_FACTOR = 2048.0;
+constexpr uint64_t SIG_PHR_DIFF_MASK = 0x00007FFFF8000000;
+constexpr double SIG_PHR_DIFF_SCALE_FACTOR = 2048.0;
 constexpr uint64_t SIG_DOPPLER_DIFF_MASK = 0xFFFF800000000000;
 constexpr double SIG_DOPPLER_DIFF_SCALE_FACTOR = 256.0;
 constexpr uint32_t SIG_DOPPLER_DIFF_SIGNEXT_MASK = 0xFFFE0000;
@@ -283,11 +283,11 @@ namespace rangecmp4 {
 constexpr uint32_t HEADER_BLOCK_SYSTEM_COUNT = 7;
 
 // Valid limits for various Reference/Differential Primary/Secondary Blocks
-constexpr int32_t SIG_RBLK_INVALID_PHASERANGE = -4194304;
+constexpr int32_t SIG_RBLK_INVALID_PHR = -4194304;
 constexpr int32_t PSIG_RBLK_INVALID_DOPPLER = -33554432;
 constexpr int32_t SSIG_RBLK_INVALID_PSR = -524288;
 constexpr int32_t SIG_DBLK_INVALID_PSR = -262144;
-constexpr int32_t SIG_DBLK_INVALID_PHASERANGE = -32768;
+constexpr int32_t SIG_DBLK_INVALID_PHR = -32768;
 
 // Bitfield sizes for the Satellite and Signal Block
 constexpr uint32_t SATELLITE_SYSTEMS_BITS = 16;
@@ -308,24 +308,24 @@ constexpr uint32_t SIG_BLK_PSR_STDDEV_BITS = 4;
 constexpr uint32_t SIG_BLK_ADR_STDDEV_BITS = 4;
 constexpr float SIG_BLK_CNO_SCALE_FACTOR = 0.05F;
 constexpr double SIG_BLK_PSR_SCALE_FACTOR = 0.0005;
-constexpr double SIG_BLK_PHASERANGE_SCALE_FACTOR = 0.0001;
+constexpr double SIG_BLK_PHR_SCALE_FACTOR = 0.0001;
 constexpr double SIG_BLK_DOPPLER_SCALE_FACTOR = 0.0001;
 
 // Bitfield sizes for the Differential Header
 constexpr uint32_t SIG_DBLK_PSR_BITS = 19;
 constexpr uint32_t SIG_DBLK_PSR_SIGNEXT_MASK = 0xFFF80000;
-constexpr uint32_t SIG_DBLK_PHASERANGE_BITS = 16;
-constexpr uint32_t SIG_DBLK_PHASERANGE_SIGNEXT_MASK = 0xFFFF0000;
+constexpr uint32_t SIG_DBLK_PHR_BITS = 16;
+constexpr uint32_t SIG_DBLK_PHR_SIGNEXT_MASK = 0xFFFF0000;
 
 // Bitfield sizes for the Primary and Secondary Reference Signal Measurement Blocks
 constexpr uint64_t SSIG_RBLK_PSR_SIGNEXT_MASK = 0xFFFFFFFFFFF00000;
-constexpr uint32_t RBLK_PHASERANGE_SIGNEXT_MASK = 0xFF800000;
+constexpr uint32_t RBLK_PHR_SIGNEXT_MASK = 0xFF800000;
 
 constexpr std::array<int32_t, 2> DBLK_INVALID_DOPPLER = {-131072, -8192};
 constexpr std::array<uint32_t, 2> DBLK_DOPPLER_BITS = {18, 14};
 constexpr std::array<uint32_t, 2> DBLK_DOPPLER_SIGNEXT_MASK = {0xFFFC0000, 0xFFFFC000};
 constexpr std::array<uint32_t, 2> RBLK_PSR_BITS = {37, 20};
-constexpr uint32_t RBLK_PHASERANGE_BITS = 23;
+constexpr uint32_t RBLK_PHR_BITS = 23;
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_BITS = {26, 14};
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RBLK_INVALID_PSR = {137438953471, -524288};
@@ -343,7 +343,7 @@ constexpr uint32_t SATELLITES_BITS = 64;
 constexpr uint32_t SIGNALS_BITS = 16;
 
 // Valid limits for various Reference Primary/Secondary Blocks
-constexpr int32_t SIG_RBLK_INVALID_PHASERANGE = -4194304;
+constexpr int32_t SIG_RBLK_INVALID_PHR = -4194304;
 constexpr int32_t PSIG_RBLK_INVALID_DOPPLER = -33554432;
 constexpr int32_t SSIG_RBLK_INVALID_PSR = -524288;
 
@@ -356,15 +356,15 @@ constexpr uint32_t SIG_BLK_PSR_STDDEV_BITS = 5;
 constexpr uint32_t SIG_BLK_ADR_STDDEV_BITS = 5;
 constexpr float SIG_BLK_CNO_SCALE_FACTOR = 0.05F;
 constexpr double SIG_BLK_PSR_SCALE_FACTOR = 0.0005;
-constexpr double SIG_BLK_PHASERANGE_SCALE_FACTOR = 0.0001;
+constexpr double SIG_BLK_PHR_SCALE_FACTOR = 0.0001;
 constexpr double SIG_BLK_DOPPLER_SCALE_FACTOR = 0.0001;
 
 // Bitfield sizes for the Primary and Secondary Reference Signal Measurement Blocks
 constexpr uint64_t SSIG_RBLK_PSR_SIGNEXT_MASK = 0xFFFFFFFFFFF00000;
-constexpr uint32_t RBLK_PHASERANGE_SIGNEXT_MASK = 0xFF800000;
+constexpr uint32_t RBLK_PHR_SIGNEXT_MASK = 0xFF800000;
 
 constexpr std::array<uint32_t, 2> RBLK_PSR_BITS = {37, 20};
-constexpr uint32_t RBLK_PHASERANGE_BITS = 23;
+constexpr uint32_t RBLK_PHR_BITS = 23;
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_BITS = {28, 16};
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RBLK_INVALID_PSR = {137438953471, -524288};
@@ -434,11 +434,11 @@ namespace rangecmp {
 struct RangeCmpData
 {
     uint32_t uiChannelTrackingStatus{0};
-    uint64_t ulDopplerFrequencyPSRField{0}; // This is a combination of two fields; Doppler Frequency and PSR.
+    uint64_t ulDopplerFrequencyPsrField{0}; // This is a combination of two fields; Doppler Frequency and PSR.
     uint32_t uiAdr{0};
     uint8_t ucStdDevPsrAdr{0}; // This is a combination of two fields; PSR Std. and ADR std.
     uint8_t ucPrn{0};
-    uint32_t uiLockTimeCNoGLOFreq{0}; // This is a combination of two fields; Lock time (21b), C/No
+    uint32_t uiLockTimeCNoGloFreq{0}; // This is a combination of two fields; Lock time (21b), C/No
                                       // (5b), and GLONASS Frequency number (8b)
     uint16_t usReserved{0};
 
@@ -738,12 +738,12 @@ struct MeasurementSignalBlock
     bool bHalfCycleAdded{false};
     float fCNo{0.0F};
     uint8_t ucLockTimeBitfield{0};
-    uint8_t ucPseudorangeStdDev{0};
-    uint8_t ucPhaserangeStdDev{0};
-    double dPseudorange{0.0};
-    bool bValidPseudorange{false};
-    double dPhaserange{0.0};
-    bool bValidPhaserange{false};
+    uint8_t ucPsrStdDev{0};
+    uint8_t ucPhrStdDev{0};
+    double dPsr{0.0};
+    bool bValidPsr{false};
+    double dPhr{0.0};
+    bool bValidPhr{false};
     double dDoppler{0.0};
     bool bValidDoppler{false};
 
@@ -767,7 +767,7 @@ struct LockTimeInfo
 constexpr uint64_t MakeKey(SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal, MEASUREMENT_SOURCE source)
 {
     assert(static_cast<uint64_t>(system) < 16 && satellite < 64 && static_cast<uint64_t>(signal) < 16 && static_cast<uint64_t>(source) < 2);
-    return (static_cast<uint64_t>(system) << 11) | (satellite << 5) | static_cast<uint64_t>(signal) << 1 | static_cast<uint64_t>(source);
+    return static_cast<uint64_t>(system) << 11 | satellite << 5 | static_cast<uint64_t>(signal) << 1 | static_cast<uint64_t>(source);
 }
 
 } // namespace rangecmp4
@@ -800,11 +800,11 @@ struct MeasurementSignalBlock
     float fCNo{0.0F};
     uint8_t ucLockTimeBitfield{0};
     uint8_t ucPseudorangeStdDev{0};
-    uint8_t ucPhaserangeStdDev{0};
-    double dPseudorange{0.0};
-    bool bValidPseudorange{false};
-    double dPhaserange{0.0};
-    bool bValidPhaserange{false};
+    uint8_t ucPhrStdDev{0};
+    double dPsr{0.0};
+    bool bValidPsr{false};
+    double dPhr{0.0};
+    bool bValidPhr{false};
     double dDoppler{0.0};
     bool bValidDoppler{false};
 
