@@ -27,8 +27,6 @@
 #ifndef CHANNEL_TRACKING_STATUS_HPP
 #define CHANNEL_TRACKING_STATUS_HPP
 
-#include <array>
-#include <cassert>
 #include <cstdint>
 
 #include "novatel_edie/decoders/oem/rangecmp/common.hpp"

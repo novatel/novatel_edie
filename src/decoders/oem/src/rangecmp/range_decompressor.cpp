@@ -32,12 +32,12 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 //------------------------------------------------------------------------------
-RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_)
+RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDb_) : clMyHeaderDecoder(pclJsonDb_), clMyMessageDecoder(pclJsonDb_), clMyEncoder(pclJsonDb_)
 {
     pclMyLogger = Logger::RegisterLogger("range_decompressor");
     pclMyLogger->debug("RangeDecompressor initializing...");
 
-    if (pclJsonDB_ != nullptr) { LoadJsonDb(pclJsonDB_); }
+    if (pclJsonDb_ != nullptr) { LoadJsonDb(pclJsonDb_); }
 
     for (const auto id : {RANGECMP_MSG_ID, RANGECMP2_MSG_ID, RANGECMP3_MSG_ID, RANGECMP4_MSG_ID, RANGECMP5_MSG_ID})
     {
@@ -49,35 +49,35 @@ RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDB_) : clMyHeaderDecoder
 }
 
 //------------------------------------------------------------------------------
-void RangeDecompressor::LoadJsonDb(JsonReader* pclJsonDB_)
+void RangeDecompressor::LoadJsonDb(JsonReader* pclJsonDb_)
 {
-    pclMyMsgDB = pclJsonDB_;
-    clMyHeaderDecoder.LoadJsonDb(pclJsonDB_);
-    clMyMessageDecoder.LoadJsonDb(pclJsonDB_);
-    clMyEncoder.LoadJsonDb(pclJsonDB_);
+    pclMyMsgDB = pclJsonDb_;
+    clMyHeaderDecoder.LoadJsonDb(pclJsonDb_);
+    clMyMessageDecoder.LoadJsonDb(pclJsonDb_);
+    clMyEncoder.LoadJsonDb(pclJsonDb_);
 }
 
 //------------------------------------------------------------------------------
-//! The lock time can only report up to 131071ms (0x1FFFF). If this value is
-//! reached, the lock time must continue to increment. Once the saturated value
-//! has been reached, store the header time at which the lock time was found to
-//! be saturated  and any difference between the header and stored time in the
-//! future can be added to the saturated lock time value to obtain the true
-//! lock time value.
-//! NOTE: that this is only true in the case that lock time is not saturated in
-//! the first observation for this system, signal, PRN. If the lock time is
-//! saturated in the first observation, the lock time is relative to the first
-//! observation, and may not be a true representation of the time the
-//! observation has actually been locked.
+// The lock time can only report up to 131071ms (0x1FFFF). If this value is
+// reached, the lock time must continue to increment. Once the saturated value
+// has been reached, store the header time at which the lock time was found to
+// be saturated  and any difference between the header and stored time in the
+// future can be added to the saturated lock time value to obtain the true
+// lock time value.
+// NOTE: that this is only true in the case that lock time is not saturated in
+// the first observation for this system, signal, PRN. If the lock time is
+// saturated in the first observation, the lock time is relative to the first
+// observation, and may not be a true representation of the time the
+// observation has actually been locked.
 //------------------------------------------------------------------------------
 double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_,
-                                               uint16_t usPRN_)
+                                               uint16_t usPrn_)
 {
     using namespace rangecmp2;
 
     double dLockTimeMilliseconds = uiLockTimeBits_;
 
-    LockTimeInfo& stLockTimeInfo = mMyRangeCmp2LockTimes[stCtStatus_.MakeKey(usPRN_, stMetaData_.eMeasurementSource)];
+    LockTimeInfo& stLockTimeInfo = mMyRangeCmp2LockTimes[stCtStatus_.MakeKey(usPrn_, stMetaData_.eMeasurementSource)];
     if (uiLockTimeBits_ == SIG_LOCKTIME_MASK >> Lsb(SIG_LOCKTIME_MASK))
     {
         // If the lock time was already saturated, use the stored time to add the missing offset.
@@ -96,66 +96,66 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 }
 
 //------------------------------------------------------------------------------
-//! RANGECMP4 lock time information is categorized into certain ranges for a
-//! given observation. Decompressing this information without knowledge of the
-//! precise time at which lock was acquired can result in initially misleading
-//! lock times. There are a number of cases which may occur when decompressing
-//! the lock time bitfields from a RANGECMP4 observation:
-//! NOTE: See lockTime for ullBitfield:lock time translations.
-//!   1. The lock time ullBitfield is b0000:
-//!      - This is the simplest case. The lock time will increase with the time
-//!        reported by the message header.
-//!   2. The lock time ullBitfield is b1111:
-//!      - There is no way to determine when the lock time reached that range,
-//!        so as for case 1, the lock time will increase with the time reported
-//!        by the message header.
-//!   3. The lock time ullBitfield is any value from b0001 to b1110:
-//!      - This case is the most complex. Because there is no guarantee that
-//!        the current lock time reported has just transitioned to the lower
-//!        boundary of the ullBitfield representation, it must be stated that the
-//!        lock time is relative, and not absolute. Only when a change in the
-//!        ullBitfield is detected can it be guaranteed that the lock time is
-//!        absolute. At this point, the lock time can jump or slip to adjust
-//!        to the newly found ullBitfield. After the jump or slip occurs, the
-//!        lock time must not change again, as the lower ullBitfield values will
-//!        produce the highest degree of accuracy.
-//!      - For example, if the lock time ullBitfield is b0111, the observation has
-//!        been locked for at least 1024ms. However, it is possible the message
-//!        was produced when the observation was locked for 1800ms. This means
-//!        a 776ms discrepancy exists between what the RangeDecompressor tracks
-//!        and what is reported in the RANGECMP messages. When this discrepancy
-//!        is detected, the lock time can jump to match what the RANGECMP message
-//!        reports. Thus, the distinction between "relative" and "absolute"
-//!        must be made to allow the decompressor to accurately reflect
-//!        observation lock times. See the example below:
-//!
-//! Lock Time (t)
-//!   ^
-//!   |                                                 . < Continues 1:1
-//!   |                                               .
-//!   |                                             .
-//!   |                                           /
-//!   |                                         /
-//!   |                                       /
-//!   |                                     /
-//!   |                                   /   < At this point a ullBitfield change
-//!   |                                 *|      was found. The transition from
-//!   |                               *  |      "relative" to "absolute" time
-//!   |                             *    |      results in a lock time jump as
-//!   |                           *      |      seen here.
-//!   |                         *       /
-//!   |                       *       /
-//!   |                     *       /
-//!   |                   *       /
-//!   | Absolute        *       /   < Relative lock time inferred by the
-//!   | lock time >    *       /       RangeDecompressor. These values
-//!   |             *       /         will be output to RANGE message
-//!   |           *       /           lock time fields.
-//!   +-------------------------------------------------------------------->
-//!                   Header time (t)
+// RANGECMP4 lock time information is categorized into certain ranges for a
+// given observation. Decompressing this information without knowledge of the
+// precise time at which lock was acquired can result in initially misleading
+// lock times. There are a number of cases which may occur when decompressing
+// the lock time bitfields from a RANGECMP4 observation:
+// NOTE: See lockTime for ullBitfield:lock time translations.
+//   1. The lock time ullBitfield is b0000:
+//      - This is the simplest case. The lock time will increase with the time
+//        reported by the message header.
+//   2. The lock time ullBitfield is b1111:
+//      - There is no way to determine when the lock time reached that range,
+//        so as for case 1, the lock time will increase with the time reported
+//        by the message header.
+//   3. The lock time ullBitfield is any value from b0001 to b1110:
+//      - This case is the most complex. Because there is no guarantee that
+//        the current lock time reported has just transitioned to the lower
+//        boundary of the ullBitfield representation, it must be stated that the
+//        lock time is relative, and not absolute. Only when a change in the
+//        ullBitfield is detected can it be guaranteed that the lock time is
+//        absolute. At this point, the lock time can jump or slip to adjust
+//        to the newly found ullBitfield. After the jump or slip occurs, the
+//        lock time must not change again, as the lower ullBitfield values will
+//        produce the highest degree of accuracy.
+//      - For example, if the lock time ullBitfield is b0111, the observation has
+//        been locked for at least 1024ms. However, it is possible the message
+//        was produced when the observation was locked for 1800ms. This means
+//        a 776ms discrepancy exists between what the RangeDecompressor tracks
+//        and what is reported in the RANGECMP messages. When this discrepancy
+//        is detected, the lock time can jump to match what the RANGECMP message
+//        reports. Thus, the distinction between "relative" and "absolute"
+//        must be made to allow the decompressor to accurately reflect
+//        observation lock times. See the example below:
+//
+// Lock Time (t)
+//   ^
+//   |                                                 . < Continues 1:1
+//   |                                               .
+//   |                                             .
+//   |                                           /
+//   |                                         /
+//   |                                       /
+//   |                                     /
+//   |                                   /   < At this point a ullBitfield change
+//   |                                 *|      was found. The transition from
+//   |                               *  |      "relative" to "absolute" time
+//   |                             *    |      results in a lock time jump as
+//   |                           *      |      seen here.
+//   |                         *       /
+//   |                       *       /
+//   |                     *       /
+//   |                   *       /
+//   | Absolute        *       /   < Relative lock time inferred by the
+//   | lock time >    *       /       RangeDecompressor. These values
+//   |             *       /         will be output to RANGE message
+//   |           *       /           lock time fields.
+//   +-------------------------------------------------------------------->
+//                   Header time (t)
 //------------------------------------------------------------------------------
 double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_,
-                                               uint32_t uiPRN_)
+                                               uint32_t uiPrn_)
 {
     //-----------------------------------------------------------------------
     //! List of pre-defined doubles used as translations for RANGECMP4 lock
@@ -169,7 +169,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
     using namespace rangecmp4;
 
     // Store the lock time if it is different from the once we have currently.
-    LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[stCtStatus_.MakeKey(uiPRN_, stMetaData_.eMeasurementSource)];
+    LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[stCtStatus_.MakeKey(uiPrn_, stMetaData_.eMeasurementSource)];
 
     // Is the lock time relative and has a ullBitfield change been found?
     if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
@@ -183,7 +183,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
             if (dLockTimeDeltaMs > std::numeric_limits<double>::epsilon())
             {
                 pclMyLogger->warn("Detected a lock time jump of {}ms at time {}w, {}ms. PRN: {}.", dLockTimeDeltaMs, stMetaData_.usWeek,
-                                  stMetaData_.dMilliseconds, uiPRN_);
+                                  stMetaData_.dMilliseconds, uiPrn_);
             }
         }
 
@@ -200,7 +200,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
         stLockTimeInfo.ucBits = ucLockTimeBits_;
 
         pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms. PRN: {}.",
-                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds, uiPRN_);
+                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds, uiPrn_);
     }
     else
     {
@@ -208,7 +208,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
         if (stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > 2 * lockTime[ucLockTimeBits_])
         {
             stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-            pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms. PRN: {}.", stMetaData_.usWeek, stMetaData_.dMilliseconds, uiPRN_);
+            pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms. PRN: {}.", stMetaData_.usWeek, stMetaData_.dMilliseconds, uiPrn_);
         }
     }
     stLockTimeInfo.dMilliseconds = stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLockTimeInfo.ucBits];
@@ -216,13 +216,9 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
 }
 
 //------------------------------------------------------------------------------
-//! Decompresses a RANGECMP4 reference measurement block. Populates the
-//! provided reference block struct.
-//------------------------------------------------------------------------------
-template <bool bSecondary>
+template <bool Secondary>
 void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                                 rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPseudorange,
-                                                 double primaryDoppler) const
+                                                 rangecmp4::MeasurementSignalBlock& stRefBlock_, double primaryPsr, double primaryDoppler) const
 {
     using namespace rangecmp4;
 
@@ -230,30 +226,26 @@ void RangeDecompressor::DecompressReferenceBlock(unsigned char** ppucData_, uint
     stRefBlock_.bHalfCycleAdded = ExtractBitfield<bool, SIG_BLK_HALF_CYCLE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
     stRefBlock_.fCNo = ExtractBitfield<float, SIG_BLK_CNO_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_) * SIG_BLK_CNO_SCALE_FACTOR;
     stRefBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t, SIG_BLK_LOCK_TIME_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    stRefBlock_.ucPseudorangeStdDev = ExtractBitfield<uint8_t, SIG_BLK_PSR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    stRefBlock_.ucPhaserangeStdDev = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stRefBlock_.ucPsrStdDev = ExtractBitfield<uint8_t, SIG_BLK_PSR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stRefBlock_.ucPhrStdDev = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
 
-    auto llPSRBitfield = ExtractBitfield<int64_t, RBLK_PSR_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    if constexpr (bSecondary) { HandleSignExtension<SSIG_RBLK_PSR_SIGNEXT_MASK>(llPSRBitfield); }
-    auto iPhaseRangeBitfield = ExtractBitfield<int32_t, RBLK_PHASERANGE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    HandleSignExtension<RBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRangeBitfield);
-    auto iDopplerBitfield = ExtractBitfield<int32_t, RBLK_DOPPLER_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    HandleSignExtension<RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDopplerBitfield);
+    auto llPsr = ExtractBitfield<int64_t, RBLK_PSR_BITS[Secondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    if constexpr (Secondary) { HandleSignExtension<SSIG_RBLK_PSR_SIGNEXT_MASK>(llPsr); }
+    auto iPhr = ExtractBitfield<int32_t, RBLK_PHR_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    HandleSignExtension<RBLK_PHR_SIGNEXT_MASK>(iPhr);
+    auto iDoppler = ExtractBitfield<int32_t, RBLK_DOPPLER_BITS[Secondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    HandleSignExtension<RBLK_DOPPLER_SIGNEXT_MASK[Secondary]>(iDoppler);
 
-    stRefBlock_.bValidPseudorange = llPSRBitfield != RBLK_INVALID_PSR[bSecondary];
-    stRefBlock_.dPseudorange = llPSRBitfield * SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? primaryPseudorange : 0);
-    stRefBlock_.bValidPhaserange = iPhaseRangeBitfield != SIG_RBLK_INVALID_PHASERANGE;
-    stRefBlock_.dPhaserange = iPhaseRangeBitfield * SIG_BLK_PHASERANGE_SCALE_FACTOR + stRefBlock_.dPseudorange;
-    stRefBlock_.bValidDoppler = iDopplerBitfield != PSIG_RBLK_INVALID_DOPPLER;
-    stRefBlock_.dDoppler = iDopplerBitfield * SIG_BLK_DOPPLER_SCALE_FACTOR + (bSecondary ? primaryDoppler : 0);
+    stRefBlock_.bValidPsr = llPsr != RBLK_INVALID_PSR[Secondary];
+    stRefBlock_.dPsr = llPsr * SIG_BLK_PSR_SCALE_FACTOR + (Secondary ? primaryPsr : 0);
+    stRefBlock_.bValidPhr = iPhr != SIG_RBLK_INVALID_PHR;
+    stRefBlock_.dPhr = iPhr * SIG_BLK_PHR_SCALE_FACTOR + stRefBlock_.dPsr;
+    stRefBlock_.bValidDoppler = iDoppler != PSIG_RBLK_INVALID_DOPPLER;
+    stRefBlock_.dDoppler = iDoppler * SIG_BLK_DOPPLER_SCALE_FACTOR + (Secondary ? primaryDoppler : 0);
 }
 
 //------------------------------------------------------------------------------
-//! Decompresses a RANGECMP4 differential measurement block. Populates the
-//! provided reference block struct, but must be given the appropriate
-//! reference block from the same RANGECMP4 message.
-//------------------------------------------------------------------------------
-template <bool bSecondary>
+template <bool Secondary>
 void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
                                                     rangecmp4::MeasurementSignalBlock& stDiffBlock_,
                                                     const rangecmp4::MeasurementSignalBlock& stRefBlock_, double dSecondOffset_) const
@@ -264,30 +256,28 @@ void RangeDecompressor::DecompressDifferentialBlock(unsigned char** ppucData_, u
     stDiffBlock_.bHalfCycleAdded = ExtractBitfield<bool, SIG_BLK_HALF_CYCLE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
     stDiffBlock_.fCNo = ExtractBitfield<float, SIG_BLK_CNO_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_) * SIG_BLK_CNO_SCALE_FACTOR;
     stDiffBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t, SIG_BLK_LOCK_TIME_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    stDiffBlock_.ucPseudorangeStdDev = ExtractBitfield<uint8_t, SIG_BLK_PSR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    stDiffBlock_.ucPhaserangeStdDev = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stDiffBlock_.ucPsrStdDev = ExtractBitfield<uint8_t, SIG_BLK_PSR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stDiffBlock_.ucPhrStdDev = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
 
-    auto iPSR = ExtractBitfield<int32_t, SIG_DBLK_PSR_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    HandleSignExtension<SIG_DBLK_PSR_SIGNEXT_MASK>(iPSR);
-    auto iPhaseRange = ExtractBitfield<int32_t, SIG_DBLK_PHASERANGE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    HandleSignExtension<SIG_DBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRange);
-    auto iDoppler = ExtractBitfield<int32_t, DBLK_DOPPLER_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    HandleSignExtension<DBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDoppler);
+    auto iPsr = ExtractBitfield<int32_t, SIG_DBLK_PSR_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    HandleSignExtension<SIG_DBLK_PSR_SIGNEXT_MASK>(iPsr);
+    auto iPhr = ExtractBitfield<int32_t, SIG_DBLK_PHR_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    HandleSignExtension<SIG_DBLK_PHR_SIGNEXT_MASK>(iPhr);
+    auto iDoppler = ExtractBitfield<int32_t, DBLK_DOPPLER_BITS[Secondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    HandleSignExtension<DBLK_DOPPLER_SIGNEXT_MASK[Secondary]>(iDoppler);
 
-    stDiffBlock_.bValidPseudorange = iPSR != SIG_DBLK_INVALID_PSR;
-    stDiffBlock_.dPseudorange = iPSR * SIG_BLK_PSR_SCALE_FACTOR + stRefBlock_.dPseudorange + (stRefBlock_.dDoppler * dSecondOffset_);
-    stDiffBlock_.bValidPhaserange = iPhaseRange != SIG_DBLK_INVALID_PHASERANGE;
-    stDiffBlock_.dPhaserange = iPhaseRange * SIG_BLK_PHASERANGE_SCALE_FACTOR + stRefBlock_.dPhaserange + stRefBlock_.dDoppler * dSecondOffset_;
-    stDiffBlock_.bValidDoppler = iDoppler != DBLK_INVALID_DOPPLER[bSecondary];
+    stDiffBlock_.bValidPsr = iPsr != SIG_DBLK_INVALID_PSR;
+    stDiffBlock_.dPsr = iPsr * SIG_BLK_PSR_SCALE_FACTOR + stRefBlock_.dPsr + stRefBlock_.dDoppler * dSecondOffset_;
+    stDiffBlock_.bValidPhr = iPhr != SIG_DBLK_INVALID_PHR;
+    stDiffBlock_.dPhr = iPhr * SIG_BLK_PHR_SCALE_FACTOR + stRefBlock_.dPhr + stRefBlock_.dDoppler * dSecondOffset_;
+    stDiffBlock_.bValidDoppler = iDoppler != DBLK_INVALID_DOPPLER[Secondary];
     stDiffBlock_.dDoppler = iDoppler * SIG_BLK_DOPPLER_SCALE_FACTOR + stRefBlock_.dDoppler;
 }
 
 //------------------------------------------------------------------------------
-//! Populates a provided RangeData structure from the RANGECMP4 blocks provided.
-//------------------------------------------------------------------------------
 void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const rangecmp4::MeasurementSignalBlock& stBlock_,
-                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_,
-                                              char cGLONASSFrequencyNumber_)
+                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPrn_,
+                                              char cGlonassFrequencyNumber_)
 {
     //-----------------------------------------------------------------------
     //! List of pre-defined doubles used as translations for RANGECMP4 PSR
@@ -308,29 +298,27 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     constexpr std::array<double, 16> stdDevAdrScaling = {0.003, 0.005, 0.007, 0.009, 0.012, 0.016, 0.022, 0.029,
                                                          0.039, 0.052, 0.070, 0.093, 0.124, 0.166, 0.222, 0.222};
 
-    stRangeData_.usPrn = stCtStatus_.CalculatePrn(uiPRN_);
+    stRangeData_.usPrn = stCtStatus_.CalculatePrn(uiPrn_);
     if (stRangeData_.usPrn == 0 && stCtStatus_.GetSystem() != SYSTEM::GLONASS) { throw std::runtime_error("PRN outside of limits"); } // TODO: GLONASS
 
-    const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
+    const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGlonassFrequencyNumber_);
 
     // Any fields flagged as invalid are set to NaN and appear in the log as such.
-    stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGLONASSFrequencyNumber_);
-    stRangeData_.dPseudorange = stBlock_.bValidPseudorange ? stBlock_.dPseudorange : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fPseudorangeStdDev = stdDevPsrScaling[stBlock_.ucPseudorangeStdDev];
-    stRangeData_.dAdr = stBlock_.bValidPhaserange ? -stBlock_.dPhaserange / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fAdrStdDev = stdDevAdrScaling[stBlock_.ucPhaserangeStdDev];
+    stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGlonassFrequencyNumber_);
+    stRangeData_.dPseudorange = stBlock_.bValidPsr ? stBlock_.dPsr : std::numeric_limits<double>::quiet_NaN();
+    stRangeData_.fPseudorangeStdDev = stdDevPsrScaling[stBlock_.ucPsrStdDev];
+    stRangeData_.dAdr = stBlock_.bValidPhr ? -stBlock_.dPhr / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
+    stRangeData_.fAdrStdDev = stdDevAdrScaling[stBlock_.ucPhrStdDev];
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_, uiPRN_);
+    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_, uiPrn_);
     stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
 //------------------------------------------------------------------------------
-//! Populates a provided RangeData structure from the RANGECMP5 blocks provided.
-//------------------------------------------------------------------------------
 void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const rangecmp5::MeasurementSignalBlock& stBlock_,
-                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPRN_,
-                                              char cGLONASSFrequencyNumber_)
+                                              const MetaDataStruct& stMetaData_, const ChannelTrackingStatus& stCtStatus_, uint32_t uiPrn_,
+                                              char cGlonassFrequencyNumber_)
 {
     //-----------------------------------------------------------------------
     //! List of pre-defined doubles used as translations for RANGECMP5 PSR
@@ -342,34 +330,32 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
                                                          36.891, 46.898, 59.619, 75.791, 96.349, 122.484, 155.707, 197.943, 251.634, 251.634};
 
     //-----------------------------------------------------------------------
-    //! List of pre-defined doubles used as translations for RANGECMP5 ADR
+    //! List of pre-defined doubles used as translations for RANGECMP5 PHR
     //! standard deviation values defined in the RANGECMP5 documentation:
     //! TODO: link to documentation
     //-----------------------------------------------------------------------
-    constexpr std::array<double, 32> stdDevAdrScaling = {0.00391, 0.00458, 0.00536, 0.00628, 0.00735, 0.00861, 0.01001, 0.1182,
+    constexpr std::array<double, 32> stdDevPhrScaling = {0.00391, 0.00458, 0.00536, 0.00628, 0.00735, 0.00861, 0.01001, 0.1182,
                                                          0.01385, 0.01621, 0.1900,  0.02223, 0.02607, 0.03054, 0.03577, 0.04190,
                                                          0.04908, 0.05749, 0.06734, 0.07889, 0.09240, 0.10824, 0.12679, 0.14851,
                                                          0.17396, 0.20378, 0.23870, 0.27961, 0.32753, 0.38366, 0.44940, 0.44940};
 
-    stRangeData_.usPrn = stCtStatus_.CalculatePrn(uiPRN_);
+    stRangeData_.usPrn = stCtStatus_.CalculatePrn(uiPrn_);
     if (stRangeData_.usPrn == 0 && stCtStatus_.GetSystem() != SYSTEM::GLONASS) { throw std::runtime_error("PRN outside of limits"); } // TODO: GLONASS
 
-    const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGLONASSFrequencyNumber_);
+    const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGlonassFrequencyNumber_);
 
     // Any fields flagged as invalid are set to NaN and appear in the log as such.
-    stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGLONASSFrequencyNumber_);
-    stRangeData_.dPseudorange = stBlock_.bValidPseudorange ? stBlock_.dPseudorange : std::numeric_limits<double>::quiet_NaN();
+    stRangeData_.sGlonassFrequency = static_cast<unsigned char>(cGlonassFrequencyNumber_);
+    stRangeData_.dPseudorange = stBlock_.bValidPsr ? stBlock_.dPsr : std::numeric_limits<double>::quiet_NaN();
     stRangeData_.fPseudorangeStdDev = stdDevPsrScaling[stBlock_.ucPseudorangeStdDev];
-    stRangeData_.dAdr = stBlock_.bValidPhaserange ? -stBlock_.dPhaserange / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
-    stRangeData_.fAdrStdDev = stdDevAdrScaling[stBlock_.ucPhaserangeStdDev];
+    stRangeData_.dAdr = stBlock_.bValidPhr ? -stBlock_.dPhr / dSignalWavelength : std::numeric_limits<double>::quiet_NaN();
+    stRangeData_.fAdrStdDev = stdDevPhrScaling[stBlock_.ucPhrStdDev]; // TODO: how do we convert phase range std dev to adr std dev?
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_, uiPRN_);
+    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_, uiPrn_);
     stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
-//------------------------------------------------------------------------------
-//! Convert a RANGECMP message into RANGE message.
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_)
 {
@@ -397,28 +383,26 @@ void RangeDecompressor::RangeCmpToRange(const rangecmp::RangeCmp& stRangeCmpMess
         stRangeData.uiChannelTrackingStatus = stRangeCmpData.uiChannelTrackingStatus;
         stRangeData.usPrn = stRangeCmpData.ucPrn;
 
-        auto iDoppler = GetBitfield<int32_t, DOPPLER_FREQUENCY_MASK>(stRangeCmpData.ulDopplerFrequencyPSRField);
+        auto iDoppler = GetBitfield<int32_t, DOPPLER_FREQUENCY_MASK>(stRangeCmpData.ulDopplerFrequencyPsrField);
         HandleSignExtension<DOPPLER_FREQUENCY_SIGNEXT_MASK>(iDoppler);
         stRangeData.fDopplerFrequency = iDoppler / DOPPLER_FREQUENCY_SCALE_FACTOR;
 
         stRangeData.dPseudorange =
-            GetBitfield<uint64_t, PSR_MEASUREMENT_MASK>(stRangeCmpData.ulDopplerFrequencyPSRField) / PSR_MEASUREMENT_SCALE_FACTOR;
+            GetBitfield<uint64_t, PSR_MEASUREMENT_MASK>(stRangeCmpData.ulDopplerFrequencyPsrField) / PSR_MEASUREMENT_SCALE_FACTOR;
         stRangeData.fPseudorangeStdDev = stdDevPsrScaling[stRangeCmpData.ucStdDevPsrAdr & PSR_STDDEV_MASK];
         stRangeData.fAdrStdDev =
             (GetBitfield<uint32_t, ADR_STDDEV_MASK>(stRangeCmpData.ucStdDevPsrAdr) + ADR_STDDEV_SCALE_OFFSET) / ADR_STDDEV_SCALE_FACTOR;
-        stRangeData.fLockTime = GetBitfield<uint32_t, LOCK_TIME_MASK>(stRangeCmpData.uiLockTimeCNoGLOFreq) / LOCK_TIME_SCALE_FACTOR;
-        stRangeData.fCNo = GetBitfield<uint32_t, CNO_MASK>(stRangeCmpData.uiLockTimeCNoGLOFreq) + CNO_SCALE_OFFSET;
-        stRangeData.sGlonassFrequency = GetBitfield<int16_t, GLONASS_FREQUENCY_MASK>(stRangeCmpData.uiLockTimeCNoGLOFreq);
+        stRangeData.fLockTime = GetBitfield<uint32_t, LOCK_TIME_MASK>(stRangeCmpData.uiLockTimeCNoGloFreq) / LOCK_TIME_SCALE_FACTOR;
+        stRangeData.fCNo = GetBitfield<uint32_t, CNO_MASK>(stRangeCmpData.uiLockTimeCNoGloFreq) + CNO_SCALE_OFFSET;
+        stRangeData.sGlonassFrequency = GetBitfield<int16_t, GLONASS_FREQUENCY_MASK>(stRangeCmpData.uiLockTimeCNoGloFreq);
 
         double dWavelength = stCtStatus.GetSignalWavelength(stRangeData.sGlonassFrequency + GLONASS_FREQUENCY_NUMBER_OFFSET);
         stRangeData.dAdr = stRangeCmpData.uiAdr / ADR_SCALE_FACTOR;
-        double dADRRolls = (stRangeData.dPseudorange / dWavelength + stRangeData.dAdr) / MAX_VALUE;
-        stRangeData.dAdr -= MAX_VALUE * static_cast<uint64_t>(std::round(dADRRolls));
+        double dAdrRolls = (stRangeData.dPseudorange / dWavelength + stRangeData.dAdr) / MAX_VALUE;
+        stRangeData.dAdr -= MAX_VALUE * static_cast<uint64_t>(std::round(dAdrRolls));
     }
 }
 
-//------------------------------------------------------------------------------
-// Convert a RANGECMP2 message into RANGE message.
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMessage_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_)
 {
@@ -449,8 +433,8 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
         const auto eSystem = GetBitfield<SYSTEM, SAT_SATELLITE_SYSTEM_ID_MASK>(stSatBlock.ulCombinedField);
         const auto ucSignalBlockCount = GetBitfield<uint8_t, SAT_NUM_SIGNAL_BLOCKS_BASE_MASK>(stSatBlock.ulCombinedField);
 
-        auto iPSRBase = GetBitfield<int32_t, SAT_SATELLITE_PSR_BASE_MASK>(stSatBlock.ulCombinedField);
-        HandleSignExtension<SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK>(iPSRBase);
+        auto iPsrBase = GetBitfield<int32_t, SAT_SATELLITE_PSR_BASE_MASK>(stSatBlock.ulCombinedField);
+        HandleSignExtension<SAT_SATELLITE_PSR_BASE_SIGNEXT_MASK>(iPsrBase);
         auto iDopplerBase = GetBitfield<int32_t, SAT_SATELLITE_DOPPLER_BASE_MASK>(stSatBlock.ulCombinedField);
         HandleSignExtension<SAT_SATELLITE_DOPPLER_BASE_SIGNEXT_MASK>(iDopplerBase);
 
@@ -463,8 +447,8 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             const auto& stSigBlock = reinterpret_cast<const SignalBlock&>(stRangeCmpMessage_.aucRangeData[uiRangeDataBytesDecompressed]);
 
             const auto eSignalType = GetBitfield<SIGNAL_TYPE, SIG_SIGNAL_TYPE_MASK>(stSigBlock.uiCombinedField1);
-            const auto ucPSRBitfield = GetBitfield<uint8_t, SIG_PSR_STDDEV_MASK>(stSigBlock.ullCombinedField2);
-            const auto ucADRBitfield = GetBitfield<uint8_t, SIG_ADR_STDDEV_MASK>(stSigBlock.ullCombinedField2);
+            const auto ucPsrBitfield = GetBitfield<uint8_t, SIG_PSR_STDDEV_MASK>(stSigBlock.ullCombinedField2);
+            const auto ucAdrBitfield = GetBitfield<uint8_t, SIG_ADR_STDDEV_MASK>(stSigBlock.ullCombinedField2);
             const auto uiLockTimeBits = GetBitfield<uint32_t, SIG_LOCKTIME_MASK>(stSigBlock.uiCombinedField1);
             const auto usPrn = stSatBlock.ucSatelliteIdentifier + (eSystem == SYSTEM::GLONASS ? GLONASS_SLOT_OFFSET - 1 : 0);
 
@@ -477,13 +461,12 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             RangeData& stRangeData = stRangeMessage_.astRangeData[stRangeMessage_.uiNumberOfObservations++];
             stRangeData.usPrn = usPrn;
             stRangeData.sGlonassFrequency = GetBitfield<int16_t, SAT_GLONASS_FREQUENCY_ID_MASK>(stSatBlock.ulCombinedField);
-            stRangeData.dPseudorange = iPSRBase + GetBitfield<uint64_t, SIG_PSR_DIFF_MASK>(stSigBlock.ullCombinedField2) / SIG_PSR_DIFF_SCALE_FACTOR;
-            stRangeData.fPseudorangeStdDev = stdDevPsrScaling[ucPSRBitfield];
-            stRangeData.dAdr =
-                -((iPSRBase + (GetBitfield<uint64_t, SIG_PHASERANGE_DIFF_MASK>(stSigBlock.ullCombinedField2) / SIG_PHASERANGE_DIFF_SCALE_FACTOR)) /
-                  stCtStatus.GetSignalWavelength(stRangeData.sGlonassFrequency));
-            stRangeData.fAdrStdDev = stdDevAdrScaling[ucADRBitfield];
-            stRangeData.fDopplerFrequency = (iDopplerBase + (iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR)) / SignalScaling(eSystem, eSignalType);
+            stRangeData.dPseudorange = iPsrBase + GetBitfield<uint64_t, SIG_PSR_DIFF_MASK>(stSigBlock.ullCombinedField2) / SIG_PSR_DIFF_SCALE_FACTOR;
+            stRangeData.fPseudorangeStdDev = stdDevPsrScaling[ucPsrBitfield];
+            stRangeData.dAdr = -((iPsrBase + GetBitfield<uint64_t, SIG_PHR_DIFF_MASK>(stSigBlock.ullCombinedField2) / SIG_PHR_DIFF_SCALE_FACTOR) /
+                                 stCtStatus.GetSignalWavelength(stRangeData.sGlonassFrequency));
+            stRangeData.fAdrStdDev = stdDevAdrScaling[ucAdrBitfield];
+            stRangeData.fDopplerFrequency = (iDopplerBase + iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR) / SignalScaling(eSystem, eSignalType);
             stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t, SIG_CNO_MASK>(stSigBlock.ullCombinedField2);
             stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stCtStatus, usPrn);
             stRangeData.uiChannelTrackingStatus = stCtStatus.GetAsWord();
@@ -493,8 +476,6 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
     }
 }
 
-//------------------------------------------------------------------------------
-// Convert a RANGECMP4 message into RANGE message.
 //------------------------------------------------------------------------------
 void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_)
 {
@@ -605,7 +586,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                     if (bPrimaryBlock)
                     {
                         DecompressReferenceBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, primaryPseudorange, primaryDoppler);
-                        primaryPseudorange = stBlock.dPseudorange;
+                        primaryPseudorange = stBlock.dPsr;
                         primaryDoppler = stBlock.dDoppler;
                         bPrimaryBlock = false;
                     }
@@ -633,13 +614,9 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 }
 
 //------------------------------------------------------------------------------
-//! Decompresses a RANGECMP5 differential measurement block. Populates the
-//! provided reference block struct, but must be given the appropriate
-//! reference block from the same RANGECMP4 message.
-//------------------------------------------------------------------------------
-template <bool bSecondary>
+template <bool Secondary>
 void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiBytesLeft_, uint32_t& uiBitOffset_,
-                                        rangecmp5::MeasurementSignalBlock& stBlock_, double primaryPseudorange, double primaryDoppler) const
+                                        rangecmp5::MeasurementSignalBlock& stBlock_, double primaryPsr, double primaryDoppler) const
 {
     using namespace rangecmp5;
 
@@ -648,27 +625,25 @@ void RangeDecompressor::DecompressBlock(unsigned char** ppucData_, uint32_t& uiB
     stBlock_.fCNo = ExtractBitfield<float, SIG_BLK_CNO_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_) * SIG_BLK_CNO_SCALE_FACTOR;
     stBlock_.ucLockTimeBitfield = ExtractBitfield<uint8_t, SIG_BLK_LOCK_TIME_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
     stBlock_.ucPseudorangeStdDev = ExtractBitfield<uint8_t, SIG_BLK_PSR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    stBlock_.ucPhaserangeStdDev = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    stBlock_.ucPhrStdDev = ExtractBitfield<uint8_t, SIG_BLK_ADR_STDDEV_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
 
-    auto llPSRBitfield = ExtractBitfield<int64_t, RBLK_PSR_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    if constexpr (bSecondary) { HandleSignExtension<SSIG_RBLK_PSR_SIGNEXT_MASK>(llPSRBitfield); }
-    auto iPhaseRangeBitfield = ExtractBitfield<int32_t, RBLK_PHASERANGE_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    HandleSignExtension<RBLK_PHASERANGE_SIGNEXT_MASK>(iPhaseRangeBitfield);
-    auto iDopplerBitfield = ExtractBitfield<int32_t, RBLK_DOPPLER_BITS[bSecondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
-    HandleSignExtension<RBLK_DOPPLER_SIGNEXT_MASK[bSecondary]>(iDopplerBitfield);
+    auto llPsr = ExtractBitfield<int64_t, RBLK_PSR_BITS[Secondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    if constexpr (Secondary) { HandleSignExtension<SSIG_RBLK_PSR_SIGNEXT_MASK>(llPsr); }
+    auto iPhr = ExtractBitfield<int32_t, RBLK_PHR_BITS>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    HandleSignExtension<RBLK_PHR_SIGNEXT_MASK>(iPhr);
+    auto iDopplerBitfield = ExtractBitfield<int32_t, RBLK_DOPPLER_BITS[Secondary]>(ppucData_, uiBytesLeft_, uiBitOffset_);
+    HandleSignExtension<RBLK_DOPPLER_SIGNEXT_MASK[Secondary]>(iDopplerBitfield);
 
-    stBlock_.bValidPseudorange = llPSRBitfield != RBLK_INVALID_PSR[bSecondary];
-    stBlock_.dPseudorange = llPSRBitfield * SIG_BLK_PSR_SCALE_FACTOR + (bSecondary ? primaryPseudorange : 0);
-    stBlock_.bValidPhaserange = iPhaseRangeBitfield != SIG_RBLK_INVALID_PHASERANGE;
-    stBlock_.dPhaserange = iPhaseRangeBitfield * SIG_BLK_PHASERANGE_SCALE_FACTOR + stBlock_.bValidPseudorange;
+    stBlock_.bValidPsr = llPsr != RBLK_INVALID_PSR[Secondary];
+    stBlock_.dPsr = llPsr * SIG_BLK_PSR_SCALE_FACTOR + (Secondary ? primaryPsr : 0);
+    stBlock_.bValidPhr = iPhr != SIG_RBLK_INVALID_PHR;
+    stBlock_.dPhr = iPhr * SIG_BLK_PHR_SCALE_FACTOR + (Secondary ? primaryPsr : stBlock_.dPsr);
     stBlock_.bValidDoppler = iDopplerBitfield != PSIG_RBLK_INVALID_DOPPLER;
-    stBlock_.dDoppler = iDopplerBitfield * SIG_BLK_DOPPLER_SCALE_FACTOR + (bSecondary ? primaryDoppler : 0);
+    stBlock_.dDoppler = iDopplerBitfield * SIG_BLK_DOPPLER_SCALE_FACTOR + (Secondary ? primaryDoppler : 0);
 }
 
 //------------------------------------------------------------------------------
-// Convert a RANGECMP5 message into RANGE message.
-//------------------------------------------------------------------------------
-void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, [[maybe_unused]] const MetaDataStruct& stMetaData_)
+void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRangeMessage_, const MetaDataStruct& stMetaData_)
 {
     using namespace rangecmp5;
 
@@ -688,7 +663,7 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
         auto satellitesTemp = ExtractBitfield<uint64_t, SATELLITES_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
         std::array<uint32_t, SATELLITES_BITS> aPrns;
         uint32_t uiPrnCount = 0;
-        while (satellitesTemp) { aPrns[uiPrnCount++] = PopLsb(satellitesTemp); }
+        while (satellitesTemp) { aPrns[uiPrnCount++] = PopLsb(satellitesTemp) + 1; } // Bit position is PRN - 1, so + 1 here
 
         auto signalsTemp = ExtractBitfield<uint64_t, SIGNALS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
         std::array<rangecmp4::SIGNAL_TYPE, SIGNALS_BITS> aSignals;
@@ -728,7 +703,7 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
                 if (bPrimaryBlock)
                 {
                     DecompressBlock<false>(&pucData_, uiBytesLeft, uiBitOffset, stBlock, primaryPseudorange, primaryDoppler);
-                    primaryPseudorange = stBlock.dPseudorange;
+                    primaryPseudorange = stBlock.dPsr;
                     primaryDoppler = stBlock.dDoppler;
                     bPrimaryBlock = false;
                 }
@@ -751,9 +726,6 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
     }
 }
 
-//------------------------------------------------------------------------------
-//! This method will decompress the range message provided in pucBuffer_
-//! and overwrite the contents with the decompressed message.
 //------------------------------------------------------------------------------
 STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBufferSize_, MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_)
 {
