@@ -189,6 +189,8 @@ class FramerManager
 
     void ResetInactiveFramerStates(const FRAMER_ID& activeFramer_);
 
+    void ResetInactiveMetaDataStates(const FRAMER_ID& activeFramer_);
+
     // void ResetFramerStack();
 
     // STATUS DerivedFramerGetFrame(std::unique_ptr<FramerBase>& basePtr, unsigned char* pucFrameBuffer_, uint32_t& uiFrameBufferSize_,
@@ -218,6 +220,11 @@ class FramerManager
     //! \brief Reset the state of all framers in the framer registry.
     //---------------------------------------------------------------------------
     void ResetAllFramerStates();
+
+    //----------------------------------------------------------------------------
+    //! \brief Reset the state of all metadata in the framer registry.
+    //---------------------------------------------------------------------------
+    void ResetAllMetaDataStates();
 
     //----------------------------------------------------------------------------
     //! \brief Configure the framer manager to return unknown bytes in the provided

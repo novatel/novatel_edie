@@ -18,6 +18,7 @@ class FramerBase
     uint32_t uiMyByteCount{0U};
     uint32_t uiMyExpectedPayloadLength{0U};
     uint32_t uiMyExpectedMessageLength{0U};
+   
 
     bool bMyPayloadOnly{false};
     bool bMyFrameJson{false};
@@ -35,7 +36,7 @@ class FramerBase
 
   public:
     STATUS eMyCurrentFramerStatus{STATUS::UNKNOWN};
-    
+    uint32_t uiMyFrameBufferOffset{0U};
     // TODO delete this
     //uint32_t uiMySyncByteOffset{0U};
 
@@ -60,7 +61,7 @@ class FramerBase
         pclMyLogger->debug("Framer initialized without Circular Buffer");
     }
 
-    virtual int32_t FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_) = 0;
+    virtual STATUS FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_) = 0;
     //[[nodiscard]] virtual novatel::edie::STATUS GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_, MetaDataBase&
     //stMetaData_,
     //                                                     uint32_t& uiFrameBufferOffset_);

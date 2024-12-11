@@ -73,13 +73,7 @@ void FramerManager::ShutdownLogger() { ShutdownLogger(); }
 void FramerManager::ReorderFramers()
 {
     auto it = std::min_element(framerRegistry.begin(), framerRegistry.end(), [](const FramerElement& a, const FramerElement& b) {
-        if (a.offset == -1 && b.offset == -1) { return false; }
-
-        if (a.offset == -1) { return false; }
-
-        if (b.offset == -1) { return true; }
-
-        return a.offset < b.offset;
+        return a.framer->uiMyFrameBufferOffset < b.framer->uiMyFrameBufferOffset;
     });
 
     if (it != framerRegistry.end())
@@ -98,6 +92,7 @@ void FramerManager::ReorderFramers()
 //         element.status = STATUS::UNKNOWN;
 //     }
 // }
+
 MetaDataBase* FramerManager::GetMetaData(const FRAMER_ID framerId_)
 {
     for (FramerElement& element : framerRegistry)
@@ -116,19 +111,19 @@ void FramerManager::DisplayFramerStack()
         {
             std::cout << "Framer: "
                       << "NOVATEL"
-                      << ", Offset: " << elem.offset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
+                      << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
         }
         else if (elem.framerId == FRAMER_ID::NMEA)
         {
             std::cout << "Framer: "
                       << "NMEA"
-                      << ", Offset: " << elem.offset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
+                      << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
         }
         else
         {
             std::cout << "Framer: "
                       << "UNKNOWN"
-                      << ", Offset: " << elem.offset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
+                      << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
         }
     }
 }
@@ -140,12 +135,28 @@ void FramerManager::ResetInactiveFramerStates(const FRAMER_ID& eActiveFramerId_)
         if (framerId != eActiveFramerId_)
         {
             framer->ResetStateAndByteCount();
+            // metadata->uiLength = 0;
+            // metadata->eFormat = HEADER_FORMAT::UNKNOWN;
             offset = 0;
         }
     }
 }
 
 void FramerManager::ResetAllFramerStates() { ResetInactiveFramerStates(FRAMER_ID::UNKNOWN); }
+
+void FramerManager::ResetInactiveMetaDataStates(const FRAMER_ID& eActiveFramerId_)
+{
+    for (auto& [framerId, framer, metadata, offset] : framerRegistry)
+    {
+        if (framerId != eActiveFramerId_)
+        {
+            metadata->uiLength = 0;
+            metadata->eFormat = HEADER_FORMAT::UNKNOWN;
+        }
+    }
+}
+
+void FramerManager::ResetAllMetaDataStates() { ResetInactiveMetaDataStates(FRAMER_ID::UNKNOWN); }
 
 FramerElement* FramerManager::GetFramerElement(const FRAMER_ID framerId_)
 {
@@ -169,7 +180,11 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
     if (eActiveFramerId_ == FRAMER_ID::UNKNOWN)
     {
-        for (auto& [framerId, framer, metadata, offset] : framerRegistry) { offset = framer->FindNextSyncByte(pucFrameBuffer_, uiFrameBufferSize_); }
+        ResetAllMetaDataStates();
+        for (auto& [framerId, framer, metadata, offset] : framerRegistry)
+        {
+            framer->eMyCurrentFramerStatus = framer->FindNextSyncByte(pucFrameBuffer_, uiFrameBufferSize_);
+        }
     }
 
     // A Framer Found A Sync Byte
@@ -186,12 +201,19 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     //}
 
     // Check for unknown bytes
-    if (framerRegistry.front().offset > 0)
+    if (framerRegistry.front().framer->uiMyFrameBufferOffset > 0 && framerRegistry.front().framer->eMyCurrentFramerStatus != STATUS::INCOMPLETE)
     {
-        HandleUnknownBytes(pucFrameBuffer_, framerRegistry.front().offset);
+        framerRegistry.front().metadata->uiLength = framerRegistry.front().framer->uiMyFrameBufferOffset;
+        HandleUnknownBytes(pucFrameBuffer_, framerRegistry.front().framer->uiMyFrameBufferOffset);
         ResetAllFramerStates();
         return STATUS::UNKNOWN;
     }
+
+    //// check for incomplete logs
+    // if (framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
+    //{
+    //     framerRegistry.front().metadata->uiLength = framerRegistry.front().framer->uiMyFrameBufferOffset;
+    // }
 
     // Once active framer is identified, exclusively use it to frame. Reset active Framer at success
     for (auto& framer_element : framerRegistry)
@@ -204,8 +226,8 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             DisplayFramerStack();
             if (framer_element.framer->eMyCurrentFramerStatus == STATUS::UNKNOWN)
             {
-                
-                HandleUnknownBytes(pucFrameBuffer_, framer_element.offset);
+
+                HandleUnknownBytes(pucFrameBuffer_, framer_element.framer->uiMyFrameBufferOffset);
                 ResetAllFramerStates();
                 return framer_element.framer->eMyCurrentFramerStatus;
             }
@@ -260,5 +282,3 @@ void FramerManager::HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t
     // novatelFramer->ResetStateAndByteCount();
     // nmeaFramer->ResetStateAndByteCount();
 }
-
-

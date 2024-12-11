@@ -84,10 +84,19 @@ class FramerTest : public ::testing::Test
     {
         FlushTestFixture();
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128k
+        novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        clMyFramerManager.ResetAllFramerStates();
+        clMyFramerManager.ResetAllMetaDataStates();
     }
 
     // Per-test teardown
-    void TearDown() override { FlushTestFixture(); }
+    void TearDown() override
+    {
+        FlushTestFixture();
+        novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        clMyFramerManager.ResetAllFramerStates();
+        clMyFramerManager.ResetAllMetaDataStates();
+    }
 
   public:
     template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
@@ -97,7 +106,24 @@ class FramerTest : public ::testing::Test
         // MetaDataStruct& stTestMetaData;
         FRAMER_ID id = FRAMER_ID::UNKNOWN;
         ASSERT_EQ(S, clMyFramerManager.GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, id));
-        //MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.framerRegistry[0].metadata.get());
+        // MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.framerRegistry[0].metadata.get());
+        MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(FRAMER_ID::NOVATEL));
+        ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
+        ////ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+        // std::unique_ptr<MetaDataStruct> stTestMetaData =
+        // dynamic_cast<std::unique_ptr<MetaDataStruct>>(clMyFramerManager.framerRegistry[0].metadata); ASSERT_EQ((*stTestMetaData),
+        // stExpectedMetaData);
+        ////ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+
+        // MetaDataStruct& stMetaData = dynamic_cast<MetaDataStruct&>(stMetaData_);
+    }
+
+    template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, FRAMER_ID& id_)
+    {
+        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        MetaDataStruct stExpectedMetaData(F, uiLength_);
+        ASSERT_EQ(S, clMyFramerManager.GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, id_));
+        // MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.framerRegistry[0].metadata.get());
         MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(FRAMER_ID::NOVATEL));
         ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
         ////ASSERT_EQ(stTestMetaData, stExpectedMetaData);
@@ -244,26 +270,28 @@ TEST_F(FramerTest, ASCII_SEGMENTED)
 {
     constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
     uint32_t uiBytesWritten = 0;
+    FRAMER_ID id = FRAMER_ID::UNKNOWN;
 
     WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_ASCII_SYNC_LENGTH);
     uiBytesWritten += OEM4_ASCII_SYNC_LENGTH;
-    FramerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+
+    FramerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH, id);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], 70);
     uiBytesWritten += 70;
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH, id);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], 135);
     uiBytesWritten += 135;
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH, id);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], 1);
     uiBytesWritten += 1;
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH, id);
 
     WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_ASCII_CRC_LENGTH + 2);
     uiBytesWritten += OEM4_ASCII_CRC_LENGTH + 2;
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(uiBytesWritten, MAX_ASCII_MESSAGE_LENGTH, id);
 
     ASSERT_EQ(sizeof(aucData) - 1, uiBytesWritten);
 }
@@ -272,9 +300,12 @@ TEST_F(FramerTest, ASCII_TRICK)
 {
     constexpr unsigned char aucData[] = "#TEST;*ffffffff\r\n#;*\r\n#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
     uint32_t uiLogSize = sizeof(aucData) - 1;
+    FRAMER_ID id = FRAMER_ID::UNKNOWN;
     WriteBytesToFramer(aucData, uiLogSize);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(17, MAX_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(0, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(0, MAX_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
@@ -380,7 +411,7 @@ TEST_F(FramerTest, BINARY_BAD_CRC)
     // "<binary BESTPOS log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0xFF};
     WriteBytesToFramer(aucData, sizeof(aucData));
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(57, MAX_BINARY_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::BINARY, STATUS::UNKNOWN>(57, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, BINARY_RUN_ON_CRC)
