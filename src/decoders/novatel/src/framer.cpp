@@ -224,10 +224,10 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
                 // TODO: Figure out how to deal with this
                 // case OEM4_PROPRIETARY_BINARY_SYNC2: stMetaData_.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY; [[fallthrough]];
 
-            case OEM4_BINARY_SYNC1:
-                uiMyByteCount--;
-                uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::UNKNOWN;
+            //case OEM4_BINARY_SYNC1:
+            //    uiMyByteCount--;
+            //    uiMyFrameBufferOffset = uiMyByteCount;
+            //    return STATUS::UNKNOWN;
             case OEM4_BINARY_SYNC2:
                 // CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte);
                 localFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC3;
@@ -238,19 +238,23 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
                 // TODO - this should be handled by the framer manager when we handle unknown bytes
                 // eMyCurrentFramerStatus = STATUS::UNKNOWN;
                 // ResetState
+                //uiMyFrameBufferOffset = uiMyByteCount;
+                //return STATUS::UNKNOWN;
+                uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::UNKNOWN;
+                localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
+                break;
             }
             break;
 
         case NovAtelFrameState::WAITING_FOR_BINARY_SYNC3:
             switch (ucDataByte)
             {
-            case OEM4_BINARY_SYNC1:
-            case OEM4_BINARY_SYNC2:
-                uiMyByteCount--;
-                uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::UNKNOWN;
+            //case OEM4_BINARY_SYNC1:
+            //case OEM4_BINARY_SYNC2:
+            //    uiMyByteCount--;
+            //    uiMyFrameBufferOffset = uiMyByteCount;
+            //    return STATUS::UNKNOWN;
             case OEM4_BINARY_SYNC3:
                 // CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte);
                 // TODO: Figure out how to deal with this - FINISHED
@@ -273,7 +277,9 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
                 // ResetState();
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::UNKNOWN;
+                localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
+                break;
+                //return STATUS::UNKNOWN;
             }
             break;
 
