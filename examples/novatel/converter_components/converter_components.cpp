@@ -198,23 +198,23 @@ int main(int argc, char* argv[])
                         else
                         {
                             unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
-                            pclLogger->warn("Encoder returned with status code {}", static_cast<int>(eEncoderStatus));
+                            pclLogger->warn("Encoder returned with status code {}", eEncoderStatus);
                         }
                     }
                     else
                     {
                         unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
-                        pclLogger->warn("MessageDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
+                        pclLogger->warn("MessageDecoder returned with status code {}", eDecoderStatus);
                     }
                 }
                 else
                 {
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
-                    pclLogger->warn("HeaderDecoder returned with status code {}", static_cast<int>(eDecoderStatus));
+                    pclLogger->warn("HeaderDecoder returned with status code {}", eDecoderStatus);
                 }
             }
             else if (eFramerStatus == STATUS::UNKNOWN) { unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
-            else { pclLogger->warn("Framer returned with status code {}", static_cast<int>(eFramerStatus)); }
+            else { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
         }
     }
 
