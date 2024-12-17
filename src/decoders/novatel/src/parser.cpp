@@ -133,14 +133,16 @@ std::shared_ptr<spdlog::logger> Parser::GetLogger() { return pclMyLogger; }
 // -------------------------------------------------------------------------------------------------------
 void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const std::string& sFileName_)
 {
-    pclMyFramer->SetLoggerLevel(eLevel_);
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    clMyFramerManager.SetLoggerLevel(eLevel_);
+    
     clMyHeaderDecoder.SetLoggerLevel(eLevel_);
     clMyMessageDecoder.SetLoggerLevel(eLevel_);
 
-    Logger::AddConsoleLogging(pclMyFramer->GetLogger());
+    Logger::AddConsoleLogging(clMyFramerManager.GetLogger());
     Logger::AddConsoleLogging(clMyHeaderDecoder.GetLogger());
     Logger::AddConsoleLogging(clMyMessageDecoder.GetLogger());
-    Logger::AddRotatingFileLogger(pclMyFramer->GetLogger(), eLevel_, sFileName_);
+    Logger::AddRotatingFileLogger(clMyFramerManager.GetLogger(), eLevel_, sFileName_);
     Logger::AddRotatingFileLogger(clMyHeaderDecoder.GetLogger(), eLevel_, sFileName_);
     Logger::AddRotatingFileLogger(clMyMessageDecoder.GetLogger(), eLevel_, sFileName_);
 }
@@ -188,7 +190,10 @@ ENCODE_FORMAT Parser::GetEncodeFormat() const { return eMyEncodeFormat; }
 unsigned char* Parser::GetInternalBuffer() const { return pucMyFrameBufferPointer; }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t Parser::Write(unsigned char* pucData_, uint32_t uiDataSize_) { return pclMyFramer->Write(pucData_, uiDataSize_); }
+uint32_t Parser::Write(unsigned char* pucData_, uint32_t uiDataSize_) { 
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    return clMyFramerManager.Write(pucData_, uiDataSize_);
+}
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
@@ -196,13 +201,15 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
 {
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FRAMER_ID eActiveFramerId = FRAMER_ID::UNKNOWN;
 
     while (true)
     {
         pucMyFrameBufferPointer = pcMyFrameBuffer;   //!< Reset the buffer.
         pucMyEncodeBufferPointer = pcMyEncodeBuffer; //!< Reset the buffer.
         uint32_t uiFrameBufferOffset = 0;
-        auto eStatus = pclMyFramer->GetFrame(pucMyFrameBufferPointer, uiParserInternalBufferSize, stMetaData_);
+        auto eStatus = clMyFramerManager.GetFrame(pucMyFrameBufferPointer, uiParserInternalBufferSize, eActiveFramerId);
 
         // Datasets ending with an Abbreviated ASCII message will always return an incomplete framing status
         // as there is no delimiter marking the end of the log.
@@ -213,7 +220,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
         if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE &&
             (stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII || stMetaData_.eFormat == HEADER_FORMAT::SHORT_ABB_ASCII))
         {
-            uint32_t uiFlushSize = pclMyFramer->Flush(pucMyFrameBufferPointer, uiParserInternalBufferSize);
+            uint32_t uiFlushSize = clMyFramerManager.Flush(pucMyFrameBufferPointer, uiParserInternalBufferSize);
             if (uiFlushSize > 0)
             {
                 eStatus = STATUS::SUCCESS;
@@ -298,6 +305,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
 // -------------------------------------------------------------------------------------------------------
 uint32_t Parser::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
     clMyRangeDecompressor.Reset();
-    return pclMyFramer->Flush(pucBuffer_, uiBufferSize_);
+    return clMyFramerManager.Flush(pucBuffer_, uiBufferSize_);
 }

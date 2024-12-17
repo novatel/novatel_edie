@@ -33,6 +33,7 @@
 #include "decoders/novatel/api/encoder.hpp"
 #include "decoders/novatel/api/filter.hpp"
 #include "decoders/novatel/api/framer.hpp"
+#include "framer_manager/api/framer_manager.hpp"
 #include "decoders/novatel/api/header_decoder.hpp"
 #include "decoders/novatel/api/rangecmp/range_decompressor.hpp"
 #include "decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
@@ -52,7 +53,7 @@ class Parser
 
     JsonReader clMyJsonReader;
     Filter* pclMyUserFilter{nullptr};
-    std::unique_ptr<Framer> pclMyFramer;
+    //std::unique_ptr<Framer> pclMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;

@@ -37,10 +37,21 @@ novatel::edie::oem::Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffe
 {
     // This static instance persists for the lifetime of the program even after leaving scope of this function
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    auto it_registered = std::find_if(clMyFramerManager.framerRegistry.begin(), clMyFramerManager.framerRegistry.end(),
+                                      [](const FramerElement& element) { return element.framerId == FRAMER_ID::NOVATEL; });
+    if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
+
     clMyFramerManager.RegisterFramer(FRAMER_ID::NOVATEL, std::unique_ptr<Framer>(this), std::make_unique<MetaDataStruct>());
 }
 
 novatel::edie::oem::Framer::Framer() : Framer::Framer(FramerManager::GetInstance().GetCircularBuffer()) {}
+
+//novatel::edie::oem::Framer::~Framer()
+//{
+//    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+//    clMyFramerManager.UnregisterFramer(FRAMER_ID::NOVATEL);
+//}
+
 // -------------------------------------------------------------------------------------------------------
 bool novatel::edie::oem::Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const
 {
@@ -131,11 +142,13 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
         // Read data from circular buffer until we reach the end or we didn't find a complete frame in current data buffer
         if (pclMyCircularDataBuffer->GetLength() == uiMyByteCount)
         {
+            uiMyFrameBufferOffset = uiMyByteCount;
+            uiMyByteCount = 0;
             // TODO - this should be fine to not be handled here. It should be handled in GetFrame
-            if (eMyFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
+            if (localFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
             {
                 // If the data lands on the abbreviated header CRLF then it can be missed unless it's tested again when there is more data
-                //if (headerFormat == HeaderFormat::ABB_ASCII) { uiMyByteCount--; }
+                // if (headerFormat == HeaderFormat::ABB_ASCII) { uiMyByteCount--; }
                 return STATUS::INCOMPLETE;
             }
 
@@ -145,8 +158,6 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
 
             // if (uiMyByteCount == 0) { return STATUS::BUFFER_EMPTY; }
 
-            uiMyFrameBufferOffset = uiMyByteCount;
-            uiMyByteCount = 0;
             return STATUS::UNKNOWN;
         }
 
@@ -221,13 +232,14 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
         case NovAtelFrameState::WAITING_FOR_BINARY_SYNC2:
             switch (ucDataByte)
             {
-                // TODO: Figure out how to deal with this
+                // TODO: Figure out how to deal with this -> FINISHED
                 // case OEM4_PROPRIETARY_BINARY_SYNC2: stMetaData_.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY; [[fallthrough]];
 
-            //case OEM4_BINARY_SYNC1:
-            //    uiMyByteCount--;
-            //    uiMyFrameBufferOffset = uiMyByteCount;
-            //    return STATUS::UNKNOWN;
+            // case OEM4_BINARY_SYNC1:
+            //     uiMyByteCount--;
+            //     uiMyFrameBufferOffset = uiMyByteCount;
+            //     return STATUS::UNKNOWN;
+            case OEM4_PROPRIETARY_BINARY_SYNC2: [[fallthrough]];
             case OEM4_BINARY_SYNC2:
                 // CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte);
                 localFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC3;
@@ -238,8 +250,8 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
                 // TODO - this should be handled by the framer manager when we handle unknown bytes
                 // eMyCurrentFramerStatus = STATUS::UNKNOWN;
                 // ResetState
-                //uiMyFrameBufferOffset = uiMyByteCount;
-                //return STATUS::UNKNOWN;
+                // uiMyFrameBufferOffset = uiMyByteCount;
+                // return STATUS::UNKNOWN;
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
                 localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
@@ -250,11 +262,11 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
         case NovAtelFrameState::WAITING_FOR_BINARY_SYNC3:
             switch (ucDataByte)
             {
-            //case OEM4_BINARY_SYNC1:
-            //case OEM4_BINARY_SYNC2:
-            //    uiMyByteCount--;
-            //    uiMyFrameBufferOffset = uiMyByteCount;
-            //    return STATUS::UNKNOWN;
+            // case OEM4_BINARY_SYNC1:
+            // case OEM4_BINARY_SYNC2:
+            //     uiMyByteCount--;
+            //     uiMyFrameBufferOffset = uiMyByteCount;
+            //     return STATUS::UNKNOWN;
             case OEM4_BINARY_SYNC3:
                 // CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte);
                 // TODO: Figure out how to deal with this - FINISHED
@@ -279,7 +291,7 @@ STATUS novatel::edie::oem::Framer::FindNextSyncByte(unsigned char* pucFrameBuffe
                 uiMyFrameBufferOffset = uiMyByteCount;
                 localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
                 break;
-                //return STATUS::UNKNOWN;
+                // return STATUS::UNKNOWN;
             }
             break;
 
@@ -320,51 +332,61 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
     unsigned char ucDataByte = (*pclMyCircularDataBuffer)[uiMyByteCount];
     stMetaData.uiLength = uiMyByteCount;
 
-    switch (ucDataByte)
+    if (stMetaData.eFormat == HEADER_FORMAT::UNKNOWN)
     {
-    case OEM4_BINARY_SYNC1:
-        if ((*pclMyCircularDataBuffer)[uiMyByteCount + 2] == OEM4_BINARY_SYNC3)
+        uiMyCalculatedCrc32 = 0;
+        switch (ucDataByte)
         {
-            if (stMetaData.eFormat != HEADER_FORMAT::PROPRIETARY_BINARY) { stMetaData.eFormat = HEADER_FORMAT::BINARY; }
-            eMyFrameState = NovAtelFrameState::WAITING_FOR_BINARY_HEADER;
-        }
-        if ((*pclMyCircularDataBuffer)[uiMyByteCount + 2] == OEM4_SHORT_BINARY_SYNC3)
-        {
-            stMetaData.eFormat = HEADER_FORMAT::SHORT_BINARY;
-            eMyFrameState = NovAtelFrameState::WAITING_FOR_SHORT_BINARY_HEADER;
-        }
-        for (auto i = 0; i < 3; i++)
-        {
-            const unsigned char ucDataByte = (*pclMyCircularDataBuffer)[uiMyByteCount++];
-            CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte);
-        }
-        break;
+        case OEM4_BINARY_SYNC1:
+            if ((*pclMyCircularDataBuffer)[uiMyByteCount + 1] == OEM4_PROPRIETARY_BINARY_SYNC2)
+            {
+                stMetaData.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY;
+            }
+            if ((*pclMyCircularDataBuffer)[uiMyByteCount + 2] == OEM4_BINARY_SYNC3)
+            {
+                if (stMetaData.eFormat != HEADER_FORMAT::PROPRIETARY_BINARY) { stMetaData.eFormat = HEADER_FORMAT::BINARY; }
+                eMyFrameState = NovAtelFrameState::WAITING_FOR_BINARY_HEADER;
+            }
+            if ((*pclMyCircularDataBuffer)[uiMyByteCount + 2] == OEM4_SHORT_BINARY_SYNC3)
+            {
+                stMetaData.eFormat = HEADER_FORMAT::SHORT_BINARY;
+                eMyFrameState = NovAtelFrameState::WAITING_FOR_SHORT_BINARY_HEADER;
+            }
+            for (auto i = 0; i < 3; i++)
+            {
+                const unsigned char ucDataByte = (*pclMyCircularDataBuffer)[uiMyByteCount++];
+                CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte);
+            }
 
-    case OEM4_ASCII_SYNC:
-        stMetaData.eFormat = HEADER_FORMAT::ASCII;
-        eMyFrameState = NovAtelFrameState::WAITING_FOR_ASCII_HEADER_AND_BODY;
-        uiMyByteCount++;
-        break;
+            break;
 
-    case OEM4_SHORT_ASCII_SYNC:
-        stMetaData.eFormat = HEADER_FORMAT::SHORT_ASCII;
-        eMyFrameState = NovAtelFrameState::WAITING_FOR_ASCII_HEADER_AND_BODY;
-        uiMyByteCount++;
-        break;
-    case OEM4_ABBREV_ASCII_SYNC:
-        stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
-        eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_HEADER;
-        uiMyByteCount++;
-        break;
-    case '{':
-        if (bMyFrameJson)
-        {
-            stMetaData.eFormat = HEADER_FORMAT::JSON;
-            eMyFrameState = NovAtelFrameState::WAITING_FOR_JSON_OBJECT;
-            uiMyJsonObjectOpenBraces++;
+        case OEM4_ASCII_SYNC:
+            stMetaData.eFormat = HEADER_FORMAT::ASCII;
+            eMyFrameState = NovAtelFrameState::WAITING_FOR_ASCII_HEADER_AND_BODY;
+            uiMyByteCount++;
+            break;
+
+        case OEM4_SHORT_ASCII_SYNC:
+            stMetaData.eFormat = HEADER_FORMAT::SHORT_ASCII;
+            eMyFrameState = NovAtelFrameState::WAITING_FOR_ASCII_HEADER_AND_BODY;
+            uiMyByteCount++;
+            break;
+        case OEM4_ABBREV_ASCII_SYNC:
+            stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
+            eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_HEADER;
+            uiMyByteCount++;
+            uiMyAbbrevAsciiHeaderPosition = uiMyByteCount;
+            break;
+        case '{':
+            if (bMyFrameJson)
+            {
+                stMetaData.eFormat = HEADER_FORMAT::JSON;
+                eMyFrameState = NovAtelFrameState::WAITING_FOR_JSON_OBJECT;
+                uiMyJsonObjectOpenBraces++;
+            }
+            break;
+        default: break;
         }
-        break;
-    default: break;
     }
 
     stMetaData.uiLength = uiMyByteCount;
@@ -391,7 +413,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
 
             if (uiMyByteCount == 0) { return STATUS::BUFFER_EMPTY; }
 
-            //return STATUS::UNKNOWN;
+            // return STATUS::UNKNOWN;
             uiMyFrameBufferOffset = uiMyByteCount;
             stMetaData.uiLength = uiMyByteCount;
             return STATUS::UNKNOWN;
@@ -408,7 +430,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
         {
             stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
 
-            //ResetState();
+            // ResetState();
             uiMyByteCount--;
             uiMyFrameBufferOffset = uiMyByteCount;
             stMetaData.uiLength = uiMyByteCount;
@@ -464,7 +486,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                 if (uiFrameBufferSize_ < OEM4_BINARY_HEADER_LENGTH)
                 {
                     uiMyByteCount = 0;
-                    //ResetState();
+                    // ResetState();
                     return STATUS::BUFFER_FULL;
                 }
 
@@ -478,7 +500,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                     uiMyByteCount = OEM4_BINARY_SYNC_LENGTH;
                     uiMyExpectedPayloadLength = 0;
                     uiMyExpectedMessageLength = 0;
-                    //ResetState();
+                    // ResetState();
                     stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                     stMetaData.uiLength = uiMyByteCount;
                     uiMyFrameBufferOffset = uiMyByteCount;
@@ -492,7 +514,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                     uiMyByteCount = 0;
                     uiMyExpectedPayloadLength = 0;
                     uiMyExpectedMessageLength = 0;
-                    //ResetState();
+                    // ResetState();
                     return STATUS::BUFFER_FULL;
                 }
 
@@ -508,7 +530,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                 if (uiFrameBufferSize_ < OEM4_SHORT_BINARY_HEADER_LENGTH)
                 {
                     uiMyByteCount = 0;
-                    //ResetState();
+                    // ResetState();
                     return STATUS::BUFFER_FULL;
                 }
 
@@ -522,7 +544,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                     uiMyByteCount = OEM4_SHORT_BINARY_SYNC_LENGTH;
                     uiMyExpectedPayloadLength = 0;
                     uiMyExpectedMessageLength = 0;
-                    //ResetState();
+                    // ResetState();
                     stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                     stMetaData.uiLength = uiMyByteCount;
                     uiMyFrameBufferOffset = uiMyByteCount;
@@ -537,7 +559,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                     uiMyByteCount = 0;
                     uiMyExpectedPayloadLength = 0;
                     uiMyExpectedMessageLength = 0;
-                    //ResetState();
+                    // ResetState();
                     return STATUS::BUFFER_FULL;
                 }
 
@@ -571,8 +593,9 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                 else
                 {
                     uiMyByteCount = stMetaData.eFormat == HEADER_FORMAT::BINARY ? OEM4_BINARY_SYNC_LENGTH : OEM4_SHORT_BINARY_SYNC_LENGTH;
-                    //ResetState();
-                    // TODO : should HEADERFORMAT be UNKNOWN here?
+                    // ResetState();
+                    //  TODO : should HEADERFORMAT be UNKNOWN here?
+                    stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                     stMetaData.uiLength = uiMyByteCount;
                     uiMyFrameBufferOffset = uiMyByteCount;
                     return STATUS::UNKNOWN;
@@ -615,12 +638,11 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                 uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                 uiMyExpectedPayloadLength = 0;
 
-                //ResetState();
+                // ResetState();
                 stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                 stMetaData.uiLength = uiMyByteCount;
                 uiMyFrameBufferOffset = uiMyByteCount;
                 return STATUS::UNKNOWN;
-                
             }
             else { CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte); }
             break;
@@ -640,7 +662,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
 
                     if (uiFrameBufferSize_ < stMetaData.uiLength)
                     {
-                        //ResetState();
+                        // ResetState();
                         return STATUS::BUFFER_FULL;
                     }
 
@@ -669,8 +691,8 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                     uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                     uiMyExpectedPayloadLength = 0;
                     uiMyAbbrevAsciiHeaderPosition = 0;
-                    
-                    //ResetState();
+
+                    // ResetState();
                     stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                     stMetaData.uiLength = uiMyByteCount;
                     uiMyFrameBufferOffset = uiMyByteCount;
@@ -683,7 +705,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                 uiMyAbbrevAsciiHeaderPosition = 0;
                 uiMyExpectedPayloadLength = 0;
 
-                //ResetState();
+                // ResetState();
                 stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                 stMetaData.uiLength = uiMyByteCount;
                 uiMyFrameBufferOffset = uiMyByteCount;
@@ -721,7 +743,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                         uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                         uiMyAbbrevAsciiHeaderPosition = 0;
                         uiMyExpectedPayloadLength = 0;
-                        //ResetState();
+                        // ResetState();
                         stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                         stMetaData.uiLength = uiMyByteCount;
                         uiMyFrameBufferOffset = uiMyByteCount;
@@ -741,7 +763,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                     uiMyByteCount = 0;
                     uiMyAbbrevAsciiHeaderPosition = 0;
                     uiMyExpectedPayloadLength = 0;
-                    //ResetState();
+                    // ResetState();
                     return STATUS::BUFFER_FULL;
                 }
 
@@ -758,7 +780,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                 uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                 uiMyAbbrevAsciiHeaderPosition = 0;
                 uiMyExpectedPayloadLength = 0;
-                //ResetState();
+                // ResetState();
                 stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                 stMetaData.uiLength = uiMyByteCount;
                 uiMyFrameBufferOffset = uiMyByteCount;
@@ -784,7 +806,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
 
                     if (uiFrameBufferSize_ < stMetaData.uiLength)
                     {
-                        //ResetState();
+                        // ResetState();
                         return STATUS::BUFFER_FULL;
                     }
 
@@ -795,7 +817,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
                 else
                 {
                     uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
-                    //ResetState();
+                    // ResetState();
                     stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                     stMetaData.uiLength = uiMyByteCount;
                     uiMyFrameBufferOffset = uiMyByteCount;
@@ -806,7 +828,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
             {
                 uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                 uiMyExpectedPayloadLength = 0;
-                //ResetState();
+                // ResetState();
                 stMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
                 stMetaData.uiLength = uiMyByteCount;
                 uiMyFrameBufferOffset = uiMyByteCount;
@@ -820,7 +842,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
             {
                 uiMyByteCount = 0;
                 uiMyExpectedPayloadLength = 0;
-                //ResetState();
+                // ResetState();
                 return STATUS::BUFFER_FULL;
             }
 
@@ -844,7 +866,7 @@ novatel::edie::oem::Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint3
         }
     }
 
-    //ResetState();
+    // ResetState();
 
     return STATUS::SUCCESS;
 }

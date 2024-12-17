@@ -36,24 +36,6 @@ FramerManager::FramerManager() : pclMyLogger(Logger::RegisterLogger("FramerManag
 
 std::shared_ptr<CircularBuffer> FramerManager::GetCircularBuffer() const { return pclMyCircularDataBuffer; }
 
-// FramerManager::FramerManager(const std::string& strLoggerName_)
-//     : pclMyLogger(Logger::RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>())
-//{
-//     //// instantiate the framers
-//     // nmeaFramer = std::make_unique<nmea::NmeaFramer>(pclMyCircularDataBuffer);
-//
-//     // uint32_t uiNovatelFrameBufferOffset = 0;
-//     // uint32_t uiNmeaFrameBufferOffset = 0;
-//     // auto novatelStatus = STATUS::UNKNOWN;
-//     // auto nmeaStatus = STATUS::UNKNOWN;
-//
-//     // framerStack.emplace_back(FRAMER_ID::NMEA, uiNmeaFrameBufferOffset, nmeaStatus);
-//     // framerStack.emplace_back(FRAMER_ID::NOVATEL, uiNovatelFrameBufferOffset, novatelStatus);
-//
-//     pclMyCircularDataBuffer->Clear();
-//     pclMyLogger->debug("Internal Framer Manager initialized");
-// }
-
 void FramerManager::RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
 {
     framerRegistry.emplace_back(FramerElement(framerId_, std::move(framer_), std::move(metadata_), 0));
@@ -178,6 +160,12 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     STATUS novatelStatus = STATUS::UNKNOWN;
     STATUS nmeaStatus = STATUS::UNKNOWN;
 
+    // if STATUS is INCOMPLETE upon entering GetFrame, it is stale
+    if (eActiveFramerId_ != FRAMER_ID::UNKNOWN && framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
+    {
+        framerRegistry.front().framer->eMyCurrentFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
+    }
+
     if (eActiveFramerId_ == FRAMER_ID::UNKNOWN)
     {
         ResetAllMetaDataStates();
@@ -188,22 +176,32 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     }
 
     // A Framer Found A Sync Byte
-    // auto it_sync = std::find_if(framerRegistry.begin(), framerRegistry.end(), [](const FramerElement& element) { return (element.offset == 0); });
-    // if (it_sync != framerRegistry.end())
+    // auto it_sync = std::find_if(framerRegistry.begin(), framerRegistry.end(), [](const FramerElement& element) { return (element.offset == 0);
+    // }); if (it_sync != framerRegistry.end())
     //{
     DisplayFramerStack();
     // TODO rename this to sort possibly (sort, prioritize, etc)
     ReorderFramers();
     // DisplayFramerStack();
-    eActiveFramerId_ = framerRegistry.front().framerId;
+    //
     // TODO don't know if I need to return anything here anymore
     // return framerRegistry.front().framer->eMyCurrentFramerStatus;
     //}
 
+    // set uiLength for likely framer
+    framerRegistry.front().metadata->uiLength = framerRegistry.front().framer->uiMyFrameBufferOffset;
+    if (framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE) { return STATUS::INCOMPLETE; }
+
+    eActiveFramerId_ = framerRegistry.front().framerId;
+
     // Check for unknown bytes
-    if (framerRegistry.front().framer->uiMyFrameBufferOffset > 0 && framerRegistry.front().framer->eMyCurrentFramerStatus != STATUS::INCOMPLETE)
+    // if (framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE) { return STATUS::INCOMPLETE; }
+
+    if (framerRegistry.front().framer->uiMyFrameBufferOffset > 0 &&
+        (framerRegistry.front().framer->eMyCurrentFramerStatus != STATUS::INCOMPLETE ||
+         framerRegistry.front().framer->eMyCurrentFramerStatus != STATUS::INCOMPLETE_MORE_DATA))
     {
-        framerRegistry.front().metadata->uiLength = framerRegistry.front().framer->uiMyFrameBufferOffset;
+
         HandleUnknownBytes(pucFrameBuffer_, framerRegistry.front().framer->uiMyFrameBufferOffset);
         ResetAllFramerStates();
         return STATUS::UNKNOWN;
@@ -241,7 +239,8 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
     //// Prove all framers returned UNKNOWN
     // auto it_not_unknown = std::find_if(framerRegistry.begin(), framerRegistry.end(),
-    //                                    [](const FramerElement& element) { return (element.framer->eMyCurrentFramerStatus != STATUS::UNKNOWN); });
+    //                                    [](const FramerElement& element) { return (element.framer->eMyCurrentFramerStatus != STATUS::UNKNOWN);
+    //                                    });
 
     //// it_not_unknown == end -> All framers returned UNKNOWN -> Handle Unknown Bytes
     // if (it_not_unknown == framerRegistry.end())
@@ -263,6 +262,14 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     {
         ResetInactiveFramerStates(FRAMER_ID::UNKNOWN);
         return STATUS::BUFFER_FULL;
+    }
+
+    auto it_null_provided = std::find_if(framerRegistry.begin(), framerRegistry.end(),
+                                         [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::NULL_PROVIDED); });
+    if (it_null_provided != framerRegistry.end())
+    {
+        ResetInactiveFramerStates(FRAMER_ID::UNKNOWN);
+        return STATUS::NULL_PROVIDED;
     }
 
     // auto it_buffer_empty =
