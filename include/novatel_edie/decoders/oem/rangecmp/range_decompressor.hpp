@@ -68,10 +68,10 @@ class RangeDecompressor
 
   private:
     //! Get the lock time for a RANGECMP2 message.
-    double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint16_t usPrn_);
+    double GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, uint64_t key_);
 
     //! Get the lock time for a RANGECMP4 message.
-    double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_, uint32_t uiPrn_);
+    double GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, uint64_t key_);
 
     //! Decompresses a RANGECMP4 reference measurement block and populates the reference block struct.
     template <bool Secondary>

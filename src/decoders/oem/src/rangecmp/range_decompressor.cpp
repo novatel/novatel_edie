@@ -70,14 +70,13 @@ void RangeDecompressor::LoadJsonDb(JsonReader* pclJsonDb_)
 // observation, and may not be a true representation of the time the
 // observation has actually been locked.
 //------------------------------------------------------------------------------
-double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, ChannelTrackingStatus stCtStatus_,
-                                               uint16_t usPrn_)
+double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_, uint32_t uiLockTimeBits_, uint64_t key_)
 {
     using namespace rangecmp2;
 
     double dLockTimeMilliseconds = uiLockTimeBits_;
 
-    LockTimeInfo& stLockTimeInfo = mMyRangeCmp2LockTimes[stCtStatus_.MakeKey(usPrn_, stMetaData_.eMeasurementSource)];
+    LockTimeInfo& stLockTimeInfo = mMyRangeCmp2LockTimes[key_];
     if (uiLockTimeBits_ == SIG_LOCKTIME_MASK >> Lsb(SIG_LOCKTIME_MASK))
     {
         // If the lock time was already saturated, use the stored time to add the missing offset.
@@ -154,8 +153,7 @@ double RangeDecompressor::GetRangeCmp2LockTime(const MetaDataStruct& stMetaData_
 //   +-------------------------------------------------------------------->
 //                   Header time (t)
 //------------------------------------------------------------------------------
-double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, ChannelTrackingStatus stCtStatus_,
-                                               uint32_t uiPrn_)
+double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_, uint8_t ucLockTimeBits_, uint64_t key_)
 {
     //-----------------------------------------------------------------------
     //! List of pre-defined doubles used as translations for RANGECMP4 lock
@@ -169,7 +167,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
     using namespace rangecmp4;
 
     // Store the lock time if it is different from the once we have currently.
-    LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[stCtStatus_.MakeKey(uiPrn_, stMetaData_.eMeasurementSource)];
+    LockTimeInfo& stLockTimeInfo = mMyRangeCmp4LockTimes[key_];
 
     // Is the lock time relative and has a ullBitfield change been found?
     if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
@@ -182,8 +180,8 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
             double dLockTimeDeltaMs = std::abs(lockTime[ucLockTimeBits_] - stLockTimeInfo.dMilliseconds);
             if (dLockTimeDeltaMs > std::numeric_limits<double>::epsilon())
             {
-                pclMyLogger->warn("Detected a lock time jump of {}ms at time {}w, {}ms. PRN: {}.", dLockTimeDeltaMs, stMetaData_.usWeek,
-                                  stMetaData_.dMilliseconds, uiPrn_);
+                pclMyLogger->warn("Detected a lock time jump of {}ms at time {}w, {}ms.", dLockTimeDeltaMs, stMetaData_.usWeek,
+                                  stMetaData_.dMilliseconds);
             }
         }
 
@@ -199,8 +197,8 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
         stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
         stLockTimeInfo.ucBits = ucLockTimeBits_;
 
-        pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms. PRN: {}.",
-                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds, uiPrn_);
+        pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms.",
+                          stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds);
     }
     else
     {
@@ -208,7 +206,7 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
         if (stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > 2 * lockTime[ucLockTimeBits_])
         {
             stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-            pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms. PRN: {}.", stMetaData_.usWeek, stMetaData_.dMilliseconds, uiPrn_);
+            pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms.", stMetaData_.usWeek, stMetaData_.dMilliseconds);
         }
     }
     stLockTimeInfo.dMilliseconds = stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLockTimeInfo.ucBits];
@@ -311,7 +309,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     stRangeData_.fAdrStdDev = stdDevAdrScaling[stBlock_.ucPhrStdDev];
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_, uiPrn_);
+    stRangeData_.fLockTime =
+        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_.MakeKey(uiPrn_, stMetaData_.eMeasurementSource));
     stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
@@ -352,7 +351,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     stRangeData_.fAdrStdDev = stdDevPhrScaling[stBlock_.ucPhrStdDev]; // TODO: how do we convert phase range std dev to adr std dev?
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_, uiPrn_);
+    stRangeData_.fLockTime =
+        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTimeBitfield, stCtStatus_.MakeKey(uiPrn_, stMetaData_.eMeasurementSource));
     stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
@@ -468,7 +468,7 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             stRangeData.fAdrStdDev = stdDevAdrScaling[ucAdrBitfield];
             stRangeData.fDopplerFrequency = (iDopplerBase + iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR) / SignalScaling(eSystem, eSignalType);
             stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t, SIG_CNO_MASK>(stSigBlock.ullCombinedField2);
-            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stCtStatus, usPrn);
+            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stCtStatus.MakeKey(usPrn, stMetaData_.eMeasurementSource));
             stRangeData.uiChannelTrackingStatus = stCtStatus.GetAsWord();
 
             uiRangeDataBytesDecompressed += sizeof(SignalBlock);
