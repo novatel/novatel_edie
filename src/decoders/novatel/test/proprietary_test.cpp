@@ -45,13 +45,8 @@ class ProprietaryFramerTest : public ::testing::Test
 
         novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
         clMyFramerManager.SetLoggerLevel(spdlog::level::info);
-        // TODO Delete this
         std::cout << "DEBUG:FramerTest Constructed Successfully" << std::endl;
-        // pclMyFramer = std::make_unique<Framer>();
         clMyFramerManager.SetReportUnknownBytes(true);
-        // TODO delete this once we decide if we don't want to do this instead of the construction after the test fixture setup
-        //pclMyFramer = std::make_unique<Framer>();
-        //clMyFramerManager.SetPayloadOnly(false);
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
 

@@ -66,15 +66,6 @@ void FramerManager::ReorderFramers()
     }
 }
 
-// void FramerManager::ResetFramerStack()
-//{
-//     for (auto& element : framerStack)
-//     {
-//         element.offset = 0;
-//         element.status = STATUS::UNKNOWN;
-//     }
-// }
-
 MetaDataBase* FramerManager::GetMetaData(const FRAMER_ID framerId_)
 {
     for (FramerElement& element : framerRegistry)
@@ -117,8 +108,6 @@ void FramerManager::ResetInactiveFramerStates(const FRAMER_ID& eActiveFramerId_)
         if (framerId != eActiveFramerId_)
         {
             framer->ResetStateAndByteCount();
-            // metadata->uiLength = 0;
-            // metadata->eFormat = HEADER_FORMAT::UNKNOWN;
             offset = 0;
         }
     }

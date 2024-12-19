@@ -43,11 +43,11 @@
 // #include "src/decoders/automotive/api/common.hpp"
 // #include "src/decoders/automotive/api/framer.hpp"
 //
-#include "src/decoders/nmea/api/common.hpp"
-#include "src/decoders/nmea/api/framer.hpp"
+//#include "src/decoders/nmea/api/common.hpp"
+//#include "src/decoders/nmea/api/framer.hpp"
 //
-#include "novatel-edie/src/decoders/novatel/api/common.hpp"
-#include "novatel-edie/src/decoders/novatel/api/framer.hpp"
+//#include "novatel-edie/src/decoders/novatel/api/common.hpp"
+//#include "novatel-edie/src/decoders/novatel/api/framer.hpp"
 //
 // #include "src/decoders/pimtp/api/common.hpp"
 // #include "src/decoders/pimtp/api/framer.hpp"
@@ -66,38 +66,11 @@ namespace novatel::edie {
 
 enum class FRAMER_ID
 {
+    AUTOMOTIVE,
     NOVATEL,
     NMEA,
     UNKNOWN
 };
-
-//// TODO : Remove these operator overloads
-//// Overload the << operator to print the enum as a string
-// inline std::ostream& operator<<(std::ostream& os, const FRAMER_ID id_)
-//{
-//     switch (id_)
-//     {
-//     case FRAMER_ID::NOVATEL: os << "NOVATEL"; break;
-//     case FRAMER_ID::NMEA: os << "NMEA"; break;
-//     case FRAMER_ID::UNKNOWN: os << "UNKNOWN"; break;
-//     default: os << "Other Shit"; break;
-//     }
-//     return os;
-// }
-
-// struct FramerStatus
-//{
-//     std::unique_ptr<FramerBase> framer;
-//     uint32_t offset;
-//     STATUS status;
-//
-//     FramerStatus(std::unique_ptr<FramerBase> framer_) : framer(std::move(framer_)), offset(0), status(STATUS::UNKNOWN) {}
-//
-//     FramerStatus(std::unique_ptr<FramerBase> framer_, uint32_t offset_, STATUS status_) : framer(std::move(framer_)), offset(offset_),
-//     status(status_)
-//     {
-//     }
-// };
 
 struct FramerElement
 {
@@ -112,43 +85,13 @@ struct FramerElement
     }
 };
 
-// TODO Remove this
-// class FramerRegistry
-//{
-//   private:
-//     std::map<FRAMER_ID, std::unique_ptr<MetaDataBase>> objects;
-//     FramerRegistry() = default;
-//     FramerRegistry(const FramerRegistry&) = delete;
-//     FramerRegistry& operator=(const FramerRegistry&) = delete;
-//
-//   public:
-//     static FramerRegistry& GetInstance()
-//     {
-//         static FramerRegistry instance; // Singleton
-//         return instance;
-//     }
-//     template <typename DerivedFramer>
-//     void RegisterFramer(const FRAMER_ID id_, std::unique_ptr<DerivedFramer> obj_)
-//     {
-//         static_assert(std::is_base_of<FramerBase, DerivedFramer>::value, "Derived Framer must derive from Base")
-//         objects[id_] = std::move(obj_);
-//     }
-//
-//     //template <typename DerivedFramer> DerivedFramer* getObject(FRAMER_ID id_) const
-//     //{
-//     //    auto it = objects.find(id_);
-//     //    if (it != objects.end()) { return it->second.get(); }
-//     //    return nullptr;
-//     //}
-// };
-
 // Forward Declarations of Framers
-class novatel::edie::oem::Framer;
+//class novatel::edie::oem::Framer;
 
 class FramerManager
 {
   private:
-    std::deque<FramerElement> framerRegistry;
+    
     std::list<FRAMER_ID> userFramers;
     FramerManager();
     FramerManager(const FramerManager&) = delete;
@@ -161,53 +104,18 @@ class FramerManager
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_);
 
-    // FRAMER_MANAGER_FRAME_STATE eMyFrameState{FRAMER_MANAGER_FRAME_STATE::WAITING_FOR_SYNC};
-
-    // Framers and Dependencies
-    // automotive::Framer automotiveFramer;
-    // automotive::MetaDataStruct automotiveMetaDataStruct;
-
-    // std::unique_ptr<nmea::NmeaFramer> nmeaFramer;
-    // std::unique_ptr<oem::Framer> novatelFramer;
-
-    // std::unique_ptr<oem::Framer> novatelFramer;
-
-    // pim::Framer pimtpFramer;
-    // pim::MetaDataStruct pimtpMetaDataStruct;
-
-    // waas::Framer giiiFramer;
-    // waas::MetaDataStruct giiiMetaDataStruct;
-
-    // uint32_t uiMyCalculatedCrc32{0U};
-    // uint32_t uiMyByteCount{0U};
-    // uint32_t uiMyExpectedPayloadLength{0U};
-    // uint32_t uiMyExpectedMessageLength{0U};
-
-    // bool bMyReportUnknownBytes{true};
-    // bool bMyPayloadOnly{false};
-    // bool bMyFrameJson{false};
-
     void ResetInactiveFramerStates(const FRAMER_ID& activeFramer_);
 
     void ResetInactiveMetaDataStates(const FRAMER_ID& activeFramer_);
 
-    // void ResetFramerStack();
-
-    // STATUS DerivedFramerGetFrame(std::unique_ptr<FramerBase>& basePtr, unsigned char* pucFrameBuffer_, uint32_t& uiFrameBufferSize_,
-    //                              uint32_t& uiFrameBufferOffset);
-
-    /*   std::deque<FramerElement> framerStack;*/
   protected:
-    void RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
-
-    // Forward Declarations of Framers
-    friend class novatel::edie::oem::Framer;
-    friend class nmea::NmeaFramer;
-
+    
     // TODO delete this
     void DisplayFramerStack();
 
   public:
+    std::deque<FramerElement> framerRegistry;
+    void RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
     //! \param[in] framerId_ The ID of the framer to get the MetaData for.

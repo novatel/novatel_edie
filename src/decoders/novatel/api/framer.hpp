@@ -55,7 +55,6 @@ class Framer : public FramerBase
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
   public:
-    // TODO uncomment this
     void ResetState() override;
     void ResetStateAndByteCount() override;
     //----------------------------------------------------------------------------

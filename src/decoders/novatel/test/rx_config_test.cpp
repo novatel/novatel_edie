@@ -33,6 +33,7 @@
 #include "decoders/common/api/json_reader.hpp"
 #include "decoders/common/api/message_decoder.hpp"
 #include "decoders/novatel/api/rxconfig/rxconfig_handler.hpp"
+#include "framer_manager/api/framer_manager.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -42,23 +43,40 @@ class RxConfigTest : public ::testing::Test
   protected:
     static std::unique_ptr<JsonReader> pclMyJsonDb;
     static std::unique_ptr<RxConfigHandler> pclMyRxConfigHandler;
+    static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
+        novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        clMyFramerManager.SetLoggerLevel(spdlog::level::info);
         pclMyJsonDb = std::make_unique<JsonReader>();
         pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
         pclMyRxConfigHandler = std::make_unique<RxConfigHandler>(pclMyJsonDb.get());
+        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { pclMyRxConfigHandler->ShutdownLogger(); }
+    static void TearDownTestSuite() { Logger::Shutdown(); }
 
     // Per-test setup
-    void SetUp() override { pclMyRxConfigHandler->Flush(); }
+    void SetUp() override
+    {
+        FlushTestFixture();
+        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
+        novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        clMyFramerManager.ResetAllFramerStates();
+        clMyFramerManager.ResetAllMetaDataStates();
+    }
 
     // Per-test teardown
-    void TearDown() override { pclMyRxConfigHandler->Flush(); }
+    void TearDown() override
+    {
+        FlushTestFixture();
+        novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        clMyFramerManager.ResetAllFramerStates();
+        clMyFramerManager.ResetAllMetaDataStates();
+    }
 
   public:
     void WriteBytesToHandler(unsigned char* pucBytes_, uint32_t uiNumBytes_)
@@ -81,10 +99,19 @@ class RxConfigTest : public ::testing::Test
         return eStatus == STATUS::SUCCESS && stTestRxConfigMessageData == *pstExpectedRxConfigMessageData_ &&
                stTestEmbeddedMessageData == *pstExpectedEmbeddedMessageData_;
     }
+
+    void FlushTestFixture()
+    {
+        uint32_t uiBytes = 0;
+        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        while (clMyFramerManager.Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
+        pucMyTestFrameBuffer.reset();
+    }
 };
 
 std::unique_ptr<JsonReader> RxConfigTest::pclMyJsonDb = nullptr;
 std::unique_ptr<RxConfigHandler> RxConfigTest::pclMyRxConfigHandler = nullptr;
+std::unique_ptr<unsigned char[]> RxConfigTest::pucMyTestFrameBuffer = nullptr;
 
 // -------------------------------------------------------------------------------------------------------
 // Logger Framer Unit Tests

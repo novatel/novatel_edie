@@ -37,8 +37,6 @@ class FramerBase
   public:
     STATUS eMyCurrentFramerStatus{STATUS::UNKNOWN};
     uint32_t uiMyFrameBufferOffset{0U};
-    // TODO delete this
-    //uint32_t uiMySyncByteOffset{0U};
 
     virtual void ResetState() { eMyCurrentFramerStatus = STATUS::UNKNOWN; }
     virtual void ResetStateAndByteCount() = 0;
@@ -47,6 +45,7 @@ class FramerBase
     //! \brief A constructor for the FramerBase class.
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
+    //! \param[in] circularBuffer_ Shared pointer to a CircularBuffer object.
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_, std::shared_ptr<CircularBuffer> circularBuffer_)
         : pclMyLogger(Logger::RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(circularBuffer_)
@@ -55,16 +54,24 @@ class FramerBase
         pclMyLogger->debug("Framer initialized");
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the FramerBase class.
+    //
+    //! \param[in] strLoggerName_ String to name the internal logger.
+    //---------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(Logger::RegisterLogger(strLoggerName_))
     {
         pclMyCircularDataBuffer->Clear();
         pclMyLogger->debug("Framer initialized without Circular Buffer");
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Find the next sync byte in the circular buffer.
+    //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
+    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
+    //
+    //! \return SYNC_BYTE_FOUND if a sync byte is found.
     virtual STATUS FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_) = 0;
-    //[[nodiscard]] virtual novatel::edie::STATUS GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_, MetaDataBase&
-    //stMetaData_,
-    //                                                     uint32_t& uiFrameBufferOffset_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -138,10 +145,29 @@ class FramerBase
     virtual uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
         const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
-        // HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }
 
+
+    //----------------------------------------------------------------------------
+    //! \brief virtual function to be overridden with casting MetaDataBase to type-specific MetaDataStruct
+    //
+    //! \param [out] pucFrameBuffer_ The buffer which the Framer should copy the
+    //! framed PIMTP message to.
+    //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
+    //! \param [out] stMetaData_ A MetaDataBase to contain some information
+    //! about the message frame.
+    //
+    //! \return An error code describing the result of framing.
+    //!   SUCCESS: A message frame was found.
+    //!   NULL_PROVIDED: pucFrameBuffer_ is a null pointer.
+    //!   UNKNOWN: The bytes returned are unknown.
+    //!   INCOMPLETE: The framer found what could be a message, but there
+    //! are no more bytes in the internal buffer.
+    //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
+    //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
+    //! to the size specified by uiFrameBufferSize_.
+    //----------------------------------------------------------------------------
     [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_) = 0;
 
     //----------------------------------------------------------------------------
