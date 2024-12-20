@@ -29,6 +29,8 @@
 
 #include <array>
 #include <cstdint>
+#include <string_view>
+
 
 constexpr auto UI_CRC_TABLE = [] {
     std::array<uint32_t, 256> uiPreCalcCrcTable{};
