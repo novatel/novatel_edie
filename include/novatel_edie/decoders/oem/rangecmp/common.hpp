@@ -347,6 +347,11 @@ constexpr int32_t SIG_RBLK_INVALID_PHR = -4194304;
 constexpr int32_t PSIG_RBLK_INVALID_DOPPLER = -33554432;
 constexpr int32_t SSIG_RBLK_INVALID_PSR = -524288;
 
+// Bitfield sizes for the Measurement Block Header
+constexpr uint32_t MBLK_HDR_DATAFORMAT_FLAG_BITS = 1;
+constexpr uint32_t MBLK_HDR_REFERENCE_DATABLOCK_ID_BITS = 3;
+constexpr uint32_t MBLK_HDR_GLONASS_FREQUENCY_NUMBER_BITS = 5;
+
 // Bitfield sizes for the Reference Signal Measurement Blocks
 constexpr uint32_t SIG_BLK_PARITY_FLAG_BITS = 1;
 constexpr uint32_t SIG_BLK_HALF_CYCLE_BITS = 1;
@@ -401,8 +406,8 @@ struct RangeData
 {
     uint16_t usPrn{0};
     int16_t sGlonassFrequency{0};
-    double dPseudorange{0};
-    float fPseudorangeStdDev{0};
+    double dPsr{0};
+    float fPsrStdDev{0};
     double dAdr{0};
     float fAdrStdDev{0};
     float fDopplerFrequency{0};
@@ -721,8 +726,8 @@ enum class SIGNAL_TYPE
 struct MeasurementBlockHeader
 {
     bool bIsDifferentialData{false};
-    uint8_t ucReferenceDataBlockID{0};
-    int8_t cGlonassFrequencyNumber{0};
+    uint8_t ucReferenceId{0};
+    int8_t cGlonassFrequency{0};
 
     MeasurementBlockHeader() = default;
 };
@@ -737,7 +742,7 @@ struct MeasurementSignalBlock
     bool bParityKnown{false};
     bool bHalfCycleAdded{false};
     float fCNo{0.0F};
-    uint8_t ucLockTimeBitfield{0};
+    uint8_t ucLockTime{0};
     uint8_t ucPsrStdDev{0};
     uint8_t ucPhrStdDev{0};
     double dPsr{0.0};
@@ -783,7 +788,7 @@ struct MeasurementBlockHeader
 {
     bool bDataFormatFlag{false};
     uint8_t ucReserved{0};
-    int8_t cGlonassFrequencyNumber{0};
+    int8_t cGlonassFrequency{0};
 
     MeasurementBlockHeader() = default;
 };
@@ -798,8 +803,8 @@ struct MeasurementSignalBlock
     bool bParityKnown{false};
     bool bHalfCycleAdded{false};
     float fCNo{0.0F};
-    uint8_t ucLockTimeBitfield{0};
-    uint8_t ucPseudorangeStdDev{0};
+    uint8_t ucLockTime{0};
+    uint8_t ucPsrStdDev{0};
     uint8_t ucPhrStdDev{0};
     double dPsr{0.0};
     bool bValidPsr{false};
