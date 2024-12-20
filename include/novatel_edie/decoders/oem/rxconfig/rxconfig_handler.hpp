@@ -35,6 +35,8 @@
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 
+#include "novatel_edie/common/framer_manager.hpp"
+
 namespace novatel::edie::oem {
 
 constexpr uint16_t US_RX_CONFIG_MSG_ID = 128;
@@ -53,7 +55,6 @@ class RxConfigHandler
     static constexpr auto szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
     static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
 
-    Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;

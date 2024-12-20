@@ -60,7 +60,8 @@ enum class STATUS
     STREAM_EMPTY,           //!< The input stream is empty.
     UNSUPPORTED,            //!< An attempted operation is unsupported by this component.
     MALFORMED_INPUT,        //!< The input is recognizable, but has unexpected formatting.
-    DECOMPRESSION_FAILURE   //!< The RANGECMP log could not be decompressed.
+    DECOMPRESSION_FAILURE,  //!< The RANGECMP log could not be decompressed.
+    SYNC_BYTES_FOUND        //!< Sync bytes for the specific framer were found in the buffer.
 };
 
 inline std::string StatusToString(const STATUS eStatus_)
@@ -79,6 +80,7 @@ inline std::string StatusToString(const STATUS eStatus_)
            : eStatus_ == STATUS::UNSUPPORTED            ? "UNSUPPORTED"
            : eStatus_ == STATUS::MALFORMED_INPUT        ? "MALFORMED_INPUT"
            : eStatus_ == STATUS::DECOMPRESSION_FAILURE  ? "DECOMPRESSION_FAILURE"
+           : eStatus_ == STATUS::SYNC_BYTES_FOUND       ? "SYNC_BYTES_FOUND"
                                                         : "UNKNOWN";
 }
 
