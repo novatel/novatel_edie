@@ -95,14 +95,14 @@ class RxConfigHandler
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_  The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Write bytes to the RxConfigHandler to be converted.
@@ -112,7 +112,7 @@ class RxConfigHandler
     //
     //! \return The number of bytes successfully written to the RxConfigHandler.
     //----------------------------------------------------------------------------
-    uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_);
+    uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
     //----------------------------------------------------------------------------
     //! \brief Read and convert an RXCONFIG message from the handler.
@@ -143,7 +143,10 @@ class RxConfigHandler
     //
     //! \return The number of bytes flushed from the internal Framer.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize);
+    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize)
+    {
+        return clMyFramer.Flush(pucBuffer_, uiBufferSize_);
+    }
 };
 
 } // namespace novatel::edie::oem
