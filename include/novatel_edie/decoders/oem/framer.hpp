@@ -44,8 +44,6 @@ class Framer : public FramerBase
     uint32_t uiMyJsonObjectOpenBraces{0};
     uint32_t uiMyAbbrevAsciiHeaderPosition{0};
 
-    void ResetState() override;
-
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
     //! \param[in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
@@ -58,9 +56,33 @@ class Framer : public FramerBase
 
   public:
     //----------------------------------------------------------------------------
+    //! \brief Reset the state of the Framer.
+    //----------------------------------------------------------------------------
+    void ResetState() override;
+
+    //----------------------------------------------------------------------------
+    //! \brief Reset the state of the Framer and the byte count.
+    //----------------------------------------------------------------------------
+    void ResetStateAndByteCount() override;
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the Framer class.
+    //! \param [in] circularBuffer a shared pointer to the framer manager's circular buffer.
+    //----------------------------------------------------------------------------
+    Framer(std::shared_ptr<CircularBuffer> circularBuffer);
+
+    //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
     //----------------------------------------------------------------------------
     Framer();
+
+    //----------------------------------------------------------------------------
+    //! \brief Find the next sync byte in the circular buffer.
+    //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
+    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
+    //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.
+    //---------------------------------------------------------------------------
+    STATUS FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_) override;
 
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
@@ -81,7 +103,12 @@ class Framer : public FramerBase
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_) override;
+
+    //----------------------------------------------------------------------------
+    //! \brief A destructor for the Framer class.
+    //----------------------------------------------------------------------------
+    ~Framer() = default;
 };
 
 } // namespace novatel::edie::oem

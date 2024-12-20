@@ -64,7 +64,11 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+uint32_t RxConfigHandler::Write(unsigned char* pucData_, uint32_t uiDataSize_)
+{
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    return clMyFramerManager.Write(pucData_, uiDataSize_);
+}
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
@@ -77,8 +81,12 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     unsigned char* pucTempMessagePointer = pcMyFrameBuffer.get();
 
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FRAMER_ID eActiveFramerId = FRAMER_ID::UNKNOWN;
+
     // Get an RXCONFIG log.
-    STATUS eStatus = clMyFramer.GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
+    uint32_t uiFrameBufferOffset = 0;
+    STATUS eStatus = clMyFramerManager.GetFrame(pucTempMessagePointer, uiInternalBufferSize, eActiveFramerId);
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
@@ -269,4 +277,8 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t RxConfigHandler::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_) { return clMyFramer.Flush(pucBuffer_, uiBufferSize_); }
+uint32_t RxConfigHandler::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+{
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    return clMyFramerManager.Flush(pucBuffer_, uiBufferSize_);
+}
