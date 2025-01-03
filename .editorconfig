@@ -1,13 +1,11 @@
-# editorconfig.org
 root = true
 
-[*.{hpp,cpp,h}]
+[*]
 indent_style = space
-indent_size = 3
-
-trim_trailing_whitespace = true
+charset = utf-8
+trim_trailing_whitespace = false
+#end_of_line = lf
 insert_final_newline = true
 
-[*.md]
-trim_trailing_whitespace = false
-
+[CMakeLists.txt]
+indent_size = 4
