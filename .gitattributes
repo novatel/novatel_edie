@@ -1,16 +1,9 @@
-# Check out as LF or CRLF based on your OS, store in Git index as LF
-* text=auto
-
 # These are unit test files and should use crlf
 *.ASC text eol=crlf
 *.asc text eol=crlf
 *.txt text eol=crlf
 *.GPS text eol=crlf
 *.gps text eol=crlf
-*.BIN -text
-
-CMakeLists.txt text eol=auto
-conanfile.txt text eol=auto
 
 # another way of doing
 #  git config --global core.autocrlf false

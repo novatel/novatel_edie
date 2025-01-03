@@ -1,12 +1,9 @@
-.vs/
-.vscode/
-.idea/
-build/
-docs/build
-bin/
-venv/
-CMakeSettings.json
-CMakeUserPresets.json
-/include/novatel_edie/version.h
-edie.*.log
-edie.log
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/out/build/
+/CMakeSettings.json
+**/bin/
+**/venv/

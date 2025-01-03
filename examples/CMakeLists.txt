@@ -1,7 +1,0 @@
-add_subdirectory(novatel/command_encoding)
-add_subdirectory(novatel/converter_file_parser)
-add_subdirectory(novatel/converter_components)
-add_subdirectory(novatel/converter_parser)
-add_subdirectory(novatel/json_parser)
-add_subdirectory(novatel/range_decompressor)
-add_subdirectory(novatel/rxconfig_handler)

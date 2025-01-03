@@ -1,0 +1,20 @@
+/* Include folders for cpp files in library
+ */
+
+// Include Options
+--i"."
+--i"./src"
+--i"./src/decoders/common/api"
+--i"./src/decoders/dynamic_library/api"
+--i"./src/decoders/jsoninterface/api"
+--i"./src/decoders/novatel/api"
+--i"./src/decoders/novatel/api"
+--i"./src/hw_interface/dynamic_library/api"
+--i"./src/hw_interface/stream_interface/api"
+--i"./lib/driverinterface/api"
+--i"./lib/nlohmann"
+--i"./lint"
+
+
+
+
