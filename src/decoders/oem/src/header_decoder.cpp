@@ -131,8 +131,9 @@ void HeaderDecoder::DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stI
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const
+HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataBase& stMetaData_) const
 {
+    MetaDataStruct& stMetaData = dynamic_cast<MetaDataStruct&>(stMetaData_);
     if (pucLogBuf_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
@@ -140,7 +141,7 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
     const auto* pcTempBuf = reinterpret_cast<const char*>(pucLogBuf_);
     const auto* pstBinaryHeader = reinterpret_cast<const Oem4BinaryHeader*>(pucLogBuf_);
 
-    stMetaData_.eFormat = pstBinaryHeader->ucSync1 == OEM4_ASCII_SYNC          ? HEADER_FORMAT::ASCII
+    stMetaData.eFormat = pstBinaryHeader->ucSync1 == OEM4_ASCII_SYNC          ? HEADER_FORMAT::ASCII
                           : pstBinaryHeader->ucSync1 == OEM4_SHORT_ASCII_SYNC  ? HEADER_FORMAT::SHORT_ASCII
                           : pstBinaryHeader->ucSync1 == OEM4_ABBREV_ASCII_SYNC ? HEADER_FORMAT::ABB_ASCII
                           : pstBinaryHeader->ucSync1 == NMEA_SYNC              ? HEADER_FORMAT::NMEA
@@ -150,7 +151,7 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
                               ? HEADER_FORMAT::SHORT_BINARY
                               : HEADER_FORMAT::UNKNOWN;
 
-    switch (stMetaData_.eFormat)
+    switch (stMetaData.eFormat)
     {
     case HEADER_FORMAT::ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '#'
@@ -180,7 +181,7 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
         else
         {
             // Port field failed, so we (unsafely) assume this is short
-            stMetaData_.eFormat = HEADER_FORMAT::SHORT_ABB_ASCII;
+            stMetaData.eFormat = HEADER_FORMAT::SHORT_ABB_ASCII;
             if (!DecodeAsciiHeaderFields<ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS>(stInterHeader_, &pcTempBuf)) { return STATUS::FAILURE; }
         }
         ++pcTempBuf; // Move the input buffer past the trailing delimiter '\n'
@@ -236,20 +237,20 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
     default: return STATUS::UNKNOWN;
     }
 
-    stMetaData_.eMeasurementSource =
+    stMetaData.eMeasurementSource =
         static_cast<MEASUREMENT_SOURCE>(stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC));
-    stMetaData_.eTimeStatus = static_cast<TIME_STATUS>(stInterHeader_.uiTimeStatus);
-    stMetaData_.bResponse =
+    stMetaData.eTimeStatus = static_cast<TIME_STATUS>(stInterHeader_.uiTimeStatus);
+    stMetaData.bResponse =
         static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE) == (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE));
-    stMetaData_.usWeek = static_cast<uint32_t>(stInterHeader_.usWeek);
-    stMetaData_.dMilliseconds = static_cast<uint32_t>(stInterHeader_.dMilliseconds);
-    stMetaData_.usMessageId = static_cast<uint32_t>(stInterHeader_.usMessageId);
-    stMetaData_.uiMessageCrc = stInterHeader_.uiMessageDefinitionCrc;
-    stMetaData_.uiHeaderLength = static_cast<uint32_t>(pcTempBuf - reinterpret_cast<const char*>(pucLogBuf_));
-    stMetaData_.uiBinaryMsgLength = static_cast<uint32_t>(stInterHeader_.usLength);
+    stMetaData.usWeek = static_cast<uint32_t>(stInterHeader_.usWeek);
+    stMetaData.dMilliseconds = static_cast<uint32_t>(stInterHeader_.dMilliseconds);
+    stMetaData.usMessageId = static_cast<uint32_t>(stInterHeader_.usMessageId);
+    stMetaData.uiMessageCrc = stInterHeader_.uiMessageDefinitionCrc;
+    stMetaData.uiHeaderLength = static_cast<uint32_t>(pcTempBuf - reinterpret_cast<const char*>(pucLogBuf_));
+    stMetaData.uiBinaryMsgLength = static_cast<uint32_t>(stInterHeader_.usLength);
 
     // Reconstruct a message name that won't have a suffix of any kind.
-    stMetaData_.MessageName(pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY),
+    stMetaData.MessageName(pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY),
                                                                    static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U)));
 
     return STATUS::SUCCESS;

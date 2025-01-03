@@ -108,7 +108,7 @@ class Encoder : public EncoderBase
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataBase& stMetaData_,
                                 ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
@@ -141,7 +141,7 @@ class Encoder : public EncoderBase
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                      MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_,
+                                      MessageDataStruct& stMessageData_, const MetaDataBase& stMetaData_, ENCODE_FORMAT eFormat_,
                                       bool bIsEmbeddedHeader_ = false) const;
 
     //----------------------------------------------------------------------------
@@ -172,7 +172,7 @@ class Encoder : public EncoderBase
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
-                                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_) const;
+                                    MessageDataStruct& stMessageData_, const MetaDataBase& stMetaData_, ENCODE_FORMAT eFormat_) const;
 };
 
 } // namespace novatel::edie::oem
