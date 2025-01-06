@@ -34,8 +34,6 @@ FramerManager::FramerManager() : pclMyLogger(Logger::RegisterLogger("FramerManag
     pclMyLogger->debug("Framer Manager initialized");
 }
 
-std::shared_ptr<CircularBuffer> FramerManager::GetCircularBuffer() const { return pclMyCircularDataBuffer; }
-
 void FramerManager::RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
 {
     framerRegistry.emplace_back(FramerElement(framerId_, std::move(framer_), std::move(metadata_), 0));
@@ -160,7 +158,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
         ResetAllMetaDataStates();
         for (auto& [framerId, framer, metadata, offset] : framerRegistry)
         {
-            framer->eMyCurrentFramerStatus = framer->FindNextSyncByte(pucFrameBuffer_, uiFrameBufferSize_);
+            framer->eMyCurrentFramerStatus = framer->FindNextSyncByte(uiFrameBufferSize_);
         }
     }
 
@@ -200,6 +198,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
                 ResetAllFramerStates();
                 return framer_element.framer->eMyCurrentFramerStatus;
             }
+            break;
         }
     }
 

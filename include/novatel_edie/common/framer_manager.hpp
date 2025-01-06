@@ -32,15 +32,11 @@
 #include <memory>
 #include <vector>
 
-
 #include "novatel_edie/common/circular_buffer.hpp"
 #include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/common/logger.hpp"
-
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/framer.hpp"
-
-
 
 // Type-Specific Framers
 // #include "src/decoders/automotive/api/common.hpp"
@@ -153,7 +149,12 @@ class FramerManager
         return instance;
     }
 
-    std::shared_ptr<CircularBuffer> GetCircularBuffer() const;
+    //----------------------------------------------------------------------------
+    //! \brief Get the internal circular buffer.
+    //! \return Shared pointer to the internal circular buffer object.
+    //---------------------------------------------------------------------------
+    [[nodiscard]]
+    std::shared_ptr<CircularBuffer> GetCircularBuffer() const { return pclMyCircularDataBuffer; }
 
     void AddFramer(const FRAMER_ID framerId_);
 

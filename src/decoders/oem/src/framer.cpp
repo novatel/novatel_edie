@@ -108,26 +108,19 @@ void Framer::ResetStateAndByteCount()
 }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS Framer::FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_)
+STATUS Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
 {
-    if (pucFrameBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
-
-    enum class HeaderFormat
-    {
-        UNKNOWN,
-        ABB_ASCII
-    };
     NovAtelFrameState localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
 
     while (localFrameState != NovAtelFrameState::COMPLETE_MESSAGE)
     {
-        // Read data from circular buffer until we reach the end or we didn't find a complete frame in current data buffer
+        // Read data from circular buffer until end is reached
         if (pclMyCircularDataBuffer->GetLength() == uiMyByteCount)
         {
-            // TODO Zain - Uncomment this
-            // if (uiMyByteCount == 0) { return STATUS::BUFFER_EMPTY; }
+
             uiMyFrameBufferOffset = uiMyByteCount;
             uiMyByteCount = 0;
+            // We have found a potential partial log, but we need more data to complete it
             if (localFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
             {
                 // If the data lands on the abbreviated header CRLF then it can be missed unless it's tested again when there is more data
@@ -321,9 +314,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
     {
         stMetaData.bResponse = false;
 
-        // Read data from circular buffer until we reach the end or we didn't find a complete frame in current data buffer
+        // Read data from circular buffer until end is reached
         if (pclMyCircularDataBuffer->GetLength() == uiMyByteCount)
         {
+            // We have found a potential partial log, but we need more data to complete it
             if (eMyFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
             {
                 // If the data lands on the abbreviated header CRLF then it can be missed unless it's tested again when there is more data

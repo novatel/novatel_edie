@@ -78,7 +78,7 @@ void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const
 {
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     clMyFramerManager.SetLoggerLevel(eLevel_);
-    
+
     clMyHeaderDecoder.SetLoggerLevel(eLevel_);
     clMyMessageDecoder.SetLoggerLevel(eLevel_);
 

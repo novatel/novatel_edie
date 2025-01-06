@@ -242,8 +242,7 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
     default: return STATUS::UNKNOWN;
     }
 
-    stMetaData.eMeasurementSource =
-        static_cast<MEASUREMENT_SOURCE>(stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC));
+    stMetaData.eMeasurementSource = static_cast<MEASUREMENT_SOURCE>(stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC));
     stMetaData.eTimeStatus = static_cast<TIME_STATUS>(stInterHeader_.uiTimeStatus);
     stMetaData.bResponse =
         static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE) == (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE));

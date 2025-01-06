@@ -103,7 +103,7 @@ class FramerBase
     //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
     //
     //! \return SYNC_BYTE_FOUND if a sync byte is found.
-    virtual STATUS FindNextSyncByte(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_) = 0;
+    virtual STATUS FindNextSyncByte(const uint32_t uiFrameBufferSize_) = 0;
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
