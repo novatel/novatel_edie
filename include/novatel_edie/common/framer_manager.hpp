@@ -153,8 +153,7 @@ class FramerManager
     //! \brief Get the internal circular buffer.
     //! \return Shared pointer to the internal circular buffer object.
     //---------------------------------------------------------------------------
-    [[nodiscard]]
-    std::shared_ptr<CircularBuffer> GetCircularBuffer() const { return pclMyCircularDataBuffer; }
+    [[nodiscard]] std::shared_ptr<CircularBuffer> GetCircularBuffer() const { return pclMyCircularDataBuffer; }
 
     void AddFramer(const FRAMER_ID framerId_);
 
