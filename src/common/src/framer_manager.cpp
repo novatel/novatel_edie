@@ -39,17 +39,6 @@ void FramerManager::RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<Fr
     framerRegistry.emplace_back(FramerElement(framerId_, std::move(framer_), std::move(metadata_), 0));
 }
 
-uint32_t FramerManager::Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
-{
-    return pclMyCircularDataBuffer->Append(pucDataBuffer_, uiDataBytes_);
-}
-
-[[nodiscard]] std::shared_ptr<spdlog::logger> FramerManager::GetLogger() const { return pclMyLogger; }
-
-void FramerManager::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-void FramerManager::ShutdownLogger() { ShutdownLogger(); }
-
 void FramerManager::ReorderFramers()
 {
     auto it = std::min_element(framerRegistry.begin(), framerRegistry.end(), [](const FramerElement& a, const FramerElement& b) {

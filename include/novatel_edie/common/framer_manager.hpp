@@ -115,6 +115,7 @@ class FramerManager
     void RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
+    //
     //! \param[in] framerId_ The ID of the framer to get the MetaData for.
     //! \return A pointer to the MetaData for the specified framer.
     //! \return nullptr if the framer is not found.
@@ -151,25 +152,25 @@ class FramerManager
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal circular buffer.
+    //
     //! \return Shared pointer to the internal circular buffer object.
     //---------------------------------------------------------------------------
     [[nodiscard]] std::shared_ptr<CircularBuffer> GetCircularBuffer() const { return pclMyCircularDataBuffer; }
 
     void AddFramer(const FRAMER_ID framerId_);
 
-    // nmea::MetaDataStruct nmeaMetaDataStruct;
-    ////----------------------------------------------------------------------------
-    ////! \brief A constructor for the FramerBase class.
-    ////
-    ////! \param[in] strLoggerName_ String to name the internal logger.
-    ////----------------------------------------------------------------------------
-    // FramerManager(const std::string& strLoggerName_);
-
     //----------------------------------------------------------------------------
     //! \brief A destructor for the FramerBase class.
     //----------------------------------------------------------------------------
     ~FramerManager() = default;
 
+    //----------------------------------------------------------------------------
+    //! \brief Get the pointer to a FramerElement Structure for specified framer.
+    //
+    //! \param[in] framerId_ The ID of the framer to get the FramerElement for.
+    //
+    //! \return A pointer to the FramerElement for the specified framer.
+    //---------------------------------------------------------------------------
     FramerElement* GetFramerElement(const FRAMER_ID framerId_);
 
     //----------------------------------------------------------------------------
@@ -181,21 +182,24 @@ class FramerManager
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_);
+    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
+    {
+        return pclMyCircularDataBuffer->Append(pucDataBuffer_, uiDataBytes_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Reorder the framers in the framer registry.
     //----------------------------------------------------------------------------
     void ReorderFramers();
 
-    ////----------------------------------------------------------------------------
-    ////! \brief Flush bytes from the internal circular buffer.
-    ////
-    ////! \param[in] pucBuffer_ The buffer to contain the flushed bytes.
-    ////! \param[in] uiBufferSize_ The size of the provided buffer.
-    ////
-    ////! \return The number of bytes flushed from the internal circular buffer.
-    ////----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //! \brief Flush bytes from the internal circular buffer.
+    //
+    //! \param[in] pucBuffer_ The buffer to contain the flushed bytes.
+    //! \param[in] uiBufferSize_ The size of the provided buffer.
+    //
+    //! \return The number of bytes flushed from the internal circular buffer.
+    //----------------------------------------------------------------------------
     uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
         const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
@@ -208,20 +212,29 @@ class FramerManager
     //
     //! \return Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
     //
     //! \param[in] eLevel_ Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(const spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
     //----------------------------------------------------------------------------
-    void ShutdownLogger();
+    void ShutdownLogger() { ShutdownLogger(); }
 
+    //----------------------------------------------------------------------------
+    //! \brief Attempt to discover a frame from the internal circular buffer if one exists
+    //
+    //! \param[in] pucFrameBuffer_ The buffer to contain the discovered frame.
+    //! \param[in] uiFrameBufferSize_ The size of the provided buffer.
+    //! \param[out] eActiveFramerId_ The ID of the framer that discovered the frame.
+    //
+    //! \return The status of the frame discovery.
+    //---------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, FRAMER_ID& eActiveFramerId_);
 };
 } // namespace novatel::edie
