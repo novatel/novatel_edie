@@ -141,15 +141,15 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
     const auto* pcTempBuf = reinterpret_cast<const char*>(pucLogBuf_);
     const auto* pstBinaryHeader = reinterpret_cast<const Oem4BinaryHeader*>(pucLogBuf_);
 
-    stMetaData.eFormat = pstBinaryHeader->ucSync1 == OEM4_ASCII_SYNC          ? HEADER_FORMAT::ASCII
-                          : pstBinaryHeader->ucSync1 == OEM4_SHORT_ASCII_SYNC  ? HEADER_FORMAT::SHORT_ASCII
-                          : pstBinaryHeader->ucSync1 == OEM4_ABBREV_ASCII_SYNC ? HEADER_FORMAT::ABB_ASCII
-                          : pstBinaryHeader->ucSync1 == NMEA_SYNC              ? HEADER_FORMAT::NMEA
-                          : pstBinaryHeader->ucSync1 == '{'                    ? HEADER_FORMAT::JSON
-                          : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_BINARY_SYNC3 ? HEADER_FORMAT::BINARY
-                          : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_SHORT_BINARY_SYNC3
-                              ? HEADER_FORMAT::SHORT_BINARY
-                              : HEADER_FORMAT::UNKNOWN;
+    stMetaData.eFormat = pstBinaryHeader->ucSync1 == OEM4_ASCII_SYNC                                                      ? HEADER_FORMAT::ASCII
+                         : pstBinaryHeader->ucSync1 == OEM4_SHORT_ASCII_SYNC                                              ? HEADER_FORMAT::SHORT_ASCII
+                         : pstBinaryHeader->ucSync1 == OEM4_ABBREV_ASCII_SYNC                                             ? HEADER_FORMAT::ABB_ASCII
+                         : pstBinaryHeader->ucSync1 == NMEA_SYNC                                                          ? HEADER_FORMAT::NMEA
+                         : pstBinaryHeader->ucSync1 == '{'                                                                ? HEADER_FORMAT::JSON
+                         : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_BINARY_SYNC3 ? HEADER_FORMAT::BINARY
+                         : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_SHORT_BINARY_SYNC3
+                             ? HEADER_FORMAT::SHORT_BINARY
+                             : HEADER_FORMAT::UNKNOWN;
 
     switch (stMetaData.eFormat)
     {
@@ -237,8 +237,7 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
     default: return STATUS::UNKNOWN;
     }
 
-    stMetaData.eMeasurementSource =
-        static_cast<MEASUREMENT_SOURCE>(stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC));
+    stMetaData.eMeasurementSource = static_cast<MEASUREMENT_SOURCE>(stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC));
     stMetaData.eTimeStatus = static_cast<TIME_STATUS>(stInterHeader_.uiTimeStatus);
     stMetaData.bResponse =
         static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE) == (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE));
@@ -251,7 +250,7 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
 
     // Reconstruct a message name that won't have a suffix of any kind.
     stMetaData.MessageName(pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY),
-                                                                   static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U)));
+                                                                  static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U)));
 
     return STATUS::SUCCESS;
 }

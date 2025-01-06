@@ -27,8 +27,8 @@
 #ifndef NOVATEL_PARSER_HPP
 #define NOVATEL_PARSER_HPP
 
-#include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/common/framer_manager.hpp"
+#include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"

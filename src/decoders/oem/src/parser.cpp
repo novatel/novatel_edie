@@ -125,7 +125,7 @@ void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const
 {
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     clMyFramerManager.SetLoggerLevel(eLevel_);
-    
+
     clMyHeaderDecoder.SetLoggerLevel(eLevel_);
     clMyMessageDecoder.SetLoggerLevel(eLevel_);
 
@@ -177,7 +177,8 @@ ENCODE_FORMAT Parser::GetEncodeFormat() const { return eMyEncodeFormat; }
 unsigned char* Parser::GetInternalBuffer() const { return pucMyFrameBufferPointer; }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t Parser::Write(unsigned char* pucData_, uint32_t uiDataSize_) { 
+uint32_t Parser::Write(unsigned char* pucData_, uint32_t uiDataSize_)
+{
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     return clMyFramerManager.Write(pucData_, uiDataSize_);
 }

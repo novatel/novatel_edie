@@ -28,8 +28,8 @@
 
 #include <gtest/gtest.h>
 
-#include "novatel_edie/decoders/oem/framer.hpp"
 #include "novatel_edie/common/framer_manager.hpp"
+#include "novatel_edie/decoders/oem/framer.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -144,7 +144,6 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_COMPLETE)
     FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(12, MAX_BINARY_MESSAGE_LENGTH);
 
     FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(76, MAX_BINARY_MESSAGE_LENGTH);
-
 }
 
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INCOMPLETE)
@@ -199,7 +198,7 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INADEQUATE_BUFFER)
                          0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC};
     WriteBytesToFramer(aucData, sizeof(aucData));
 
-    FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData)-1);
+    FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
     FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucData), sizeof(aucData));
 }
 
@@ -229,10 +228,9 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BYTE_BY_BYTE)
         if (stExpectedMetaData.uiLength > OEM4_BINARY_SYNC_LENGTH) { id = FRAMER_ID::NOVATEL; }
 
         if (uiRemainingBytes == 0) { break; }
-       
+
         ASSERT_EQ(STATUS::INCOMPLETE, clMyFramerManager.GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, id));
         ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
-
     }
     stExpectedMetaData.uiLength = uiLogSize;
     ASSERT_EQ(STATUS::SUCCESS, clMyFramerManager.GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, id));
