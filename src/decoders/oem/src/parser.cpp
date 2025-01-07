@@ -201,7 +201,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                     if (eStatus == STATUS::SUCCESS) { stHeader.usMessageId = stMetaData_.usMessageId; }
                     else
                     {
-                        pclMyLogger->info("RangeDecompressor returned status {}\n", static_cast<int32_t>(eStatus));
+                        pclMyLogger->info("RangeDecompressor returned status {}", eStatus);
                         return eStatus;
                     }
                     // Continue if we succeeded.
@@ -214,7 +214,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                     MetaDataStruct stEmbeddedMetaData;
                     clMyRxConfigHandler.Write(pucMyFrameBufferPointer, stMetaData_.uiLength);
                     eStatus = clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
-                    if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}\n", static_cast<int32_t>(eStatus)); }
+                    if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}", eStatus); }
                     return eStatus;
                 }
 
@@ -226,14 +226,14 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                                                  stMetaData_, eMyEncodeFormat);
                     if (eStatus == STATUS::SUCCESS) { return STATUS::SUCCESS; }
 
-                    pclMyLogger->info("Encoder returned status {}\n", static_cast<int32_t>(eStatus));
+                    pclMyLogger->info("Encoder returned status {}", eStatus);
                 }
-                else { pclMyLogger->info("MessageDecoder returned status {}\n", static_cast<int32_t>(eStatus)); }
+                else { pclMyLogger->info("MessageDecoder returned status {}", eStatus); }
             }
-            else { pclMyLogger->info("HeaderDecoder returned status {}\n", static_cast<int32_t>(eStatus)); }
+            else { pclMyLogger->info("HeaderDecoder returned status {}", eStatus); }
         }
         else if (eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
-        else { pclMyLogger->info("Framer returned status {}\n", static_cast<int32_t>(eStatus)); }
+        else { pclMyLogger->info("Framer returned status {}", eStatus); }
     }
 }
 

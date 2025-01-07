@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
                 }
             }
             else if (eFramerStatus == STATUS::UNKNOWN) { unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
-            else { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
+            else if (eFramerStatus != STATUS::BUFFER_EMPTY) { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
         }
     }
 
