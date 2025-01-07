@@ -79,7 +79,7 @@ def benchmarker():
     return Benchmarker()
 
 
-def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS(benchmarker):
+def test_benchmark_binary_to_binary_bestpos(benchmarker):
     log = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x9B, 0xB4, 0x74, 0x08, 0xB8, 0x34,
          0x13, 0x14, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
@@ -90,17 +90,17 @@ def test_BENCHMARK_BINARY_TO_BINARY_BESTPOS(benchmarker):
     benchmarker.run(log, ENCODE_FORMAT.BINARY)
 
 
-def test_BENCHMARK_ASCII_TO_ASCII_BESTPOS(benchmarker):
+def test_benchmark_ascii_to_ascii_bestpos(benchmarker):
     log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
     benchmarker.run(log, ENCODE_FORMAT.ASCII)
 
 
-def test_BENCHMARK_ASCII_TO_BINARY_BESTPOS(benchmarker):
+def test_benchmark_ascii_to_binary_bestpos(benchmarker):
     log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
     benchmarker.run(log, ENCODE_FORMAT.BINARY)
 
 
-def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS(benchmarker):
+def test_benchmark_binary_to_ascii_bestpos(benchmarker):
     log = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x9B, 0xB4, 0x74, 0x08, 0xB8, 0x34,
          0x13, 0x14, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
@@ -111,12 +111,12 @@ def test_BENCHMARK_BINARY_TO_ASCII_BESTPOS(benchmarker):
     benchmarker.run(log, ENCODE_FORMAT.ASCII)
 
 
-def test_BENCHMARK_ASCII_TO_FLAT_BINARY_BESTPOS(benchmarker):
+def test_benchmark_ascii_to_flat_binary_bestpos(benchmarker):
     log = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
     benchmarker.run(log, ENCODE_FORMAT.FLATTENED_BINARY)
 
 
-def test_BENCHMARK_BINARY_TO_FLAT_BINARY_BESTPOS(benchmarker):
+def test_benchmark_binary_to_flat_binary_bestpos(benchmarker):
     log = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x9B, 0xB4, 0x74, 0x08, 0xB8, 0x34,
          0x13, 0x14, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,

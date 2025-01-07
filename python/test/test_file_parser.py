@@ -42,7 +42,7 @@ def fp():
     return ne.FileParser()
 
 
-def test_LOGGER():
+def test_logger():
     assert ne.Logging.get("novatel_file_parser") is None
     assert ne.Logging.get("novatel_parser") is None
     # FileParser logger
@@ -57,28 +57,28 @@ def test_LOGGER():
 
 
 @pytest.mark.skip(reason="Slow and redundant")
-def test_FILEPARSER_INSTANTIATION(json_db, json_db_path):
+def test_fileparser_instantiation(json_db, json_db_path):
     fp = ne.FileParser()
     fp.load_json_db(json_db)
     ne.FileParser(json_db_path)
     ne.FileParser(json_db)
 
 
-def test_RANGE_CMP(fp):
+def test_range_cmp(fp):
     fp.decompress_range_cmp = True
     assert fp.decompress_range_cmp
     fp.decompress_range_cmp = False
     assert not fp.decompress_range_cmp
 
 
-def test_UNKNOWN_BYTES(fp):
+def test_unknown_bytes(fp):
     fp.return_unknown_bytes = True
     assert fp.return_unknown_bytes
     fp.return_unknown_bytes = False
     assert not fp.return_unknown_bytes
 
 
-def test_PARSE_FILE_WITH_FILTER(fp, decoders_test_resources):
+def test_parse_file_with_filter(fp, decoders_test_resources):
     fp.filter = ne.Filter()
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
 
@@ -125,6 +125,6 @@ def test_file_parser_iterator(fp, decoders_test_resources):
         assert success == 2
 
 
-def test_RESET(fp):
+def test_reset(fp):
     assert len(fp.internal_buffer) > 0
     assert fp.reset()

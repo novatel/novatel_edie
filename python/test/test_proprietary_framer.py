@@ -98,7 +98,7 @@ def compare_metadata(test_md, expected_md):
 # -------------------------------------------------------------------------------------------------------
 # Proprietary Binary Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_PROPRIETARY_BINARY_COMPLETE(helper):
+def test_proprietary_binary_complete(helper):
     # "GARBAGE_DATA<binary bestpos log>"
     data = bytes(
         [0x47, 0x41, 0x52, 0x42, 0x41, 0x47, 0x45, 0x5F, 0x44, 0x41, 0x54, 0x41, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09,
@@ -121,7 +121,7 @@ def test_PROPRIETARY_BINARY_COMPLETE(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_INCOMPLETE(helper):
+def test_proprietary_binary_incomplete(helper):
     # "<incomplete binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -137,7 +137,7 @@ def test_PROPRIETARY_BINARY_INCOMPLETE(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_SYNC_ERROR(helper):
+def test_proprietary_binary_sync_error(helper):
     helper.write_file_to_framer("proprietary_binary_sync_error.BIN")
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = ne.MAX_BINARY_MESSAGE_LENGTH
@@ -147,7 +147,7 @@ def test_PROPRIETARY_BINARY_SYNC_ERROR(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_BAD_CRC(helper):
+def test_proprietary_binary_bad_crc(helper):
     # "<encrypted binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -164,7 +164,7 @@ def test_PROPRIETARY_BINARY_BAD_CRC(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_RUN_ON_CRC(helper):
+def test_proprietary_binary_run_on_crc(helper):
     # "<encrypted binary bestpos log>FF"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -181,7 +181,7 @@ def test_PROPRIETARY_BINARY_RUN_ON_CRC(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_INADEQUATE_BUFFER(helper):
+def test_proprietary_binary_inadequate_buffer(helper):
     # "<encrypted binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -203,7 +203,7 @@ def test_PROPRIETARY_BINARY_INADEQUATE_BUFFER(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_BYTE_BY_BYTE(helper):
+def test_proprietary_binary_byte_by_byte(helper):
     # "<binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -235,7 +235,7 @@ def test_PROPRIETARY_BINARY_BYTE_BY_BYTE(helper):
     assert compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_PROPRIETARY_BINARY_SEGMENTED(helper):
+def test_proprietary_binary_segmented(helper):
     # "<binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6,
@@ -277,7 +277,7 @@ def test_PROPRIETARY_BINARY_SEGMENTED(helper):
     assert bytes_written == len(data)
 
 
-def test_PROPRIETARY_BINARY_TRICK(helper):
+def test_proprietary_binary_trick(helper):
     # "<binary syncs><binary sync + half header><binary sync byte 1><binary bestpos log>"
     data = bytes(
         [0xAA, 0x45, 0x12, 0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82,

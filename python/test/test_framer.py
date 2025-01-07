@@ -86,7 +86,7 @@ def compare_metadata(test_md, expected_md, ignore_length=False):
 # -------------------------------------------------------------------------------------------------------
 # Logger Framer Unit Tests
 #  -------------------------------------------------------------------------------------------------------
-def test_LOGGER():
+def test_logger():
     name = "novatel_framer"
     level = ne.LogLevel.OFF
     logger = ne.Framer().logger
@@ -99,43 +99,43 @@ def test_LOGGER():
 # -------------------------------------------------------------------------------------------------------
 # ASCII Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_ASCII_COMPLETE(helper):
+def test_ascii_complete(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.ASCII, STATUS.SUCCESS, len(data))
 
 
-def test_ASCII_INCOMPLETE(helper):
+def test_ascii_incomplete(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.ASCII, STATUS.INCOMPLETE, len(data))
 
 
-def test_ASCII_SYNC_ERROR(helper):
+def test_ascii_sync_error(helper):
     helper.write_file_to_framer("ascii_sync_error.ASC")
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, ne.MAX_ASCII_MESSAGE_LENGTH)
 
 
-def test_ASCII_BAD_CRC(helper):
+def test_ascii_bad_crc(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*ffffffff\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, len(data))
 
 
-def test_ASCII_RUN_ON_CRC(helper):
+def test_ascii_run_on_crc(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35ff\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.ASCII, STATUS.INCOMPLETE, len(data))
 
 
-def test_ASCII_INADEQUATE_BUFFER(helper):
+def test_ascii_inadequate_buffer(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.ASCII, STATUS.BUFFER_FULL, len(data), buffer_length=len(data) - 1)
     helper.test_framer(HEADER_FORMAT.ASCII, STATUS.SUCCESS, len(data), buffer_length=len(data))
 
 
-def test_ASCII_BYTE_BY_BYTE(helper):
+def test_ascii_byte_by_byte(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     log_size = len(data)
     remaining_bytes = log_size
@@ -161,7 +161,7 @@ def test_ASCII_BYTE_BY_BYTE(helper):
     compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_ASCII_SEGMENTED(helper):
+def test_ascii_segmented(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     bytes_written = 0
     expected_meta_data = ne.MetaData()
@@ -205,7 +205,7 @@ def test_ASCII_SEGMENTED(helper):
     assert bytes_written == len(data)
 
 
-def test_ASCII_TRICK(helper):
+def test_ascii_trick(helper):
     data = b"#TEST;*ffffffff\r\n#;*\r\n#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, 17)
@@ -213,7 +213,7 @@ def test_ASCII_TRICK(helper):
     helper.test_framer(HEADER_FORMAT.ASCII, STATUS.SUCCESS, 217)
 
 
-def test_ABBREV_ASCII_SEGMENTED(helper):
+def test_abbrev_ascii_segmented(helper):
     data = b"<RAWIMUX ICOM7 0 68.5 FINESTEERING 2222 136132.845 02040120 0dc5 16860\r\n< 04 41 2222 136132.844765 edb7fe00 327412165 - 7829932 13988218 - 498546 213188 - 987039\r\n[COM1]"
     log_size = len(data) - 6  # Remove the [ICOM] from the log size
     bytes_written = 0
@@ -273,7 +273,7 @@ def test_ABBREV_ASCII_SEGMENTED(helper):
 # -------------------------------------------------------------------------------------------------------
 # Binary Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_BINARY_COMPLETE(helper):
+def test_binary_complete(helper):
     # "<binary BESTPOS log>"
     data = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -286,7 +286,7 @@ def test_BINARY_COMPLETE(helper):
     helper.test_framer(HEADER_FORMAT.BINARY, STATUS.SUCCESS, len(data))
 
 
-def test_BINARY_INCOMPLETE(helper):
+def test_binary_incomplete(helper):
     # "<incomplete binary BESTPOS log>"
     data = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -298,7 +298,7 @@ def test_BINARY_INCOMPLETE(helper):
     helper.test_framer(HEADER_FORMAT.BINARY, STATUS.INCOMPLETE, len(data))
 
 
-def test_BINARY_BUFFER_FULL(helper):
+def test_binary_buffer_full(helper):
     # "<incomplete binary BESTPOS log>"
     data = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -312,7 +312,7 @@ def test_BINARY_BUFFER_FULL(helper):
     assert status == STATUS.BUFFER_FULL
 
 
-def test_BINARY_SYNC_ERROR(helper):
+def test_binary_sync_error(helper):
     helper.write_file_to_framer("binary_sync_error.BIN")
     expected_meta_data = ne.MetaData()
     expected_meta_data.length = ne.MAX_BINARY_MESSAGE_LENGTH
@@ -322,7 +322,7 @@ def test_BINARY_SYNC_ERROR(helper):
     compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_BINARY_BAD_CRC(helper):
+def test_binary_bad_crc(helper):
     # "<binary BESTPOS log>"
     data = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -335,7 +335,7 @@ def test_BINARY_BAD_CRC(helper):
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, 57)
 
 
-def test_BINARY_RUN_ON_CRC(helper):
+def test_binary_run_on_crc(helper):
     # "<binary BESTPOS log>FF"
     data = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -348,7 +348,7 @@ def test_BINARY_RUN_ON_CRC(helper):
     helper.test_framer(HEADER_FORMAT.BINARY, STATUS.SUCCESS, 104)
 
 
-def test_BINARY_INADEQUATE_BUFFER(helper):
+def test_binary_inadequate_buffer(helper):
     # "<binary BESTPOS log>"
     data = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -362,7 +362,7 @@ def test_BINARY_INADEQUATE_BUFFER(helper):
     helper.test_framer(HEADER_FORMAT.BINARY, STATUS.SUCCESS, len(data), buffer_length=len(data))
 
 
-def test_BINARY_BYTE_BY_BYTE(helper):
+def test_binary_byte_by_byte(helper):
     # "<binary BESTPOS log>"
     data = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -395,7 +395,7 @@ def test_BINARY_BYTE_BY_BYTE(helper):
     compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_BINARY_SEGMENTED(helper):
+def test_binary_segmented(helper):
     # "<binary BESTPOS log>"
     data = bytes(
         [0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -438,7 +438,7 @@ def test_BINARY_SEGMENTED(helper):
     assert bytes_written == len(data)
 
 
-def test_BINARY_TRICK(helper):
+def test_binary_trick(helper):
     # "<binary syncs><binary sync + half header><binary sync byte 1><binary BESTPOS log>"
     data = bytes(
         [0xAA, 0x44, 0x12, 0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73,
@@ -458,36 +458,36 @@ def test_BINARY_TRICK(helper):
 # -------------------------------------------------------------------------------------------------------
 # Short ASCII Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_SHORT_ASCII_COMPLETE(helper):
+def test_short_ascii_complete(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.SHORT_ASCII, STATUS.SUCCESS, len(data))
 
 
-def test_SHORT_ASCII_INCOMPLETE(helper):
+def test_short_ascii_incomplete(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.SHORT_ASCII, STATUS.INCOMPLETE, len(data))
 
 
-def test_SHORT_ASCII_SYNC_ERROR(helper):
+def test_short_ascii_sync_error(helper):
     helper.write_file_to_framer("short_ascii_sync_error.ASC")
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, ne.MAX_SHORT_ASCII_MESSAGE_LENGTH)
 
 
-def test_SHORT_ASCII_BAD_CRC(helper):
+def test_short_ascii_bad_crc(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*ffffffff\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, len(data))
 
 
-def test_SHORT_ASCII_RUN_ON_CRC(helper):
+def test_short_ascii_run_on_crc(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7bff\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.SHORT_ASCII, STATUS.INCOMPLETE, len(data))
 
 
-def test_SHORT_ASCII_INADEQUATE_BUFFER(helper):
+def test_short_ascii_inadequate_buffer(helper):
     # "<binary BESTPOS log>"
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer(data)
@@ -495,7 +495,7 @@ def test_SHORT_ASCII_INADEQUATE_BUFFER(helper):
     helper.test_framer(HEADER_FORMAT.SHORT_ASCII, STATUS.SUCCESS, len(data), buffer_length=len(data))
 
 
-def test_SHORT_ASCII_BYTE_BY_BYTE(helper):
+def test_short_ascii_byte_by_byte(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     log_size = len(data)
     remaining_bytes = log_size
@@ -521,7 +521,7 @@ def test_SHORT_ASCII_BYTE_BY_BYTE(helper):
     compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_SHORT_ASCII_SEGMENTED(helper):
+def test_short_ascii_segmented(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     bytes_written = 0
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_SHORT_ASCII_SYNC_LENGTH])
@@ -547,7 +547,7 @@ def test_SHORT_ASCII_SEGMENTED(helper):
     assert bytes_written == len(data)
 
 
-def test_SHORT_ASCII_TRICK(helper):
+def test_short_ascii_trick(helper):
     data = b"%;*\r\n%%**\r\n%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, 5)
@@ -559,7 +559,7 @@ def test_SHORT_ASCII_TRICK(helper):
 # -------------------------------------------------------------------------------------------------------
 # Short Binary Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_SHORT_BINARY_COMPLETE(helper):
+def test_short_binary_complete(helper):
     # "<short binary rawimusx log>"
     data = bytes(
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
@@ -570,7 +570,7 @@ def test_SHORT_BINARY_COMPLETE(helper):
     helper.test_framer(HEADER_FORMAT.SHORT_BINARY, STATUS.SUCCESS, len(data))
 
 
-def test_SHORT_BINARY_INCOMPLETE(helper):
+def test_short_binary_incomplete(helper):
     # "<incomplete short binary rawimusx log>"
     data = bytes(
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
@@ -579,7 +579,7 @@ def test_SHORT_BINARY_INCOMPLETE(helper):
     helper.test_framer(HEADER_FORMAT.SHORT_BINARY, STATUS.INCOMPLETE, len(data))
 
 
-def test_SHORT_BINARY_BUFFER_FULL(helper):
+def test_short_binary_buffer_full(helper):
     # "<incomplete short binary rawimusx log>"
     data = bytes(
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
@@ -593,12 +593,12 @@ def test_SHORT_BINARY_BUFFER_FULL(helper):
     compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_SHORT_BINARY_SYNC_ERROR(helper):
+def test_short_binary_sync_error(helper):
     helper.write_file_to_framer("short_binary_sync_error.BIN")
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, None)
 
 
-def test_SHORT_BINARY_BAD_CRC(helper):
+def test_short_binary_bad_crc(helper):
     # "<short binary rawimusx log>"
     data = bytes(
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
@@ -609,7 +609,7 @@ def test_SHORT_BINARY_BAD_CRC(helper):
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, len(data))
 
 
-def test_SHORT_BINARY_RUN_ON_CRC(helper):
+def test_short_binary_run_on_crc(helper):
     # "<short binary rawimusx log>FF"
     data = bytes(
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
@@ -620,7 +620,7 @@ def test_SHORT_BINARY_RUN_ON_CRC(helper):
     helper.test_framer(HEADER_FORMAT.SHORT_BINARY, STATUS.SUCCESS, 56)
 
 
-def test_SHORT_BINARY_INADEQUATE_BUFFER(helper):
+def test_short_binary_inadequate_buffer(helper):
     # "<short binary rawimusx log>"
     data = bytes(
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
@@ -632,7 +632,7 @@ def test_SHORT_BINARY_INADEQUATE_BUFFER(helper):
     helper.test_framer(HEADER_FORMAT.SHORT_BINARY, STATUS.SUCCESS, len(data), buffer_length=len(data))
 
 
-def test_SHORT_BINARY_BYTE_BY_BYTE(helper):
+def test_short_binary_byte_by_byte(helper):
     # "<short binary rawimusx log>"
     data = bytes(
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
@@ -663,7 +663,7 @@ def test_SHORT_BINARY_BYTE_BY_BYTE(helper):
     compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_SHORT_BINARY_SEGMENTED(helper):
+def test_short_binary_segmented(helper):
     # "<short binary rawimusx log>"
     data = bytes(
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
@@ -689,7 +689,7 @@ def test_SHORT_BINARY_SEGMENTED(helper):
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.SUCCESS, bytes_written)
 
 
-def test_SHORT_BINARY_TRICK(helper):
+def test_short_binary_trick(helper):
     # "<short binary sync><short binary sync + part header><short binary sync 1><short binary RAWIMUSX log>"
     data = bytes(
         [0xAA, 0x44, 0x13, 0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xAA, 0xAA, 0x44, 0x13, 0x28,
@@ -713,43 +713,43 @@ def test_SHORT_BINARY_TRICK(helper):
 # -------------------------------------------------------------------------------------------------------
 # NMEA Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_NMEA_COMPLETE(helper):
+def test_nmea_complete(helper):
     data = b"$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.NMEA, STATUS.SUCCESS, len(data))
 
 
-def test_NMEA_INCOMPLETE(helper):
+def test_nmea_incomplete(helper):
     data = b"$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc4"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.NMEA, STATUS.INCOMPLETE, len(data))
 
 
-def test_NMEA_SYNC_ERROR(helper):
+def test_nmea_sync_error(helper):
     helper.write_file_to_framer("nmea_sync_error.txt")
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, None)
 
 
-def test_NMEA_BAD_CRC(helper):
+def test_nmea_bad_crc(helper):
     data = b"$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*11\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, len(data))
 
 
-def test_NMEA_RUN_ON_CRC(helper):
+def test_nmea_run_on_crc(helper):
     data = b"$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29ff\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, len(data))
 
 
-def test_NMEA_INADEQUATE_BUFFER(helper):
+def test_nmea_inadequate_buffer(helper):
     data = b"$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.NMEA, STATUS.BUFFER_FULL, len(data), buffer_length=len(data) - 1)
     helper.test_framer(HEADER_FORMAT.NMEA, STATUS.SUCCESS, len(data), buffer_length=len(data))
 
 
-def test_NMEA_BYTE_BY_BYTE(helper):
+def test_nmea_byte_by_byte(helper):
     data = b"$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n"
     log_size = len(data)
     remaining_bytes = log_size
@@ -772,7 +772,7 @@ def test_NMEA_BYTE_BY_BYTE(helper):
     compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_NMEA_SEGMENTED(helper):
+def test_nmea_segmented(helper):
     data = b"$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n"
     bytes_written = 0
     helper.write_bytes_to_framer(data[bytes_written:][:ne.NMEA_SYNC_LENGTH])
@@ -798,7 +798,7 @@ def test_NMEA_SEGMENTED(helper):
     assert bytes_written == len(data)
 
 
-def test_NMEA_TRICK(helper):
+def test_nmea_trick(helper):
     data = b"$*ff\r\n$$**\r\n$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n"
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, 6)
@@ -810,21 +810,21 @@ def test_NMEA_TRICK(helper):
 # -------------------------------------------------------------------------------------------------------
 # Abbreviated ASCII Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_ABBREV_ASCII_COMPLETE(helper):
+def test_abbrev_ascii_complete(helper):
     data = (b"<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
             b"<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n[COM1]")
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.ABB_ASCII, STATUS.SUCCESS, len(data) - 6)
 
 
-def test_ABBREV_ASCII_INCOMPLETE(helper):
+def test_abbrev_ascii_incomplete(helper):
     data = (b"<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
             b"<     SOL_COMPUTED SINGLE 51.15043711386 ")
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.ABB_ASCII, STATUS.INCOMPLETE, len(data))
 
 
-def test_ABBREV_ASCII_BUFFER_FULL(helper):
+def test_abbrev_ascii_buffer_full(helper):
     data = b"<ERROR:Message is invalid for this model\r\n"
     helper.write_bytes_to_framer(data)
     test_meta_data = ne.MetaData()
@@ -832,12 +832,12 @@ def test_ABBREV_ASCII_BUFFER_FULL(helper):
     assert status == STATUS.BUFFER_FULL
 
 
-def test_ABBREV_ASCII_SYNC_ERROR(helper):
+def test_abbrev_ascii_sync_error(helper):
     helper.write_file_to_framer("abbreviated_ascii_sync_error.ASC")
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, ne.MAX_ASCII_MESSAGE_LENGTH)
 
 
-def test_ABBREV_ASCII_INADEQUATE_BUFFER(helper):
+def test_abbrev_ascii_inadequate_buffer(helper):
     data = (b"<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
             b"<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n[COM1]")
     helper.write_bytes_to_framer(data)
@@ -845,7 +845,7 @@ def test_ABBREV_ASCII_INADEQUATE_BUFFER(helper):
     helper.test_framer(HEADER_FORMAT.ABB_ASCII, STATUS.SUCCESS, len(data) - 6, buffer_length=len(data) - 6)
 
 
-def test_ABBREV_ASCII_NO_PROMPT(helper):
+def test_abbrev_ascii_no_prompt(helper):
     data = (b"<TIME COM1 0 48.5 FINESTEERING 2211 314480.000 02000000 9924 32768\r\n"
             b"<     VALID -1.055585415e-09 7.492303535e-10 -17.99999999958 2022 5 25 15 21 2000 VALID\r\n"
             b"<TIME COM1 0 46.5 FINESTEERING 2211 314490.000 02000000 9924 32768\r\n"
@@ -856,7 +856,7 @@ def test_ABBREV_ASCII_NO_PROMPT(helper):
     helper.test_framer(HEADER_FORMAT.ABB_ASCII, STATUS.SUCCESS, 157)
 
 
-def test_ABBREV_ASCII_MULTILINE(helper):
+def test_abbrev_ascii_multiline(helper):
     data = (b"<SAVEDSURVEYPOSITIONS COM1 0 55.5 FINESTEERING 2211 324085.143 02000000 ddf2 32768\r\n"
             b"<     2 \r\n"
             b"<          \"MN01\" 51.11600000000 -114.03800000000 1065.0000 \r\n"
@@ -865,7 +865,7 @@ def test_ABBREV_ASCII_MULTILINE(helper):
     helper.test_framer(HEADER_FORMAT.ABB_ASCII, STATUS.SUCCESS, len(data) - 6)
 
 
-def test_ABBREV_ASCII_RESPONSE(helper):
+def test_abbrev_ascii_response(helper):
     data = b"<ERROR:Message is invalid for this model\r\n"
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADER_FORMAT.ABB_ASCII
@@ -877,7 +877,7 @@ def test_ABBREV_ASCII_RESPONSE(helper):
     compare_metadata(test_meta_data, expected_meta_data)
 
 
-def test_ABBREV_ASCII_SWAPPED(helper):
+def test_abbrev_ascii_swapped(helper):
     data = (b"<     64 60 B1D2 4 e2410e75b821e2664201b02000b022816c36140020001ddde0000000\r\n"
             b"<BDSRAWNAVSUBFRAME ICOM1_29 0 40.5 FINESTEERING 2204 236927.000 02060000 88f3 16807\r\n<GARBAGE")
     helper.write_bytes_to_framer(data)
@@ -885,7 +885,7 @@ def test_ABBREV_ASCII_SWAPPED(helper):
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, 85)
 
 
-def test_ABBREV_ASCII_EMPTY_ARRAY(helper):
+def test_abbrev_ascii_empty_array(helper):
     data = b"<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     0 \r\n<         \r\n[COM1]"
     expected_meta_data = ne.MetaData()
     expected_meta_data.format = HEADER_FORMAT.ABB_ASCII
@@ -896,7 +896,7 @@ def test_ABBREV_ASCII_EMPTY_ARRAY(helper):
 # -------------------------------------------------------------------------------------------------------
 # JSON Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_JSON_COMPLETE(helper):
+def test_json_complete(helper):
     data = b"""{"header": {"message": "BESTSATS","id": 1194,"port": "COM1","sequence_num": 0,"percent_idle_time": 50.0,"time_status": "FINESTEERING","week": 2167,"seconds": 244820.000,"receiver_status": 33554432,"HEADER_reserved1": 48645,"receiver_sw_version": 16248},"body": {"satellite_entries": [{"system_type": "GPS","id": "2","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "20","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "29","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "13","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "15","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "16","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "18","status": "GOOD","status_mask": 7},{"system_type": "GPS","id": "25","status": "GOOD","status_mask": 7},{"system_type": "GPS","id": "5","status": "GOOD","status_mask": 3},{"system_type": "GPS","id": "26","status": "GOOD","status_mask": 7},{"system_type": "GPS","id": "23","status": "GOOD","status_mask": 7},{"system_type": "QZSS","id": "194","status": "SUPPLEMENTARY","status_mask": 7},{"system_type": "SBAS","id": "131","status": "NOTUSED","status_mask": 0},{"system_type": "SBAS","id": "133","status": "NOTUSED","status_mask": 0},{"system_type": "SBAS","id": "138","status": "NOTUSED","status_mask": 0},{"system_type": "GLONASS","id": "8+6","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "9-2","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "1+1","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "24+2","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "2-4","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "17+4","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "16-1","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "18-3","status": "GOOD","status_mask": 3},{"system_type": "GLONASS","id": "15","status": "GOOD","status_mask": 3},{"system_type": "GALILEO","id": "26","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "12","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "19","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "GALILEO","id": "31","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "25","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "GALILEO","id": "33","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "8","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "GALILEO","id": "7","status": "GOOD","status_mask": 15},{"system_type": "GALILEO","id": "24","status": "GOOD","status_mask": 15},{"system_type": "BEIDOU","id": "35","status": "LOCKEDOUT","status_mask": 0},{"system_type": "BEIDOU","id": "29","status": "SUPPLEMENTARY","status_mask": 1},{"system_type": "BEIDOU","id": "25","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "BEIDOU","id": "20","status": "SUPPLEMENTARY","status_mask": 1},{"system_type": "BEIDOU","id": "22","status": "SUPPLEMENTARY","status_mask": 1},{"system_type": "BEIDOU","id": "44","status": "LOCKEDOUT","status_mask": 0},{"system_type": "BEIDOU","id": "57","status": "NOEPHEMERIS","status_mask": 0},{"system_type": "BEIDOU","id": "12","status": "ELEVATIONERROR","status_mask": 0},{"system_type": "BEIDOU","id": "24","status": "SUPPLEMENTARY","status_mask": 1},{"system_type": "BEIDOU","id": "19","status": "SUPPLEMENTARY","status_mask": 1}]}}"""
     helper.write_bytes_to_framer(data)
     helper.framer.set_frame_json(True)
@@ -913,7 +913,7 @@ def test_JSON_COMPLETE(helper):
 # -------------------------------------------------------------------------------------------------------
 # Edge-case Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
-def test_UNKNOWN_BINARY_WITH_ASCII_SYNC(helper):
+def test_unknown_binary_with_ascii_sync(helper):
     data = b"\x07#\x82"  # '#' is used-to identify binary payload
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, STATUS.UNKNOWN, 1)
