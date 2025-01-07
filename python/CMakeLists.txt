@@ -21,7 +21,9 @@ endif()
 
 add_compile_definitions(VERSION_INFO=${SKBUILD_PROJECT_VERSION})
 
-nanobind_add_module(python_bindings STABLE_ABI NB_STATIC LTO
+nanobind_add_module(python_bindings
+    STABLE_ABI NB_STATIC LTO
+    NB_DOMAIN novatel_edie
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/bindings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/commander.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common.cpp
