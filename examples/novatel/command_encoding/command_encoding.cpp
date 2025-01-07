@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
         clCommander.Encode(argv[3], static_cast<uint32_t>(strlen(argv[3])), pcEncodedMessageBuffer, uiEncodeBufferLength, eEncodeFormat);
     if (eCommanderStatus != STATUS::SUCCESS)
     {
-        logger->info("Failed to formulate a command ({})", static_cast<uint32_t>(eCommanderStatus));
+        logger->info("Failed to formulate a command ({})", eCommanderStatus);
         return -1;
     }
 

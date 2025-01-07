@@ -1,7 +1,6 @@
 import os
 import re
 from pathlib import Path
-
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
@@ -27,7 +26,7 @@ class NovatelEdieConan(ConanFile):
         "fPIC": True,
     }
 
-    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "LICENSE", "!doc", "!test", "CMakelists.txt"]
+    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "LICENSE", "!doc", "!test", "CMakeLists.txt"]
 
     def set_version(self):
         cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
@@ -47,27 +46,29 @@ class NovatelEdieConan(ConanFile):
 
     def requirements(self):
         self.requires("nlohmann_json/[>=3.11 <3.12]", transitive_headers=True)
-        self.requires("spdlog/[>=1.14 <2]", transitive_headers=True, transitive_libs=True, force=True)
+        self.requires("spdlog/[>=1.13 <2]", transitive_headers=True, transitive_libs=True, force=True)
         self.requires("gegles-spdlog_setup/[>=1.1 <2]", transitive_headers=True)
+        self.requires("fmt/[^11]", force=True)
+
+    def build_requirements(self):
+        self.test_requires("gtest/[>=1.14 <1.15]")
+        self.test_requires("benchmark/[>=1.8 <2]")
+        if self.settings.os in ["Linux", "FreeBSD"]:
+            self.tool_requires("patchelf/[*]")
 
     def validate(self):
-        if self.settings.compiler.cppstd:
-            check_min_cppstd(self, 17)
+        check_min_cppstd(self, 17)
 
         if self.options.shared and not self.dependencies["spdlog"].options.shared:
             # Statically linking against spdlog causes its singleton registry to be
             # re-instantiated in each shared library and executable that links against it.
             raise ConanInvalidConfiguration("spdlog must be dynamically linked when building novatel_edie as a shared library")
 
-    def build_requirements(self):
-        self.test_requires("gtest/[>=1.14 <1.15]")
-        if self.settings.os != "Windows":
-            self.tool_requires("patchelf/[*]")
-
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.cache_variables["BUILD_TESTS"] = False
+        tc.cache_variables["BUILD_BENCHMARKS"] = False
         tc.cache_variables["BUILD_EXAMPLES"] = False
+        tc.cache_variables["BUILD_TESTS"] = False
         tc.cache_variables["CMAKE_INSTALL_DATADIR"] = "res"
         tc.generate()
 
@@ -75,6 +76,8 @@ class NovatelEdieConan(ConanFile):
         deps.generate()
 
         # A workaround for conan_provider.cmake not loading conan_toolchain.cmake
+        # TODO: replace with conan_cmakedeps_paths.cmake from the new CMakeDeps generator:
+        # https://github.com/conan-io/conan/issues/7240#issuecomment-2443768898
         toolchain_lines = Path(self.generators_folder, "conan_toolchain.cmake").read_text().splitlines()
         runtime_paths = "\n".join(l for l in toolchain_lines if ("CONAN_RUNTIME_LIB_DIRS" in l or "CMAKE_PROGRAM_PATH" in l))
         Path(self.generators_folder, "conan_runtime_paths.cmake").write_text(runtime_paths)

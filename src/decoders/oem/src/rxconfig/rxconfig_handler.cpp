@@ -245,7 +245,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     switch (eEncodeFormat_)
     {
     case ENCODE_FORMAT::ASCII:
-        uiCRC = CalculateBlockCrc32(static_cast<uint32_t>(pucTempEncodeBuffer - (pcMyEncodeBuffer.get() + 1)), 0, pcMyEncodeBuffer.get() + 1);
+        uiCRC = CalculateBlockCrc32(pcMyEncodeBuffer.get() + 1, static_cast<uint32_t>(pucTempEncodeBuffer - (pcMyEncodeBuffer.get() + 1)));
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "*%08x\r\n", uiCRC))
         {
             return STATUS::BUFFER_FULL;
@@ -253,7 +253,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         break;
 
     case ENCODE_FORMAT::BINARY:
-        uiCRC = CalculateBlockCrc32(static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get()), 0, pcMyEncodeBuffer.get());
+        uiCRC = CalculateBlockCrc32(pcMyEncodeBuffer.get(), static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get()));
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC)) { return STATUS::BUFFER_FULL; }
         break;
 

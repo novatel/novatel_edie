@@ -76,7 +76,7 @@ void EncoderBase::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const 
 
 // -------------------------------------------------------------------------------------------------------
 template <bool Flatten, bool Align>
-bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_)
+bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
 {
     unsigned char* pucTempStart;
 
@@ -206,13 +206,13 @@ bool EncoderBase::EncodeBinaryBody(const std::vector<FieldContainer>& stInterMes
 }
 
 // explicit template instantiations
-template bool EncoderBase::EncodeBinaryBody<false, false>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&);
-template bool EncoderBase::EncodeBinaryBody<false, true>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&);
-template bool EncoderBase::EncodeBinaryBody<true, false>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&);
-template bool EncoderBase::EncodeBinaryBody<true, true>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&);
+template bool EncoderBase::EncodeBinaryBody<false, false>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&) const;
+template bool EncoderBase::EncodeBinaryBody<false, true>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&) const;
+template bool EncoderBase::EncodeBinaryBody<true, false>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&) const;
+template bool EncoderBase::EncodeBinaryBody<true, true>(const std::vector<FieldContainer>&, unsigned char**, uint32_t&) const;
 
 // -------------------------------------------------------------------------------------------------------
-bool EncoderBase::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
+bool EncoderBase::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
     switch (fc_.fieldDef->dataType.name)
     {
@@ -238,7 +238,7 @@ bool EncoderBase::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOu
 // -------------------------------------------------------------------------------------------------------
 template <bool Abbreviated>
 bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                  const uint32_t uiIndentationLevel_)
+                                  const uint32_t uiIndentationLevel_) const
 {
     // cant figure out how to do this constexpr since derived classes need to change values
     const char separator = Abbreviated ? SeparatorAbbAscii() : SeparatorAscii();
@@ -389,8 +389,8 @@ bool EncoderBase::EncodeAsciiBody(const std::vector<FieldContainer>& vIntermedia
 }
 
 // explicit template instantiations
-template bool EncoderBase::EncodeAsciiBody<true>(const std::vector<FieldContainer>&, char**, uint32_t& uiBytesLeft_, uint32_t);
-template bool EncoderBase::EncodeAsciiBody<false>(const std::vector<FieldContainer>&, char**, uint32_t& uiBytesLeft_, uint32_t);
+template bool EncoderBase::EncodeAsciiBody<true>(const std::vector<FieldContainer>&, char**, uint32_t& uiBytesLeft_, uint32_t) const;
+template bool EncoderBase::EncodeAsciiBody<false>(const std::vector<FieldContainer>&, char**, uint32_t& uiBytesLeft_, uint32_t) const;
 
 // -------------------------------------------------------------------------------------------------------
 bool EncoderBase::FieldToAscii(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
@@ -420,7 +420,7 @@ bool EncoderBase::FieldToAscii(const FieldContainer& fc_, char** ppcOutBuf_, uin
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool EncoderBase::EncodeJsonBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_)
+bool EncoderBase::EncodeJsonBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
     if (!CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "{")) { return false; }
 

@@ -33,6 +33,9 @@
 #include <memory>
 #include <string>
 
+#include <fmt/core.h>
+#include <fmt/format.h>
+
 #include "novatel_edie/common/common.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
 
@@ -277,6 +280,15 @@ class MetaDataBase
 inline MetaDataBase::~MetaDataBase() = default;
 
 } // namespace novatel::edie
+
+// This allows the STATUS enum to be formatted as a string when used with the fmt library.
+template <> struct fmt::formatter<novatel::edie::STATUS> : formatter<std::string>
+{
+    template <typename FormatContext> auto format(novatel::edie::STATUS status, FormatContext& ctx) const
+    {
+        return formatter<std::string>::format(novatel::edie::StatusToString(status), ctx);
+    }
+};
 
 //-----------------------------------------------------------------------
 //! \brief Construct a full message ID from its parts.

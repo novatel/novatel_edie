@@ -74,18 +74,19 @@ template <typename... Args> [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, 
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> constexpr std::array<char, 7> MakeConversionString(const FieldContainer& fc_)
+template <typename T> constexpr std::array<char, 7> FloatingPointConversionString(const FieldContainer& fc_)
 {
+    static_assert(std::is_floating_point_v<T>, "FloatingPointConversionString must be called with a floating point type");
     std::array<char, 7> acConvert{};
     const int32_t iBefore = fc_.fieldDef->conversionBeforePoint;
     const int32_t iAfter = fc_.fieldDef->conversionAfterPoint;
-    const auto fVal = std::get<T>(fc_.fieldValue);
+    const auto absVal = fabs(std::get<T>(fc_.fieldValue));
 
-    [[maybe_unused]] int32_t iRes = fabs(fVal) < std::numeric_limits<T>::epsilon() ? snprintf(acConvert.data(), 7, "%%0.%df", iAfter)
-                                    : iAfter == 0 && iBefore == 0                  ? snprintf(acConvert.data(), 7, "%%0.1f")
-                                    : fabs(fVal) > pow(10.0, iBefore)              ? snprintf(acConvert.data(), 7, "%%0.%de", iBefore + iAfter - 1)
-                                    : fabs(fVal) < pow(10.0, -iBefore)             ? snprintf(acConvert.data(), 7, "%%0.%de", iAfter)
-                                                                                   : snprintf(acConvert.data(), 7, "%%0.%df", iAfter);
+    [[maybe_unused]] int32_t iRes = absVal < std::numeric_limits<T>::epsilon() ? snprintf(acConvert.data(), 7, "%%0.%df", iAfter)
+                                    : iAfter == 0 && iBefore == 0              ? snprintf(acConvert.data(), 7, "%%0.1f")
+                                    : absVal > pow(10, iBefore)                ? snprintf(acConvert.data(), 7, "%%0.%de", iBefore + iAfter - 1)
+                                    : absVal < pow(10, -iBefore)               ? snprintf(acConvert.data(), 7, "%%0.%de", iAfter)
+                                                                               : snprintf(acConvert.data(), 7, "%%0.%df", iAfter);
 
     assert(0 <= iRes && iRes < 7);
     return acConvert;
@@ -96,7 +97,7 @@ template <typename T> [[nodiscard]] bool CopyToBuffer(unsigned char** ppucBuffer
 {
     uint32_t uiItemSize;
 
-    if constexpr (std::is_same<T, const char>()) { uiItemSize = static_cast<uint32_t>(strlen(ptItem_)); }
+    if constexpr (std::is_same<T, const char>()) { uiItemSize = static_cast<uint32_t>(std::strlen(ptItem_)); }
     else { uiItemSize = sizeof(*ptItem_); }
 
     if (uiBytesLeft_ < uiItemSize) { return false; }
@@ -137,18 +138,19 @@ class EncoderBase
 
     // Encode binary
     template <bool Flatten, bool Align>
-    [[nodiscard]] bool EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] virtual bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_,
+                                        uint32_t& uiBytesLeft_) const;
+    [[nodiscard]] virtual bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
 
     // Encode ascii
     template <bool Abbreviated>
     [[nodiscard]] bool EncodeAsciiBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                       [[maybe_unused]] uint32_t uiIndentationLevel_ = 1);
+                                       [[maybe_unused]] uint32_t uiIndentationLevel_ = 1) const;
     [[nodiscard]] bool FieldToAscii(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
 
     // Encode JSON
     [[nodiscard]] bool FieldToJson(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
-    [[nodiscard]] bool EncodeJsonBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_);
+    [[nodiscard]] bool EncodeJsonBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
 
     virtual void InitEnumDefinitions();
     virtual void InitFieldMaps();
