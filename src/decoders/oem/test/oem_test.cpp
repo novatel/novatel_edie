@@ -2869,6 +2869,7 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
         eStatus = pclFp->Read(stMessageData, stMetaData);
     }
 
+    ASSERT_EQ(pclFp->Flush(), 0);
     ASSERT_EQ(numSuccess, 2);
 }
 
@@ -2877,6 +2878,141 @@ TEST_F(FileParserTest, RESET)
     pclFp = std::make_unique<FileParser>();
     ASSERT_NO_THROW([[maybe_unused]] unsigned char* pucResult = pclFp->GetInternalBuffer(););
     ASSERT_TRUE(pclFp->Reset());
+}
+
+// -------------------------------------------------------------------------------------------------------
+// Parser Unit Tests
+// -------------------------------------------------------------------------------------------------------
+class ParserTest : public ::testing::Test
+{
+  protected:
+    static std::unique_ptr<Parser> pclParser;
+
+    static void SetUpTestSuite()
+    {
+        try
+        {
+            pclParser = std::make_unique<Parser>(std::getenv("TEST_DATABASE_PATH"));
+        }
+        catch (JsonDbReaderFailure& e)
+        {
+            std::cout << e.what() << '\n';
+        }
+    }
+
+    static void TearDownTestSuite() { Logger::Shutdown(); }
+};
+
+std::unique_ptr<Parser> ParserTest::pclParser = nullptr;
+
+TEST_F(ParserTest, LOGGER)
+{
+    spdlog::level::level_enum eLevel = spdlog::level::off;
+    ASSERT_NE(spdlog::get("novatel_parser"), nullptr);
+    std::shared_ptr<spdlog::logger> novatelParser = pclParser->GetLogger();
+    pclParser->SetLoggerLevel(eLevel);
+    ASSERT_EQ(novatelParser->level(), eLevel);
+}
+
+TEST_F(ParserTest, FILEPARSER_INSTANTIATION)
+{
+    ASSERT_NO_THROW(Parser fp1);
+    ASSERT_NO_THROW(Parser fp2(std::getenv("TEST_DATABASE_PATH")));
+
+    std::string sTEST_DATABASE_PATH = std::getenv("TEST_DATABASE_PATH");
+    const std::u32string usTEST_DATABASE_PATH(sTEST_DATABASE_PATH.begin(), sTEST_DATABASE_PATH.end());
+    ASSERT_NO_THROW(Parser fp3 = Parser(usTEST_DATABASE_PATH));
+
+    auto jsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(Parser fp4(jsonDb));
+}
+
+TEST_F(ParserTest, LOAD_JSON_DB_STRING)
+{
+    auto pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
+}
+
+TEST_F(ParserTest, LOAD_JSON_DB_U32STRING)
+{
+    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
+    std::u32string u32str = converter.from_bytes(std::getenv("TEST_DATABASE_PATH"));
+    auto pclMyJsonDb = JsonDbReader::LoadFile(u32str);
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
+}
+
+TEST_F(ParserTest, LOAD_JSON_DB_CHAR_ARRAY)
+{
+    auto pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
+}
+
+TEST_F(ParserTest, RANGE_CMP)
+{
+    pclParser->SetDecompressRangeCmp(true);
+    ASSERT_TRUE(pclParser->GetDecompressRangeCmp());
+    pclParser->SetDecompressRangeCmp(false);
+    ASSERT_FALSE(pclParser->GetDecompressRangeCmp());
+}
+
+TEST_F(ParserTest, UNKNOWN_BYTES)
+{
+    pclParser->SetReturnUnknownBytes(true);
+    ASSERT_TRUE(pclParser->GetReturnUnknownBytes());
+    pclParser->SetReturnUnknownBytes(false);
+    ASSERT_FALSE(pclParser->GetReturnUnknownBytes());
+}
+
+TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
+{
+    // Reset the Parser with the database because a previous test assigns it to the nullptr
+    pclParser = std::make_unique<Parser>(std::getenv("TEST_DATABASE_PATH"));
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    pclParser->SetFilter(clFilter);
+    ASSERT_EQ(pclParser->GetFilter(), clFilter);
+
+    std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
+    std::ifstream clInputFileStream{test_gps_file.string().c_str(), std::ios::binary};
+
+    MetaDataStruct stMetaData;
+    MessageDataStruct stMessageData;
+
+    int numSuccess = 0;
+    uint32_t uiExpectedMetaDataLength[2] = {213, 195};
+    double dExpectedMilliseconds[2] = {270605000, 172189053};
+    uint32_t uiExpectedMessageLength[2] = {213, 195};
+
+    pclParser->SetEncodeFormat(ENCODE_FORMAT::ASCII);
+    ASSERT_EQ(pclParser->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
+
+    const std::size_t chunkSize = 32;
+    std::vector<char> buffer(chunkSize);
+    while (clInputFileStream.read(buffer.data(), chunkSize) || clInputFileStream.gcount() > 0) {
+        std::size_t n = clInputFileStream.gcount();
+        pclParser->Write(reinterpret_cast<const uint8_t*>(buffer.data()), n);
+        while (true)
+        {
+            STATUS eStatus = pclParser->Read(stMessageData, stMetaData);
+            if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE || eStatus == STATUS::INCOMPLETE_MORE_DATA)
+            {
+                break;
+            }
+            if (eStatus == STATUS::SUCCESS)
+            {
+                ASSERT_EQ(stMetaData.uiLength, uiExpectedMetaDataLength[numSuccess]);
+                ASSERT_DOUBLE_EQ(stMetaData.dMilliseconds, dExpectedMilliseconds[numSuccess]);
+                ASSERT_EQ(stMessageData.uiMessageLength, uiExpectedMessageLength[numSuccess]);
+                numSuccess++;
+            }
+        }
+    }
+
+    ASSERT_EQ(pclParser->Flush(), 0);
+    ASSERT_EQ(numSuccess, 2);
 }
 
 // -------------------------------------------------------------------------------------------------------

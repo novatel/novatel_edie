@@ -15,7 +15,7 @@
 
 
 import novatel_edie as ne
-from novatel_edie import HEADER_FORMAT, STATUS, ENCODE_FORMAT
+from novatel_edie import STATUS, ENCODE_FORMAT
 import pytest
 
 

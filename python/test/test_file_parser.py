@@ -33,18 +33,17 @@ import pytest
 from novatel_edie import STATUS, ENCODE_FORMAT
 
 
-# -------------------------------------------------------------------------------------------------------
-# Unit Tests
-# -------------------------------------------------------------------------------------------------------
-
 @pytest.fixture(scope="function")
 def fp():
     return ne.FileParser()
 
 
+@pytest.fixture(scope="module")
+def test_gps_file(decoders_test_resources):
+    return decoders_test_resources / "BESTUTMBIN.GPS"
+
+
 def test_logger():
-    assert ne.Logging.get("novatel_file_parser") is None
-    assert ne.Logging.get("novatel_parser") is None
     # FileParser logger
     level = ne.LogLevel.OFF
     file_parser = ne.FileParser()
@@ -78,51 +77,40 @@ def test_unknown_bytes(fp):
     assert not fp.return_unknown_bytes
 
 
-def test_parse_file_with_filter(fp, decoders_test_resources):
+def test_parse_file_with_filter(fp, test_gps_file):
     fp.filter = ne.Filter()
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
-
-    test_gps_file = decoders_test_resources / "BESTUTMBIN.GPS"
+    fp.encode_format = ENCODE_FORMAT.ASCII
+    assert fp.encode_format == ENCODE_FORMAT.ASCII
     with test_gps_file.open("rb") as f:
         assert fp.set_stream(f)
-
-        success = 0
-        expected_meta_data_length = [213, 195]
-        expected_milliseconds = [270605000, 172189053]
-        expected_message_length = [213, 195]
-
         status = STATUS.UNKNOWN
-        fp.encode_format = ENCODE_FORMAT.ASCII
-        assert fp.encode_format == ENCODE_FORMAT.ASCII
-
+        success = 0
         while status != STATUS.STREAM_EMPTY:
             status, message_data, meta_data = fp.read()
             if status == STATUS.SUCCESS:
-                assert meta_data.length == expected_meta_data_length[success]
-                assert meta_data.milliseconds == pytest.approx(expected_milliseconds[success])
-                assert len(message_data.message) == expected_message_length[success]
+                assert meta_data.length == [213, 195][success]
+                assert meta_data.milliseconds == pytest.approx([270605000, 172189053][success])
+                assert len(message_data.message) == [213, 195][success]
                 success += 1
         assert success == 2
 
 
-def test_file_parser_iterator(fp, decoders_test_resources):
+def test_file_parser_iterator(fp, test_gps_file):
     fp.filter = ne.Filter()
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
-    test_gps_file = decoders_test_resources / "BESTUTMBIN.GPS"
+    fp.encode_format = ENCODE_FORMAT.ASCII
     with test_gps_file.open("rb") as f:
         assert fp.set_stream(f)
         success = 0
-        expected_meta_data_length = [213, 195]
-        expected_milliseconds = [270605000, 172189053]
-        expected_message_length = [213, 195]
-        fp.encode_format = ENCODE_FORMAT.ASCII
         for status, message_data, meta_data in fp:
             if status == STATUS.SUCCESS:
-                assert meta_data.length == expected_meta_data_length[success]
-                assert meta_data.milliseconds == pytest.approx(expected_milliseconds[success])
-                assert len(message_data.message) == expected_message_length[success]
+                assert meta_data.length == [213, 195][success]
+                assert meta_data.milliseconds == pytest.approx([270605000, 172189053][success])
+                assert len(message_data.message) == [213, 195][success]
                 success += 1
-        assert success == 2
+    assert fp.flush(return_flushed_bytes=True) == b""
+    assert success == 2
 
 
 def test_reset(fp):
