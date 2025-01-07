@@ -34,12 +34,27 @@ void init_novatel_parser(nb::module_& m)
              })
         .def(
             "read",
-            [](oem::Parser& self, nb::handle_t<oem::MetaDataStruct> py_metadata) {
+            [](oem::Parser& self, nb::handle_t<oem::MetaDataStruct> py_metadata, bool decode_incomplete) {
                 MessageDataStruct message_data;
-                STATUS status = self.Read(message_data, nb::cast<oem::MetaDataStruct&>(py_metadata));
+                STATUS status = self.Read(message_data, nb::cast<oem::MetaDataStruct&>(py_metadata), decode_incomplete);
                 return std::make_tuple(status, oem::PyMessageData(message_data));
             },
-            "metadata"_a)
+            "metadata"_a, "decode_incomplete_abbreviated"_a = false)
+        .def("__iter__", [](oem::Parser& self) { return &self; })
+        .def("__next__",
+             [](oem::Parser& self) {
+                 MessageDataStruct message_data;
+                 oem::MetaDataStruct meta_data;
+                 STATUS status = self.Read(message_data, meta_data);
+                 switch (status)
+                 {
+                 case STATUS::BUFFER_EMPTY: [[fallthrough]];
+                 case STATUS::INCOMPLETE: [[fallthrough]];
+                 case STATUS::INCOMPLETE_MORE_DATA: throw nb::stop_iteration();
+                 default: break;
+                 }
+                 return std::make_tuple(status, oem::PyMessageData(message_data), meta_data);
+             })
         .def(
             "flush",
             [](oem::Parser& self, bool return_flushed_bytes) -> nb::object {
