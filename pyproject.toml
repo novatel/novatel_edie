@@ -52,7 +52,7 @@ skip = "pp*"
 test-requires = "pytest"
 test-command = "pytest {project}/python/test --color=yes -v"
 build-verbosity = 1
-archs = "auto"
+archs = "auto64"
 
 # Needed for full C++17 support
 [tool.cibuildwheel.macos.environment]
