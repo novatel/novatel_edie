@@ -98,7 +98,7 @@ class HeaderDecoder
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const;
+    [[nodiscard]] STATUS Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataBase& stMetaData_) const;
 };
 
 } // namespace novatel::edie::oem

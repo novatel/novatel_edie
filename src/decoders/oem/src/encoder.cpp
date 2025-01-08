@@ -333,7 +333,7 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
+                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataBase& stMetaData_,
                 const ENCODE_FORMAT eFormat_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
@@ -376,7 +376,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_, MessageDataStruct& stMessageData_,
-                      const MetaDataStruct& stMetaData_, const ENCODE_FORMAT eFormat_, const bool bIsEmbeddedHeader_) const
+                      const MetaDataBase& stMetaData_, const ENCODE_FORMAT eFormat_, const bool bIsEmbeddedHeader_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
@@ -428,7 +428,7 @@ Encoder::EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
-                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_) const
+                    MessageDataStruct& stMessageData_, const MetaDataBase& stMetaData_, ENCODE_FORMAT eFormat_) const
 {
     // TODO: this entire function should be in common, only header stuff and map redefinitions belong in this file
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }

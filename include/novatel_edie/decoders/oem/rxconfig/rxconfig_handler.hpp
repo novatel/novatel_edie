@@ -27,6 +27,7 @@
 #ifndef RXCONFIG_HANDLER_HPP
 #define RXCONFIG_HANDLER_HPP
 
+#include "novatel_edie/common/framer_manager.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/json_reader.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
@@ -53,7 +54,6 @@ class RxConfigHandler
     static constexpr auto szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
     static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
 
-    Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
