@@ -52,13 +52,13 @@ function(copy_third_party_shared_libs target_dir)
 
     # Set RPATH to $ORIGIN for the copied libraries
     if(NOT WIN32)
-        find_program(PATCHELF_EXECUTABLE patchelf REQUIRED)
         foreach(lib ${copied_files})
             get_filename_component(lib_name ${lib} NAME)
             if(APPLE)
                 execute_process(COMMAND install_name_tool -add_rpath @loader_path "${target_dir}/${lib_name}"
                     COMMAND_ERROR_IS_FATAL ANY)
             else()
+                find_program(PATCHELF_EXECUTABLE patchelf REQUIRED)
                 execute_process(COMMAND "${PATCHELF_EXECUTABLE}" --set-rpath \$ORIGIN "${target_dir}/${lib_name}"
                     COMMAND_ERROR_IS_FATAL ANY)
             endif()
