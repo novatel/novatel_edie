@@ -2992,7 +2992,7 @@ TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
     const std::size_t chunkSize = 32;
     std::vector<char> buffer(chunkSize);
     while (clInputFileStream.read(buffer.data(), chunkSize) || clInputFileStream.gcount() > 0) {
-        std::size_t n = clInputFileStream.gcount();
+        auto n = static_cast<uint32_t>(clInputFileStream.gcount());
         pclParser->Write(reinterpret_cast<const uint8_t*>(buffer.data()), n);
         while (true)
         {
