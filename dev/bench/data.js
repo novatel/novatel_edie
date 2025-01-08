@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734222184118,
+  "lastUpdate": 1736372614692,
   "repoUrl": "https://github.com/novatel/novatel_edie",
   "entries": {
     "Benchmark": [
@@ -1103,6 +1103,114 @@ window.BENCHMARK_DATA = {
             "value": 404.49654549078684,
             "unit": "ns/iter",
             "extra": "iterations: 1716018\ncpu: 404.4815893539575 ns\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.valgur@gmail.com",
+            "name": "Martin Valgur",
+            "username": "valgur"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "40219c3df2613580e2bc5109d4c112f0eb0fb045",
+          "message": "Limit fmt to 11.0.2 for compatibility with spdlog (#86)\n\nerror: ‘template<class T, class ... Args> fmt::v11::basic_string_view<Char> spdlog::details::to_string_view’ redeclared as different kind of entity\r\n  369 | inline fmt::basic_string_view<T> to_string_view(fmt::basic_format_string<T, Args...> fmt) {",
+          "timestamp": "2025-01-08T14:41:18-07:00",
+          "tree_id": "fddc92e2702289ce08dd8fd420e450f140cd9cbf",
+          "url": "https://github.com/novatel/novatel_edie/commit/40219c3df2613580e2bc5109d4c112f0eb0fb045"
+        },
+        "date": 1736372612513,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "LoadJson",
+            "value": 75031588.8749924,
+            "unit": "ns/iter",
+            "extra": "iterations: 8\ncpu: 75028187.375 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeFlattenedBinaryLog",
+            "value": 83.30224553208555,
+            "unit": "ns/iter",
+            "extra": "iterations: 7996234\ncpu: 83.30053059977983 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeAsciiLog",
+            "value": 86.5873747064487,
+            "unit": "ns/iter",
+            "extra": "iterations: 8411147\ncpu: 86.5834039043664 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeAbbrevAsciiLog",
+            "value": 85.34127386999262,
+            "unit": "ns/iter",
+            "extra": "iterations: 8405897\ncpu: 85.3389026774894 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeBinaryLog",
+            "value": 83.16577390024321,
+            "unit": "ns/iter",
+            "extra": "iterations: 8440991\ncpu: 83.1651144989966 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeJsonLog",
+            "value": 152208.05566301412,
+            "unit": "ns/iter",
+            "extra": "iterations: 4653\ncpu: 152200.7281323877 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeFlattenedBinaryLog",
+            "value": 397.6195187001622,
+            "unit": "ns/iter",
+            "extra": "iterations: 1788490\ncpu: 397.5978999043885 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeAsciiLog",
+            "value": 5631.261211606431,
+            "unit": "ns/iter",
+            "extra": "iterations: 124826\ncpu: 5630.757806867164 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeAbbrevAsciiLog",
+            "value": 5169.067453213671,
+            "unit": "ns/iter",
+            "extra": "iterations: 135190\ncpu: 5168.980176048521 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeBinaryLog",
+            "value": 375.0330947034367,
+            "unit": "ns/iter",
+            "extra": "iterations: 1867187\ncpu: 375.0175119042712 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeJsonLog",
+            "value": 5492.586296947033,
+            "unit": "ns/iter",
+            "extra": "iterations: 126366\ncpu: 5492.147397242923 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp",
+            "value": 401.1890146260988,
+            "unit": "ns/iter",
+            "extra": "iterations: 1736691\ncpu: 401.1731517005624 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp2",
+            "value": 389.161091736286,
+            "unit": "ns/iter",
+            "extra": "iterations: 1807616\ncpu: 389.1486018048083 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp4",
+            "value": 401.7268614964104,
+            "unit": "ns/iter",
+            "extra": "iterations: 1685848\ncpu: 401.7311999658342 ns\nthreads: 1"
           }
         ]
       }
