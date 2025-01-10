@@ -130,10 +130,6 @@ jobs:
     
     - name: Install editorconfig-checker
       uses: editorconfig-checker/action-editorconfig-checker@main
-      with:
-        # 'latest' v3.1.0 was missing binaries, so had to pin the version
-        # https://github.com/editorconfig-checker/editorconfig-checker/issues/409
-        version: v3.0.3
 
     - name: Check CMakeLists.txt formatting
       run: find . \( -name 'CMakeLists.txt' \) -exec editorconfig-checker {} \+ || { echo "EditorConfig check failed! See the README if you don't know how to fix this."; exit 1; }
