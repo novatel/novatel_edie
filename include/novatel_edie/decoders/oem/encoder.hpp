@@ -174,7 +174,7 @@ class Encoder : public EncoderBase<Encoder>
     [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
                                     MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_) const;
 
-    friend class EncoderBase;
+    friend class EncoderBase<Encoder>;
 };
 
 } // namespace novatel::edie::oem

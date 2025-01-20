@@ -83,7 +83,7 @@ class Framer : public FramerBase<Framer>
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
 
-    friend class FramerBase;
+    friend class FramerBase<Framer>;
 };
 
 } // namespace novatel::edie::oem
