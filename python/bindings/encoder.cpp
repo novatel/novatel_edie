@@ -20,7 +20,7 @@ void init_novatel_encoder(nb::module_& m)
         .def_prop_ro("logger", [](const oem::Encoder& encoder) { return encoder.GetLogger(); })
         .def(
             "encode",
-            [](oem::Encoder& encoder, const oem::IntermediateHeader& header, const oem::PyDecodedMessage& py_message,
+            [](oem::Encoder& encoder, const oem::IntermediateHeader& header, const oem::PyMessageBody& py_message,
                const oem::MetaDataStruct& metadata, ENCODE_FORMAT format) {
                 MessageDataStruct message_data;
                 if (format == ENCODE_FORMAT::JSON)

@@ -32,7 +32,11 @@ std::string default_json_db_path()
 PyMessageDatabase::Ptr& MessageDbSingleton::get()
 {
     static PyMessageDatabase::Ptr json_db = nullptr;
-    if (!json_db) { json_db = std::make_shared<PyMessageDatabase>(*JsonDbReader::LoadFile(default_json_db_path())); }
+    if (!json_db) { 
+        nb::module_ m = nb::module_::import_("novatel_edie");
+        nb::module_ messages_mod = m.def_submodule("messages", "Message types used by NovAtel OEM messages.");
+        json_db = std::make_shared<PyMessageDatabase>(*JsonDbReader::LoadFile(default_json_db_path()));
+    }
     return json_db;
 }
 

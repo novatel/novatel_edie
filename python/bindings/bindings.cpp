@@ -25,7 +25,6 @@ NB_MODULE(bindings, m)
     init_common_common(m);
     init_common_logger(m);
     init_common_json_db_reader(m);
-    init_common_message_database(m);
     init_common_nexcept(m);
     init_novatel_commander(m);
     init_novatel_common(m);
@@ -39,4 +38,5 @@ NB_MODULE(bindings, m)
     init_novatel_parser(m);
     init_novatel_range_decompressor(m);
     init_novatel_rxconfig_handler(m);
+    init_common_message_database(m);
 }
