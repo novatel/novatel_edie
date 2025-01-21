@@ -4,6 +4,7 @@
 
 #include "bindings_core.hpp"
 #include "py_database.hpp"
+#include "py_decoded_message.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -179,26 +180,38 @@ void init_common_message_database(nb::module_& m)
         .def("get_msg_def", nb::overload_cast<int32_t>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefId, "enum_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a)
-        .def_prop_ro("enums", &PyMessageDatabase::GetEnumsByNameDict);
+        .def_prop_ro("enums", &PyMessageDatabase::GetEnumsByNameDict)
+        .def_ro("message_types", &PyMessageDatabase::message_types);
 }
 
-PyMessageDatabase::PyMessageDatabase() { UpdatePythonEnums(); }
+PyMessageDatabase::PyMessageDatabase() { 
+    UpdatePythonEnums();
+    UpdateMessageTypes();
+}
 
 PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
                                      std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
     : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
 {
     UpdatePythonEnums();
+    UpdateMessageTypes();
 }
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db) { UpdatePythonEnums(); }
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db) { 
+    UpdatePythonEnums();
+    UpdateMessageTypes();
+}
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db) { UpdatePythonEnums(); }
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db) { 
+    UpdatePythonEnums();
+    UpdateMessageTypes();
+}
 
 void PyMessageDatabase::GenerateMappings()
 {
     MessageDatabase::GenerateMappings();
     UpdatePythonEnums();
+    UpdateMessageTypes();
 }
 
 inline void PyMessageDatabase::UpdatePythonEnums()
@@ -217,4 +230,23 @@ inline void PyMessageDatabase::UpdatePythonEnums()
         enums_by_id[enum_def->_id.c_str()] = enum_type;
         enums_by_name[enum_name] = enum_type;
     }
+}
+
+void PyMessageDatabase::UpdateMessageTypes()
+{
+    nb::module_ messages_mod = nb::module_::import_("novatel_edie.messages");
+    nb::handle py_type = nb::type<oem::PyMessageBody>();
+    nb::object Type = nb::module_::import_("builtins").attr("type");
+    nb::dict type_dict = nb::dict();
+    nb::tuple type_tuple = nb::make_tuple(py_type);
+    for (const auto& message_def : MessageDefinitions()) {
+        nb::object msg_def = Type(message_def->name + "MessageBody", type_tuple, type_dict);
+        msg_def.attr("__module__") = "novatel_edie.messages";
+        message_types[message_def->name] = msg_def;
+        messages_mod.attr((message_def->name + "MessageBody").c_str()) = msg_def;
+    }
+    nb::object defaut_type = Type("UNKNOWNMessageBody", type_tuple, type_dict);
+    defaut_type.attr("__module__") = "novatel_edie.messages";
+    message_types["UNKNOWN"] = defaut_type;
+    messages_mod.attr("UNKNOWNMessageBody") = defaut_type;
 }
