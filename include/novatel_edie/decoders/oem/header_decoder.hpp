@@ -27,9 +27,11 @@
 #ifndef NOVATEL_HEADER_DECODER_HPP
 #define NOVATEL_HEADER_DECODER_HPP
 
+#include <nlohmann/json_fwd.hpp>
+
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 
 namespace novatel::edie::oem {
@@ -42,31 +44,31 @@ class HeaderDecoder
 {
   private:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_header_decoder")};
-    JsonReader* pclMyMsgDb{nullptr};
-    EnumDefinition* vMyCommandDefinitions{nullptr};
-    EnumDefinition* vMyPortAddressDefinitions{nullptr};
-    EnumDefinition* vMyGpsTimeStatusDefinitions{nullptr};
+    MessageDatabase::Ptr pclMyMsgDb{nullptr};
+    EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
     MessageDefinition stMyResponseDefinition;
 
     // Decode novatel headers
     template <ASCII_HEADER eField> [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
     template <ASCII_HEADER... eFields> [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
-    void DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stInterHeader_) const;
+    void DecodeJsonHeader(nlohmann::json clJsonHeader_, IntermediateHeader& stInterHeader_) const;
 
   public:
     //----------------------------------------------------------------------------
     //! \brief A constructor for the HeaderDecoder class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    HeaderDecoder(JsonReader* pclJsonDb_ = nullptr);
+    HeaderDecoder(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
-    //! \brief Load a JsonReader object.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

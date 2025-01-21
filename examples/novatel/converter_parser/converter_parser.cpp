@@ -26,8 +26,10 @@
 
 #include <chrono>
 #include <filesystem>
+#include <iostream>
 
 #include <novatel_edie/common/logger.hpp>
+#include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/parser.hpp>
 #include <novatel_edie/version.h>
 
@@ -81,32 +83,31 @@ int main(int argc, char* argv[])
     }
 
     // Load the database
-    JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(pathJsonDb.string());
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     // Set up timers
     auto tLoop = std::chrono::high_resolution_clock::now();
 
-    Parser clParser(&clJsonDb);
+    Parser clParser(clJsonDb);
     clParser.SetEncodeFormat(eEncodeFormat);
     clParser.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clParser.GetLogger());
     Logger::AddRotatingFileLogger(clParser.GetLogger());
 
-    Filter clFilter;
-    clFilter.SetLoggerLevel(spdlog::level::debug);
-    Logger::AddConsoleLogging(clFilter.GetLogger());
-    Logger::AddRotatingFileLogger(clFilter.GetLogger());
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    Logger::AddConsoleLogging(clFilter->GetLogger());
+    Logger::AddRotatingFileLogger(clFilter->GetLogger());
 
     // Initialize structures
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
-    clParser.SetFilter(&clFilter);
+    clParser.SetFilter(clFilter);
 
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 

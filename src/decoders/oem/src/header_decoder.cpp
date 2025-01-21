@@ -26,24 +26,26 @@
 
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 
-#include <bitset>
+#include <nlohmann/json.hpp>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+using json = nlohmann::json;
+
 // -------------------------------------------------------------------------------------------------------
-HeaderDecoder::HeaderDecoder(JsonReader* pclJsonDb_)
+HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
 {
     pclMyLogger->debug("HeaderDecoder initializing...");
 
-    if (pclJsonDb_ != nullptr) { LoadJsonDb(pclJsonDb_); }
+    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     pclMyLogger->debug("HeaderDecoder initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-void HeaderDecoder::LoadJsonDb(JsonReader* pclJsonDb_)
+void HeaderDecoder::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
-    pclMyMsgDb = pclJsonDb_;
+    pclMyMsgDb = pclMessageDb_;
 
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
@@ -140,15 +142,24 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
     const auto* pcTempBuf = reinterpret_cast<const char*>(pucLogBuf_);
     const auto* pstBinaryHeader = reinterpret_cast<const Oem4BinaryHeader*>(pucLogBuf_);
 
-    stMetaData_.eFormat = pstBinaryHeader->ucSync1 == OEM4_ASCII_SYNC          ? HEADER_FORMAT::ASCII
-                          : pstBinaryHeader->ucSync1 == OEM4_SHORT_ASCII_SYNC  ? HEADER_FORMAT::SHORT_ASCII
-                          : pstBinaryHeader->ucSync1 == OEM4_ABBREV_ASCII_SYNC ? HEADER_FORMAT::ABB_ASCII
-                          : pstBinaryHeader->ucSync1 == NMEA_SYNC              ? HEADER_FORMAT::NMEA
-                          : pstBinaryHeader->ucSync1 == '{'                    ? HEADER_FORMAT::JSON
-                          : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_BINARY_SYNC3 ? HEADER_FORMAT::BINARY
-                          : pstBinaryHeader->ucSync1 == OEM4_BINARY_SYNC1 && pstBinaryHeader->ucSync3 == OEM4_SHORT_BINARY_SYNC3
-                              ? HEADER_FORMAT::SHORT_BINARY
-                              : HEADER_FORMAT::UNKNOWN;
+    stMetaData_.eFormat = [&] {
+        switch (pstBinaryHeader->ucSync1)
+        {
+        case OEM4_ASCII_SYNC: return HEADER_FORMAT::ASCII;
+        case OEM4_SHORT_ASCII_SYNC: return HEADER_FORMAT::SHORT_ASCII;
+        case OEM4_ABBREV_ASCII_SYNC: return HEADER_FORMAT::ABB_ASCII;
+        case NMEA_SYNC: return HEADER_FORMAT::NMEA;
+        case '{': return HEADER_FORMAT::JSON;
+        case OEM4_BINARY_SYNC1:
+            switch (pstBinaryHeader->ucSync3)
+            {
+            case OEM4_BINARY_SYNC3: return HEADER_FORMAT::BINARY;
+            case OEM4_SHORT_BINARY_SYNC3: return HEADER_FORMAT::SHORT_BINARY;
+            default: return HEADER_FORMAT::UNKNOWN;
+            }
+        default: return HEADER_FORMAT::UNKNOWN;
+        }
+    }();
 
     switch (stMetaData_.eFormat)
     {

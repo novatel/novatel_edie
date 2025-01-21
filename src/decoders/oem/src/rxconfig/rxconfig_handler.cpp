@@ -30,8 +30,8 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-RxConfigHandler::RxConfigHandler(JsonReader* pclJsonDB_)
-    : clMyHeaderDecoder(pclJsonDB_), clMyMessageDecoder(pclJsonDB_), clMyEncoder(pclJsonDB_),
+RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
+    : clMyHeaderDecoder(pclMessageDb_), clMyMessageDecoder(pclMessageDb_), clMyEncoder(pclMessageDb_),
       pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)),
       pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize))
 {
@@ -39,18 +39,18 @@ RxConfigHandler::RxConfigHandler(JsonReader* pclJsonDB_)
 
     pclMyLogger->debug("RxConfigHandler initializing...");
 
-    if (pclJsonDB_ != nullptr) { LoadJsonDb(pclJsonDB_); }
+    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 
     pclMyLogger->debug("RxConfigHandler initialized");
 }
 
 // -------------------------------------------------------------------------------------------------------
-void RxConfigHandler::LoadJsonDb(JsonReader* pclJsonDB_)
+void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
 {
-    pclMyMsgDb = pclJsonDB_;
-    clMyHeaderDecoder.LoadJsonDb(pclJsonDB_);
-    clMyMessageDecoder.LoadJsonDb(pclJsonDB_);
-    clMyEncoder.LoadJsonDb(pclJsonDB_);
+    pclMyMsgDb = pclMessageDb_;
+    clMyHeaderDecoder.LoadJsonDb(pclMessageDb_);
+    clMyMessageDecoder.LoadJsonDb(pclMessageDb_);
+    clMyEncoder.LoadJsonDb(pclMessageDb_);
 
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
@@ -70,7 +70,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t RxConfigHandler::Write(unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+uint32_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS

@@ -28,8 +28,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <iostream>
 
 #include <novatel_edie/common/logger.hpp>
+#include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/file_parser.hpp>
 #include <novatel_edie/version.h>
 
@@ -83,25 +85,24 @@ int main(int argc, char* argv[])
     }
 
     // Load the database
-    JsonReader clJsonDb;
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    clJsonDb.LoadFile(pathJsonDb.string());
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     // Set up timers
     auto tLoop = std::chrono::high_resolution_clock::now();
 
-    FileParser clFileParser(&clJsonDb);
+    FileParser clFileParser(clJsonDb);
     clFileParser.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clFileParser.GetLogger());
     Logger::AddRotatingFileLogger(clFileParser.GetLogger());
 
-    Filter clFilter;
-    clFilter.SetLoggerLevel(spdlog::level::debug);
-    Logger::AddConsoleLogging(clFilter.GetLogger());
-    Logger::AddRotatingFileLogger(clFilter.GetLogger());
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    Logger::AddConsoleLogging(clFilter->GetLogger());
+    Logger::AddRotatingFileLogger(clFilter->GetLogger());
 
     // Initialize structures and error codes
     auto eStatus = STATUS::UNKNOWN;
@@ -109,15 +110,15 @@ int main(int argc, char* argv[])
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
-    clFileParser.SetFilter(&clFilter);
+    clFileParser.SetFilter(clFilter);
     clFileParser.SetEncodeFormat(eEncodeFormat);
 
     // Set up file streams
-    std::ifstream ifs(pathInFilename, std::ios::binary);
+    auto ifs = std::make_shared<std::ifstream>(pathInFilename, std::ios::binary);
     std::ofstream convertedOfs(pathInFilename.string() + "." + sEncodeFormat, std::ios::binary);
     std::ofstream unknownOfs(pathInFilename.string() + "." + sEncodeFormat + ".UNKNOWN", std::ios::binary);
 
-    if (!clFileParser.SetStream(&ifs))
+    if (!clFileParser.SetStream(ifs))
     {
         pclLogger->error("Input stream could not be set. The stream is either unavailable or exhausted.");
         exit(-1);

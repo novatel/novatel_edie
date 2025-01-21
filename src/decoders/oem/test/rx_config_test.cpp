@@ -30,7 +30,7 @@
 #include <gtest/gtest.h>
 
 #include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 #include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
 
@@ -40,15 +40,14 @@ using namespace novatel::edie::oem;
 class RxConfigTest : public ::testing::Test
 {
   protected:
-    static std::unique_ptr<JsonReader> pclMyJsonDb;
+    static MessageDatabase::Ptr pclMyJsonDb;
     static std::unique_ptr<RxConfigHandler> pclMyRxConfigHandler;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyJsonDb = std::make_unique<JsonReader>();
-        pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-        pclMyRxConfigHandler = std::make_unique<RxConfigHandler>(pclMyJsonDb.get());
+        pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+        pclMyRxConfigHandler = std::make_unique<RxConfigHandler>(pclMyJsonDb);
     }
 
     // Per-test-suite teardown
@@ -83,7 +82,7 @@ class RxConfigTest : public ::testing::Test
     }
 };
 
-std::unique_ptr<JsonReader> RxConfigTest::pclMyJsonDb = nullptr;
+MessageDatabase::Ptr RxConfigTest::pclMyJsonDb = nullptr;
 std::unique_ptr<RxConfigHandler> RxConfigTest::pclMyRxConfigHandler = nullptr;
 
 // -------------------------------------------------------------------------------------------------------

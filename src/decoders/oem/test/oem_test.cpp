@@ -25,14 +25,14 @@
 // ===============================================================================
 
 #include <chrono>
+#include <climits>
 #include <codecvt>
 #include <filesystem>
 #include <iostream>
-#include <locale>
 
 #include <gtest/gtest.h>
 
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 #include "novatel_edie/decoders/oem/commander.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"
@@ -49,7 +49,7 @@ class FramerTest : public ::testing::Test
 {
   protected:
     static std::unique_ptr<Framer> pclMyFramer;
-    static std::unique_ptr<std::ifstream> pclMyIFS;
+    static std::unique_ptr<std::istream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
 
     // Per-test-suite setup
@@ -109,7 +109,7 @@ class FramerTest : public ::testing::Test
 };
 
 std::unique_ptr<Framer> FramerTest::pclMyFramer = nullptr;
-std::unique_ptr<std::ifstream> FramerTest::pclMyIFS = nullptr;
+std::unique_ptr<std::istream> FramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> FramerTest::pucMyTestFrameBuffer = nullptr;
 
 // TODO: we disable clang-format because of the long strings
@@ -913,7 +913,7 @@ TEST_F(FramerTest, NULL_FRAME)
 class DecodeEncodeTest : public ::testing::Test
 {
   protected:
-    static std::unique_ptr<JsonReader> pclMyJsonDb;
+    static MessageDatabase::Ptr pclMyJsonDb;
     static std::unique_ptr<HeaderDecoder> pclMyHeaderDecoder;
     static std::unique_ptr<MessageDecoder> pclMyMessageDecoder;
     static std::unique_ptr<Encoder> pclMyEncoder;
@@ -923,13 +923,12 @@ class DecodeEncodeTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = std::make_unique<JsonReader>();
-            pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-            pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb.get());
-            pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb.get());
-            pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb.get());
+            pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb);
+            pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb);
+            pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb);
         }
-        catch (JsonReaderFailure& e)
+        catch (JsonDbReaderFailure& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -941,7 +940,7 @@ class DecodeEncodeTest : public ::testing::Test
   public:
     using logChecker = void (*)(char*, char*);
 
-    enum
+    enum : uint8_t
     {
         SUCCESS,
         HEADER_DECODER_ERROR,
@@ -952,7 +951,8 @@ class DecodeEncodeTest : public ::testing::Test
         MESSAGE_DATA_COMPARISON_ERROR
     };
 
-    static int32_t DecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, unsigned char* pucEncodeBuffer_, uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
+    static int32_t DecodeEncode(ENCODE_FORMAT eFormat_, unsigned char* pucMessageBuffer_, unsigned char* pucEncodeBuffer_,
+                                uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
     {
         IntermediateHeader stHeader;
         std::vector<FieldContainer> stMessage;
@@ -1027,9 +1027,9 @@ class DecodeEncodeTest : public ::testing::Test
         int32_t iRetCode = DecodeEncode(eFormat_, pstExpectedMessageData_->pucMessage, pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, stMessageData);
 
         return iRetCode != SUCCESS                                                                                   ? iRetCode
-               : eFormat_ != ENCODE_FORMAT::JSON && stMetaData.uiHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR
-               : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength                           ? LENGTH_ERROR
-               : stMessageData != *pstExpectedMessageData_                                                           ? MESSAGE_DATA_COMPARISON_ERROR
+               : eFormat_ != ENCODE_FORMAT::JSON && stMetaData.uiHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR // NOLINT
+               : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength                           ? LENGTH_ERROR // NOLINT
+               : stMessageData != *pstExpectedMessageData_                                                           ? MESSAGE_DATA_COMPARISON_ERROR // NOLINT
                                                                                                                      : SUCCESS;
     }
 
@@ -1044,14 +1044,14 @@ class DecodeEncodeTest : public ::testing::Test
         int32_t iRetCode = DecodeEncode(eFormat_, pucMessageBuffer_, pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData, stMessageData);
 
         return iRetCode != SUCCESS                                                                     ? iRetCode
-               : pstExpectedMessageData_->uiMessageHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR
-               : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength             ? LENGTH_ERROR
-               : stMessageData != *pstExpectedMessageData_                                             ? MESSAGE_DATA_COMPARISON_ERROR
+               : pstExpectedMessageData_->uiMessageHeaderLength != stMessageData.uiMessageHeaderLength ? HEADER_LENGTH_ERROR // NOLINT
+               : pstExpectedMessageData_->uiMessageLength != stMessageData.uiMessageLength             ? LENGTH_ERROR // NOLINT
+               : stMessageData != *pstExpectedMessageData_                                             ? MESSAGE_DATA_COMPARISON_ERROR // NOLINT
                                                                                                        : SUCCESS;
     }
 };
 
-std::unique_ptr<JsonReader> DecodeEncodeTest::pclMyJsonDb = nullptr;
+MessageDatabase::Ptr DecodeEncodeTest::pclMyJsonDb = nullptr;
 std::unique_ptr<HeaderDecoder> DecodeEncodeTest::pclMyHeaderDecoder = nullptr;
 std::unique_ptr<MessageDecoder> DecodeEncodeTest::pclMyMessageDecoder = nullptr;
 std::unique_ptr<Encoder> DecodeEncodeTest::pclMyEncoder = nullptr;
@@ -1836,7 +1836,7 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_VERSION)
 // -------------------------------------------------------------------------------------------------------
 // Edge Case Log Decode/Encode Unit Tests
 // -------------------------------------------------------------------------------------------------------
-TEST_F(DecodeEncodeTest, ENCODEFORMAT_UNSPECIFIED)
+TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
 {
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
@@ -2147,7 +2147,7 @@ TEST_F(DecodeEncodeTest, CONVERSION_TO_FLAT_BIN_TRACKSTAT_ASC_AND_BIN)
 class CommandEncodeTest : public ::testing::Test
 {
   protected:
-    static std::unique_ptr<JsonReader> pclMyJsonDb;
+    static MessageDatabase::Ptr pclMyJsonDb;
     static std::unique_ptr<Commander> pclMyCommander;
 
     // Per-test-suite setup
@@ -2155,11 +2155,10 @@ class CommandEncodeTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = std::make_unique<JsonReader>();
-            pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-            pclMyCommander = std::make_unique<Commander>(pclMyJsonDb.get());
+            pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyCommander = std::make_unique<Commander>(pclMyJsonDb);
         }
-        catch (const JsonReaderFailure& e)
+        catch (const JsonDbReaderFailure& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -2175,7 +2174,7 @@ class CommandEncodeTest : public ::testing::Test
     }
 };
 
-std::unique_ptr<JsonReader> CommandEncodeTest::pclMyJsonDb = nullptr;
+MessageDatabase::Ptr CommandEncodeTest::pclMyJsonDb = nullptr;
 std::unique_ptr<Commander> CommandEncodeTest::pclMyCommander = nullptr;
 
 // -------------------------------------------------------------------------------------------------------
@@ -2246,7 +2245,7 @@ class BenchmarkTest : public ::testing::Test
 {
   public:
     static constexpr unsigned int uiMaxCount = 1000;
-    static std::unique_ptr<JsonReader> pclMyJsonDb;
+    static MessageDatabase::Ptr pclMyJsonDb;
     static std::unique_ptr<HeaderDecoder> pclMyHeaderDecoder;
     static std::unique_ptr<MessageDecoder> pclMyMessageDecoder;
     static std::unique_ptr<Encoder> pclMyEncoder;
@@ -2257,20 +2256,19 @@ class BenchmarkTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = std::make_unique<JsonReader>();
-            pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-            pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb.get());
-            pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb.get());
-            pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb.get());
+            pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb);
+            pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb);
+            pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb);
         }
-        catch (JsonReaderFailure& e)
+        catch (JsonDbReaderFailure& e)
         {
             std::cout << e.what() << '\n';
         }
     }
 };
 
-std::unique_ptr<JsonReader> BenchmarkTest::pclMyJsonDb = nullptr;
+MessageDatabase::Ptr BenchmarkTest::pclMyJsonDb = nullptr;
 std::unique_ptr<HeaderDecoder> BenchmarkTest::pclMyHeaderDecoder = nullptr;
 std::unique_ptr<MessageDecoder> BenchmarkTest::pclMyMessageDecoder = nullptr;
 std::unique_ptr<Encoder> BenchmarkTest::pclMyEncoder = nullptr;
@@ -2343,7 +2341,7 @@ TEST_F(BenchmarkTest, BENCHMARK_ASCII_BESTPOS)
 class FilterTest : public ::testing::Test
 {
   protected:
-    static std::unique_ptr<JsonReader> pclMyJsonDb;
+    static MessageDatabase::Ptr pclMyJsonDb;
     static std::unique_ptr<HeaderDecoder> pclMyHeaderDecoder;
     static std::unique_ptr<Filter> pclMyFilter;
 
@@ -2352,12 +2350,11 @@ class FilterTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = std::make_unique<JsonReader>();
-            pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-            pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb.get());
+            pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb);
             pclMyFilter = std::make_unique<Filter>();
         }
-        catch (JsonReaderFailure& e)
+        catch (JsonDbReaderFailure& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -2366,10 +2363,7 @@ class FilterTest : public ::testing::Test
     // Per-test-suite teardown
     static void TearDownTestSuite() { Logger::Shutdown(); }
 
-    void SetUp() override
-    {
-        pclMyFilter->ClearFilters();
-    }
+    void SetUp() override { pclMyFilter->ClearFilters(); }
 
   public:
     static bool TestFilter(const unsigned char* pucMessage_)
@@ -2397,7 +2391,7 @@ class FilterTest : public ::testing::Test
     }
 };
 
-std::unique_ptr<JsonReader> FilterTest::pclMyJsonDb = nullptr;
+MessageDatabase::Ptr FilterTest::pclMyJsonDb = nullptr;
 std::unique_ptr<HeaderDecoder> FilterTest::pclMyHeaderDecoder = nullptr;
 std::unique_ptr<Filter> FilterTest::pclMyFilter = nullptr;
 
@@ -2757,7 +2751,7 @@ class FileParserTest : public ::testing::Test
         {
             pclFp = std::make_unique<FileParser>(std::getenv("TEST_DATABASE_PATH"));
         }
-        catch (JsonReaderFailure& e)
+        catch (JsonDbReaderFailure& e)
         {
             std::cout << e.what() << '\n';
         }
@@ -2793,34 +2787,30 @@ TEST_F(FileParserTest, FILEPARSER_INSTANTIATION)
     const std::u32string usTEST_DATABASE_PATH(sTEST_DATABASE_PATH.begin(), sTEST_DATABASE_PATH.end());
     ASSERT_NO_THROW(FileParser fp3 = FileParser(usTEST_DATABASE_PATH));
 
-    JsonReader jsonDb;
-    jsonDb.LoadFile(std::getenv("TEST_DATABASE_PATH"));
-    ASSERT_NO_THROW(FileParser fp4(&jsonDb));
+    auto jsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(FileParser fp4(jsonDb));
 }
 
 TEST_F(FileParserTest, LOAD_JSON_DB_STRING)
 {
-    JsonReader pclMyJsonDb;
-    pclMyJsonDb.LoadFile(std::getenv("TEST_DATABASE_PATH"));
-    ASSERT_NO_THROW(pclFp->LoadJsonDb(&pclMyJsonDb));
+    auto pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(pclFp->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclFp->LoadJsonDb(nullptr));
 }
 
 TEST_F(FileParserTest, LOAD_JSON_DB_U32STRING)
 {
-    JsonReader pclMyJsonDb;
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
     std::u32string u32str = converter.from_bytes(std::getenv("TEST_DATABASE_PATH"));
-    pclMyJsonDb.LoadFile(u32str);
-    ASSERT_NO_THROW(pclFp->LoadJsonDb(&pclMyJsonDb));
+    auto pclMyJsonDb = JsonDbReader::LoadFile(u32str);
+    ASSERT_NO_THROW(pclFp->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclFp->LoadJsonDb(nullptr));
 }
 
 TEST_F(FileParserTest, LOAD_JSON_DB_CHAR_ARRAY)
 {
-    JsonReader pclMyJsonDb;
-    pclMyJsonDb.LoadFile(std::getenv("TEST_DATABASE_PATH"));
-    ASSERT_NO_THROW(pclFp->LoadJsonDb(&pclMyJsonDb));
+    auto pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(pclFp->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclFp->LoadJsonDb(nullptr));
 }
 
@@ -2844,14 +2834,14 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
 {
     // Reset the FileParser with the database because a previous test assigns it to the nullptr
     pclFp = std::make_unique<FileParser>(std::getenv("TEST_DATABASE_PATH"));
-    Filter clFilter;
-    clFilter.SetLoggerLevel(spdlog::level::debug);
-    pclFp->SetFilter(&clFilter);
-    ASSERT_EQ(pclFp->GetFilter(), &clFilter);
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    pclFp->SetFilter(clFilter);
+    ASSERT_EQ(pclFp->GetFilter(), clFilter);
 
     std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
-    std::ifstream clInputFileStream(test_gps_file.string().c_str(), std::ios::binary);
-    ASSERT_TRUE(pclFp->SetStream(&clInputFileStream));
+    auto clInputFileStream = std::make_shared<std::ifstream>(test_gps_file.string().c_str(), std::ios::binary);
+    ASSERT_TRUE(pclFp->SetStream(clInputFileStream));
 
     MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
@@ -2879,6 +2869,7 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
         eStatus = pclFp->Read(stMessageData, stMetaData);
     }
 
+    ASSERT_EQ(pclFp->Flush(), 0);
     ASSERT_EQ(numSuccess, 2);
 }
 
@@ -2890,6 +2881,141 @@ TEST_F(FileParserTest, RESET)
 }
 
 // -------------------------------------------------------------------------------------------------------
+// Parser Unit Tests
+// -------------------------------------------------------------------------------------------------------
+class ParserTest : public ::testing::Test
+{
+  protected:
+    static std::unique_ptr<Parser> pclParser;
+
+    static void SetUpTestSuite()
+    {
+        try
+        {
+            pclParser = std::make_unique<Parser>(std::getenv("TEST_DATABASE_PATH"));
+        }
+        catch (JsonDbReaderFailure& e)
+        {
+            std::cout << e.what() << '\n';
+        }
+    }
+
+    static void TearDownTestSuite() { Logger::Shutdown(); }
+};
+
+std::unique_ptr<Parser> ParserTest::pclParser = nullptr;
+
+TEST_F(ParserTest, LOGGER)
+{
+    spdlog::level::level_enum eLevel = spdlog::level::off;
+    ASSERT_NE(spdlog::get("novatel_parser"), nullptr);
+    std::shared_ptr<spdlog::logger> novatelParser = pclParser->GetLogger();
+    pclParser->SetLoggerLevel(eLevel);
+    ASSERT_EQ(novatelParser->level(), eLevel);
+}
+
+TEST_F(ParserTest, FILEPARSER_INSTANTIATION)
+{
+    ASSERT_NO_THROW(Parser fp1);
+    ASSERT_NO_THROW(Parser fp2(std::getenv("TEST_DATABASE_PATH")));
+
+    std::string sTEST_DATABASE_PATH = std::getenv("TEST_DATABASE_PATH");
+    const std::u32string usTEST_DATABASE_PATH(sTEST_DATABASE_PATH.begin(), sTEST_DATABASE_PATH.end());
+    ASSERT_NO_THROW(Parser fp3 = Parser(usTEST_DATABASE_PATH));
+
+    auto jsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(Parser fp4(jsonDb));
+}
+
+TEST_F(ParserTest, LOAD_JSON_DB_STRING)
+{
+    auto pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
+}
+
+TEST_F(ParserTest, LOAD_JSON_DB_U32STRING)
+{
+    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
+    std::u32string u32str = converter.from_bytes(std::getenv("TEST_DATABASE_PATH"));
+    auto pclMyJsonDb = JsonDbReader::LoadFile(u32str);
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
+}
+
+TEST_F(ParserTest, LOAD_JSON_DB_CHAR_ARRAY)
+{
+    auto pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
+    ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
+}
+
+TEST_F(ParserTest, RANGE_CMP)
+{
+    pclParser->SetDecompressRangeCmp(true);
+    ASSERT_TRUE(pclParser->GetDecompressRangeCmp());
+    pclParser->SetDecompressRangeCmp(false);
+    ASSERT_FALSE(pclParser->GetDecompressRangeCmp());
+}
+
+TEST_F(ParserTest, UNKNOWN_BYTES)
+{
+    pclParser->SetReturnUnknownBytes(true);
+    ASSERT_TRUE(pclParser->GetReturnUnknownBytes());
+    pclParser->SetReturnUnknownBytes(false);
+    ASSERT_FALSE(pclParser->GetReturnUnknownBytes());
+}
+
+TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
+{
+    // Reset the Parser with the database because a previous test assigns it to the nullptr
+    pclParser = std::make_unique<Parser>(std::getenv("TEST_DATABASE_PATH"));
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    pclParser->SetFilter(clFilter);
+    ASSERT_EQ(pclParser->GetFilter(), clFilter);
+
+    std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
+    std::ifstream clInputFileStream{test_gps_file.string().c_str(), std::ios::binary};
+
+    MetaDataStruct stMetaData;
+    MessageDataStruct stMessageData;
+
+    int numSuccess = 0;
+    uint32_t uiExpectedMetaDataLength[2] = {213, 195};
+    double dExpectedMilliseconds[2] = {270605000, 172189053};
+    uint32_t uiExpectedMessageLength[2] = {213, 195};
+
+    pclParser->SetEncodeFormat(ENCODE_FORMAT::ASCII);
+    ASSERT_EQ(pclParser->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
+
+    const std::size_t chunkSize = 32;
+    std::vector<char> buffer(chunkSize);
+    while (clInputFileStream.read(buffer.data(), chunkSize) || clInputFileStream.gcount() > 0) {
+        auto n = static_cast<uint32_t>(clInputFileStream.gcount());
+        pclParser->Write(reinterpret_cast<const uint8_t*>(buffer.data()), n);
+        while (true)
+        {
+            STATUS eStatus = pclParser->Read(stMessageData, stMetaData);
+            if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE || eStatus == STATUS::INCOMPLETE_MORE_DATA)
+            {
+                break;
+            }
+            if (eStatus == STATUS::SUCCESS)
+            {
+                ASSERT_EQ(stMetaData.uiLength, uiExpectedMetaDataLength[numSuccess]);
+                ASSERT_DOUBLE_EQ(stMetaData.dMilliseconds, dExpectedMilliseconds[numSuccess]);
+                ASSERT_EQ(stMessageData.uiMessageLength, uiExpectedMessageLength[numSuccess]);
+                numSuccess++;
+            }
+        }
+    }
+
+    ASSERT_EQ(pclParser->Flush(), 0);
+    ASSERT_EQ(numSuccess, 2);
+}
+
+// -------------------------------------------------------------------------------------------------------
 // Novatel Types Unit Tests
 // -------------------------------------------------------------------------------------------------------
 class NovatelTypesTest : public ::testing::Test
@@ -2898,17 +3024,19 @@ class NovatelTypesTest : public ::testing::Test
     class DecoderTester : public MessageDecoder
     {
       public:
-        DecoderTester(JsonReader* pclJsonDb_) : MessageDecoder(pclJsonDb_) {}
+        DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoder(pclMessageDb_) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField*> MsgDefFields_, const char** ppcLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
+        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr> MsgDefFields_, const char** ppcLogBuf_,
+                               std::vector<FieldContainer>& vIntermediateFormat_)
         {
             return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField*> MsgDefFields_, const unsigned char** ppucLogBuf_, std::vector<FieldContainer>& vIntermediateFormat_)
+        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr> MsgDefFields_, const unsigned char** ppucLogBuf_,
+                                std::vector<FieldContainer>& vIntermediateFormat_)
         {
             uint16_t MsgDefFieldsSize = 0;
-            for (BaseField* field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
+            for (const auto& field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
             return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
         }
     };
@@ -2916,7 +3044,7 @@ class NovatelTypesTest : public ::testing::Test
     class EncoderTester : public Encoder
     {
       public:
-        EncoderTester(JsonReader* pclJsonDb_) : Encoder(pclJsonDb_) {}
+        EncoderTester(MessageDatabase::Ptr pclMessageDb_) : Encoder(pclMessageDb_) {}
 
         bool TestEncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
         {
@@ -2925,71 +3053,62 @@ class NovatelTypesTest : public ::testing::Test
     };
 
   public:
-    std::unique_ptr<JsonReader> pclMyJsonDb;
+    MessageDatabase::Ptr pclMyJsonDb;
     std::unique_ptr<DecoderTester> pclMyDecoderTester;
     std::unique_ptr<EncoderTester> pclMyEncoderTester;
-    std::vector<BaseField*> MsgDefFields;
+    std::vector<BaseField::Ptr> MsgDefFields;
     std::string sMinJsonDb;
 
     NovatelTypesTest()
     {
-        sMinJsonDb = "{ \
-                        \"enums\": [ \
-                           { \
-                              \"name\": \"Responses\", \
-                              \"_id\": \"0\", \
-                              \"enumerators\": [] \
-                           }, \
-                           { \
-                              \"name\": \"Commands\", \
-                              \"_id\": \"0\", \
-                              \"enumerators\": [] \
-                           }, \
-                           { \
-                              \"name\": \"PortAddress\", \
-                              \"_id\": \"0\", \
-                              \"enumerators\": [] \
-                           }, \
-                           { \
-                              \"name\": \"GPSTimeStatus\", \
-                              \"_id\": \"0\", \
-                              \"enumerators\": [] \
-                           } \
-                        ], \
-                        \"messages\": [] \
-                  }";
+        sMinJsonDb = R"({
+           "enums": [
+              {
+                 "name": "Responses",
+                 "_id": "0",
+                 "enumerators": []
+              },
+              {
+                 "name": "Commands",
+                 "_id": "0",
+                 "enumerators": []
+              },
+              {
+                 "name": "PortAddress",
+                 "_id": "0",
+                 "enumerators": []
+              },
+              {
+                 "name": "GPSTimeStatus",
+                 "_id": "0",
+                 "enumerators": []
+              }
+           ],
+           "messages": []
+        })";
     }
 
     void SetUp() override
     {
         try
         {
-            pclMyJsonDb = std::make_unique<JsonReader>();
-            pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-            pclMyJsonDb->ParseJson(sMinJsonDb);
-            pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb.get());
-            pclMyEncoderTester = std::make_unique<EncoderTester>(pclMyJsonDb.get());
+            pclMyJsonDb = JsonDbReader::Parse(sMinJsonDb);
+            pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb);
+            pclMyEncoderTester = std::make_unique<EncoderTester>(pclMyJsonDb);
         }
-        catch (JsonReaderFailure& e)
+        catch (JsonDbReaderFailure& e)
         {
             std::cout << e.what() << '\n';
-            for (auto* it : MsgDefFields) { delete it; }
-            MsgDefFields.clear();
         }
     }
 
-    void TearDown() override
-    {
-        Logger::Shutdown();
-        for (auto* it : MsgDefFields) { delete it; }
-        MsgDefFields.clear();
-    }
+    void TearDown() override { Logger::Shutdown(); }
 
     void CreateEnumField(std::string_view strName, std::string_view strDescription, int32_t iValue)
     {
-        auto* stField = new EnumField();
-        auto* enumDef = new EnumDefinition();
-        auto* enumDT = new EnumDataType();
+        auto stField = std::make_shared<EnumField>();
+        auto enumDef = std::make_shared<EnumDefinition>();
+        auto enumDT = std::make_shared<EnumDataType>();
         enumDT->name = strName;
         enumDT->description = strDescription;
         enumDT->value = iValue;

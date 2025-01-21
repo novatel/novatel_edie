@@ -28,7 +28,7 @@
 #define NOVATEL_COMMANDER_HPP
 
 #include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
@@ -46,12 +46,12 @@ class Commander
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_commander")};
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
-    JsonReader* pclMyMsgDb{nullptr};
+    MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
-    EnumDefinition* vMyResponseDefinitions{nullptr};
-    EnumDefinition* vMyCommandDefinitions{nullptr};
-    EnumDefinition* vMyPortAddressDefinitions{nullptr};
-    EnumDefinition* vMyGpsTimeStatusDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyResponseDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
     MessageDefinition stMyRespDef;
 
@@ -63,16 +63,16 @@ class Commander
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Commander class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Commander(JsonReader* pclJsonDb_ = nullptr);
+    Commander(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
-    //! \brief Load a JsonReader object.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -122,7 +122,7 @@ class Commander
     //! \brief A static method to encode an abbreviated ASCII command to a full
     //! ASCII or BINARY command.
     //
-    //! \param[in] clJsonDb_ A reference to a JsonReader object.
+    //! \param[in] clJsonDb_ A reference to a MessageDatabase object.
     //! \param[in] clMessageDecoder_ A reference to a MessageDecoder object.
     //! \param[in] clEncoder_ A reference to an Encoder object.
     //! \param[in] pcAbbrevAsciiCommand_ A buffer containing the abbreviated
@@ -148,7 +148,7 @@ class Commander
     //! but the buffer is already full or could not write the bytes without
     //! over-running.
     //----------------------------------------------------------------------------
-    [[nodiscard]] static STATUS Encode(const JsonReader& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
+    [[nodiscard]] static STATUS Encode(const MessageDatabase& clJsonDb_, const MessageDecoder& clMessageDecoder_, Encoder& clEncoder_,
                                        const char* pcAbbrevAsciiCommand_, uint32_t uiAbbrevAsciiCommandLength_, char* pcEncodeBuffer_,
                                        uint32_t& uiEncodeBufferSize_, ENCODE_FORMAT eEncodeFormat_);
 };

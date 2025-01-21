@@ -30,27 +30,27 @@
 #include <cstdarg>
 
 #include "novatel_edie/common/logger.hpp"
-#include "novatel_edie/decoders/common/json_reader.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
 namespace novatel::edie {
 
 // -------------------------------------------------------------------------------------------------------
-constexpr bool PrintAsString(const BaseField* pstFieldDef_)
+constexpr bool PrintAsString(const BaseField& pstFieldDef_)
 {
     // Printing as a string means two things:
     // 1. The field will be surrounded by quotes
     // 2. The field will not contain null-termination or padding
-    return pstFieldDef_->type == FIELD_TYPE::STRING || pstFieldDef_->conversionHash == CalculateBlockCrc32("s") ||
-           pstFieldDef_->conversionHash == CalculateBlockCrc32("S");
+    return pstFieldDef_.type == FIELD_TYPE::STRING || pstFieldDef_.conversionHash == CalculateBlockCrc32("s") ||
+           pstFieldDef_.conversionHash == CalculateBlockCrc32("S");
 }
 
 // -------------------------------------------------------------------------------------------------------
-constexpr bool IsCommaSeparated(const BaseField* pstFieldDef_)
+constexpr bool IsCommaSeparated(const BaseField& pstFieldDef_)
 {
     // In certain cases there are no separators printed between array elements
-    return !PrintAsString(pstFieldDef_) && pstFieldDef_->conversionHash != CalculateBlockCrc32("Z") &&
-           pstFieldDef_->conversionHash != CalculateBlockCrc32("P");
+    return !PrintAsString(pstFieldDef_) && pstFieldDef_.conversionHash != CalculateBlockCrc32("Z") &&
+           pstFieldDef_.conversionHash != CalculateBlockCrc32("P");
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -108,9 +108,9 @@ template <typename T> [[nodiscard]] bool CopyToBuffer(unsigned char** ppucBuffer
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, JsonReader*)> BasicMapEntry(const char* pcF_)
+template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, MessageDatabase&)> BasicMapEntry(const char* pcF_)
 {
-    return [pcF_](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] JsonReader* pclMsgDb_) {
+    return [pcF_](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcF_, std::get<T>(fc_.fieldValue));
     };
 }
@@ -123,14 +123,14 @@ class EncoderBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("encoder")};
-    JsonReader* pclMyMsgDb{nullptr};
+    MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
-    EnumDefinition* vMyCommandDefinitions{nullptr};
-    EnumDefinition* vMyPortAddressDefinitions{nullptr};
-    EnumDefinition* vMyGpsTimeStatusDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
-    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] JsonReader*)>> asciiFieldMap;
-    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] JsonReader*)>> jsonFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] MessageDatabase&)>> asciiFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] MessageDatabase&)>> jsonFieldMap;
     // is there a way to do this with static variables instead?
     [[nodiscard]] virtual char SeparatorAscii() const { return ','; }
     [[nodiscard]] virtual char SeparatorAbbAscii() const { return ' '; }
@@ -159,9 +159,9 @@ class EncoderBase
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Encoder class.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object. Defaults to nullptr.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    EncoderBase(JsonReader* pclJsonDb_ = nullptr);
+    EncoderBase(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief A destructor for the Encoder class.
@@ -169,11 +169,11 @@ class EncoderBase
     virtual ~EncoderBase() = default;
 
     //----------------------------------------------------------------------------
-    //! \brief Load a JsonReader object.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pclJsonDb_ A pointer to a JsonReader object.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.

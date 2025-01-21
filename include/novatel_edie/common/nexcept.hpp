@@ -29,6 +29,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <utility>
 
 //============================================================================
 //! \class NExcept
