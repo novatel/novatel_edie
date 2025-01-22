@@ -175,9 +175,10 @@ template <typename Derived> class EncoderBase
                     // For a flattened version of the log, fill in the remaining fields with 0x00.
                     if constexpr (Flatten)
                     {
-                        if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < dynamic_cast<const FieldArrayField*>(field.fieldDef)->fieldSize &&
+                        if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) <
+                                dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->fieldSize &&
                             !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0',
-                                         dynamic_cast<const FieldArrayField*>(field.fieldDef)->fieldSize -
+                                         dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->fieldSize -
                                              static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
                         {
                             return false;
@@ -205,7 +206,7 @@ template <typename Derived> class EncoderBase
                     if constexpr (Flatten)
                     {
                         const uint32_t uiMaxArraySize =
-                            dynamic_cast<const ArrayField*>(field.fieldDef)->arrayLength * field.fieldDef->dataType.length;
+                            dynamic_cast<const ArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
                         if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < uiMaxArraySize &&
                             !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
                         {
@@ -227,7 +228,7 @@ template <typename Derived> class EncoderBase
                     {
                         const auto uiStringLength = static_cast<uint32_t>(strlen(szString));
                         const uint32_t uiMaxArraySize =
-                            dynamic_cast<const ArrayField*>(field.fieldDef)->arrayLength * field.fieldDef->dataType.length;
+                            dynamic_cast<const ArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
                         if (uiStringLength < uiMaxArraySize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - uiStringLength))
                         {
                             return false;
@@ -361,8 +362,8 @@ template <typename Derived> class EncoderBase
                 }
                 else
                 {
-                    const bool bPrintAsString = PrintAsString(field.fieldDef);
-                    const bool bIsCommaSeparated = IsCommaSeparated(field.fieldDef);
+                    const bool bPrintAsString = PrintAsString(*field.fieldDef);
+                    const bool bIsCommaSeparated = IsCommaSeparated(*field.fieldDef);
 
                     // if the field is a variable array, print the size first
                     if ((field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY &&
@@ -409,7 +410,7 @@ template <typename Derived> class EncoderBase
                     }
                     break;
                 case FIELD_TYPE::ENUM: {
-                    const auto* enumField = dynamic_cast<const EnumField*>(field.fieldDef);
+                    const auto* enumField = dynamic_cast<const EnumField*>(field.fieldDef.get());
                     if (enumField->length == 2)
                     {
                         if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c",
@@ -445,7 +446,7 @@ template <typename Derived> class EncoderBase
     [[nodiscard]] bool FieldToAscii(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         auto it = asciiFieldMap.find(fc_.fieldDef->conversionHash);
-        if (it != asciiFieldMap.end()) { return it->second(fc_, ppcOutBuf_, uiBytesLeft_, pclMyMsgDb); }
+        if (it != asciiFieldMap.end()) { return it->second(fc_, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
         const char* pcConvertString = fc_.fieldDef->conversion.c_str();
 
         switch (fc_.fieldDef->dataType.name)
@@ -472,7 +473,7 @@ template <typename Derived> class EncoderBase
     [[nodiscard]] bool FieldToJson(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         auto it = jsonFieldMap.find(fc_.fieldDef->conversionHash);
-        if (it != jsonFieldMap.end()) { return it->second(fc_, ppcOutBuf_, uiBytesLeft_, pclMyMsgDb); }
+        if (it != jsonFieldMap.end()) { return it->second(fc_, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
         const char* pcConvertString = fc_.fieldDef->conversion.c_str();
 
         switch (fc_.fieldDef->dataType.name)
@@ -530,7 +531,7 @@ template <typename Derived> class EncoderBase
                 }
                 else
                 {
-                    const bool bPrintAsString = PrintAsString(field.fieldDef);
+                    const bool bPrintAsString = PrintAsString(*field.fieldDef);
 
                     if (bPrintAsString)
                     {
@@ -587,7 +588,8 @@ template <typename Derived> class EncoderBase
                 case FIELD_TYPE::ENUM:
                     if (!PrintToBuffer(
                             ppcOutBuf_, uiBytesLeft_, R"("%s": "%s",)", field.fieldDef->name.c_str(),
-                            GetEnumString(dynamic_cast<const EnumField*>(field.fieldDef)->enumDef, std::get<int32_t>(field.fieldValue)).c_str()))
+                            GetEnumString(dynamic_cast<const EnumField*>(field.fieldDef.get())->enumDef, std::get<int32_t>(field.fieldValue))
+                                .c_str()))
                     {
                         return false;
                     }
