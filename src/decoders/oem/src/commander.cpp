@@ -88,10 +88,11 @@ void Commander::CreateResponseMsgDefinitions()
     stRespStrField.dataType = stRespStrDataType;
 
     // Message Definition
-    stMyRespDef = MessageDefinition();
-    stMyRespDef.name = std::string("response");
-    stMyRespDef.fields[0].emplace_back(stRespIdField.Clone());
-    stMyRespDef.fields[0].emplace_back(stRespStrField.Clone());
+    stMyRespDef = std::make_shared<MessageDefinition>();
+    stMyRespDef->name = "response";
+    stMyRespDef->fields[0]; // responses don't have CRCs, hardcoding in 0 as the key to the fields map
+    stMyRespDef->fields[0].emplace_back(std::make_shared<EnumField>(stRespIdField));
+    stMyRespDef->fields[0].emplace_back(std::make_shared<BaseField>(stRespStrField));
 }
 
 // -------------------------------------------------------------------------------------------------------

@@ -247,7 +247,7 @@ TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_SIMPLE_INVALID_SIZE)
 
 TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 {
-    MsgDefFields.emplace_back(new BaseField("CHAR_1", FIELD_TYPE::SIMPLE, "%c", 1, DATA_TYPE::CHAR));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("CHAR_1", FIELD_TYPE::SIMPLE, "%c", 1, DATA_TYPE::CHAR));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -259,7 +259,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 
 TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
 {
-    MsgDefFields.emplace_back(new BaseField("B_True", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("B_True", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -294,7 +294,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 {
-    MsgDefFields.emplace_back(new BaseField("MESSAGE", FIELD_TYPE::STRING, "%", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(1);
 
@@ -312,7 +312,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "%d", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%d", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -341,7 +341,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
 
     const unsigned char* testInput = nullptr;
@@ -351,7 +351,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::UNKNOWN, "%", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
 
     const unsigned char* testInput = nullptr;
@@ -361,17 +361,17 @@ TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 
 TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
 {
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%hu", 2, DATA_TYPE::USHORT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%hd", 2, DATA_TYPE::SHORT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%u", 4, DATA_TYPE::UINT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lu", 4, DATA_TYPE::ULONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::INT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%ld", 4, DATA_TYPE::LONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%llu", 8, DATA_TYPE::ULONGLONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lld", 8, DATA_TYPE::LONGLONG));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%f", 4, DATA_TYPE::FLOAT));
-    MsgDefFields.emplace_back(new BaseField("", FIELD_TYPE::SIMPLE, "%lf", 8, DATA_TYPE::DOUBLE));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%hu", 2, DATA_TYPE::USHORT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%hd", 2, DATA_TYPE::SHORT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%u", 4, DATA_TYPE::UINT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lu", 4, DATA_TYPE::ULONG));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::INT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%ld", 4, DATA_TYPE::LONG));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%llu", 8, DATA_TYPE::ULONGLONG));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lld", 8, DATA_TYPE::LONGLONG));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%f", 4, DATA_TYPE::FLOAT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lf", 8, DATA_TYPE::DOUBLE));
 
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(MsgDefFields.size());
