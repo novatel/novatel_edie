@@ -372,7 +372,7 @@ struct MessageDefinition
     {
         for (const auto& fieldDefinition : that_.fields)
         {
-            uint32_t key = fieldDefinition.first;
+            const uint32_t key = fieldDefinition.first;
             // Ensure a 0-length vector exists for this key in the case the message has no fields.
             fields[key].clear();
             fields[key].reserve(fieldDefinition.second.size());
@@ -393,7 +393,7 @@ struct MessageDefinition
             fields.clear();
             for (const auto& fieldDefinition : that_.fields)
             {
-                uint32_t key = fieldDefinition.first;
+                const uint32_t key = fieldDefinition.first;
                 // Ensure a 0-length vector exists for this key in the case the message has no fields.
                 fields[key].clear();
                 fields[key].reserve(fieldDefinition.second.size());

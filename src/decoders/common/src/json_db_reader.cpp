@@ -152,6 +152,8 @@ void from_json(const json& j_, EnumDefinition& ed_)
 uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
 {
     uint32_t uiFieldSize = 0;
+    vFields_.reserve(j_.size());
+
     for (const auto& field : j_)
     {
         const auto sFieldType = field.at("type").get<std::string>();
@@ -159,33 +161,23 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
 
         if (sFieldType == "SIMPLE")
         {
-            auto pstField = std::make_shared<BaseField>();
-            *pstField = field;
-            vFields_.push_back(pstField);
+            vFields_.emplace_back(std::make_shared<BaseField>(field));
             uiFieldSize += stDataType.length;
         }
         else if (sFieldType == "ENUM")
         {
-            auto pstField = std::make_shared<EnumField>();
-            *pstField = field;
+            auto pstField = std::make_shared<EnumField>(field);
             pstField->length = stDataType.length;
-            vFields_.push_back(pstField);
+            vFields_.emplace_back(pstField);
             uiFieldSize += stDataType.length;
         }
         else if (sFieldType == "FIXED_LENGTH_ARRAY" || sFieldType == "VARIABLE_LENGTH_ARRAY" || sFieldType == "STRING")
         {
-            auto pstField = std::make_shared<ArrayField>();
-            *pstField = field;
-            vFields_.push_back(pstField);
+            vFields_.emplace_back(std::make_shared<ArrayField>(field));
             uint32_t uiArrayLength = field.at("arrayLength").get<uint32_t>();
-            uiFieldSize += (stDataType.length * uiArrayLength);
+            uiFieldSize += stDataType.length * uiArrayLength;
         }
-        else if (sFieldType == "FIELD_ARRAY")
-        {
-            auto pstField = std::make_shared<FieldArrayField>();
-            *pstField = field;
-            vFields_.push_back(pstField);
-        }
+        else if (sFieldType == "FIELD_ARRAY") { vFields_.emplace_back(std::make_shared<FieldArrayField>(field)); }
         else { throw std::runtime_error("Could not find field type"); }
     }
     return uiFieldSize;
@@ -194,7 +186,8 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
 //-----------------------------------------------------------------------
 void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_)
 {
-    for (const auto& enumerator : j_) { vEnumerators_.push_back(enumerator); }
+    vEnumerators_.reserve(j_.size());
+    for (const auto& enumerator : j_) { vEnumerators_.emplace_back(enumerator); }
 }
 
 //-----------------------------------------------------------------------
@@ -202,18 +195,28 @@ MessageDatabase::Ptr JsonDbReader::LoadFile(const std::filesystem::path& filePat
 {
     try
     {
-        std::fstream jsonFile;
-        jsonFile.open(filePath_, std::ios::in);
-        json jDefinitions = json::parse(jsonFile);
+        std::ifstream jsonFile(filePath_);
+        const json jDefinitions = json::parse(jsonFile);
 
         std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
         std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
 
-        // The JSON object is converted to a MessageDefinition object here
-        for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(std::make_shared<MessageDefinition>(msg)); }
+        auto processMessages = [&vMessageDefinitions, &jDefinitions]() {
+            vMessageDefinitions.reserve(jDefinitions["messages"].size());
+            for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.emplace_back(std::make_shared<MessageDefinition>(msg)); }
+        };
 
-        // The JSON object is converted to a EnumDefinition object here
-        for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm)); }
+        auto processEnums = [&vEnumDefinitions, &jDefinitions]() {
+            vEnumDefinitions.reserve(jDefinitions["enums"].size());
+            for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.emplace_back(std::make_shared<EnumDefinition>(enm)); }
+        };
+
+        std::thread messageThread(processMessages);
+        std::thread enumThread(processEnums);
+
+        messageThread.join();
+        enumThread.join();
+
         return std::make_shared<MessageDatabase>(vMessageDefinitions, vEnumDefinitions);
     }
     catch (std::exception& e)
@@ -227,16 +230,29 @@ MessageDatabase::Ptr JsonDbReader::Parse(std::string_view strJsonData_)
 {
     try
     {
-        json jDefinitions = json::parse(strJsonData_);
+        const json jDefinitions = json::parse(strJsonData_);
 
         std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
         std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
 
-        // The JSON object is converted to a MessageDefinition object here
-        for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.push_back(std::make_shared<MessageDefinition>(msg)); }
+        auto processMessages = [&vMessageDefinitions, &jDefinitions]() {
+            const auto& messages = jDefinitions["messages"];
+            vMessageDefinitions.reserve(messages.size());
+            for (const auto& msg : messages) { vMessageDefinitions.emplace_back(std::make_shared<MessageDefinition>(msg)); }
+        };
 
-        // The JSON object is converted to a EnumDefinition object here
-        for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm)); }
+        auto processEnums = [&vEnumDefinitions, &jDefinitions]() {
+            const auto& enums = jDefinitions["enums"];
+            vEnumDefinitions.reserve(enums.size());
+            for (const auto& enm : enums) { vEnumDefinitions.emplace_back(std::make_shared<EnumDefinition>(enm)); }
+        };
+
+        std::thread messageThread(processMessages);
+        std::thread enumThread(processEnums);
+
+        messageThread.join();
+        enumThread.join();
+
         return std::make_shared<MessageDatabase>(vMessageDefinitions, vEnumDefinitions);
     }
     catch (std::exception& e)
@@ -250,24 +266,28 @@ void JsonDbReader::AppendMessages(const MessageDatabase::Ptr& messageDb_, const 
 {
     try
     {
-        std::fstream jsonFile;
-        jsonFile.open(std::filesystem::path(filePath_));
-        json jDefinitions = json::parse(jsonFile);
+        std::ifstream jsonFile(filePath_);
+        const json jDefinitions = json::parse(jsonFile);
 
         std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
-        for (const auto& msg : jDefinitions["messages"])
-        {
-            // Convert JSON object to an MessageDefinition object
-            vMessageDefinitions.push_back(std::make_shared<MessageDefinition>(msg));
-        }
-        messageDb_->AppendMessages(vMessageDefinitions, false);
-
         std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
-        for (const auto& enm : jDefinitions["enums"])
-        {
-            // Convert JSON object to an EnumDefinition object
-            vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm));
-        }
+
+        auto processMessages = [&vMessageDefinitions, &jDefinitions]() {
+            for (const auto& msg : jDefinitions["messages"]) { vMessageDefinitions.emplace_back(std::make_shared<MessageDefinition>(msg)); }
+        };
+
+        auto processEnums = [&vEnumDefinitions, &jDefinitions]() {
+            for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.emplace_back(std::make_shared<EnumDefinition>(enm)); }
+        };
+
+        std::thread messageThread(processMessages);
+        std::thread enumThread(processEnums);
+
+        messageThread.join();
+        enumThread.join();
+
+        // TODO: make MessageDatabase thread safe and add this to the process lambdas
+        messageDb_->AppendMessages(vMessageDefinitions, false);
         messageDb_->AppendEnumerations(vEnumDefinitions);
     }
     catch (std::exception& e)
@@ -281,16 +301,11 @@ void JsonDbReader::AppendEnumerations(const MessageDatabase::Ptr& messageDb_, co
 {
     try
     {
-        std::fstream jsonFile;
-        jsonFile.open(std::filesystem::path(filePath_));
-        json jDefinitions = json::parse(jsonFile);
+        std::ifstream jsonFile(filePath_);
+        const json jDefinitions = json::parse(jsonFile);
 
         std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
-        for (const auto& enm : jDefinitions["enums"])
-        {
-            // Convert JSON object to an EnumDefinition object
-            vEnumDefinitions.push_back(std::make_shared<EnumDefinition>(enm));
-        }
+        for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.emplace_back(std::make_shared<EnumDefinition>(enm)); }
         messageDb_->AppendEnumerations(vEnumDefinitions);
     }
     catch (std::exception& e)
