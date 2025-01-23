@@ -29,6 +29,7 @@
 #include <vector>
 
 #include <benchmark/benchmark.h>
+#include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
 #include <novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp>
@@ -40,19 +41,16 @@ using namespace novatel::edie::oem;
 
 static void LoadJson(benchmark::State& state)
 {
-    JsonReader jsonReader;
-
-    for ([[maybe_unused]] auto _ : state) { jsonReader.LoadFile(std::getenv("TEST_DATABASE_PATH")); }
+    for ([[maybe_unused]] auto _ : state) { (void)JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH")); }
 }
 
 BENCHMARK(LoadJson);
 
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
 {
-    JsonReader jsonReader;
-    jsonReader.LoadFile(std::getenv("TEST_DATABASE_PATH"));
-    const HeaderDecoder headerDecoder(&jsonReader);
-    const MessageDecoder messageDecoder(&jsonReader);
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    const HeaderDecoder headerDecoder(clJsonDb);
+    const MessageDecoder messageDecoder(clJsonDb);
 
     const unsigned char* dataPtr = data;
 
@@ -134,11 +132,10 @@ template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
                                       0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                       0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
 
-    JsonReader jsonReader;
-    jsonReader.LoadFile(std::getenv("TEST_DATABASE_PATH"));
-    const HeaderDecoder headerDecoder(&jsonReader);
-    const MessageDecoder messageDecoder(&jsonReader);
-    const Encoder encoder(&jsonReader);
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    const HeaderDecoder headerDecoder(clJsonDb);
+    const MessageDecoder messageDecoder(clJsonDb);
+    const Encoder encoder(clJsonDb);
 
     MetaDataStruct metaData;
     MessageDataStruct messageData;
@@ -176,9 +173,8 @@ BENCHMARK(EncodeJsonLog);
 
 static void DecompressRangeCmp(benchmark::State& state, uint32_t id, const char* compressedData)
 {
-    JsonReader jsonReader;
-    jsonReader.LoadFile(std::getenv("TEST_DATABASE_PATH"));
-    RangeDecompressor rangeDecompressor(&jsonReader);
+    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    RangeDecompressor rangeDecompressor(clJsonDb);
 
     char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];
     strcpy(aucCompressionBuffer, compressedData);
