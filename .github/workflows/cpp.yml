@@ -5,11 +5,6 @@ on:
       - '**.md'
       - '.gitignore'
       - 'resources/**'
-  pull_request:
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'resources/**'
   workflow_dispatch:
 jobs:
   # =========================================================
@@ -224,7 +219,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y doxygen=1.9.1-2ubuntu2
+          sudo apt-get install -y doxygen
           pip3 install 'exhale==0.3.7'
           pip3 install 'sphinx==7.3.7'
           pip3 install 'sphinx_rtd_theme==2.0.0'
