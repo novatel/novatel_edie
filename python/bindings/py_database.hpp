@@ -15,16 +15,20 @@ class PyMessageDatabase final : public MessageDatabase
     explicit PyMessageDatabase(const MessageDatabase& message_db) noexcept;
     explicit PyMessageDatabase(const MessageDatabase&& message_db) noexcept;
 
-    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
+    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetMessagesByNameDict() const { return messages_by_name; }
 
+    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
-    std::unordered_map<std::string, nb::object> message_types{};
+
 
 
   private:
     void GenerateMappings() override;
     void UpdatePythonEnums();
     void UpdateMessageTypes();
+
+    std::unordered_map<std::string, nb::object> messages_by_id{};
+    std::unordered_map<std::string, nb::object> messages_by_name{};
 
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};

@@ -231,10 +231,10 @@ void init_novatel_message_decoder(nb::module_& m)
                 PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);
                 nb::handle body_pytype;
                 try {
-                    body_pytype = parent_db->message_types.at(metadata.MessageName());
+                    body_pytype = parent_db->GetMessagesByNameDict().at(metadata.MessageName());
                 } catch (const std::out_of_range& e)
                 {
-                    body_pytype = parent_db->message_types.at("UNKNOWN");
+                    body_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
                 }
                 bool valid = nb::type_check(body_pytype);
                 nb::object body_pyinst = nb::inst_alloc(body_pytype);

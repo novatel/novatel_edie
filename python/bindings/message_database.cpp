@@ -185,7 +185,7 @@ void init_common_message_database(nb::module_& m)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefId, "enum_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a)
         .def_prop_ro("enums", &PyMessageDatabase::GetEnumsByNameDict)
-        .def_ro("message_types", &PyMessageDatabase::message_types);
+        .def_prop_ro("messages", &PyMessageDatabase::GetMessagesByNameDict);
 }
 
 PyMessageDatabase::PyMessageDatabase() { 
@@ -238,19 +238,22 @@ inline void PyMessageDatabase::UpdatePythonEnums()
 
 void PyMessageDatabase::UpdateMessageTypes()
 {
-    nb::module_ messages_mod = nb::module_::import_("novatel_edie.messages");
-    nb::handle py_type = nb::type<oem::PyMessageBody>();
+    // clear existing definitions
+    messages_by_id.clear();
+    messages_by_name.clear();
+
+    // get type constructor
     nb::object Type = nb::module_::import_("builtins").attr("type");
+
+    nb::handle py_type = nb::type<oem::PyMessageBody>();
     nb::dict type_dict = nb::dict();
     nb::tuple type_tuple = nb::make_tuple(py_type);
+    nb::object msg_def;
     for (const auto& message_def : MessageDefinitions()) {
-        nb::object msg_def = Type(message_def->name + "MessageBody", type_tuple, type_dict);
-        msg_def.attr("__module__") = "novatel_edie.messages";
-        message_types[message_def->name] = msg_def;
-        messages_mod.attr((message_def->name + "MessageBody").c_str()) = msg_def;
+        msg_def = Type(message_def->name + "MessageBody", type_tuple, type_dict);
+        messages_by_id[message_def->_id.c_str()] = msg_def;
+        messages_by_name[message_def->name] = msg_def;
     }
     nb::object defaut_type = Type("UNKNOWNMessageBody", type_tuple, type_dict);
-    defaut_type.attr("__module__") = "novatel_edie.messages";
-    message_types["UNKNOWN"] = defaut_type;
-    messages_mod.attr("UNKNOWNMessageBody") = defaut_type;
+    messages_by_name["UNKNOWN"] = defaut_type;
 }

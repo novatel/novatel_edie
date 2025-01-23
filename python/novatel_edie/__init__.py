@@ -1,6 +1,6 @@
 import importlib_resources
 
-from .bindings import *
+from .bindings.classes import *
 
 def default_json_db_path():
     """Returns a context manager that yields the path to the default JSON database."""
