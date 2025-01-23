@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736372614692,
+  "lastUpdate": 1737675654792,
   "repoUrl": "https://github.com/novatel/novatel_edie",
   "entries": {
     "Benchmark": [
@@ -1211,6 +1211,114 @@ window.BENCHMARK_DATA = {
             "value": 401.7268614964104,
             "unit": "ns/iter",
             "extra": "iterations: 1685848\ncpu: 401.7311999658342 ns\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jonathantmcdermid@gmail.com",
+            "name": "Jonathan McDermid",
+            "username": "jonathanmcdermid"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "59deff5570add4dbf9e10767e3b0804878a22bde",
+          "message": "Pipeline fix (#91)\n\n* Update cpp.yml\r\n\r\n* Update benchmark.cpp\r\n\r\n* Update cpp.yml\r\n\r\n---------\r\n\r\nCo-authored-by: Jonathan McDermid <jonathan.mcdermid1@ucalgary.ca>",
+          "timestamp": "2025-01-23T16:38:23-07:00",
+          "tree_id": "eaaef1870f1f3fc2901623c45248932f7c5598ae",
+          "url": "https://github.com/novatel/novatel_edie/commit/59deff5570add4dbf9e10767e3b0804878a22bde"
+        },
+        "date": 1737675653329,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "LoadJson",
+            "value": 76437930.37500046,
+            "unit": "ns/iter",
+            "extra": "iterations: 8\ncpu: 76437514.25 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeFlattenedBinaryLog",
+            "value": 84.90136217463547,
+            "unit": "ns/iter",
+            "extra": "iterations: 8323896\ncpu: 84.8527123596931 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeAsciiLog",
+            "value": 83.63388693872267,
+            "unit": "ns/iter",
+            "extra": "iterations: 8287612\ncpu: 83.63059660611525 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeAbbrevAsciiLog",
+            "value": 87.11072905957883,
+            "unit": "ns/iter",
+            "extra": "iterations: 8037601\ncpu: 87.11135872507236 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeBinaryLog",
+            "value": 84.11018751245251,
+            "unit": "ns/iter",
+            "extra": "iterations: 8336353\ncpu: 84.10485604436379 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeJsonLog",
+            "value": 157056.07319243165,
+            "unit": "ns/iter",
+            "extra": "iterations: 4495\ncpu: 157044.17263626243 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeFlattenedBinaryLog",
+            "value": 397.90068879846086,
+            "unit": "ns/iter",
+            "extra": "iterations: 1759731\ncpu: 397.88001347933266 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeAsciiLog",
+            "value": 4760.857647673827,
+            "unit": "ns/iter",
+            "extra": "iterations: 143475\ncpu: 4760.871866178781 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeAbbrevAsciiLog",
+            "value": 4223.954464534427,
+            "unit": "ns/iter",
+            "extra": "iterations: 165146\ncpu: 4223.90878374287 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeBinaryLog",
+            "value": 392.87641077540155,
+            "unit": "ns/iter",
+            "extra": "iterations: 1754886\ncpu: 392.8765207540544 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeJsonLog",
+            "value": 4762.458992953366,
+            "unit": "ns/iter",
+            "extra": "iterations: 146170\ncpu: 4762.492180337966 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp",
+            "value": 487.0126354421275,
+            "unit": "ns/iter",
+            "extra": "iterations: 1431054\ncpu: 486.98496912066076 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp2",
+            "value": 454.46578908181186,
+            "unit": "ns/iter",
+            "extra": "iterations: 1524411\ncpu: 454.43874257008133 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp4",
+            "value": 479.51785915974204,
+            "unit": "ns/iter",
+            "extra": "iterations: 1425459\ncpu: 479.4972201936362 ns\nthreads: 1"
           }
         ]
       }
