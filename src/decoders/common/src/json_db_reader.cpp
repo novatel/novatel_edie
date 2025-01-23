@@ -203,12 +203,12 @@ MessageDatabase::Ptr JsonDbReader::LoadFile(const std::filesystem::path& filePat
 
         auto processMessages = [&vMessageDefinitions, &jDefinitions]() {
             vMessageDefinitions.reserve(jDefinitions["messages"].size());
-            for (auto& msg : jDefinitions["messages"]) { vMessageDefinitions.emplace_back(std::make_shared<MessageDefinition>(msg)); }
+            for (const auto& msg : jDefinitions["messages"]) { vMessageDefinitions.emplace_back(std::make_shared<MessageDefinition>(msg)); }
         };
 
         auto processEnums = [&vEnumDefinitions, &jDefinitions]() {
             vEnumDefinitions.reserve(jDefinitions["enums"].size());
-            for (auto& enm : jDefinitions["enums"]) { vEnumDefinitions.emplace_back(std::make_shared<EnumDefinition>(enm)); }
+            for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.emplace_back(std::make_shared<EnumDefinition>(enm)); }
         };
 
         std::thread messageThread(processMessages);
