@@ -232,8 +232,6 @@ struct BaseField
 
     virtual ~BaseField() = default;
 
-    virtual BaseField* Clone() { return new BaseField(*this); }
-
     void SetConversion(const std::string& sConversion_)
     {
         conversion = sConversion_;
@@ -293,8 +291,6 @@ struct EnumField : BaseField
 
     ~EnumField() override = default;
 
-    EnumField* Clone() override { return new EnumField(*this); }
-
     using Ptr = std::shared_ptr<EnumField>;
     using ConstPtr = std::shared_ptr<const EnumField>;
 };
@@ -310,8 +306,6 @@ struct ArrayField : BaseField
     ArrayField() = default;
 
     ~ArrayField() override = default;
-
-    ArrayField* Clone() override { return new ArrayField(*this); }
 
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;
@@ -353,8 +347,6 @@ struct FieldArrayField : BaseField
 
         return *this;
     }
-
-    FieldArrayField* Clone() override { return new FieldArrayField(*this); }
 
     using Ptr = std::shared_ptr<FieldArrayField>;
     using ConstPtr = std::shared_ptr<const FieldArrayField>;
