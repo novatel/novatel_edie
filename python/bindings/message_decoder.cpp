@@ -17,7 +17,7 @@ using namespace novatel::edie::oem;
 
 NB_MAKE_OPAQUE(std::vector<FieldContainer>);
 
-nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::ConstPtr& parent_db)
+nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::ConstPtr& parent_db, std::string parent)
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
@@ -59,13 +59,25 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
             }
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
-            for (const auto& f : message_field) { sub_values.push_back(convert_field(f, parent_db)); }
+            for (const auto& f : message_field) { sub_values.push_back(convert_field(f, parent_db, parent)); }
             return nb::cast(sub_values);
         }
         else
         {
             // This is an array element of a field array.
-            return nb::cast(PyMessageBody(message_field, parent_db));
+            nb::handle field_ptype;
+            std::string field_name = parent + "_" + field.fieldDef->name + "_Field";
+            try {
+                field_ptype = parent_db->GetMessagesByNameDict().at(field_name);
+            } catch (const std::out_of_range& e){
+                throw std::runtime_error("Type for " + field_name + "Field not found in the JSON database");
+            }
+            nb::object pyinst = nb::inst_alloc(field_ptype);
+            PyMessageBody* cinst = nb::inst_ptr<PyMessageBody>(pyinst);
+            new (cinst) PyMessageBody(message_field, parent_db, field_name+ "Field");
+            nb::inst_mark_ready(pyinst);
+
+            return pyinst;
         }
     }
     else if (field.fieldDef->conversion == "%id")
@@ -96,15 +108,15 @@ std::vector<std::string> PyMessageBody::get_field_names() const
     return field_names;
 }
 
-PyMessageBody::PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_)
-    : fields(std::move(message_)), parent_db_(std::move(parent_db_))
+PyMessageBody::PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name_)
+    : fields(std::move(message_)), parent_db_(std::move(parent_db_)), name(std::move(name_))
 {}
 
 nb::dict& PyMessageBody::get_values() const
 {
     if (cached_values_.size() == 0)
     {
-        for (const auto& field : fields) { cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_); }
+        for (const auto& field : fields) { cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_, name); }
     }
     return cached_values_;
 }
@@ -203,7 +215,7 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_prop_ro("_fields", &PyMessageBody::get_fields)
         .def("to_dict", &PyMessageBody::to_dict, "Convert the message and its sub-messages into a dict")
         .def("__getattr__", &PyMessageBody::getattr, "field_name"_a)
-        .def("__repr__", &PyMessageBody::repr)
+        //.def("__repr__", &PyMessageBody::repr)
         .def("__str__", &PyMessageBody::repr)
         .def("__dir__", &PyMessageBody::get_field_names);
 
@@ -235,20 +247,29 @@ void init_novatel_message_decoder(nb::module_& m)
                 std::vector<FieldContainer> fields;
                 STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(message_body.c_str()), fields, metadata);
                 PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);
+                nb::handle message_pytype;
                 nb::handle body_pytype;
                 try {
-                    body_pytype = parent_db->GetMessagesByNameDict().at(metadata.MessageName());
+                    message_pytype = parent_db->GetMessagesByNameDict().at(metadata.MessageName());
+                    body_pytype = parent_db->GetMessagesByNameDict().at(metadata.MessageName() + "_Body");
                 } catch (const std::out_of_range& e)
                 {
-                    body_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
+                    message_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
+                    body_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN_Body");
                 }
-                bool valid = nb::type_check(body_pytype);
+
+
                 nb::object body_pyinst = nb::inst_alloc(body_pytype);
                 PyMessageBody* body_cinst = nb::inst_ptr<PyMessageBody>(body_pyinst);
-                new (body_cinst) PyMessageBody(std::move(fields), parent_db);
+                new (body_cinst) PyMessageBody(std::move(fields), parent_db, metadata.MessageName() + "_Body");
                 nb::inst_mark_ready(body_pyinst);
-                PyMessage message = PyMessage(body_pyinst, header);
-                return nb::make_tuple(status, message);
+
+                nb::object message_pyinst = nb::inst_alloc(message_pytype);
+                PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
+                new (message_cinst) PyMessage(body_pyinst, header);
+                nb::inst_mark_ready(message_pyinst);
+
+                return nb::make_tuple(status, message_pyinst);
             },
             "message_body"_a, "decoded_header"_a, "metadata"_a);
 }

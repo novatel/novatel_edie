@@ -36,7 +36,7 @@ import time
 import typing
 
 import novatel_edie as ne
-from novatel_edie.messages import BESTPOSMessageBody
+from novatel_edie.messages import RANGE
 from novatel_edie import STATUS
 
 
@@ -117,11 +117,10 @@ def main():
                 status, message = message_decoder.decode(body, header, meta)
                 status.raise_on_error("MessageDecoder.decode() failed")
 
-                if isinstance(message.body, BESTPOSMessageBody):
-                    print(message)
+                if isinstance(message, RANGE):
+                    body = message.body
+                    pass
 
-                if isinstance(message.body, ne.messages.RANGEMessageBody):
-                    print(message)
                 index += 1
                 if index > 100000:
                     break

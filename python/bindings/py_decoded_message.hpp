@@ -20,7 +20,8 @@ struct PyGpsTime
 
 struct PyMessageBody
 {
-    explicit PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_);
+    std::string name;
+    explicit PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name);
     nb::dict& get_values() const;
     nb::dict& get_fields() const;
     nb::dict to_dict() const;

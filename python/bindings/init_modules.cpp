@@ -15,7 +15,8 @@ void init_novatel_oem_enums(nb::module_& m)
 
 void init_novatel_oem_messages(nb::module_& m)
 {
-    for (const auto& [name, message_type] : MessageDbSingleton::get()->GetMessagesByNameDict()) { 
-        m.attr((name + "MessageBody").c_str()) = message_type; 
+    for (const auto& [name, message_type] : MessageDbSingleton::get()->GetMessagesByNameDict())
+    {
+        m.attr(name.c_str()) = message_type;
     }
 }
