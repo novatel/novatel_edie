@@ -120,6 +120,8 @@ def main():
                 if isinstance(message.body, BESTPOSMessageBody):
                     print(message)
 
+                if isinstance(message.body, ne.messages.RANGEMessageBody):
+                    print(message)
                 index += 1
                 if index > 100000:
                     break
