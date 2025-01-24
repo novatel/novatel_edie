@@ -34,21 +34,15 @@ using namespace novatel::edie::oem;
 
 class RangeCmpTest : public ::testing::Test
 {
-    class RangeDecompressorTester : public RangeDecompressor
-    {
-      public:
-        RangeDecompressorTester(MessageDatabase::Ptr pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
-    };
-
   protected:
-    static std::unique_ptr<RangeDecompressorTester> pclMyRangeDecompressor;
+    static std::unique_ptr<RangeDecompressor> pclMyRangeDecompressor;
     static MessageDatabase::Ptr pclMyJsonDb;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
         pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
-        pclMyRangeDecompressor = std::make_unique<RangeDecompressorTester>(pclMyJsonDb);
+        pclMyRangeDecompressor = std::make_unique<RangeDecompressor>(pclMyJsonDb);
     }
 
     // Per-test-suite teardown
@@ -80,7 +74,7 @@ class RangeCmpTest : public ::testing::Test
     }
 };
 
-std::unique_ptr<RangeCmpTest::RangeDecompressorTester> RangeCmpTest::pclMyRangeDecompressor = nullptr;
+std::unique_ptr<RangeDecompressor> RangeCmpTest::pclMyRangeDecompressor = nullptr;
 MessageDatabase::Ptr RangeCmpTest::pclMyJsonDb = nullptr;
 
 // clang-format off
