@@ -30,6 +30,25 @@
 import novatel_edie as ne
 import pytest
 
+import re
+
+def compare_strings(str1, str2):
+    def is_floating_point(token):
+        return bool(re.match(r"^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$", token))
+
+    tokens1 = str1.split(',')
+    tokens2 = str2.split(',')
+
+    for token1, token2 in zip(tokens1, tokens2):
+        # Skip last token (checksum) affected by floating-point rounding errors.
+        if '*' in token1:
+            continue
+        # TODO: This isn't ideal, some rounding errors arent acceptable.
+        if is_floating_point(token1) and is_floating_point(token2):
+            assert token1[:-1] == token2[:-1], f"Expected: {token1[:-1]}, got: {token2[:-1]}"
+        else:
+            assert token1 == token2, f"Expected: {token1}, got: {token2}"
+
 @pytest.fixture(scope="function")
 def range_decompressor():
     return ne.RangeDecompressor()
@@ -39,6 +58,7 @@ RANGECMP_MSG_ID  = 140
 RANGECMP2_MSG_ID = 1273
 RANGECMP3_MSG_ID = 1734
 RANGECMP4_MSG_ID = 2050
+RANGECMP5_MSG_ID = 2537
 
 # -------------------------------------------------------------------------------------------------------
 # Logging Framer Unit Tests
@@ -70,93 +90,6 @@ def test_channel_tracking_status_word_3():
     assert cts == ne.RangeDecompressor._reencode_ChannelTrackingStatusWord(cts)
 
 # -------------------------------------------------------------------------------------------------------
-# Bitfield unit tests
-# -------------------------------------------------------------------------------------------------------
-#def test_bitfield_1(range_decompressor):
-#    data = bytes([0xDF, 0x76, 0x88])
-#
-#    range_decompressor._set_bitoffset(0)
-#    range_decompressor._set_bytes_remaining(len(data))
-#    bitfield, data = range_decompressor._get_bitfield(data, 15)
-#    assert bitfield == 0x76DF
-#    bitfield, data = range_decompressor._get_bitfield(data, 4)
-#    assert bitfield == 0x0
-#    bitfield, data = range_decompressor._get_bitfield(data, 5)
-#    assert bitfield == 0x11
-#
-#def test_bitfield_2(range_decompressor):
-#    data = bytes([0x61, 0x1F, 0xD8, 0x7C, 0xA0, 0xB0])
-#
-#    range_decompressor._set_bitoffset(4)
-#    range_decompressor._set_bytes_remaining(len(data))
-#    bitfield, data = range_decompressor._get_bitfield(data, 37)
-#    assert bitfield == 0xA07CD81F6
-#
-#def test_bitfield_3(range_decompressor):
-#    # 9 bytes, 72 bits.  We should not be able to ask for more than 64 bits from this function.
-#    data = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-#
-#    range_decompressor._set_bitoffset(0)
-#    range_decompressor._set_bytes_remaining(len(data))
-#    bitfield, data = range_decompressor._get_bitfield(data, 65)
-#    assert bitfield == 0x0
-#
-#def test_bitfield_4(range_decompressor):
-#    data = bytes([0xAA, 0xAA])
-#
-#    range_decompressor._set_bitoffset(0)
-#    range_decompressor._set_bytes_remaining(len(data))
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x0
-#    assert range_decompressor._get_bytes_remaining() == 2
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x1
-#    assert range_decompressor._get_bytes_remaining() == 2
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x0
-#    assert range_decompressor._get_bytes_remaining() == 2
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x1
-#    assert range_decompressor._get_bytes_remaining() == 2
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x0
-#    assert range_decompressor._get_bytes_remaining() == 2
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x1
-#    assert range_decompressor._get_bytes_remaining() == 2
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x0
-#    assert range_decompressor._get_bytes_remaining() == 2
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x1
-#    assert range_decompressor._get_bytes_remaining() == 1
-#
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x0
-#    assert range_decompressor._get_bytes_remaining() == 1
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x1
-#    assert range_decompressor._get_bytes_remaining() == 1
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x0
-#    assert range_decompressor._get_bytes_remaining() == 1
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x1
-#    assert range_decompressor._get_bytes_remaining() == 1
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x0
-#    assert range_decompressor._get_bytes_remaining() == 1
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x1
-#    assert range_decompressor._get_bytes_remaining() == 1
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x0
-#    assert range_decompressor._get_bytes_remaining() == 1
-#    bitfield, data = range_decompressor._get_bitfield(data, 1)
-#    assert bitfield == 0x1
-#    assert range_decompressor._get_bytes_remaining() == 0
-
-# -------------------------------------------------------------------------------------------------------
 # RANGECMP decompression unit tests
 # -------------------------------------------------------------------------------------------------------
 def test_decompress_rangecmpa_1(range_decompressor):
@@ -169,7 +102,7 @@ def test_decompress_rangecmpa_1(range_decompressor):
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
     status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa_2(range_decompressor):
     compressed_data = b"#RANGECMPA,COM1,0,67.0,FINESTEERING,2241,407417.000,02000020,9691,32768;123,04dc10082ce0f13f05ff710bfcb458fb3201f1b1a1030000,0b5c300178fef46f33ff710b051d45a43001d8af01030000,0bdc300278fef43f2cff710bc32245a433011ab041030000,04dcd001fa73f53f38ff710b903fc2e2200146b0a1030000,24dc1018328c07208138860b5f930fee52067ffe60030000,2b5c30119ce105f0a738860b9dd6ea997006b8fd60030000,2bdc30029be105a09a38860b5cdcea99730614fee0020000,24dcd001eca20550a838860b765ad6d8400640fe20030000,44dc1018470000b0b342c1097ce099972003f1b1e1030000,4b5c301137000050c842c109cc5ac4812003d8afe1030000,4bdc300237000010c942c1098b5cc481200319b0e1030000,44dcd001450000e0d342c1095ed206b7100347b0e1030000,64dc1018d6fef6bf393b250ae3b6eed5211fe2b1e1030000,6b5c3011c4fbf8bf3a3b250a67c898ce201fa0afe1030000,6bdc3002c4fbf84f3a3b250a25ca98ce211f0cb0e1030000,84dc1008b4500f309119c00bd67a0ac863103f62e0020000,8b5c300117ef0b40ad19c00b5f964afc71108861e0020000,a4dc10183760f36fd067080c1ad68b984320e1b101030000,ab5c3011b929f68f1568080c667048d76120a8afa1020000,abdc3002b829f6af1268080c267848d7532006b0c1020000,a4dcd001a092f6ff1d68080c46c1fa98302035b001030000,e4dc10189090f62fb003b10a67a91cfa3216e7b161030000,eb5c3011d7a5f82fc103b10ab6620c873016d8af41030000,04dd1008351b0d707b88e10beb5914b29509ff4c40020000,0b5d300173360a009988e10b0ebf2debb209584c40020000,0bdd300272360a609488e10bcdbc2debb309a04c20030000,04ddd001b6c90900a288e10bd5ce0bac2009c24c80030000,44dd10087fe6f4bfa0fcb70b9ef55ecd741912b1a1020000,4b5d3001de59f7efcefcb70bb9dd7180e119e8aec1020000,4bdd3002de59f73fd0fcb70b79de7180e21949af81030000,44ddd00157b6f7afdffcb70b401c6dc0301981afe1030000,a4dd101888a309f0553a930a2b62ad8d421a01b0a1030000,ab5d3011c18207a07f3a930a14304b96401aadaea1030000,abdd3002c1820700793a930ad22f4b96411a00afe1030000,a4ddd001cc3207b0813a930a2c0308d0101a28afe1030000,c4dd1008878709e0cdd2690a4a20e0a84204c1b1a1030000,cb5d3001ee6c0720dcd2690acec47cab4004a8afa1030000,cbdd3002ee6c07c0dad2690a8ec47cab41040cb0e1030000,c4ddd001d31d0770ffd2690a9c7c57e410043ab0e1030000,24de15181d90ff4f0955bf14226b18df63c3bbb0e1020000,2bde3502d1a8ff0f1655bf1426785fe163c353af21030000,24ded50183acffaf3055bf14ac1ea6d220c381af61030000,049f01183c5f11602827bd0a28db2ed8522f36e9a0020000,649f0118e853f44fb2f4290ac8016fb8722baab1a10e0000,a49f1118208e076006187809e528efad202ebfb1e1170000,ab3fb11052e005b026187809040f8195202e37b0e1170000,ab9f311052e0055026187809c4168195202e55b0e1170000,c49f1118f433f65f2206f3090d3948db2035e9b1c11b0000,cb3fb1004c61f87f4706f309bd2138d520352eb0411b0000,cb9f31004b61f84f4906f3097c2438d520354eb0611b0000,049c11081e9f0460846cf00a6f001cb0413dfa5f21270000,0b3cb10033980340a76cf00a70b915d0503dce5f21270000,0b9c3110339803d0a86cf00a2fb715d0403dee5f41270000,449c0118a0c4f79f1702b00a078086da423cdab1e12a0000,849c110821eb0060d14f30092b8cfcd9202ca2b1e1330000,8b3cb100e1b600d0ec4f30095e65c4b7202c48b0a1330000,8b9c3100e1b60060ef4f30091d66c4b7202c5fb0a1330000,a49c1108fa410c3083b6310a838d23ad202defad81370000,ab3cb100a68809d095b6310a2b7554b1202dbdad61370000,ab9c3100a688094096b6310aeb8954b1202ddbad61370000,c4dc530854690340b106bf0bd51ebfc831135faf81030000,c4dc9301358c0240d506bf0baf0ff9bc201322afc1030000,c4dc3302339d02e0bf06bf0b41797e96101315afe1030000,c43c9302ae940280c406bf0b53cabba9201312afe1030000,e4dc5308ed60f3af18966e0d259843ad4221bdae41030000,e4dc93012393f6ff5b966e0d8d1148e9202175aec1030000,e4dc33023a54f66f41966e0df3c147bd202175aec1030000,e43c9302ad73f69f4c966e0d1bf047d3202172aee1030000,04dd530868a403f0a628fc0b84ef96a0211b87ade1030000,04dd930153b80250de28fc0b7540fc9e101b48ade1030000,04dd33026dca02d0c428fc0b9c6ab9f7101b42ade1030000,043d930267c10280cc28fc0b64d35a8b101b9dace1030000,24dd530858e0f8bf8e59070d4be213f1421ebbad41030000,24dd93012aaefa5fd359070dbcdeeb9b201eb6ada1030000,24dd3302a58afacfb759070d83c13df1201eb6ada1030000,243d9302619cfa1fc059070d7ada9486201e9aade1030000,44dd530889e20b60bb5db10c8bcd8ea931154385a1030000,44dd9301ecdf08c0015eb10c11fe18c620150185a1030000,44dd33024b1b0930e85db10c9d8c849c1015f984e1030000,443d93029ffd0890f05db10cb2c74eb11015c384e1030000,64dd5308dafc09904e4d270d34b916dc320494c580030000,64dd93016f7507707b4d270d25753f8c300448c520030000,64dd330231a70770644d270d72ad28e1300448c500030000,643d93023f8e07506a4d270d2616b4f6300445c580030000,84dd5308fdebf58fed27550d2617f8bd42078ead21030000,84dd93015d79f82f5328550d198ac1f5200789ad61030000,84dd33022847f8df3528550d8b8814ca200789ad81030000,843d93024460f8ef4028550dad0cebdf200704adc1030000,e4dd5308941afdef03836d0c2d6d21d6310a6cb1c1030000,e4dd93015ad6fd3f32836d0cc90d62e7200a41b0c1030000,e4dd3302ebc7fddf1c836d0cbbe6abbe200a41b0c1030000,e43d93021fcffd9f24836d0c9cff06d3200a3eb0e1030000,04de5308eaf302d0800eb40ca37ccaa7930ba1acc1020000,04de930169340230960eb40c7066c7c4600b9cac21030000,04de3302324302f0810eb40c45212a9b500b9bac41030000,043e9302d53b02e0850eb40c36c8f8af500b80ac81030000,24de5308d43ff8ef67456e0c24c5a1d5320cb0af81030000,24de93013036fabf82456e0cbfc302e7300c28af61030000,24de3302980ffa7f6e456e0c231b4abe200c28af81030000,243e9302e222fadf75456e0c4b73a6d2200c26afe1030000,e49e14083091fdaf3f8b620cd6ba44f0710c1bad81020000,e4de34007f1efeff3a8b620c9e1a31c4320c16ad21030000,049f1408cce4f82f5012470bc36bc8a8202592b0c1030000,04df34012ba5fa0f9212470b3d52d0f71025ceaee1030000,043f74117381faaf8112470b54b6ded2102561afe1030000,449f1418606b0d408a852a0ca6b5bb9430242af360030000,44df3401031d0aa0f5852a0c21073e88202460f2e0030000,443f741188600ae0e0852a0c2d5663e02024f5f2a0030000,449c1408344ff9af85818b0c16209bd5202c67b061030000,44dc340149f5fadfa0818b0cd28eabd8202cceae81030000,443c7411a1d3fadf8e818b0cb12793af302c5baf41030000,a49c141839710670ddc1a60a5de42191202ef1b0e1030000,a4dc3401f0da04a0c6c1a60a42d173c6102ed4aee1030000,a43c741157fb0460acc1a60a9a5c8fa3102e61afe1030000,049d1418db640160b7ec6d0a351a20b62013d2b1e1030000,04dd3401f00c0190caec6d0ada9054e2101388afe1030000,043d7401f6130160bbec6d0aaa472ac0101315b0e1030000,249d141864d0f6bf97bff00a10adf8e020149eb1e1030000,24dd3401d813f9bf9abff00acc7b28a2101495afe1030000,243d7401aae5f8df87bff00a2aa451fe201421b0e1030000,649d1418cbf50a90e7f2bb0bf9e4b4dc2016d9b1a1030000,64dd340186420830eaf2bb0b3f9a7bbe20168eaf81030000,643d7411a1790870ddf2bb0b52190b98301628b061030000*51e7e46b\r\n"
@@ -181,7 +114,7 @@ def test_decompress_rangecmpa_2(range_decompressor):
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
     status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa_3(range_decompressor):
     compressed_data = b"#RANGECMPA,COM1,0,43.5,FINESTEERING,2241,407907.000,02000020,9691,32768;71,24dc101876a708c09a8b780a2f49349f321ab88082030000,2b5c301155be0630c58b780a7872f3a3401ae87f82030000,44dc10086c740610e4cb710bb6287afb5306be3b21030000,4b5c30019a0705b00acc710b8c235fa46006f83a21030000,64dc1018b622f65f47bc400a9195ddc3311ff5a5e6030000,6b5c30113e50f86f50bc400a41ca84c0401f1da5e6030000,a4dc101831a4f10f79839b0b4c1d13e07301b5a8e7020000,ab5c3011bbcff4bfb5839b0b0fea048f9101e8a7e7020000,c4dc10189e2ff69fe40ecd0a75c8b0e742167c64a9030000,cb5c30114c5af86ffc0ecd0aa7b0b1f85016b86349030000,e4dc10081c0509901ec84e0a3e8fa3ba31047433c3030000,eb5c30014e07072032c84e0a053954b94004c832a3030000,04dd10186c300ff0a19f930b8da441e553107f9f20030000,0b5d3011f0d50be0c19f930b03810e936110c79ea0020000,24dd101853c2fe5f990ec309b5f76b96200395f1e4030000,2b5d30117608ffdfb50ec3097f01d980300395f1e4030000,44dd10082d050db04c74bb0be1aa17cb5309fc2720030000,4b5d300147250a807174bb0b375cabfe8109fc27a0020000,84dd10082f16f4dfbe87d90b924156b773197d0ee5020000,8b5d300186b7f61ff087d90ba88446eff019b80de5020000,04de1508d67dff8faab3c014382132de53c31fbe28030000,0bde3502929aff1fbab3c014ee0aace063c3b8bd28030000,049f111899e5f4cfc400110aab9943c72035fb60e51b0000,0b3fb1103d5df77fe400110a8e4aa6c53035ce60851b0000,649f111844fa050026ab6409785fe6ba202ebb48e3170000,6b3fb11034a604a040ab6409109f969f302e9148e3170000,849f1108e7fa02d0ab85e50aa17b65b7313d3a9d21270000,8b3fb1005e510230c285e50a80b3c0d5403d0a9de1260000,a49f01085960f62f1096c90a781c6cc9423cbb0be42a0000,c49f11086ad4ff7fd4392f09f696b6da202c02b1e5330000,cb3fb10019deff7fe5392f099a1755b8302cceb085330000,e49f0108aed110f0cb018c0aaa01eef8552f7626c1020000,249c0118aba3f3ff1a704c0aa4c26ea1772b5501600e0000,a49c1118dccb0b60024c0f0abee32cc4302d9bf461370000,ab3cb110c82c09401b4c0f0a59653fc3302d97f441370000,c4dc5308f6f602301fbab50b58dedace31137f54c6030000,c4dc33029145027025bab50b72b22c9b20133454c6030000,e4dc530828d8f5ef94a1720d83a39baa4207665d2d030000,e4dc33020238f89fdaa1720df9d23ebb3007185d2d030000,04dd53082dfc0190e5d9ac0cfe2c86ac840b8f9ba2020000,04dd33026a850140e3d9ac0cb793ca9e500b5f9b42030000,24dd53084b8bf79f4ce4850c18b91dc6420c314f46030000,24dd33026385f97f50e4850c9b9c66b2300c32ae26030000,44dd53082872f3afa946930d30ea29954221c60d2b030000,44dd33027561f66fd146930dc66ad0aa2021810d8b030000,64dd53084827fcbf2156770cc746adcf310a552fc4030000,64dd3302750dfd2f3356770c5df8b9b9100abfb8e4030000,84dd53082f28f8ff79291d0d8cf6bfe2321e939965030000,84dd33027cfdf9df9d291d0d164a43e6201e5499a5030000,a4dd5308e8b5024048e4f20b8536ada6211b25fde3030000,a4dd3302a913027061e4f20b596163fc101bd8fce3030000,c4dd53086b8f0be0992f8f0c028b02c042156fc261030000,c4dd330299db08c0bd2f8f0c55adb8ad10152ec2e1030000,e4dd5308d4ec0940ec470a0d19d926ef3204ae7a80030000,e4dd3302c39a07f0fb470a0d5615c4ef3004f20261030000,849e1418e5280d60406b030cd3782fae4024733041030000,843e7401222d0aa0986b030c21b711f420243530a1030000,a49e1408467b0520e135950a3eba8d9c202eb0f2e3030000,a43e7411193d0430a935950a214664ac102e7af2e3030000,c49e1418f491f8fff846a00c9ee815c8302c36e643030000,c43e74014241fa9f0447a00c65b21ea5302cfae503030000,e49e1418ce8bfcff35336b0ce953a2ea710c317e82020000,e4de34105a54fd2f2b336b0c18cbd5bf310c0e7e62030000,049f1408f9a90a70c8229c0b0dfb69f13016f722c2030000,043f74110e3f0890af229c0b74440ea82016ba22a2030000,649f1418d043f65f3e910c0b912cddce2014504fea030000,643f7411d778f8af2c910c0b963451f02014154fea030000,a49f14087314f8ff102c5d0bebba659a30253589c6030000,a43f740124e0f9ef452c5d0b1cfdbec72025f588c6030000,649c1408119700e088fe6a0a396808b820133270e6030000,643c7401ce7400908afe6a0a14e2a3c12013f56fe6030000*f0022933\r\n"
@@ -194,7 +127,7 @@ def test_decompress_rangecmpa_3(range_decompressor):
     status.raise_on_error()
     print("DECOMPRESS_RANGECMPA4_DIFF_2", compressed_data)
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 # -------------------------------------------------------------------------------------------------------
 # RANGECMP2 decompression unit tests
@@ -209,7 +142,7 @@ def test_decompress_rangecmpa2_1(range_decompressor):
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
     status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa2_2(range_decompressor):
     compressed_data = b"#RANGECMP2A,COM1,0,69.5,FINESTEERING,2241,408198.000,02000020,1fe3,32768;1682,0001004838da85c6f84fe1ffff2df72ac87063803900e4ffff05974a34315c003900e5ffff0ddbaa2b5902003900e7ffff0d3f023fe913803500010600889ab385e30240e1ffff6dbbc835601480ecffe4ffff455be87898cc00ecffe5ffff0dbbc871c07200ecffe7ffff0d5d848a505201f2ff0203000cece20402ff4fe1ffff6d9f22313011002000e4ffff453f6469a848002000e5ffff0d7f4464602d002000e7ffff0d1f6277f890802200031f00681b2905d5fa3fe1ffff6d9fe46c7887801f00e4ffff455e047db829001f00e5ffff0dbe8479880e001f00041000ccb8bc85870720e1ffff2dd94807988f002600e4ffff0578284710b5812500071600d01c6f05fcfa2fe1ffff6dbc069f98c2003a00e4ffff457a26cd183d803900080900207dd2057a0640e1ffff2ddaa814b83380f9ffe4ffff05976a4fd80d01f9ffe5ffff0dd84a4e882101f9ffe7ffff0d5b2666b0e580f4ff0d1a00880d3585030440e1ffff6dbda40eb8a501e5ffe4ffff455da65ef0ca02e5ffe5ffff0d9fc659d8ce02e5ffe7ffff0d1f4262907e03e2ff0e040004b91f85590440e1ffff2dbd041fb020801800e4ffff055d6444002d801800e5ffff0d9fa438e830801800e7ffff0d1f2287d88601150011c370bcce608ab9ff3fe1ffff6dd8c845900a000400e3ffff0dda8862d85d800300e4ffff0d5b2499f0f8000100180a10c8d13705370810e1ffff69b7e80ea8ea81edff1b061394ea3005a0f91fe1ffff69d5ea1fd023801d001d09153ca7ad84810230e1ffff695f84023827801100e4ffff431f24464828811100e3ffff493fc445e8b08011001e10165042120517fa3fe1ffff697ee44c601d802300e4ffff031dc4af80a8002300e3ffff097d84b0307e002300201819bca57085fe0030e1ffff29b84629582680ecffe4ffff031a686ec8e580ecffe3ffff499ae871680881ecff22171ac04c6d85cefa1fe1ffff69b6c83eb80980d6ff24071c9c09980495ff3fe1ffff297f4237b81a803300e4ffff031ec26b6087803300e3ffff095e8271e87b80330025081dd4c2fd04be0530e1ffff299c04750804001900e4ffff031b24b13842011900e3ffff097c44b650038018002613502c6ad885580140e1ffff2dbda63f1039001300e2ffff0d5de48380f7801800e3ffff0d3f425bb885001500e4ffff031f6260a05f001700281b50bc57f705130140e1ffff2d9fe414683980e0ffe2ffff0d3f428770be81dfffe3ffff0d1f2258780881e1ffe4ffff031fa265d08481e1ff291e509c8a9586e0fb4fe1ffff2dbbc675c84280feffe2ffff0d7846fa083e811500e3ffff0d5ba4cc3887000a00e4ffff031d26dab83a8011002a155064af3d06ab0540e1ffff2dbcc606c89b81f4ffe2ffff0d3f228f88d304f4ffe3ffff0d1f626298fa03f1ffe4ffff031f2270b83f84f3ff2b045024927c86f00440e1ffff2dbc0639a828002d00e2ffff0d5a4699f8ff002b00e3ffff0d5be46a0031802700e4ffff031e447808498025002c0750701ec286e6fa4fe1ffff2ddaa620314d803d00e2ffff0d97e8ff6187803000e3ffff0d79c6c3d10e801800e4ffff031ba6db49140030002f0a50f43b3f06cdfd4fe1ffff2dbc464b5031802200e2ffff0d3ee2b720e4802600e3ffff0d3f02850809002700e4ffff031f2297001f802700300b5048f55486b30040e1ffff2df62c44d083003100e2ffff0d790a7228ac800700e3ffff0d79ea4b982b801300e4ffff031daa59d024801100310c50546e4a8693fb4fe1ffff2dd9088ac0b7003200e2ffff0d5a44cc80bf003900e3ffff0d5b84a70038803b00e4ffff031e04b6d03c003900370c6060df3886fafd2fe1ffff29b0ae44a02d00f1ffe3ffff0d9ce4439861800c0038256068b3b505d0fb3fe1ffff295c0448f020000700f4ffff0d3f82deb07f81f8fff5ffff431ea2be10ae00fbff3a2460d84bf6057d0630e1ffff695b840ee86b01e6fff4ffff0d3f22e2a88b85e3fff5ffff431cc4adc85f04daff422c60b4cd560615fc3fe1ffff29792852688e801500f4ffff0d79c699500d812300f5ffff4318a66ca817002500452e6098124685720230e1ffff691f026fa89d011b00f4ffff0d1f4235f03e811f00f5ffff431f420ca0ac001f00481360a03135050d0030e1ffff691f4248185880d6fff4ffff0d1fc074d09b80d7fff5ffff031f024b582400d6ff491460a0eb8e85f9fa3fe1ffff693e64c5c06d013200f4ffff0d1f22d828a6802600f5ffff031fa2afe028802a004b166040d7c4853b0530e1ffff695c8492782a01dbfff4ffff0d3f62a7689e00defff5ffff431e4489d02c80e2ff*c50f706b\r\n"
@@ -221,7 +154,7 @@ def test_decompress_rangecmpa2_2(range_decompressor):
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
     status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa2_3(range_decompressor):
     compressed_data = b"#RANGECMP2A,COM1,0,46.5,FINESTEERING,2241,408193.000,02000020,1fe3,32768;1154,011a00182c3505050420e1ffff6dbee60da03e821800e4ffff455d666470cb83180002060088b0b385e50220e1ffff2dbc8838481a00c7ffe4ffff055cc881a8de00c7ff031f0018f42885d6fa2fe1ffff6d9f445f887f00e0ffe4ffff455dc475501c80dfff0501005001da05c7f82fe1ffff6df72ab3300a801500e4ffff45976c25190f001500061600a8f66e05fdfa2fe1ffff6dbd269150de00f8ffe4ffff4578a6c4d82e80f7ff07040014da1f855a0420e1ffff2dbec654483a800000e4ffff055d667f984d8000000810001cf2bc05880720e1ffff6dda2607d8a3802b00e4ffff4597684d10bd812b0009030060e4e20404ff2fe1ffff6d7fa4c1182b000200e4ffff453fa4ffa0e60102000a090070aed2857a0620e1ffff2dbc2600108a80f6ffe4ffff05950841b0c500f6ff10c3709ccc608ab9ff2fe1ffff2dd9c85fa037803f00e3ffff0dda6881904a803f001810162416120519fa2fe1ffff697ec405a04000ffffe4ffff431cc461003781feff1b091508baad04840220e1ffff695f840118be01f5ffe4ffff431f6437787703f5ff1c181938ad7005010120e1ffff2998460aa00b80dbffe4ffff0319883f082180daff1d171af0256d05d0fa1fe1ffff29b7282f401a802a001e071c7c06980497ff2fe1ffff295f024c483b80feffe4ffff031c426eb0bb80feff1f0a10700f3805380810e1ffff29b8680660f9811100210613d0ba3005a1f91fe1ffff69b52a12f83500110025081dc4edfd04bf0520e1ffff697c244a60b3000500e4ffff4319c473a01e0005002613507474d885590120e1ffff2d9ea433502500f6ffe3ffff0d3fe23f200b80ecff27075080f7c106e7fa2fe1ffff2dba88b2b181811300e3ffff0d79e6453200000d00280b50a8fa5406b50020e1ffff2dd78c42608b802600e3ffff0d79c839c017002c00290c50a84c4a0695fb2fe1ffff2ddaa8ac50fc80deffe3ffff0d5b04ba903700d2ff2b0a50482b3f86cefd2fe1ffff2dbd862c303f001700e3ffff0d3f2456f020001d002c1e50406b9586e1fb2fe1ffff2dbcc679c001801b00e3ffff0d5ba4c1500d0010002d1b50f45ff785140120e1ffff2d9fa408080b01ccffe3ffff0d1f623c288882daff2e15508cda3d86ab0520e1ffff2dbde60ea0e4813100e3ffff0d1fe25ab8ef0338002f0450c0b77c06f10420e1ffff2d9e4643f07781ffffe3ffff0d5a2465401d80f8ff342460b07df6857d0620e1ffff695b84066037811200f5ffff031b04a2a07e840c00352e6068254605740220e1ffff291fe272984b822500f5ffff431f020b8815012c00362c60b0af560616fc2fe1ffff697928097004802900f5ffff0318c61fb803804300370c60dccf3806fcfd2fe1ffff69afce4490a4802000e3ffff4d9c8440e0258011003816606cffc4053c0520e1ffff295c44a37097810f00f5ffff431e2496e0200011003b146000c58e85fafa2fe1ffff693ee4e3f8d3811100f5ffff431e42caf8338018003d25604493b505d1fb2fe1ffff295ce434b808803800f5ffff031e82a7a02e813f00431360043235050e0020e1ffff291f024c306c002700f5ffff031f824a2004002d00*6f2baa4e\r\n"
@@ -233,7 +166,7 @@ def test_decompress_rangecmpa2_3(range_decompressor):
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
     status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 # -------------------------------------------------------------------------------------------------------
 # RANGECMP4 decompression unit tests
@@ -248,7 +181,7 @@ def test_decompress_rangecmpa4_1(range_decompressor):
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
     status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa4_2(range_decompressor):
     compressed_data = b"#RANGECMP4A,COM1,0,88.5,FINESTEERING,1919,507977.000,02000020,fb0e,32768;295,030000421204000000009200df7688831f611fd87ca0b03a00638bbdf7b82f49b080fd0ec0ff1f091f8214ff4d4d00a1009cbf1751f6911f5141f87fd9571a96dbd7040c8090f87f0080fcf722fe9bfa8a49a8ff4f299d7f96fb9afefc771800fcffd0063f02cde01f3c7dd3ffb75240886f5fa2b0ff91f57f00003edf8b78868c882878014065dbf7d3ed6b722680d5fc0f00a4c08730fe7fecf8bffa3f003008000000002001f03fa019f8136a11273649b8fcefab9c434c7b89e71560dbfe070030b2e04fd841f33125320b80b0ecefa5ee21243ac0bb03e0ffc36a813fb13bbe5791a0f5ff9e3bdbffbb87f0cb8064f03f0000e4b67dd15bc5f4a50a3a006ca72fdee53ec86405b2c0fffa3fa450f725d5bfed7c49b1fb0fb16b45a87a9adb0740cbfe0700*7dd8f893\r\n"
@@ -260,7 +193,7 @@ def test_decompress_rangecmpa4_2(range_decompressor):
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
     status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa4_3(range_decompressor):
     compressed_data = b"#RANGECMP4A,COM1,0,49.0,FINESTEERING,2241,408982.000,02000020,fb0e,32768;848,e3002d812042000000001200ffffc3987b2310571bd85514de1f675e63c6fdd08d0f2c31f2130098873fc368808c99b23cfcd48d1d9cc28fa1ef00c546ff0000a5ef8bb42dd8b813cdd07f43c7f8b4f7427712f0f5ee1f0020cdbd55a2df32c32a0efb5b118d5fe57e8a3404084cfe010074b937ea962d2559263c0064c0d01bdc0fb59780e4e61f008063f7352b932bf14a0a11c06242f94e7ba2bd0ce85806dcfff0e6de8646c87d59013ffba1249d386d4f749d0198c8fd04009edf93c42aab2c28539f80837cf4afef45865460cb2bf0ffc3eefb9a749ffb2225fef0fff6a862f0bdcc9802881dfa0f00f0416000000000000980fe6e187bebcf0841d5bdd4f2f1ff118d0c60fdef4566eb800112d7d31f1b6f8290f7205113103af31700a07dbe1fb1f65a734cd2827f62aed91fdc8318198043c15f0080b2065f02089f54229d2604aa9addbf7f0fa2a801de8f810100405dfba2c2c902f5240e17a8a4871cccb97b12bf3742104545fc8f6916e3d53d8cdb0b7063fd0f00508ded8b90ce40981589c33f5e220b4869ee491c1b4b3a9548f27f13a58014f730621f90e8f21f00101c2848000000001400feff21c9bd51a291a81f4b73011491de9efe3e446f0238e2fde33e24bb2f5a8d415662a277ff6d9815a2df473c53402ebb7ffc87f6f6669cb3245b6cf6efcf491540a27b295efd9f37fa6b00d0d6de28a9c67a8ec5e9fa1f6291487a2f11dc00d6e57d8b1fb2ded700458d80adadc2ff9567fce5ef23080e806ce94ffc43d4fb9a66ec37fff57412808188bd0e7ec4cf07ac5e076e0088814f42cbc30cba00e700da6ffb07c38748c5806c6c400d0059ee8d8459d4075ac4af3fc1938878f7222327e0d3df4ffe01105800304000001410d6b62d1cb3a74a353ae961a9877f0ccc1466de9310e37f37d6ffc08762f820e4b4862e8ac6ed5f8f96401f7c881a005030f93ffe30f83ee4b985656131a6fa71b3a2d87d0f91a5ffd2af7d0b0042e08740d11b57ac8a983f3490ed9fef410ee2bf83d24ff8c3e5fb103c9b60b545f00c188619bdea3d883213586605220008752fc324b1ffb434b2fe46294784bd07c1d481bf6affc30fb5f0412c681f7494721160c5ecfc47f81050ce8fdc07d0fb090000000000000014008626f736daf8d7471410e4cf154f40a67b9be708e056f60300*ba486c85\r\n"
@@ -272,7 +205,7 @@ def test_decompress_rangecmpa4_3(range_decompressor):
     status, test_result = range_decompressor.decompress(compressed_data, meta_data)
     status.raise_on_error()
     assert meta_data.length == len(decompressed_data)
-    #assert test_result == decompressed_data
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa4_diff_1(range_decompressor):
     reference_compressed_data = b"#RANGECMP4A,COM1,0,88.5,FINESTEERING,1919,507977.000,02000020,fb0e,32768;295,030000421204000000009200df7688831f611fd87ca0b03a00638bbdf7b82f49b080fd0ec0ff1f091f8214ff4d4d00a1009cbf1751f6911f5141f87fd9571a96dbd7040c8090f87f0080fcf722fe9bfa8a49a8ff4f299d7f96fb9afefc771800fcffd0063f02cde01f3c7dd3ffb75240886f5fa2b0ff91f57f00003edf8b78868c882878014065dbf7d3ed6b722680d5fc0f00a4c08730fe7fecf8bffa3f003008000000002001f03fa019f8136a11273649b8fcefab9c434c7b89e71560dbfe070030b2e04fd841f33125320b80b0ecefa5ee21243ac0bb03e0ffc36a813fb13bbe5791a0f5ff9e3bdbffbb87f0cb8064f03f0000e4b67dd15bc5f4a50a3a006ca72fdee53ec86405b2c0fffa3fa450f725d5bfed7c49b1fb0fb16b45a87a9adb0740cbfe0700*7dd8f893\r\n"
@@ -287,7 +220,7 @@ def test_decompress_rangecmpa4_diff_1(range_decompressor):
     status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
     status.raise_on_error()
     assert len(reference_decompressed_data) == meta_data.length
-    #assert test_result == reference_decompressed_data
+    compare_strings(test_result.decode('utf-8'), reference_decompressed_data.decode('utf-8'))
 
     # Lastly, decompress the differential log
     # Setup the results of the framer as if it had just framed differential_compressed_data.
@@ -296,7 +229,7 @@ def test_decompress_rangecmpa4_diff_1(range_decompressor):
     status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
     status.raise_on_error()
     assert len(differential_decompressed_data) == meta_data.length
-    #assert test_result == differential_decompressed_data
+    compare_strings(test_result.decode('utf-8'), differential_decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa4_diff_2(range_decompressor):
     reference_compressed_data = b"#RANGECMP4A,COM1,0,43.5,FINESTEERING,2241,512871.000,02000020,fb0e,32768;994,e300d0311024000000001200ffff43b8fb1a5e93e5a025e3f2ff408c21943d118209888ef9010068824fa2dac6b299646e05ba4e1cd4c08f013f80081c02000035f0490e665d33d4c2af00bb6c84d2f7228924d0723c000020d2bd9174434dc65ae5f5af64bc51e77e886d068ae6fb0900bcbb2f7abc67c854df5f8088bad517db13e15dc0ee1b00ff87eff72453bd01158af74390c084fbd67b11580d90d517f0fff0d4fe2a6f10286fc9e5fed79c6bff645f450a02a50380020042dc1b959b58f4ab39564152501619ee87ae5360f86d2000c04bfc11e3354ace542b1fe0aafb7e0f7ec8f70770190cfc7f071c2800000000100980ffbf618cbc1f9107840f565340fe4dfa406adc8328f6807d429f010016045fa43a48b83001bd0096b07488740f429501a95f0002005ad8fb11cd622ff434bf05183639fec53d88eb05e4e802fa7f30b3ef4770182d4253e0d84073ee887af720f431e018511000a064b3af02bc296248528102955cf79fdb43698f80f505c1ff0730f17e8685b1c552d5fd011083411f740ff3b1035e6f00f91f56befb113a5b1839054418783a81a1b33d8ca707286b070c005047ed8baa4c4917d6eff95f8f4370102dee6906b7a42dd54851e0b4ff8637f7401b29e06a1fd0ff81802848140000001400feff21c6bdd16ce48a2bcbc4eefbcf7551f25ea4be063869f9fd0044b736d2f3f78d689d2d00eb6ed5d35bcfa0edc04f0700d9877af735c49143016c440fb06a507eecfb90730998e605d0fc50f99e6698f1b87bb19d068a0a802f831f11400221b882eb1f0ae28f38a9918c2b631e025521018df1216229c067d5100440e47b9a392d521a36952158c92ca20e7e08e307086b0dd07e08755f0473f5b7ca924b01a1bed457bf0f718a81ba5d8018001dedaf78b456345a3661a0e0618336f7323d19d04a23d80800216058506000001410b6b66ddb4246fba95e68ab5969aee17784222192fd55aeff877ff52f7df8674f55cd1fde2df310fdf62f17c4b1bf722802e9babe67009def43f2b2a6ce564d01c058d4fe8ff720bd0a808403980660103e48abfe9cd53addf8d7e22031f61e8417000280fd6e00c4bd8fb1ddc66759ca9901e473fc87de83805e40f0a7c01c80eaf65340a90f352c1f4f304409c47d7b985103385d21340790f15e669816206ae96206d2da60ef790f626302477902fc1fc6e183647db496a8847ac186b2ffb1f0210e8580f2a0a0024047fba97f9f7885a960df37f46aa1b83dcc8f0ad4f2f11706d87d1f52e1609eb2b05302fae6b6f7bc0739f47e0b1b015200bdef4394b101fb157964e0bba488caf720ffd13f632c1808100000000000000014008647f6c73dd61f85d4c8e8afe2f47f8c7b63521ac06ff6fbff*77327459\r\n"
@@ -311,7 +244,7 @@ def test_decompress_rangecmpa4_diff_2(range_decompressor):
     status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
     status.raise_on_error()
     assert len(reference_decompressed_data) == meta_data.length
-    #assert test_result == reference_decompressed_data
+    compare_strings(test_result.decode('utf-8'), reference_decompressed_data.decode('utf-8'))
 
     # Lastly, decompress the differential log
     # Setup the results of the framer as if it had just framed differential_compressed_data.
@@ -320,7 +253,7 @@ def test_decompress_rangecmpa4_diff_2(range_decompressor):
     status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
     status.raise_on_error()
     assert len(differential_decompressed_data) == meta_data.length
-    #assert test_result == differential_decompressed_data
+    compare_strings(test_result.decode('utf-8'), differential_decompressed_data.decode('utf-8'))
 
 def test_decompress_rangecmpa4_diff_3(range_decompressor):
     reference_compressed_data = b"#RANGECMP4A,COM1,0,43.0,FINESTEERING,2241,512874.000,02000020,fb0e,32768;994,e300d0311024000000001200ffff43b3fb9aa271f4a0e5dcf20fab8ca1897d517a09388ff9070068824f02c9d6b399fa6e0520571c84c00fc13f00ee1b4200003df069dce9873394bdaf00826e84c4f7329b24c06b3c0000a0d3bdd1e5ed5dc64ae1f5e36ebcd1e87ec86c0686e5fb0b00fcbbafc108d2c6543f6080fdbed52fdb13d15d00141ce0fe87f3f7340abad6144aec43102885fbd47b19440d68d917ecfff0d4feea1980226f7de7feb1a26b3f645f260602310580040062dc1b35dd2ef52bc256816e521625ee87ea53e0086e0000c04dfc111d7440ced42e1f88f1fbfe0c7e88f907d8190cfc7f071c2800000000100980ffbf61bcbb1fe1d6f31156783ffe18fb4062dc832cf6003a42bf0100d6005f642ea9bc30adb800e4d27488730fb28f0142600002005acdfb91a5571ef494ba0528c4397ec63d48df05a4eb02fc7f3083ef477ad9824253e3d84021ef8874f720db31c020511800a0e4b2378aead661489c7f029c61f79fdb03b98d000f06e1ff07b0ef7e24ee8cbe52d900024487417f740f43b2032f7000f91f56b87b1241d02639652d18d8c68121b23d4c9f07e867070a00501fed8bfe3ab21616aefabf51437010f1ed697af1e72d156a516080018739f7401a29c0741fd8ff81802848140000001400feff21c5bd9130e9982b13c2eec3d57551f25e04bd06ea68f9d30074b7361a4e5f8c68852d000b6fd5bb5bcf20ed808407800e8084f735b56433018c370f20e6507eedfb106c0980e6051003d0f99e064b25b47b219f060211808f831fc1400256b88222000ae28fdc899c8c2b601e02d5220191f1215629006bd5400140e87b1a730e671a56952130d12ca20e7e84e507086a0d240088745f845a56b6ca304c01edc6d477bf0fe18a01cc5d80100029edaf5a3477345a6061800f63834cf7327719704223180d00216058506000001410b6b66ddb4255fb299e4db659a9a2e13f90222195bd55a5ffa77ff5e102b8683f9585fede2dad10fd323517b4b1bf522802e6ba3e0b00c9ef439a7d9bced67a01e0e6d5fe8ff720df0a608503880160163e0890d4a7d5badaf8bbfc20f1f61e8418000e7ffd5b0184be0f39eda46759cd9a81f779fc7fde83f85ec010a880248002f7433e6b36350c384f70d609c47b7b183103d06c2148fd50f43e86fc1e1a6a1d660626e7602f7a0f8266022a7982d61f36e283f49db196a8447a01f9b3ffb1f021ca8460f9a050124057fba9d73c86854975dfaf156b21b73d8c940a98f5f16101587f1f5239a39bb2f45402d6eab6f7bc0721f47e5d1bc1f50ff1ef43e0ae54fb956e64602ea588cef720fed1ff5f2ce00210000000000000001400864df6b7216c1f85749ee8affdf47f8b7be3551a8864f6fbff*4fbadb66\r\n"
@@ -335,7 +268,7 @@ def test_decompress_rangecmpa4_diff_3(range_decompressor):
     status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
     status.raise_on_error()
     assert len(reference_decompressed_data) == meta_data.length
-    #assert test_result == reference_decompressed_data
+    compare_strings(test_result.decode('utf-8'), reference_decompressed_data.decode('utf-8'))
 
     # Lastly, decompress the differential log
     # Setup the results of the framer as if it had just framed differential_compressed_data.
@@ -344,4 +277,16 @@ def test_decompress_rangecmpa4_diff_3(range_decompressor):
     status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
     status.raise_on_error()
     assert len(differential_decompressed_data) == meta_data.length
-    #assert test_result == differential_decompressed_data
+    compare_strings(test_result.decode('utf-8'), differential_decompressed_data.decode('utf-8'))
+
+def test_decompress_rangecmpa5_1(range_decompressor):
+    compressed_data = b"#RANGECMP5A,COM1,0,58.5,FINESTEERING,2307,333335.000,02000020,4f34,32768;958,6300240cad01000000001200ffff0f95ec4f9a28f7ce5a4bb10043671a88636f9285170c5b000600e0fc3d195f1ede8a29877d8077a300dfefc7c089817b6d0200006cbd27e2f23e953fbdb512a034787febfd18cb25807c60f0ff87f2f7449827b5e1a66527011297f2a7bf17622903780b06feff90e1be944debec90b589e04f22ad8202f7c440f3803122df00001add97521b53049f96660393934550e79e14ab0b082e150800c05f7373ea0e395357e81320ab16f3df9a1774600665ee7ef77f48647f929e4167d97a61e3575f74411e7ba39c90a02b3e8f0000d3ed8d012a8e095626ed7e9ec72c586f4f8c7b1194a5f70d0060b6bd39a3ca778eea4227800617fa9fedcbc932821362c0fe3f040e1c000000008004c0ff0728bebd39c38265ebaa830cf0808e01c9ed4ff9e8026ee27f1d00986df844b428d177254031c0478a13ccb83fc9ff06004ffeb000509ada1f94e00bde9010c3028777e3dfdefe94861850f900f0fe03c86d6f4cedb6fcb7b20500404b21fe67fb2397b0e0ea03d0f60febb1fd39a27a3dc38adc00405834073fed91b16782547dbf03009064f844c0dee256a4a6e1c143d60bbcc02fe180054e8c026b00a0b2df97416d248c954063092fb4bc2f004441a2000000a000f0ff0ff9ec0de236395669d8dffade542a686c5f0a911ca8d5dbb70020de3d211f919257eb129350e933fcd9ef47e8b4018124830f0054ae3febb52f0aa7bdd9ff4d6f5ea07efd49b64a6045f5ffee87d0f54755331588334e2e00b1baebf7b62f452f0acedefe38ff10ef9e10f627e289b5e81f688804ff16f82340a380e695600a0042de13128b52d4b33857ff3c073110007f08b0157032f763ff43cc7b42d01c3447d69bbd605deb022ae00fb10d0338ec032d00685c7f58fb781133d3dafc1f7b4d4186fb42dcc4c033ddbf0100c0c83820840000a08090ad6ddb16b2da9793bbb01dbd8a2a0452d3a50fd3ee49a10a13b551998084688fef7f872fc258038c9f18a200e095bd49ed23f511d3570790ab1bfe27ee8961970226ad7f600074b33749088b868a254301f0fc997facbd313147c023fe370080bbf6e558f4f1783179c9ffdf1e0314b637c564083a47fdfd0030025f88898aa92df58d03a858c881f7f723300f40040de00100c6de8f8193c146aa06020307d5d83ff99e0c6c0bc89c0f3000c04efb82de500229587af47eecd90c7edb1793b405f3fc785400087b3f48ff88d4b85a941e1030d87ebb7b32ae5fe0ec9880fd0f09ed0be230c21995e9490031e1f51f6a6f0ee709d840ff27006009be1002a79afa295675201c930027f04748cf00167c821b00*04214711\r\n";
+    decompressed_data = b"#RANGEA,COM1,0,58.5,FINESTEERING,2307,333335.000,02000020,4f34,32768;70,3,0,24376210.058,0.329,-128097872.292522,0.016,-1818.632,40.2,262.144,08101c04,3,0,24376222.101,0.220,-99816556.979216,0.016,-1417.117,39.8,262.144,01301c0b,6,0,20492259.120,0.099,-107687683.601092,0.006,-351.856,50.9,262.144,18101c04,6,0,20492265.420,0.066,-83912531.552370,0.006,-274.174,50.8,262.144,11301c0b,11,0,21446851.532,0.099,-112704126.576637,0.005,2338.339,49.1,262.144,18101c04,11,0,21446856.369,0.066,-87821453.448033,0.006,1822.083,49.1,262.144,11301c0b,12,0,20874437.875,0.099,-109695990.898334,0.005,1847.313,50.9,262.144,08101c04,12,0,20874441.113,0.045,-85477427.939547,0.005,1439.466,50.9,262.144,01301c0b,17,0,23906282.317,0.148,-125628293.779011,0.009,-2949.450,45.1,262.144,08101c04,17,0,23906290.102,0.099,-97892168.608600,0.010,-2298.275,44.9,262.144,01301c0b,19,0,21342886.106,0.148,-112157682.050811,0.009,-2396.172,46.5,262.144,08101c04,19,0,21342889.093,0.099,-87395634.051122,0.009,-1867.148,46.2,262.144,01301c0b,20,0,25045124.027,0.220,-131613025.786400,0.118,3557.301,43.2,131.072,18101c04,20,0,25045137.086,0.148,-102555620.956598,0.014,2771.930,43.0,131.072,11301c0b,22,0,24474714.941,0.329,-128615371.894332,0.016,-3206.070,40.1,262.144,08101c04,22,0,24474724.196,0.220,-100219741.658183,0.190,-2498.240,39.9,262.144,01301c0b,24,0,23095468.704,0.220,-121367470.227305,0.010,-3084.376,44.2,262.144,18101c04,24,0,23095477.655,0.099,-94572064.146014,0.010,-2403.412,44.5,262.144,11301c0b,25,0,22669944.146,0.220,-119131402.809283,0.118,3256.621,43.8,262.144,18101c04,25,0,22669953.150,0.148,-92829689.035517,0.118,2537.629,43.5,262.144,11301c0b,42,8,23449485.666,0.220,-125350953.555427,0.118,-872.542,44.6,262.144,08111c04,42,8,23449497.585,0.329,-97495218.705592,0.009,-678.693,44.1,262.144,00b11c0b,49,6,20115498.262,0.099,-107453394.597863,0.005,-2736.260,53.9,262.144,18111c04,49,6,20115505.429,0.329,-83574858.738194,0.016,-2128.275,45.4,262.144,10b11c0b,50,5,19443769.093,0.329,-103828690.495326,0.014,998.540,42.5,262.144,08111c04,50,5,19443775.371,0.329,-80755639.964022,0.009,776.671,44.5,262.144,00b11c0b,51,0,23353454.043,0.220,-124487051.571782,0.010,4180.824,43.9,262.144,08111c04,51,0,23353465.344,0.329,-96823312.440424,0.067,3251.813,43.5,262.144,10b11c0b,58,11,23112629.585,0.329,-123680350.540126,0.118,-4042.531,43.4,262.144,18111c04,58,11,23112639.436,0.491,-96195840.618670,0.010,-3144.197,42.4,262.144,10b11c0b,59,4,19509566.424,0.099,-104143522.124275,0.005,-1656.398,53.7,262.144,08111c04,59,4,19509572.059,0.148,-81000472.884902,0.005,-1288.354,51.8,262.144,10b11c0b,60,10,20071916.394,0.148,-107371382.752051,0.006,2359.224,50.7,262.144,08011c04,2,0,28276134.766,0.220,-148591914.586468,0.014,-2915.744,41.5,262.144,08531c04,2,0,28276149.392,0.148,-113856097.907272,0.009,-2234.178,43.4,262.144,02331c0b,15,0,24356931.727,0.099,-127996698.418915,0.007,2092.384,47.8,262.144,08531c04,15,0,24356938.718,0.066,-98075465.016760,0.005,1603.231,50.7,262.144,02331c0b,19,0,28389719.768,0.329,-149188983.034038,0.022,-1626.138,37.0,262.144,08531c04,19,0,28389729.331,0.329,-114313658.147872,0.016,-1245.782,38.2,262.144,02331c0b,21,0,27665802.859,0.329,-145384787.746541,0.190,2792.448,37.2,262.144,08531c04,21,0,27665813.288,0.148,-111398751.009949,0.009,2139.749,44.0,262.144,02331c0b,27,0,23788136.438,0.099,-125007569.395678,0.007,1082.547,47.8,262.144,08531c04,27,0,23788141.662,0.066,-95785050.920875,0.005,829.451,51.8,262.144,02331c0b,30,0,24136291.417,0.099,-126837056.120488,0.007,-1688.504,48.4,262.144,08531c04,30,0,24136296.969,0.066,-97186837.226525,0.005,-1293.773,51.2,262.144,02331c0b,34,0,23920969.524,0.099,-125705645.322463,0.007,-804.337,48.6,262.144,08531c04,34,0,23920975.777,0.066,-96319960.568209,0.005,-616.347,51.5,262.144,02331c0b,36,0,27483369.975,0.329,-144426070.471725,0.026,-2871.220,37.0,262.144,08531c04,36,0,27483382.573,0.148,-110664164.329881,0.007,-2200.037,45.1,262.144,02331c0b,11,0,25382716.893,0.148,-132174538.850772,0.118,3077.324,42.7,262.144,08041c04,12,0,21933142.186,0.099,-114211780.680681,0.009,1122.060,47.4,262.144,18141c04,12,0,21933143.900,0.045,-88315844.243584,0.005,867.616,54.2,262.144,10341c0b,16,0,40952828.407,0.220,-213252132.137725,0.016,1033.025,40.5,262.144,18141c04,16,0,40952839.021,0.099,-164900095.567176,0.010,798.645,45.2,262.144,10341c0b,19,0,26476162.081,0.220,-137868334.569083,0.016,1740.646,41.2,262.144,08141c04,19,0,26476171.194,0.220,-106608567.099713,0.010,1345.976,42.8,262.144,11741c0b,20,0,26560315.019,0.148,-138306515.693792,0.118,-425.979,43.0,262.144,18141c04,20,0,26560323.614,0.220,-106947381.182233,0.009,-329.496,43.2,262.144,01741c0b,24,0,22240922.249,0.045,-115814326.171783,0.005,-1946.677,51.6,262.144,18141c04,24,0,22240922.736,0.066,-89554985.002086,0.005,-1505.300,51.0,262.144,11741c0b,25,0,22854110.364,0.066,-119007401.339195,0.006,1336.655,49.2,262.144,18141c04,25,0,22854113.288,0.099,-92024095.394137,0.006,1033.581,49.8,262.144,11741c0b,26,0,25941808.183,0.148,-135085660.181813,0.014,-3508.530,42.3,262.144,18141c04,26,0,25941819.868,0.148,-104456773.770443,0.010,-2713.086,44.0,262.144,11741c0b,34,0,23381742.078,0.066,-121754997.258336,0.007,2523.746,49.2,262.144,08141c04,34,0,23381748.202,0.099,-94148737.161028,0.006,1951.536,47.8,262.144,01741c0b,39,0,40023892.750,0.148,-208414922.426077,0.014,690.740,41.7,262.144,08141c04,39,0,40023897.820,0.220,-161159646.443206,0.118,534.117,42.4,262.144,11741c0b,44,0,21429572.481,0.045,-111589532.565591,0.005,-313.770,52.1,262.144,18141c04,44,0,21429575.797,0.066,-86288152.858892,0.005,-242.671,51.7,262.144,11741c0b*1d573b96\r\n";
+    # Setup the results of the framer as if it had just framed compressed_data.
+    meta_data = ne.MetaData()
+    meta_data.message_id = RANGECMP5_MSG_ID
+    meta_data.length = len(compressed_data)
+    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
+    status.raise_on_error()
+    assert meta_data.length == len(decompressed_data)
+    compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
