@@ -203,13 +203,19 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_prop_ro("_fields", &PyMessageBody::get_fields)
         .def("to_dict", &PyMessageBody::to_dict, "Convert the message and its sub-messages into a dict")
         .def("__getattr__", &PyMessageBody::getattr, "field_name"_a)
-        //.def("__repr__", &PyMessageBody::repr)
+        .def("__repr__", &PyMessageBody::repr)
         .def("__str__", &PyMessageBody::repr)
         .def("__dir__", &PyMessageBody::get_field_names);
 
     nb::class_<PyMessage>(m, "Message")
         .def_ro("body", &PyMessage::message_body)
-        .def_ro("header", &PyMessage::header);
+        .def_ro("header", &PyMessage::header)
+        .def("to_dict", [](const PyMessage& self) {
+            nb::dict message_dict;
+            message_dict["header"] = self.header.attr("to_dict")();
+            message_dict["body"] = self.message_body.attr("to_dict")();
+            return message_dict;
+        });
 
     nb::class_<FieldContainer>(m, "FieldContainer")
         .def_rw("value", &FieldContainer::fieldValue)
