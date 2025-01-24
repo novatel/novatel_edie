@@ -26,6 +26,7 @@
 
 #include <gtest/gtest.h>
 
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp"
 
 using namespace novatel::edie;
@@ -36,19 +37,18 @@ class RangeCmpTest : public ::testing::Test
     class RangeDecompressorTester : public RangeDecompressor
     {
       public:
-        RangeDecompressorTester(JsonReader* pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
+        RangeDecompressorTester(MessageDatabase::Ptr pclJsonDb_) : RangeDecompressor(pclJsonDb_) {}
     };
 
   protected:
     static std::unique_ptr<RangeDecompressorTester> pclMyRangeDecompressor;
-    static std::unique_ptr<JsonReader> pclMyJsonDb;
+    static MessageDatabase::Ptr pclMyJsonDb;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyJsonDb = std::make_unique<JsonReader>();
-        pclMyJsonDb->LoadFile(std::getenv("TEST_DATABASE_PATH"));
-        pclMyRangeDecompressor = std::make_unique<RangeDecompressorTester>(pclMyJsonDb.get());
+        pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+        pclMyRangeDecompressor = std::make_unique<RangeDecompressorTester>(pclMyJsonDb);
     }
 
     // Per-test-suite teardown
@@ -81,7 +81,7 @@ class RangeCmpTest : public ::testing::Test
 };
 
 std::unique_ptr<RangeCmpTest::RangeDecompressorTester> RangeCmpTest::pclMyRangeDecompressor = nullptr;
-std::unique_ptr<JsonReader> RangeCmpTest::pclMyJsonDb = nullptr;
+MessageDatabase::Ptr RangeCmpTest::pclMyJsonDb = nullptr;
 
 // clang-format off
 

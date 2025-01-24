@@ -32,7 +32,8 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 //------------------------------------------------------------------------------
-RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDb_) : clMyHeaderDecoder(pclJsonDb_), clMyMessageDecoder(pclJsonDb_), clMyEncoder(pclJsonDb_)
+RangeDecompressor::RangeDecompressor(MessageDatabase::Ptr pclJsonDb_)
+    : clMyHeaderDecoder(pclJsonDb_), clMyMessageDecoder(pclJsonDb_), clMyEncoder(pclJsonDb_)
 {
     pclMyLogger = Logger::RegisterLogger("range_decompressor");
     pclMyLogger->debug("RangeDecompressor initializing...");
@@ -49,7 +50,7 @@ RangeDecompressor::RangeDecompressor(JsonReader* pclJsonDb_) : clMyHeaderDecoder
 }
 
 //------------------------------------------------------------------------------
-void RangeDecompressor::LoadJsonDb(JsonReader* pclJsonDb_)
+void RangeDecompressor::LoadJsonDb(MessageDatabase::Ptr pclJsonDb_)
 {
     pclMyMsgDB = pclJsonDb_;
     clMyHeaderDecoder.LoadJsonDb(pclJsonDb_);

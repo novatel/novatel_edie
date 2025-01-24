@@ -44,10 +44,10 @@ class RangeDecompressor
 {
   public:
     //! Default constructor.
-    RangeDecompressor(JsonReader* pclJsonDb_ = nullptr);
+    RangeDecompressor(MessageDatabase::Ptr pclJsonDb_ = nullptr);
 
     //! Load the JSON database for the decompressor.
-    void LoadJsonDb(JsonReader* pclJsonDb_);
+    void LoadJsonDb(MessageDatabase::Ptr pclJsonDb_);
 
     //! Get the internal logger.
     std::shared_ptr<spdlog::logger> GetLogger() { return pclMyLogger; }
@@ -115,7 +115,7 @@ class RangeDecompressor
     Encoder clMyEncoder;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    JsonReader* pclMyMsgDB{};
+    MessageDatabase::Ptr pclMyMsgDB{nullptr};
 
     std::unordered_map<uint64_t, rangecmp2::LockTimeInfo> mMyRangeCmp2LockTimes;
     std::unordered_map<uint64_t, rangecmp4::LockTimeInfo> mMyRangeCmp4LockTimes;
