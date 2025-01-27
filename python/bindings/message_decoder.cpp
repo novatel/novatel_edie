@@ -70,11 +70,11 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
             try {
                 field_ptype = parent_db->GetMessagesByNameDict().at(field_name);
             } catch (const std::out_of_range& e){
-                throw std::runtime_error("Type for " + field_name + "Field not found in the JSON database");
+                field_ptype = parent_db->GetMessagesByNameDict().at("UNKNOWN_Body");
             }
             nb::object pyinst = nb::inst_alloc(field_ptype);
             PyMessageBody* cinst = nb::inst_ptr<PyMessageBody>(pyinst);
-            new (cinst) PyMessageBody(message_field, parent_db, field_name+ "Field");
+            new (cinst) PyMessageBody(message_field, parent_db, field_name);
             nb::inst_mark_ready(pyinst);
 
             return pyinst;
