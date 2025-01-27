@@ -232,21 +232,20 @@ inline void PyMessageDatabase::UpdatePythonEnums()
     }
 }
 
-void PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_cons, nb::handle type_tuple, nb::handle type_dict) { 
+void PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_constructor,
+                                     nb::handle type_tuple, nb::handle type_dict)
+{
+    // rescursively add field types for each field array element within the provided vector
     for (const auto& field : fields) {
         if (auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get())) {
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
-            nb::object field_type = type_cons(field_name, type_tuple, type_dict);
+            nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
             messages_by_name[field_name] = field_type;
 
-            AddFieldType(field_array_field->fields, base_name, type_cons, type_tuple, type_dict);
-            // Handle FieldArrayField case
-            // Add specific logic for FieldArrayField
+            AddFieldType(field_array_field->fields, field_name, type_constructor, type_tuple, type_dict);
         } 
-        return;
     }
 }
-
 
 void PyMessageDatabase::UpdateMessageTypes()
 {
@@ -254,22 +253,25 @@ void PyMessageDatabase::UpdateMessageTypes()
     messages_by_name.clear();
 
     // get type constructor
-    nb::object Type = nb::module_::import_("builtins").attr("type");
-
-    nb::handle py_type = nb::type<oem::PyMessage>();
-    nb::handle py_body_type = nb::type<oem::PyMessageBody>();
+    nb::object type_constructor = nb::module_::import_("builtins").attr("type");
+    // specify the python superclasses for the new message and message body types
+    nb::tuple type_tuple = nb::make_tuple(nb::type<oem::PyMessage>());
+    nb::tuple body_type_tuple = nb::make_tuple(nb::type<oem::PyMessageBody>());
+    // provide no additional attributes via `__dict__`
     nb::dict type_dict = nb::dict();
-    nb::tuple type_tuple = nb::make_tuple(py_type);
-    nb::tuple body_type_tuple = nb::make_tuple(py_body_type);
+
+    // add message and message body types for each message definition
     for (const auto& message_def : MessageDefinitions()) {
-        nb::object msg_def = Type(message_def->name, type_tuple, type_dict);
+        nb::object msg_def = type_constructor(message_def->name, type_tuple, type_dict);
         messages_by_name[message_def->name] = msg_def;
-        nb::object msg_body_def = Type(message_def->name + "_Body", body_type_tuple, type_dict);
+        nb::object msg_body_def = type_constructor(message_def->name + "_Body", body_type_tuple, type_dict);
         messages_by_name[message_def->name + "_Body"] = msg_body_def;
-        AddFieldType(message_def->fields.at(message_def->latestMessageCrc), message_def->name + "_Body", Type, body_type_tuple, type_dict);
+        // add additional MessageBody types for each field array element within the message definition
+        AddFieldType(message_def->fields.at(message_def->latestMessageCrc), message_def->name + "_Body", type_constructor, body_type_tuple, type_dict);
     }
-    nb::object default_msg_def = Type("UNKNOWN", type_tuple, type_dict);
+    // provide UNKNOWN types for undecodable messages
+    nb::object default_msg_def = type_constructor("UNKNOWN", type_tuple, type_dict);
     messages_by_name["UNKNOWN"] = default_msg_def;
-    nb::object default_msg_body_def = Type("UNKNOWN_Body", body_type_tuple, type_dict);
+    nb::object default_msg_body_def = type_constructor("UNKNOWN_Body", body_type_tuple, type_dict);
     messages_by_name["UNKNOWN_Body"] = default_msg_body_def;
 }
