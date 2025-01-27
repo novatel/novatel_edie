@@ -153,8 +153,7 @@ size_t PyMessageBody::len() const { return fields.size(); }
 std::string PyMessageBody::repr() const
 {
     std::stringstream repr;
-    repr << "MessageBody(";
-    //if (!message_name.empty()) { repr << message_name << " "; }
+    repr << name << "(";
     bool first = true;
     for (const auto& [field_name, value] : get_values())
     {
@@ -202,7 +201,7 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_prop_ro("_fields", &PyMessageBody::get_fields)
         .def("to_dict", &PyMessageBody::to_dict, "Convert the message and its sub-messages into a dict")
         .def("__getattr__", &PyMessageBody::getattr, "field_name"_a)
-        //.def("__repr__", &PyMessageBody::repr)
+        .def("__repr__", &PyMessageBody::repr)
         .def("__str__", &PyMessageBody::repr)
         .def("__dir__", [](nb::object self) {
             // get required Python builtin functions
@@ -210,9 +209,9 @@ void init_novatel_message_decoder(nb::module_& m)
             nb::handle super = builtins.attr("super");
             nb::handle type = builtins.attr("type");
             // get base MessageBody type from concrete instance
-            nb::object body_type = (type(self).attr("__bases__"))[0];
+            nb::handle body_type = (type(self).attr("__bases__"))[0];
             // retrieve base list based on superclass method
-            nb::object super_type = super(body_type, self);
+            nb::handle super_type = super(body_type, self);
             nb::list base_list = nb::cast<nb::list>(super_type.attr("__dir__")());
             // add dynamic fields to the list
             PyMessageBody* body = nb::inst_ptr<PyMessageBody>(self);
@@ -224,12 +223,15 @@ void init_novatel_message_decoder(nb::module_& m)
     nb::class_<PyMessage>(m, "Message")
         .def_ro("body", &PyMessage::message_body)
         .def_ro("header", &PyMessage::header)
+        .def_ro("name", &PyMessage::name)
         .def("to_dict", [](const PyMessage& self) {
             nb::dict message_dict;
             message_dict["header"] = self.header.attr("to_dict")();
             message_dict["body"] = self.message_body.attr("to_dict")();
             return message_dict;
-        });
+        })
+        .def("__repr__", &PyMessage::repr)
+        .def("__str__", &PyMessage::repr);
 
     nb::class_<FieldContainer>(m, "FieldContainer")
         .def_rw("value", &FieldContainer::fieldValue)
@@ -251,9 +253,12 @@ void init_novatel_message_decoder(nb::module_& m)
                 PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);
                 nb::handle message_pytype;
                 nb::handle body_pytype;
+                const std::string message_name = metadata.MessageName();
+                const std::string message_body_name = metadata.MessageName() + "_Body";
+
                 try {
-                    message_pytype = parent_db->GetMessagesByNameDict().at(metadata.MessageName());
-                    body_pytype = parent_db->GetMessagesByNameDict().at(metadata.MessageName() + "_Body");
+                    message_pytype = parent_db->GetMessagesByNameDict().at(message_name);
+                    body_pytype = parent_db->GetMessagesByNameDict().at(message_body_name);
                 } catch (const std::out_of_range& e)
                 {
                     message_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
@@ -263,12 +268,12 @@ void init_novatel_message_decoder(nb::module_& m)
 
                 nb::object body_pyinst = nb::inst_alloc(body_pytype);
                 PyMessageBody* body_cinst = nb::inst_ptr<PyMessageBody>(body_pyinst);
-                new (body_cinst) PyMessageBody(std::move(fields), parent_db, metadata.MessageName() + "_Body");
+                new (body_cinst) PyMessageBody(std::move(fields), parent_db, message_body_name);
                 nb::inst_mark_ready(body_pyinst);
 
                 nb::object message_pyinst = nb::inst_alloc(message_pytype);
                 PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
-                new (message_cinst) PyMessage(body_pyinst, header);
+                new (message_cinst) PyMessage(body_pyinst, header, message_name);
                 nb::inst_mark_ready(message_pyinst);
 
                 return nb::make_tuple(status, message_pyinst);

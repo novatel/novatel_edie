@@ -44,9 +44,15 @@ struct PyMessage
 {
     nb::object message_body;
     nb::object header;
+    std::string name;
 
-    PyMessage(nb::object message_body_, nb::object header_)
-        : message_body(message_body_), header(header_) {}
+    PyMessage(nb::object message_body_, nb::object header_, std::string name_)
+        : message_body(message_body_), header(header_), name(name_) {}
+
+    std::string repr() const
+    {
+        return "<" + name + " Message>";
+    }
 };
 
 
