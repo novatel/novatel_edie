@@ -32,10 +32,8 @@ struct PyMessageBody
     std::string repr() const;
 
     std::vector<FieldContainer> fields;
-    std::vector<std::string> get_field_names() const;
 
   private:
-    static std::vector<std::string> base_fields;
     mutable nb::dict cached_values_;
     mutable nb::dict cached_fields_;
 
