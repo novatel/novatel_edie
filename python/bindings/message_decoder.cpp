@@ -271,5 +271,27 @@ void init_novatel_message_decoder(nb::module_& m)
 
                 return nb::make_tuple(status, message_pyinst);
             },
-            "message_body"_a, "decoded_header"_a, "metadata"_a);
-}
+            "message_body"_a, "decoded_header"_a, "metadata"_a)
+            .def(
+                "_decode_ascii",
+                [](oem::MessageDecoder& decoder, const std::vector<BaseField::Ptr>& msg_def_fields, const nb::bytes& message_body) {
+                    std::vector<FieldContainer> fields;
+                    // Copy to ensure that the byte string is zero-delimited
+                    std::string body_str(message_body.c_str(), message_body.size());
+                    const char* data_ptr = body_str.c_str();
+                    STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, &data_ptr, fields);
+                return nb::make_tuple(status, PyMessageBody(std::move(fields), get_parent_db(decoder), "UNKNOWN_Body"));
+            },
+            "msg_def_fields"_a, "message_body"_a)
+            .def(
+                "_decode_binary",
+                [](oem::MessageDecoder& decoder, const std::vector<BaseField::Ptr>& msg_def_fields, const nb::bytes& message_body,
+                    uint32_t message_length) {
+                    std::vector<FieldContainer> fields;
+                    const char* data_ptr = message_body.c_str();
+                    STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr),
+                                                                                            fields, message_length);
+                return nb::make_tuple(status, PyMessageBody(std::move(fields), get_parent_db(decoder), "UNKNOWN_Body"));
+            },
+            "msg_def_fields"_a, "message_body"_a, "message_length"_a);
+ }
