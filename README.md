@@ -136,106 +136,62 @@ when bypassing the Parser class.
 
 ## Examples
 
-More examples are provided in the [examples](examples) folder.
+Examples are provided in the [examples](examples) folder.
 
-### FileParser
+### File Parser Format Conversion
 
-The FileParser class provides an interface for parsing GPS files.
+[This example](.\examples\novatel\converter_file_parser\converter_file_parser.cpp) shows how to convert a file 
+from one format to another using the FileParser class.
 
-```cpp
-#include <iostream>
+Run the resulting executable with the following command: `converter_file_parser.exe <path_to_json_db> <input_file> <output_format>`
 
-#include <novatel_edie/decoders/oem/fileparser.hpp>
+### Parser Format Conversion
 
-using namespace novatel::edie;
-using namespace novatel::edie::oem;
+[This example](.\examples\novatel\converter_parser\converter_parser.cpp) shows how to write bytes to the internal
+buffer of a Parser and have it convert those bytes to a specified format.
 
-// Initialize the current status, meta data structure, and message data structure.
-STATUS eStatus = STATUS::UNKNOWN;
-MetaDataStruct stMetaData;
-MessageDataStruct stMessageData;
+Run the resulting executable with the following command: `converter_parser.exe <path_to_json_db> <input_file> <output_format>`
 
-// Initialize the FileParser and return messages in ASCII.
-FileParser clFileParser("database\messages_public.json");
-clFileParser.SetEncodeFormat(ENCODE_FORMAT::ASCII);
+### Piecewise Conversion
 
-// Initialize a filter for Fine Steering time status and BESTPOS messages.
-Filter clFilter;
-clFilter.IncludeTimeStatus(TIME_STATUS::FINESTEERING);
-clFilter.IncludeMessageName("BESTPOS");
-clFileParser.SetFilter(&clFilter);
+[This example](.\examples\novatel\converter_components\converter_components.cpp) shows how to use the individual components of the decoder stack
+in order to convert a file from one format to another.
+It demonstrates how to use the JsonReader, Framer, Filter HeaderDecoder, MessageDecoder, Encoder classes to achieve 
+fine-grained control over the conversion process.
 
-// Initialize the file stream status and buffer.
-StreamReadStatus stReadStatus;
-ReadDataStructure stReadData;
-unsigned char aucIFSReadBuffer[MAX_ASCII_MESSAGE_LENGTH];
-stReadData.cData = reinterpret_cast<char*>(aucIFSReadBuffer);
-stReadData.uiDataSize = sizeof(aucIFSReadBuffer);
+Run the resulting executable with the following command: `converter_components.exe <path_to_json_db> <input_file> <output_format>`
 
-// Initialize the input and output file streams.
-std::string sInputFileName = "SAMPLE.GPS";
-InputFileStream clInputFileStream = InputFileStream(sInputFileName);
-OutputFileStream clConvertedLogs = OutputFileStream(sInputFileName.append(".").append(sEncodeFormat));
+### Adding Message Definitions
 
-if (!clFileParser.SetStream(&clInputFileStream)) {
-    std::cout << "Input stream could not be set. The stream is either unavailable or exhausted." << std::endl;
-    exit(-1);
-}
+[This example](.\examples\novatel\json_parser\json_parser.cpp) shows how to dynamically add message definitions to the JsonReader class.
 
-while (eStatus != STATUS::STREAM_EMPTY) {
-    try {
-        eStatus = clFileParser.Read(stMessageData, stMetaData);
+Run the resulting executable with the following command: `converter_parser.exe <path_to_json_db> <input_file> <output_format> <msg_def_json_string>`
 
-        if (eStatus == STATUS::SUCCESS) {
-            clConvertedLogs.WriteData(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
-            stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
-            std::cout << "Encoded: (" << stMessageData.uiMessageLength << ") " << reinterpret_cast<char*>(stMessageData.pucMessage) << std::endl;
-        }
-    } catch (std::exception& e) {
-      std::cout << "Exception thrown: " << e.what() << std::endl);
-      exit(-1);
-    }
-}
-```
+### Decompressing Range Logs
+
+[This example](.\examples\novatel\range_decompressor\range_decompressor.cpp) shows how to decompress range logs.
+For example go from [RANGECMP4](https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm) to [RANGE](https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm).
+
+Run the resulting executable with the following command: `range_decompressor.exe <path_to_json_db> <input_file> <output_format>`
 
 ### Command Encoding
 
-The Commander class provides an interface to convert 
-[Abbreviated ASCII](https://docs.novatel.com/OEM7/Content/Messages/Abbreviated_ASCII.htm) 
-commands to an equivalent [ASCII](https://docs.novatel.com/OEM7/Content/Messages/ASCII.htm) or 
-[Binary](https://docs.novatel.com/OEM7/Content/Messages/Binary.htm) command. 
-Note that all fields must be provided in the abbreviated ASCII string command including optional fields.
+[This example](.\examples\novatel\command_encoding\command_encoding.cpp) shows how to
+use the Commander class to encode a command from 
+[Abbreviated ASCII](https://docs.novatel.com/OEM7/Content/Messages/Abbreviated_ASCII.htm) to an
+[ASCII](https://docs.novatel.com/OEM7/Content/Messages/ASCII.htm) or
+[Binary](https://docs.novatel.com/OEM7/Content/Messages/Binary.htm) command.
+Note that all fields, even optional ones, must be provided in the abbreviated ASCII string command.
 
-```cpp
-#include <iostream>
+Run the resulting executable with the following command: `command_encoding.exe <path_to_json_db> <output_format> <abbreviated_ascii_command>`
 
-#include <novatel_edie/decoders/oem/commander.hpp>
+### Converting RXConfig Logs
 
-using namespace novatel::edie;
-using namespace novatel::edie::oem;
+[This example](.\examples\novatel\rxconfig_handler\rxconfig_handler.cpp) shows how to use the RxConfigHandler class 
+to convert [RXConfig](https://docs.novatel.com/OEM7/Content/Logs/RXCONFIG.htm?Highlight=RXConfig) logs to another format.
+Converting RXConfig logs requires special treatment due to their outlying message protocol.
 
-// Initialize the current status, meta data structure, and message data structure.
-MetaDataStruct stMetaData;
-MessageDataStruct stMessageData;
-
-// Setup the EDIE components.
-JsonReader clJsonDb;
-pclMyJsonDb->LoadFile("database/messages_public.json");
-Commander clCommander(&clJsonDb);
-
-// Initialize the buffer and the Abbreviated ASCII command string.
-char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
-uint32_t uiEncodeBufferLength = MAX_ASCII_MESSAGE_LENGTH;
-std::string strCommand("INSTHRESHOLDS LOW 0.0 0.0 0.0");
-
-// Encode the message.
-STATUS eCommanderStatus = clCommander.Encode(strCommand.c_str(), strCommand.length(), acEncodeBuffer, uiEncodeBufferLength, ENCODE_FORMAT::ASCII);
-if (eCommanderStatus == STATUS::SUCCESS) {
-    // Copy the encoded command into a new string.
-    std::string strEncodedCommand(acEncodeBuffer, uiEncodeBufferLength);
-    std::cout << "Encoded: " << strEncodedCommand << std::endl;
-}
-```
+Run the resulting executable with the following command: `rxconfig_handler.exe <path_to_json_db> <input_file> <output_format>`
 
 ## Code Style
 
