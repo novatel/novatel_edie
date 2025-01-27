@@ -94,8 +94,6 @@ def main():
     encoder = ne.Encoder()
     filter = ne.Filter()
 
-    index = 0
-    start = time.time()
     with open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream:
         for framer_status, frame, meta in read_frames(args.input_file, framer):
             try:
@@ -115,25 +113,18 @@ def main():
                 status, message = message_decoder.decode(body, header, meta)
                 status.raise_on_error("MessageDecoder.decode() failed")
 
-                # if isinstance(message, RANGE):
+                # Get info from the log.
+                if isinstance(message, RANGE):
+                    observations = message.body.obs
 
-                #     obs = message.body.obs
-                #     pass
+                # Re-encode the log and write it to the output file.
+                status, encoded_message = encoder.encode(message, meta, encode_format)
+                status.raise_on_error("Encoder.encode() failed")
 
-                index += 1
-                if index > 100000:
-                    break
-
-                # # Re-encode the log and write it to the output file.
-                # status, encoded_message = encoder.encode(header, message, meta, encode_format)
-                # status.raise_on_error("Encoder.encode() failed")
-
-                # converted_logs_stream.write(encoded_message.message)
-                # logger.info( f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
+                converted_logs_stream.write(encoded_message.message)
+                logger.info( f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
             except ne.DecoderException as e:
                 logger.warn(str(e))
-    end = time.time()
-    print(f"Time taken: {end - start}")
 
 if __name__ == "__main__":
     main()

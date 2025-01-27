@@ -241,13 +241,14 @@ void PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fie
 {
     // rescursively add field types for each field array element within the provided vector
     for (const auto& field : fields) {
-        if (auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get())) {
+        if (field->type == FIELD_TYPE::FIELD_ARRAY)
+        {
+            auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
             nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
             messages_by_name[field_name] = field_type;
-
             AddFieldType(field_array_field->fields, field_name, type_constructor, type_tuple, type_dict);
-        } 
+        }   
     }
 }
 
