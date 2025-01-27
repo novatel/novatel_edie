@@ -32,9 +32,7 @@ std::string default_json_db_path()
 PyMessageDatabase::Ptr& MessageDbSingleton::get()
 {
     static PyMessageDatabase::Ptr json_db = nullptr;
-    if (!json_db) { 
-        json_db = std::make_shared<PyMessageDatabase>(*JsonDbReader::LoadFile(default_json_db_path()));
-    }
+    if (!json_db) { json_db = std::make_shared<PyMessageDatabase>(*JsonDbReader::LoadFile(default_json_db_path())); }
     return json_db;
 }
 
