@@ -66,11 +66,11 @@ class Helper:
             return (Result.HEADER_DECODER_ERROR, None) if not return_message else (Result.HEADER_DECODER_ERROR, None, None)
 
         body = message_input[meta_data.header_length:]
-        status, message = self.message_decoder.decode(body, meta_data)
+        status, message = self.message_decoder.decode(body, header, meta_data)
         if status != STATUS.SUCCESS:
             return (Result.MESSAGE_DECODER_ERROR, None) if not return_message else (Result.MESSAGE_DECODER_ERROR, None, None)
 
-        status, message_data = self.encoder.encode(header, message, meta_data, encode_format)
+        status, message_data = self.encoder.encode(message, meta_data, encode_format)
         if status != STATUS.SUCCESS:
             return (Result.ENCODER_ERROR, None) if not return_message else (Result.ENCODER_ERROR, None, None)
 
@@ -78,7 +78,7 @@ class Helper:
             return Result.SUCCESS, message_data, message
 
         return Result.SUCCESS, message_data
-    
+
     def TestDecodeEncode(self, format_, encoded_message):
         return self.DecodeEncode(format_, encoded_message, ne.MetaData())[0]
 
@@ -107,29 +107,29 @@ class Helper:
             return Result.MESSAGEDATA_COMPARISON_ERROR
 
         return Result.SUCCESS
-    
+
 
     def TestConversion(self, format_: ENCODE_FORMAT, message_input: bytes, expected_message_data: ExpectedMessageData, expected_meta_data: ne.MetaData=None):
         test_meta_data = ne.MetaData()
         ret_code, test_message_data = self.DecodeEncode(format_, message_input, test_meta_data)
         if ret_code != Result.SUCCESS:
             return ret_code
-    
+
         if expected_message_data.header != test_message_data.header:
             print(f"MessageData.header error (expected {len(expected_message_data.header)}, got {len(test_message_data.header)})")
             return Result.HEADER_LENGTH_ERROR
-    
+
         if expected_message_data.message != test_message_data.message:
             print(f"MessageData.message error (expected {len(expected_message_data.message)}, got {len(test_message_data.message)})")
             return Result.LENGTH_ERROR
-    
+
         if expected_meta_data is not None:
             if not compare_metadata(test_meta_data, expected_meta_data):
                 return Result.METADATA_COMPARISON_ERROR
-    
+
         if not compare_message_data(test_message_data, expected_message_data):
             return Result.MESSAGEDATA_COMPARISON_ERROR
-    
+
         return Result.SUCCESS
 
 
@@ -292,35 +292,35 @@ def test_ascii_log_roundtrip_gloephem(helper):
     ret_code, message_data, glo_ephemeris = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
     assert ret_code == Result.SUCCESS
 
-    assert glo_ephemeris.sloto == 51
-    assert glo_ephemeris.freqo == 0
-    assert glo_ephemeris.sat_type == 1
-    assert glo_ephemeris.false_iod == 80
-    assert glo_ephemeris.ephem_week == 2168
-    assert glo_ephemeris.ephem_time == 161118000
-    assert glo_ephemeris.time_offset == 10782
-    assert glo_ephemeris.nt == 573
-    assert glo_ephemeris.GLOEPHEMERIS_reserved == 0
-    assert glo_ephemeris.GLOEPHEMERIS_reserved_9 == 0
-    assert glo_ephemeris.issue == 95
-    assert glo_ephemeris.broadcast_health == 0
-    assert glo_ephemeris.pos_x == -2.3917966796875000e+07
-    assert glo_ephemeris.pos_y == 4.8163881835937500e+06
-    assert glo_ephemeris.pos_z == 7.4258510742187500e+06
-    assert glo_ephemeris.vel_x == -1.0062713623046875e+03
-    assert glo_ephemeris.vel_y == 1.8321990966796875e+02
-    assert glo_ephemeris.vel_z == -3.3695755004882813e+03
-    assert glo_ephemeris.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
-    assert glo_ephemeris.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
-    assert glo_ephemeris.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
-    assert glo_ephemeris.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
-    assert glo_ephemeris.delta_tau == 5.587935448e-09
-    assert glo_ephemeris.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
-    assert glo_ephemeris.tk == 84600
-    assert glo_ephemeris.p == 3
-    assert glo_ephemeris.ft == 2
-    assert glo_ephemeris.age == 0
-    assert glo_ephemeris.flags == 13
+    assert glo_ephemeris.body.sloto == 51
+    assert glo_ephemeris.body.freqo == 0
+    assert glo_ephemeris.body.sat_type == 1
+    assert glo_ephemeris.body.false_iod == 80
+    assert glo_ephemeris.body.ephem_week == 2168
+    assert glo_ephemeris.body.ephem_time == 161118000
+    assert glo_ephemeris.body.time_offset == 10782
+    assert glo_ephemeris.body.nt == 573
+    assert glo_ephemeris.body.GLOEPHEMERIS_reserved == 0
+    assert glo_ephemeris.body.GLOEPHEMERIS_reserved_9 == 0
+    assert glo_ephemeris.body.issue == 95
+    assert glo_ephemeris.body.broadcast_health == 0
+    assert glo_ephemeris.body.pos_x == -2.3917966796875000e+07
+    assert glo_ephemeris.body.pos_y == 4.8163881835937500e+06
+    assert glo_ephemeris.body.pos_z == 7.4258510742187500e+06
+    assert glo_ephemeris.body.vel_x == -1.0062713623046875e+03
+    assert glo_ephemeris.body.vel_y == 1.8321990966796875e+02
+    assert glo_ephemeris.body.vel_z == -3.3695755004882813e+03
+    assert glo_ephemeris.body.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
+    assert glo_ephemeris.body.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
+    assert glo_ephemeris.body.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
+    assert glo_ephemeris.body.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
+    assert glo_ephemeris.body.delta_tau == 5.587935448e-09
+    assert glo_ephemeris.body.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
+    assert glo_ephemeris.body.tk == 84600
+    assert glo_ephemeris.body.p == 3
+    assert glo_ephemeris.body.ft == 2
+    assert glo_ephemeris.body.age == 0
+    assert glo_ephemeris.body.flags == 13
 
 
 def test_ascii_log_roundtrip_loglist(helper):
@@ -629,8 +629,8 @@ def test_flat_binary_log_decode_validmodelsb(helper):
     assert compare_binary_headers(test_log_header, log_header)
 
     # Check the populated parts of the log
-    assert len(validmodels.models) == 1
-    for models in validmodels.models:
+    assert len(validmodels.body.models) == 1
+    for models in validmodels.body.models:
         assert models.model == "FFNRNNCBN"
 
 
@@ -664,7 +664,7 @@ def test_flat_binary_log_decode_version(helper):
     assert log_header.receiver_sw_version == 32768
 
     # Check the populated parts of the log
-    versions = version.versions
+    versions = version.body.versions
     assert len(versions) == 4
 
     # Check GPSCARD fields
