@@ -23,7 +23,6 @@ void init_novatel_rxconfig_handler(nb::module_&);
 
 NB_MODULE(bindings, m)
 {
-    //nb::module_ core_mod = m.def_submodule("core", "Core functionality of the module.");
     init_common_common(m);
     init_common_logger(m);
     init_common_json_db_reader(m);
