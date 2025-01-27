@@ -662,7 +662,7 @@ def test_simple_field_width_valid(helper):
     input = b"TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
     status.raise_on_error()
-    
+
     assert intermediate_format.field0 is True  # bool
     assert intermediate_format.field1 == 99  # uint8_t
     assert intermediate_format.field2 == 227  # uint8_t
