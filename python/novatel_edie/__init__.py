@@ -9,7 +9,7 @@ from .bindings import (
     OEM4_BINARY_SYNC_LENGTH, MAX_BINARY_MESSAGE_LENGTH, OEM4_ASCII_SYNC_LENGTH, OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2,
     OEM4_BINARY_SYNC3,
     string_to_encode_format, pretty_version, get_default_database,
-    Oem4BinaryHeader,
+    Oem4BinaryHeader, Oem4BinaryShortHeader,
     MetaData, MessageData, Commander, JsonDbReader, BaseField, RangeDecompressor,
     Framer, HeaderDecoder, MessageDecoder, Encoder, Filter, DecoderException, Logging, LogLevel,
     Parser, RxConfigHandler, FileParser)

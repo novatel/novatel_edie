@@ -502,27 +502,27 @@ def test_flat_binary_log_decode_bestpos(helper):
     assert log_header.receiver_sw_version == 32768
 
     # SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n"
-    assert bestpos.solution_status == ne.enums.SolStatus.SOL_COMPUTED
-    assert bestpos.position_type == ne.enums.SolType.SINGLE
-    assert bestpos.latitude == 51.15043711386
-    assert bestpos.longitude == -114.03067767000
-    assert bestpos.orthometric_height == 1097.2099
-    assert bestpos.undulation == -17.0000
-    assert bestpos.datum_id == ne.enums.Datum.WGS84
-    assert bestpos.latitude_std_dev == approx(0.9038, abs=1e-5)
-    assert bestpos.longitude_std_dev == approx(0.8534, abs=1e-5)
-    assert bestpos.height_std_dev == approx(1.7480, abs=1e-5)
-    # assert bestpos.base_id == ""
-    assert bestpos.diff_age == 0.000
-    assert bestpos.solution_age == 0.000
-    assert bestpos.num_svs == 35
-    assert bestpos.num_soln_svs == 30
-    assert bestpos.num_soln_L1_svs == 30
-    assert bestpos.num_soln_multi_svs == 30
-    assert bestpos.extended_solution_status2 == 0x00
-    assert bestpos.ext_sol_stat == 0x06
-    assert bestpos.gal_and_bds_mask == 0x39
-    assert bestpos.gps_and_glo_mask == 0x33
+    assert bestpos.body.solution_status == ne.enums.SolStatus.SOL_COMPUTED
+    assert bestpos.body.position_type == ne.enums.SolType.SINGLE
+    assert bestpos.body.latitude == 51.15043711386
+    assert bestpos.body.longitude == -114.03067767000
+    assert bestpos.body.orthometric_height == 1097.2099
+    assert bestpos.body.undulation == -17.0000
+    assert bestpos.body.datum_id == ne.enums.Datum.WGS84
+    assert bestpos.body.latitude_std_dev == approx(0.9038, abs=1e-5)
+    assert bestpos.body.longitude_std_dev == approx(0.8534, abs=1e-5)
+    assert bestpos.body.height_std_dev == approx(1.7480, abs=1e-5)
+    # assert bestpos.body.base_id == ""
+    assert bestpos.body.diff_age == 0.000
+    assert bestpos.body.solution_age == 0.000
+    assert bestpos.body.num_svs == 35
+    assert bestpos.body.num_soln_svs == 30
+    assert bestpos.body.num_soln_L1_svs == 30
+    assert bestpos.body.num_soln_multi_svs == 30
+    assert bestpos.body.extended_solution_status2 == 0x00
+    assert bestpos.body.ext_sol_stat == 0x06
+    assert bestpos.body.gal_and_bds_mask == 0x39
+    assert bestpos.body.gps_and_glo_mask == 0x33
 
 
 def test_flat_binary_log_decode_gloephema(helper):
@@ -548,35 +548,35 @@ def test_flat_binary_log_decode_gloephema(helper):
     assert log_header.msg_def_crc == 0x8d29
     assert log_header.receiver_sw_version == 32768
 
-    assert gloephemeris.sloto == 51
-    assert gloephemeris.freqo == 0
-    assert gloephemeris.sat_type == 1
-    assert gloephemeris.false_iod == 80
-    assert gloephemeris.ephem_week == 2168
-    assert gloephemeris.ephem_time == 161118000
-    assert gloephemeris.time_offset == 10782
-    assert gloephemeris.nt == 573
-    assert gloephemeris.GLOEPHEMERIS_reserved == 0
-    assert gloephemeris.GLOEPHEMERIS_reserved_9 == 0
-    assert gloephemeris.issue == 95
-    assert gloephemeris.broadcast_health == 0
-    assert gloephemeris.pos_x == -2.3917966796875000e+07
-    assert gloephemeris.pos_y == 4.8163881835937500e+06
-    assert gloephemeris.pos_z == 7.4258510742187500e+06
-    assert gloephemeris.vel_x == -1.0062713623046875e+03
-    assert gloephemeris.vel_y == 1.8321990966796875e+02
-    assert gloephemeris.vel_z == -3.3695755004882813e+03
-    assert gloephemeris.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
-    assert gloephemeris.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
-    assert gloephemeris.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
-    assert gloephemeris.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
-    assert gloephemeris.delta_tau == 5.587935448e-09
-    assert gloephemeris.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
-    assert gloephemeris.tk == 84600
-    assert gloephemeris.p == 3
-    assert gloephemeris.ft == 2
-    assert gloephemeris.age == 0
-    assert gloephemeris.flags == 13
+    assert gloephemeris.body.sloto == 51
+    assert gloephemeris.body.freqo == 0
+    assert gloephemeris.body.sat_type == 1
+    assert gloephemeris.body.false_iod == 80
+    assert gloephemeris.body.ephem_week == 2168
+    assert gloephemeris.body.ephem_time == 161118000
+    assert gloephemeris.body.time_offset == 10782
+    assert gloephemeris.body.nt == 573
+    assert gloephemeris.body.GLOEPHEMERIS_reserved == 0
+    assert gloephemeris.body.GLOEPHEMERIS_reserved_9 == 0
+    assert gloephemeris.body.issue == 95
+    assert gloephemeris.body.broadcast_health == 0
+    assert gloephemeris.body.pos_x == -2.3917966796875000e+07
+    assert gloephemeris.body.pos_y == 4.8163881835937500e+06
+    assert gloephemeris.body.pos_z == 7.4258510742187500e+06
+    assert gloephemeris.body.vel_x == -1.0062713623046875e+03
+    assert gloephemeris.body.vel_y == 1.8321990966796875e+02
+    assert gloephemeris.body.vel_z == -3.3695755004882813e+03
+    assert gloephemeris.body.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
+    assert gloephemeris.body.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
+    assert gloephemeris.body.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
+    assert gloephemeris.body.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
+    assert gloephemeris.body.delta_tau == 5.587935448e-09
+    assert gloephemeris.body.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
+    assert gloephemeris.body.tk == 84600
+    assert gloephemeris.body.p == 3
+    assert gloephemeris.body.ft == 2
+    assert gloephemeris.body.age == 0
+    assert gloephemeris.body.flags == 13
 
 
 def test_flat_binary_log_decode_portstatsb(helper):
@@ -593,8 +593,8 @@ def test_flat_binary_log_decode_portstatsb(helper):
     assert compare_binary_headers(test_log_header, log_header)
 
     # Check the populated parts of the log
-    assert len(portstats.port_statistics) == 23
-    for port_statistics, expected_port in zip(portstats.port_statistics, portstats_port_fields):
+    assert len(portstats.body.port_statistics) == 23
+    for port_statistics, expected_port in zip(portstats.body.port_statistics, portstats_port_fields):
         assert port_statistics.port == expected_port
 
 
@@ -612,8 +612,8 @@ def test_flat_binary_log_decode_psrdopb(helper):
     assert compare_binary_headers(test_log_header, log_header)
 
     # Check the populated parts of the log
-    assert len(psrdop.sats) == 35
-    for sat, expected in zip(psrdop.sats, psrdop_sat_fields):
+    assert len(psrdop.body.sats) == 35
+    for sat, expected in zip(psrdop.body.sats, psrdop_sat_fields):
         assert sat == expected
 
 
@@ -733,7 +733,7 @@ def test_flat_binary_log_decode_versiona(helper):
     assert log_header.receiver_sw_version == 16248
 
     # Check the populated parts of the log
-    versions = version.versions
+    versions = version.body.versions
     assert len(versions) == 8
 
     # Check GPSCARD fields
@@ -1027,8 +1027,8 @@ def ASSERT_SHORT_HEADER_EQ(short_header_, header_):
 
 
 def ASSERT_BESTSATS_EQ(message1, message2):
-    assert len(message1.satellite_entries) == len(message2.satellite_entries)
-    for satellite_entries1, satellite_entries2 in zip(message1.satellite_entries, message2.satellite_entries):
+    assert len(message1.body.satellite_entries) == len(message2.body.satellite_entries)
+    for satellite_entries1, satellite_entries2 in zip(message1.body.satellite_entries, message2.body.satellite_entries):
         assert satellite_entries1.system_type == satellite_entries2.system_type
         assert satellite_entries1.id.prn_or_slot == satellite_entries2.id.prn_or_slot
         assert satellite_entries1.id.frequency_channel == satellite_entries2.id.frequency_channel
@@ -1037,36 +1037,38 @@ def ASSERT_BESTSATS_EQ(message1, message2):
 
 
 def ASSERT_BESTPOS_EQ(message1, message2):
-    assert message1.solution_status == message2.solution_status
-    assert message1.position_type == message2.position_type
-    assert message1.latitude == approx(message2.latitude, abs=1e-11)
-    assert message1.longitude == approx(message2.longitude, abs=1e-11)
-    if hasattr(message1, "orthometric_height") and hasattr(message2, "orthometric_height"):
-        assert message1.orthometric_height == approx(message2.orthometric_height, abs=1e-4)
+    body1 = message1.body
+    body2 = message2.body
+    assert body1.solution_status == body2.solution_status
+    assert body1.position_type == body2.position_type
+    assert body1.latitude == approx(body2.latitude, abs=1e-11)
+    assert body1.longitude == approx(body2.longitude, abs=1e-11)
+    if hasattr(body1, "orthometric_height") and hasattr(body2, "orthometric_height"):
+        assert body1.orthometric_height == approx(body2.orthometric_height, abs=1e-4)
     else:
-        assert message1.height == approx(message2.height, abs=1e-4)
-    assert message1.undulation == approx(message2.undulation, rel=1e-6)
-    assert message1.datum_id == message2.datum_id
-    assert message1.latitude_std_dev == approx(message2.latitude_std_dev, abs=1e-4)
-    assert message1.longitude_std_dev == approx(message2.longitude_std_dev, abs=1e-4)
-    assert message1.height_std_dev == approx(message2.height_std_dev, abs=1e-4)
-    assert message1.base_id == message2.base_id
-    assert message1.diff_age == approx(message2.diff_age, rel=1e-6)
-    assert message1.solution_age == approx(message2.solution_age, rel=1e-6)
-    assert message1.num_svs == message2.num_svs
-    assert message1.num_soln_svs == message2.num_soln_svs
-    assert message1.num_soln_L1_svs == message2.num_soln_L1_svs
-    assert message1.num_soln_multi_svs == message2.num_soln_multi_svs
-    if hasattr(message1, "extended_solution_status2") and hasattr(message2, "extended_solution_status2"):
-        assert message1.extended_solution_status2 == message2.extended_solution_status2
-    assert message1.ext_sol_stat == message2.ext_sol_stat
-    assert message1.gal_and_bds_mask == message2.gal_and_bds_mask
-    assert message1.gps_and_glo_mask == message2.gps_and_glo_mask
+        assert body1.height == approx(body2.height, abs=1e-4)
+    assert body1.undulation == approx(body2.undulation, rel=1e-6)
+    assert body1.datum_id == body2.datum_id
+    assert body1.latitude_std_dev == approx(body2.latitude_std_dev, abs=1e-4)
+    assert body1.longitude_std_dev == approx(body2.longitude_std_dev, abs=1e-4)
+    assert body1.height_std_dev == approx(body2.height_std_dev, abs=1e-4)
+    assert body1.base_id == body2.base_id
+    assert body1.diff_age == approx(body2.diff_age, rel=1e-6)
+    assert body1.solution_age == approx(body2.solution_age, rel=1e-6)
+    assert body1.num_svs == body2.num_svs
+    assert body1.num_soln_svs == body2.num_soln_svs
+    assert body1.num_soln_L1_svs == body2.num_soln_L1_svs
+    assert body1.num_soln_multi_svs == body2.num_soln_multi_svs
+    if hasattr(body1, "extended_solution_status2") and hasattr(body2, "extended_solution_status2"):
+        assert body1.extended_solution_status2 == body2.extended_solution_status2
+    assert body1.ext_sol_stat == body2.ext_sol_stat
+    assert body1.gal_and_bds_mask == body2.gal_and_bds_mask
+    assert body1.gps_and_glo_mask == body2.gps_and_glo_mask
 
 
 def ASSERT_LOGLIST_EQ(message1, message2):
-    assert len(message1.log_list) == len(message2.log_list)
-    for log_list1, log_list2 in zip(message1.log_list, message2.log_list):
+    assert len(message1.body.log_list) == len(message2.body.log_list)
+    for log_list1, log_list2 in zip(message1.body.log_list, message2.body.log_list):
         assert log_list1.log_port_address == log_list2.log_port_address
         assert log_list1.message_id == log_list2.message_id
         assert log_list1.trigger == log_list2.trigger
@@ -1076,19 +1078,23 @@ def ASSERT_LOGLIST_EQ(message1, message2):
 
 
 def ASSERT_RAWGPSSUBFRAME_EQ(message1, message2):
-    assert message1.frame_decoder_number == message2.frame_decoder_number
-    assert message1.satellite_id == message2.satellite_id
-    assert message1.sub_frame_id == message2.sub_frame_id
-    assert message1.raw_sub_frame_data == message2.raw_sub_frame_data
-    assert message1.signal_channel_number == message2.signal_channel_number
+    body1 = message1.body
+    body2 = message2.body
+    assert body1.frame_decoder_number == body2.frame_decoder_number
+    assert body1.satellite_id == body2.satellite_id
+    assert body1.sub_frame_id == body2.sub_frame_id
+    assert body1.raw_sub_frame_data == body2.raw_sub_frame_data
+    assert body1.signal_channel_number == body2.signal_channel_number
 
 
 def ASSERT_TRACKSTAT_EQ(message1, message2):
-    assert message1.position_status == message2.position_status
-    assert message1.position_type == message2.position_type
-    assert message1.tracking_elevation_cutoff == message2.tracking_elevation_cutoff
-    assert len(message1.chan_status) == len(message2.chan_status)
-    for chan_status1, chan_status2 in zip(message1.chan_status, message2.chan_status):
+    body1 = message1.body
+    body2 = message2.body
+    assert body1.position_status == body2.position_status
+    assert body1.position_type == body2.position_type
+    assert body1.tracking_elevation_cutoff == body2.tracking_elevation_cutoff
+    assert len(body1.chan_status) == len(body2.chan_status)
+    for chan_status1, chan_status2 in zip(body1.chan_status, body2.chan_status):
         assert chan_status1.prn == chan_status2.prn
         assert chan_status1.freq == chan_status2.freq
         assert chan_status1.channel_status == chan_status2.channel_status
