@@ -95,19 +95,6 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
     }
 }
 
-std::vector<std::string> PyMessageBody::base_fields = {
-    "__class__",   "__contains__",     "__delattr__", "__dir__",      "__doc__",          "__eq__",   "__format__", "__ge__",
-    "__getattr__", "__getattribute__", "__getitem__", "__getstate__", "__gt__",           "__hash__", "__init__",   "__init_subclass__",
-    "__le__",      "__len__",          "__lt__",      "__module__",   "__ne__",           "__new__",  "__reduce__", "__reduce_ex__",
-    "__repr__",    "__setattr__",      "__sizeof__",  "__str__",      "__subclasshook__"};
-
-std::vector<std::string> PyMessageBody::get_field_names() const
-{
-    std::vector<std::string> field_names = base_fields;
-    for (const auto& [field_name, _] : get_fields()) { field_names.push_back(nb::cast<std::string>(field_name)); }
-    return field_names;
-}
-
 PyMessageBody::PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name_)
     : fields(std::move(message_)), parent_db_(std::move(parent_db_)), name(std::move(name_))
 {}
@@ -217,7 +204,22 @@ void init_novatel_message_decoder(nb::module_& m)
         .def("__getattr__", &PyMessageBody::getattr, "field_name"_a)
         //.def("__repr__", &PyMessageBody::repr)
         .def("__str__", &PyMessageBody::repr)
-        .def("__dir__", &PyMessageBody::get_field_names);
+        .def("__dir__", [](nb::object self) {
+            // get required Python builtin functions
+            nb::module_ builtins = nb::module_::import_("builtins");
+            nb::handle super = builtins.attr("super");
+            nb::handle type = builtins.attr("type");
+            // get base MessageBody type from concrete instance
+            nb::object body_type = (type(self).attr("__bases__"))[0];
+            // retrieve base list based on superclass method
+            nb::object super_type = super(body_type, self);
+            nb::list base_list = nb::cast<nb::list>(super_type.attr("__dir__")());
+            // add dynamic fields to the list
+            PyMessageBody* body = nb::inst_ptr<PyMessageBody>(self);
+            for (const auto& [field_name, _] : body->get_fields()) { base_list.append(field_name); }
+
+            return base_list;
+        });
 
     nb::class_<PyMessage>(m, "Message")
         .def_ro("body", &PyMessage::message_body)
