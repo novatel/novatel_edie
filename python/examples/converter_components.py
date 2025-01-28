@@ -32,7 +32,7 @@
 import argparse
 import os
 from binascii import hexlify
-import time
+
 import novatel_edie as ne
 from novatel_edie.messages import RANGE
 from novatel_edie import STATUS
