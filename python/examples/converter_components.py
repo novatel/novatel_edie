@@ -116,6 +116,7 @@ def main():
                 # Get info from the log.
                 if isinstance(message, RANGE):
                     observations = message.body.obs
+                    pass
 
                 # Re-encode the log and write it to the output file.
                 status, encoded_message = encoder.encode(message, meta, encode_format)

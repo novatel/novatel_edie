@@ -39,7 +39,29 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
             // Empty array
             return nb::list();
         }
-        else if (message_field[0].fieldDef->type == field.fieldDef->type && message_field[0].fieldDef->name == field.fieldDef->name)
+        else if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
+        {
+            // Field Array
+            std::vector<nb::object> sub_values;
+            sub_values.reserve(message_field.size());
+            nb::handle field_ptype;
+            std::string field_name = parent + "_" + field.fieldDef->name + "_Field";
+            try {
+                field_ptype = parent_db->GetMessagesByNameDict().at(field_name);
+            } catch (const std::out_of_range& e) {
+                field_ptype = parent_db->GetMessagesByNameDict().at("UNKNOWN_Body");
+            }
+            for (const auto& subfield : message_field) { 
+                nb::object pyinst = nb::inst_alloc(field_ptype);
+                PyMessageBody* cinst = nb::inst_ptr<PyMessageBody>(pyinst);
+                const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
+                new (cinst) PyMessageBody(message_subfield, parent_db, field_name);
+                nb::inst_mark_ready(pyinst);
+                sub_values.push_back(pyinst); 
+            }
+            return nb::cast(sub_values);
+        }
+        else
         {
             // Fixed-length, variable-length and field arrays are stored as a field
             // with a list of sub-fields of the same type and name.
@@ -61,23 +83,6 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
             sub_values.reserve(message_field.size());
             for (const auto& f : message_field) { sub_values.push_back(convert_field(f, parent_db, parent)); }
             return nb::cast(sub_values);
-        }
-        else
-        {
-            // This is an array element of a field array.
-            nb::handle field_ptype;
-            std::string field_name = parent + "_" + field.fieldDef->name + "_Field";
-            try {
-                field_ptype = parent_db->GetMessagesByNameDict().at(field_name);
-            } catch (const std::out_of_range& e){
-                field_ptype = parent_db->GetMessagesByNameDict().at("UNKNOWN_Body");
-            }
-            nb::object pyinst = nb::inst_alloc(field_ptype);
-            PyMessageBody* cinst = nb::inst_ptr<PyMessageBody>(pyinst);
-            new (cinst) PyMessageBody(message_field, parent_db, field_name);
-            nb::inst_mark_ready(pyinst);
-
-            return pyinst;
         }
     }
     else if (field.fieldDef->conversion == "%id")
