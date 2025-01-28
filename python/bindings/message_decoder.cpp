@@ -216,8 +216,8 @@ void init_novatel_message_decoder(nb::module_& m)
             // get base MessageBody type from concrete instance
             nb::handle body_type = (type(self).attr("__bases__"))[0];
             // retrieve base list based on superclass method
-            nb::handle super_type = super(body_type, self);
-            nb::list base_list = nb::cast<nb::list>(super_type.attr("__dir__")());
+            nb::object super_obj = super(body_type, self);
+            nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
             // add dynamic fields to the list
             PyMessageBody* body = nb::inst_ptr<PyMessageBody>(self);
             for (const auto& [field_name, _] : body->get_fields()) { base_list.append(field_name); }
