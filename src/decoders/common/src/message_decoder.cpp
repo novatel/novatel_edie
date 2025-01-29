@@ -250,10 +250,10 @@ void MessageDecoderBase::CreateResponseMsgDefinitions()
 
     // Message Definition
     stMyRespDef = std::make_shared<MessageDefinition>();
-    stMyRespDef->name = std::string("response");
+    stMyRespDef->name = "response";
     stMyRespDef->fields[0]; // responses don't have CRCs, hardcoding in 0 as the key to the fields map
-    stMyRespDef->fields[0].push_back(BaseField::Ptr(stRespIdField.Clone()));
-    stMyRespDef->fields[0].push_back(BaseField::Ptr(stRespStrField.Clone()));
+    stMyRespDef->fields[0].emplace_back(std::make_shared<EnumField>(stRespIdField));
+    stMyRespDef->fields[0].emplace_back(std::make_shared<BaseField>(stRespStrField));
 }
 
 // -------------------------------------------------------------------------------------------------------

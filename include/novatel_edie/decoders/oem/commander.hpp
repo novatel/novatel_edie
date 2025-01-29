@@ -53,7 +53,7 @@ class Commander
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
-    MessageDefinition stMyRespDef;
+    MessageDefinition::Ptr stMyRespDef{nullptr};
 
     // Enum util functions
     void InitEnumDefinitions();

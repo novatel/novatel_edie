@@ -232,8 +232,6 @@ struct BaseField
 
     virtual ~BaseField() = default;
 
-    virtual BaseField* Clone() { return new BaseField(*this); }
-
     void SetConversion(const std::string& sConversion_)
     {
         conversion = sConversion_;
@@ -293,8 +291,6 @@ struct EnumField : BaseField
 
     ~EnumField() override = default;
 
-    EnumField* Clone() override { return new EnumField(*this); }
-
     using Ptr = std::shared_ptr<EnumField>;
     using ConstPtr = std::shared_ptr<const EnumField>;
 };
@@ -310,8 +306,6 @@ struct ArrayField : BaseField
     ArrayField() = default;
 
     ~ArrayField() override = default;
-
-    ArrayField* Clone() override { return new ArrayField(*this); }
 
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;
@@ -330,7 +324,8 @@ struct FieldArrayField : BaseField
 
     FieldArrayField(const FieldArrayField& that_) : BaseField(that_)
     {
-        for (const auto& field : that_.fields) { fields.push_back(std::shared_ptr<BaseField>(field->Clone())); }
+        fields.reserve(that_.fields.size());
+        for (const auto& field : that_.fields) { fields.emplace_back(field); }
 
         arrayLength = that_.arrayLength;
         fieldSize = that_.fieldSize;
@@ -343,7 +338,8 @@ struct FieldArrayField : BaseField
             BaseField::operator=(that_);
 
             fields.clear();
-            for (const auto& field : that_.fields) { fields.push_back(std::shared_ptr<BaseField>(field->Clone())); }
+            fields.reserve(that_.fields.size());
+            for (const auto& field : that_.fields) { fields.emplace_back(field); }
 
             arrayLength = that_.arrayLength;
             fieldSize = that_.fieldSize;
@@ -351,8 +347,6 @@ struct FieldArrayField : BaseField
 
         return *this;
     }
-
-    FieldArrayField* Clone() override { return new FieldArrayField(*this); }
 
     using Ptr = std::shared_ptr<FieldArrayField>;
     using ConstPtr = std::shared_ptr<const FieldArrayField>;
@@ -378,10 +372,11 @@ struct MessageDefinition
     {
         for (const auto& fieldDefinition : that_.fields)
         {
-            uint32_t key = fieldDefinition.first;
+            const uint32_t key = fieldDefinition.first;
             // Ensure a 0-length vector exists for this key in the case the message has no fields.
             fields[key].clear();
-            for (const auto& field : fieldDefinition.second) { fields[key].emplace_back(field->Clone()); }
+            fields[key].reserve(fieldDefinition.second.size());
+            for (const auto& field : fieldDefinition.second) { fields[key].emplace_back(field); }
         }
 
         _id = that_._id;
@@ -398,10 +393,11 @@ struct MessageDefinition
             fields.clear();
             for (const auto& fieldDefinition : that_.fields)
             {
-                uint32_t key = fieldDefinition.first;
+                const uint32_t key = fieldDefinition.first;
                 // Ensure a 0-length vector exists for this key in the case the message has no fields.
                 fields[key].clear();
-                for (const auto& field : fieldDefinition.second) { fields[key].emplace_back(field->Clone()); }
+                fields[key].reserve(fieldDefinition.second.size());
+                for (const auto& field : fieldDefinition.second) { fields[key].emplace_back(field); }
             }
 
             _id = that_._id;

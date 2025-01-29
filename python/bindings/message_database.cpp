@@ -91,7 +91,6 @@ void init_common_message_database(nb::module_& m)
         .def_rw("conversion_before_point", &BaseField::conversionBeforePoint)
         .def_rw("conversion_after_point", &BaseField::conversionAfterPoint)
         .def_rw("data_type", &BaseField::dataType)
-        .def("clone", &BaseField::Clone)
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
         .def("__repr__", [](const BaseField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
@@ -120,7 +119,6 @@ void init_common_message_database(nb::module_& m)
         .def_rw("enum_id", &EnumField::enumId)
         .def_rw("enum_def", &EnumField::enumDef)
         .def_rw("length", &EnumField::length)
-        .def("clone", &EnumField::Clone)
         .def("__repr__", [](const EnumField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             return nb::str("EnumField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, enum_id={!r}, length={!r})")
@@ -130,7 +128,6 @@ void init_common_message_database(nb::module_& m)
     nb::class_<ArrayField, BaseField>(m, "ArrayField", "Struct containing elements of array fields in the UI DB")
         .def(nb::init())
         .def_rw("array_length", &ArrayField::arrayLength)
-        .def("clone", &ArrayField::Clone)
         .def("__repr__", [](const ArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             return nb::str("ArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r})")
@@ -142,7 +139,6 @@ void init_common_message_database(nb::module_& m)
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_rw("field_size", &FieldArrayField::fieldSize)
         .def_rw("fields", &FieldArrayField::fields, nb::rv_policy::reference_internal)
-        .def("clone", &FieldArrayField::Clone)
         .def("__repr__", [](const FieldArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             return nb::str("FieldArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r}, field_size={!r}, "

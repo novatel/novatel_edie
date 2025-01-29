@@ -40,7 +40,7 @@ namespace novatel::edie::oem {
 //! \class Encoder
 //! \brief Class to encode OEM messages.
 //============================================================================
-class Encoder : public EncoderBase
+class Encoder : public EncoderBase<Encoder>
 {
   private:
     // Enum util functions
@@ -49,9 +49,9 @@ class Encoder : public EncoderBase
     [[nodiscard]] std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
 
   protected:
-    [[nodiscard]] char SeparatorAscii() const override { return OEM4_ASCII_FIELD_SEPARATOR; }
-    [[nodiscard]] char SeparatorAbbAscii() const override { return OEM4_ABBREV_ASCII_SEPARATOR; }
-    [[nodiscard]] uint32_t IndentationLengthAbbAscii() const override { return OEM4_ABBREV_ASCII_INDENTATION_LENGTH; }
+    static constexpr char separatorAscii = OEM4_ASCII_FIELD_SEPARATOR;
+    static constexpr char separatorAbbAscii = OEM4_ABBREV_ASCII_SEPARATOR;
+    static constexpr uint32_t indentationLengthAbbAscii = OEM4_ABBREV_ASCII_INDENTATION_LENGTH;
 
     // Encode binary
     [[nodiscard]] static bool EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
@@ -173,6 +173,8 @@ class Encoder : public EncoderBase
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
                                     MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_) const;
+
+    friend class EncoderBase<Encoder>;
 };
 
 } // namespace novatel::edie::oem

@@ -36,7 +36,7 @@ namespace novatel::edie::oem {
 //! \class Framer
 //! \brief Search bytes for patterns that could be OEM message.
 //============================================================================
-class Framer : public FramerBase
+class Framer : public FramerBase<Framer>
 {
   private:
     NovAtelFrameState eMyFrameState{NovAtelFrameState::WAITING_FOR_SYNC};
@@ -44,7 +44,7 @@ class Framer : public FramerBase
     uint32_t uiMyJsonObjectOpenBraces{0};
     uint32_t uiMyAbbrevAsciiHeaderPosition{0};
 
-    void ResetState() override;
+    void ResetStateImpl();
 
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
@@ -82,6 +82,8 @@ class Framer : public FramerBase
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
+
+    friend class FramerBase<Framer>;
 };
 
 } // namespace novatel::edie::oem

@@ -3121,10 +3121,10 @@ class NovatelTypesTest : public ::testing::Test
 
 TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
 {
-    MsgDefFields.emplace_back(new BaseField("Sec1", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
-    MsgDefFields.emplace_back(new BaseField("Sec2", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
-    MsgDefFields.emplace_back(new BaseField("Sec3", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
-    MsgDefFields.emplace_back(new BaseField("Sec4", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec1", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec2", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec3", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec4", FIELD_TYPE::SIMPLE, "%T", 4, DATA_TYPE::DOUBLE));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(4);
 
