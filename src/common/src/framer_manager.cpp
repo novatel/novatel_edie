@@ -36,7 +36,7 @@ FramerManager::FramerManager() : pclMyLogger(Logger::RegisterLogger("FramerManag
 
 void FramerManager::RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
 {
-    framerRegistry.emplace_back(FramerElement(framerId_, std::move(framer_), std::move(metadata_), 0));
+    framerRegistry.emplace_back(framerId_, std::move(framer_), std::move(metadata_), 0);
 }
 
 void FramerManager::ReorderFramers()
@@ -132,10 +132,6 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     // once sync bytes are identified, set Active Framer and perform framing using type specific framer, reset inactive framers
     // upon successful framing of a log, reset Active Framer ID
 
-    // TODO: are these statuses needed?
-    STATUS novatelStatus = STATUS::UNKNOWN;
-    STATUS nmeaStatus = STATUS::UNKNOWN;
-
     // if STATUS is INCOMPLETE upon entering GetFrame, it is stale
     if (eActiveFramerId_ != FRAMER_ID::UNKNOWN && framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
     {
@@ -145,10 +141,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     if (eActiveFramerId_ == FRAMER_ID::UNKNOWN)
     {
         ResetAllMetaDataStates();
-        for (auto& [framerId, framer, metadata, offset] : framerRegistry)
-        {
-            framer->eMyCurrentFramerStatus = framer->FindNextSyncByte(uiFrameBufferSize_);
-        }
+        for (auto& [framerId, framer, metadata, offset] : framerRegistry) { framer->FindNextSyncByte(uiFrameBufferSize_); }
     }
 
     // A Framer Found A Sync Byte
@@ -169,6 +162,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
         HandleUnknownBytes(pucFrameBuffer_, framerRegistry.front().framer->uiMyFrameBufferOffset);
         ResetAllFramerStates();
+        eActiveFramerId_ = FRAMER_ID::UNKNOWN;
         return STATUS::UNKNOWN;
     }
 
@@ -181,7 +175,12 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             framer_element.framer->eMyCurrentFramerStatus =
                 framer_element.framer->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, *framer_element.metadata);
             DisplayFramerStack();
-            if (framer_element.framer->eMyCurrentFramerStatus == STATUS::UNKNOWN)
+            if (framer_element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS)
+            {
+                pclMyCircularDataBuffer->Copy(pucFrameBuffer_, framer_element.metadata->uiLength);
+                pclMyCircularDataBuffer->Discard(framer_element.metadata->uiLength);
+            }
+            else if (framer_element.framer->eMyCurrentFramerStatus == STATUS::UNKNOWN)
             {
                 HandleUnknownBytes(pucFrameBuffer_, framer_element.framer->uiMyFrameBufferOffset);
                 ResetAllFramerStates();
@@ -191,17 +190,17 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
         }
     }
 
-    //// A Framer Successfully Framed a log
+    // A Framer Successfully Framed a log
     auto& it_success = std::find_if(framerRegistry.begin(), framerRegistry.end(),
                                     [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS); });
     if (it_success != framerRegistry.end()) { return it_success->framer->eMyCurrentFramerStatus; }
 
-    //// if any framer has buffer full, reset all framers
+    // if any framer has buffer full, reset all framers
     auto it_buffer_full = std::find_if(framerRegistry.begin(), framerRegistry.end(),
                                        [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::BUFFER_FULL); });
     if (it_buffer_full != framerRegistry.end())
     {
-        ResetInactiveFramerStates(FRAMER_ID::UNKNOWN);
+        ResetAllFramerStates();
         return STATUS::BUFFER_FULL;
     }
 
@@ -209,7 +208,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
                                          [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::NULL_PROVIDED); });
     if (it_null_provided != framerRegistry.end())
     {
-        ResetInactiveFramerStates(FRAMER_ID::UNKNOWN);
+        ResetAllFramerStates();
         return STATUS::NULL_PROVIDED;
     }
 
