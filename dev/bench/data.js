@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738192949224,
+  "lastUpdate": 1738193085499,
   "repoUrl": "https://github.com/novatel/novatel_edie",
   "entries": {
     "Benchmark": [
@@ -1535,6 +1535,120 @@ window.BENCHMARK_DATA = {
             "value": 459.87526179939056,
             "unit": "ns/iter",
             "extra": "iterations: 1524545\ncpu: 459.8561341252643 ns\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jonathantmcdermid@gmail.com",
+            "name": "Jonathan McDermid",
+            "username": "jonathanmcdermid"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "edd40e6d1b841a0cada0375804b0a51e4942ae83",
+          "message": "RANGECMP5 (#79)\n\n* refactor rangecmp\r\n\r\n* remove shift variables, infer value instead\r\n\r\n* more rangecmp refactoring\r\n\r\n* use double in rangecmp\r\n\r\n* use switches\r\n\r\n* rangecmp5\r\n\r\n* decompress blocks\r\n\r\n* remove unused rc5 values\r\n\r\n* infer signbit values at compile time\r\n\r\n* handle sign extension function\r\n\r\n* remove primary block state member\r\n\r\n* remove lastPrimaryBlock\r\n\r\n* use namespaces\r\n\r\n* replace map with function\r\n\r\n* remove measurement source array from maps\r\n\r\n* Revert \"remove measurement source array from maps\"\r\n\r\nThis reverts commit 61c50fa4e3a5e1e7795c808e7e6ea2d69c099e45.\r\n\r\n* LockTime\r\n\r\n* Update common.hpp\r\n\r\n* Update common.hpp\r\n\r\n* simplify map\r\n\r\n* add target for rc5 test\r\n\r\n* signal count\r\n\r\n* apply clang-format\r\n\r\n* Update range_decompressor.cpp\r\n\r\n* Update range_cmp_test.cpp\r\n\r\n* revert scale factors\r\n\r\n* enable rangecmp tests\r\n\r\n* precompute lookup tables\r\n\r\n* move mask to template arg\r\n\r\n* revert signal wavelength lookup tables\r\n\r\n* Update common.hpp\r\n\r\n* move mask to template arg\r\n\r\n* move extractbitfield to common\r\n\r\n* move getsignalwavelength\r\n\r\n* use lookup tables\r\n\r\n* Update common.hpp\r\n\r\n* refactor extractBitfield\r\n\r\n* Update common.hpp\r\n\r\n* refactor extractBitfield\r\n\r\n* Update common.hpp\r\n\r\n* Update common.hpp\r\n\r\n* Update common.hpp\r\n\r\n* ctStatus naming\r\n\r\n* Update common.hpp\r\n\r\n* Update common.hpp\r\n\r\n* Revert \"Update common.hpp\"\r\n\r\nThis reverts commit efe337216d446e2d20a20ad6882d09fcef9ac5b7.\r\n\r\n* Update common.hpp\r\n\r\n* Update common.hpp\r\n\r\n* Update common.hpp\r\n\r\n* Update common.hpp\r\n\r\n* Revert \"Update common.hpp\"\r\n\r\nThis reverts commit cf6e7b77b4c5f2869ae648ce7377500a36369187.\r\n\r\n* Update common.hpp\r\n\r\n* Update range_decompressor.cpp\r\n\r\n* separate channeltrackingstatus\r\n\r\n* class channeltrackingstatus\r\n\r\n* rename CTS enums\r\n\r\n* extractbitfield refactor\r\n\r\n* Update range_cmp_test.cpp\r\n\r\n* fix todos\r\n\r\n* unifying  rc4 and rc5 structs\r\n\r\n* move signalscaling\r\n\r\n* calculateprn function\r\n\r\n* Update range_cmp_test.cpp\r\n\r\n* temp\r\n\r\n* pass key to getlocktime functions\r\n\r\n* change target\r\n\r\n* Update range_cmp_test.cpp\r\n\r\n* remove unnecessary arrays\r\n\r\n* messagedatabase::ptr\r\n\r\n* fix rangecmp python interface\r\n\r\n* delete python bitfield tests\r\n\r\n* Update benchmark.cpp\r\n\r\n---------\r\n\r\nCo-authored-by: Jonathan McDermid <jonathan.mcdermid1@ucalgary.ca>",
+          "timestamp": "2025-01-29T16:21:48-07:00",
+          "tree_id": "abae5b9d75e9bfbcbfc60607eae310987942e4b4",
+          "url": "https://github.com/novatel/novatel_edie/commit/edd40e6d1b841a0cada0375804b0a51e4942ae83"
+        },
+        "date": 1738193083235,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "LoadJson",
+            "value": 83731658.88888758,
+            "unit": "ns/iter",
+            "extra": "iterations: 9\ncpu: 72653776.55555557 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeFlattenedBinaryLog",
+            "value": 94.45070068843158,
+            "unit": "ns/iter",
+            "extra": "iterations: 7362973\ncpu: 94.44373991321167 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeAsciiLog",
+            "value": 94.56428355027458,
+            "unit": "ns/iter",
+            "extra": "iterations: 7416773\ncpu: 94.55937319370567 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeAbbrevAsciiLog",
+            "value": 106.64396622654085,
+            "unit": "ns/iter",
+            "extra": "iterations: 6580078\ncpu: 106.63685536858381 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeBinaryLog",
+            "value": 94.52946208559784,
+            "unit": "ns/iter",
+            "extra": "iterations: 7424118\ncpu: 94.52258638669264 ns\nthreads: 1"
+          },
+          {
+            "name": "DecodeJsonLog",
+            "value": 164747.23684210377,
+            "unit": "ns/iter",
+            "extra": "iterations: 4332\ncpu: 164725.92243767294 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeFlattenedBinaryLog",
+            "value": 374.9937002060058,
+            "unit": "ns/iter",
+            "extra": "iterations: 1868950\ncpu: 374.9732357740974 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeAsciiLog",
+            "value": 4814.86834328611,
+            "unit": "ns/iter",
+            "extra": "iterations: 146525\ncpu: 4814.722334072683 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeAbbrevAsciiLog",
+            "value": 4243.020940129697,
+            "unit": "ns/iter",
+            "extra": "iterations: 165424\ncpu: 4242.734530660601 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeBinaryLog",
+            "value": 370.0433754660731,
+            "unit": "ns/iter",
+            "extra": "iterations: 1890216\ncpu: 369.80563015020505 ns\nthreads: 1"
+          },
+          {
+            "name": "EncodeJsonLog",
+            "value": 4769.482423473471,
+            "unit": "ns/iter",
+            "extra": "iterations: 146616\ncpu: 4769.191786708142 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp",
+            "value": 448.7608772548301,
+            "unit": "ns/iter",
+            "extra": "iterations: 1569031\ncpu: 448.7371160926719 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp2",
+            "value": 422.03139551755584,
+            "unit": "ns/iter",
+            "extra": "iterations: 1640266\ncpu: 422.0251715270551 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp4",
+            "value": 445.1187867134081,
+            "unit": "ns/iter",
+            "extra": "iterations: 1571632\ncpu: 445.1019558013573 ns\nthreads: 1"
+          },
+          {
+            "name": "DecompressRangeCmp5",
+            "value": 422.8502414004786,
+            "unit": "ns/iter",
+            "extra": "iterations: 1660933\ncpu: 422.832769894993 ns\nthreads: 1"
           }
         ]
       }
