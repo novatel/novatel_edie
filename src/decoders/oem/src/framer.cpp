@@ -108,7 +108,7 @@ void Framer::ResetStateAndByteCount()
 }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
+void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
 {
     NovAtelFrameState localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
 
@@ -124,10 +124,11 @@ STATUS Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
             if (localFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
             {
                 // If the data lands on the abbreviated header CRLF then it can be missed unless it's tested again when there is more data
-                return STATUS::INCOMPLETE;
+                eMyCurrentFramerStatus = STATUS::INCOMPLETE;
+                return;
             }
-
-            return STATUS::UNKNOWN;
+            eMyCurrentFramerStatus = STATUS::UNKNOWN;
+            return;
         }
 
         const unsigned char ucDataByte = (*pclMyCircularDataBuffer)[uiMyByteCount++];
@@ -143,22 +144,25 @@ STATUS Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
             case OEM4_ASCII_SYNC:
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::SYNC_BYTES_FOUND;
+                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
+                return;
             case OEM4_SHORT_ASCII_SYNC:
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::SYNC_BYTES_FOUND;
+                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
+                return;
             case OEM4_ABBREV_ASCII_SYNC:
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::SYNC_BYTES_FOUND;
-                break;
+                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
+                return;
             case '{':
                 if (bMyFrameJson)
                 {
                     uiMyByteCount--;
                     uiMyFrameBufferOffset = uiMyByteCount;
-                    return STATUS::SYNC_BYTES_FOUND;
+                    eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
+                    return;
                 }
                 break;
             default: break;
@@ -170,19 +174,20 @@ STATUS Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
                 eMyCurrentFramerStatus = STATUS::UNKNOWN;
-                return STATUS::UNKNOWN;
+                return;
             }
             if (uiMyByteCount > uiFrameBufferSize_)
             {
                 uiMyFrameBufferOffset = uiFrameBufferSize_;
                 eMyCurrentFramerStatus = STATUS::UNKNOWN;
-                return STATUS::UNKNOWN;
+                return;
             }
             if (uiMyByteCount == 1 && localFrameState == NovAtelFrameState::WAITING_FOR_ASCII_HEADER_AND_BODY)
             {
                 uiMyByteCount = uiMyByteCount - 1;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::UNKNOWN;
+                eMyCurrentFramerStatus = STATUS::UNKNOWN;
+                return;
             }
             break;
 
@@ -206,11 +211,13 @@ STATUS Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
             case OEM4_BINARY_SYNC3:
                 uiMyByteCount = uiMyByteCount - 3;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::SYNC_BYTES_FOUND;
+                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
+                return;
             case OEM4_SHORT_BINARY_SYNC3:
                 uiMyByteCount = uiMyByteCount - 3;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::SYNC_BYTES_FOUND;
+                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
+                return;
             default:
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
@@ -224,14 +231,16 @@ STATUS Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
             {
                 uiMyByteCount = uiMyByteCount - 2;
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::SYNC_BYTES_FOUND;
+                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
+                return;
             }
             else
             {
                 //   If we get to a WAITING_FOR_ABB_ASCII_SYNC2, it means we got the first byte of the header
                 //   and if it's not immediately followed by sync2, it's not a valid header -> therefore unknown bytes of offset = count
                 uiMyFrameBufferOffset = uiMyByteCount;
-                return STATUS::UNKNOWN;
+                eMyCurrentFramerStatus = STATUS::UNKNOWN;
+                return;
             }
             break;
         }
@@ -446,15 +455,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 {
                     if (bMyPayloadOnly)
                     {
-                        stMetaData.uiLength = uiMyExpectedPayloadLength;
-                        pclMyCircularDataBuffer->Discard((uiMyExpectedMessageLength - uiMyExpectedPayloadLength) + OEM4_BINARY_CRC_LENGTH);
-                        pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData.uiLength);
-                        pclMyCircularDataBuffer->Discard(uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH);
-                    }
-                    else
-                    {
-                        pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData.uiLength);
-                        pclMyCircularDataBuffer->Discard(stMetaData.uiLength);
+                        stMetaData.uiLength = uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH;
+                        pclMyCircularDataBuffer->Discard(uiMyExpectedMessageLength - uiMyExpectedPayloadLength);
                     }
 
                     uiMyByteCount = 0;
@@ -528,8 +530,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
 
                     if (uiFrameBufferSize_ < stMetaData.uiLength) { return STATUS::BUFFER_FULL; }
 
-                    pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData.uiLength);
-                    pclMyCircularDataBuffer->Discard(stMetaData.uiLength);
+                    // pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData.uiLength);
+                    // pclMyCircularDataBuffer->Discard(stMetaData.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 // End of buffer, can't look ahead but there should be more data
@@ -626,9 +628,6 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     return STATUS::BUFFER_FULL;
                 }
 
-                pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData.uiLength);
-                pclMyCircularDataBuffer->Discard(stMetaData.uiLength);
-
                 uiMyByteCount = 0;
                 uiMyAbbrevAsciiHeaderPosition = 0;
                 uiMyExpectedPayloadLength = 0;
@@ -665,8 +664,6 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
 
                     if (uiFrameBufferSize_ < stMetaData.uiLength) { return STATUS::BUFFER_FULL; }
 
-                    pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData.uiLength);
-                    pclMyCircularDataBuffer->Discard(stMetaData.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 else
@@ -704,8 +701,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             if (uiMyJsonObjectOpenBraces == 0)
             {
                 stMetaData.uiLength = uiMyByteCount;
-                pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData.uiLength);
-                pclMyCircularDataBuffer->Discard(stMetaData.uiLength);
+                // pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData.uiLength);
+                // pclMyCircularDataBuffer->Discard(stMetaData.uiLength);
                 uiMyByteCount = 0;
                 uiMyExpectedPayloadLength = 0;
                 eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;

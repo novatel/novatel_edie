@@ -157,8 +157,6 @@ class FramerManager
     //---------------------------------------------------------------------------
     [[nodiscard]] std::shared_ptr<CircularBuffer> GetCircularBuffer() const { return pclMyCircularDataBuffer; }
 
-    void AddFramer(const FRAMER_ID framerId_);
-
     //----------------------------------------------------------------------------
     //! \brief A destructor for the FramerBase class.
     //----------------------------------------------------------------------------
