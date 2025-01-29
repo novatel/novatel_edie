@@ -162,7 +162,6 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
         HandleUnknownBytes(pucFrameBuffer_, framerRegistry.front().framer->uiMyFrameBufferOffset);
         ResetAllFramerStates();
-        eActiveFramerId_ = FRAMER_ID::UNKNOWN;
         return STATUS::UNKNOWN;
     }
 

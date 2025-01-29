@@ -161,7 +161,7 @@ TEST_F(FramerTest, LOGGER)
 
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     std::shared_ptr<spdlog::logger> logger = clMyFramerManager.GetLogger();
-    ASSERT_EQ(spdlog::get("novatel_framer"), clMyFramerManager.GetLogger());
+    ASSERT_EQ(spdlog::get("FramerManager"), clMyFramerManager.GetLogger());
     clMyFramerManager.SetLoggerLevel(eLevel);
     ASSERT_EQ(logger->level(), eLevel);
 }
