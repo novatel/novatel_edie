@@ -66,6 +66,6 @@ install(TARGETS python_bindings
 install(DIRECTORY novatel_edie/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
-install(FILES ${CMAKE_SOURCE_DIR}/database/messages_public.json
+install(FILES ${CMAKE_SOURCE_DIR}/database/database.json
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)

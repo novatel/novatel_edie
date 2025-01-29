@@ -11,12 +11,12 @@ from .bindings import (
     OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3,
     string_to_encode_format, pretty_version,
     JsonDbReader, MessageDatabase, get_default_database,
-    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, BaseField,
+    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
     Framer, Filter, HeaderDecoder, MessageDecoder, DecoderException, Encoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
-    Logging, LogLevel,
+    Logging, LogLevel
 )
 
 def default_json_db_path():
     """Returns a context manager that yields the path to the default JSON database."""
-    return importlib_resources.as_file(importlib_resources.files("novatel_edie").joinpath("messages_public.json"))
+    return importlib_resources.as_file(importlib_resources.files("novatel_edie").joinpath("database.json"))

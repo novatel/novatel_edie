@@ -214,6 +214,16 @@ void PyMessageDatabase::GenerateMappings()
     UpdatePythonMessageTypes();
 }
 
+void cleanString(std::string& str)
+{
+    // Remove special characters from the string to make it a valid python attribute name
+    for (char& c : str)
+    {
+        if (c == '-' || c == '+' || c == '.' || c == '/' || c == '(' || c == ')') { c = '_'; }
+    }
+    if (isdigit(str[0])) { str = "_" + str; }
+}
+
 inline void PyMessageDatabase::UpdatePythonEnums()
 {
     nb::object IntEnum = nb::module_::import_("enum").attr("IntEnum");
@@ -223,7 +233,11 @@ inline void PyMessageDatabase::UpdatePythonEnums()
     {
         nb::dict values;
         const char* enum_name = enum_def->name.c_str();
-        for (const auto& enumerator : enum_def->enumerators) { values[enumerator.name.c_str()] = enumerator.value; }
+        for (const auto& enumerator : enum_def->enumerators) {
+            std::string enumerator_name = enumerator.name;
+            cleanString(enumerator_name);
+            values[enumerator_name.c_str()] = enumerator.value;
+        }
         nb::object enum_type = IntEnum(enum_name, values);
         enum_type.attr("_name") = enum_name;
         enum_type.attr("_id") = enum_def->_id;
