@@ -34,8 +34,9 @@ import os
 from binascii import hexlify
 
 import novatel_edie as ne
-from novatel_edie.messages import RANGE
+from novatel_edie.messages import BESTPOS
 from novatel_edie import STATUS
+from novatel_edie.enums import Datum
 
 
 def read_frames(input_file, framer):
@@ -114,8 +115,9 @@ def main():
                 status.raise_on_error("MessageDecoder.decode() failed")
 
                 # Get info from the log.
-                if isinstance(message, RANGE):
-                    observations = message.body.obs
+                if isinstance(message, BESTPOS):
+                    base_id = message.body.base_id
+                    assert(isinstance(message.body.datum_id, Datum))
                     pass
 
                 # Re-encode the log and write it to the output file.
