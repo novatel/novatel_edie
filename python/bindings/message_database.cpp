@@ -186,7 +186,7 @@ void init_common_message_database(nb::module_& m)
 
 PyMessageDatabase::PyMessageDatabase() { 
     UpdatePythonEnums();
-    UpdateMessageTypes();
+    UpdatePythonMessageTypes();
 }
 
 PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
@@ -194,24 +194,24 @@ PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vM
     : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
 {
     UpdatePythonEnums();
-    UpdateMessageTypes();
+    UpdatePythonMessageTypes();
 }
 
 PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db) { 
     UpdatePythonEnums();
-    UpdateMessageTypes();
+    UpdatePythonMessageTypes();
 }
 
 PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db) { 
     UpdatePythonEnums();
-    UpdateMessageTypes();
+    UpdatePythonMessageTypes();
 }
 
 void PyMessageDatabase::GenerateMappings()
 {
     MessageDatabase::GenerateMappings();
     UpdatePythonEnums();
-    UpdateMessageTypes();
+    UpdatePythonMessageTypes();
 }
 
 inline void PyMessageDatabase::UpdatePythonEnums()
@@ -248,7 +248,7 @@ void PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fie
     }
 }
 
-void PyMessageDatabase::UpdateMessageTypes()
+void PyMessageDatabase::UpdatePythonMessageTypes()
 {
     // clear existing definitions
     messages_by_name.clear();

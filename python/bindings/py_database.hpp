@@ -40,7 +40,7 @@ class PyMessageDatabase final : public MessageDatabase
     //! 
     //! These classes are stored by name in the messages_by_name map.
     //-----------------------------------------------------------------------
-    void UpdateMessageTypes();
+    void UpdatePythonMessageTypes();
     void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_cons, nb::handle type_tuple, nb::handle type_dict);
 
     std::unordered_map<std::string, nb::object> messages_by_name{};
