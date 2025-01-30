@@ -21,6 +21,7 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
+        // Handle Enums
         const std::string& enumId = static_cast<const EnumField*>(field.fieldDef.get())->enumId;
         auto it = parent_db->GetEnumsByIdDict().find(enumId);
         if (it == parent_db->GetEnumsByIdDict().end())
@@ -36,12 +37,12 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
         const auto& message_field = std::get<std::vector<FieldContainer>>(field.fieldValue);
         if (message_field.empty())
         {
-            // Empty array
+            // Handle Empty Arrays
             return nb::list();
         }
         else if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
-            // Field Array
+            // Handle Field Arrays
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
             nb::handle field_ptype;
@@ -63,9 +64,7 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
         }
         else
         {
-            // Fixed-length, variable-length and field arrays are stored as a field
-            // with a list of sub-fields of the same type and name.
-            // This needs to be un-nested for the translated Python structure.
+            // Handle Fixed or Variable-Length Arrays
             if (field.fieldDef->conversion == "%s")
             {
                 // The array is actually a string
@@ -87,6 +86,7 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
     }
     else if (field.fieldDef->conversion == "%id")
     {
+        // Handle Satellite IDs
         const uint32_t temp_id = std::get<uint32_t>(field.fieldValue);
         SatelliteId sat_id;
         sat_id.usPrnOrSlot = temp_id & 0x0000FFFF;
