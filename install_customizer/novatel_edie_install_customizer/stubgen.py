@@ -96,36 +96,77 @@ class StubGenerator:
         stub_str += type_hints_str
         return stub_str
 
+    def _get_field_pytype(self, field, parent: str) -> str:
+        """Get a type hint string for a base level field."""
+        python_type = None
+        if field.type == ne.FIELD_TYPE.SIMPLE:
+            python_type = self.data_type_to_pytype.get(field.data_type.name)
+        if field.type == ne.FIELD_TYPE.ENUM:
+            python_type = field.enum_def.name if field.enum_def else 'Enum'
+        if field.type == ne.FIELD_TYPE.STRING:
+            python_type = 'str'
+        if (field.type in {
+                ne.FIELD_TYPE.FIXED_LENGTH_ARRAY,
+                ne.FIELD_TYPE.VARIABLE_LENGTH_ARRAY}):
+            if field.conversion == r'%s':
+                python_type = 'str'
+            else:
+                python_type = f'list[{self.data_type_to_pytype.get(field.data_type.name)}]'
+        if field.type == ne.FIELD_TYPE.FIELD_ARRAY:
+            python_type = f'list[{parent}_{field.name}_Field]'
+        if not python_type:
+            python_type = 'Any'
+        return python_type
+
+    def _convert_field_array_def(self, field_array_def, parent: str) -> str:
+        """Convert a field array definition to a type hint string."""
+        subfield_hints = []
+
+        # Create MessageBodyField type hint
+        name = f'{parent}_{field_array_def.name}_Field'
+        type_hint = f'class {name}(MessageBody):\n'
+        for field in field_array_def.fields:
+            python_type = self._get_field_pytype(field, parent)
+            type_hint +=  ('    @property\n'
+                          f'    def {field.name}(self) -> {python_type}: ...\n\n')
+            # Create hints for any subfields
+            if field.type == ne.FIELD_TYPE.FIELD_ARRAY:
+                subfield_hints.append(self._convert_field_array_def(field, name))
+
+        # Combine all hints
+        hints = subfield_hints + [type_hint]
+        hint_str = '\n'.join(hints)
+
+        return hint_str
+
     def _convert_message_def(self, message_def: MessageDefinition) -> str:
         """Create a type hint string for a message definition."""
-        type_hint = f'class {message_def.name}_Body(MessageBody):\n'
+        subfield_hints = []
+
+        # Create the Message type hint
+        message_hint = (f'class {message_def.name}(Message):\n'
+                         '    @property\n'
+                         '    def header(self) -> Header: ...\n\n'
+                         '    @property\n'
+                        f'    def body(self) -> {message_def.name}_Body: ...\n\n')
+
+        # Create the MessageBody type hint
+        body_name = f'{message_def.name}_Body'
+        body_hint = f'class {body_name}(MessageBody):\n'
         for field in message_def.fields[message_def.latest_message_crc]:
-            field_type = None
-            if field.type == ne.FIELD_TYPE.SIMPLE:
-                field_type = self.data_type_to_pytype.get(field.data_type.name)
-            if field.type == ne.FIELD_TYPE.ENUM:
-                field_type = field.enum_def.name if field.enum_def else 'Enum'
-            if (field.type in {
-                    ne.FIELD_TYPE.FIXED_LENGTH_ARRAY,
-                    ne.FIELD_TYPE.VARIABLE_LENGTH_ARRAY}):
-                if field.conversion == r'%s':
-                    field_type = 'str'
-                else:
-                    field_type = f'list[{self.data_type_to_pytype.get(field.data_type.name)}]'
+            python_type = self._get_field_pytype(field, body_name)
+            body_hint +=  '    @property\n'
+            body_hint += f'    def {field.name}(self) -> {python_type}: ...\n\n'
 
-            if not field_type:
-                field_type = 'Any'
+            # Create hints for any subfields
+            if field.type == ne.FIELD_TYPE.FIELD_ARRAY:
+                subfield_hints.append(self._convert_field_array_def(field, body_name))
 
-            type_hint +=  '    @property\n'
-            type_hint += f'    def {field.name}(self) -> {field_type}: ...\n\n'
+        # Combine all hints
+        hints = subfield_hints + [body_hint, message_hint]
+        hint_str = '\n'.join(hints)
 
-        type_hint += f'class {message_def.name}(Message):\n'
-        type_hint += '    @property\n'
-        type_hint += '    def header(self) -> Header: ...\n\n'
-        type_hint += '    @property\n'
-        type_hint += f'    def body(self) -> {message_def.name}_Body: ...\n\n'
-
-        return type_hint
+        return hint_str
 
     def get_message_stubs(self) -> str:
         """Get a stub string for all messages in the database."""
