@@ -94,14 +94,14 @@ class Filter
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger();
+    std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Include messages at and above the lower time bound (inclusive).
@@ -130,7 +130,7 @@ class Filter
     //
     //! \param[in] bInvert_  True to invert the time filter.
     //----------------------------------------------------------------------------
-    void InvertTimeFilter(bool bInvert_);
+    void InvertTimeFilter(bool bInvert_) { bMyInvertTimeFilter = bInvert_; }
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match the decimation period.
@@ -151,7 +151,7 @@ class Filter
     //
     //! \param[in] bInvert_  True to invert the decimation filter.
     //----------------------------------------------------------------------------
-    void InvertDecimationFilter(bool bInvert_);
+    void InvertDecimationFilter(bool bInvert_) { bMyInvertDecimation = bInvert_; }
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match the time status.
@@ -174,7 +174,7 @@ class Filter
     //
     //! \param[in] bInvert_  True to invert the time status filter.
     //----------------------------------------------------------------------------
-    void InvertTimeStatusFilter(bool bInvert_);
+    void InvertTimeStatusFilter(bool bInvert_) { bMyInvertTimeStatusFilter = bInvert_; }
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match the message ID.
@@ -198,7 +198,7 @@ class Filter
     //
     //! \param[in] bInvert_   True to invert the message ID filter.
     //----------------------------------------------------------------------------
-    void InvertMessageIdFilter(bool bInvert_);
+    void InvertMessageIdFilter(bool bInvert_) { bMyInvertMessageIdFilter = bInvert_; }
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match the message name.
@@ -223,7 +223,7 @@ class Filter
     //
     //! \param[in] bInvert_  True to invert the message name filter.
     //----------------------------------------------------------------------------
-    void InvertMessageNameFilter(bool bInvert_);
+    void InvertMessageNameFilter(bool bInvert_) { bMyInvertMessageNameFilter = bInvert_; }
 
     //----------------------------------------------------------------------------
     //! \brief Include NMEA logs.
@@ -232,7 +232,7 @@ class Filter
     //
     //! \param[in] bIncludeNmea_  True to keep/include NMEA logs.
     //----------------------------------------------------------------------------
-    void IncludeNmeaMessages(bool bIncludeNmea_);
+    void IncludeNmeaMessages(bool bIncludeNmea_) { bMyIncludeNmea = bIncludeNmea_; }
 
     //----------------------------------------------------------------------------
     //! \brief Clear all current filter settings.

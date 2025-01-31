@@ -114,7 +114,7 @@ class Parser
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger();
+    std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal components'
@@ -130,7 +130,7 @@ class Parser
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Set the abbreviated ASCII response option.
@@ -138,77 +138,80 @@ class Parser
     //! \param[in] bIgnoreAbbreviatedAsciiResponses_ true to ignore abbreviated
     //! ASCII responses.
     //----------------------------------------------------------------------------
-    void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_);
+    void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_)
+    {
+        bMyIgnoreAbbreviatedAsciiResponse = bIgnoreAbbreviatedAsciiResponses_;
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Get the abbreviated ASCII response option.
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const;
+    [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const { return bMyIgnoreAbbreviatedAsciiResponse; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
     //
     //! \param[in] bDecompressRangeCmp_ true to decompress RANGECMP messages.
     //----------------------------------------------------------------------------
-    void SetDecompressRangeCmp(bool bDecompressRangeCmp_);
+    void SetDecompressRangeCmp(bool bDecompressRangeCmp_) { bMyDecompressRangeCmp = bDecompressRangeCmp_; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the decompression option for RANGECMP messages.
     //
     //! \return The current option for decompressing RANGECMP messages.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool GetDecompressRangeCmp() const;
+    [[nodiscard]] bool GetDecompressRangeCmp() const { return bMyDecompressRangeCmp; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the return option for unknown bytes.
     //
     //! \param[in] bReturnUnknownBytes_ true to return unknown bytes.
     //----------------------------------------------------------------------------
-    void SetReturnUnknownBytes(bool bReturnUnknownBytes_);
+    void SetReturnUnknownBytes(bool bReturnUnknownBytes_) { bMyReturnUnknownBytes = bReturnUnknownBytes_; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the return option for unknown bytes.
     //
     //! \return The current option for returning unknown bytes.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool GetReturnUnknownBytes() const;
+    [[nodiscard]] bool GetReturnUnknownBytes() const { return bMyReturnUnknownBytes; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the encode format for messages.
     //
     //! \param[in] eFormat_ the encode format for future messages.
     //----------------------------------------------------------------------------
-    void SetEncodeFormat(ENCODE_FORMAT eFormat_);
+    void SetEncodeFormat(ENCODE_FORMAT eFormat_) { eMyEncodeFormat = eFormat_; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the encode format for messages.
     //
     //! \return The current encode format for messages.
     //----------------------------------------------------------------------------
-    [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const;
+    [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const { return eMyEncodeFormat; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the Filter for the FileParser.
     //
     //! \param[in] pclFilter_ A pointer to an OEM message Filter object.
     //----------------------------------------------------------------------------
-    void SetFilter(const Filter::Ptr& pclFilter_);
+    void SetFilter(const Filter::Ptr& pclFilter_) { pclMyUserFilter = pclFilter_; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the config for the FileParser.
     //
     //! \return A pointer to the FileParser's OEM message Filter object.
     //----------------------------------------------------------------------------
-    const Filter::Ptr& GetFilter() const;
+    const Filter::Ptr& GetFilter() const { return pclMyUserFilter; }
 
     //----------------------------------------------------------------------------
     //! \brief Get a pointer to the current framed log raw data.
     //
     //! \return A pointer to the Parser's internal encode buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] unsigned char* GetInternalBuffer() const;
+    [[nodiscard]] unsigned char* GetInternalBuffer() const { return pucMyEncodeBufferPointer; }
 
     //----------------------------------------------------------------------------
     //! \brief Write bytes to the Parser to be parsed.
@@ -218,7 +221,7 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_);
+    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.

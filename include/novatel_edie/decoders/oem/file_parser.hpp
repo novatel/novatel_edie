@@ -71,11 +71,6 @@ class FileParser
     FileParser(const MessageDatabase::Ptr& pclMessageDb_ = {nullptr});
 
     //----------------------------------------------------------------------------
-    //! \brief A destructor for the FileParser class.
-    //----------------------------------------------------------------------------
-    ~FileParser();
-
-    //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
@@ -87,7 +82,7 @@ class FileParser
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal components'
@@ -96,14 +91,17 @@ class FileParser
     //! \param[in] eLevel_ The logging level to enable.
     //! \param[in] sFileName_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log");
+    void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log")
+    {
+        clMyParser.EnableFramerDecoderLogging(eLevel_, sFileName_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Set the abbreviated ASCII response option.
@@ -111,70 +109,73 @@ class FileParser
     //! \param[in] bIgnoreAbbreviatedAsciiResponses_ true to ignore abbreviated
     //! ASCII responses.
     //----------------------------------------------------------------------------
-    void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_);
+    void SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_)
+    {
+        clMyParser.SetIgnoreAbbreviatedAsciiResponses(bIgnoreAbbreviatedAsciiResponses_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Get the abbreviated ASCII response option.
     //
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const;
+    [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const { return clMyParser.GetIgnoreAbbreviatedAsciiResponses(); }
 
     //----------------------------------------------------------------------------
     //! \brief Set the decompression option for RANGECMP messages.
     //
     //! \param[in] bDecompressRangeCmp_ true to decompress RANGECMP messages.
     //----------------------------------------------------------------------------
-    void SetDecompressRangeCmp(bool bDecompressRangeCmp_);
+    void SetDecompressRangeCmp(bool bDecompressRangeCmp_) { clMyParser.SetDecompressRangeCmp(bDecompressRangeCmp_); }
 
     //----------------------------------------------------------------------------
     //! \brief Get the decompression option for RANGECMP messages.
     //
     //! \return The current option for decompressing RANGECMP messages.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool GetDecompressRangeCmp() const;
+    [[nodiscard]] bool GetDecompressRangeCmp() const { return clMyParser.GetDecompressRangeCmp(); }
 
     //----------------------------------------------------------------------------
     //! \brief Set the return option for unknown bytes.
     //
     //! \param[in] bReturnUnknownBytes_ true to return unknown bytes.
     //----------------------------------------------------------------------------
-    void SetReturnUnknownBytes(bool bReturnUnknownBytes_);
+    void SetReturnUnknownBytes(bool bReturnUnknownBytes_) { clMyParser.SetReturnUnknownBytes(bReturnUnknownBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Get the return option for unknown bytes.
     //
     //! \return The current option for returning unknown bytes.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool GetReturnUnknownBytes() const;
+    [[nodiscard]] bool GetReturnUnknownBytes() const { return clMyParser.GetReturnUnknownBytes(); }
 
     //----------------------------------------------------------------------------
     //! \brief Set the encode format for messages.
     //
     //! \param[in] eFormat_ the encode format for future messages.
     //----------------------------------------------------------------------------
-    void SetEncodeFormat(ENCODE_FORMAT eFormat_);
+    void SetEncodeFormat(ENCODE_FORMAT eFormat_) { clMyParser.SetEncodeFormat(eFormat_); }
 
     //----------------------------------------------------------------------------
     //! \brief Get the encode format for messages.
     //
     //! \return The current encode format for messages.
     //----------------------------------------------------------------------------
-    [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const;
+    [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const { return clMyParser.GetEncodeFormat(); }
 
     //----------------------------------------------------------------------------
     //! \brief Set the Filter for the FileParser.
     //
     //! \param[in] pclFilter_ A pointer to an OEM message Filter object.
     //----------------------------------------------------------------------------
-    void SetFilter(const Filter::Ptr& pclFilter_);
+    void SetFilter(const Filter::Ptr& pclFilter_) { clMyParser.SetFilter(pclFilter_); }
 
     //----------------------------------------------------------------------------
     //! \brief Get the config for the FileParser.
     //
     //! \return A pointer to the FileParser's OEM message Filter object.
     //----------------------------------------------------------------------------
-    [[nodiscard]] const Filter::Ptr& GetFilter() const;
+    [[nodiscard]] const Filter::Ptr& GetFilter() const { return clMyParser.GetFilter(); }
 
     //----------------------------------------------------------------------------
     //! \brief Set the InputFileStream for the FileParser.
@@ -226,7 +227,7 @@ class FileParser
     //
     //! \return A pointer to the internal Parser's internal encode buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] unsigned char* GetInternalBuffer() const;
+    [[nodiscard]] unsigned char* GetInternalBuffer() const { return clMyParser.GetInternalBuffer(); }
 };
 
 } // namespace novatel::edie::oem

@@ -63,7 +63,7 @@ class Logger
     }
 
   public:
-    static void InitLogger(const std::filesystem::path& configPath)
+    static void InitLogger(const std::filesystem::path& configPath = "")
     {
         if (rootLogger)
         {
@@ -111,10 +111,10 @@ class Logger
      *  \param sLoggerName_ a unique name for the logger
      *  \return std::shared_ptr<spdlog::logger>
      */
-    static std::shared_ptr<spdlog::logger> RegisterLogger(std::string sLoggerName_)
+    static std::shared_ptr<spdlog::logger> RegisterLogger(const std::string& sLoggerName_)
     {
         std::lock_guard lock(loggerMutex);
-        if (!rootLogger) { InitLoggerHelper(); }
+        InitLoggerHelper();
         rootLogger->debug("Logger::RegisterLogger(\"{}\")", sLoggerName_);
         std::shared_ptr<spdlog::logger> pclLogger;
         try
@@ -141,11 +141,11 @@ class Logger
      */
     static void AddConsoleLogging(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::info)
     {
-        // Console sink, with no formatting/metadata
+        std::lock_guard<std::mutex> lock(loggerMutex);
         auto pclConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         pclConsoleSink->set_level(eLevel_);
         pclConsoleSink->set_pattern("%v");
-        lgr->sinks().push_back(pclConsoleSink);
+        lgr->sinks().emplace_back(pclConsoleSink);
     }
 
     /** \brief Add file output to the logger
@@ -163,10 +163,8 @@ class Logger
         auto sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(sFileName, maxFileSize, maxFiles, rotateOnOpen);
         sink->set_level(level);
         sink->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] %v");
-
         lgr->sinks().emplace_back(sink);
         rotatingFiles[sFileName] = sink;
-
         rootLogger->info("Added rotating file sink: {}", sFileName);
     }
 };

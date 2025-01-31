@@ -74,9 +74,6 @@ void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger> Parser::GetLogger() { return pclMyLogger; }
-
-// -------------------------------------------------------------------------------------------------------
 void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const std::string& sFileName_)
 {
     clMyFramer.SetLoggerLevel(eLevel_);
@@ -90,48 +87,6 @@ void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const
     Logger::AddRotatingFileLogger(clMyHeaderDecoder.GetLogger(), eLevel_, sFileName_);
     Logger::AddRotatingFileLogger(clMyMessageDecoder.GetLogger(), eLevel_, sFileName_);
 }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_)
-{
-    bMyIgnoreAbbreviatedAsciiResponse = bIgnoreAbbreviatedAsciiResponses_;
-}
-
-// -------------------------------------------------------------------------------------------------------
-bool Parser::GetIgnoreAbbreviatedAsciiResponses() const { return bMyIgnoreAbbreviatedAsciiResponse; }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetFilter(const Filter::Ptr& pclFilter_) { pclMyUserFilter = pclFilter_; }
-
-// -------------------------------------------------------------------------------------------------------
-const Filter::Ptr& Parser::GetFilter() const { return pclMyUserFilter; }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetDecompressRangeCmp(bool bDecompressRangeCmp_) { bMyDecompressRangeCmp = bDecompressRangeCmp_; }
-
-// -------------------------------------------------------------------------------------------------------
-bool Parser::GetDecompressRangeCmp() const { return bMyDecompressRangeCmp; }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetReturnUnknownBytes(bool bReturnUnknownBytes_) { bMyReturnUnknownBytes = bReturnUnknownBytes_; }
-
-// -------------------------------------------------------------------------------------------------------
-bool Parser::GetReturnUnknownBytes() const { return bMyReturnUnknownBytes; }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetEncodeFormat(ENCODE_FORMAT eFormat_) { eMyEncodeFormat = eFormat_; }
-
-// -------------------------------------------------------------------------------------------------------
-ENCODE_FORMAT Parser::GetEncodeFormat() const { return eMyEncodeFormat; }
-
-// -------------------------------------------------------------------------------------------------------
-unsigned char* Parser::GetInternalBuffer() const { return pucMyFrameBufferPointer; }
-
-// -------------------------------------------------------------------------------------------------------
-uint32_t Parser::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
