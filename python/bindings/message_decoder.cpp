@@ -108,7 +108,7 @@ nb::dict& PyMessageBody::get_values() const
 {
     if (cached_values_.size() == 0)
     {
-        for (const auto& field : fields) { cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_, name); }
+        for (const auto& field : fields) { cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_, this->name); }
     }
     return cached_values_;
 }
