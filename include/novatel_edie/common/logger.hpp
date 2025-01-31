@@ -91,7 +91,14 @@ class Logger
      */
     static void Shutdown()
     {
+        std::lock_guard<std::mutex> lock(loggerMutex);
         if (rootLogger) { rootLogger->flush(); }
+        for (const auto& [fileName, sink] : rotatingFiles)
+        {
+            sink->flush();
+            rootLogger->info("Removed rotating file sink: {}", fileName);
+        }
+        rotatingFiles.clear();
         spdlog::shutdown();
     }
 
@@ -106,8 +113,8 @@ class Logger
      */
     static std::shared_ptr<spdlog::logger> RegisterLogger(std::string sLoggerName_)
     {
-        if (!rootLogger) { InitLoggerHelper(); }
         std::lock_guard lock(loggerMutex);
+        if (!rootLogger) { InitLoggerHelper(); }
         rootLogger->debug("Logger::RegisterLogger(\"{}\")", sLoggerName_);
         std::shared_ptr<spdlog::logger> pclLogger;
         try
@@ -116,36 +123,28 @@ class Logger
 
             if (pclLogger == nullptr)
             {
-                // Get the root logger sinks
-                std::vector<spdlog::sink_ptr> vRootSinks = rootLogger->sinks();
-                pclLogger = std::make_shared<spdlog::logger>(sLoggerName_, begin(vRootSinks), end(vRootSinks));
-                // Inherit the root logger level by default
+                pclLogger = std::make_shared<spdlog::logger>(sLoggerName_, begin(rootLogger->sinks()), end(rootLogger->sinks()));
                 pclLogger->set_level(rootLogger->level());
                 register_logger(pclLogger);
             }
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            // TODO: why does deleting this line break the pipeline?
-            std::cout << (spdlog::get(sLoggerName_) == nullptr ? "null" : "not null") << '\n';
-            std::cout << "Logger::RegisterLogger() init failed: " << ex.what() << '\n';
             SPDLOG_ERROR("Logger::RegisterLogger(\"{}\") init failed: {}", sLoggerName_, ex.what());
         }
 
-        // return a shared_ptr that may be assigned where the usage_count is incremented
         return pclLogger;
     }
 
     /** \brief Add console output to the logger
      *  \param[in] eLevel_  The logging level to enable.
      */
-    static void AddConsoleLogging(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug)
+    static void AddConsoleLogging(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::info)
     {
         // Console sink, with no formatting/metadata
         auto pclConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         pclConsoleSink->set_level(eLevel_);
         pclConsoleSink->set_pattern("%v");
-
         lgr->sinks().push_back(pclConsoleSink);
     }
 
