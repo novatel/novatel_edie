@@ -959,26 +959,14 @@ class DecodeEncodeTest : public ::testing::Test
 
         unsigned char* pucTempPtr = pucMessageBuffer_;
         STATUS eStatus = pclMyHeaderDecoder->Decode(pucTempPtr, stHeader, stMetaData_);
-        if (STATUS::SUCCESS != eStatus)
-        {
-            std::cout << "HeaderDecoder error " << eStatus << '\n';
-            return HEADER_DECODER_ERROR;
-        }
+        if (STATUS::SUCCESS != eStatus) { return HEADER_DECODER_ERROR; }
 
         pucTempPtr += stMetaData_.uiHeaderLength;
         eStatus = pclMyMessageDecoder->Decode(pucTempPtr, stMessage, stMetaData_);
-        if (STATUS::SUCCESS != eStatus)
-        {
-            std::cout << "MessageDecoder error " << eStatus << '\n';
-            return MESSAGE_DECODER_ERROR;
-        }
+        if (STATUS::SUCCESS != eStatus) { return MESSAGE_DECODER_ERROR; }
 
         eStatus = pclMyEncoder->Encode(&pucEncodeBuffer_, uiEncodeBufferSize_, stHeader, stMessage, stMessageData_, stMetaData_, eFormat_);
-        if (STATUS::SUCCESS != eStatus)
-        {
-            std::cout << "Encoder error " << eStatus << '\n';
-            return ENCODER_ERROR;
-        }
+        if (STATUS::SUCCESS != eStatus) { return ENCODER_ERROR; }
 
         return SUCCESS;
     }
@@ -1191,13 +1179,6 @@ TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RAWGPSSUBFRAME)
     unsigned char aucLog[] = "#RAWGPSSUBFRAMEA,COM1,0,54.0,SATTIME,2167,254754.000,02000000,0457,16248;4,32,5,8b01dc52ee35516daa63199cfd4c00a10cb7227993c059e0b9c4d63e0054,4*80b22f2e\r\n";
     MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 73);
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
-}
-
-TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RAWWAASFRAME_2)
-{
-    unsigned char aucLog[] = "#RAWWAASFRAMEA_2,COM2,0,77.5,SATTIME,1747,411899.000,00000020,58e4,11526;62,138,9,c6243a0581b555352c4056aae0103cf03daff2e00057ff7fdff8010180,62*b026c677\r\n";
-    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 69);
-    ASSERT_EQ(DecodeEncodeTest::MESSAGE_DECODER_ERROR, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSCOM_CLEAN)
@@ -2273,68 +2254,6 @@ std::unique_ptr<HeaderDecoder> BenchmarkTest::pclMyHeaderDecoder = nullptr;
 std::unique_ptr<MessageDecoder> BenchmarkTest::pclMyMessageDecoder = nullptr;
 std::unique_ptr<Encoder> BenchmarkTest::pclMyEncoder = nullptr;
 
-void BenchmarkHelper(unsigned char* aucLog)
-{
-    for (const auto eFormat : {ENCODE_FORMAT::ASCII, ENCODE_FORMAT::BINARY, ENCODE_FORMAT::FLATTENED_BINARY, ENCODE_FORMAT::ABBREV_ASCII, ENCODE_FORMAT::JSON})
-    {
-        unsigned char aucEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
-        unsigned char* pucEncodeBuffer = aucEncodeBuffer;
-
-        IntermediateHeader stHeader;
-        std::vector<FieldContainer> stMessage;
-
-        MetaDataStruct stMetaData;
-        MessageDataStruct stMessageData;
-
-        unsigned char* pucLogPtr = nullptr;
-        bool bFailedOnce = false;
-        uint32_t uiCount = 0;
-
-        auto start = std::chrono::system_clock::now();
-        while (uiCount < BenchmarkTest::uiMaxCount)
-        {
-            pucLogPtr = aucLog;
-            if (STATUS::SUCCESS != BenchmarkTest::pclMyHeaderDecoder->Decode(pucLogPtr, stHeader, stMetaData))
-            {
-                bFailedOnce = true;
-                break;
-            }
-
-            pucLogPtr += stMetaData.uiHeaderLength;
-            if (STATUS::SUCCESS != BenchmarkTest::pclMyMessageDecoder->Decode(pucLogPtr, stMessage, stMetaData))
-            {
-                bFailedOnce = true;
-                break;
-            }
-
-            if (STATUS::SUCCESS != BenchmarkTest::pclMyEncoder->Encode(&pucEncodeBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData, stMetaData, eFormat))
-            {
-                bFailedOnce = true;
-                break;
-            }
-            uiCount++;
-        }
-        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start;
-        std::cout << eFormat << '\n'
-                  << "TIME ELAPSED: " << std::fixed << std::setprecision(6) << elapsed_seconds.count() << " seconds.\n"
-                  << "LPS: " << std::fixed << std::setprecision(2) << static_cast<float>(uiCount) / elapsed_seconds.count() << '\n';
-
-        ASSERT_FALSE(bFailedOnce);
-    }
-}
-
-TEST_F(BenchmarkTest, BENCHMARK_BINARY_BESTPOS)
-{
-    unsigned char aucLog[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0x9B, 0xB4, 0x74, 0x08, 0xB8, 0x34, 0x13, 0x14, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x7B, 0xEB, 0x3E, 0x6E, 0x41, 0x93, 0x49, 0x40, 0x32, 0xEA, 0x88, 0x93, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0xE0, 0x4F, 0xF1, 0xD5, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x53, 0xDF, 0xFF, 0x3E, 0x31, 0x89, 0x03, 0x3F, 0xA3, 0xBF, 0x89, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1A, 0x18, 0x18, 0x00, 0x00, 0x00, 0x11, 0x01, 0x9F, 0x1F, 0x1A, 0xC9};
-    BenchmarkHelper(aucLog);
-}
-
-TEST_F(BenchmarkTest, BENCHMARK_ASCII_BESTPOS)
-{
-    unsigned char aucLog[] = "#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n";
-    BenchmarkHelper(aucLog);
-}
-
 // -------------------------------------------------------------------------------------------------------
 // Filter Unit Tests
 // -------------------------------------------------------------------------------------------------------
@@ -2854,9 +2773,8 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
     pclFp->SetEncodeFormat(ENCODE_FORMAT::ASCII);
     ASSERT_EQ(pclFp->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
 
-    STATUS eStatus = pclFp->Read(stMessageData, stMetaData);
-
-    while (eStatus != STATUS::STREAM_EMPTY)
+    STATUS eStatus;
+    while ((eStatus = pclFp->Read(stMessageData, stMetaData)) != STATUS::STREAM_EMPTY)
     {
         if (eStatus == STATUS::SUCCESS)
         {
@@ -2865,8 +2783,6 @@ TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
             ASSERT_EQ(stMessageData.uiMessageLength, uiExpectedMessageLength[numSuccess]);
             numSuccess++;
         }
-
-        eStatus = pclFp->Read(stMessageData, stMetaData);
     }
 
     ASSERT_EQ(pclFp->Flush(), 0);

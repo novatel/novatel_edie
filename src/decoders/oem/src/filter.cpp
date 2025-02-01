@@ -39,12 +39,6 @@ Filter::Filter()
 }
 
 // -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger> Filter::GetLogger() { return pclMyLogger; }
-
-// -------------------------------------------------------------------------------------------------------
-void Filter::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-// -------------------------------------------------------------------------------------------------------
 void Filter::PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const)
 {
     if (std::find(vMyFilterFunctions.begin(), vMyFilterFunctions.end(), filter_) == vMyFilterFunctions.end())
@@ -72,18 +66,12 @@ void Filter::SetIncludeUpperTimeBound(uint32_t uiWeek_, double dSec_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::InvertTimeFilter(bool bInvert_) { bMyInvertTimeFilter = bInvert_; }
-
-// -------------------------------------------------------------------------------------------------------
 void Filter::SetIncludeDecimation(double dPeriodSec_)
 {
     bMyDecimate = true;
     uiMyDecimationPeriodMilliSec = static_cast<uint32_t>(dPeriodSec_ * 1000.0); // Convert provided seconds to MSec
     PushUnique(&Filter::FilterDecimation);
 }
-
-// -------------------------------------------------------------------------------------------------------
-void Filter::InvertDecimationFilter(bool bInvert_) { bMyInvertDecimation = bInvert_; }
 
 // -------------------------------------------------------------------------------------------------------
 void Filter::IncludeTimeStatus(TIME_STATUS eTimeStatus_)
@@ -100,9 +88,6 @@ void Filter::IncludeTimeStatus(std::vector<TIME_STATUS> vTimeStatuses_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::InvertTimeStatusFilter(bool bInvert_) { bMyInvertTimeStatusFilter = bInvert_; }
-
-// -------------------------------------------------------------------------------------------------------
 void Filter::IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
     vMyMessageIdFilters.emplace_back(uiId_, eFormat_, eSource_);
@@ -117,9 +102,6 @@ void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, ME
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::InvertMessageIdFilter(bool bInvert_) { bMyInvertMessageIdFilter = bInvert_; }
-
-// -------------------------------------------------------------------------------------------------------
 void Filter::IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
     vMyMessageNameFilters.emplace_back(szMsgName_, eFormat_, eSource_);
@@ -132,12 +114,6 @@ void Filter::IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMA
     vMyMessageNameFilters.insert(vMyMessageNameFilters.end(), vNames_.begin(), vNames_.end());
     PushUnique(&Filter::FilterMessage);
 }
-
-// -------------------------------------------------------------------------------------------------------
-void Filter::InvertMessageNameFilter(bool bInvert_) { bMyInvertMessageNameFilter = bInvert_; }
-
-// -------------------------------------------------------------------------------------------------------
-void Filter::IncludeNmeaMessages(bool bIncludeNmea_) { bMyIncludeNmea = bIncludeNmea_; }
 
 // -------------------------------------------------------------------------------------------------------
 void Filter::ClearFilters()

@@ -42,83 +42,63 @@
 //============================================================================
 //! \class Logger
 //! \brief Custom logger class.
-//! TODO: this class is mostly obsolete now, would be best to find a way to make the functions standalone
 //============================================================================
 class Logger
 {
   private:
-    inline static std::mutex mLoggerMutex;
-    inline static std::shared_ptr<spdlog::logger> pclMyRootLogger;
-    inline static std::map<std::string, std::shared_ptr<spdlog::sinks::rotating_file_sink_mt>> mRotatingFiles;
+    inline static std::once_flag loggerFlag;
+    inline static std::mutex loggerMutex;
+    inline static std::shared_ptr<spdlog::logger> rootLogger;
+    inline static std::map<std::string, std::shared_ptr<spdlog::sinks::rotating_file_sink_mt>> rotatingFiles;
+
+    static void InitLoggerHelper()
+    {
+        std::call_once(loggerFlag, []() {
+            rootLogger = spdlog::stdout_color_mt("root");
+            rootLogger->set_level(spdlog::level::info);
+            rootLogger->flush_on(spdlog::level::debug);
+            set_default_logger(rootLogger);
+            rootLogger->info("Logger initialized.");
+        });
+    }
 
   public:
-    static void InitLogger()
+    static void InitLogger(const std::filesystem::path& configPath = "")
     {
-        std::lock_guard<std::mutex> lock(mLoggerMutex);
+        if (rootLogger)
+        {
+            rootLogger->warn("Root logger already initialized. Configuration from '{}' ignored.", configPath.string());
+            return;
+        }
+
         try
         {
-            pclMyRootLogger = spdlog::get("root");
-            if (!pclMyRootLogger)
-            {
-                pclMyRootLogger = std::make_shared<spdlog::logger>("root");
-                pclMyRootLogger->set_level(spdlog::level::info);
-                spdlog::register_logger(pclMyRootLogger);
-
-                spdlog::set_default_logger(pclMyRootLogger);
-                pclMyRootLogger->flush_on(spdlog::level::debug);
-                pclMyRootLogger->debug("Default Logger initialized");
-            }
-        }
-        catch (const spdlog::spdlog_ex& ex)
-        {
-            std::cout << "Logger spdlog init failed: " << ex.what() << '\n';
-        }
-        catch (const spdlog_setup::setup_error& ex)
-        {
-            std::cout << "Logger spdlog_setup failed: " << ex.what() << '\n';
-        }
-        catch (const std::exception& ex)
-        {
-            std::cout << "Logger failed: " << ex.what() << '\n';
-        }
-    }
-
-    static void InitLogger(const std::filesystem::path& sLoggerConfigPath_)
-    {
-        std::lock_guard<std::mutex> lock(mLoggerMutex);
-        try
-        {
-            pclMyRootLogger = spdlog::get("root");
-            if (pclMyRootLogger) { SPDLOG_ERROR("Cannot configure logger from file, root logger already exists"); }
+            if (configPath.empty()) { InitLoggerHelper(); }
             else
             {
-                spdlog_setup::from_file(sLoggerConfigPath_.string());
-                pclMyRootLogger = spdlog::get("root");
-
-                spdlog::set_default_logger(pclMyRootLogger);
-                pclMyRootLogger->flush_on(spdlog::level::debug);
-                pclMyRootLogger->debug("Logger initialized from file: {}", sLoggerConfigPath_.string());
+                spdlog_setup::from_file(configPath.string());
+                InitLoggerHelper();
+                rootLogger->info("Initialized with file: {}", configPath.string());
             }
-        }
-        catch (const spdlog::spdlog_ex& ex)
-        {
-            std::cout << "Logger spdlog init failed: " << ex.what() << '\n';
-        }
-        catch (const spdlog_setup::setup_error& ex)
-        {
-            std::cout << "Logger spdlog_setup failed: " << ex.what() << '\n';
         }
         catch (const std::exception& ex)
         {
-            std::cout << "Logger failed: " << ex.what() << '\n';
+            std::cerr << "Logger initialization failed: " << ex.what() << '\n';
         }
     }
 
-    /*! \brief Stop any running threads started by spdlog and clean registry loggers
+    /*! \brief Stop any running threads started by spdlog and clean registry loggers.
      */
     static void Shutdown()
     {
-        if (pclMyRootLogger) { pclMyRootLogger->flush(); }
+        std::lock_guard<std::mutex> lock(loggerMutex);
+        if (rootLogger) { rootLogger->flush(); }
+        for (const auto& [fileName, sink] : rotatingFiles)
+        {
+            sink->flush();
+            rootLogger->info("Removed rotating file sink: {}", fileName);
+        }
+        rotatingFiles.clear();
         spdlog::shutdown();
     }
 
@@ -131,11 +111,11 @@ class Logger
      *  \param sLoggerName_ a unique name for the logger
      *  \return std::shared_ptr<spdlog::logger>
      */
-    static std::shared_ptr<spdlog::logger> RegisterLogger(std::string sLoggerName_)
+    static std::shared_ptr<spdlog::logger> RegisterLogger(const std::string& sLoggerName_)
     {
-        if (!pclMyRootLogger) { InitLogger(); }
-        std::lock_guard<std::mutex> lock(mLoggerMutex);
-        pclMyRootLogger->debug("Logger::RegisterLogger(\"{}\")", sLoggerName_);
+        std::lock_guard lock(loggerMutex);
+        InitLoggerHelper();
+        rootLogger->debug("Logger::RegisterLogger(\"{}\")", sLoggerName_);
         std::shared_ptr<spdlog::logger> pclLogger;
         try
         {
@@ -143,37 +123,29 @@ class Logger
 
             if (pclLogger == nullptr)
             {
-                // Get the root logger sinks
-                std::vector<spdlog::sink_ptr> vRootSinks = pclMyRootLogger->sinks();
-                pclLogger = std::make_shared<spdlog::logger>(sLoggerName_, begin(vRootSinks), end(vRootSinks));
-                // Inherit the root logger level by default
-                pclLogger->set_level(pclMyRootLogger->level());
-                spdlog::register_logger(pclLogger);
+                pclLogger = std::make_shared<spdlog::logger>(sLoggerName_, begin(rootLogger->sinks()), end(rootLogger->sinks()));
+                pclLogger->set_level(rootLogger->level());
+                register_logger(pclLogger);
             }
         }
         catch (const spdlog::spdlog_ex& ex)
         {
-            // TODO: why does deleting this line break the pipeline?
-            std::cout << (spdlog::get(sLoggerName_) == nullptr ? "null" : "not null") << '\n';
-            std::cout << "Logger::RegisterLogger() init failed: " << ex.what() << '\n';
             SPDLOG_ERROR("Logger::RegisterLogger(\"{}\") init failed: {}", sLoggerName_, ex.what());
         }
 
-        // return a shared_ptr that may be assigned where the usage_count is incremented
         return pclLogger;
     }
 
     /** \brief Add console output to the logger
      *  \param[in] eLevel_  The logging level to enable.
      */
-    static void AddConsoleLogging(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug)
+    static void AddConsoleLogging(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::info)
     {
-        // Console sink, with no formatting/metadata
+        std::lock_guard<std::mutex> lock(loggerMutex);
         auto pclConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         pclConsoleSink->set_level(eLevel_);
         pclConsoleSink->set_pattern("%v");
-
-        lgr->sinks().push_back(pclConsoleSink);
+        lgr->sinks().emplace_back(pclConsoleSink);
     }
 
     /** \brief Add file output to the logger
@@ -183,19 +155,17 @@ class Logger
      *  \param[in] uiMaxFiles_  Max number of rotating files.
      *  \param[in] bRotateOnOpen_  Rotate files on open.
      */
-    static void AddRotatingFileLogger(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::debug,
-                                      const std::string& sFileName_ = "edie.log", uint32_t uiFileSize_ = 5 * 1024 * 1024, uint32_t uiMaxFiles_ = 2,
-                                      bool bRotateOnOpen_ = true)
+    static void AddRotatingFileLogger(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum level = spdlog::level::info,
+                                      const std::string& sFileName = "default.log", size_t maxFileSize = 5 * 1024 * 1024, size_t maxFiles = 3,
+                                      bool rotateOnOpen = true)
     {
-        if (mRotatingFiles.find(sFileName_) != mRotatingFiles.end()) { lgr->sinks().push_back(mRotatingFiles.at(sFileName_)); }
-        else
-        {
-            // Rotating file sink, with default formatting/metadata, max 3 files (2 previous + 1 current) of 5MB each
-            auto pclFileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(sFileName_, uiFileSize_, uiMaxFiles_, bRotateOnOpen_);
-            pclFileSink->set_level(eLevel_);
-            lgr->sinks().push_back(pclFileSink);
-            mRotatingFiles[sFileName_] = pclFileSink;
-        }
+        std::lock_guard<std::mutex> lock(loggerMutex);
+        auto sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(sFileName, maxFileSize, maxFiles, rotateOnOpen);
+        sink->set_level(level);
+        sink->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] %v");
+        lgr->sinks().emplace_back(sink);
+        rotatingFiles[sFileName] = sink;
+        rootLogger->info("Added rotating file sink: {}", sFileName);
     }
 };
 

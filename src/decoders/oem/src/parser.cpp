@@ -74,9 +74,6 @@ void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger> Parser::GetLogger() { return pclMyLogger; }
-
-// -------------------------------------------------------------------------------------------------------
 void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const std::string& sFileName_)
 {
     clMyFramer.SetLoggerLevel(eLevel_);
@@ -90,48 +87,6 @@ void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const
     Logger::AddRotatingFileLogger(clMyHeaderDecoder.GetLogger(), eLevel_, sFileName_);
     Logger::AddRotatingFileLogger(clMyMessageDecoder.GetLogger(), eLevel_, sFileName_);
 }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetIgnoreAbbreviatedAsciiResponses(bool bIgnoreAbbreviatedAsciiResponses_)
-{
-    bMyIgnoreAbbreviatedAsciiResponse = bIgnoreAbbreviatedAsciiResponses_;
-}
-
-// -------------------------------------------------------------------------------------------------------
-bool Parser::GetIgnoreAbbreviatedAsciiResponses() const { return bMyIgnoreAbbreviatedAsciiResponse; }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetFilter(const Filter::Ptr& pclFilter_) { pclMyUserFilter = pclFilter_; }
-
-// -------------------------------------------------------------------------------------------------------
-const Filter::Ptr& Parser::GetFilter() const { return pclMyUserFilter; }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetDecompressRangeCmp(bool bDecompressRangeCmp_) { bMyDecompressRangeCmp = bDecompressRangeCmp_; }
-
-// -------------------------------------------------------------------------------------------------------
-bool Parser::GetDecompressRangeCmp() const { return bMyDecompressRangeCmp; }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetReturnUnknownBytes(bool bReturnUnknownBytes_) { bMyReturnUnknownBytes = bReturnUnknownBytes_; }
-
-// -------------------------------------------------------------------------------------------------------
-bool Parser::GetReturnUnknownBytes() const { return bMyReturnUnknownBytes; }
-
-// -------------------------------------------------------------------------------------------------------
-void Parser::SetEncodeFormat(ENCODE_FORMAT eFormat_) { eMyEncodeFormat = eFormat_; }
-
-// -------------------------------------------------------------------------------------------------------
-ENCODE_FORMAT Parser::GetEncodeFormat() const { return eMyEncodeFormat; }
-
-// -------------------------------------------------------------------------------------------------------
-unsigned char* Parser::GetInternalBuffer() const { return pucMyFrameBufferPointer; }
-
-// -------------------------------------------------------------------------------------------------------
-uint32_t Parser::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
@@ -201,7 +156,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                     if (eStatus == STATUS::SUCCESS) { stHeader.usMessageId = stMetaData_.usMessageId; }
                     else
                     {
-                        pclMyLogger->info("RangeDecompressor returned status {}\n", static_cast<int32_t>(eStatus));
+                        pclMyLogger->info("RangeDecompressor returned status {}", eStatus);
                         return eStatus;
                     }
                     // Continue if we succeeded.
@@ -214,7 +169,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                     MetaDataStruct stEmbeddedMetaData;
                     clMyRxConfigHandler.Write(pucMyFrameBufferPointer, stMetaData_.uiLength);
                     eStatus = clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
-                    if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}\n", static_cast<int32_t>(eStatus)); }
+                    if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}", eStatus); }
                     return eStatus;
                 }
 
@@ -226,14 +181,14 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                                                  stMetaData_, eMyEncodeFormat);
                     if (eStatus == STATUS::SUCCESS) { return STATUS::SUCCESS; }
 
-                    pclMyLogger->info("Encoder returned status {}\n", static_cast<int32_t>(eStatus));
+                    pclMyLogger->info("Encoder returned status {}", eStatus);
                 }
-                else { pclMyLogger->info("MessageDecoder returned status {}\n", static_cast<int32_t>(eStatus)); }
+                else { pclMyLogger->info("MessageDecoder returned status {}", eStatus); }
             }
-            else { pclMyLogger->info("HeaderDecoder returned status {}\n", static_cast<int32_t>(eStatus)); }
+            else { pclMyLogger->info("HeaderDecoder returned status {}", eStatus); }
         }
         else if (eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
-        else { pclMyLogger->info("Framer returned status {}\n", static_cast<int32_t>(eStatus)); }
+        else { pclMyLogger->info("Framer returned status {}", eStatus); }
     }
 }
 
