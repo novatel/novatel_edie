@@ -228,7 +228,7 @@ jobs:
       - name: Generate documentation for EDIE
         run: |
           sphinx-build docs docs/build
-          python3 scripts/database_to_html.py database/messages_public.json
+          python3 scripts/database_to_html.py database/database.json
 
       - name: Archive documentation artifacts
         uses: actions/upload-artifact@v4.3.0
