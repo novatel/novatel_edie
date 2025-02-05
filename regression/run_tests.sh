@@ -10,7 +10,7 @@ fi
 
 failures=()
 for FORMAT in "ASCII" "ABBREV_ASCII" "BINARY" "FLATTENED_BINARY" "JSON"; do
-    "$converter_components" "$script_dir/../database/messages_public.json" "$script_dir/BESTUTMBIN.GPS" $FORMAT > /dev/null
+    "$converter_components" "$script_dir/../database/database.json" "$script_dir/BESTUTMBIN.GPS" $FORMAT > /dev/null
     retval=$?
     if [ $retval -ne 0 ]; then
         echo "converter_components failed for $FORMAT failed with status $retval"
