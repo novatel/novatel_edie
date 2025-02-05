@@ -52,6 +52,12 @@ class StubGenerator:
         'UNKNOWN': 'bytes'
     }
     def __init__(self, database: Union[str, dict]):
+        """Initializes a StubGenerator.
+
+        Args:
+            database: A path to a message database json file or
+                a dictionary representation of a database.
+        """
         if isinstance(database, str):
             with open(database, 'r') as f:
                 database = json.load(f)
@@ -62,7 +68,11 @@ class StubGenerator:
         self.database['enums_by_id'] = {enum['_id']: enum for enum in database['enums']}
 
     def write_stub_files(self, file_path: str):
-        """Writes package stub files to the specified directory."""
+        """Writes package stub files to the specified directory.
+
+        Args:
+            file_path: The directory to write the stub files to.
+        """
         file_specs = {
             'enums.pyi': self.get_enum_stubs(),
             'messages.pyi': self.get_message_stubs()}
@@ -74,7 +84,13 @@ class StubGenerator:
                 f.write(file_contents)
 
     def _convert_enum_def(self, enum_def) -> str:
-        """Create a type hint string for an enum definition."""
+        """Create a type hint string for an enum definition.
+
+        Args:
+            enum_def: A dictionary containing an enum definition.
+        Returns:
+            A string containing a type hint for the enum definition.
+        """
         type_hint = f'class {enum_def["name"]}(Enum):\n'
         for enumerator in enum_def['enumerators']:
             name = enumerator['name']
@@ -85,7 +101,11 @@ class StubGenerator:
         return type_hint
 
     def get_enum_stubs(self) -> str:
-        """Get a stub string for all enums in the database."""
+        """Get a stub string for all enums in the database.
+
+        Returns:
+            A string containing type hint stubs for all enums in the database.
+        """
         stub_str = ('from enum import Enum\n'
                     'from typing import Any\n\n')
         enums = self.database['enums']
@@ -94,8 +114,16 @@ class StubGenerator:
         stub_str += type_hints_str
         return stub_str
 
-    def _get_field_pytype(self, field, parent: str) -> str:
-        """Get a type hint string for a base level field."""
+    def _get_field_pytype(self, field: dict, parent: str) -> str:
+        """Get a type hint string for a field definition.
+
+        Args:
+            field: A dictionary containing a field definition.
+            parent: The name of the parent class. May be used for naming
+                subfield classes.
+        Returns:
+            A string containing a type hint for the field definition.
+        """
         python_type = None
         if field['type'] == 'SIMPLE':
             python_type = self.data_type_to_pytype.get(field['dataType']['name'])
@@ -117,8 +145,16 @@ class StubGenerator:
             python_type = 'Any'
         return python_type
 
-    def _convert_field_array_def(self, field_array_def, parent: str) -> str:
-        """Convert a field array definition to a type hint string."""
+    def _convert_field_array_def(self, field_array_def: dict, parent: str) -> str:
+        """Convert a field array definition to a type hint string.
+
+        Args:
+            field_array_def: A dictionary containing a field array definition.
+            parent: The name of the parent class. The name for the field array
+                class will be based on this.
+        Returns:
+            A string containing type hint stubs for the field array definition.
+        """
         subfield_hints = []
 
         # Create MessageBodyField type hint
@@ -139,7 +175,13 @@ class StubGenerator:
         return hint_str
 
     def _convert_message_def(self, message_def: dict) -> str:
-        """Create a type hint string for a message definition."""
+        """Create a type hint string for a message definition.
+
+        Args:
+            message_def: A dictionary containing a message definition.
+        Returns:
+            A string containing type hint stubs for the message definition.
+        """
         subfield_hints = []
 
         # Create the Message type hint
@@ -171,7 +213,11 @@ class StubGenerator:
         return hint_str
 
     def get_message_stubs(self) -> str:
-        """Get a stub string for all messages in the database."""
+        """Get a stub string for all messages in the database.
+
+        Returns:
+            A string containing type hint stubs for all messages in the database.
+        """
         stub_str = 'from typing import Any\n\n'
         stub_str += 'from novatel_edie import Header, Message, MessageBody, SatelliteId\n'
         stub_str += 'from novatel_edie.enums import *\n\n'
