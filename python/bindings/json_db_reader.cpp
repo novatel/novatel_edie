@@ -8,31 +8,6 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-//namespace {
-//std::string default_json_db_path()
-//{
-//    // Does the following, but using nanobind:
-//    // import importlib_resources
-//    // path_ctx = importlib_resources.as_file(importlib_resources.files("novatel_edie").joinpath("database.json"))
-//    // with path_ctx as path:
-//    //     return path
-//    nb::object import_lib_resources = nb::module_::import_("importlib_resources");
-//
-//    nb::object package_files = import_lib_resources.attr("files")("novatel_edie");
-//    nb::object db_path = package_files.attr("joinpath")("database.json");
-//
-//    nb::object path_ctx = import_lib_resources.attr("as_file")(db_path);
-//    auto py_path = path_ctx.attr("__enter__")();
-//    if (!nb::cast<bool>(py_path.attr("is_file")()))
-//    {
-//        throw NExcept((std::string("Could not find the default JSON DB file at ") + nb::str(py_path).c_str()).c_str());
-//    }
-//    auto path = nb::cast<std::string>(nb::str(py_path));
-//    path_ctx.attr("__exit__")(nb::none(), nb::none(), nb::none());
-//    return path;
-//}
-//} // namespace
-
 PyMessageDatabase::Ptr& MessageDbSingleton::get()
 {
     static PyMessageDatabase::Ptr json_db = nullptr;
