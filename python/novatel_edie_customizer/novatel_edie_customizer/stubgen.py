@@ -26,6 +26,7 @@ A module concerning the generation of type hint stub files for the novatel_edie 
 import os
 import json
 import re
+from typing import Union
 
 import typer
 from typing_extensions import Annotated
@@ -50,7 +51,7 @@ class StubGenerator:
         'SATELLITEID': 'SatelliteId',
         'UNKNOWN': 'bytes'
     }
-    def __init__(self, database: str | dict):
+    def __init__(self, database: Union[str, dict]):
         if isinstance(database, str):
             with open(database, 'r') as f:
                 database = json.load(f)
