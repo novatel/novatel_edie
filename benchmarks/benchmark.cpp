@@ -52,10 +52,9 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
     const HeaderDecoder headerDecoder(clJsonDb);
     const MessageDecoder messageDecoder(clJsonDb);
 
-    const unsigned char* dataPtr = data;
-
     for ([[maybe_unused]] auto _ : state)
     {
+        const unsigned char* dataPtr = data;
         MetaDataStruct metaData;
         IntermediateHeader header;
         std::vector<FieldContainer> message;
@@ -185,7 +184,8 @@ static void DecompressRangeCmp(benchmark::State& state, uint32_t id, const char*
 
     for ([[maybe_unused]] auto _ : state)
     {
-        (void)rangeDecompressor.Decompress(reinterpret_cast<unsigned char*>(aucCompressionBuffer), sizeof(aucCompressionBuffer), stMetaData);
+        auto* bufferPtr = reinterpret_cast<unsigned char*>(aucCompressionBuffer);
+        (void)rangeDecompressor.Decompress(bufferPtr, sizeof(aucCompressionBuffer), stMetaData);
     }
 
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
