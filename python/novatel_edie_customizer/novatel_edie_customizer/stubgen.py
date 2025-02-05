@@ -24,48 +24,47 @@ SOFTWARE.
 A module concerning the generation of type hint stub files for the novatel_edie package.
 """
 import os
+import json
+import re
 
-import nanobind
-
-import nanobind.stubgen
-import novatel_edie as ne
-from novatel_edie import MessageDatabase, JsonDbReader, DATA_TYPE, MessageDefinition
+import typer
+from typing_extensions import Annotated
 
 class StubGenerator:
     """Generator of type hint stub files for the novatel_edie package."""
     data_type_to_pytype = {
-        DATA_TYPE.INT: 'int',
-        DATA_TYPE.UINT: 'int',
-        DATA_TYPE.BOOL: 'bool',
-        DATA_TYPE.CHAR: 'int',
-        DATA_TYPE.UCHAR: 'int',
-        DATA_TYPE.SHORT: 'int',
-        DATA_TYPE.USHORT: 'int',
-        DATA_TYPE.LONG: 'int',
-        DATA_TYPE.ULONG: 'int',
-        DATA_TYPE.LONGLONG: 'int',
-        DATA_TYPE.ULONGLONG: 'int',
-        DATA_TYPE.FLOAT: 'float',
-        DATA_TYPE.DOUBLE: 'float',
-        DATA_TYPE.HEXBYTE: 'int',
-        DATA_TYPE.SATELLITEID: 'SatelliteId',
-        DATA_TYPE.UNKNOWN: 'bytes'
+        'INT': 'int',
+        'UNIT': 'int',
+        'BOOL': 'bool',
+        'CHAR': 'int',
+        'UCHAR': 'int',
+        'SHORT': 'int',
+        'USHORT': 'int',
+        'LONG': 'int',
+        'ULONG': 'int',
+        'LONGLONG': 'int',
+        'ULONGLONG': 'int',
+        'FLOAT': 'float',
+        'DOUBLE': 'float',
+        'HEXBYTE': 'int',
+        'SATELLITEID': 'SatelliteId',
+        'UNKNOWN': 'bytes'
     }
-    def __init__(self, database: str | MessageDatabase):
+    def __init__(self, database: str | dict):
         if isinstance(database, str):
-            database = JsonDbReader.load_file(database)
-        if not isinstance(database, MessageDatabase):
+            with open(database, 'r') as f:
+                database = json.load(f)
+        if not isinstance(database, dict):
             raise TypeError(
-                'database must be a MessageDatabase object or a path to a JSON database file.')
+                'database must be a dict or a path to a JSON database file.')
         self.database = database
-
+        self.database['enums_by_id'] = {enum['_id']: enum for enum in database['enums']}
 
     def write_stub_files(self, file_path: str):
         """Writes package stub files to the specified directory."""
-
-        file_specs = {'__init__.pyi': self.get_core_stubs(),
-                      'enums.pyi': self.get_enum_stubs(),
-                      'messages.pyi': self.get_message_stubs()}
+        file_specs = {
+            'enums.pyi': self.get_enum_stubs(),
+            'messages.pyi': self.get_message_stubs()}
 
         if not os.path.exists(file_path):
             os.makedirs(file_path)
@@ -73,24 +72,22 @@ class StubGenerator:
             with open(os.path.join(file_path, file_name), 'w') as f:
                 f.write(file_contents)
 
-    def get_core_stubs(self) -> str:
-        stub_gen = nanobind.stubgen.StubGen(ne.bindings)
-        stub_gen.put(ne.bindings)
-        stub_str = stub_gen.get()
-        return stub_str
-
     def _convert_enum_def(self, enum_def) -> str:
         """Create a type hint string for an enum definition."""
-        type_hint = f'class {enum_def.__name__}(Enum):\n'
-        for enumeration in enum_def:
-            type_hint += f'    {enumeration.name} = {enumeration.value}\n'
+        type_hint = f'class {enum_def['name']}(Enum):\n'
+        for enumerator in enum_def['enumerators']:
+            name = enumerator['name']
+            name = re.sub(r'[)(\-+./\\]', '_', name)
+            if name[0].isdigit():
+                name = f'_{name}'
+            type_hint += f'    {name} = {enumerator['value']}\n'
         return type_hint
 
     def get_enum_stubs(self) -> str:
         """Get a stub string for all enums in the database."""
         stub_str = ('from enum import Enum\n'
                     'from typing import Any\n\n')
-        enums = list(self.database.enums.values())
+        enums = self.database['enums']
         type_hints = [self._convert_enum_def(enum_def) for enum_def in enums]
         type_hints_str = '\n'.join(type_hints)
         stub_str += type_hints_str
@@ -99,21 +96,22 @@ class StubGenerator:
     def _get_field_pytype(self, field, parent: str) -> str:
         """Get a type hint string for a base level field."""
         python_type = None
-        if field.type == ne.FIELD_TYPE.SIMPLE:
-            python_type = self.data_type_to_pytype.get(field.data_type.name)
-        if field.type == ne.FIELD_TYPE.ENUM:
-            python_type = field.enum_def.name if field.enum_def else 'Enum'
-        if field.type == ne.FIELD_TYPE.STRING:
+        if field['type'] == 'SIMPLE':
+            python_type = self.data_type_to_pytype.get(field['dataType']['name'])
+        if field['type'] == 'ENUM':
+            enum_def = self.database['enums_by_id'].get(field['enumID'])
+            python_type = enum_def['name'] if enum_def else 'Any'
+        if field['type'] == 'STRING':
             python_type = 'str'
-        if (field.type in {
-                ne.FIELD_TYPE.FIXED_LENGTH_ARRAY,
-                ne.FIELD_TYPE.VARIABLE_LENGTH_ARRAY}):
-            if field.conversion == r'%s':
+        if (field['type'] in {
+                'FIXED_LENGTH_ARRAY',
+                'VARIABLE_LENGTH_ARRAY'}):
+            if field['conversionString'] == r'%s':
                 python_type = 'str'
             else:
-                python_type = f'list[{self.data_type_to_pytype.get(field.data_type.name)}]'
-        if field.type == ne.FIELD_TYPE.FIELD_ARRAY:
-            python_type = f'list[{parent}_{field.name}_Field]'
+                python_type = f'list[{self.data_type_to_pytype.get(field['dataType']['name'])}]'
+        if field['type'] == 'FIELD_ARRAY':
+            python_type = f'list[{parent}_{field['name']}_Field]'
         if not python_type:
             python_type = 'Any'
         return python_type
@@ -123,14 +121,14 @@ class StubGenerator:
         subfield_hints = []
 
         # Create MessageBodyField type hint
-        name = f'{parent}_{field_array_def.name}_Field'
+        name = f'{parent}_{field_array_def['name']}_Field'
         type_hint = f'class {name}(MessageBody):\n'
-        for field in field_array_def.fields:
+        for field in field_array_def['fields']:
             python_type = self._get_field_pytype(field, parent)
             type_hint +=  ('    @property\n'
-                          f'    def {field.name}(self) -> {python_type}: ...\n\n')
+                          f'    def {field['name']}(self) -> {python_type}: ...\n\n')
             # Create hints for any subfields
-            if field.type == ne.FIELD_TYPE.FIELD_ARRAY:
+            if field['type'] == 'FIELD_ARRAY':
                 subfield_hints.append(self._convert_field_array_def(field, name))
 
         # Combine all hints
@@ -139,27 +137,30 @@ class StubGenerator:
 
         return hint_str
 
-    def _convert_message_def(self, message_def: MessageDefinition) -> str:
+    def _convert_message_def(self, message_def: dict) -> str:
         """Create a type hint string for a message definition."""
         subfield_hints = []
 
         # Create the Message type hint
-        message_hint = (f'class {message_def.name}(Message):\n'
+        message_hint = (f'class {message_def['name']}(Message):\n'
                          '    @property\n'
                          '    def header(self) -> Header: ...\n\n'
                          '    @property\n'
-                        f'    def body(self) -> {message_def.name}_Body: ...\n\n')
+                        f'    def body(self) -> {message_def['name']}_Body: ...\n\n')
 
         # Create the MessageBody type hint
-        body_name = f'{message_def.name}_Body'
+        body_name = f'{message_def['name']}_Body'
         body_hint = f'class {body_name}(MessageBody):\n'
-        for field in message_def.fields[message_def.latest_message_crc]:
+        fields = message_def['fields'][message_def['latestMsgDefCrc']]
+        if not fields:
+            body_hint += '    pass\n\n'
+        for field in fields:
             python_type = self._get_field_pytype(field, body_name)
             body_hint +=  '    @property\n'
-            body_hint += f'    def {field.name}(self) -> {python_type}: ...\n\n'
+            body_hint += f'    def {field['name']}(self) -> {python_type}: ...\n\n'
 
             # Create hints for any subfields
-            if field.type == ne.FIELD_TYPE.FIELD_ARRAY:
+            if field['type'] == 'FIELD_ARRAY':
                 subfield_hints.append(self._convert_field_array_def(field, body_name))
 
         # Combine all hints
@@ -174,18 +175,32 @@ class StubGenerator:
         stub_str += 'from novatel_edie import Header, Message, MessageBody, SatelliteId\n'
         stub_str += 'from novatel_edie.enums import *\n\n'
 
-        message_list = [key for key in self.database.messages
-                        if not key.endswith('_Body')
-                        and not key.endswith('_Field')
-                        and key != 'UNKNOWN']
-        message_defs = [self.database.get_msg_def(msg)
-                        for msg in message_list]
+        messages = self.database['messages']
         type_hints = [self._convert_message_def(msg_def)
-                      for msg_def in message_defs]
+                      for msg_def in messages]
         type_hints_str = '\n'.join(type_hints)
         stub_str += type_hints_str
 
         return stub_str
 
+
+def generate_stubs(
+        database: Annotated[
+            str,
+            typer.Argument(help='A path to a database file.')
+        ],
+        output_dir: Annotated[
+            str,
+            typer.Argument(help='The directory to write stub files to.')
+        ] = './stubs'
+        ):
+    """Generate type hint stub files for a provided database.
+
+    Args:
+        database: A path to a database file.
+        output_dir: The directory to write stub files to.
+    """
+    StubGenerator(database).write_stub_files(output_dir)
+
 if __name__ == '__main__':
-    StubGenerator(ne.JsonDbReader.load_file('database/database.json')).write_stub_files('stubs')
+    typer.run(generate_stubs)
