@@ -55,11 +55,11 @@ target_compile_definitions(python_bindings PRIVATE
 )
 
 nanobind_add_stub(
-  bindings_stub
-  MODULE bindings
-  OUTPUT stubs/bindings.pyi
-  PYTHON_PATH $<TARGET_FILE_DIR:python_bindings>
-  DEPENDS bindings
+    bindings_stub
+    MODULE bindings
+    OUTPUT stubs/bindings.pyi
+    PYTHON_PATH $<TARGET_FILE_DIR:python_bindings>
+    DEPENDS bindings
 )
 
 add_custom_target(
