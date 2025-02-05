@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 
     if (argc != 2) { throw std::invalid_argument("1 argument required.\nUsage: <project root>"); }
 
-    std::string strDatabaseVar = std::string(argv[1]) + "/database/messages_public.json";
+    std::string strDatabaseVar = std::string(argv[1]) + "/database/database.json";
     std::string strResourceVar = std::string(argv[1]) + "/src/decoders/oem/test/resources/";
 
 #ifdef _WIN32
