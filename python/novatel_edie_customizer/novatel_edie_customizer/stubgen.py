@@ -74,13 +74,13 @@ class StubGenerator:
 
     def _convert_enum_def(self, enum_def) -> str:
         """Create a type hint string for an enum definition."""
-        type_hint = f'class {enum_def['name']}(Enum):\n'
+        type_hint = f'class {enum_def["name"]}(Enum):\n'
         for enumerator in enum_def['enumerators']:
             name = enumerator['name']
             name = re.sub(r'[)(\-+./\\]', '_', name)
             if name[0].isdigit():
                 name = f'_{name}'
-            type_hint += f'    {name} = {enumerator['value']}\n'
+            type_hint += f'    {name} = {enumerator["value"]}\n'
         return type_hint
 
     def get_enum_stubs(self) -> str:
@@ -109,9 +109,9 @@ class StubGenerator:
             if field['conversionString'] == r'%s':
                 python_type = 'str'
             else:
-                python_type = f'list[{self.data_type_to_pytype.get(field['dataType']['name'])}]'
+                python_type = f'list[{self.data_type_to_pytype.get(field["dataType"]["name"])}]'
         if field['type'] == 'FIELD_ARRAY':
-            python_type = f'list[{parent}_{field['name']}_Field]'
+            python_type = f'list[{parent}_{field["name"]}_Field]'
         if not python_type:
             python_type = 'Any'
         return python_type
@@ -121,12 +121,12 @@ class StubGenerator:
         subfield_hints = []
 
         # Create MessageBodyField type hint
-        name = f'{parent}_{field_array_def['name']}_Field'
+        name = f'{parent}_{field_array_def["name"]}_Field'
         type_hint = f'class {name}(MessageBody):\n'
         for field in field_array_def['fields']:
             python_type = self._get_field_pytype(field, parent)
             type_hint +=  ('    @property\n'
-                          f'    def {field['name']}(self) -> {python_type}: ...\n\n')
+                          f'    def {field["name"]}(self) -> {python_type}: ...\n\n')
             # Create hints for any subfields
             if field['type'] == 'FIELD_ARRAY':
                 subfield_hints.append(self._convert_field_array_def(field, name))
@@ -142,14 +142,14 @@ class StubGenerator:
         subfield_hints = []
 
         # Create the Message type hint
-        message_hint = (f'class {message_def['name']}(Message):\n'
+        message_hint = (f'class {message_def["name"]}(Message):\n'
                          '    @property\n'
                          '    def header(self) -> Header: ...\n\n'
                          '    @property\n'
-                        f'    def body(self) -> {message_def['name']}_Body: ...\n\n')
+                        f'    def body(self) -> {message_def["name"]}_Body: ...\n\n')
 
         # Create the MessageBody type hint
-        body_name = f'{message_def['name']}_Body'
+        body_name = f'{message_def["name"]}_Body'
         body_hint = f'class {body_name}(MessageBody):\n'
         fields = message_def['fields'][message_def['latestMsgDefCrc']]
         if not fields:
@@ -157,7 +157,7 @@ class StubGenerator:
         for field in fields:
             python_type = self._get_field_pytype(field, body_name)
             body_hint +=  '    @property\n'
-            body_hint += f'    def {field['name']}(self) -> {python_type}: ...\n\n'
+            body_hint += f'    def {field["name"]}(self) -> {python_type}: ...\n\n'
 
             # Create hints for any subfields
             if field['type'] == 'FIELD_ARRAY':
