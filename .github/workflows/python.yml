@@ -19,7 +19,7 @@ jobs:
           - [Windows, windows-latest, AMD64]
           # - [Windows, windows-latest, x86]
           - [Windows, windows-latest, ARM64]
-          - [MacOS, macos-latest, x86_64]
+          - [MacOS, macos-latest-large, x86_64]
           - [MacOS, macos-latest, arm64]
           # spdlog fails to build with the correct architecture on universal2
           # - [MacOS, macos-latest, universal2]
