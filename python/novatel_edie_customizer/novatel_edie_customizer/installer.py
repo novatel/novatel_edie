@@ -28,10 +28,12 @@ import os
 import shutil
 import sys
 from contextlib import contextmanager
-import argparse
 import subprocess
 
-from novatel_edie_install_customizer.stubgen import StubGenerator
+import typer
+from typing_extensions import Annotated
+
+from novatel_edie_customizer.stubgen import StubGenerator
 
 @contextmanager
 def open_library_clone(library: str):
@@ -113,21 +115,23 @@ def install_package():
         except subprocess.CalledProcessError as e:
             print(f"Failed to install {wheel_file}: {e}")
 
+def install_custom(
+        database: Annotated[
+            str,
+            typer.Argument(help='A path to a database file.')
+        ]):
+    """Generate type hint stub files for a provided database.
 
-def main(args):
+    Args:
+        database: A path to a database file.
+    """
+    database = os.path.abspath(database)
     library_name = 'novatel_edie'
     with open_library_clone(library_name):
         copy_file(
-            args.database, os.path.join('wheel', library_name, 'database.json'))
+            database, os.path.join('wheel', library_name, 'database.json'))
 
-        database = StubGenerator(args.database)
+        database = StubGenerator(database)
         database.write_stub_files(os.path.join('wheel', library_name))
 
         install_package()
-
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some files.')
-    parser.add_argument('database', type=str, help='The database to process')
-    main(parser.parse_args())

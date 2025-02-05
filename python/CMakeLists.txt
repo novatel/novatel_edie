@@ -54,6 +54,20 @@ target_compile_definitions(python_bindings PRIVATE
     HAVE_SNPRINTF
 )
 
+nanobind_add_stub(
+  bindings_stub
+  MODULE bindings
+  OUTPUT stubs/bindings.pyi
+  PYTHON_PATH $<TARGET_FILE_DIR:python_bindings>
+  DEPENDS bindings
+)
+
+add_custom_target(
+    dynamic_stubs ALL
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/python/novatel_edie_customizer/novatel_edie_customizer/stubgen.py ${CMAKE_SOURCE_DIR}/database/database.json ${CMAKE_CURRENT_BINARY_DIR}/stubs
+    COMMENT "Generating dynamic stubs"
+)
+
 if(DEFINED SKBUILD_PROJECT_NAME)
     set(PYTHON_INSTALL_DIR ${SKBUILD_PROJECT_NAME})
 elseif(NOT DEFINED PYTHON_INSTALL_DIR)
@@ -67,5 +81,8 @@ install(DIRECTORY novatel_edie/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
 install(FILES ${CMAKE_SOURCE_DIR}/database/database.json
+        DESTINATION ${PYTHON_INSTALL_DIR}
+        COMPONENT python)
+install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
