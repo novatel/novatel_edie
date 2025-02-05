@@ -37,10 +37,11 @@ from novatel_edie_customizer.stubgen import StubGenerator
 
 @contextmanager
 def open_library_clone(library: str):
-    """Creates a clone of specified files in a library and moves into the temp directory.
+    """Creates a clone of a specified library within a temporary directory.
 
     Args:
-        library: The name of the library to clone.
+        library: The name of the library to clone. Must be within
+            the current Python environment.
     """
     packages_path = os.path.join(sys.exec_prefix, 'Lib', 'site-packages')
     library_path = os.path.join(packages_path, library)
@@ -83,6 +84,8 @@ def copy_file(file_path: str, destination_path: str = None):
 
     Args:
         file_path: The path of the file to copy.
+        destination_path: A relative path within current working directory
+            to copy the file to.
     """
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File {file_path} not found.")
@@ -95,11 +98,7 @@ def copy_file(file_path: str, destination_path: str = None):
     shutil.copy2(file_path, destination_path)
 
 def install_package():
-    """Installs a package in the current working directory.
-
-    Args:
-        package_name: The name of the package to install.
-    """
+    """Installs a package in the current working directory."""
     try:
         subprocess.check_call([
             sys.executable, '-m', 'wheel', 'pack', './wheel'])
@@ -120,7 +119,10 @@ def install_custom(
             str,
             typer.Argument(help='A path to a database file.')
         ]):
-    """Generate type hint stub files for a provided database.
+    """Create a custom installation of novatel_edie based on the provided DB.
+
+    The custom installation will have all messages and enums of the provided
+    database be directly importable from the 'enums' and 'messages' submodules.
 
     Args:
         database: A path to a database file.
