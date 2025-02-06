@@ -28,12 +28,14 @@
 # Encoder and Filter.
 ################################################################################
 import enum
+from collections import namedtuple
 
 import novatel_edie as ne
 import pytest
 from novatel_edie import STATUS, ENCODE_FORMAT
+from novatel_edie.messages import *
 from pytest import approx
-from collections import namedtuple
+
 
 # -------------------------------------------------------------------------------------------------------
 # Decode/Encode Unit Tests
@@ -289,38 +291,40 @@ def test_ascii_log_roundtrip_gloalmanac(helper):
 
 def test_ascii_log_roundtrip_gloephem(helper):
     log = b"#GLOEPHEMERISA,COM1,11,67.0,SATTIME,2168,160218.000,02000820,8d29,32768;51,0,1,80,2168,161118000,10782,573,0,0,95,0,-2.3917966796875000e+07,4.8163881835937500e+06,7.4258510742187500e+06,-1.0062713623046875e+03,1.8321990966796875e+02,-3.3695755004882813e+03,1.86264514923095700e-06,-9.31322574615478510e-07,-0.00000000000000000,-6.69313594698905940e-05,5.587935448e-09,0.00000000000000000,84600,3,2,0,13*ad20fc5f\r\n"
-    ret_code, message_data, glo_ephemeris = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
+    ret_code, message_data, message = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
     assert ret_code == Result.SUCCESS
 
-    assert glo_ephemeris.body.sloto == 51
-    assert glo_ephemeris.body.freqo == 0
-    assert glo_ephemeris.body.sat_type == 1
-    assert glo_ephemeris.body.false_iod == 80
-    assert glo_ephemeris.body.ephem_week == 2168
-    assert glo_ephemeris.body.ephem_time == 161118000
-    assert glo_ephemeris.body.time_offset == 10782
-    assert glo_ephemeris.body.nt == 573
-    assert glo_ephemeris.body.GLOEPHEMERIS_reserved == 0
-    assert glo_ephemeris.body.GLOEPHEMERIS_reserved_9 == 0
-    assert glo_ephemeris.body.issue == 95
-    assert glo_ephemeris.body.broadcast_health == 0
-    assert glo_ephemeris.body.pos_x == -2.3917966796875000e+07
-    assert glo_ephemeris.body.pos_y == 4.8163881835937500e+06
-    assert glo_ephemeris.body.pos_z == 7.4258510742187500e+06
-    assert glo_ephemeris.body.vel_x == -1.0062713623046875e+03
-    assert glo_ephemeris.body.vel_y == 1.8321990966796875e+02
-    assert glo_ephemeris.body.vel_z == -3.3695755004882813e+03
-    assert glo_ephemeris.body.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
-    assert glo_ephemeris.body.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
-    assert glo_ephemeris.body.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
-    assert glo_ephemeris.body.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
-    assert glo_ephemeris.body.delta_tau == 5.587935448e-09
-    assert glo_ephemeris.body.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
-    assert glo_ephemeris.body.tk == 84600
-    assert glo_ephemeris.body.p == 3
-    assert glo_ephemeris.body.ft == 2
-    assert glo_ephemeris.body.age == 0
-    assert glo_ephemeris.body.flags == 13
+    glo_ephemeris = message.body
+    assert isinstance(glo_ephemeris, GLOEPHEMERIS)
+    assert glo_ephemeris.sloto == 51
+    assert glo_ephemeris.freqo == 0
+    assert glo_ephemeris.sat_type == 1
+    assert glo_ephemeris.false_iod == 80
+    assert glo_ephemeris.ephem_week == 2168
+    assert glo_ephemeris.ephem_time == 161118000
+    assert glo_ephemeris.time_offset == 10782
+    assert glo_ephemeris.nt == 573
+    assert glo_ephemeris.GLOEPHEMERIS_reserved == 0
+    assert glo_ephemeris.GLOEPHEMERIS_reserved_9 == 0
+    assert glo_ephemeris.issue == 95
+    assert glo_ephemeris.broadcast_health == 0
+    assert glo_ephemeris.pos_x == -2.3917966796875000e+07
+    assert glo_ephemeris.pos_y == 4.8163881835937500e+06
+    assert glo_ephemeris.pos_z == 7.4258510742187500e+06
+    assert glo_ephemeris.vel_x == -1.0062713623046875e+03
+    assert glo_ephemeris.vel_y == 1.8321990966796875e+02
+    assert glo_ephemeris.vel_z == -3.3695755004882813e+03
+    assert glo_ephemeris.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
+    assert glo_ephemeris.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
+    assert glo_ephemeris.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
+    assert glo_ephemeris.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
+    assert glo_ephemeris.delta_tau == 5.587935448e-09
+    assert glo_ephemeris.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
+    assert glo_ephemeris.tk == 84600
+    assert glo_ephemeris.p == 3
+    assert glo_ephemeris.ft == 2
+    assert glo_ephemeris.age == 0
+    assert glo_ephemeris.flags == 13
 
 
 def test_ascii_log_roundtrip_loglist(helper):
@@ -480,7 +484,7 @@ def test_short_binary_log_roundtrip_rawimu(helper):
 def test_flat_binary_log_decode_bestpos(helper):
     log = b"<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n" \
           b"<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n"
-    ret_code, message_data, bestpos = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
+    ret_code, message_data, message = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
     assert ret_code == Result.SUCCESS
 
     log_header = ne.Oem4BinaryHeader(message_data.header)
@@ -502,32 +506,34 @@ def test_flat_binary_log_decode_bestpos(helper):
     assert log_header.receiver_sw_version == 32768
 
     # SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n"
-    assert bestpos.body.solution_status == ne.enums.SolStatus.SOL_COMPUTED
-    assert bestpos.body.position_type == ne.enums.SolType.SINGLE
-    assert bestpos.body.latitude == 51.15043711386
-    assert bestpos.body.longitude == -114.03067767000
-    assert bestpos.body.orthometric_height == 1097.2099
-    assert bestpos.body.undulation == -17.0000
-    assert bestpos.body.datum_id == ne.enums.Datum.WGS84
-    assert bestpos.body.latitude_std_dev == approx(0.9038, abs=1e-5)
-    assert bestpos.body.longitude_std_dev == approx(0.8534, abs=1e-5)
-    assert bestpos.body.height_std_dev == approx(1.7480, abs=1e-5)
-    # assert bestpos.body.base_id == ""
-    assert bestpos.body.diff_age == 0.000
-    assert bestpos.body.solution_age == 0.000
-    assert bestpos.body.num_svs == 35
-    assert bestpos.body.num_soln_svs == 30
-    assert bestpos.body.num_soln_L1_svs == 30
-    assert bestpos.body.num_soln_multi_svs == 30
-    assert bestpos.body.extended_solution_status2 == 0x00
-    assert bestpos.body.ext_sol_stat == 0x06
-    assert bestpos.body.gal_and_bds_mask == 0x39
-    assert bestpos.body.gps_and_glo_mask == 0x33
+    bestpos = message.body
+    assert isinstance(bestpos, BESTPOS)
+    assert bestpos.solution_status == ne.enums.SolStatus.SOL_COMPUTED
+    assert bestpos.position_type == ne.enums.SolType.SINGLE
+    assert bestpos.latitude == 51.15043711386
+    assert bestpos.longitude == -114.03067767000
+    assert bestpos.orthometric_height == 1097.2099
+    assert bestpos.undulation == -17.0000
+    assert bestpos.datum_id == ne.enums.Datum.WGS84
+    assert bestpos.latitude_std_dev == approx(0.9038, abs=1e-5)
+    assert bestpos.longitude_std_dev == approx(0.8534, abs=1e-5)
+    assert bestpos.height_std_dev == approx(1.7480, abs=1e-5)
+    # assert bestpos.base_id == ""
+    assert bestpos.diff_age == 0.000
+    assert bestpos.solution_age == 0.000
+    assert bestpos.num_svs == 35
+    assert bestpos.num_soln_svs == 30
+    assert bestpos.num_soln_L1_svs == 30
+    assert bestpos.num_soln_multi_svs == 30
+    assert bestpos.extended_solution_status2 == 0x00
+    assert bestpos.ext_sol_stat == 0x06
+    assert bestpos.gal_and_bds_mask == 0x39
+    assert bestpos.gps_and_glo_mask == 0x33
 
 
 def test_flat_binary_log_decode_gloephema(helper):
     log = b"#GLOEPHEMERISA,COM1,11,67.0,SATTIME,2168,160218.000,02000820,8d29,32768;51,0,1,80,2168,161118000,10782,573,0,0,95,0,-2.3917966796875000e+07,4.8163881835937500e+06,7.4258510742187500e+06,-1.0062713623046875e+03,1.8321990966796875e+02,-3.3695755004882813e+03,1.86264514923095700e-06,-9.31322574615478510e-07,-0.00000000000000000,-6.69313594698905940e-05,5.587935448e-09,0.00000000000000000,84600,3,2,0,13*ad20fc5f\r\n"
-    ret_code, message_data, gloephemeris = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
+    ret_code, message_data, message = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
     assert ret_code == Result.SUCCESS
 
     log_header = ne.Oem4BinaryHeader(message_data.header)
@@ -548,35 +554,37 @@ def test_flat_binary_log_decode_gloephema(helper):
     assert log_header.msg_def_crc == 0x8d29
     assert log_header.receiver_sw_version == 32768
 
-    assert gloephemeris.body.sloto == 51
-    assert gloephemeris.body.freqo == 0
-    assert gloephemeris.body.sat_type == 1
-    assert gloephemeris.body.false_iod == 80
-    assert gloephemeris.body.ephem_week == 2168
-    assert gloephemeris.body.ephem_time == 161118000
-    assert gloephemeris.body.time_offset == 10782
-    assert gloephemeris.body.nt == 573
-    assert gloephemeris.body.GLOEPHEMERIS_reserved == 0
-    assert gloephemeris.body.GLOEPHEMERIS_reserved_9 == 0
-    assert gloephemeris.body.issue == 95
-    assert gloephemeris.body.broadcast_health == 0
-    assert gloephemeris.body.pos_x == -2.3917966796875000e+07
-    assert gloephemeris.body.pos_y == 4.8163881835937500e+06
-    assert gloephemeris.body.pos_z == 7.4258510742187500e+06
-    assert gloephemeris.body.vel_x == -1.0062713623046875e+03
-    assert gloephemeris.body.vel_y == 1.8321990966796875e+02
-    assert gloephemeris.body.vel_z == -3.3695755004882813e+03
-    assert gloephemeris.body.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
-    assert gloephemeris.body.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
-    assert gloephemeris.body.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
-    assert gloephemeris.body.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
-    assert gloephemeris.body.delta_tau == 5.587935448e-09
-    assert gloephemeris.body.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
-    assert gloephemeris.body.tk == 84600
-    assert gloephemeris.body.p == 3
-    assert gloephemeris.body.ft == 2
-    assert gloephemeris.body.age == 0
-    assert gloephemeris.body.flags == 13
+    gloephemeris = message.body
+    assert isinstance(gloephemeris, GLOEPHEMERIS)
+    assert gloephemeris.sloto == 51
+    assert gloephemeris.freqo == 0
+    assert gloephemeris.sat_type == 1
+    assert gloephemeris.false_iod == 80
+    assert gloephemeris.ephem_week == 2168
+    assert gloephemeris.ephem_time == 161118000
+    assert gloephemeris.time_offset == 10782
+    assert gloephemeris.nt == 573
+    assert gloephemeris.GLOEPHEMERIS_reserved == 0
+    assert gloephemeris.GLOEPHEMERIS_reserved_9 == 0
+    assert gloephemeris.issue == 95
+    assert gloephemeris.broadcast_health == 0
+    assert gloephemeris.pos_x == -2.3917966796875000e+07
+    assert gloephemeris.pos_y == 4.8163881835937500e+06
+    assert gloephemeris.pos_z == 7.4258510742187500e+06
+    assert gloephemeris.vel_x == -1.0062713623046875e+03
+    assert gloephemeris.vel_y == 1.8321990966796875e+02
+    assert gloephemeris.vel_z == -3.3695755004882813e+03
+    assert gloephemeris.ls_acc_x == approx(1.86264514923095700e-06, abs=0.0000000000000001e-06)
+    assert gloephemeris.ls_acc_y == approx(-9.31322574615478510e-07, abs=0.0000000000000001e-07)
+    assert gloephemeris.ls_acc_z == approx(-0.00000000000000000, abs=0.0000000000000001)
+    assert gloephemeris.tau == approx(-6.69313594698905940e-05, abs=0.0000000000000001e-05)
+    assert gloephemeris.delta_tau == 5.587935448e-09
+    assert gloephemeris.gamma == approx(0.00000000000000000, abs=0.0000000000000001)
+    assert gloephemeris.tk == 84600
+    assert gloephemeris.p == 3
+    assert gloephemeris.ft == 2
+    assert gloephemeris.age == 0
+    assert gloephemeris.flags == 13
 
 
 def test_flat_binary_log_decode_portstatsb(helper):
