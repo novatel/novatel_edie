@@ -275,19 +275,20 @@ void PyMessageDatabase::UpdatePythonMessageTypes()
     // get type constructor
     nb::object type_constructor = nb::module_::import_("builtins").attr("type");
     // specify the python superclasses for the new message and message body types
-    nb::tuple body_type_tuple = nb::make_tuple(nb::type<oem::PyField>());
+    nb::tuple message_type_tuple = nb::make_tuple(nb::type<oem::PyMessage>());
+    nb::tuple field_type_tuple = nb::make_tuple(nb::type<oem::PyField>());
     // provide no additional attributes via `__dict__`
     nb::dict type_dict = nb::dict();
 
     // add message and message body types for each message definition
     for (const auto& message_def : MessageDefinitions())
     {
-        nb::object msg_body_def = type_constructor(message_def->name, body_type_tuple, type_dict);
+        nb::object msg_body_def = type_constructor(message_def->name, message_type_tuple, type_dict);
         messages_by_name[message_def->name] = msg_body_def;
         // add additional MessageBody types for each field array element within the message definition
-        AddFieldType(message_def->fields.at(message_def->latestMessageCrc), message_def->name, type_constructor, body_type_tuple, type_dict);
+        AddFieldType(message_def->fields.at(message_def->latestMessageCrc), message_def->name, type_constructor, field_type_tuple, type_dict);
     }
     // provide UNKNOWN types for undecodable messages
-    nb::object default_msg_body_def = type_constructor("UNKNOWN", body_type_tuple, type_dict);
+    nb::object default_msg_body_def = type_constructor("UNKNOWN", message_type_tuple, type_dict);
     messages_by_name["UNKNOWN"] = default_msg_body_def;
 }

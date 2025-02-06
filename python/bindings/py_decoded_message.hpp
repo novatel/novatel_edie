@@ -45,7 +45,7 @@ struct PyMessage : public PyField
   public:
     nb::object header;
 
-    PyMessage(nb::object header_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_)
+    PyMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_, nb::object header_)
         : PyField(std::move(fields_), std::move(parent_db_), std::move(name_)), header(std::move(header_)) {}
 };
 
