@@ -219,7 +219,7 @@ void cleanString(std::string& str)
     // Remove special characters from the string to make it a valid python attribute name
     for (char& c : str)
     {
-        if (c == '-' || c == '+' || c == '.' || c == '/' || c == '(' || c == ')') { c = '_'; }
+        if (!isalnum(c)) { c = '_'; }
     }
     if (isdigit(str[0])) { str = "_" + str; }
 }
