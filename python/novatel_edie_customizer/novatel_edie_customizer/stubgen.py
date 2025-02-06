@@ -160,7 +160,7 @@ class StubGenerator:
 
         # Create MessageBodyField type hint
         name = f'{parent}_{field_array_def["name"]}_Field'
-        type_hint = f'class {name}(MessageBody):\n'
+        type_hint = f'class {name}(Field):\n'
         for field in field_array_def['fields']:
             python_type = self._get_field_pytype(field, parent)
             type_hint +=  ('    @property\n'
@@ -191,13 +191,11 @@ class StubGenerator:
             class {name}(Message):
                 @property
                 def header(self) -> Header: ...
-                @property
-                def body(self) -> {name}_Body: ...
         """)
 
         # Create the MessageBody type hint
         name = message_def["name"]
-        body_hint = f'class {name}(MessageBody):\n'
+        body_hint = f'class {name}(Message):\n'
         fields = message_def['fields'][message_def['latestMsgDefCrc']]
         if not fields:
             body_hint += '    pass\n\n'
@@ -223,7 +221,7 @@ class StubGenerator:
             A string containing type hint stubs for all messages in the database.
         """
         stub_str = 'from typing import Any\n\n'
-        stub_str += 'from novatel_edie import Header, Message, MessageBody, SatelliteId\n'
+        stub_str += 'from novatel_edie import Header, Field, Message, SatelliteId\n'
         stub_str += 'from novatel_edie.enums import *\n\n'
 
         messages = self.database['messages']
