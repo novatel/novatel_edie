@@ -218,10 +218,17 @@ void init_novatel_message_decoder(nb::module_& m)
             nb::module_ builtins = nb::module_::import_("builtins");
             nb::handle super = builtins.attr("super");
             nb::handle type = builtins.attr("type");
-            // get base MessageBody type from concrete instance
-            nb::handle body_type = (type(self).attr("__bases__"))[0];
+
+            nb::handle current_type = type(self);
+            std::string current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
+            while (current_type_name != "Field")
+            {
+                current_type = (current_type.attr("__bases__"))[0];
+                current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
+            }
+
             // retrieve base list based on superclass method
-            nb::object super_obj = super(body_type, self);
+            nb::object super_obj = super(current_type, self);
             nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
             // add dynamic fields to the list
             PyField* body = nb::inst_ptr<PyField>(self);
@@ -231,22 +238,15 @@ void init_novatel_message_decoder(nb::module_& m)
         });
 
     nb::class_<PyMessage, PyField>(m, "Message")
-        .def_ro("header", &PyMessage::header);
-
-
-    //nb::class_<PyMessage>(m, "Message")
-    //    .def_ro("body", &PyMessage::message_body)
-    //    .def_ro("header", &PyMessage::header)
-    //    .def_ro("name", &PyMessage::name)
-    //    .def("to_dict",
-    //         [](const PyMessage& self) {
-    //             nb::dict message_dict;
-    //             message_dict["header"] = self.header.attr("to_dict")();
-    //             message_dict["body"] = self.message_body.attr("to_dict")();
-    //             return message_dict;
-    //         })
-    //    .def("__repr__", &PyMessage::repr)
-    //    .def("__str__", &PyMessage::repr);
+        .def_ro("header", &PyMessage::header)
+        .def(
+            "to_dict", [](const PyMessage& self, bool include_header) { 
+                nb::dict dict = self.to_dict();
+                if (include_header) { dict["header"] = self.header.attr("to_dict")(); }
+                return dict;
+            }, 
+            "include_header"_a = true,
+            "Convert the message and its sub-messages into a dict");
 
     nb::class_<FieldContainer>(m, "FieldContainer")
         .def_rw("value", &FieldContainer::fieldValue)
@@ -279,8 +279,8 @@ void init_novatel_message_decoder(nb::module_& m)
                 }
 
                 nb::object body_pyinst = nb::inst_alloc(body_pytype);
-                PyField* body_cinst = nb::inst_ptr<PyField>(body_pyinst);
-                new (body_cinst) PyField(std::move(fields), parent_db, message_name);
+                PyMessage* body_cinst = nb::inst_ptr<PyMessage>(body_pyinst);
+                new (body_cinst) PyMessage(fields, parent_db, message_name, header);
                 nb::inst_mark_ready(body_pyinst);
 
                 //auto message_pyinst = std::make_shared<PyMessage>(body_pyinst, header, message_name);
