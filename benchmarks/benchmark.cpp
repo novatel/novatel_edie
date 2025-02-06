@@ -212,7 +212,7 @@ int main(int argc, char** argv)
 {
     if (argc < 2) { throw std::invalid_argument("1 argument required.\nUsage: <project root> [benchmark options]"); }
 
-    std::string strDatabaseVar = std::string(argv[1]) + "/database/messages_public.json";
+    std::string strDatabaseVar = std::string(argv[1]) + "/database/database.json";
 
 #ifdef _WIN32
     if (_putenv_s("TEST_DATABASE_PATH", strDatabaseVar.c_str()) != 0) { throw std::runtime_error("Failed to set db path."); }
