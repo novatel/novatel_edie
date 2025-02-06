@@ -66,6 +66,9 @@ add_custom_target(
     dynamic_stubs ALL
     COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/python/novatel_edie_customizer/novatel_edie_customizer/stubgen.py ${CMAKE_SOURCE_DIR}/database/database.json ${CMAKE_CURRENT_BINARY_DIR}/stubs
     COMMENT "Generating dynamic stubs"
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie_customizer/novatel_edie_customizer/stubgen.py
+        ${CMAKE_SOURCE_DIR}/database/database.json
 )
 
 if(DEFINED SKBUILD_PROJECT_NAME)
