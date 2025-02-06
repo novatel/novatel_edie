@@ -59,12 +59,12 @@ class Benchmarker:
                 failed_once = True
                 break
             body = log[meta_data.header_length:]
-            status, message = self.message_decoder.decode(body, meta_data)
+            status, message = self.message_decoder.decode(body, header, meta_data)
             if status != STATUS.SUCCESS:
                 print("Failed to decode message: ", status)
                 failed_once = True
                 break
-            status, message_data = self.encoder.encode(header, message, meta_data, encode_format)
+            status, message_data = self.encoder.encode(message, meta_data, encode_format)
             if status != STATUS.SUCCESS:
                 print("Failed to encode message: ", status)
                 failed_once = True

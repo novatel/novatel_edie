@@ -121,6 +121,22 @@ void init_novatel_common(nb::module_& m)
         .def_rw("receiver_status", &oem::IntermediateHeader::uiReceiverStatus)
         .def_rw("message_definition_crc", &oem::IntermediateHeader::uiMessageDefinitionCrc)
         .def_rw("receiver_sw_version", &oem::IntermediateHeader::usReceiverSwVersion)
+        .def("to_dict", [](const oem::IntermediateHeader& self) { 
+            nb::dict header_dict;
+            header_dict["message_id"] = self.usMessageId;
+            header_dict["message_type"] = self.ucMessageType;
+            header_dict["port_address"] = self.uiPortAddress;
+            header_dict["length"] = self.usLength;
+            header_dict["sequence"] = self.usSequence;
+            header_dict["idle_time"] = self.ucIdleTime;
+            header_dict["time_status"] = self.uiTimeStatus;
+            header_dict["week"] = self.usWeek;
+            header_dict["milliseconds"] = self.dMilliseconds;
+            header_dict["receiver_status"] = self.uiReceiverStatus;
+            header_dict["message_definition_crc"] = self.uiMessageDefinitionCrc;
+            header_dict["receiver_sw_version"] = self.usReceiverSwVersion;
+            return header_dict;
+        })
         .def("__repr__", [](const nb::handle self) {
             auto& header = nb::cast<oem::IntermediateHeader&>(self);
             return nb::str("Header(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "

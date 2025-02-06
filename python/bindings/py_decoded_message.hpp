@@ -18,9 +18,10 @@ struct PyGpsTime
     TIME_STATUS time_status{TIME_STATUS::UNKNOWN};
 };
 
-struct PyDecodedMessage
+struct PyMessageBody
 {
-    explicit PyDecodedMessage(std::vector<FieldContainer> message_, const MetaDataStruct& meta_, PyMessageDatabase::ConstPtr parent_db_);
+    std::string name;
+    explicit PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name);
     nb::dict& get_values() const;
     nb::dict& get_fields() const;
     nb::dict to_dict() const;
@@ -32,19 +33,28 @@ struct PyDecodedMessage
 
     std::vector<FieldContainer> fields;
 
-    // MetaDataStruct with all fields that are no longer relevant after decoding dropped.
-    uint16_t message_id;
-    uint32_t message_crc;
-    std::string message_name;
-    PyGpsTime time;
-    MEASUREMENT_SOURCE measurement_source{MEASUREMENT_SOURCE::PRIMARY};
-    CONSTELLATION constellation{CONSTELLATION::UNKNOWN};
-
   private:
     mutable nb::dict cached_values_;
     mutable nb::dict cached_fields_;
 
     PyMessageDatabase::ConstPtr parent_db_;
 };
+
+struct PyMessage
+{
+    nb::object message_body;
+    nb::object header;
+    std::string name;
+
+    PyMessage(nb::object message_body_, nb::object header_, std::string name_)
+        : message_body(message_body_), header(header_), name(name_) {}
+
+    std::string repr() const
+    {
+        return "<" + name + " Message>";
+    }
+};
+
+
 
 } // namespace novatel::edie::oem

@@ -38,7 +38,7 @@ nanobind_add_module(python_bindings
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/message_decoder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/nexcept.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/oem_common.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/oem_enums.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/init_modules.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/range_decompressor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/rxconfig_handler.cpp

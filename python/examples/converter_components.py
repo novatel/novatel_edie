@@ -34,6 +34,7 @@ import os
 from binascii import hexlify
 
 import novatel_edie as ne
+from novatel_edie.messages import RANGE
 from novatel_edie import STATUS
 
 
@@ -109,18 +110,22 @@ def main():
 
                 # Decode the log body.
                 body = frame[meta.header_length:]
-                status, message = message_decoder.decode(body, meta)
+                status, message = message_decoder.decode(body, header, meta)
                 status.raise_on_error("MessageDecoder.decode() failed")
 
+                # Get info from the log.
+                if isinstance(message, RANGE):
+                    observations = message.body.obs
+                    pass
+
                 # Re-encode the log and write it to the output file.
-                status, encoded_message = encoder.encode(header, message, meta, encode_format)
+                status, encoded_message = encoder.encode(message, meta, encode_format)
                 status.raise_on_error("Encoder.encode() failed")
 
                 converted_logs_stream.write(encoded_message.message)
                 logger.info( f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
             except ne.DecoderException as e:
                 logger.warn(str(e))
-
 
 if __name__ == "__main__":
     main()
