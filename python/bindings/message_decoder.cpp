@@ -262,31 +262,24 @@ void init_novatel_message_decoder(nb::module_& m)
                 std::vector<FieldContainer> fields;
                 STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(message_body.c_str()), fields, metadata);
                 PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);
-                nb::handle message_pytype;
                 nb::handle body_pytype;
-                const std::string message_name = metadata.MessageName() + "_Message";
-                const std::string message_body_name = metadata.MessageName();
+                const std::string message_name = metadata.MessageName();
 
                 try
                 {
-                    message_pytype = parent_db->GetMessagesByNameDict().at(message_name);
-                    body_pytype = parent_db->GetMessagesByNameDict().at(message_body_name);
+                    body_pytype = parent_db->GetMessagesByNameDict().at(message_name);
                 }
                 catch (const std::out_of_range& e)
                 {
-                    message_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN_Message");
                     body_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
                 }
 
                 nb::object body_pyinst = nb::inst_alloc(body_pytype);
                 PyMessageBody* body_cinst = nb::inst_ptr<PyMessageBody>(body_pyinst);
-                new (body_cinst) PyMessageBody(std::move(fields), parent_db, message_body_name);
+                new (body_cinst) PyMessageBody(std::move(fields), parent_db, message_name);
                 nb::inst_mark_ready(body_pyinst);
 
-                nb::object message_pyinst = nb::inst_alloc(message_pytype);
-                PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
-                new (message_cinst) PyMessage(body_pyinst, header, message_name);
-                nb::inst_mark_ready(message_pyinst);
+                auto message_pyinst = std::make_shared<PyMessage>(body_pyinst, header, message_name);
 
                 return nb::make_tuple(status, message_pyinst);
             },
