@@ -196,22 +196,22 @@ class StubGenerator:
         """)
 
         # Create the MessageBody type hint
-        body_name = f'{message_def["name"]}_Body'
-        body_hint = f'class {body_name}(MessageBody):\n'
+        name = message_def["name"]
+        body_hint = f'class {name}(MessageBody):\n'
         fields = message_def['fields'][message_def['latestMsgDefCrc']]
         if not fields:
             body_hint += '    pass\n\n'
         for field in fields:
-            python_type = self._get_field_pytype(field, body_name)
+            python_type = self._get_field_pytype(field, name)
             body_hint +=  '    @property\n'
             body_hint += f'    def {field["name"]}(self) -> {python_type}: ...\n\n'
 
             # Create hints for any subfields
             if field['type'] == 'FIELD_ARRAY':
-                subfield_hints.append(self._convert_field_array_def(field, body_name))
+                subfield_hints.append(self._convert_field_array_def(field, name))
 
         # Combine all hints
-        hints = subfield_hints + [body_hint, message_hint]
+        hints = subfield_hints + [body_hint]
         hint_str = '\n'.join(hints)
 
         return hint_str

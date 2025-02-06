@@ -46,15 +46,14 @@ struct PyMessage
     nb::object header;
     std::string name;
 
-    PyMessage(nb::object message_body_, nb::object header_, std::string name_)
-        : message_body(message_body_), header(header_), name(name_) {}
+    PyMessage(nb::object message_body_, nb::object header_, std::string name_) : message_body(message_body_), header(header_), name(name_) {}
 
     std::string repr() const
     {
-        return "<" + name + " Message>";
+        std::stringstream repr;
+        repr << "<Message " << nb::repr(message_body).c_str() << ">";
+        return repr.str();
     }
 };
-
-
 
 } // namespace novatel::edie::oem
