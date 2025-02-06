@@ -4,6 +4,12 @@
 build/
 docs/build
 bin/
+out/
+CMakeFiles/
+**.cmake
+**.dir/
+Debug/
+conan_host_profile
 CMakeSettings.json
 CMakeUserPresets.json
 /include/novatel_edie/version.h

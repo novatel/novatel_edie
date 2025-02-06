@@ -26,6 +26,7 @@ A module concerning the generation of type hint stub files for the novatel_edie 
 import os
 import json
 import re
+import textwrap
 from typing import Union
 
 import typer
@@ -183,6 +184,16 @@ class StubGenerator:
             A string containing type hint stubs for the message definition.
         """
         subfield_hints = []
+
+        # Create the Message type hint
+        name = message_def['name']
+        message_hint = textwrap.dedent(f"""\
+            class {name}(Message):
+                @property
+                def header(self) -> Header: ...
+                @property
+                def body(self) -> {name}_Body: ...
+        """)
 
         # Create the MessageBody type hint
         name = message_def["name"]

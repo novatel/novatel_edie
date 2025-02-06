@@ -105,7 +105,7 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
 }
 
 PyMessageBody::PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name_)
-    : fields(std::move(message_)), parent_db_(std::move(parent_db_)), name(std::move(name_))
+    : name(std::move(name_)), fields(std::move(message_)), parent_db_(std::move(parent_db_))
 {
 }
 
