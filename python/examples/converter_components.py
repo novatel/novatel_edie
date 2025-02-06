@@ -116,7 +116,7 @@ def main():
 
                 # Get info from the log.
                 if isinstance(message, RANGE):
-                    obs = message.body.obs
+                    obs = message.obs
                     for ob in obs:
                         value = ob.psr
                         pass
