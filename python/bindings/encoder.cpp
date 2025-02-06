@@ -24,7 +24,6 @@ void init_novatel_encoder(nb::module_& m)
                const oem::MetaDataStruct& metadata, ENCODE_FORMAT format) {
                 MessageDataStruct message_data;
                 oem::IntermediateHeader* header_cinst = nb::inst_ptr<oem::IntermediateHeader>(py_message.header);
-                oem::PyMessageBody* body_cinst = nb::inst_ptr<oem::PyMessageBody>(py_message.message_body);
                 if (format == ENCODE_FORMAT::JSON)
                 {
                     // Allocate more space for JSON messages.
@@ -33,7 +32,7 @@ void init_novatel_encoder(nb::module_& m)
                     uint8_t buffer[MESSAGE_SIZE_MAX * 3];
                     auto* buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
                     uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
-                    STATUS status = encoder.Encode(&buf_ptr, buf_size, *header_cinst, body_cinst->fields, message_data, metadata, format);
+                    STATUS status = encoder.Encode(&buf_ptr, buf_size, *header_cinst, py_message.fields, message_data, metadata, format);
                     return nb::make_tuple(status, oem::PyMessageData(message_data));
                 }
                 else
@@ -41,7 +40,7 @@ void init_novatel_encoder(nb::module_& m)
                     uint8_t buffer[MESSAGE_SIZE_MAX];
                     auto buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
                     uint32_t buf_size = MESSAGE_SIZE_MAX;
-                    STATUS status = encoder.Encode(&buf_ptr, buf_size, *header_cinst, body_cinst->fields, message_data, metadata, format);
+                    STATUS status = encoder.Encode(&buf_ptr, buf_size, *header_cinst, py_message.fields, message_data, metadata, format);
                     return nb::make_tuple(status, oem::PyMessageData(message_data));
                 }
             },

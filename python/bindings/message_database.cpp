@@ -275,7 +275,7 @@ void PyMessageDatabase::UpdatePythonMessageTypes()
     // get type constructor
     nb::object type_constructor = nb::module_::import_("builtins").attr("type");
     // specify the python superclasses for the new message and message body types
-    nb::tuple body_type_tuple = nb::make_tuple(nb::type<oem::PyMessageBody>());
+    nb::tuple body_type_tuple = nb::make_tuple(nb::type<oem::PyField>());
     // provide no additional attributes via `__dict__`
     nb::dict type_dict = nb::dict();
 
