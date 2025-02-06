@@ -104,5 +104,5 @@ class NovatelEdieConan(ConanFile):
             "edie_decoders_common",
             "edie_common",
         ]
-        db_path = os.path.join(self.package_folder, "res", "novatel_edie", "messages_public.json")
+        db_path = os.path.join(self.package_folder, "res", "novatel_edie", "database.json")
         self.runenv_info.define_path("EDIE_DATABASE_FILE", db_path)
