@@ -26,6 +26,7 @@ A module concerning the generation of type hint stub files for the novatel_edie 
 import os
 import json
 import re
+import textwrap
 from typing import Union
 
 import typer
@@ -185,26 +186,30 @@ class StubGenerator:
         subfield_hints = []
 
         # Create the Message type hint
-        message_hint = (f'class {message_def["name"]}(Message):\n'
-                         '    @property\n'
-                         '    def header(self) -> Header: ...\n\n'
-                         '    @property\n'
-                        f'    def body(self) -> {message_def["name"]}_Body: ...\n\n')
+        name = message_def["name"]
+        message_hint = (textwrap.dedent(f"""\
+            class {name}_Message(Message):
+                @property
+                def header(self) -> Header: ...
+
+                @property
+                def body(self) -> {name}: ...
+
+        """))
 
         # Create the MessageBody type hint
-        body_name = f'{message_def["name"]}_Body'
-        body_hint = f'class {body_name}(MessageBody):\n'
+        body_hint = f'class {name}(MessageBody):\n'
         fields = message_def['fields'][message_def['latestMsgDefCrc']]
         if not fields:
             body_hint += '    pass\n\n'
         for field in fields:
-            python_type = self._get_field_pytype(field, body_name)
+            python_type = self._get_field_pytype(field, name)
             body_hint +=  '    @property\n'
             body_hint += f'    def {field["name"]}(self) -> {python_type}: ...\n\n'
 
             # Create hints for any subfields
             if field['type'] == 'FIELD_ARRAY':
-                subfield_hints.append(self._convert_field_array_def(field, body_name))
+                subfield_hints.append(self._convert_field_array_def(field, name))
 
         # Combine all hints
         hints = subfield_hints + [body_hint, message_hint]

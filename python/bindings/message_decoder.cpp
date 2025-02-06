@@ -1,9 +1,9 @@
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 
 #include <nanobind/stl/bind_vector.h>
-#include <nanobind/stl/variant.h>
 #include <nanobind/stl/list.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/variant.h>
 
 #include "bindings_core.hpp"
 #include "message_db_singleton.hpp"
@@ -46,18 +46,22 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
             sub_values.reserve(message_field.size());
             nb::handle field_ptype;
             std::string field_name = parent + "_" + field.fieldDef->name + "_Field";
-            try {
+            try
+            {
                 field_ptype = parent_db->GetMessagesByNameDict().at(field_name);
-            } catch (const std::out_of_range& e) {
-                field_ptype = parent_db->GetMessagesByNameDict().at("UNKNOWN_Body");
             }
-            for (const auto& subfield : message_field) { 
+            catch (const std::out_of_range& e)
+            {
+                field_ptype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
+            }
+            for (const auto& subfield : message_field)
+            {
                 nb::object pyinst = nb::inst_alloc(field_ptype);
                 PyMessageBody* cinst = nb::inst_ptr<PyMessageBody>(pyinst);
                 const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
                 new (cinst) PyMessageBody(message_subfield, parent_db, field_name);
                 nb::inst_mark_ready(pyinst);
-                sub_values.push_back(pyinst); 
+                sub_values.push_back(pyinst);
             }
             return nb::cast(sub_values);
         }
@@ -102,7 +106,8 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
 
 PyMessageBody::PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name_)
     : fields(std::move(message_)), parent_db_(std::move(parent_db_)), name(std::move(name_))
-{}
+{
+}
 
 nb::dict& PyMessageBody::get_values() const
 {
@@ -229,12 +234,13 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_ro("body", &PyMessage::message_body)
         .def_ro("header", &PyMessage::header)
         .def_ro("name", &PyMessage::name)
-        .def("to_dict", [](const PyMessage& self) {
-            nb::dict message_dict;
-            message_dict["header"] = self.header.attr("to_dict")();
-            message_dict["body"] = self.message_body.attr("to_dict")();
-            return message_dict;
-        })
+        .def("to_dict",
+             [](const PyMessage& self) {
+                 nb::dict message_dict;
+                 message_dict["header"] = self.header.attr("to_dict")();
+                 message_dict["body"] = self.message_body.attr("to_dict")();
+                 return message_dict;
+             })
         .def("__repr__", &PyMessage::repr)
         .def("__str__", &PyMessage::repr);
 
@@ -258,18 +264,19 @@ void init_novatel_message_decoder(nb::module_& m)
                 PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);
                 nb::handle message_pytype;
                 nb::handle body_pytype;
-                const std::string message_name = metadata.MessageName();
-                const std::string message_body_name = metadata.MessageName() + "_Body";
+                const std::string message_name = metadata.MessageName() + "_Message";
+                const std::string message_body_name = metadata.MessageName();
 
-                try {
+                try
+                {
                     message_pytype = parent_db->GetMessagesByNameDict().at(message_name);
                     body_pytype = parent_db->GetMessagesByNameDict().at(message_body_name);
-                } catch (const std::out_of_range& e)
-                {
-                    message_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
-                    body_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN_Body");
                 }
-
+                catch (const std::out_of_range& e)
+                {
+                    message_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN_Message");
+                    body_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
+                }
 
                 nb::object body_pyinst = nb::inst_alloc(body_pytype);
                 PyMessageBody* body_cinst = nb::inst_ptr<PyMessageBody>(body_pyinst);
@@ -292,18 +299,18 @@ void init_novatel_message_decoder(nb::module_& m)
                 std::string body_str(message_body.c_str(), message_body.size());
                 const char* data_ptr = body_str.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, &data_ptr, fields);
-            return nb::make_tuple(status, PyMessageBody(std::move(fields), get_parent_db(decoder), "UNKNOWN_Body"));
-        },
-        "msg_def_fields"_a, "message_body"_a)
+                return nb::make_tuple(status, PyMessageBody(std::move(fields), get_parent_db(decoder), "UNKNOWN"));
+            },
+            "msg_def_fields"_a, "message_body"_a)
         .def(
             "_decode_binary",
             [](oem::MessageDecoder& decoder, const std::vector<BaseField::Ptr>& msg_def_fields, const nb::bytes& message_body,
-                uint32_t message_length) {
+               uint32_t message_length) {
                 std::vector<FieldContainer> fields;
                 const char* data_ptr = message_body.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr),
                                                                                         fields, message_length);
-            return nb::make_tuple(status, PyMessageBody(std::move(fields), get_parent_db(decoder), "UNKNOWN_Body"));
-        },
-        "msg_def_fields"_a, "message_body"_a, "message_length"_a);
- }
+                return nb::make_tuple(status, PyMessageBody(std::move(fields), get_parent_db(decoder), "UNKNOWN"));
+            },
+            "msg_def_fields"_a, "message_body"_a, "message_length"_a);
+}
