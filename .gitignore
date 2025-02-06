@@ -4,6 +4,7 @@
 build/
 docs/build
 bin/
+out/
 CMakeSettings.json
 CMakeUserPresets.json
 /include/novatel_edie/version.h
