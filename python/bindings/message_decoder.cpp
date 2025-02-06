@@ -57,9 +57,9 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
             for (const auto& subfield : message_field)
             {
                 nb::object pyinst = nb::inst_alloc(field_ptype);
-                PyMessageBody* cinst = nb::inst_ptr<PyMessageBody>(pyinst);
+                PyField* cinst = nb::inst_ptr<PyField>(pyinst);
                 const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-                new (cinst) PyMessageBody(message_subfield, parent_db, field_name);
+                new (cinst) PyField(message_subfield, parent_db, field_name);
                 nb::inst_mark_ready(pyinst);
                 sub_values.push_back(pyinst);
             }
@@ -104,12 +104,12 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
     }
 }
 
-PyMessageBody::PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name_)
+PyField::PyField(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name_)
     : name(std::move(name_)), fields(std::move(message_)), parent_db_(std::move(parent_db_))
 {
 }
 
-nb::dict& PyMessageBody::get_values() const
+nb::dict& PyField::get_values() const
 {
     if (cached_values_.size() == 0)
     {
@@ -118,7 +118,7 @@ nb::dict& PyMessageBody::get_values() const
     return cached_values_;
 }
 
-nb::dict& PyMessageBody::get_fields() const
+nb::dict& PyField::get_fields() const
 {
     if (cached_fields_.size() == 0)
     {
@@ -127,18 +127,18 @@ nb::dict& PyMessageBody::get_fields() const
     return cached_fields_;
 }
 
-nb::dict PyMessageBody::to_dict() const
+nb::dict PyField::to_dict() const
 {
     nb::dict dict;
     for (const auto& [field_name, value] : get_values())
     {
-        if (nb::isinstance<PyMessageBody>(value)) { dict[field_name] = nb::cast<PyMessageBody>(value).to_dict(); }
+        if (nb::isinstance<PyField>(value)) { dict[field_name] = nb::cast<PyField>(value).to_dict(); }
         else if (nb::isinstance<std::vector<nb::object>>(value))
         {
             nb::list list;
             for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value))
             {
-                if (nb::isinstance<PyMessageBody>(sub_item)) { list.append(nb::cast<PyMessageBody>(sub_item).to_dict()); }
+                if (nb::isinstance<PyField>(sub_item)) { list.append(nb::cast<PyField>(sub_item).to_dict()); }
                 else { list.append(sub_item); }
             }
             dict[field_name] = list;
@@ -148,19 +148,19 @@ nb::dict PyMessageBody::to_dict() const
     return dict;
 }
 
-nb::object PyMessageBody::getattr(nb::str field_name) const
+nb::object PyField::getattr(nb::str field_name) const
 {
     if (!contains(field_name)) { throw nb::attribute_error(field_name.c_str()); }
     return get_values()[std::move(field_name)];
 }
 
-nb::object PyMessageBody::getitem(nb::str field_name) const { return get_values()[std::move(field_name)]; }
+nb::object PyField::getitem(nb::str field_name) const { return get_values()[std::move(field_name)]; }
 
-bool PyMessageBody::contains(nb::str field_name) const { return get_values().contains(std::move(field_name)); }
+bool PyField::contains(nb::str field_name) const { return get_values().contains(std::move(field_name)); }
 
-size_t PyMessageBody::len() const { return fields.size(); }
+size_t PyField::len() const { return fields.size(); }
 
-std::string PyMessageBody::repr() const
+std::string PyField::repr() const
 {
     std::stringstream repr;
     repr << name << "(";
@@ -206,13 +206,13 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_rw("milliseconds", &PyGpsTime::milliseconds)
         .def_rw("status", &PyGpsTime::time_status);
 
-    nb::class_<PyMessageBody>(m, "MessageBody")
-        .def_prop_ro("_values", &PyMessageBody::get_values)
-        .def_prop_ro("_fields", &PyMessageBody::get_fields)
-        .def("to_dict", &PyMessageBody::to_dict, "Convert the message and its sub-messages into a dict")
-        .def("__getattr__", &PyMessageBody::getattr, "field_name"_a)
-        .def("__repr__", &PyMessageBody::repr)
-        .def("__str__", &PyMessageBody::repr)
+    nb::class_<PyField>(m, "Field")
+        .def_prop_ro("_values", &PyField::get_values)
+        .def_prop_ro("_fields", &PyField::get_fields)
+        .def("to_dict", &PyField::to_dict, "Convert the message and its sub-messages into a dict")
+        .def("__getattr__", &PyField::getattr, "field_name"_a)
+        .def("__repr__", &PyField::repr)
+        .def("__str__", &PyField::repr)
         .def("__dir__", [](nb::object self) {
             // get required Python builtin functions
             nb::module_ builtins = nb::module_::import_("builtins");
@@ -224,25 +224,29 @@ void init_novatel_message_decoder(nb::module_& m)
             nb::object super_obj = super(body_type, self);
             nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
             // add dynamic fields to the list
-            PyMessageBody* body = nb::inst_ptr<PyMessageBody>(self);
+            PyField* body = nb::inst_ptr<PyField>(self);
             for (const auto& [field_name, _] : body->get_fields()) { base_list.append(field_name); }
 
             return base_list;
         });
 
-    nb::class_<PyMessage>(m, "Message")
-        .def_ro("body", &PyMessage::message_body)
-        .def_ro("header", &PyMessage::header)
-        .def_ro("name", &PyMessage::name)
-        .def("to_dict",
-             [](const PyMessage& self) {
-                 nb::dict message_dict;
-                 message_dict["header"] = self.header.attr("to_dict")();
-                 message_dict["body"] = self.message_body.attr("to_dict")();
-                 return message_dict;
-             })
-        .def("__repr__", &PyMessage::repr)
-        .def("__str__", &PyMessage::repr);
+    nb::class_<PyMessage, PyField>(m, "Message")
+        .def_ro("header", &PyMessage::header);
+
+
+    //nb::class_<PyMessage>(m, "Message")
+    //    .def_ro("body", &PyMessage::message_body)
+    //    .def_ro("header", &PyMessage::header)
+    //    .def_ro("name", &PyMessage::name)
+    //    .def("to_dict",
+    //         [](const PyMessage& self) {
+    //             nb::dict message_dict;
+    //             message_dict["header"] = self.header.attr("to_dict")();
+    //             message_dict["body"] = self.message_body.attr("to_dict")();
+    //             return message_dict;
+    //         })
+    //    .def("__repr__", &PyMessage::repr)
+    //    .def("__str__", &PyMessage::repr);
 
     nb::class_<FieldContainer>(m, "FieldContainer")
         .def_rw("value", &FieldContainer::fieldValue)
@@ -275,13 +279,13 @@ void init_novatel_message_decoder(nb::module_& m)
                 }
 
                 nb::object body_pyinst = nb::inst_alloc(body_pytype);
-                PyMessageBody* body_cinst = nb::inst_ptr<PyMessageBody>(body_pyinst);
-                new (body_cinst) PyMessageBody(std::move(fields), parent_db, message_name);
+                PyField* body_cinst = nb::inst_ptr<PyField>(body_pyinst);
+                new (body_cinst) PyField(std::move(fields), parent_db, message_name);
                 nb::inst_mark_ready(body_pyinst);
 
-                auto message_pyinst = std::make_shared<PyMessage>(body_pyinst, header, message_name);
+                //auto message_pyinst = std::make_shared<PyMessage>(body_pyinst, header, message_name);
 
-                return nb::make_tuple(status, message_pyinst);
+                return nb::make_tuple(status, body_pyinst);
             },
             "message_body"_a, "decoded_header"_a, "metadata"_a)
         .def(
@@ -292,7 +296,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 std::string body_str(message_body.c_str(), message_body.size());
                 const char* data_ptr = body_str.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, &data_ptr, fields);
-                return nb::make_tuple(status, PyMessageBody(std::move(fields), get_parent_db(decoder), "UNKNOWN"));
+                return nb::make_tuple(status, PyField(std::move(fields), get_parent_db(decoder), "UNKNOWN"));
             },
             "msg_def_fields"_a, "message_body"_a)
         .def(
@@ -303,7 +307,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 const char* data_ptr = message_body.c_str();
                 STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr),
                                                                                         fields, message_length);
-                return nb::make_tuple(status, PyMessageBody(std::move(fields), get_parent_db(decoder), "UNKNOWN"));
+                return nb::make_tuple(status, PyField(std::move(fields), get_parent_db(decoder), "UNKNOWN"));
             },
             "msg_def_fields"_a, "message_body"_a, "message_length"_a);
 }

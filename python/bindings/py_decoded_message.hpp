@@ -18,10 +18,10 @@ struct PyGpsTime
     TIME_STATUS time_status{TIME_STATUS::UNKNOWN};
 };
 
-struct PyMessageBody
+struct PyField
 {
     std::string name;
-    explicit PyMessageBody(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name);
+    explicit PyField(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name_);
     nb::dict& get_values() const;
     nb::dict& get_fields() const;
     nb::dict to_dict() const;
@@ -40,20 +40,29 @@ struct PyMessageBody
     PyMessageDatabase::ConstPtr parent_db_;
 };
 
-struct PyMessage
+struct PyMessage : public PyField
 {
-    nb::object message_body;
+  public:
     nb::object header;
-    std::string name;
 
-    PyMessage(nb::object message_body_, nb::object header_, std::string name_) : message_body(message_body_), header(header_), name(name_) {}
-
-    std::string repr() const
-    {
-        std::stringstream repr;
-        repr << "<Message " << nb::repr(message_body).c_str() << ">";
-        return repr.str();
-    }
+    PyMessage(nb::object header_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_)
+        : PyField(std::move(fields_), std::move(parent_db_), std::move(name_)), header(std::move(header_)) {}
 };
+
+//struct PyMessage
+//{
+//    nb::object message_body;
+//    nb::object header;
+//    std::string name;
+//
+//    PyMessage(nb::object message_body_, nb::object header_, std::string name_) : message_body(message_body_), header(header_), name(name_) {}
+//
+//    std::string repr() const
+//    {
+//        std::stringstream repr;
+//        repr << "<Message " << nb::repr(message_body).c_str() << ">";
+//        return repr.str();
+//    }
+//};
 
 } // namespace novatel::edie::oem
