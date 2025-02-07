@@ -207,8 +207,8 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_rw("status", &PyGpsTime::time_status);
 
     nb::class_<PyField>(m, "Field")
-        .def_prop_ro("_values", &PyField::get_values)
-        .def_prop_ro("_fields", &PyField::get_fields)
+        //.def_prop_ro("_values", &PyField::get_values)
+        //.def_prop_ro("_fields", &PyField::get_fields)
         .def("to_dict", &PyField::to_dict, "Convert the message and its sub-messages into a dict")
         .def("__getattr__", &PyField::getattr, "field_name"_a)
         .def("__repr__", &PyField::repr)
@@ -239,6 +239,7 @@ void init_novatel_message_decoder(nb::module_& m)
 
     nb::class_<PyMessage, PyField>(m, "Message")
         .def_ro("header", &PyMessage::header)
+        .def_ro("name", &PyMessage::name)
         .def(
             "to_dict", [](const PyMessage& self, bool include_header) { 
                 nb::dict dict = self.to_dict();
