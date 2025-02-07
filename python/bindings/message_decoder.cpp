@@ -267,24 +267,24 @@ void init_novatel_message_decoder(nb::module_& m)
                 std::vector<FieldContainer> fields;
                 STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(message_body.c_str()), fields, metadata);
                 PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);
-                nb::handle message_pytype;
+                nb::handle body_pytype;
                 const std::string message_name = metadata.MessageName();
 
                 try
                 {
-                    message_pytype = parent_db->GetMessagesByNameDict().at(message_name);
+                    body_pytype = parent_db->GetMessagesByNameDict().at(message_name);
                 }
                 catch (const std::out_of_range& e)
                 {
-                    message_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
+                    body_pytype = parent_db->GetMessagesByNameDict().at("UNKNOWN");
                 }
 
-                nb::object message_pyinst = nb::inst_alloc(message_pytype);
-                PyMessage* body_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
+                nb::object body_pyinst = nb::inst_alloc(body_pytype);
+                PyMessage* body_cinst = nb::inst_ptr<PyMessage>(body_pyinst);
                 new (body_cinst) PyMessage(fields, parent_db, message_name, header);
-                nb::inst_mark_ready(message_pyinst);
+                nb::inst_mark_ready(body_pyinst);
 
-                return nb::make_tuple(status, message_pyinst);
+                return nb::make_tuple(status, body_pyinst);
             },
             "message_body"_a, "decoded_header"_a, "metadata"_a)
         .def(
