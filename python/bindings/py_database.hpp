@@ -34,9 +34,8 @@ class PyMessageDatabase final : public MessageDatabase
     //! \brief Creates Python types for each component of all message definitions in the database.
     //! 
     //! A message named "MESSAGE" will be mapped to a Python class named "MESSAGE".
-    //! The message's body will be mapped to a class named "MESSAGE_Body".
-    //! A field of that body named "FIELD" will be mapped to a class named "MESSAGE_Body_FIELD_Field".
-    //! A subfield of that field named "SUBFIELD" will be mapped to a class named "MESSAGE_Body_FIELD_Field_SUBFIELD_Field".
+    //! A field of that body named "FIELD" will be mapped to a class named "MESSAGE_FIELD_Field".
+    //! A subfield of that field named "SUBFIELD" will be mapped to a class named "MESSAGE_FIELD_Field_SUBFIELD_Field".
     //! 
     //! These classes are stored by name in the messages_by_name map.
     //-----------------------------------------------------------------------
