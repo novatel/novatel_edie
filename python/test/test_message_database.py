@@ -22,10 +22,9 @@
 #
 ################################################################################=
 
-import novatel_edie as ne
-
+from novatel_edie.enums import Datum
 
 def test_message_db_enums(json_db):
     assert json_db.enums["Datum"].WGS84 == 61
     assert json_db.enums["Datum"].WGS84.name == "WGS84"
-    assert json_db.enums["Datum"].WGS84 == ne.enums.Datum.WGS84
+    assert json_db.enums["Datum"].WGS84 == Datum.WGS84

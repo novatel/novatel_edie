@@ -31,6 +31,7 @@ import enum
 from collections import namedtuple
 
 import novatel_edie as ne
+from novatel_edie.enums import SolStatus, SolType, Datum
 import pytest
 from novatel_edie import STATUS, ENCODE_FORMAT
 from novatel_edie.messages import *
@@ -506,13 +507,13 @@ def test_flat_binary_log_decode_bestpos(helper):
 
     # SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n"
     assert isinstance(message, BESTPOS)
-    assert message.solution_status == ne.enums.SolStatus.SOL_COMPUTED
-    assert message.position_type == ne.enums.SolType.SINGLE
+    assert message.solution_status == SolStatus.SOL_COMPUTED
+    assert message.position_type == SolType.SINGLE
     assert message.latitude == 51.15043711386
     assert message.longitude == -114.03067767000
     assert message.orthometric_height == 1097.2099
     assert message.undulation == -17.0000
-    assert message.datum_id == ne.enums.Datum.WGS84
+    assert message.datum_id == Datum.WGS84
     assert message.latitude_std_dev == approx(0.9038, abs=1e-5)
     assert message.longitude_std_dev == approx(0.8534, abs=1e-5)
     assert message.height_std_dev == approx(1.7480, abs=1e-5)
