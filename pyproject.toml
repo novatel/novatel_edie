@@ -58,3 +58,6 @@ archs = "auto64"
 # Needed for full C++17 support
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "10.15"
+
+[project.scripts]
+novatel_edie = "novatel_edie.cli:app"
