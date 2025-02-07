@@ -18,6 +18,13 @@ struct PyGpsTime
     TIME_STATUS time_status{TIME_STATUS::UNKNOWN};
 };
 
+//============================================================================
+//! \class PyField
+//! \brief A python representation for a single log message or message field.
+//! 
+//! Contains a vector of FieldContainer objects, which behave like attributes 
+//! within the Python API.
+//============================================================================
 struct PyField
 {
     std::string name;
@@ -40,6 +47,13 @@ struct PyField
     PyMessageDatabase::ConstPtr parent_db_;
 };
 
+
+//============================================================================
+//! \class PyMessage
+//! \brief A python representation for a single log message.
+//! 
+//! Extends PyField with reference to the Python represenation of a Header.
+//============================================================================
 struct PyMessage : public PyField
 {
   public:
