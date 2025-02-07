@@ -67,7 +67,7 @@ add_custom_target(
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie/stubgen.py ${CMAKE_SOURCE_DIR}/database/database.json ${CMAKE_CURRENT_BINARY_DIR}/stubs
     COMMENT "Generating dynamic stubs"
     DEPENDS
-        ${CMAKE_SOURCE_DIR}/python/novatel_edie/stubgen.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie/stubgen.py
         ${CMAKE_SOURCE_DIR}/database/database.json
 )
 
