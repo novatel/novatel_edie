@@ -243,7 +243,7 @@ void init_novatel_message_decoder(nb::module_& m)
         .def(
             "to_dict", [](const PyMessage& self, bool include_header) { 
                 nb::dict dict = self.to_dict();
-                if (include_header) { dict["header"] = self.header.attr("to_dict")(); }
+                if (include_header) { dict["header"] = self.header.to_dict(); }
                 return dict;
             }, 
             "include_header"_a = true,
@@ -263,7 +263,7 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_prop_ro("logger", [](oem::MessageDecoder& decoder) { return decoder.GetLogger(); })
         .def(
             "decode",
-            [](const oem::MessageDecoder& decoder, const nb::bytes& message_body, nb::object header, oem::MetaDataStruct& metadata) {
+            [](const oem::MessageDecoder& decoder, const nb::bytes& message_body, PyHeader header, oem::MetaDataStruct& metadata) {
                 std::vector<FieldContainer> fields;
                 STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(message_body.c_str()), fields, metadata);
                 PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);

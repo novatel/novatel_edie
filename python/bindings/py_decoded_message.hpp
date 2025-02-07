@@ -20,6 +20,15 @@ struct PyGpsTime
 
 //============================================================================
 //! \class PyField
+//! \brief A python representation for a log header.
+//============================================================================
+struct PyHeader : public IntermediateHeader
+{
+    nb::dict to_dict() const;
+};
+
+//============================================================================
+//! \class PyField
 //! \brief A python representation for a single log message or message field.
 //! 
 //! Contains a vector of FieldContainer objects, which behave like attributes 
@@ -57,9 +66,9 @@ struct PyField
 struct PyMessage : public PyField
 {
   public:
-    nb::object header;
+    PyHeader header;
 
-    PyMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_, nb::object header_)
+    PyMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_, PyHeader header_)
         : PyField(std::move(fields_), std::move(parent_db_), std::move(name_)), header(std::move(header_)) {}
 };
 
