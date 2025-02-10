@@ -109,25 +109,28 @@ def main():
                 if not filter.do_filtering(meta):
                     continue
 
-                # Decode the log body.
-                body = frame[meta.header_length:]
-                status, message = message_decoder.decode(body, header, meta)
-                status.raise_on_error("MessageDecoder.decode() failed")
+                if meta.message_id == 39:
+                    pass
+
+                    # Decode the log body.
+                    body = frame[meta.header_length:]
+                    status, message = message_decoder.decode(body, header, meta)
+                    status.raise_on_error("MessageDecoder.decode() failed")
 
                 # Get info from the log.
-                if isinstance(message, RANGE):
-                    obs = message.obs
-                    for ob in obs:
-                        value = ob.psr
-                        pass
+                # if isinstance(message, RANGE):
+                #     obs = message.obs
+                #     for ob in obs:
+                #         value = ob.psr
+                #         pass
 
 
-                # Re-encode the log and write it to the output file.
-                status, encoded_message = encoder.encode(message, meta, encode_format)
-                status.raise_on_error("Encoder.encode() failed")
+                # # Re-encode the log and write it to the output file.
+                # status, encoded_message = encoder.encode(message, meta, encode_format)
+                # status.raise_on_error("Encoder.encode() failed")
 
-                converted_logs_stream.write(encoded_message.message)
-                logger.info( f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
+                # converted_logs_stream.write(encoded_message.message)
+                # logger.info( f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
             except ne.DecoderException as e:
                 logger.warn(str(e))
 
