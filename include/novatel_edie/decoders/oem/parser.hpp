@@ -82,11 +82,11 @@ class Parser
     //! \brief uiParserInternalBufferSize: the size of the parser's internal buffer.
     static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX;
 
-    //! NOTE: The following constructors prevent this class from ever being
-    //! constructed from a copy, move or assignment.
+    //! NOTE: disable copies and moves.
     Parser(const Parser&) = delete;
     Parser(const Parser&&) = delete;
     Parser& operator=(const Parser&) = delete;
+    Parser& operator=(const Parser&&) = delete;
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.

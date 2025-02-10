@@ -50,11 +50,11 @@ class FileParser
     [[nodiscard]] bool ReadStream();
 
   public:
-    //! NOTE: The following constructors prevent this class from ever being
-    //! constructed from a copy, move or assignment.
+    //! NOTE: disable copies and moves.
     FileParser(const FileParser&) = delete;
     FileParser(const FileParser&&) = delete;
     FileParser& operator=(const FileParser&) = delete;
+    FileParser& operator=(const FileParser&&) = delete;
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.

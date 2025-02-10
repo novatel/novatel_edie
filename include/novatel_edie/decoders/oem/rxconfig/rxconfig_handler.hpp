@@ -70,11 +70,11 @@ class RxConfigHandler
     static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
 
   public:
-    //! NOTE: The following constructors prevent this class from ever being
-    //! constructed from a copy, move or assignment.
+    //! NOTE: disable copies and moves.
     RxConfigHandler(const RxConfigHandler&) = delete;
     RxConfigHandler(const RxConfigHandler&&) = delete;
     RxConfigHandler& operator=(const RxConfigHandler&) = delete;
+    RxConfigHandler& operator=(const RxConfigHandler&&) = delete;
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the RxConfigHandler class.
