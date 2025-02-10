@@ -37,7 +37,7 @@
 //! \brief Base class for all framers. Contains necessary buffers and member
 //! variables, defining generic framer operations.
 //============================================================================
-template <typename Derived> class FramerBase
+class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
@@ -52,7 +52,7 @@ template <typename Derived> class FramerBase
     bool bMyPayloadOnly{false};
     bool bMyFrameJson{false};
 
-    void ResetState() { return static_cast<Derived*>(this)->ResetStateImpl(); }
+    virtual void ResetState() = 0;
 
     [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
