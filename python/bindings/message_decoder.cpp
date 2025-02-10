@@ -256,7 +256,12 @@ void init_novatel_message_decoder(nb::module_& m)
             "include_header"_a = true,
             "Convert the message and its sub-messages into a dict");
 
-    nb::class_<UnknownMessage, PyMessage>(m, "UNKNOWN").def_ro("bytes", &UnknownMessage::bytes);
+    nb::class_<UnknownMessage, PyMessage>(m, "UNKNOWN")
+        .def("__repr__", [](const UnknownMessage self) { 
+            std::string name = nb::cast<std::string>(nb::str(self.bytes));
+            return "UNKNOWN(bytes=" + name + ")";
+        })
+        .def_ro("bytes", &UnknownMessage::bytes);
 
     nb::class_<FieldContainer>(m, "FieldContainer")
         .def_rw("value", &FieldContainer::fieldValue)
