@@ -37,7 +37,10 @@ struct PyHeader : public IntermediateHeader
 struct PyField
 {
     std::string name;
-    explicit PyField(std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_, std::string name_);
+    bool has_ptype; // Whether the field has a specific Python type associated with it
+
+    explicit PyField(std::string name_, bool has_ptype_, std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_)
+        : name(std::move(name_)), has_ptype(has_ptype_), fields(std::move(message_)), parent_db_(std::move(parent_db_)) {};
     nb::dict& get_values() const;
     nb::dict& get_fields() const;
     nb::dict to_dict() const;
@@ -68,8 +71,10 @@ struct PyMessage : public PyField
   public:
     PyHeader header;
 
-    PyMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_, PyHeader header_)
-        : PyField(std::move(fields_), std::move(parent_db_), std::move(name_)), header(std::move(header_)) {}
+    PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_)
+        : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)),  header(std::move(header_))
+    {
+    }
 };
 
 //============================================================================
@@ -81,9 +86,8 @@ struct PyMessage : public PyField
 struct UnknownMessage : public PyMessage
 {
     nb::bytes bytes;
-    explicit UnknownMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_, PyHeader header_,
-                            nb::bytes bytes_)
-        : PyMessage(std::move(fields_), std::move(parent_db_), std::move(name_), std::move(header_)), bytes(std::move(bytes_))
+    explicit UnknownMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
+        : PyMessage("UNKNOWN", true, std::move(fields_), std::move(parent_db_), std::move(header_)), bytes(std::move(bytes_))
     {
     }
 };
