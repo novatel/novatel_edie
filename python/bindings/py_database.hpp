@@ -7,6 +7,14 @@ namespace nb = nanobind;
 
 namespace novatel::edie {
 
+struct PyMessageType
+{
+    nb::object python_type;
+    uint32_t crc;
+
+    PyMessageType(nb::object python_type_, uint32_t crc_) : python_type(std::move(python_type_)), crc(crc_) {}
+};
+
 class PyMessageDatabase final : public MessageDatabase
 {
   public:
@@ -15,7 +23,8 @@ class PyMessageDatabase final : public MessageDatabase
     explicit PyMessageDatabase(const MessageDatabase& message_db) noexcept;
     explicit PyMessageDatabase(const MessageDatabase&& message_db) noexcept;
 
-    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetMessagesByNameDict() const { return messages_by_name; }
+    [[nodiscard]] const std::unordered_map<std::string, PyMessageType*>& GetMessagesByNameDict() const { return messages_by_name; }
+    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetFieldsByNameDict() const { return fields_by_name; }
 
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
@@ -42,7 +51,8 @@ class PyMessageDatabase final : public MessageDatabase
     void UpdatePythonMessageTypes();
     void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_cons, nb::handle type_tuple, nb::handle type_dict);
 
-    std::unordered_map<std::string, nb::object> messages_by_name{};
+    std::unordered_map <std::string, PyMessageType*> messages_by_name{};
+    std::unordered_map<std::string, nb::object> fields_by_name{};
 
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};

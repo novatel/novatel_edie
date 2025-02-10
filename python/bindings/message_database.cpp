@@ -261,7 +261,7 @@ void PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fie
             auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
             nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
-            messages_by_name[field_name] = field_type;
+            fields_by_name[field_name] = field_type;
             AddFieldType(field_array_field->fields, field_name, type_constructor, type_tuple, type_dict);
         }
     }
@@ -283,12 +283,10 @@ void PyMessageDatabase::UpdatePythonMessageTypes()
     // add message and message body types for each message definition
     for (const auto& message_def : MessageDefinitions())
     {
+        uint32_t crc = message_def->latestMessageCrc;
         nb::object msg_type_def = type_constructor(message_def->name, message_type_tuple, type_dict);
-        messages_by_name[message_def->name] = msg_type_def;
+        messages_by_name[message_def->name] = new PyMessageType(msg_type_def, crc);
         // add additional MessageBody types for each field array element within the message definition
-        AddFieldType(message_def->fields.at(message_def->latestMessageCrc), message_def->name, type_constructor, field_type_tuple, type_dict);
+        AddFieldType(message_def->fields.at(crc), message_def->name, type_constructor, field_type_tuple, type_dict);
     }
-    // provide UNKNOWN types for undecodable messages
-    nb::object default_msg_type_def = type_constructor("UNKNOWN", message_type_tuple, type_dict);
-    messages_by_name["UNKNOWN"] = default_msg_type_def;
 }

@@ -1,5 +1,4 @@
 #include "novatel_edie/decoders/oem/framer.hpp"
-
 #include "bindings_core.hpp"
 
 namespace nb = nanobind;

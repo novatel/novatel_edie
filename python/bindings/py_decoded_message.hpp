@@ -1,7 +1,7 @@
 #pragma once
 
 #include "bindings_core.hpp"
-#include "novatel_edie/decoders/oem/message_decoder.hpp"
+#include "novatel_edie/decoders/oem/filter.hpp"
 
 namespace nb = nanobind;
 
@@ -70,6 +70,22 @@ struct PyMessage : public PyField
 
     PyMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_, PyHeader header_)
         : PyField(std::move(fields_), std::move(parent_db_), std::move(name_)), header(std::move(header_)) {}
+};
+
+//============================================================================
+//! \class UnknownMessage
+//! \brief A python representation for an unknown log message.
+//! 
+//! Contains the raw bytes of the message.
+//============================================================================
+struct UnknownMessage : public PyMessage
+{
+    nb::bytes bytes;
+    explicit UnknownMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, std::string name_, PyHeader header_,
+                            nb::bytes bytes_)
+        : PyMessage(std::move(fields_), std::move(parent_db_), std::move(name_), std::move(header_)), bytes(std::move(bytes_))
+    {
+    }
 };
 
 } // namespace novatel::edie::oem
