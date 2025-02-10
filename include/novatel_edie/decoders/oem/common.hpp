@@ -158,7 +158,7 @@ struct MetaDataStruct : public MetaDataBase
 //! \struct IntermediateHeader
 //! \brief Structure containing raw information about an OEM header.
 //-----------------------------------------------------------------------
-struct IntermediateHeader
+struct IntermediateHeader : public IntermediateHeaderBase
 {
     uint16_t usMessageId{0};
     uint8_t ucMessageType{0};

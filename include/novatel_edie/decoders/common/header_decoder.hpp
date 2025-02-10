@@ -24,30 +24,30 @@
 // ! \file header_decoder.hpp
 // ===============================================================================
 
-#ifndef NOVATEL_HEADER_DECODER_HPP
-#define NOVATEL_HEADER_DECODER_HPP
+#ifndef HEADER_DECODER_HPP
+#define HEADER_DECODER_HPP
 
 #include <nlohmann/json_fwd.hpp>
 
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/header_decoder.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
-#include "novatel_edie/decoders/oem/common.hpp"
 
-namespace novatel::edie::oem {
+namespace novatel::edie {
 
 //============================================================================
-//! \class HeaderDecoder
-//! \brief Decode framed OEM message headers.
+//! \class HeaderDecoderBase
+//! \brief Decode framed message headers.
 //============================================================================
-class HeaderDecoder : public HeaderDecoderBase
+class HeaderDecoderBase
 {
-  private:
-    // Decode headers
-    template <ASCII_HEADER eField> [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
-    template <ASCII_HEADER... eFields> [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
-    void DecodeJsonHeader(nlohmann::json clJsonHeader_, IntermediateHeader& stInterHeader_) const;
+  protected:
+    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("header_decoder")};
+    MessageDatabase::Ptr pclMyMsgDb{nullptr};
+    EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
+    EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
+    MessageDefinition stMyResponseDefinition;
 
   public:
     //----------------------------------------------------------------------------
@@ -55,12 +55,33 @@ class HeaderDecoder : public HeaderDecoderBase
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    HeaderDecoder(MessageDatabase::Ptr pclMessageDb_ = nullptr);
+    HeaderDecoderBase(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
-    //! \brief Decode an OEM message header from the provided frame.
+    //! \brief Load a MessageDatabase object.
     //
-    //! \param[in] pucLogBuf_ A pointer to an OEM message header.
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
+    //----------------------------------------------------------------------------
+    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the internal logger.
+    //
+    //! \return A shared_ptr to the spdlog::logger.
+    //----------------------------------------------------------------------------
+    std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Set the level of detail produced by the internal logger.
+    //
+    //! \param[in] eLevel_ The logging level to enable.
+    //----------------------------------------------------------------------------
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Decode a message header from the provided frame.
+    //
+    //! \param[in] pucLogBuf_ A pointer to a message header.
     //! \param[out] stInterHeader_ The IntermediateHeader to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
@@ -73,9 +94,9 @@ class HeaderDecoder : public HeaderDecoderBase
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(const unsigned char* pucLogBuf_, IntermediateHeaderBase& stInterHeader_, MetaDataBase& stMetaData_) const override;
+    [[nodiscard]] virtual STATUS Decode(const unsigned char* pucLogBuf_, IntermediateHeaderBase& stInterHeader_, MetaDataBase& stMetaData_) const = 0;
 };
 
-} // namespace novatel::edie::oem
+} // namespace novatel::edie
 
 #endif

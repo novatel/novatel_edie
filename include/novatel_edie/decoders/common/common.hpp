@@ -279,6 +279,15 @@ class MetaDataBase
 
 inline MetaDataBase::~MetaDataBase() = default;
 
+//-----------------------------------------------------------------------
+//! \struct IntermediateHeaderBase
+//! \brief Structure containing raw information about a header.
+//-----------------------------------------------------------------------
+struct IntermediateHeaderBase
+{
+    virtual ~IntermediateHeaderBase() = default; // Ensures polymorphism.
+};
+
 } // namespace novatel::edie
 
 // This allows the STATUS enum to be formatted as a string when used with the fmt library.
