@@ -87,7 +87,7 @@ struct UnknownMessage : public PyMessage
 {
     nb::bytes bytes;
     explicit UnknownMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
-        : PyMessage("UNKNOWN", true, std::move(fields_), std::move(parent_db_), std::move(header_)), bytes(std::move(bytes_))
+        : PyMessage("UNKNOWN", false, std::move(fields_), std::move(parent_db_), std::move(header_)), bytes(std::move(bytes_))
     {
     }
 };
