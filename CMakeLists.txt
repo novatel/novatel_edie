@@ -82,5 +82,5 @@ if(BUILD_BENCHMARKS OR BUILD_EXAMPLES OR BUILD_TESTS)
 endif()
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(FILES database/messages_public.json DESTINATION ${CMAKE_INSTALL_DATADIR}/novatel_edie)
+install(FILES database/database.json DESTINATION ${CMAKE_INSTALL_DATADIR}/novatel_edie)
 install_novatel_edie_cmake_config()

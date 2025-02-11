@@ -6,6 +6,7 @@ license = {text = "MIT"}
 requires-python = ">=3.8"
 dependencies = [
     "importlib_resources",
+    "typer >=0.15"
 ]
 
 [build-system]
@@ -13,6 +14,7 @@ requires = [
     "scikit-build-core >=0.4.3",
     "nanobind >=2.0.0",
     "conan >=2.4.0",
+    "typer >=0.15"
 ]
 build-backend = "scikit_build_core.build"
 
@@ -34,10 +36,10 @@ build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 cmake.minimum-version = "3.24"
-cmake.targets = ["python_bindings"]
+cmake.targets = ["python_bindings", "bindings_stub", "dynamic_stubs"]
 install.components = ["python"]
 wheel.license-files = ["LICENSE"]
-build-dir = "build/{wheel_tag}"
+build-dir = "out/build/{wheel_tag}"
 # Build stable ABI wheels for CPython 3.12+
 wheel.py-api = "cp312"
 
@@ -57,3 +59,6 @@ archs = "auto64"
 # Needed for full C++17 support
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "10.15"
+
+[project.scripts]
+novatel_edie = "novatel_edie.cli:app"

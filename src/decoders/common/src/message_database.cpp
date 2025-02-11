@@ -121,7 +121,7 @@ std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
     UnpackMsgId(uiMessageId_, usLogId, uiSiblingId, uiMessageFormat, uiResponse);
 
     MessageDefinition::ConstPtr pstMessageDefinition = GetMsgDef(usLogId);
-    std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : GetEnumString(vEnumDefinitions[0], usLogId);
+    std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : "UNKNOWN";
 
     std::string strMessageFormatSuffix;
     if (uiResponse != 0U) { strMessageFormatSuffix = "R"; }

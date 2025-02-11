@@ -8,31 +8,41 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-namespace {
-std::string default_json_db_path()
-{
-    // Does the following, but using nanobind:
-    // import importlib_resources
-    // path_ctx = importlib_resources.as_file(importlib_resources.files("novatel_edie").joinpath("messages_public.json"))
-    // with path_ctx as path:
-    //     return path
-    nb::object ir = nb::module_::import_("importlib_resources");
-    nb::object path_ctx = ir.attr("as_file")(ir.attr("files")("novatel_edie").attr("joinpath")("messages_public.json"));
-    auto py_path = path_ctx.attr("__enter__")();
-    if (!nb::cast<bool>(py_path.attr("is_file")()))
-    {
-        throw NExcept((std::string("Could not find the default JSON DB file at ") + nb::str(py_path).c_str()).c_str());
-    }
-    auto path = nb::cast<std::string>(nb::str(py_path));
-    path_ctx.attr("__exit__")(nb::none(), nb::none(), nb::none());
-    return path;
-}
-} // namespace
-
 PyMessageDatabase::Ptr& MessageDbSingleton::get()
 {
     static PyMessageDatabase::Ptr json_db = nullptr;
-    if (!json_db) { json_db = std::make_shared<PyMessageDatabase>(*JsonDbReader::LoadFile(default_json_db_path())); }
+
+    // If the database has already been loaded, return it
+    if (json_db) { return json_db; }
+
+    // Import necessary modules for locating the default database
+    nb::object builtins = nb::module_::import_("builtins");
+    nb::object os_path = nb::module_::import_("os.path");
+    nb::object import_lib_util = nb::module_::import_("importlib.util");
+
+    // Determine if the novatel_edie package exists within the current Python environment
+    nb::object module_spec = import_lib_util.attr("find_spec")("novatel_edie");
+    bool module_exists = nb::cast<bool>(builtins.attr("bool")(import_lib_util.attr("find_spec")("novatel_edie")));
+    // If the package does not exist, return an empty database
+    if (!module_exists)
+    {
+        json_db = std::make_shared<PyMessageDatabase>(MessageDatabase());
+        return json_db;
+    }
+
+    // Determine the path to the database file within the novatel_edie package
+    nb::object novatel_edie_path = os_path.attr("dirname")(module_spec.attr("origin"));
+    nb::object db_path = os_path.attr("join")(novatel_edie_path, "database.json");
+    // If the database file does not exist, return an empty database
+    bool db_exists = nb::cast<bool>(os_path.attr("isfile")(db_path));
+    if (!db_exists)
+    {
+        json_db = std::make_shared<PyMessageDatabase>(MessageDatabase());
+        return json_db;
+    }
+    // If the database file exists, load it
+    std::string default_json_db_path = nb::cast<std::string>(db_path);
+    json_db = std::make_shared<PyMessageDatabase>(*JsonDbReader::LoadFile(default_json_db_path));
     return json_db;
 }
 

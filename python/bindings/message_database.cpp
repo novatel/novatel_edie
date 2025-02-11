@@ -4,6 +4,7 @@
 
 #include "bindings_core.hpp"
 #include "py_database.hpp"
+#include "py_decoded_message.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -179,26 +180,51 @@ void init_common_message_database(nb::module_& m)
         .def("get_msg_def", nb::overload_cast<int32_t>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefId, "enum_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a)
-        .def_prop_ro("enums", &PyMessageDatabase::GetEnumsByNameDict);
+        .def_prop_ro("enums", &PyMessageDatabase::GetEnumsByNameDict)
+        .def_prop_ro("messages", &PyMessageDatabase::GetMessagesByNameDict);
 }
 
-PyMessageDatabase::PyMessageDatabase() { UpdatePythonEnums(); }
+PyMessageDatabase::PyMessageDatabase()
+{
+    UpdatePythonEnums();
+    UpdatePythonMessageTypes();
+}
 
 PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
                                      std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
     : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
 {
     UpdatePythonEnums();
+    UpdatePythonMessageTypes();
 }
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db) { UpdatePythonEnums(); }
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
+{
+    UpdatePythonEnums();
+    UpdatePythonMessageTypes();
+}
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db) { UpdatePythonEnums(); }
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
+{
+    UpdatePythonEnums();
+    UpdatePythonMessageTypes();
+}
 
 void PyMessageDatabase::GenerateMappings()
 {
     MessageDatabase::GenerateMappings();
     UpdatePythonEnums();
+    UpdatePythonMessageTypes();
+}
+
+void cleanString(std::string& str)
+{
+    // Remove special characters from the string to make it a valid python attribute name
+    for (char& c : str)
+    {
+        if (!isalnum(c)) { c = '_'; }
+    }
+    if (isdigit(str[0])) { str = "_" + str; }
 }
 
 inline void PyMessageDatabase::UpdatePythonEnums()
@@ -210,11 +236,57 @@ inline void PyMessageDatabase::UpdatePythonEnums()
     {
         nb::dict values;
         const char* enum_name = enum_def->name.c_str();
-        for (const auto& enumerator : enum_def->enumerators) { values[enumerator.name.c_str()] = enumerator.value; }
+        for (const auto& enumerator : enum_def->enumerators)
+        {
+            std::string enumerator_name = enumerator.name;
+            cleanString(enumerator_name);
+            values[enumerator_name.c_str()] = enumerator.value;
+        }
         nb::object enum_type = IntEnum(enum_name, values);
         enum_type.attr("_name") = enum_name;
         enum_type.attr("_id") = enum_def->_id;
         enums_by_id[enum_def->_id.c_str()] = enum_type;
         enums_by_name[enum_name] = enum_type;
+    }
+}
+
+void PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_constructor,
+                                     nb::handle type_tuple, nb::handle type_dict)
+{
+    // rescursively add field types for each field array element within the provided vector
+    for (const auto& field : fields)
+    {
+        if (field->type == FIELD_TYPE::FIELD_ARRAY)
+        {
+            auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
+            std::string field_name = base_name + "_" + field_array_field->name + "_Field";
+            nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
+            fields_by_name[field_name] = field_type;
+            AddFieldType(field_array_field->fields, field_name, type_constructor, type_tuple, type_dict);
+        }
+    }
+}
+
+void PyMessageDatabase::UpdatePythonMessageTypes()
+{
+    // clear existing definitions
+    messages_by_name.clear();
+
+    // get type constructor
+    nb::object type_constructor = nb::module_::import_("builtins").attr("type");
+    // specify the python superclasses for the new message and message body types
+    nb::tuple message_type_tuple = nb::make_tuple(nb::type<oem::PyMessage>());
+    nb::tuple field_type_tuple = nb::make_tuple(nb::type<oem::PyField>());
+    // provide no additional attributes via `__dict__`
+    nb::dict type_dict = nb::dict();
+
+    // add message and message body types for each message definition
+    for (const auto& message_def : MessageDefinitions())
+    {
+        uint32_t crc = message_def->latestMessageCrc;
+        nb::object msg_type_def = type_constructor(message_def->name, message_type_tuple, type_dict);
+        messages_by_name[message_def->name] = new PyMessageType(msg_type_def, crc);
+        // add additional MessageBody types for each field array element within the message definition
+        AddFieldType(message_def->fields.at(crc), message_def->name, type_constructor, field_type_tuple, type_dict);
     }
 }
