@@ -24,7 +24,8 @@ PyMessageDatabase::Ptr& MessageDbSingleton::get()
     nb::object module_spec = import_lib_util.attr("find_spec")("novatel_edie");
     bool module_exists = nb::cast<bool>(builtins.attr("bool")(import_lib_util.attr("find_spec")("novatel_edie")));
     // If the package does not exist, return an empty database
-    if (!module_exists) { 
+    if (!module_exists)
+    {
         json_db = std::make_shared<PyMessageDatabase>(MessageDatabase());
         return json_db;
     }

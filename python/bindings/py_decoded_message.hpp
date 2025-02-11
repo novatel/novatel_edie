@@ -30,8 +30,8 @@ struct PyHeader : public IntermediateHeader
 //============================================================================
 //! \class PyField
 //! \brief A python representation for a single log message or message field.
-//! 
-//! Contains a vector of FieldContainer objects, which behave like attributes 
+//!
+//! Contains a vector of FieldContainer objects, which behave like attributes
 //! within the Python API.
 //============================================================================
 struct PyField
@@ -59,11 +59,10 @@ struct PyField
     PyMessageDatabase::ConstPtr parent_db_;
 };
 
-
 //============================================================================
 //! \class PyMessage
 //! \brief A python representation for a single log message.
-//! 
+//!
 //! Extends PyField with reference to the Python represenation of a Header.
 //============================================================================
 struct PyMessage : public PyField
@@ -72,7 +71,7 @@ struct PyMessage : public PyField
     PyHeader header;
 
     PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_)
-        : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)),  header(std::move(header_))
+        : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)), header(std::move(header_))
     {
     }
 };
@@ -80,7 +79,7 @@ struct PyMessage : public PyField
 //============================================================================
 //! \class UnknownMessage
 //! \brief A python representation for an unknown log message.
-//! 
+//!
 //! Contains the raw bytes of the message.
 //============================================================================
 struct UnknownMessage : public PyMessage

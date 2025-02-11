@@ -7,10 +7,7 @@ using namespace novatel::edie;
 
 void init_novatel_oem_enums(nb::module_& m)
 {
-    for (const auto& [name, enum_type] : MessageDbSingleton::get()->GetEnumsByNameDict())
-    {
-        m.attr(name.c_str()) = enum_type;
-    }
+    for (const auto& [name, enum_type] : MessageDbSingleton::get()->GetEnumsByNameDict()) { m.attr(name.c_str()) = enum_type; }
 }
 
 void init_novatel_oem_messages(nb::module_& m)
@@ -19,8 +16,5 @@ void init_novatel_oem_messages(nb::module_& m)
     {
         m.attr(name.c_str()) = message_type_struct->python_type;
     }
-    for (const auto& [name, field_type] : MessageDbSingleton::get()->GetFieldsByNameDict()) 
-    { 
-        m.attr(name.c_str()) = field_type;
-    }
+    for (const auto& [name, field_type] : MessageDbSingleton::get()->GetFieldsByNameDict()) { m.attr(name.c_str()) = field_type; }
 }

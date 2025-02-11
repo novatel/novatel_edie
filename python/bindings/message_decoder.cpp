@@ -59,7 +59,8 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
                     throw std::runtime_error("Field type not found for " + field_name);
                 }
             }
-            else { 
+            else
+            {
                 // If field has no ptype, use the generic "Field" type
                 field_name = std::move(parent);
                 field_ptype = nb::type<PyField>();
@@ -121,7 +122,10 @@ nb::dict& PyField::get_values() const
 {
     if (cached_values_.size() == 0)
     {
-        for (const auto& field : fields) { cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_, this->name, this->has_ptype); }
+        for (const auto& field : fields)
+        {
+            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_, this->name, this->has_ptype);
+        }
     }
     return cached_values_;
 }
@@ -248,19 +252,20 @@ void init_novatel_message_decoder(nb::module_& m)
         .def_ro("header", &PyMessage::header)
         .def_ro("name", &PyMessage::name)
         .def(
-            "to_dict", [](const PyMessage& self, bool include_header) { 
+            "to_dict",
+            [](const PyMessage& self, bool include_header) {
                 nb::dict dict = self.to_dict();
                 if (include_header) { dict["header"] = self.header.to_dict(); }
                 return dict;
-            }, 
-            "include_header"_a = true,
-            "Convert the message and its sub-messages into a dict");
+            },
+            "include_header"_a = true, "Convert the message and its sub-messages into a dict");
 
     nb::class_<UnknownMessage, PyMessage>(m, "UNKNOWN")
-        .def("__repr__", [](const UnknownMessage self) { 
-            std::string name = nb::cast<std::string>(nb::str(self.bytes));
-            return "UNKNOWN(bytes=" + name + ")";
-        })
+        .def("__repr__",
+             [](const UnknownMessage self) {
+                 std::string name = nb::cast<std::string>(nb::str(self.bytes));
+                 return "UNKNOWN(bytes=" + name + ")";
+             })
         .def_ro("bytes", &UnknownMessage::bytes);
 
     nb::class_<FieldContainer>(m, "FieldContainer")
@@ -286,18 +291,19 @@ void init_novatel_message_decoder(nb::module_& m)
                 const std::string message_name = metadata.MessageName();
                 bool has_ptype = true;
 
-                if (message_name == "UNKNOWN") { 
-                    body_pytype = nb::type<UnknownMessage>();
-                }
-                else {
+                if (message_name == "UNKNOWN") { body_pytype = nb::type<UnknownMessage>(); }
+                else
+                {
                     try
                     {
                         PyMessageType* message_type_struct = parent_db->GetMessagesByNameDict().at(message_name);
-                        if (message_type_struct->crc == metadata.uiMessageCrc) { 
+                        if (message_type_struct->crc == metadata.uiMessageCrc)
+                        {
                             // If the CRCs match, use the specific message type
                             body_pytype = message_type_struct->python_type;
                         }
-                        else {
+                        else
+                        {
                             // If the CRCs don't match, use the generic "MESSAGE" type
                             body_pytype = nb::type<PyMessage>();
                             has_ptype = false;
@@ -309,7 +315,6 @@ void init_novatel_message_decoder(nb::module_& m)
                         throw std::runtime_error("Message name '" + message_name + "' not found in the JSON database");
                     }
                 }
-                
 
                 body_pyinst = nb::inst_alloc(body_pytype);
                 if (message_name == "UNKNOWN")
