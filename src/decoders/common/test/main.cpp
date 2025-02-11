@@ -31,8 +31,6 @@
 
 #include "novatel_edie/common/logger.hpp"
 
-
-
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);

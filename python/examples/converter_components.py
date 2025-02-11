@@ -115,11 +115,11 @@ def main():
                 status.raise_on_error("MessageDecoder.decode() failed")
 
                 # Get info from the log.
-                if isinstance(message, RANGE):
-                    obs = message.obs
-                    for ob in obs:
-                        value = ob.psr
-                        pass
+                # if isinstance(message, RANGE):
+                #     obs = message.obs
+                #     for ob in obs:
+                #         value = ob.psr
+                #         pass
 
 
                 # Re-encode the log and write it to the output file.
