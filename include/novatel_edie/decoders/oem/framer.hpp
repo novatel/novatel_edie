@@ -82,7 +82,7 @@ class Framer : public FramerBase
     //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
     //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.
     //---------------------------------------------------------------------------
-    void FindNextSyncByte(const uint32_t uiFrameBufferSize_) override;
+    void FindNextSyncByte(uint32_t uiFrameBufferSize_) override;
 
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
@@ -108,7 +108,7 @@ class Framer : public FramerBase
     //----------------------------------------------------------------------------
     //! \brief A destructor for the Framer class.
     //----------------------------------------------------------------------------
-    ~Framer() = default;
+    ~Framer() override = default;
 };
 
 } // namespace novatel::edie::oem

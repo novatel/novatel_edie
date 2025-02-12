@@ -41,10 +41,10 @@ Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("nov
                                       [](const FramerElement& element) { return element.framerId == FRAMER_ID::NOVATEL; });
     if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
 
-    clMyFramerManager.RegisterFramer(FRAMER_ID::NOVATEL, std::unique_ptr<Framer>(this), std::make_unique<MetaDataStruct>());
+    clMyFramerManager.RegisterFramer(FRAMER_ID::NOVATEL, std::make_unique<Framer>(*this), std::make_unique<MetaDataStruct>());
 }
 
-Framer::Framer() : Framer::Framer(FramerManager::GetInstance().GetCircularBuffer()) {}
+Framer::Framer() : Framer(FramerManager::GetInstance().GetCircularBuffer()) {}
 
 // -------------------------------------------------------------------------------------------------------
 bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }
@@ -110,7 +110,7 @@ void Framer::ResetStateAndByteCount()
 // -------------------------------------------------------------------------------------------------------
 void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
 {
-    NovAtelFrameState localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
+    auto localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
 
     while (localFrameState != NovAtelFrameState::COMPLETE_MESSAGE)
     {
@@ -141,11 +141,7 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
             switch (ucDataByte)
             {
             case OEM4_BINARY_SYNC1: localFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC2; break;
-            case OEM4_ASCII_SYNC:
-                uiMyByteCount--;
-                uiMyFrameBufferOffset = uiMyByteCount;
-                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
-                return;
+            case OEM4_ASCII_SYNC: [[fallthrough]];
             case OEM4_SHORT_ASCII_SYNC:
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
@@ -208,11 +204,7 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
         case NovAtelFrameState::WAITING_FOR_BINARY_SYNC3:
             switch (ucDataByte)
             {
-            case OEM4_BINARY_SYNC3:
-                uiMyByteCount = uiMyByteCount - 3;
-                uiMyFrameBufferOffset = uiMyByteCount;
-                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
-                return;
+            case OEM4_BINARY_SYNC3: [[fallthrough]];
             case OEM4_SHORT_BINARY_SYNC3:
                 uiMyByteCount = uiMyByteCount - 3;
                 uiMyFrameBufferOffset = uiMyByteCount;
@@ -234,15 +226,14 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
                 eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
                 return;
             }
-            else
-            {
-                //   If we get to a WAITING_FOR_ABB_ASCII_SYNC2, it means we got the first byte of the header
-                //   and if it's not immediately followed by sync2, it's not a valid header -> therefore unknown bytes of offset = count
-                uiMyFrameBufferOffset = uiMyByteCount;
-                eMyCurrentFramerStatus = STATUS::UNKNOWN;
-                return;
-            }
-            break;
+
+            //   If we get to a WAITING_FOR_ABB_ASCII_SYNC2, it means we got the first byte of the header
+            //   and if it's not immediately followed by sync2, it's not a valid header -> therefore unknown bytes of offset = count
+            uiMyFrameBufferOffset = uiMyByteCount;
+            eMyCurrentFramerStatus = STATUS::UNKNOWN;
+            return;
+
+        default: eMyCurrentFramerStatus = STATUS::UNKNOWN; return;
         }
     }
 }
@@ -251,7 +242,7 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
 STATUS
 Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_)
 {
-    MetaDataStruct& stMetaData = dynamic_cast<MetaDataStruct&>(stMetaData_);
+    auto& stMetaData = dynamic_cast<MetaDataStruct&>(stMetaData_);
 
     // Trust Relationship: FindNextSyncByte leads to this function, so we can trust that the first byte is the start of a sync byte
     unsigned char ucDataByte = (*pclMyCircularDataBuffer)[uiMyByteCount];
@@ -429,7 +420,6 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     stMetaData.uiLength = uiMyByteCount;
                     uiMyFrameBufferOffset = uiMyByteCount;
                     return STATUS::UNKNOWN;
-                    break;
                 }
 
                 if ((bMyPayloadOnly && uiFrameBufferSize_ < uiMyExpectedPayloadLength) ||

@@ -129,7 +129,7 @@ void HeaderDecoder::DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stI
 STATUS
 HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataBase& stMetaData_) const
 {
-    MetaDataStruct& stMetaData = dynamic_cast<MetaDataStruct&>(stMetaData_);
+    auto& stMetaData = dynamic_cast<MetaDataStruct&>(stMetaData_);
     if (pucLogBuf_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
