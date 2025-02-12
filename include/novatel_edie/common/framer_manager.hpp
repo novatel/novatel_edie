@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -38,28 +39,11 @@
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/framer.hpp"
 
-// Type-Specific Framers
-// #include "src/decoders/automotive/api/common.hpp"
-// #include "src/decoders/automotive/api/framer.hpp"
-//
-// #include "src/decoders/nmea/api/common.hpp"
-// #include "src/decoders/nmea/api/framer.hpp"
-//
-// #include "novatel-edie/src/decoders/novatel/api/common.hpp"
-// #include "novatel-edie/src/decoders/novatel/api/framer.hpp"
-//
-// #include "src/decoders/pimtp/api/common.hpp"
-// #include "src/decoders/pimtp/api/framer.hpp"
-//
-// #include "src/decoders/waas/api/common.hpp"
-// #include "src/decoders/waas/api/framer.hpp"
-
 //----------------------------------------------------------------------------
 //! \brief A constructor for the FramerBase class.
 //
 //! \param[in] strLoggerName_ String to name the internal logger.
 //----------------------------------------------------------------------------
-#include <iostream>
 
 namespace novatel::edie {
 
@@ -90,17 +74,16 @@ struct FramerElement
 class FramerManager
 {
   private:
-    std::list<FRAMER_ID> userFramers;
     FramerManager();
     FramerManager(const FramerManager&) = delete;
     FramerManager& operator=(const FramerManager&) = delete;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
-
+    std::list<FRAMER_ID> userFramers;
     bool bMyReportUnknownBytes{true};
 
-    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_);
+    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const;
 
     void ResetInactiveFramerStates(const FRAMER_ID& activeFramer_);
 
@@ -112,7 +95,7 @@ class FramerManager
 
   public:
     std::deque<FramerElement> framerRegistry;
-    void RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
+    void RegisterFramer(FRAMER_ID framerId_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
     //
@@ -120,7 +103,7 @@ class FramerManager
     //! \return A pointer to the MetaData for the specified framer.
     //! \return nullptr if the framer is not found.
     //---------------------------------------------------------------------------
-    MetaDataBase* GetMetaData(const FRAMER_ID framerId_);
+    MetaDataBase* GetMetaData(FRAMER_ID framerId_);
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
@@ -169,7 +152,7 @@ class FramerManager
     //
     //! \return A pointer to the FramerElement for the specified framer.
     //---------------------------------------------------------------------------
-    FramerElement* GetFramerElement(const FRAMER_ID framerId_);
+    FramerElement* GetFramerElement(FRAMER_ID framerId_);
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -188,7 +171,7 @@ class FramerManager
     //----------------------------------------------------------------------------
     //! \brief Reorder the framers in the framer registry.
     //----------------------------------------------------------------------------
-    void ReorderFramers();
+    void SortFramers();
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.

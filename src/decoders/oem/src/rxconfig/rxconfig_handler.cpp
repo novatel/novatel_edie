@@ -88,7 +88,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     unsigned char* pucTempMessagePointer = pcMyFrameBuffer.get();
 
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    FRAMER_ID eActiveFramerId = FRAMER_ID::UNKNOWN;
+    auto eActiveFramerId = FRAMER_ID::UNKNOWN;
 
     // Get an RXCONFIG log.
     uint32_t uiFrameBufferOffset = 0;

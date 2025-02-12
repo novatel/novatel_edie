@@ -39,7 +39,7 @@ void FramerManager::RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<Fr
     framerRegistry.emplace_back(framerId_, std::move(framer_), std::move(metadata_), 0);
 }
 
-void FramerManager::ReorderFramers()
+void FramerManager::SortFramers()
 {
     auto it = std::min_element(framerRegistry.begin(), framerRegistry.end(), [](const FramerElement& a, const FramerElement& b) {
         return a.framer->uiMyFrameBufferOffset < b.framer->uiMyFrameBufferOffset;
@@ -146,8 +146,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
     // A Framer Found A Sync Byte
     DisplayFramerStack();
-    // TODO rename this to sort possibly (sort, prioritize, etc)
-    ReorderFramers();
+    SortFramers();
 
     // set uiLength for likely framer
     framerRegistry.front().metadata->uiLength = framerRegistry.front().framer->uiMyFrameBufferOffset;
@@ -159,7 +158,6 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
         (framerRegistry.front().framer->eMyCurrentFramerStatus != STATUS::INCOMPLETE ||
          framerRegistry.front().framer->eMyCurrentFramerStatus != STATUS::INCOMPLETE_MORE_DATA))
     {
-
         HandleUnknownBytes(pucFrameBuffer_, framerRegistry.front().framer->uiMyFrameBufferOffset);
         ResetAllFramerStates();
         return STATUS::UNKNOWN;
@@ -214,7 +212,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     return STATUS::INCOMPLETE;
 }
 
-void FramerManager::HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_)
+void FramerManager::HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const
 {
     if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyCircularDataBuffer->Copy(pucBuffer_, uiUnknownBytes_); }
     pclMyCircularDataBuffer->Discard(uiUnknownBytes_);

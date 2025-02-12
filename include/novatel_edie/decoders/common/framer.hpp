@@ -79,7 +79,7 @@ class FramerBase
     //! \param[in] strLoggerName_ String to name the internal logger.
     //! \param[in] circularBuffer_ Shared pointer to a CircularBuffer object.
     //----------------------------------------------------------------------------
-    FramerBase(const std::string& strLoggerName_, std::shared_ptr<CircularBuffer> circularBuffer_)
+    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<CircularBuffer> circularBuffer_)
         : pclMyLogger(Logger::RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(circularBuffer_)
     {
         pclMyCircularDataBuffer->Clear();
@@ -103,7 +103,7 @@ class FramerBase
     //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
     //
     //! \return SYNC_BYTE_FOUND if a sync byte is found.
-    virtual void FindNextSyncByte(const uint32_t uiFrameBufferSize_) = 0;
+    virtual void FindNextSyncByte(uint32_t uiFrameBufferSize_) = 0;
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -206,5 +206,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     virtual ~FramerBase() = default;
 };
+
 } // namespace novatel::edie
+
 #endif // FRAMER_HPP
