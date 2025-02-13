@@ -38,10 +38,10 @@ Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("nov
     // This static instance persists for the lifetime of the program even after leaving scope of this function
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     auto it_registered = std::find_if(clMyFramerManager.framerRegistry.begin(), clMyFramerManager.framerRegistry.end(),
-                                      [](const FramerElement& element) { return element.framerId == FRAMER_ID::NOVATEL; });
+                                      [&clMyFramerManager](const FramerElement& element) { return element.framerId == clMyFramerManager.idMap[std::string("NOVATEL")]; });
     if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
 
-    clMyFramerManager.RegisterFramer(FRAMER_ID::NOVATEL, std::make_unique<Framer>(*this), std::make_unique<MetaDataStruct>());
+    clMyFramerManager.RegisterFramer("NOVATEL", std::move(std::make_unique<Framer>(*this)), std::make_unique<MetaDataStruct>());
 }
 
 Framer::Framer() : Framer(FramerManager::GetInstance().GetCircularBuffer()) {}
@@ -270,7 +270,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             }
             for (auto i = 0; i < 3; i++)
             {
-                const unsigned char ucDataByte = (*pclMyCircularDataBuffer)[uiMyByteCount++];
+                ucDataByte = (*pclMyCircularDataBuffer)[uiMyByteCount++];
                 CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte);
             }
 

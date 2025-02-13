@@ -73,7 +73,7 @@ class ProprietaryFramerTest : public ::testing::Test
     }
 
   public:
-    template <HEADER_FORMAT F, STATUS S> static void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, FRAMER_ID& id_);
+    template <HEADER_FORMAT F, STATUS S> static void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_);
 
     template <HEADER_FORMAT F, STATUS S> static void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_);
 
@@ -110,18 +110,19 @@ class ProprietaryFramerTest : public ::testing::Test
     }
 };
 
-template <HEADER_FORMAT F, STATUS S> static void ProprietaryFramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, FRAMER_ID& id_)
+template <HEADER_FORMAT F, STATUS S> static void ProprietaryFramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_)
 {
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     MetaDataStruct stExpectedMetaData(F, uiLength_);
     ASSERT_EQ(S, clMyFramerManager.GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, id_));
-    MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(FRAMER_ID::NOVATEL));
+    MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"]));
     ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
 }
 
 template <HEADER_FORMAT F, STATUS S> static void ProprietaryFramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
 {
-    FRAMER_ID id = FRAMER_ID::UNKNOWN;
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    int id = clMyFramerManager.idMap["UNKNOWN"];
     FramerHelper<F, S>(uiLength_, uiFrameLength_, id);
 }
 
@@ -214,8 +215,8 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BYTE_BY_BYTE)
     uint32_t uiRemainingBytes = uiLogSize;
 
     MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN);
-    MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(FRAMER_ID::NOVATEL));
-    FRAMER_ID id = FRAMER_ID::UNKNOWN;
+    MetaDataStruct* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"]));
+    int id = clMyFramerManager.idMap["UNKNOWN"];
 
     while (true)
     {
@@ -225,7 +226,7 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BYTE_BY_BYTE)
 
         if (stExpectedMetaData.uiLength == OEM4_BINARY_SYNC_LENGTH) { stExpectedMetaData.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY; }
 
-        if (stExpectedMetaData.uiLength > OEM4_BINARY_SYNC_LENGTH) { id = FRAMER_ID::NOVATEL; }
+        if (stExpectedMetaData.uiLength > OEM4_BINARY_SYNC_LENGTH) { id = clMyFramerManager.idMap["NOVATEL"]; }
 
         if (uiRemainingBytes == 0) { break; }
 
@@ -239,13 +240,14 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BYTE_BY_BYTE)
 
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_SEGMENTED)
 {
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
     // "<binary bestpos log>"
     uint8_t aucData[] = {0xAA, 0x45, 0x12, 0x1C, 0x3A, 0x09, 0x00, 0xE0, 0x2C, 0x00, 0x00, 0x00, 0xB8, 0xB4, 0x82, 0x08, 0xF8, 0xC6, 0xC7,
                          0x19, 0x00, 0x00, 0x00, 0x02, 0x01, 0xA3, 0x00, 0x41, 0x00, 0x00, 0x24, 0x00, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59,
                          0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87,
                          0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC};
     uint32_t uiBytesWritten = 0;
-    FRAMER_ID id = FRAMER_ID::UNKNOWN;
+    int id = clMyFramerManager.idMap["UNKNOWN"];
 
     WriteBytesToFramer(&aucData[uiBytesWritten], OEM4_BINARY_SYNC_LENGTH);
     uiBytesWritten += OEM4_BINARY_SYNC_LENGTH;

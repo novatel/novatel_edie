@@ -32,6 +32,8 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <unordered_map>
+#include <string>
 
 #include "novatel_edie/common/circular_buffer.hpp"
 #include "novatel_edie/common/crc32.hpp"
@@ -47,22 +49,22 @@
 
 namespace novatel::edie {
 
-enum class FRAMER_ID
-{
-    AUTOMOTIVE,
-    NOVATEL,
-    NMEA,
-    UNKNOWN
-};
+//enum class FRAMER_ID
+//{
+//    AUTOMOTIVE,
+//    NOVATEL,
+//    NMEA,
+//    UNKNOWN
+//};
 
 struct FramerElement
 {
-    FRAMER_ID framerId;
+    int framerId;
     std::unique_ptr<FramerBase> framer;
     std::unique_ptr<MetaDataBase> metadata;
     int32_t offset;
 
-    FramerElement(FRAMER_ID framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_, int32_t offset_)
+    FramerElement(int framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_, int32_t offset_)
         : framerId(framerId_), framer(std::move(framer_)), metadata(std::move(metadata_)), offset(offset_)
     {
     }
@@ -84,22 +86,24 @@ class FramerManager
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
-    std::list<FRAMER_ID> userFramers;
+    
+
     bool bMyReportUnknownBytes{true};
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const;
 
-    void ResetInactiveFramerStates(const FRAMER_ID& activeFramer_);
+    void ResetInactiveFramerStates(const int& activeFramer_);
 
-    void ResetInactiveMetaDataStates(const FRAMER_ID& activeFramer_);
+    void ResetInactiveMetaDataStates(const int& activeFramer_);
 
   protected:
     // TODO delete this
     void DisplayFramerStack();
 
   public:
+    std::unordered_map<std::string, int> idMap;
     std::deque<FramerElement> framerRegistry;
-    void RegisterFramer(FRAMER_ID framerId_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
+    void RegisterFramer(std::string framerName_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
     //
@@ -107,7 +111,7 @@ class FramerManager
     //! \return A pointer to the MetaData for the specified framer.
     //! \return nullptr if the framer is not found.
     //---------------------------------------------------------------------------
-    MetaDataBase* GetMetaData(FRAMER_ID framerId_);
+    MetaDataBase* GetMetaData(int framerId_);
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
@@ -156,7 +160,7 @@ class FramerManager
     //
     //! \return A pointer to the FramerElement for the specified framer.
     //---------------------------------------------------------------------------
-    FramerElement* GetFramerElement(FRAMER_ID framerId_);
+    FramerElement* GetFramerElement(int framerId_);
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -220,7 +224,7 @@ class FramerManager
     //
     //! \return The status of the frame discovery.
     //---------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, FRAMER_ID& eActiveFramerId_);
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, int& eActiveFramerId_);
 };
 } // namespace novatel::edie
 
