@@ -91,7 +91,6 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     auto eActiveFramerId = FRAMER_ID::UNKNOWN;
 
     // Get an RXCONFIG log.
-    uint32_t uiFrameBufferOffset = 0;
     STATUS eStatus = clMyFramerManager.GetFrame(pucTempMessagePointer, uiInternalBufferSize, eActiveFramerId);
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
