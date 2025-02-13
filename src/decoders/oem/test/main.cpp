@@ -36,10 +36,13 @@ int main(int argc, char** argv)
     testing::InitGoogleTest(&argc, argv);
     Logger::InitLogger();
 
-    if (argc != 2) { throw std::invalid_argument("1 argument required.\nUsage: <project root>"); }
+    std::filesystem::path pathSourceFile = __FILE__;
+    std::filesystem::path pathRepoDir = pathSourceFile.parent_path().parent_path().parent_path().parent_path().parent_path();
+    std::filesystem::path pathDatabaseFile = pathRepoDir / "database" / "database.json";
+    std::filesystem::path pathResourceFile = pathRepoDir / "src" / "decoders" / "oem" / "test" / "resources";
 
-    std::string strDatabaseVar = std::string(argv[1]) + "/database/database.json";
-    std::string strResourceVar = std::string(argv[1]) + "/src/decoders/oem/test/resources/";
+    std::string strDatabaseVar = pathDatabaseFile.string();
+    std::string strResourceVar = pathResourceFile.string();
 
 #ifdef _WIN32
     if (_putenv_s("TEST_DATABASE_PATH", strDatabaseVar.c_str()) != 0) { throw std::runtime_error("Failed to set db path."); }
