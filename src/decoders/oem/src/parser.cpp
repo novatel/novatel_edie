@@ -190,7 +190,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    FRAMER_ID eActiveFramerId = FRAMER_ID::UNKNOWN;
+    int eActiveFramerId = clMyFramerManager.idMap["UNKNOWN"];
 
     while (true)
     {

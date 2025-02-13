@@ -31,11 +31,23 @@ using namespace novatel::edie;
 FramerManager::FramerManager() : pclMyLogger(Logger::RegisterLogger("FramerManager")), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>())
 {
     pclMyCircularDataBuffer->Clear();
+    idMap["UNKNOWN"] = 0;
     pclMyLogger->debug("Framer Manager initialized");
 }
 
-void FramerManager::RegisterFramer(const FRAMER_ID framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
+void FramerManager::RegisterFramer(std::string framerName, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
 {
+    
+    int framerId_ = -1;
+    auto it = idMap.find(framerName);
+    if (it == idMap.end()) {
+        int newId = idMap.size();
+        idMap[framerName] = newId;
+        framerId_ = newId;
+    } else {
+        framerId_ = it->second;
+    }    
+
     framerRegistry.emplace_back(framerId_, std::move(framer_), std::move(metadata_), 0);
 }
 
@@ -53,7 +65,7 @@ void FramerManager::SortFramers()
     }
 }
 
-MetaDataBase* FramerManager::GetMetaData(const FRAMER_ID framerId_)
+MetaDataBase* FramerManager::GetMetaData(const int framerId_)
 {
     for (FramerElement& element : framerRegistry)
     {
@@ -64,16 +76,21 @@ MetaDataBase* FramerManager::GetMetaData(const FRAMER_ID framerId_)
 
 void FramerManager::DisplayFramerStack()
 {
+
     // TODO : Delete this for loop - debugging purposes only
     for (const auto& elem : framerRegistry)
     {
-        if (elem.framerId == FRAMER_ID::NOVATEL)
+        std::cout << "Framer: "
+                  << elem.framerId
+                  << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
+
+        if (elem.framerId == 1)
         {
             std::cout << "Framer: "
                       << "NOVATEL"
                       << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
         }
-        else if (elem.framerId == FRAMER_ID::NMEA)
+        else if (elem.framerId == 2)
         {
             std::cout << "Framer: "
                       << "NMEA"
@@ -88,7 +105,7 @@ void FramerManager::DisplayFramerStack()
     }
 }
 
-void FramerManager::ResetInactiveFramerStates(const FRAMER_ID& eActiveFramerId_)
+void FramerManager::ResetInactiveFramerStates(const int& eActiveFramerId_)
 {
     for (auto& [framerId, framer, metadata, offset] : framerRegistry)
     {
@@ -100,9 +117,9 @@ void FramerManager::ResetInactiveFramerStates(const FRAMER_ID& eActiveFramerId_)
     }
 }
 
-void FramerManager::ResetAllFramerStates() { ResetInactiveFramerStates(FRAMER_ID::UNKNOWN); }
+void FramerManager::ResetAllFramerStates() { ResetInactiveFramerStates(idMap["UNKNOWN"]); }
 
-void FramerManager::ResetInactiveMetaDataStates(const FRAMER_ID& eActiveFramerId_)
+void FramerManager::ResetInactiveMetaDataStates(const int& eActiveFramerId_)
 {
     for (auto& [framerId, framer, metadata, offset] : framerRegistry)
     {
@@ -114,9 +131,9 @@ void FramerManager::ResetInactiveMetaDataStates(const FRAMER_ID& eActiveFramerId
     }
 }
 
-void FramerManager::ResetAllMetaDataStates() { ResetInactiveMetaDataStates(FRAMER_ID::UNKNOWN); }
+void FramerManager::ResetAllMetaDataStates() { ResetInactiveMetaDataStates(idMap["UNKNOWN"]); }
 
-FramerElement* FramerManager::GetFramerElement(const FRAMER_ID framerId_)
+FramerElement* FramerManager::GetFramerElement(const int framerId_)
 {
     for (FramerElement& element : framerRegistry)
     {
@@ -125,7 +142,7 @@ FramerElement* FramerManager::GetFramerElement(const FRAMER_ID framerId_)
     return nullptr;
 }
 
-STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, FRAMER_ID& eActiveFramerId_)
+STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, int& eActiveFramerId_)
 {
     // State Machine:
     // use framers to identify sync bytes and offsets
@@ -133,12 +150,12 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     // upon successful framing of a log, reset Active Framer ID
 
     // if STATUS is INCOMPLETE upon entering GetFrame, it is stale
-    if (eActiveFramerId_ != FRAMER_ID::UNKNOWN && framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
+    if (eActiveFramerId_ != idMap["UNKNOWN"] && framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
     {
         framerRegistry.front().framer->eMyCurrentFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
     }
 
-    if (eActiveFramerId_ == FRAMER_ID::UNKNOWN)
+    if (eActiveFramerId_ == idMap["UNKNOWN"])
     {
         ResetAllMetaDataStates();
         for (auto& [framerId, framer, metadata, offset] : framerRegistry) { framer->FindNextSyncByte(uiFrameBufferSize_); }
