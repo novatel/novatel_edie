@@ -75,8 +75,12 @@ class FramerManager
 {
   private:
     FramerManager();
+
+    //! NOTE: disable copies and moves.
     FramerManager(const FramerManager&) = delete;
+    FramerManager(const FramerManager&&) = delete;
     FramerManager& operator=(const FramerManager&) = delete;
+    FramerManager& operator=(const FramerManager&&) = delete;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
