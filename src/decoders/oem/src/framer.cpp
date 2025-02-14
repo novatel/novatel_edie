@@ -35,12 +35,16 @@ using namespace novatel::edie::oem;
 // -------------------------------------------------------------------------------------------------------
 Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("novatel_framer", circularBuffer)
 {
-    // This static instance persists for the lifetime of the program even after leaving scope of this function
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    auto it_registered = std::find_if(clMyFramerManager.framerRegistry.begin(), clMyFramerManager.framerRegistry.end(),
-                                      [&clMyFramerManager](const FramerElement& element) { return element.framerId == clMyFramerManager.idMap[std::string("NOVATEL")]; });
-    if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
+    novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
 
+    auto it_exists = clMyFramerManager.idMap.find("NOVATEL");
+    if (it_exists != clMyFramerManager.idMap.end())
+    {
+        auto it_registered =
+            std::find_if(clMyFramerManager.framerRegistry.begin(), clMyFramerManager.framerRegistry.end(),
+                         [&clMyFramerManager](const FramerElement& element) { return element.framerId == clMyFramerManager.idMap["NOVATEL"]; });
+        if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
+    }
     clMyFramerManager.RegisterFramer("NOVATEL", std::move(std::make_unique<Framer>(*this)), std::make_unique<MetaDataStruct>());
 }
 
