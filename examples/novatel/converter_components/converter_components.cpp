@@ -37,6 +37,7 @@
 #include <novatel_edie/decoders/oem/framer.hpp>
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
+#include "novatel_edie/common/framer_manager.hpp"
 #include <novatel_edie/version.h>
 
 namespace fs = std::filesystem;
@@ -96,11 +97,14 @@ int main(int argc, char* argv[])
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     // Set up the EDIE components
+    // get reference to static singleton instance of FramerManager
+    novatel::edie::FramerManager& clFramerManager = FramerManager::GetInstance();
+    clFramerManager.SetReportUnknownBytes(true);
+    clFramerManager.SetLoggerLevel(spdlog::level::debug);
+
     Framer clFramer;
-    clFramer.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clFramer.GetLogger());
     Logger::AddRotatingFileLogger(clFramer.GetLogger());
-    clFramer.SetReportUnknownBytes(true);
     clFramer.SetPayloadOnly(false);
     clFramer.SetFrameJson(false);
 
