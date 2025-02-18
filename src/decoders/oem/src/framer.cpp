@@ -45,7 +45,7 @@ Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("nov
                          [&clMyFramerManager](const FramerElement& element) { return element.framerId == clMyFramerManager.idMap["NOVATEL"]; });
         if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
     }
-    clMyFramerManager.RegisterFramer("NOVATEL", std::move(std::make_unique<Framer>(*this)), std::make_unique<MetaDataStruct>());
+    clMyFramerManager.RegisterFramer("NOVATEL", std::unique_ptr<FramerBase>(this), std::make_unique<MetaDataStruct>());
 }
 
 Framer::Framer() : Framer(FramerManager::GetInstance().GetCircularBuffer()) {}
