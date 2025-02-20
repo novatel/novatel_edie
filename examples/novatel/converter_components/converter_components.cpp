@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     }
 
     // Clean up
-    uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
+    uint32_t uiBytes = clFramer.Flush(sizeof(acFrameBuffer));
     unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
     Logger::Shutdown();
     return 0;

@@ -103,7 +103,6 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
     {
         pucMyFrameBufferPointer = pcMyFrameBuffer.get();   //!< Reset the buffer.
         pucMyEncodeBufferPointer = pcMyEncodeBuffer.get(); //!< Reset the buffer.
-        uint32_t uiFrameBufferOffset = 0;
         auto eStatus = clMyFramerManager.GetFrame(pucMyFrameBufferPointer, uiParserInternalBufferSize, eActiveFramerId);
 
         // Datasets ending with an Abbreviated ASCII message will always return an incomplete framing status

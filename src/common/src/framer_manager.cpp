@@ -41,7 +41,7 @@ void FramerManager::RegisterFramer(std::string framerName, std::unique_ptr<Frame
     int framerId_ = -1;
     auto it = idMap.find(framerName);
     if (it == idMap.end()) {
-        int newId = idMap.size();
+        int newId = static_cast<int>(idMap.size());
         idMap[framerName] = newId;
         framerId_ = newId;
     } else {
@@ -205,7 +205,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     }
 
     // A Framer Successfully Framed a log
-    auto& it_success = std::find_if(framerRegistry.begin(), framerRegistry.end(),
+    auto it_success = std::find_if(framerRegistry.begin(), framerRegistry.end(),
                                     [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS); });
     if (it_success != framerRegistry.end()) { return it_success->framer->eMyCurrentFramerStatus; }
 

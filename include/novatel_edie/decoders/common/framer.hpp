@@ -174,7 +174,7 @@ class FramerBase
     ////
     ////! \return The number of bytes flushed from the internal circular buffer.
     ////----------------------------------------------------------------------------
-    virtual uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+    virtual uint32_t Flush(uint32_t uiBufferSize_)
     {
         const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
         return uiBytesToFlush;
