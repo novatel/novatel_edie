@@ -130,9 +130,9 @@ int main(int argc, char* argv[])
 
     // Set up buffers
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
-    unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
+    std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> acFrameBuffer;
+    std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> acEncodeBuffer;
+    unsigned char* pucEncodedMessageBuffer = acEncodeBuffer.data();
 
     // Initialize structures and error codes
     auto eFramerStatus = STATUS::UNKNOWN;
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
-            unsigned char* pucFrameBuffer = acFrameBuffer;
+            unsigned char* pucFrameBuffer = acFrameBuffer.data();
             eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), eActiveFramerId);
 
             if (eFramerStatus == STATUS::SUCCESS)
@@ -219,13 +219,13 @@ int main(int argc, char* argv[])
                     pclLogger->warn("HeaderDecoder returned with status code {}", eDecoderStatus);
                 }
             }
-            else if (eFramerStatus == STATUS::UNKNOWN) { unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
-            else if (eFramerStatus != STATUS::BUFFER_EMPTY) { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
+            else if (eFramerStatus == STATUS::UNKNOWN) { unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), clFramerManager.framerRegistry.front().metadata->uiLength); }
+            else { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
         }
     }
 
     // Clean up
-    uint32_t uiBytes = clFramerManager.Flush(acFrameBuffer, sizeof(acFrameBuffer));
+    uint32_t uiBytes = clFramerManager.Flush(acFrameBuffer.data(), sizeof(acFrameBuffer));
     unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
     Logger::Shutdown();
     return 0;
