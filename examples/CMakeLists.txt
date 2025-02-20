@@ -1,4 +1,5 @@
 add_subdirectory(novatel/command_encoding)
+add_subdirectory(novatel/concurrent_parse)
 add_subdirectory(novatel/converter_file_parser)
 add_subdirectory(novatel/converter_components)
 add_subdirectory(novatel/converter_parser)

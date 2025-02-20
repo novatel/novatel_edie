@@ -221,6 +221,9 @@ int main(int argc, char* argv[])
     // Clean up
     uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
     unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
+    auto tEnd = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(tEnd - tStart).count();
+    pclLogger->info("Conversion Time: {}ms", duration);
     Logger::Shutdown();
     return 0;
 }
