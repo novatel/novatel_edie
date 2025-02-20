@@ -152,6 +152,8 @@ int main(int argc, char* argv[])
 
     tStart = std::chrono::high_resolution_clock::now();
 
+    auto eActiveFramerId = clFramerManager.idMap["UKNOWN"];
+
     while (!ifs.eof())
     {
         ifs.read(cData.data(), cData.size());
@@ -162,7 +164,7 @@ int main(int argc, char* argv[])
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
             unsigned char* pucFrameBuffer = acFrameBuffer;
-            eFramerStatus = clFramer.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaData);
+            eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), eActiveFramerId);
 
             if (eFramerStatus == STATUS::SUCCESS)
             {
@@ -223,7 +225,7 @@ int main(int argc, char* argv[])
     }
 
     // Clean up
-    uint32_t uiBytes = clFramer.Flush(sizeof(acFrameBuffer));
+    uint32_t uiBytes = clFramerManager.Flush(acFrameBuffer, sizeof(acFrameBuffer));
     unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
     Logger::Shutdown();
     return 0;
