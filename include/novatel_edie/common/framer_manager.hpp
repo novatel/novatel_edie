@@ -31,9 +31,9 @@
 #include <deque>
 #include <iostream>
 #include <memory>
-#include <vector>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "novatel_edie/common/circular_buffer.hpp"
 #include "novatel_edie/common/crc32.hpp"
@@ -49,13 +49,13 @@
 
 namespace novatel::edie {
 
-//enum class FRAMER_ID
+// enum class FRAMER_ID
 //{
-//    AUTOMOTIVE,
-//    NOVATEL,
-//    NMEA,
-//    UNKNOWN
-//};
+//     AUTOMOTIVE,
+//     NOVATEL,
+//     NMEA,
+//     UNKNOWN
+// };
 
 struct FramerElement
 {
@@ -86,7 +86,6 @@ class FramerManager
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
-    
 
     bool bMyReportUnknownBytes{true};
 
@@ -213,7 +212,7 @@ class FramerManager
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.
     //----------------------------------------------------------------------------
-    void ShutdownLogger() { ShutdownLogger(); }
+    void ShutdownLogger() { Logger::Shutdown(); }
 
     //----------------------------------------------------------------------------
     //! \brief Attempt to discover a frame from the internal circular buffer if one exists
