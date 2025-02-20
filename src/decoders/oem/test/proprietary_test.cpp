@@ -103,7 +103,6 @@ class ProprietaryFramerTest : public ::testing::Test
 
     static void FlushTestFixture()
     {
-        uint32_t uiBytes = 0;
         FramerManager& clMyFramerManager = FramerManager::GetInstance();
         while (clMyFramerManager.Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
         pucMyTestFrameBuffer.reset();
