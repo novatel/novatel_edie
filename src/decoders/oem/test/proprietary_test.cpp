@@ -73,9 +73,9 @@ class ProprietaryFramerTest : public ::testing::Test
     }
 
   public:
-    template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_);
+    template <HEADER_FORMAT F, STATUS S> static void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_);
 
-    template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_);
+    template <HEADER_FORMAT F, STATUS S> static void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_);
 
     void WriteFileStreamToFramer(std::string sFilename_)
     {
@@ -110,7 +110,7 @@ class ProprietaryFramerTest : public ::testing::Test
     }
 };
 
-template <HEADER_FORMAT F, STATUS S> static void ProprietaryFramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_)
+template <HEADER_FORMAT F, STATUS S> void ProprietaryFramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_)
 {
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     MetaDataStruct stExpectedMetaData(F, uiLength_);
@@ -119,7 +119,7 @@ template <HEADER_FORMAT F, STATUS S> static void ProprietaryFramerTest::FramerHe
     ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
 }
 
-template <HEADER_FORMAT F, STATUS S> static void ProprietaryFramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
+template <HEADER_FORMAT F, STATUS S> void ProprietaryFramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
 {
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     int id = clMyFramerManager.idMap["UNKNOWN"];
