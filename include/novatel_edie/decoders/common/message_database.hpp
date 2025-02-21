@@ -444,7 +444,8 @@ class MessageDatabase
     MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
         : vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_))
     {
-        MessageDatabase::GenerateMappings();
+        GenerateEnumMappings();
+        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -457,7 +458,8 @@ class MessageDatabase
         // TODO: Verify it's calling the copy constructor for the messages
         vEnumDefinitions = that_.vEnumDefinitions;
         vMessageDefinitions = that_.vMessageDefinitions;
-        MessageDatabase::GenerateMappings();
+        GenerateEnumMappings();
+        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -486,7 +488,8 @@ class MessageDatabase
         {
             vEnumDefinitions = that_.vEnumDefinitions;
             vMessageDefinitions = that_.vMessageDefinitions;
-            GenerateMappings();
+            GenerateEnumMappings();
+            GenerateMessageMappings();
         }
 
         return *this;
@@ -506,7 +509,8 @@ class MessageDatabase
     {
         AppendEnumerations(other_.vEnumDefinitions, false);
         AppendMessages(other_.vMessageDefinitions, false);
-        GenerateMappings();
+        GenerateEnumMappings();
+        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -522,7 +526,7 @@ class MessageDatabase
             RemoveMessage(msgDef->logID, false);
             vMessageDefinitions.push_back(msgDef);
         }
-        if (bGenerateMappings_) { GenerateMappings(); }
+        if (bGenerateMappings_) { GenerateMessageMappings(); }
     }
 
     //----------------------------------------------------------------------------
@@ -538,7 +542,7 @@ class MessageDatabase
             RemoveEnumeration(enmDef->name, false);
             vEnumDefinitions.push_back(enmDef);
         }
-        if (bGenerateMappings_) { GenerateMappings(); }
+        if (bGenerateMappings_) { GenerateEnumMappings(); }
     }
 
     //----------------------------------------------------------------------------
@@ -618,14 +622,17 @@ class MessageDatabase
     [[nodiscard]] const std::vector<MessageDefinition::ConstPtr>& MessageDefinitions() const { return vMessageDefinitions; }
 
   protected:
-    virtual void GenerateMappings()
+    void GenerateEnumMappings()
     {
         for (auto& enm : vEnumDefinitions)
         {
             mEnumName[enm->name] = enm;
             mEnumId[enm->_id] = enm;
         }
+    }
 
+    void GenerateMessageMappings() 
+    {
         for (auto& msg : vMessageDefinitions)
         {
             mMessageName[msg->name] = msg;

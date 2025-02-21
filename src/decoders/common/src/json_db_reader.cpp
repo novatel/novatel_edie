@@ -272,12 +272,14 @@ void JsonDbReader::AppendMessages(const MessageDatabase::Ptr& messageDb_, const 
         std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
         std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
 
-        auto processMessages = [&vMessageDefinitions, &jDefinitions]() {
+        auto processMessages = [&messageDb_, &vMessageDefinitions, &jDefinitions]() {
             for (const auto& msg : jDefinitions["messages"]) { vMessageDefinitions.emplace_back(std::make_shared<MessageDefinition>(msg)); }
+            messageDb_->AppendMessages(vMessageDefinitions);
         };
 
-        auto processEnums = [&vEnumDefinitions, &jDefinitions]() {
+        auto processEnums = [&messageDb_, &vEnumDefinitions, &jDefinitions]() {
             for (const auto& enm : jDefinitions["enums"]) { vEnumDefinitions.emplace_back(std::make_shared<EnumDefinition>(enm)); }
+            messageDb_->AppendEnumerations(vEnumDefinitions);
         };
 
         std::thread messageThread(processMessages);
@@ -285,10 +287,6 @@ void JsonDbReader::AppendMessages(const MessageDatabase::Ptr& messageDb_, const 
 
         messageThread.join();
         enumThread.join();
-
-        // TODO: make MessageDatabase thread safe and add this to the process lambdas
-        messageDb_->AppendMessages(vMessageDefinitions, false);
-        messageDb_->AppendEnumerations(vEnumDefinitions);
     }
     catch (std::exception& e)
     {

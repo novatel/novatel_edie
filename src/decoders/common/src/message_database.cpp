@@ -41,7 +41,7 @@ void MessageDatabase::RemoveMessage(const uint32_t iMsgId_, const bool bGenerate
         vMessageDefinitions.erase(iTer);
     }
 
-    if (bGenerateMappings_) { GenerateMappings(); }
+    if (bGenerateMappings_) { GenerateMessageMappings(); }
 }
 
 //-----------------------------------------------------------------------
@@ -55,7 +55,7 @@ void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_, const 
         vEnumDefinitions.erase(iTer);
     }
 
-    if (bGenerateMappings_) { GenerateMappings(); }
+    if (bGenerateMappings_) { GenerateEnumMappings(); }
 }
 
 //-----------------------------------------------------------------------
