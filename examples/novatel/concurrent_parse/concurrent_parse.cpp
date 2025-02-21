@@ -33,6 +33,7 @@
 #include <queue>
 #include <thread>
 
+#include <boost/lockfree/queue.hpp>
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
@@ -50,34 +51,33 @@ using namespace novatel::edie::oem;
 template <typename T> class TSQueue
 {
   private:
-    std::queue<T> queue;
-    std::mutex mutex;
-    std::condition_variable cv;
+    boost::lockfree::queue<T*> queue; // Use pointers to avoid object copying
     std::atomic<bool> done;
 
   public:
+    TSQueue(size_t capacity) : queue(capacity), done(false) {}
+
     void Push(T&& item)
     {
-        std::unique_lock lock(mutex);
-        queue.push(std::move(item));
-        cv.notify_one();
+        T* ptr = new T(std::move(item));
+        while (!queue.push(ptr)) { std::this_thread::yield(); }
     }
 
     bool Pop(T& item)
     {
-        std::unique_lock lock(mutex);
-        cv.wait(lock, [this] { return !queue.empty() || done; });
-        if (queue.empty() && done) { return false; }
-        item = queue.front();
-        queue.pop();
-        return true;
+        T* ptr = nullptr;
+        if (queue.pop(ptr))
+        {
+            item = std::move(*ptr);
+            delete ptr;
+            return true;
+        }
+        return false;
     }
 
-    void Close()
-    {
-        done = true;
-        cv.notify_all();
-    }
+    void Close() { done = true; }
+
+    bool IsDone() const { return done; }
 };
 
 struct Item
@@ -88,7 +88,7 @@ struct Item
 };
 
 void Producer(const HeaderDecoder& clHeaderDecoder, const MessageDecoder& clMessageDecoder, const Filter& clFilter, const fs::path pathInFilename,
-              TSQueue<Item>& messages, std::ofstream& unknownOfs, std::shared_ptr<spdlog::logger> pclLogger)
+              TSQueue<Item>& messages, std::ofstream& unknownOfs, std::mutex& unknownMutex, std::shared_ptr<spdlog::logger> pclLogger)
 {
     std::ifstream ifs(pathInFilename, std::ios::binary);
 
@@ -111,7 +111,7 @@ void Producer(const HeaderDecoder& clHeaderDecoder, const MessageDecoder& clMess
         ifs.read(cData.data(), cData.size());
         clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount());
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
-        STATUS eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
+        auto eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
@@ -123,6 +123,7 @@ void Producer(const HeaderDecoder& clHeaderDecoder, const MessageDecoder& clMess
             {
                 if (item.stMetaData.bResponse)
                 {
+                    std::lock_guard lock(unknownMutex);
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), item.stMetaData.uiLength);
                     continue;
                 }
@@ -146,17 +147,23 @@ void Producer(const HeaderDecoder& clHeaderDecoder, const MessageDecoder& clMess
                     if (eDecoderStatus == STATUS::SUCCESS) { messages.Push(std::move(item)); }
                     else
                     {
+                        std::lock_guard lock(unknownMutex);
                         unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                         pclLogger->warn("MessageDecoder returned with status code {}", eDecoderStatus);
                     }
                 }
                 else
                 {
+                    std::lock_guard lock(unknownMutex);
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), item.stMetaData.uiLength);
                     pclLogger->warn("HeaderDecoder returned with status code {}", eDecoderStatus);
                 }
             }
-            else if (eFramerStatus == STATUS::UNKNOWN) { unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), item.stMetaData.uiLength); }
+            else if (eFramerStatus == STATUS::UNKNOWN)
+            {
+                std::lock_guard lock(unknownMutex);
+                unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), item.stMetaData.uiLength);
+            }
             else if (eFramerStatus != STATUS::BUFFER_EMPTY) { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
         }
     }
@@ -164,12 +171,12 @@ void Producer(const HeaderDecoder& clHeaderDecoder, const MessageDecoder& clMess
     ifs.close();
     messages.Close();
     uint32_t uiBytes = clFramer.Flush(acFrameBuffer.data(), acFrameBuffer.size());
+    std::lock_guard lock(unknownMutex);
     unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer.data()), uiBytes);
 }
 
-void Consumer(const Encoder& clEncoder, const ENCODE_FORMAT eEncodeFormat, TSQueue<Item>& messages,
-              std::ofstream& convertedOfs, std::ofstream& unknownOfs,
-              std::shared_ptr<spdlog::logger> pclLogger)
+void Consumer(const Encoder& clEncoder, const ENCODE_FORMAT eEncodeFormat, TSQueue<Item>& messages, std::ofstream& convertedOfs,
+              std::ofstream& unknownOfs, std::mutex& convertedMutex, std::mutex& unknownMutex, std::shared_ptr<spdlog::logger> pclLogger)
 {
     Item item;
 
@@ -185,13 +192,19 @@ void Consumer(const Encoder& clEncoder, const ENCODE_FORMAT eEncodeFormat, TSQue
 
         if (status == STATUS::SUCCESS)
         {
-            convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+            {
+                std::lock_guard lock(convertedMutex);
+                convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+            }
             stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
             pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(bufferPtr));
         }
         else
         {
-            // TODO: frame buffer not available! unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
+            {
+                std::lock_guard lock(unknownMutex);
+                // TODO: frame buffer not available! unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
+            }
             pclLogger->warn("Encoder returned with status code {}", status);
         }
     }
@@ -287,15 +300,20 @@ int main(int argc, char* argv[])
     std::mutex convertedOfsMutex;
     std::mutex unknownOfsMutex;
 
-    TSQueue<Item> messages;
+    TSQueue<Item> messages(256);
 
-    std::thread producerThread(Producer, std::ref(clHeaderDecoder), std::ref(clMessageDecoder), std::ref(clFilter), pathInFilename, std::ref(messages), std::ref(unknownOfs), pclLogger);
+    std::thread producerThread(Producer, std::ref(clHeaderDecoder), std::ref(clMessageDecoder), std::ref(clFilter), pathInFilename,
+                               std::ref(messages), std::ref(unknownOfs), std::ref(unknownOfsMutex), pclLogger);
 
     const int nConsumers = std::thread::hardware_concurrency();
     std::vector<std::thread> consumerThreads;
     consumerThreads.reserve(nConsumers);
 
-    for (int i = 0; i < nConsumers; ++i) { consumerThreads.emplace_back(Consumer, std::ref(clEncoder), eEncodeFormat, std::ref(messages), std::ref(convertedOfs), std::ref(unknownOfs), pclLogger); }
+    for (int i = 0; i < nConsumers; ++i)
+    {
+        consumerThreads.emplace_back(Consumer, std::ref(clEncoder), eEncodeFormat, std::ref(messages), std::ref(convertedOfs), std::ref(unknownOfs),
+                                     std::ref(convertedOfsMutex), std::ref(unknownOfsMutex), pclLogger);
+    }
 
     producerThread.join();
 

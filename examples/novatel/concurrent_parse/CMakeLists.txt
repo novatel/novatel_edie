@@ -1,4 +1,5 @@
 set(TARGET_NAME "concurrent_parse")
 add_executable(${TARGET_NAME} ${TARGET_NAME}.cpp)
-target_link_libraries(${TARGET_NAME} novatel_edie::novatel_edie)
+find_package(boost REQUIRED CONFIG)
+target_link_libraries(${TARGET_NAME} novatel_edie::novatel_edie boost::boost)
 set_property(TARGET ${TARGET_NAME} PROPERTY FOLDER "examples")

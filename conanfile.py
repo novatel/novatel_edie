@@ -50,6 +50,7 @@ class NovatelEdieConan(ConanFile):
         self.requires("gegles-spdlog_setup/[>=1.1 <2]", transitive_headers=True)
         # fmt/11.1.1 is currently not compatible with spdlog https://github.com/gabime/spdlog/issues/3302
         self.requires("fmt/11.0.2", force=True)
+        self.requires("boost/1.83.0", force=True)
 
     def build_requirements(self):
         self.test_requires("gtest/[>=1.14 <1.15]")
