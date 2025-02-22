@@ -210,11 +210,16 @@ PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcep
     UpdatePythonMessageTypes();
 }
 
-void PyMessageDatabase::GenerateMappings()
+void PyMessageDatabase::GenerateMessageMappings()
 {
-    MessageDatabase::GenerateMappings();
-    UpdatePythonEnums();
+    MessageDatabase::GenerateMessageMappings();
     UpdatePythonMessageTypes();
+}
+
+void PyMessageDatabase::GenerateEnumMappings()
+{
+    MessageDatabase::GenerateEnumMappings();
+    UpdatePythonEnums();
 }
 
 void cleanString(std::string& str)

@@ -622,7 +622,7 @@ class MessageDatabase
     [[nodiscard]] const std::vector<MessageDefinition::ConstPtr>& MessageDefinitions() const { return vMessageDefinitions; }
 
   protected:
-    void GenerateEnumMappings()
+    virtual void GenerateEnumMappings()
     {
         for (auto& enm : vEnumDefinitions)
         {
@@ -631,7 +631,7 @@ class MessageDatabase
         }
     }
 
-    void GenerateMessageMappings() 
+    virtual void GenerateMessageMappings()
     {
         for (auto& msg : vMessageDefinitions)
         {

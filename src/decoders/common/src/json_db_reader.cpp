@@ -192,16 +192,6 @@ void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_)
     for (const auto& enumerator : j_) { vEnumerators_.emplace_back(enumerator); }
 }
 
-void processMessageSubset(const json& messages, std::vector<MessageDefinition::ConstPtr>& result)
-{
-    for (const auto& it : messages) { result.emplace_back(std::make_shared<MessageDefinition>(it)); }
-};
-
-void processEnumSubset(const json& enums, std::vector<EnumDefinition::ConstPtr>& result)
-{
-    for (const auto& it : enums) { result.emplace_back(std::make_shared<EnumDefinition>(it)); }
-};
-
 //-----------------------------------------------------------------------
 std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(const json& jArray)
 {
@@ -227,42 +217,70 @@ std::vector<EnumDefinition::ConstPtr> ProcessEnumDefinitions(const json& jArray)
 }
 
 //-----------------------------------------------------------------------
-MessageDatabase::Ptr JsonDbReader::LoadFile(const std::filesystem::path& filePath_)
+MessageDatabase::Ptr LoadFile(const std::filesystem::path& filePath_)
 {
-    std::ifstream jsonFile(filePath_);
-    auto json = json::parse(jsonFile);
+    try
+    {
+        std::ifstream jsonFile(filePath_);
+        auto json = json::parse(jsonFile);
 
-    auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
-    auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
+        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
+        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
 
-    return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get());
+        return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get());
+    }
+    catch (const std::exception& e)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+    }
 }
 
 //-----------------------------------------------------------------------
-MessageDatabase::Ptr JsonDbReader::Parse(std::string_view strJsonData_)
+MessageDatabase::Ptr Parse(std::string_view strJsonData_)
 {
-    auto json = json::parse(strJsonData_);
+    try
+    {
+        auto json = json::parse(strJsonData_);
 
-    auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
-    auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
+        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
+        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
 
-    return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get());
+        return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get());
+    }
+    catch (const std::exception& e)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, strJsonData_, e.what());
+    }
 }
 
 //-----------------------------------------------------------------------
-void JsonDbReader::AppendMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
+void AppendMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
 {
-    std::ifstream jsonFile(filePath_);
-    const json jDefinitions = json::parse(jsonFile);
-    messageDb_->AppendMessages(ProcessMessageDefinitions(jDefinitions));
+    try
+    {
+        std::ifstream jsonFile(filePath_);
+        const json jDefinitions = json::parse(jsonFile);
+        messageDb_->AppendMessages(ProcessMessageDefinitions(jDefinitions));
+    }
+    catch (const std::exception& e)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+    }
 }
 
 //-----------------------------------------------------------------------
-void JsonDbReader::AppendEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
+void AppendEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
 {
-    std::ifstream jsonFile(filePath_);
-    const json jDefinitions = json::parse(jsonFile);
-    messageDb_->AppendEnumerations(ProcessEnumDefinitions(jDefinitions));
+    try
+    {
+        std::ifstream jsonFile(filePath_);
+        const json jDefinitions = json::parse(jsonFile);
+        messageDb_->AppendEnumerations(ProcessEnumDefinitions(jDefinitions));
+    }
+    catch (const std::exception& e)
+    {
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+    }
 }
 
 } // namespace novatel::edie

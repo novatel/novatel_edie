@@ -41,7 +41,7 @@ class RangeCmpTest : public ::testing::Test
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+        pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
         pclMyRangeDecompressor = std::make_unique<RangeDecompressor>(pclMyJsonDb);
     }
 

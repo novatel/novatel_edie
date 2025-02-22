@@ -41,14 +41,14 @@ using namespace novatel::edie::oem;
 
 static void LoadJson(benchmark::State& state)
 {
-    for ([[maybe_unused]] auto _ : state) { (void)JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH")); }
+    for ([[maybe_unused]] auto _ : state) { (void)LoadFile(std::getenv("TEST_DATABASE_PATH")); }
 }
 
 BENCHMARK(LoadJson);
 
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
 {
-    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    MessageDatabase::Ptr clJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
     const HeaderDecoder headerDecoder(clJsonDb);
     const MessageDecoder messageDecoder(clJsonDb);
 
@@ -131,7 +131,7 @@ template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
                                       0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                       0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
 
-    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    MessageDatabase::Ptr clJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
     const HeaderDecoder headerDecoder(clJsonDb);
     const MessageDecoder messageDecoder(clJsonDb);
     const Encoder encoder(clJsonDb);
@@ -172,7 +172,7 @@ BENCHMARK(EncodeJsonLog);
 
 static void DecompressRangeCmp(benchmark::State& state, uint32_t id, const char* compressedData)
 {
-    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    MessageDatabase::Ptr clJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
     RangeDecompressor rangeDecompressor(clJsonDb);
 
     char aucCompressionBuffer[MAX_ASCII_MESSAGE_LENGTH];

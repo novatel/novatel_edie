@@ -56,49 +56,39 @@ class JsonDbReaderFailure : public std::exception
     [[nodiscard]] const char* what() const noexcept override { return whatString.c_str(); }
 };
 
-//============================================================================
-//! \class JsonDbReader
-//! \brief Parses JSON NovAtel UI Database files into MessageDatabase objects.
-//============================================================================
-class JsonDbReader
-{
-public:
-    JsonDbReader() = delete;
+//----------------------------------------------------------------------------
+//! \brief Load a JSON DB from the provided file path.
+//
+//! \param[in] filePath_ The filepath to the Json file.
+//
+//! \return A shared pointer to the loaded MessageDatabase.
+//----------------------------------------------------------------------------
+MessageDatabase::Ptr LoadFile(const std::filesystem::path& filePath_);
 
-    //----------------------------------------------------------------------------
-    //! \brief Load a JSON DB from the provided file path.
-    //
-    //! \param[in] filePath_ The filepath to the Json file.
-    //
-    //! \return A shared pointer to the loaded MessageDatabase.
-    //----------------------------------------------------------------------------
-    static MessageDatabase::Ptr LoadFile(const std::filesystem::path& filePath_);
+//----------------------------------------------------------------------------
+//! \brief Parse database definitions from the provided JSON data.
+//
+//! \param[in] strJsonData_ A JSON string.
+//
+//! \return A shared pointer to the loaded MessageDatabase.
+//----------------------------------------------------------------------------
+MessageDatabase::Ptr Parse(std::string_view strJsonData_);
 
-    //----------------------------------------------------------------------------
-    //! \brief Parse database definitions from the provided JSON data.
-    //
-    //! \param[in] strJsonData_ A JSON string.
-    //
-    //! \return A shared pointer to the loaded MessageDatabase.
-    //----------------------------------------------------------------------------
-    static MessageDatabase::Ptr Parse(std::string_view strJsonData_);
+//----------------------------------------------------------------------------
+//! \brief Append messages from the provided JSON file to an existing MessageDatabase.
+//
+//! \param[in] messageDb_ The MessageDatabase to append to.
+//! \param[in] filePath_ The filepath to the JSON file.
+//----------------------------------------------------------------------------
+void AppendMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_);
 
-    //----------------------------------------------------------------------------
-    //! \brief Append messages from the provided JSON file to an existing MessageDatabase.
-    //
-    //! \param[in] messageDb_ The MessageDatabase to append to.
-    //! \param[in] filePath_ The filepath to the JSON file.
-    //----------------------------------------------------------------------------
-    static void AppendMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_);
-
-    //----------------------------------------------------------------------------
-    //! \brief Append enumerations from the provided JSON file to an existing MessageDatabase.
-    //
-    //! \param[in] messageDb_ The MessageDatabase to append to.
-    //! \param[in] filePath_ The filepath to the Json file.
-    //----------------------------------------------------------------------------
-    static void AppendEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_);
-};
+//----------------------------------------------------------------------------
+//! \brief Append enumerations from the provided JSON file to an existing MessageDatabase.
+//
+//! \param[in] messageDb_ The MessageDatabase to append to.
+//! \param[in] filePath_ The filepath to the Json file.
+//----------------------------------------------------------------------------
+void AppendEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_);
 
 } // namespace novatel::edie
 

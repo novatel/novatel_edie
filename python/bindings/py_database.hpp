@@ -30,7 +30,8 @@ class PyMessageDatabase final : public MessageDatabase
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
 
   private:
-    void GenerateMappings() override;
+    void GenerateMessageMappings() override;
+    void GenerateEnumMappings() override;
     //-----------------------------------------------------------------------
     //! \brief Creates Python Enums for each enum definition in the database.
     //!
