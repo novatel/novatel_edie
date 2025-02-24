@@ -80,28 +80,17 @@ void FramerManager::DisplayFramerStack()
     // TODO : Delete this for loop - debugging purposes only
     for (const auto& elem : framerRegistry)
     {
-        std::cout << "Framer: "
-                  << elem.framerId
+        std::string idName;
+        for (const auto& pair : idMap)
+        {
+            if (pair.second == elem.framerId)
+            {
+                idName = pair.first;
+                break;
+            }
+        }
+        std::cout << "Framer: " << idName
                   << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
-
-        if (elem.framerId == 1)
-        {
-            std::cout << "Framer: "
-                      << "NOVATEL"
-                      << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
-        }
-        else if (elem.framerId == 2)
-        {
-            std::cout << "Framer: "
-                      << "NMEA"
-                      << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
-        }
-        else
-        {
-            std::cout << "Framer: "
-                      << "UNKNOWN"
-                      << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
-        }
     }
 }
 

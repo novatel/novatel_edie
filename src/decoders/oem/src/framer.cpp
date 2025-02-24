@@ -121,7 +121,6 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
         // Read data from circular buffer until end is reached
         if (pclMyCircularDataBuffer->GetLength() == uiMyByteCount)
         {
-
             uiMyFrameBufferOffset = uiMyByteCount;
             uiMyByteCount = 0;
             // We have found a potential partial log, but we need more data to complete it
@@ -140,8 +139,6 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
         switch (localFrameState)
         {
         case NovAtelFrameState::WAITING_FOR_SYNC:
-            uiMyCalculatedCrc32 = 0;
-
             switch (ucDataByte)
             {
             case OEM4_BINARY_SYNC1: localFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC2; break;
@@ -197,7 +194,6 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
             case OEM4_PROPRIETARY_BINARY_SYNC2: [[fallthrough]];
             case OEM4_BINARY_SYNC2: localFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC3; break;
             default:
-                uiMyFrameBufferOffset = uiMyByteCount;
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
                 localFrameState = NovAtelFrameState::WAITING_FOR_SYNC;

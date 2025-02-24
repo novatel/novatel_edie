@@ -91,9 +91,9 @@ class FramerTest : public ::testing::Test
     }
 
   public:
-    template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_);
+    template <HEADER_FORMAT F, STATUS S> static void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_);
 
-    template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_);
+    template <HEADER_FORMAT F, STATUS S> static void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_);
 
     static void WriteFileStreamToFramer(const std::string& sFilename_)
     {
