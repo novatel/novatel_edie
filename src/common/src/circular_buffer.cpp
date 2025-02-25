@@ -30,8 +30,7 @@
 #include <cassert>
 #include <cstring>
 #include <memory>
-
-#include "novatel_edie/common/nexcept.hpp"
+#include <stdexcept>
 
 //---------------------------------------------------------------------------
 void CircularBuffer::SetCapacity(const uint32_t uiCapacity_)
@@ -59,7 +58,7 @@ void CircularBuffer::SetCapacity(const uint32_t uiCapacity_)
     }
 
     // Sanity check
-    if (pucMyBuffer == nullptr) { throw NExcept("Out of memory!"); }
+    if (pucMyBuffer == nullptr) { throw std::runtime_error("Out of memory!"); }
 }
 
 //---------------------------------------------------------------------------
