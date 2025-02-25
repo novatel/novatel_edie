@@ -2,7 +2,6 @@
 
 #include "bindings_core.hpp"
 #include "message_db_singleton.hpp"
-#include "novatel_edie/common/nexcept.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;

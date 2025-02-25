@@ -414,8 +414,6 @@ struct RangeData
     float fCNo{0};
     float fLockTime{0};
     uint32_t uiChannelTrackingStatus{0};
-
-    RangeData() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -426,8 +424,6 @@ struct Range
 {
     uint32_t uiNumberOfObservations{0};
     RangeData astRangeData[RANGE_RECORD_MAX]{};
-
-    Range() = default;
 };
 
 namespace rangecmp {
@@ -446,8 +442,6 @@ struct RangeCmpData
     uint32_t uiLockTimeCNoGloFreq{0}; // This is a combination of two fields; Lock time (21b), C/No
                                       // (5b), and GLONASS Frequency number (8b)
     uint16_t usReserved{0};
-
-    RangeCmpData() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -458,8 +452,6 @@ struct RangeCmp
 {
     uint32_t uiNumberOfObservations{0};
     RangeCmpData astRangeData[RANGE_RECORD_MAX]{};
-
-    RangeCmp() = default;
 };
 
 } // namespace rangecmp
@@ -475,8 +467,6 @@ struct SatelliteBlock
     uint8_t ucSvChanNumber{0};
     uint8_t ucSatelliteIdentifier{0};
     uint64_t ulCombinedField{0};
-
-    SatelliteBlock() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -487,8 +477,6 @@ struct SignalBlock
 {
     uint32_t uiCombinedField1{0};
     uint64_t ullCombinedField2{0};
-
-    SignalBlock() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -499,8 +487,6 @@ struct LockTimeInfo
 {
     double dLockTimeSaturatedMilliseconds{0.0}; // The time (milliseconds from OEM header) at which the lock time became saturated.
     bool bLockTimeSaturated{false};             // A flag to verify if dLockTimeSaturatedMilliseconds has been set.
-
-    LockTimeInfo() = default;
 };
 
 //--------------------------------------------------------------------
@@ -563,8 +549,6 @@ struct RangeCmp
 {
     uint32_t uiNumberOfRangeDataBytes{0};
     uint8_t aucRangeData[RANGE_RECORD_MAX * (sizeof(SatelliteBlock) + sizeof(SignalBlock))]{};
-
-    RangeCmp() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -728,8 +712,6 @@ struct MeasurementBlockHeader
     bool bIsDifferentialData{false};
     uint8_t ucReferenceId{0};
     int8_t cGlonassFrequency{0};
-
-    MeasurementBlockHeader() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -751,8 +733,6 @@ struct MeasurementSignalBlock
     bool bValidPhr{false};
     double dDoppler{0.0};
     bool bValidDoppler{false};
-
-    MeasurementSignalBlock() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -765,8 +745,6 @@ struct LockTimeInfo
     double dLastBitfieldChangeMilliseconds{0.0};         // The last time (milliseconds from OEM header) lock time was updated.
     uint8_t ucBits{std::numeric_limits<uint8_t>::max()}; // The last recorded bit pattern.
     bool bAbsolute{false};                               // Is the lock time absolute or relative?
-
-    LockTimeInfo() = default;
 };
 
 constexpr uint64_t MakeKey(SYSTEM system, uint32_t satellite, SIGNAL_TYPE signal, MEASUREMENT_SOURCE source)
@@ -789,8 +767,6 @@ struct MeasurementBlockHeader
     bool bDataFormatFlag{false};
     uint8_t ucReserved{0};
     int8_t cGlonassFrequency{0};
-
-    MeasurementBlockHeader() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -812,8 +788,6 @@ struct MeasurementSignalBlock
     bool bValidPhr{false};
     double dDoppler{0.0};
     bool bValidDoppler{false};
-
-    MeasurementSignalBlock() = default;
 };
 
 } // namespace rangecmp5

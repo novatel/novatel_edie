@@ -46,12 +46,6 @@ void Commander::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger> Commander::GetLogger() const { return pclMyLogger; }
-
-// -------------------------------------------------------------------------------------------------------
-void Commander::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-// -------------------------------------------------------------------------------------------------------
 void Commander::InitEnumDefinitions()
 {
     vMyResponseDefinitions = pclMyMsgDb->GetEnumDefName("Responses");

@@ -48,9 +48,6 @@ void MessageDecoderBase::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger> MessageDecoderBase::GetLogger() { return pclMyLogger; }
-
-// -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::InitEnumDefinitions()
 {
     vMyResponseDefinitions = pclMyMsgDb->GetEnumDefName("Responses");
@@ -255,12 +252,6 @@ void MessageDecoderBase::CreateResponseMsgDefinitions()
     stMyRespDef->fields[0].emplace_back(std::make_shared<EnumField>(stRespIdField));
     stMyRespDef->fields[0].emplace_back(std::make_shared<BaseField>(stRespStrField));
 }
-
-// -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-// -------------------------------------------------------------------------------------------------------
-MessageDatabase::ConstPtr MessageDecoderBase::MessageDb() const { return std::const_pointer_cast<const MessageDatabase>(pclMyMsgDb); }
 
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, const unsigned char** ppucLogBuf_,

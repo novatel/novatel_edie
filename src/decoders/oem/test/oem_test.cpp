@@ -74,7 +74,7 @@ class FramerTest : public ::testing::Test
     template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
     {
         MetaDataStruct stExpectedMetaData;
-        stExpectedMetaData.eFormat = F; 
+        stExpectedMetaData.eFormat = F;
         stExpectedMetaData.uiLength = uiLength_;
         MetaDataStruct stTestMetaData;
         ASSERT_EQ(S, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, stTestMetaData));

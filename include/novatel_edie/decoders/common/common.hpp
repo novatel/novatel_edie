@@ -68,21 +68,24 @@ enum class STATUS
 
 inline std::string StatusToString(const STATUS eStatus_)
 {
-    return eStatus_ == STATUS::SUCCESS                  ? "SUCCESS"
-           : eStatus_ == STATUS::FAILURE                ? "FAILURE"
-           : eStatus_ == STATUS::INCOMPLETE             ? "INCOMPLETE"
-           : eStatus_ == STATUS::INCOMPLETE_MORE_DATA   ? "INCOMPLETE_MORE_DATA"
-           : eStatus_ == STATUS::NULL_PROVIDED          ? "NULL_PROVIDED"
-           : eStatus_ == STATUS::NO_DATABASE            ? "NO_DATABASE"
-           : eStatus_ == STATUS::NO_DEFINITION          ? "NO_DEFINITION"
-           : eStatus_ == STATUS::NO_DEFINITION_EMBEDDED ? "NO_DEFINITION_EMBEDDED"
-           : eStatus_ == STATUS::BUFFER_FULL            ? "BUFFER_FULL"
-           : eStatus_ == STATUS::BUFFER_EMPTY           ? "BUFFER_EMPTY"
-           : eStatus_ == STATUS::STREAM_EMPTY           ? "STREAM_EMPTY"
-           : eStatus_ == STATUS::UNSUPPORTED            ? "UNSUPPORTED"
-           : eStatus_ == STATUS::MALFORMED_INPUT        ? "MALFORMED_INPUT"
-           : eStatus_ == STATUS::DECOMPRESSION_FAILURE  ? "DECOMPRESSION_FAILURE"
-                                                        : "UNKNOWN";
+    switch (eStatus_)
+    {
+    case STATUS::SUCCESS: return "SUCCESS";
+    case STATUS::FAILURE: return "FAILURE";
+    case STATUS::INCOMPLETE: return "INCOMPLETE";
+    case STATUS::INCOMPLETE_MORE_DATA: return "INCOMPLETE_MORE_DATA";
+    case STATUS::NULL_PROVIDED: return "NULL_PROVIDED";
+    case STATUS::NO_DATABASE: return "NO_DATABASE";
+    case STATUS::NO_DEFINITION: return "NO_DEFINITION";
+    case STATUS::NO_DEFINITION_EMBEDDED: return "NO_DEFINITION_EMBEDDED";
+    case STATUS::BUFFER_FULL: return "BUFFER_FULL";
+    case STATUS::BUFFER_EMPTY: return "BUFFER_EMPTY";
+    case STATUS::STREAM_EMPTY: return "STREAM_EMPTY";
+    case STATUS::UNSUPPORTED: return "UNSUPPORTED";
+    case STATUS::MALFORMED_INPUT: return "MALFORMED_INPUT";
+    case STATUS::DECOMPRESSION_FAILURE: return "DECOMPRESSION_FAILURE";
+    default: return "UNKNOWN";
+    }
 }
 
 inline std::ostream& operator<<(std::ostream& os_, const STATUS eStatus_)
@@ -121,12 +124,15 @@ inline ENCODE_FORMAT StringToEncodeFormat(std::string_view sEnumName_)
 
 inline std::string EncodeFormatToString(const ENCODE_FORMAT eFormat_)
 {
-    return eFormat_ == ENCODE_FORMAT::FLATTENED_BINARY ? "FLATTENED_BINARY"
-           : eFormat_ == ENCODE_FORMAT::ASCII          ? "ASCII"
-           : eFormat_ == ENCODE_FORMAT::ABBREV_ASCII   ? "ABBREV_ASCII"
-           : eFormat_ == ENCODE_FORMAT::BINARY         ? "BINARY"
-           : eFormat_ == ENCODE_FORMAT::JSON           ? "JSON"
-                                                       : "UNSPECIFIED";
+    switch (eFormat_)
+    {
+    case ENCODE_FORMAT::FLATTENED_BINARY: return "FLATTENED_BINARY";
+    case ENCODE_FORMAT::ASCII: return "ASCII";
+    case ENCODE_FORMAT::ABBREV_ASCII: return "ABBREV_ASCII";
+    case ENCODE_FORMAT::BINARY: return "BINARY";
+    case ENCODE_FORMAT::JSON: return "JSON";
+    default: return "UNSPECIFIED";
+    }
 }
 
 inline std::ostream& operator<<(std::ostream& os_, const ENCODE_FORMAT eFormat_)
@@ -222,7 +228,7 @@ struct MessageDataStruct
     unsigned char* pucMessage{nullptr};
     uint32_t uiMessageLength{0};
 
-    constexpr MessageDataStruct() = default;
+    MessageDataStruct() = default;
 
     MessageDataStruct(unsigned char* pucMessage_, const uint32_t uiLength_, const uint32_t uiHeaderLength_)
         : pucMessageHeader(pucMessage_), uiMessageHeaderLength(uiHeaderLength_), pucMessageBody(pucMessage_ + uiMessageHeaderLength),
@@ -260,7 +266,7 @@ struct MetaDataBase
     uint32_t uiHeaderLength{0};
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
-    std::string acMessageName;
+    std::string messageName;
 };
 
 } // namespace novatel::edie
@@ -367,8 +373,6 @@ struct SatelliteId
 {
     uint16_t usPrnOrSlot{0};      //!< PRN/Slot number of satellite.
     int16_t sFrequencyChannel{0}; //!< Frequency channel number.
-
-    constexpr SatelliteId() = default;
 
     bool operator==(const SatelliteId& stOther_) const
     {

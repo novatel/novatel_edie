@@ -53,12 +53,6 @@ void HeaderDecoder::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-void HeaderDecoder::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-// -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger> HeaderDecoder::GetLogger() { return pclMyLogger; }
-
-// -------------------------------------------------------------------------------------------------------
 template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const
 {
     constexpr bool bIsLeadingNumberField = eField == ASCII_HEADER::SEQUENCE || eField == ASCII_HEADER::IDLE_TIME || eField == ASCII_HEADER::WEEK ||
@@ -260,7 +254,7 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
     stMetaData_.uiBinaryMsgLength = static_cast<uint32_t>(stInterHeader_.usLength);
 
     // Reconstruct a message name that won't have a suffix of any kind.
-    stMetaData_.acMessageName = pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY),
+    stMetaData_.messageName = pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY),
                                                                        static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
 
     return STATUS::SUCCESS;

@@ -73,8 +73,9 @@ class RxConfigHandler
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
     RxConfigHandler(const RxConfigHandler&) = delete;
-    RxConfigHandler(const RxConfigHandler&&) = delete;
+    RxConfigHandler(RxConfigHandler&&) = delete;
     RxConfigHandler& operator=(const RxConfigHandler&) = delete;
+    RxConfigHandler& operator=(RxConfigHandler&&) = delete;
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the RxConfigHandler class.
@@ -95,14 +96,14 @@ class RxConfigHandler
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_  The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Write bytes to the RxConfigHandler to be converted.

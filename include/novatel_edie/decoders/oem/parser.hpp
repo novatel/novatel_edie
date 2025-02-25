@@ -85,8 +85,9 @@ class Parser
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
     Parser(const Parser&) = delete;
-    Parser(const Parser&&) = delete;
+    Parser(Parser&&) = delete;
     Parser& operator=(const Parser&) = delete;
+    Parser& operator=(Parser&&) = delete;
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Parser class.

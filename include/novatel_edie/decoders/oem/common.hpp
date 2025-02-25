@@ -139,7 +139,7 @@ struct MetaDataStruct : public MetaDataBase
         return eFormat == other_.eFormat && eMeasurementSource == other_.eMeasurementSource && eTimeStatus == other_.eTimeStatus &&
                bResponse == other_.bResponse && usWeek == other_.usWeek && IsEqual(dMilliseconds, other_.dMilliseconds) &&
                uiLength == other_.uiLength && uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId &&
-               uiMessageCrc == other_.uiMessageCrc && acMessageName == other_.acMessageName;
+               uiMessageCrc == other_.uiMessageCrc && messageName == other_.messageName;
     }
 };
 
@@ -163,8 +163,6 @@ struct IntermediateHeader
     uint32_t uiReceiverStatus{0};
     uint32_t uiMessageDefinitionCrc{0};
     uint16_t usReceiverSwVersion{0};
-
-    IntermediateHeader() = default;
 };
 
 #pragma pack(push, 1)

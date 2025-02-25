@@ -132,7 +132,6 @@ template <typename Derived> class EncoderBase
     std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] MessageDatabase&)>> asciiFieldMap;
     std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] MessageDatabase&)>> jsonFieldMap;
 
-    // Encode binary
     template <bool Flatten, bool Align>
     [[nodiscard]] bool EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
     {
@@ -288,7 +287,6 @@ template <typename Derived> class EncoderBase
         }
     }
 
-    // Encode ascii
     template <bool Abbreviated>
     [[nodiscard]] bool EncodeAsciiBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                        const uint32_t uiIndentationLevel_ = 1) const
@@ -469,7 +467,6 @@ template <typename Derived> class EncoderBase
         }
     }
 
-    // Encode JSON
     [[nodiscard]] bool FieldToJson(const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         auto it = jsonFieldMap.find(fc_.fieldDef->conversionHash);

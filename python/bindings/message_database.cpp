@@ -52,7 +52,6 @@ void init_common_message_database(nb::module_& m)
 
     nb::class_<EnumDataType>(m, "EnumDataType", "Enum Data Type representing contents of UI DB")
         .def(nb::init())
-        .def(nb::init<std::string, uint32_t, std::string>(), "name"_a, "value"_a, "description"_a = "")
         .def_rw("value", &EnumDataType::value)
         .def_rw("name", &EnumDataType::name)
         .def_rw("description", &EnumDataType::description)

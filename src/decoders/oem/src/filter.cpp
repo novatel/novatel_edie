@@ -196,7 +196,7 @@ bool Filter::FilterMessage(const MetaDataStruct& stMetaData_) const
 {
     if (vMyMessageNameFilters.empty()) { return true; }
 
-    std::string szMessageName = stMetaData_.acMessageName;
+    std::string szMessageName = stMetaData_.messageName;
     HEADER_FORMAT eFormat = stMetaData_.eFormat;
     MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
 
