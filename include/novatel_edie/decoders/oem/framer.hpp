@@ -29,6 +29,7 @@
 
 #include "novatel_edie/decoders/common/framer.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
+#include "novatel_edie/common/framer_manager.hpp"
 
 namespace novatel::edie::oem {
 
@@ -39,6 +40,8 @@ namespace novatel::edie::oem {
 class Framer : public FramerBase
 {
   private:
+    
+
     NovAtelFrameState eMyFrameState{NovAtelFrameState::WAITING_FOR_SYNC};
 
     uint32_t uiMyJsonObjectOpenBraces{0};
@@ -109,8 +112,9 @@ class Framer : public FramerBase
     //! \brief A destructor for the Framer class.
     //----------------------------------------------------------------------------
     ~Framer() override = default;
-};
 
+    static const bool registered;
+};
 } // namespace novatel::edie::oem
 
 #endif // FRAMER_H

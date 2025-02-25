@@ -33,11 +33,14 @@
 #include <novatel_edie/decoders/common/json_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/filter.hpp>
-#include <novatel_edie/decoders/oem/framer.hpp>
+
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
 #include "novatel_edie/common/framer_manager.hpp"
+#include <../src/decoders/oem/src/framer_registration.cpp>
 #include <novatel_edie/version.h>
+
+//#include "../src/decoders/oem/src/framer_registry.cpp"
 
 namespace fs = std::filesystem;
 
@@ -46,6 +49,12 @@ using namespace novatel::edie::oem;
 
 int main(int argc, char* argv[])
 {
+    RegisterAllFramers();
+    /*extern void ForceFramerRegistryLinkage();
+    static const bool dummy = (ForceFramerRegistryLinkage(), true);*/
+
+    //novatel::edie::oem::Framer f = novatel::edie::oem::Framer();
+    //std::cout << f.registered;
     // This example uses the default logger config, but you can also pass a config file to InitLogger()
     // Example config file: logger\example_logger_config.toml
     Logger::InitLogger();
@@ -98,15 +107,15 @@ int main(int argc, char* argv[])
 
     // Set up the EDIE components
     // get reference to static singleton instance of FramerManager
-    novatel::edie::FramerManager& clFramerManager = FramerManager::GetInstance();
+    novatel::edie::FramerManager& clFramerManager = FramerManager({"OEM"});
     clFramerManager.SetReportUnknownBytes(true);
     clFramerManager.SetLoggerLevel(spdlog::level::debug);
 
-    Framer clFramer;
-    Logger::AddConsoleLogging(clFramer.GetLogger());
-    Logger::AddRotatingFileLogger(clFramer.GetLogger());
-    clFramer.SetPayloadOnly(false);
-    clFramer.SetFrameJson(false);
+    //novatel::edie::oem::Framer clFramer;
+    //clFramer.SetPayloadOnly(false);
+    //clFramer.SetFrameJson(false);
+    //Logger::AddConsoleLogging(clFramer.GetLogger());
+    //Logger::AddRotatingFileLogger(clFramer.GetLogger());
 
     HeaderDecoder clHeaderDecoder(&clJsonDb);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
@@ -155,14 +164,15 @@ int main(int argc, char* argv[])
     while (!ifs.eof())
     {
         ifs.read(cData.data(), cData.size());
-        clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
+        clFramerManager.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
             unsigned char* pucFrameBuffer = acFrameBuffer;
-            eFramerStatus = clFramer.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaData);
+            int framerId = 0;
+            eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), framerId);
 
             if (eFramerStatus == STATUS::SUCCESS)
             {
@@ -223,7 +233,7 @@ int main(int argc, char* argv[])
     }
 
     // Clean up
-    uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
+    uint32_t uiBytes = clFramerManager.Flush(acFrameBuffer, sizeof(acFrameBuffer));
     unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
     Logger::Shutdown();
     return 0;

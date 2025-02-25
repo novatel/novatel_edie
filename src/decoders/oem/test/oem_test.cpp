@@ -46,8 +46,6 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-static novatel::edie::oem::Framer clNovAtelFramer;
-
 class FramerTest : public ::testing::Test
 {
   protected:
@@ -57,7 +55,7 @@ class FramerTest : public ::testing::Test
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        FramerManager& clMyFramerManager = FramerManager({"OEM"});
         clMyFramerManager.SetLoggerLevel(spdlog::level::info);
         clMyFramerManager.SetReportUnknownBytes(true);
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
@@ -71,7 +69,7 @@ class FramerTest : public ::testing::Test
     {
         FlushTestFixture();
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128k
-        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        FramerManager& clMyFramerManager = FramerManager({"OEM"});
         clMyFramerManager.ResetAllFramerStates();
         clMyFramerManager.ResetAllMetaDataStates();
     }
@@ -80,7 +78,7 @@ class FramerTest : public ::testing::Test
     void TearDown() override
     {
         FlushTestFixture();
-        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        FramerManager& clMyFramerManager = FramerManager({"OEM"});
         clMyFramerManager.ResetAllFramerStates();
         clMyFramerManager.ResetAllMetaDataStates();
     }
@@ -97,7 +95,7 @@ class FramerTest : public ::testing::Test
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         uint32_t uiBytesWritten = 0;
 
-        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        FramerManager& clMyFramerManager = FramerManager({"OEM"});
 
         while (!pclMyIFS->eof())
         {
@@ -112,13 +110,13 @@ class FramerTest : public ::testing::Test
 
     static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_)
     {
-        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        FramerManager& clMyFramerManager = FramerManager({"OEM"});
         ASSERT_EQ(clMyFramerManager.Write(pucBytes_, uiNumBytes_), uiNumBytes_);
     }
 
     static void FlushTestFixture()
     {
-        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        FramerManager& clMyFramerManager = FramerManager({"OEM"});
         while (clMyFramerManager.Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
         pucMyTestFrameBuffer.reset();
     }
@@ -126,7 +124,7 @@ class FramerTest : public ::testing::Test
 
 template <HEADER_FORMAT F, STATUS S> void FramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_, int& id_)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     MetaDataStruct stExpectedMetaData(F, uiLength_);
     ASSERT_EQ(S, clMyFramerManager.GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, id_));
     auto* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"]));
@@ -135,7 +133,7 @@ template <HEADER_FORMAT F, STATUS S> void FramerTest::FramerHelper(uint32_t uiLe
 
 template <HEADER_FORMAT F, STATUS S> void FramerTest::FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     int id = clMyFramerManager.idMap["UNKNOWN"];
     FramerHelper<F, S>(uiLength_, uiFrameLength_, id);
 }
@@ -153,7 +151,7 @@ TEST_F(FramerTest, LOGGER)
 {
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     std::shared_ptr<spdlog::logger> logger = clMyFramerManager.GetLogger();
     ASSERT_EQ(spdlog::get("FramerManager"), clMyFramerManager.GetLogger());
     clMyFramerManager.SetLoggerLevel(eLevel);
@@ -239,7 +237,7 @@ TEST_F(FramerTest, ASCII_INADEQUATE_BUFFER)
 
 TEST_F(FramerTest, ASCII_SEGMENTED)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
     uint32_t uiBytesWritten = 0;
     auto id = clMyFramerManager.idMap["UNKNOWN"];
@@ -286,7 +284,7 @@ TEST_F(FramerTest, ABBREV_ASCII_SEGMENTED)
     uint32_t uiLogSize = sizeof(aucData) - 1 - 6; // Remove the [ICOM] from the log size
     uint32_t uiBytesWritten = 0;
     MetaDataStruct stExpectedFrameData;
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     auto* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"]));
 
     WriteBytesToFramer(&aucData[uiBytesWritten], 1); // Sync Byte
@@ -359,7 +357,7 @@ TEST_F(FramerTest, BINARY_INCOMPLETE)
 TEST_F(FramerTest, BINARY_BUFFER_FULL)
 {
     // "<incomplete binary BESTPOS log>"
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00};
     WriteBytesToFramer(aucData, sizeof(aucData));
     MetaDataStruct stMetaData;
@@ -400,7 +398,7 @@ TEST_F(FramerTest, BINARY_INADEQUATE_BUFFER)
 
 TEST_F(FramerTest, BINARY_BYTE_BY_BYTE)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     // "<binary BESTPOS log
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
     uint32_t uiLogSize = sizeof(aucData);
@@ -442,7 +440,7 @@ TEST_F(FramerTest, BINARY_BYTE_BY_BYTE)
 
 TEST_F(FramerTest, BINARY_SEGMENTED)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     // "<binary BESTPOS log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
     uint32_t uiBytesWritten = 0;
@@ -561,7 +559,7 @@ TEST_F(FramerTest, SHORT_ASCII_INADEQUATE_BUFFER)
 
 TEST_F(FramerTest, SHORT_ASCII_SEGMENTED)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
     uint32_t uiBytesWritten = 0;
     auto id = clMyFramerManager.idMap["UNKNOWN"];
@@ -624,7 +622,7 @@ TEST_F(FramerTest, SHORT_BINARY_INCOMPLETE)
 
 TEST_F(FramerTest, SHORT_BINARY_BUFFER_FULL)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     // "<incomplete short binary rawimusx log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87};
     WriteBytesToFramer(aucData, sizeof(aucData));
@@ -700,7 +698,7 @@ TEST_F(FramerTest, SHORT_BINARY_INADEQUATE_BUFFER)
 
 TEST_F(FramerTest, SHORT_BINARY_SEGMENTED)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     // "<short binary rawimusx log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97, 0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87, 0xF3, 0xFF, 0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F, 0xAF, 0xBA};
     uint32_t uiBytesWritten = 0;
@@ -759,7 +757,7 @@ TEST_F(FramerTest, ABBREV_ASCII_INCOMPLETE)
 
 TEST_F(FramerTest, ABBREV_ASCII_BUFFER_FULL)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     constexpr unsigned char aucData[] = "<ERROR:Message is invalid for this model\r\n";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
     auto id = clMyFramerManager.idMap["UNKNOWN"];
@@ -805,7 +803,7 @@ TEST_F(FramerTest, ABBREV_ASCII_MULTILINE)
 
 TEST_F(FramerTest, ABBREV_ASCII_RESPONSE)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     constexpr unsigned char aucData[] = "<ERROR:Message is invalid for this model\r\n";
     MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ABB_ASCII);
     auto* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"]));
@@ -859,7 +857,7 @@ TEST_F(FramerTest, UNKNOWN_BINARY_WITH_ASCII_SYNC)
 
 TEST_F(FramerTest, NULL_FRAME)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     MetaDataStruct stMetaData;
     auto id = clMyFramerManager.idMap["UNKNOWN"];
     ASSERT_EQ(STATUS::NULL_PROVIDED, clMyFramerManager.GetFrame(nullptr, MAX_ASCII_MESSAGE_LENGTH,  id));

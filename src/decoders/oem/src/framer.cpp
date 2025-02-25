@@ -28,27 +28,38 @@
 
 #include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/common/framer_manager.hpp"
+//#include "../src/decoders/oem/src/framer_registry.cpp"
+
+
+//#ifdef _MSC_VER // Microsoft Visual C++
+//#pragma comment(linker, "/INCLUDE:?registered@Framer@oem@edie@novatel@@2_NB")
+//#else // GCC & Clang
+//__attribute__((used)) const bool forceIncludeFramer = novatel::edie::oem::Framer::registered;
+//#endif
+
+
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+//const bool novatel::edie::oem::Framer::registered = ([]() {
+//    FramerManager::RegisterFramer(
+//        "OEM", 
+//        [](std::shared_ptr<CircularBuffer> buffer) -> std::unique_ptr<novatel::edie::FramerBase> {
+//            return std::make_unique<novatel::edie::oem::Framer>(buffer);
+//        },
+//        []() -> std::unique_ptr<MetaDataBase> {
+//            return std::make_unique<MetaDataStruct>();
+//        }
+//    );
+//    return true;
+//})();
+
 // -------------------------------------------------------------------------------------------------------
 Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("novatel_framer", circularBuffer)
-{
-    novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
+{}
 
-    auto it_exists = clMyFramerManager.idMap.find("NOVATEL");
-    if (it_exists != clMyFramerManager.idMap.end())
-    {
-        auto it_registered =
-            std::find_if(clMyFramerManager.framerRegistry.begin(), clMyFramerManager.framerRegistry.end(),
-                         [&clMyFramerManager](const FramerElement& element) { return element.framerId == clMyFramerManager.idMap["NOVATEL"]; });
-        if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
-    }
-    clMyFramerManager.RegisterFramer("NOVATEL", std::unique_ptr<FramerBase>(this), std::make_unique<MetaDataStruct>());
-}
-
-Framer::Framer() : Framer(FramerManager::GetInstance().GetCircularBuffer()) {}
+Framer::Framer() : FramerBase("novatel_framer") {}
 
 // -------------------------------------------------------------------------------------------------------
 bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }

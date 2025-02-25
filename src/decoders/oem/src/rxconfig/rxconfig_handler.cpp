@@ -72,7 +72,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 // -------------------------------------------------------------------------------------------------------
 uint32_t RxConfigHandler::Write(unsigned char* pucData_, uint32_t uiDataSize_)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     return clMyFramerManager.Write(pucData_, uiDataSize_);
 }
 
@@ -87,7 +87,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     unsigned char* pucTempMessagePointer = pcMyFrameBuffer.get();
 
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     auto eActiveFramerId = clMyFramerManager.idMap["UNKNOWN"];
 
     // Get an RXCONFIG log.
@@ -284,6 +284,6 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 // -------------------------------------------------------------------------------------------------------
 uint32_t RxConfigHandler::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     return clMyFramerManager.Flush(pucBuffer_, uiBufferSize_);
 }

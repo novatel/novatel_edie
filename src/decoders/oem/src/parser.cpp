@@ -123,7 +123,7 @@ std::shared_ptr<spdlog::logger> Parser::GetLogger() { return pclMyLogger; }
 // -------------------------------------------------------------------------------------------------------
 void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const std::string& sFileName_)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     clMyFramerManager.SetLoggerLevel(eLevel_);
 
     clMyHeaderDecoder.SetLoggerLevel(eLevel_);
@@ -179,7 +179,7 @@ unsigned char* Parser::GetInternalBuffer() const { return pucMyFrameBufferPointe
 // -------------------------------------------------------------------------------------------------------
 uint32_t Parser::Write(unsigned char* pucData_, uint32_t uiDataSize_)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     return clMyFramerManager.Write(pucData_, uiDataSize_);
 }
 
@@ -189,7 +189,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
 {
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     int eActiveFramerId = clMyFramerManager.idMap["UNKNOWN"];
 
     while (true)
@@ -293,7 +293,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
 // -------------------------------------------------------------------------------------------------------
 uint32_t Parser::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    FramerManager& clMyFramerManager = FramerManager({"OEM"});
     clMyRangeDecompressor.Reset();
     return clMyFramerManager.Flush(pucBuffer_, uiBufferSize_);
 }
