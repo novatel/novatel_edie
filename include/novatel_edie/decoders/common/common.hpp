@@ -249,14 +249,8 @@ struct EnumDefinition;
 //! \brief Base class for all metadata. Contains data about the data such as header format,
 //! GPS week and milliseconds, and message ID.
 //============================================================================
-class MetaDataBase
+struct MetaDataBase
 {
-  private:
-    static constexpr uint32_t uiMessageNameMax = 40;
-
-  public:
-    MetaDataBase() = default;
-    virtual ~MetaDataBase() = 0;
     bool bResponse{false};
     HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
     uint16_t usWeek{0};
@@ -266,18 +260,8 @@ class MetaDataBase
     uint32_t uiHeaderLength{0};
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
-    char acMessageName[uiMessageNameMax + 1]{};
-
-    [[nodiscard]] std::string MessageName() const { return {acMessageName}; }
-
-    void MessageName(std::string_view strMessageName_)
-    {
-        memcpy(acMessageName, strMessageName_.data(), strMessageName_.length());
-        acMessageName[strMessageName_.length()] = '\0';
-    }
+    std::string acMessageName;
 };
-
-inline MetaDataBase::~MetaDataBase() = default;
 
 } // namespace novatel::edie
 

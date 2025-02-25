@@ -133,24 +133,13 @@ struct MetaDataStruct : public MetaDataBase
     TIME_STATUS eTimeStatus{TIME_STATUS::UNKNOWN};
     CONSTELLATION constellation{CONSTELLATION::UNKNOWN};
 
-    MetaDataStruct() = default;
-
-    MetaDataStruct(const HEADER_FORMAT eFormat_) { eFormat = eFormat_; }
-
-    MetaDataStruct(const HEADER_FORMAT eFormat_, const uint32_t uiLength_)
-    {
-        eFormat = eFormat_;
-        uiLength = uiLength_;
-    }
-
-    ~MetaDataStruct() override = default;
-
+    // NOTE: C++20 automatically generates a generic operator== for this struct.
     bool operator==(const MetaDataStruct& other_) const
     {
         return eFormat == other_.eFormat && eMeasurementSource == other_.eMeasurementSource && eTimeStatus == other_.eTimeStatus &&
                bResponse == other_.bResponse && usWeek == other_.usWeek && IsEqual(dMilliseconds, other_.dMilliseconds) &&
                uiLength == other_.uiLength && uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId &&
-               uiMessageCrc == other_.uiMessageCrc && MessageName() == other_.MessageName();
+               uiMessageCrc == other_.uiMessageCrc && acMessageName == other_.acMessageName;
     }
 };
 
