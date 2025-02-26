@@ -519,14 +519,14 @@ class MessageDatabase
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void AppendJsonDbMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_, bool bGenerateMappings_ = true)
+    void AppendJsonDbMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
     {
         for (const auto& msgDef : vMessageDefinitions_)
         {
             RemoveMessage(msgDef->logID, false);
             vMessageDefinitions.push_back(msgDef);
         }
-        if (bGenerateMappings_) { GenerateMessageMappings(); }
+        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -535,14 +535,14 @@ class MessageDatabase
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void AppendJsonDbEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_, bool bGenerateMappings_ = true)
+    void AppendJsonDbEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
     {
         for (const auto& enmDef : vEnumDefinitions_)
         {
             RemoveEnumeration(enmDef->name, false);
             vEnumDefinitions.push_back(enmDef);
         }
-        if (bGenerateMappings_) { GenerateEnumMappings(); }
+        GenerateEnumMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -559,7 +559,7 @@ class MessageDatabase
     //! \param[in] strEnumeration_ The enumeration name
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void RemoveEnumeration(std::string_view strEnumeration_, bool bGenerateMappings_);
+    void RemoveEnumeration(std::string_view strEnumeration_, bool bGenerateMappings_ = true);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
