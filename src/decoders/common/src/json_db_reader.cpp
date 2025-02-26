@@ -217,7 +217,7 @@ std::vector<EnumDefinition::ConstPtr> ProcessEnumDefinitions(const json& jArray)
 }
 
 //-----------------------------------------------------------------------
-MessageDatabase::Ptr LoadFile(const std::filesystem::path& filePath_)
+MessageDatabase::Ptr LoadJsonDbFile(const std::filesystem::path& filePath_)
 {
     try
     {
@@ -236,7 +236,7 @@ MessageDatabase::Ptr LoadFile(const std::filesystem::path& filePath_)
 }
 
 //-----------------------------------------------------------------------
-MessageDatabase::Ptr Parse(std::string_view strJsonData_)
+MessageDatabase::Ptr ParseJsonDb(std::string_view strJsonData_)
 {
     try
     {
@@ -254,13 +254,13 @@ MessageDatabase::Ptr Parse(std::string_view strJsonData_)
 }
 
 //-----------------------------------------------------------------------
-void AppendMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
+void AppendJsonDbMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
 {
     try
     {
         std::ifstream jsonFile(filePath_);
         const json jDefinitions = json::parse(jsonFile);
-        messageDb_->AppendMessages(ProcessMessageDefinitions(jDefinitions));
+        messageDb_->AppendJsonDbMessages(ProcessMessageDefinitions(jDefinitions));
     }
     catch (const std::exception& e)
     {
@@ -269,13 +269,13 @@ void AppendMessages(const MessageDatabase::Ptr& messageDb_, const std::filesyste
 }
 
 //-----------------------------------------------------------------------
-void AppendEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
+void AppendJsonDbEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
 {
     try
     {
         std::ifstream jsonFile(filePath_);
         const json jDefinitions = json::parse(jsonFile);
-        messageDb_->AppendEnumerations(ProcessEnumDefinitions(jDefinitions));
+        messageDb_->AppendJsonDbEnumerations(ProcessEnumDefinitions(jDefinitions));
     }
     catch (const std::exception& e)
     {

@@ -70,4 +70,4 @@ def min_json_db():
       "messages": []
     }
     """
-    return ne.parse(json)
+    return ne.parse_json_db(json)

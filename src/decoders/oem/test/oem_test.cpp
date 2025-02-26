@@ -923,7 +923,7 @@ class DecodeEncodeTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
             pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb);
             pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb);
             pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb);
@@ -2144,7 +2144,7 @@ class CommandEncodeTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
             pclMyCommander = std::make_unique<Commander>(pclMyJsonDb);
         }
         catch (const JsonDbReaderFailure& e)
@@ -2245,7 +2245,7 @@ class BenchmarkTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
             pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb);
             pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb);
             pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb);
@@ -2277,7 +2277,7 @@ class FilterTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+            pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
             pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb);
             pclMyFilter = std::make_unique<Filter>();
         }
@@ -2714,13 +2714,13 @@ TEST_F(FileParserTest, FILEPARSER_INSTANTIATION)
     const std::u32string usTEST_DATABASE_PATH(sTEST_DATABASE_PATH.begin(), sTEST_DATABASE_PATH.end());
     ASSERT_NO_THROW(FileParser fp3 = FileParser(usTEST_DATABASE_PATH));
 
-    auto jsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    auto jsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
     ASSERT_NO_THROW(FileParser fp4(jsonDb));
 }
 
 TEST_F(FileParserTest, LOAD_JSON_DB_STRING)
 {
-    auto pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    auto pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
     ASSERT_NO_THROW(pclFp->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclFp->LoadJsonDb(nullptr));
 }
@@ -2729,14 +2729,14 @@ TEST_F(FileParserTest, LOAD_JSON_DB_U32STRING)
 {
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
     std::u32string u32str = converter.from_bytes(std::getenv("TEST_DATABASE_PATH"));
-    auto pclMyJsonDb = LoadFile(u32str);
+    auto pclMyJsonDb = LoadJsonDbFile(u32str);
     ASSERT_NO_THROW(pclFp->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclFp->LoadJsonDb(nullptr));
 }
 
 TEST_F(FileParserTest, LOAD_JSON_DB_CHAR_ARRAY)
 {
-    auto pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    auto pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
     ASSERT_NO_THROW(pclFp->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclFp->LoadJsonDb(nullptr));
 }
@@ -2847,13 +2847,13 @@ TEST_F(ParserTest, FILEPARSER_INSTANTIATION)
     const std::u32string usTEST_DATABASE_PATH(sTEST_DATABASE_PATH.begin(), sTEST_DATABASE_PATH.end());
     ASSERT_NO_THROW(Parser fp3 = Parser(usTEST_DATABASE_PATH));
 
-    auto jsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    auto jsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
     ASSERT_NO_THROW(Parser fp4(jsonDb));
 }
 
 TEST_F(ParserTest, LOAD_JSON_DB_STRING)
 {
-    auto pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    auto pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
     ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
 }
@@ -2862,14 +2862,14 @@ TEST_F(ParserTest, LOAD_JSON_DB_U32STRING)
 {
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
     std::u32string u32str = converter.from_bytes(std::getenv("TEST_DATABASE_PATH"));
-    auto pclMyJsonDb = LoadFile(u32str);
+    auto pclMyJsonDb = LoadJsonDbFile(u32str);
     ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
 }
 
 TEST_F(ParserTest, LOAD_JSON_DB_CHAR_ARRAY)
 {
-    auto pclMyJsonDb = LoadFile(std::getenv("TEST_DATABASE_PATH"));
+    auto pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
     ASSERT_NO_THROW(pclParser->LoadJsonDb(pclMyJsonDb));
     ASSERT_NO_THROW(pclParser->LoadJsonDb(nullptr));
 }
@@ -3016,7 +3016,7 @@ class NovatelTypesTest : public ::testing::Test
     {
         try
         {
-            pclMyJsonDb = Parse(sMinJsonDb);
+            pclMyJsonDb = ParseJsonDb(sMinJsonDb);
             pclMyDecoderTester = std::make_unique<DecoderTester>(pclMyJsonDb);
             pclMyEncoderTester = std::make_unique<EncoderTester>(pclMyJsonDb);
         }

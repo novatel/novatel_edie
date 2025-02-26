@@ -42,7 +42,7 @@ PyMessageDatabase::Ptr& MessageDbSingleton::get()
     }
     // If the database file exists, load it
     std::string default_json_db_path = nb::cast<std::string>(db_path);
-    json_db = std::make_shared<PyMessageDatabase>(*LoadFile(default_json_db_path));
+    json_db = std::make_shared<PyMessageDatabase>(*LoadJsonDbFile(default_json_db_path));
     return json_db;
 }
 
@@ -51,24 +51,24 @@ void init_common_json_db_reader(nb::module_& m)
     nb::exception<JsonDbReaderFailure>(m, "JsonDbReaderFailure"); // NOLINT
 
     m.def(
-        "load_file",
+        "load_json_db_file",
         [](const std::filesystem::path& file_path) { //
-            return std::make_shared<PyMessageDatabase>(std::move(*LoadFile(file_path)));
+            return std::make_shared<PyMessageDatabase>(std::move(*LoadJsonDbFile(file_path)));
         },
         "file_path"_a);
     m.def(
-        "parse",
+        "parse_json_db",
         [](const std::string_view json_data) { //
-            return std::make_shared<PyMessageDatabase>(std::move(*Parse(json_data)));
+            return std::make_shared<PyMessageDatabase>(std::move(*ParseJsonDb(json_data)));
         },
         "json_data"_a);
     m.def(
-        "append_messages",
-        [](const PyMessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_) { AppendMessages(messageDb_, filePath_); },
+        "append_json_db_messages",
+        [](const PyMessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_) { AppendJsonDbMessages(messageDb_, filePath_); },
         "message_db"_a, "file_path"_a);
     m.def(
-        "append_enumerations",
-        [](const PyMessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_) { AppendEnumerations(messageDb_, filePath_); },
+        "append_json_db_enumerations",
+        [](const PyMessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_) { AppendJsonDbEnumerations(messageDb_, filePath_); },
         "message_db"_a, "file_path"_a);
 
     m.def("get_default_database", &MessageDbSingleton::get, "Get the default JSON database singleton");

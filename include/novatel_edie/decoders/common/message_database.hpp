@@ -507,8 +507,8 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
-        AppendEnumerations(other_.vEnumDefinitions, false);
-        AppendMessages(other_.vMessageDefinitions, false);
+        AppendJsonDbEnumerations(other_.vEnumDefinitions, false);
+        AppendJsonDbMessages(other_.vMessageDefinitions, false);
         GenerateEnumMappings();
         GenerateMessageMappings();
     }
@@ -519,7 +519,7 @@ class MessageDatabase
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_, bool bGenerateMappings_ = true)
+    void AppendJsonDbMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_, bool bGenerateMappings_ = true)
     {
         for (const auto& msgDef : vMessageDefinitions_)
         {
@@ -535,7 +535,7 @@ class MessageDatabase
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_, bool bGenerateMappings_ = true)
+    void AppendJsonDbEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_, bool bGenerateMappings_ = true)
     {
         for (const auto& enmDef : vEnumDefinitions_)
         {

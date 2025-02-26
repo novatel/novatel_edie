@@ -34,7 +34,7 @@ using namespace novatel::edie::oem;
 // -------------------------------------------------------------------------------------------------------
 Parser::Parser(const std::filesystem::path& sDbPath_)
 {
-    auto pclMessageDb = LoadFile(sDbPath_);
+    auto pclMessageDb = LoadJsonDbFile(sDbPath_);
     LoadJsonDb(pclMessageDb);
     pclMyLogger->debug("Parser initialized");
 }
