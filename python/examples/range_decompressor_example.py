@@ -72,14 +72,13 @@ def main():
     framer.set_payload_only(False)
     framer.set_report_unknown_bytes(True)
 
-    header_decoder = ne.HeaderDecoder()
-    message_decoder = ne.MessageDecoder()
+    decoder = ne.Decoder()
     range_decompressor = ne.RangeDecompressor()
     encoder = ne.Encoder()
 
     _configure_logging(framer.logger)
-    _configure_logging(header_decoder.logger)
-    _configure_logging(message_decoder.logger)
+    _configure_logging(decoder.logger)
+    _configure_logging(decoder.logger)
     _configure_logging(encoder.logger)
 
     with (open(args.input_file, "rb") as input_stream,
@@ -102,7 +101,7 @@ def main():
                 continue
 
             # Decode the header.  Get meta data here and populate the Intermediate header.
-            status, header = header_decoder.decode(read_bytes, meta)
+            status, header = decoder.decode_header(read_bytes, meta)
             if status != ne.STATUS.SUCCESS:
                 logger.error(f"Failed to decode a header: {status}: {status.__doc__}")
                 continue
@@ -115,7 +114,7 @@ def main():
             if status == ne.STATUS.UNSUPPORTED:
                 header.message_id = meta.message_id
                 body = read_bytes[meta.headerlength:]
-                status, message = message_decoder.decode(body, meta)
+                status, message = decoder.decode_message(body, meta)
                 if status == ne.STATUS.SUCCESS:
                     # Encode our message now that we have everything we need.
                     status, encoded_message = encoder.encode(header, message, message_data, meta, encode_format)

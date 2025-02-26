@@ -20,7 +20,7 @@ const char* DecoderException::what() const noexcept { return msg.c_str(); }
 void init_common_common(nb::module_& m)
 {
     nb::exception<DecoderException>(m, "DecoderException");
-
+    
     nb::enum_<STATUS>(m, "STATUS")
         .value("SUCCESS", STATUS::SUCCESS, "Successfully found a frame in the framer buffer.")
         .value("FAILURE", STATUS::FAILURE, "An unexpected failure occurred.")

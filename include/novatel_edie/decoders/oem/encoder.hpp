@@ -75,7 +75,9 @@ class Encoder : public EncoderBase<Encoder>
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Encoder(MessageDatabase::Ptr pclMessageDb_ = nullptr);
+    Encoder(MessageDatabase* pclMessageDb_ = nullptr);
+
+    Encoder(MessageDatabase::ConstPtr pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message from the provided intermediate structures.
@@ -89,9 +91,7 @@ class Encoder : public EncoderBase<Encoder>
     //! This must be populated by the MessageDecoder.
     //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
     //! populated by the encoder.
-    //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
-    //! containing relevant information about the decoded log.
-    //! This must be populated by the Framer and HeaderDecoder.
+    //! \param[in] eHeaderFormat_ The original format of the message's header.
     //! \param[in] eFormat_ The format to encode the message to.
     //
     //! \return An error code describing the result of encoding.
@@ -108,7 +108,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_,
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
                                 ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
@@ -121,9 +121,7 @@ class Encoder : public EncoderBase<Encoder>
     //! This must be populated by the HeaderDecoder.
     //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
     //! populated by the encoder.
-    //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
-    //! containing relevant information about the decoded log.
-    //! This must be populated by the Framer and HeaderDecoder.
+    //! \param[in] eHeaderFormat_ The original format of the message's header.
     //! \param[in] eFormat_ The format to encode the message to.
     //! \param[in] bIsEmbeddedHeader_ This header is embedded in an RXCONFIG
     //! message, and should be treated as such. Is a default argument and is
@@ -141,7 +139,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeHeader(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                      MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_,
+                                      MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_,
                                       bool bIsEmbeddedHeader_ = false) const;
 
     //----------------------------------------------------------------------------
@@ -154,9 +152,7 @@ class Encoder : public EncoderBase<Encoder>
     //! This must be populated by the MessageDecoder.
     //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
     //! populated by the encoder.
-    //! \param[in] stMetaData_ A reference to a populated MetaDataStruct
-    //! containing relevant information about the decoded log.
-    //! This must be populated by the Framer and HeaderDecoder.
+    //! \param[in] eHeaderFormat The original format of the message's header.
     //! \param[in] eFormat_ The format to encode the message to.
     //
     //! \return An error code describing the result of encoding.
@@ -172,7 +168,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const std::vector<FieldContainer>& stMessage_,
-                                    MessageDataStruct& stMessageData_, const MetaDataStruct& stMetaData_, ENCODE_FORMAT eFormat_) const;
+                                    MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const;
 
     friend class EncoderBase<Encoder>;
 };

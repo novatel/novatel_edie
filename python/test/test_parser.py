@@ -78,18 +78,18 @@ def test_unknown_bytes(parser):
 def test_parse_file_with_filter(parser, test_gps_file):
     parser.filter = ne.Filter()
     parser.filter.logger.set_level(ne.LogLevel.DEBUG)
-    parser.encode_format = ENCODE_FORMAT.ASCII
-    assert parser.encode_format == ENCODE_FORMAT.ASCII
+    msgs = []
     with test_gps_file.open("rb") as f:
-        success = 0
         while chunk := f.read(32):
             parser.write(chunk)
-            for status, message_data, meta_data in parser:
-                print(status)
-                if status == STATUS.SUCCESS:
-                    assert meta_data.length == [213, 195][success]
-                    assert meta_data.milliseconds == pytest.approx([270605000, 172189053][success])
-                    assert len(message_data.message) == [213, 195][success]
-                    success += 1
+            msgs.extend([msg for msg in parser if isinstance(msg, ne.CompleteMessage)])
+
+
+    assert len(msgs) == 2
+
+    assert msgs[0].header.milliseconds == pytest.approx(270605000)
+    assert len(msgs[0].to_ascii().message) == 213
+
+    assert msgs[1].header.milliseconds == pytest.approx(172189053)
+    assert len(msgs[1].to_ascii().message) == 195
     assert parser.flush(return_flushed_bytes=True) == b""
-    assert success == 2

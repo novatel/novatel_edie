@@ -103,6 +103,13 @@ class Parser
     //----------------------------------------------------------------------------
     Parser(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get the MessageDatabase object.
+    //
+    //! \return A shared pointer to the MessageDatabase object.
+    // ---------------------------------------------------------------------------
+    MessageDatabase::ConstPtr MessageDb() const;
+
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
     //
@@ -194,16 +201,16 @@ class Parser
     [[nodiscard]] ENCODE_FORMAT GetEncodeFormat() const { return eMyEncodeFormat; }
 
     //----------------------------------------------------------------------------
-    //! \brief Set the Filter for the FileParser.
+    //! \brief Set the Filter for the Parser.
     //
     //! \param[in] pclFilter_ A pointer to an OEM message Filter object.
     //----------------------------------------------------------------------------
     void SetFilter(const Filter::Ptr& pclFilter_) { pclMyUserFilter = pclFilter_; }
 
     //----------------------------------------------------------------------------
-    //! \brief Get the config for the FileParser.
+    //! \brief Get the config for the Parser.
     //
-    //! \return A pointer to the FileParser's OEM message Filter object.
+    //! \return A pointer to the Parser's OEM message Filter object.
     //----------------------------------------------------------------------------
     const Filter::Ptr& GetFilter() const { return pclMyUserFilter; }
 
@@ -228,10 +235,10 @@ class Parser
     //! \brief Read a log from the Parser.
     //
     //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
-    //! populated by the FileParser.
+    //! populated by the Parser.
     //! \param[out] stMetaData_ A reference to a MetaDataStruct to be populated
-    //! by the FileParser.
-    //! \param[out] bDecodeIncompleteAbbreviated_ If at the end of the data stream decode
+    //! by the Parser.
+    //! \param[in] bDecodeIncompleteAbbreviated_ If at the end of the data stream decode
     //! last Abbreviated Ascii message if it's incomplete. Set to true when the data
     //! stream is empty and the parser has returned BUFFER_EMPTY
     //
@@ -243,6 +250,31 @@ class Parser
     //!   BUFFER_EMPTY: There are no more bytes to parse in the Parser.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
+
+    //----------------------------------------------------------------------------
+    //! \brief Retrive the intermediate representations of a message from a parser.
+    //
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
+    //! populated by the Parser.
+    //! \param[out] header_ A reference to a IntermediateHeader to be
+    //! populated by the Parser.
+    //! \param[out] stMessage_ A reference to a FieldContainer to be populated
+    //! by the Parser.
+    //! \param[out] stMetaData_ A reference to a MetaDataStruct to be populated
+    //! by the Parser.
+    //! \param[out] bDecodeIncompleteAbbreviated_ If at the end of the data stream decode
+    //! last Abbreviated Ascii message if it's incomplete. Set to true when the data
+    //! stream is empty and the parser has returned BUFFER_EMPTY
+    //
+    //! \return An error code describing the result of parsing.
+    //!   SUCCESS: A message was framed, decoded, filtered, encoded and stored
+    //! internally, pointed to by stMessageData_.
+    //!   UNKNOWN: A message could not be found and unknown bytes were returned
+    //! if requested in the ParserConfigStruct given to SetConfig().
+    //!   BUFFER_EMPTY: There are no more bytes to parse in the Parser.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& header_, std::vector<FieldContainer>& stMessage_,
+                                          MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Parser.
