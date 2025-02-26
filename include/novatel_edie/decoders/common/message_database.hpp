@@ -507,10 +507,11 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
-        AppendJsonDbEnumerations(other_.vEnumDefinitions, false);
-        AppendJsonDbMessages(other_.vMessageDefinitions, false);
-        GenerateEnumMappings();
-        GenerateMessageMappings();
+        std::thread enumThread([this, &other_]() { AppendJsonDbEnumerations(other_.vEnumDefinitions); });
+        std::thread messageThread([this, &other_]() { AppendJsonDbMessages(other_.vMessageDefinitions); });
+
+        enumThread.join();
+        messageThread.join();
     }
 
     //----------------------------------------------------------------------------
