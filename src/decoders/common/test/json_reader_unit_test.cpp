@@ -60,7 +60,7 @@ TEST_F(JsonDbReaderTest, AppendJsonDbEnumerations)
     ASSERT_NE(pstEnumDef, nullptr);
     ASSERT_EQ(pstEnumDef->name, "Datum");
 
-    clJson->RemoveEnumeration("Datum", true);
+    clJson->RemoveEnumeration("Datum");
     ASSERT_EQ(clJson->GetEnumDefId(strId), nullptr);
 }
 
@@ -75,6 +75,6 @@ TEST_F(JsonDbReaderTest, AppendJsonDbMessages)
     ASSERT_NE(pstMsgDef, nullptr);
     ASSERT_EQ(pstMsgDef->name, "PASSAUX");
 
-    clJson->RemoveMessage(uiMsgId, true);
+    clJson->RemoveMessage(uiMsgId);
     ASSERT_EQ(clJson->GetMsgDef(uiMsgId), nullptr);
 }

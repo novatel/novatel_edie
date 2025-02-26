@@ -31,7 +31,7 @@
 namespace novatel::edie {
 
 //-----------------------------------------------------------------------
-void MessageDatabase::RemoveMessage(const uint32_t iMsgId_, const bool bGenerateMappings_)
+void MessageDatabase::RemoveMessage(const uint32_t iMsgId_)
 {
     auto iTer = GetMessageIt(iMsgId_);
 
@@ -40,12 +40,10 @@ void MessageDatabase::RemoveMessage(const uint32_t iMsgId_, const bool bGenerate
         RemoveMessageMapping(**iTer);
         vMessageDefinitions.erase(iTer);
     }
-
-    if (bGenerateMappings_) { GenerateMessageMappings(); }
 }
 
 //-----------------------------------------------------------------------
-void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_, const bool bGenerateMappings_)
+void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_)
 {
     const auto iTer = GetEnumIt(strEnumeration_);
 
@@ -54,8 +52,6 @@ void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_, const 
         RemoveEnumerationMapping(**iTer);
         vEnumDefinitions.erase(iTer);
     }
-
-    if (bGenerateMappings_) { GenerateEnumMappings(); }
 }
 
 //-----------------------------------------------------------------------

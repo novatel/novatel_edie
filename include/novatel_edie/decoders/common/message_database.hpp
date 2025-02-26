@@ -524,10 +524,13 @@ class MessageDatabase
     {
         for (const auto& msgDef : vMessageDefinitions_)
         {
-            RemoveMessage(msgDef->logID, false);
+            RemoveMessage(msgDef->logID);
             vMessageDefinitions.push_back(msgDef);
+            mMessageName[msgDef->name] = msgDef;
+            mMessageId[msgDef->logID] = msgDef;
+
+            for (const auto& item : msgDef->fields) { MapMessageEnumFields(item.second); }
         }
-        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -540,27 +543,26 @@ class MessageDatabase
     {
         for (const auto& enmDef : vEnumDefinitions_)
         {
-            RemoveEnumeration(enmDef->name, false);
+            RemoveEnumeration(enmDef->name);
             vEnumDefinitions.push_back(enmDef);
+            mEnumName[enmDef->name] = enmDef;
+            mEnumId[enmDef->_id] = enmDef;
         }
-        GenerateEnumMappings();
     }
 
     //----------------------------------------------------------------------------
     //! \brief Append a message Json DB from the provided filepath.
     //
     //! \param[in] iMsgId_ The message ID
-    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void RemoveMessage(uint32_t iMsgId_, bool bGenerateMappings_ = true);
+    void RemoveMessage(uint32_t iMsgId_);
 
     //----------------------------------------------------------------------------
     //! \brief Append an enumeration Json DB from the provided filepath.
     //
     //! \param[in] strEnumeration_ The enumeration name
-    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void RemoveEnumeration(std::string_view strEnumeration_, bool bGenerateMappings_ = true);
+    void RemoveEnumeration(std::string_view strEnumeration_);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
