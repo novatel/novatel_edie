@@ -444,7 +444,8 @@ class MessageDatabase
     MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
         : vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_))
     {
-        MessageDatabase::GenerateMappings();
+        GenerateEnumMappings();
+        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -457,7 +458,8 @@ class MessageDatabase
         // TODO: Verify it's calling the copy constructor for the messages
         vEnumDefinitions = that_.vEnumDefinitions;
         vMessageDefinitions = that_.vMessageDefinitions;
-        MessageDatabase::GenerateMappings();
+        GenerateEnumMappings();
+        GenerateMessageMappings();
     }
 
     //----------------------------------------------------------------------------
@@ -486,7 +488,8 @@ class MessageDatabase
         {
             vEnumDefinitions = that_.vEnumDefinitions;
             vMessageDefinitions = that_.vMessageDefinitions;
-            GenerateMappings();
+            GenerateEnumMappings();
+            GenerateMessageMappings();
         }
 
         return *this;
@@ -504,9 +507,11 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
-        AppendEnumerations(other_.vEnumDefinitions, false);
-        AppendMessages(other_.vMessageDefinitions, false);
-        GenerateMappings();
+        std::thread enumThread([this, &other_]() { AppendEnumerations(other_.vEnumDefinitions); });
+        std::thread messageThread([this, &other_]() { AppendMessages(other_.vMessageDefinitions); });
+
+        enumThread.join();
+        messageThread.join();
     }
 
     //----------------------------------------------------------------------------
@@ -515,14 +520,17 @@ class MessageDatabase
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_, bool bGenerateMappings_ = true)
+    void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
     {
         for (const auto& msgDef : vMessageDefinitions_)
         {
-            RemoveMessage(msgDef->logID, false);
+            RemoveMessage(msgDef->logID);
             vMessageDefinitions.push_back(msgDef);
+            mMessageName[msgDef->name] = msgDef;
+            mMessageId[msgDef->logID] = msgDef;
+
+            for (const auto& item : msgDef->fields) { MapMessageEnumFields(item.second); }
         }
-        if (bGenerateMappings_) { GenerateMappings(); }
     }
 
     //----------------------------------------------------------------------------
@@ -531,31 +539,30 @@ class MessageDatabase
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_, bool bGenerateMappings_ = true)
+    void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
     {
         for (const auto& enmDef : vEnumDefinitions_)
         {
-            RemoveEnumeration(enmDef->name, false);
+            RemoveEnumeration(enmDef->name);
             vEnumDefinitions.push_back(enmDef);
+            mEnumName[enmDef->name] = enmDef;
+            mEnumId[enmDef->_id] = enmDef;
         }
-        if (bGenerateMappings_) { GenerateMappings(); }
     }
 
     //----------------------------------------------------------------------------
     //! \brief Append a message Json DB from the provided filepath.
     //
     //! \param[in] iMsgId_ The message ID
-    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void RemoveMessage(uint32_t iMsgId_, bool bGenerateMappings_ = true);
+    void RemoveMessage(uint32_t iMsgId_);
 
     //----------------------------------------------------------------------------
     //! \brief Append an enumeration Json DB from the provided filepath.
     //
     //! \param[in] strEnumeration_ The enumeration name
-    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void RemoveEnumeration(std::string_view strEnumeration_, bool bGenerateMappings_);
+    void RemoveEnumeration(std::string_view strEnumeration_);
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message name.
@@ -618,14 +625,17 @@ class MessageDatabase
     [[nodiscard]] const std::vector<MessageDefinition::ConstPtr>& MessageDefinitions() const { return vMessageDefinitions; }
 
   protected:
-    virtual void GenerateMappings()
+    virtual void GenerateEnumMappings()
     {
         for (auto& enm : vEnumDefinitions)
         {
             mEnumName[enm->name] = enm;
             mEnumId[enm->_id] = enm;
         }
+    }
 
+    virtual void GenerateMessageMappings()
+    {
         for (auto& msg : vMessageDefinitions)
         {
             mMessageName[msg->name] = msg;

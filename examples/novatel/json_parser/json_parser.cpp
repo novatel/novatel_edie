@@ -88,13 +88,13 @@ int main(int argc, char* argv[])
     // Load the database
     pclLogger->info("Loading Database...");
     auto tStart = std::chrono::high_resolution_clock::now();
-    MessageDatabase::Ptr clJsonDb = JsonDbReader::LoadFile(pathJsonDb.string());
+    MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(pathJsonDb.string());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     pclLogger->info("Appending Message...");
     tStart = std::chrono::high_resolution_clock::now();
-    JsonDbReader::AppendMessages(clJsonDb, sAppendMsg);
+    clJsonDb->AppendMessages(LoadJsonDbFile(sAppendMsg)->MessageDefinitions());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 

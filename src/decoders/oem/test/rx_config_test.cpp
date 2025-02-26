@@ -46,7 +46,7 @@ class RxConfigTest : public ::testing::Test
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyJsonDb = JsonDbReader::LoadFile(std::getenv("TEST_DATABASE_PATH"));
+        pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
         pclMyRxConfigHandler = std::make_unique<RxConfigHandler>(pclMyJsonDb);
     }
 

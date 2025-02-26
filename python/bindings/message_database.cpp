@@ -172,10 +172,10 @@ void init_common_message_database(nb::module_& m)
         .def(nb::init<std::vector<MessageDefinition::ConstPtr>, std::vector<EnumDefinition::ConstPtr>>(), "msg_defs"_a, "enum_defs"_a)
         .def(nb::init<PyMessageDatabase>(), "other_db"_a)
         .def("merge", &PyMessageDatabase::Merge, "other_db"_a)
-        .def("append_messages", &PyMessageDatabase::AppendMessages, "file_path"_a, "generate_mappings"_a = true)
-        .def("append_enumerations", &PyMessageDatabase::AppendEnumerations, "file_path"_a, "generate_mappings"_a = true)
-        .def("remove_message", &PyMessageDatabase::RemoveMessage, "msg_id"_a, "generate_mappings"_a = true)
-        .def("remove_enumeration", &PyMessageDatabase::RemoveEnumeration, "enumeration"_a, "generate_mappings"_a = true)
+        .def("append_messages", &PyMessageDatabase::AppendMessages, "file_path"_a)
+        .def("append_enumerations", &PyMessageDatabase::AppendEnumerations, "file_path"_a)
+        .def("remove_message", &PyMessageDatabase::RemoveMessage, "msg_id"_a)
+        .def("remove_enumeration", &PyMessageDatabase::RemoveEnumeration, "enumeration"_a)
         .def("get_msg_def", nb::overload_cast<const std::string&>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
         .def("get_msg_def", nb::overload_cast<int32_t>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefId, "enum_id"_a)
@@ -210,11 +210,16 @@ PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcep
     UpdatePythonMessageTypes();
 }
 
-void PyMessageDatabase::GenerateMappings()
+void PyMessageDatabase::GenerateMessageMappings()
 {
-    MessageDatabase::GenerateMappings();
-    UpdatePythonEnums();
+    MessageDatabase::GenerateMessageMappings();
     UpdatePythonMessageTypes();
+}
+
+void PyMessageDatabase::GenerateEnumMappings()
+{
+    MessageDatabase::GenerateEnumMappings();
+    UpdatePythonEnums();
 }
 
 void cleanString(std::string& str)

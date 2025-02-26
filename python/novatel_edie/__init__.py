@@ -35,7 +35,7 @@ from .bindings import (
     OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3,
     string_to_encode_format, pretty_version,
     Header, Field, Message,
-    JsonDbReader, MessageDatabase, get_default_database,
+    MessageDatabase, get_default_database, load_json_db_file, parse_json_db,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
     Framer, Filter, HeaderDecoder, MessageDecoder, DecoderException, Encoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
