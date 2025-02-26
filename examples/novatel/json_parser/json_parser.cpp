@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 
     pclLogger->info("Appending Message...");
     tStart = std::chrono::high_resolution_clock::now();
-    AppendJsonDbMessages(clJsonDb, sAppendMsg);
+    clJsonDb->AppendMessages(LoadJsonDbFile(sAppendMsg)->MessageDefinitions());
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 

@@ -62,14 +62,5 @@ void init_common_json_db_reader(nb::module_& m)
             return std::make_shared<PyMessageDatabase>(std::move(*ParseJsonDb(json_data)));
         },
         "json_data"_a);
-    m.def(
-        "append_json_db_messages",
-        [](const PyMessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_) { AppendJsonDbMessages(messageDb_, filePath_); },
-        "message_db"_a, "file_path"_a);
-    m.def(
-        "append_json_db_enumerations",
-        [](const PyMessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_) { AppendJsonDbEnumerations(messageDb_, filePath_); },
-        "message_db"_a, "file_path"_a);
-
     m.def("get_default_database", &MessageDbSingleton::get, "Get the default JSON database singleton");
 }

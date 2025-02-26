@@ -74,22 +74,6 @@ MessageDatabase::Ptr LoadJsonDbFile(const std::filesystem::path& filePath_);
 //----------------------------------------------------------------------------
 MessageDatabase::Ptr ParseJsonDb(std::string_view strJsonData_);
 
-//----------------------------------------------------------------------------
-//! \brief Append messages from the provided JSON file to an existing MessageDatabase.
-//
-//! \param[in] messageDb_ The MessageDatabase to append to.
-//! \param[in] filePath_ The filepath to the JSON file.
-//----------------------------------------------------------------------------
-void AppendJsonDbMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_);
-
-//----------------------------------------------------------------------------
-//! \brief Append enumerations from the provided JSON file to an existing MessageDatabase.
-//
-//! \param[in] messageDb_ The MessageDatabase to append to.
-//! \param[in] filePath_ The filepath to the Json file.
-//----------------------------------------------------------------------------
-void AppendJsonDbEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_);
-
 } // namespace novatel::edie
 
 #endif

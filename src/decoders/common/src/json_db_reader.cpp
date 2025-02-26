@@ -253,34 +253,4 @@ MessageDatabase::Ptr ParseJsonDb(std::string_view strJsonData_)
     }
 }
 
-//-----------------------------------------------------------------------
-void AppendJsonDbMessages(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
-{
-    try
-    {
-        std::ifstream jsonFile(filePath_);
-        const json jDefinitions = json::parse(jsonFile);
-        messageDb_->AppendJsonDbMessages(ProcessMessageDefinitions(jDefinitions));
-    }
-    catch (const std::exception& e)
-    {
-        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
-    }
-}
-
-//-----------------------------------------------------------------------
-void AppendJsonDbEnumerations(const MessageDatabase::Ptr& messageDb_, const std::filesystem::path& filePath_)
-{
-    try
-    {
-        std::ifstream jsonFile(filePath_);
-        const json jDefinitions = json::parse(jsonFile);
-        messageDb_->AppendJsonDbEnumerations(ProcessEnumDefinitions(jDefinitions));
-    }
-    catch (const std::exception& e)
-    {
-        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
-    }
-}
-
 } // namespace novatel::edie

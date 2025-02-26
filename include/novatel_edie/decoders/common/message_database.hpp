@@ -507,8 +507,8 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     void Merge(const MessageDatabase& other_)
     {
-        std::thread enumThread([this, &other_]() { AppendJsonDbEnumerations(other_.vEnumDefinitions); });
-        std::thread messageThread([this, &other_]() { AppendJsonDbMessages(other_.vMessageDefinitions); });
+        std::thread enumThread([this, &other_]() { AppendEnumerations(other_.vEnumDefinitions); });
+        std::thread messageThread([this, &other_]() { AppendMessages(other_.vMessageDefinitions); });
 
         enumThread.join();
         messageThread.join();
@@ -520,7 +520,7 @@ class MessageDatabase
     //! \param[in] vMessageDefinitions_ A vector of message definitions
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void AppendJsonDbMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
+    void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
     {
         for (const auto& msgDef : vMessageDefinitions_)
         {
@@ -539,7 +539,7 @@ class MessageDatabase
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
     //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
-    void AppendJsonDbEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
+    void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
     {
         for (const auto& enmDef : vEnumDefinitions_)
         {

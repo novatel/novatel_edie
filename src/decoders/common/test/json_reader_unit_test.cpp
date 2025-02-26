@@ -49,12 +49,12 @@ TEST_F(JsonDbReaderTest, JsonDbReaderFailure)
     ASSERT_THROW(LoadJsonDbFile(""), JsonDbReaderFailure);
 }
 
-TEST_F(JsonDbReaderTest, AppendJsonDbEnumerations)
+TEST_F(JsonDbReaderTest, AppendEnumerations)
 {
     const std::string strId = "008451a05e1e7aa32c75119df950d405265e0904";
 
     auto clJson = std::make_shared<MessageDatabase>();
-    AppendJsonDbEnumerations(clJson, std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
+    clJson->AppendEnumerations(LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")))->EnumDefinitions());
 
     EnumDefinition::ConstPtr pstEnumDef = clJson->GetEnumDefId(strId);
     ASSERT_NE(pstEnumDef, nullptr);
@@ -64,12 +64,12 @@ TEST_F(JsonDbReaderTest, AppendJsonDbEnumerations)
     ASSERT_EQ(clJson->GetEnumDefId(strId), nullptr);
 }
 
-TEST_F(JsonDbReaderTest, AppendJsonDbMessages)
+TEST_F(JsonDbReaderTest, AppendMessages)
 {
     constexpr uint32_t uiMsgId = 690;
 
     auto clJson = std::make_shared<MessageDatabase>();
-    AppendJsonDbMessages(clJson, std::filesystem::path(std::getenv("TEST_DATABASE_PATH")));
+    clJson->AppendMessages(LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")))->MessageDefinitions());
 
     MessageDefinition::ConstPtr pstMsgDef = clJson->GetMsgDef(uiMsgId);
     ASSERT_NE(pstMsgDef, nullptr);
