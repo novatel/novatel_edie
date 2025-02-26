@@ -45,6 +45,7 @@ def _configure_logging(logger):
 
 
 def main():
+    pass
     logger = Logging().register_logger("converter")
     _configure_logging(logger)
     atexit.register(Logging.shutdown)
@@ -66,36 +67,35 @@ def main():
     if not os.path.exists(args.input_file):
         logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
-
-    file_parser = ne.FileParser()
-    file_parser.filter = ne.Filter()
-    file_parser.encode_format = encode_format
+    db = ne.MessageDatabase('database/database.json')
+    file_parser = ne.FileParser(args.input_file, db)
+    filter = ne.Filter()
+    file_parser.filter = filter
+    encoder = ne.Encoder()
     _configure_logging(file_parser.logger)
-    _configure_logging(file_parser.filter.logger)
+    # _configure_logging(file_parser.filter.logger)
 
-    with (open(args.input_file, "rb") as input_stream,
-          open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream):
-        if not file_parser.set_stream(input_stream):
-            logger.error("Input stream could not be set.  The stream is either unavailable or exhausted.")
-            exit(-1)
 
-        complete_messages = 0
-        counter = 0
-        start = timeit.default_timer()
-        loop = timeit.default_timer()
-        for status, message_data, meta in file_parser:
-            if status != ne.STATUS.SUCCESS:
-                logger.error(f"Failed to read a message: {status}: {status.__doc__}")
-                continue
+    complete_messages = 0
+    counter = 0
+    start = timeit.default_timer()
+    loop = timeit.default_timer()
+    for message in file_parser:
+        if isinstance(message, bytes):
+            pass
+        elif isinstance(message, ne.IncompleteMessage):
+            pass
+        elif isinstance(message, ne.CompleteMessage):
+            ascii_msg = message.to_ascii()
+            bin_msg = message.to_binary()
+            json_msg = message.to_json()
+            pass
+        if isinstance(message, ne.messages.BESTPOS):
+            message.latitude
 
-            converted_logs_stream.write(message_data.message)
-            logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
-            complete_messages += 1
-
-            if timeit.default_timer() - loop > 1:
-                counter += 1
-                logger.info(f"{file_parser.percent_read}% {complete_messages / counter} logs/s")
-                loop = timeit.default_timer()
+    file_parser.reset()
+    for encoded_msg in file_parser.convert(encode_format):
+        pass
 
     elapsed_seconds = timeit.default_timer() - start
     logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")

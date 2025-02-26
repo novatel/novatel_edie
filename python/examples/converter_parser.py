@@ -64,6 +64,7 @@ def main():
         exit(0)
 
     # Load the database
+    encoder = ne.Encoder()
     logger.info("Loading Database... ")
     t0 = timeit.default_timer()
     json_db = ne.get_default_database()
@@ -78,7 +79,6 @@ def main():
 
     parser = ne.Parser(json_db)
     parser.filter = ne.Filter()
-    parser.encode_format = encode_format
     _configure_logging(parser.logger)
     _configure_logging(parser.filter.logger)
 
@@ -92,21 +92,16 @@ def main():
         while read_data := input_stream.read(ne.MESSAGE_SIZE_MAX):
             parser.write(read_data)
 
-            status = None
-            while status != ne.STATUS.BUFFER_EMPTY:
-                status, message_data = parser.read(meta)
-                if status != ne.STATUS.SUCCESS:
-                    logger.error(f"Failed to read a message: {status}: {status.__doc__}")
-                    continue
-
-                converted_logs_stream.write(message_data.message)
-                logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
-                complete_messages += 1
-
-                if timeit.default_timer() - loop > 1:
-                    counter += 1
-                    logger.info(f"{complete_messages / counter} logs/s")
-                    loop = timeit.default_timer()
+            for message in parser:
+                if isinstance(message, bytes):
+                    pass
+                elif isinstance(message, ne.IncompleteMessage):
+                    pass
+                else:
+                    encoded_message = encoder.encode(message, ne.ENCODE_FORMAT.ASCII)
+                    if isinstance(message, ne.messages.RANGE):
+                        lat = message.obs[0].psr
+                    pass
 
     elapsed_seconds = timeit.default_timer() - start
     logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")

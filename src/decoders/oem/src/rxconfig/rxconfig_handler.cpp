@@ -50,7 +50,7 @@ void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
     pclMyMsgDb = pclMessageDb_;
     clMyHeaderDecoder.LoadJsonDb(pclMessageDb_);
     clMyMessageDecoder.LoadJsonDb(pclMessageDb_);
-    clMyEncoder.LoadJsonDb(pclMessageDb_);
+    clMyEncoder.LoadSharedJsonDb(pclMessageDb_);
 
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
@@ -120,8 +120,8 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         return STATUS::BUFFER_FULL;
     }
 
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stRxConfigHeader, stRxConfigMessageData_, stRxConfigMetaData_,
-                                       eEncodeFormat_);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stRxConfigHeader, stRxConfigMessageData_,
+                                       stRxConfigMetaData_.eFormat, eEncodeFormat_);
     if (eStatus == STATUS::NO_DEFINITION) { return STATUS::NO_DEFINITION_EMBEDDED; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
@@ -158,8 +158,8 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     default: break;
     }
 
-    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stEmbeddedHeader, stEmbeddedMessageData_, stEmbeddedMetaData_,
-                                       eEncodeFormat_, true);
+    eStatus = clMyEncoder.EncodeHeader(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stEmbeddedHeader, stEmbeddedMessageData_,
+                                       stEmbeddedMetaData_.eFormat, eEncodeFormat_, true);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageHeaderLength;
@@ -193,8 +193,8 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     default: break;
     }
 
-    eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stEmbeddedMessage, stEmbeddedMessageData_, stEmbeddedMetaData_,
-                                     eEncodeFormat_);
+    eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, stEmbeddedMessage, stEmbeddedMessageData_,
+                                     stEmbeddedMetaData_.eFormat, eEncodeFormat_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     uiMyBufferBytesRemaining -= stEmbeddedMessageData_.uiMessageBodyLength;

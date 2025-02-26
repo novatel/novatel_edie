@@ -23,4 +23,3 @@ SOFTWARE.
 """
 
 from .bindings.messages import *
-from .bindings import UNKNOWN

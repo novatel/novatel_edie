@@ -1,6 +1,7 @@
 #include "novatel_edie/decoders/oem/framer.hpp"
 
 #include "bindings_core.hpp"
+#include "exceptions.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -21,23 +22,29 @@ void init_novatel_framer(nb::module_& m)
         .def_prop_ro("bytes_available_in_buffer", [](const oem::Framer& framer) { return framer.GetBytesAvailableInBuffer(); })
         .def(
             "get_frame",
-            [](oem::Framer& framer, oem::MetaDataStruct* metadata_ptr, uint32_t buffer_size) {
+            [](oem::Framer& framer, uint32_t buffer_size) {
                 std::vector<char> buffer(buffer_size);
-                if (metadata_ptr != nullptr)
+                static oem::MetaDataStruct metadata;    // maintain metadata until frame is returned
+                oem::MetaDataStruct meta_data_copy;
+                STATUS status = framer.GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
+                switch (status)
                 {
-                    STATUS status = framer.GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, *metadata_ptr);
-                    return nb::make_tuple(status, nb::bytes(buffer.data(), metadata_ptr->uiLength));
-                }
-                else
-                {
-                    oem::MetaDataStruct metadata;
-                    STATUS status = framer.GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
-                    return nb::make_tuple(status, nb::bytes(buffer.data(), metadata.uiLength), metadata);
+                case STATUS::UNKNOWN:   // fall-through
+                case STATUS::SUCCESS:
+                    meta_data_copy = oem::MetaDataStruct(metadata);
+                    metadata = oem::MetaDataStruct();
+                    return nb::make_tuple(nb::bytes(buffer.data(), metadata.uiLength), meta_data_copy);
+                case STATUS::INCOMPLETE:           // fall-through
+                case STATUS::INCOMPLETE_MORE_DATA: // fall-through
+                case STATUS::BUFFER_EMPTY: throw nb::stop_iteration("No more frames detected in buffer");
+                default: throw_exception_from_status(status);
                 }
             },
-            "metadata"_a = nb::none(), "buffer_size"_a = MESSAGE_SIZE_MAX)
-        .def("write", [](oem::Framer& framer,
-                         const nb::bytes& data) { return framer.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
+            "buffer_size"_a = MESSAGE_SIZE_MAX)
+        .def("__iter__", [](nb::handle_t<oem::Framer> self) { return self; })
+        .def("__next__", [](nb::handle_t<oem::Framer> self) { return self.attr("get_frame")(); })
+        .def("write",
+             [](oem::Framer& framer, const nb::bytes& data) { return framer.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
         .def("flush", [](oem::Framer& framer) {
             char buffer[MESSAGE_SIZE_MAX];
             uint32_t buf_size = MESSAGE_SIZE_MAX;

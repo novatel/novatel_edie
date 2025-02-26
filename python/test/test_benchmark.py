@@ -24,7 +24,7 @@
 #                            DESCRIPTION
 #
 # \file novateltest.hpp
-# \brief Unit tests for OEM Framer, HeaderDecoder, MessageDecoder,
+# \brief Unit tests for OEM Framer, Decoder,
 # Encoder and Filter.
 ################################################################################
 
@@ -43,8 +43,7 @@ max_count = 1000
 
 class Benchmarker:
     def __init__(self):
-        self.header_decoder = ne.HeaderDecoder()
-        self.message_decoder = ne.MessageDecoder()
+        self.decoder = ne.Decoder()
         self.encoder = ne.Encoder()
 
     def run(self, log, encode_format):
@@ -53,25 +52,12 @@ class Benchmarker:
         count = 0
         start = timeit.default_timer()
         for count in range(max_count):
-            status, header = self.header_decoder.decode(log, meta_data)
-            if status != STATUS.SUCCESS:
-                print("Failed to decode header: ", status)
-                failed_once = True
-                break
+            header = self.decoder.decode_header(log, meta_data)
             body = log[meta_data.header_length:]
-            status, message = self.message_decoder.decode(body, header, meta_data)
-            if status != STATUS.SUCCESS:
-                print("Failed to decode message: ", status)
-                failed_once = True
-                break
-            status, message_data = self.encoder.encode(message, meta_data, encode_format)
-            if status != STATUS.SUCCESS:
-                print("Failed to encode message: ", status)
-                failed_once = True
-                break
+            message = self.decoder.decode_message(body, header, meta_data)
+            message_data = self.encoder.encode(message, encode_format)
         elapsed_seconds = timeit.default_timer() - start
         print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
-        assert not failed_once
 
 
 @pytest.fixture(scope="function")

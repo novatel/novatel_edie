@@ -43,10 +43,11 @@ def write_bytes_to_handler(handler, data):
 
 
 def TestSameFormatCompare(rx_config_handler, format_, expected_rx_config_message_data, expected_embedded_message_data):
-    (status, test_rx_config_message_data, test_rx_config_meta_data,
-     test_embedded_message_data, test_embedded_meta_data) = rx_config_handler.convert(format_)
-    if status != STATUS.SUCCESS:
-        print(f"Convert failed with code {status}")
+    try:
+        (test_rx_config_message_data, test_rx_config_meta_data,
+        test_embedded_message_data, test_embedded_meta_data) = rx_config_handler.convert(format_)
+    except Exception as e:
+        print(f"Convert failed with code {e}")
         return False
     if (not compare_message_data(test_rx_config_message_data, expected_rx_config_message_data) or
             not compare_message_data(test_embedded_message_data, expected_embedded_message_data)):

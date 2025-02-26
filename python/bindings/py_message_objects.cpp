@@ -1,3 +1,4 @@
+#include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 
 #include <nanobind/stl/bind_vector.h>
@@ -7,8 +8,10 @@
 
 #include "bindings_core.hpp"
 #include "message_db_singleton.hpp"
-#include "novatel_edie/decoders/oem/common.hpp"
-#include "py_decoded_message.hpp"
+#include "exceptions.hpp"
+#include "py_message_data.hpp"
+#include "py_message_objects.hpp"
+#include "encoder.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -16,6 +19,30 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 NB_MAKE_OPAQUE(std::vector<FieldContainer>);
+
+#pragma region PyHeader Methods
+
+nb::dict PyHeader::to_dict() const
+{
+    nb::dict header_dict;
+    header_dict["message_id"] = usMessageId;
+    header_dict["message_type"] = ucMessageType;
+    header_dict["port_address"] = uiPortAddress;
+    header_dict["length"] = usLength;
+    header_dict["sequence"] = usSequence;
+    header_dict["idle_time"] = ucIdleTime;
+    header_dict["time_status"] = uiTimeStatus;
+    header_dict["week"] = usWeek;
+    header_dict["milliseconds"] = dMilliseconds;
+    header_dict["receiver_status"] = uiReceiverStatus;
+    header_dict["message_definition_crc"] = uiMessageDefinitionCrc;
+    header_dict["receiver_sw_version"] = usReceiverSwVersion;
+    return header_dict;
+}
+
+#pragma endregion
+
+#pragma region PyField Methods
 
 nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::ConstPtr& parent_db, std::string parent, bool has_ptype)
 {
@@ -187,30 +214,132 @@ std::string PyField::repr() const
     return repr.str();
 }
 
-// For unit tests
-class DecoderTester : public oem::MessageDecoder
-{
-  public:
-    [[nodiscard]] STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const uint8_t** ppucLogBuf_,
-                                          std::vector<FieldContainer>& vIntermediateFormat_, uint32_t uiMessageLength_) const
-    {
-        return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, uiMessageLength_);
-    }
+#pragma endregion
 
-    [[nodiscard]] STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_,
-                                         std::vector<FieldContainer>& vIntermediateFormat_) const
-    {
-        return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
-    }
-};
+#pragma region PyMessageMethods
 
-PyMessageDatabase::ConstPtr get_parent_db(const oem::MessageDecoder& decoder)
-{
-    return std::dynamic_pointer_cast<const PyMessageDatabase>(decoder.MessageDb());
+PyMessageData PyCompleteMessage::to_ascii() { 
+    PyMessageDatabase::ConstPtr db = this->parent_db_;
+    std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
+    return encoder->PyEncode(*this, ENCODE_FORMAT::ASCII);
 }
 
-void init_novatel_message_decoder(nb::module_& m)
+PyMessageData PyCompleteMessage::to_binary()
 {
+    PyMessageDatabase::ConstPtr db = this->parent_db_;
+    std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
+    return encoder->PyEncode(*this, ENCODE_FORMAT::BINARY);
+}
+
+PyMessageData PyCompleteMessage::to_flattended_binary()
+{
+    PyMessageDatabase::ConstPtr db = this->parent_db_;
+    std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
+    return encoder->PyEncode(*this, ENCODE_FORMAT::FLATTENED_BINARY);
+}
+
+PyMessageData PyCompleteMessage::to_json()
+{
+    PyMessageDatabase::ConstPtr db = this->parent_db_;
+    std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
+    return encoder->PyEncode(*this, ENCODE_FORMAT::JSON);
+}
+
+
+#pragma endregion
+
+#pragma region Message Constructor Functions
+
+nb::object oem::create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database)
+{
+    nb::handle message_pytype = nb::type<PyIncompleteMessage>();
+    nb::object message_pyinst = nb::inst_alloc(message_pytype);
+    PyIncompleteMessage* message_cinst = nb::inst_ptr<PyIncompleteMessage>(message_pyinst);
+    new (message_cinst) PyIncompleteMessage(database, header, data);
+    nb::inst_mark_ready(message_pyinst);
+    return message_pyinst;
+}
+
+nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata, PyMessageDatabase::ConstPtr database)
+{
+    nb::handle message_pytype;
+
+    const std::string message_name = metadata.messageName;
+
+    bool has_ptype = true;
+
+    try
+    {
+        PyMessageType* message_type_struct = database->GetMessagesByNameDict().at(message_name);
+        if (message_type_struct->crc == metadata.uiMessageCrc)
+        {
+            // If the CRCs match, use the specific message type
+            message_pytype = message_type_struct->python_type;
+        }
+        else
+        {
+            // If the CRCs don't match, use the generic "CompleteMessage" type
+            message_pytype = nb::type<PyCompleteMessage>();
+            has_ptype = false;
+        }
+    }
+    catch (const std::out_of_range& e)
+    {
+        // This case should never happen, if it does there is a bug
+        throw std::runtime_error("Message name '" + message_name + "' not found in the JSON database");
+    }
+    nb::object message_pyinst = nb::inst_alloc(message_pytype);
+    PyCompleteMessage* message_cinst = nb::inst_ptr<PyCompleteMessage>(message_pyinst);
+    new (message_cinst) PyCompleteMessage(message_name, has_ptype, message_fields, database, header);
+
+    nb::inst_mark_ready(message_pyinst);
+    return message_pyinst;
+}
+
+#pragma endregion
+
+#pragma region Bindings
+
+void init_header_objects(nb::module_& m) {
+    nb::class_<oem::PyMessageTypeField>(m, "MessageType")
+        .def("__repr__",
+             [](nb::handle_t<PyMessageTypeField> self) {
+                 std::string source = nb::cast<nb::str>(self.attr("source").attr("__repr__")()).c_str();
+                 std::string format = nb::cast<nb::str>(self.attr("format").attr("__repr__")()).c_str();
+                 std::string response = nb::cast<nb::str>(self.attr("is_response").attr("__repr__")()).c_str();
+
+                 return "MessageType(source=" + source + ", format=" + format + ", response=" + response + ")";
+             })
+        .def_prop_ro("is_response", &oem::PyMessageTypeField::IsResponse)
+        .def_prop_ro("format", &oem::PyMessageTypeField::GetFormat)
+        .def_prop_ro("source", &oem::PyMessageTypeField::GetMeasurementSource);
+
+    nb::class_<oem::PyHeader>(m, "Header")
+        .def_ro("message_id", &oem::PyHeader::usMessageId)
+        .def_prop_ro("message_type", &oem::PyHeader::GetPyMessageType)
+        .def_ro("port_address", &oem::PyHeader::uiPortAddress)
+        .def_ro("length", &oem::PyHeader::usLength)
+        .def_ro("sequence", &oem::PyHeader::usSequence)
+        .def_ro("idle_time", &oem::PyHeader::ucIdleTime)
+        .def_ro("time_status", &oem::PyHeader::uiTimeStatus)
+        .def_ro("week", &oem::PyHeader::usWeek)
+        .def_ro("milliseconds", &oem::PyHeader::dMilliseconds)
+        .def_ro("receiver_status", &oem::PyHeader::uiReceiverStatus)
+        .def_ro("message_definition_crc", &oem::PyHeader::uiMessageDefinitionCrc)
+        .def_ro("receiver_sw_version", &oem::PyHeader::usReceiverSwVersion)
+        .def("to_dict", [](const oem::PyHeader& self) { return self.to_dict(); })
+        .def("__repr__", [](const nb::handle self) {
+            auto& header = nb::cast<oem::PyHeader&>(self);
+            return nb::str("Header(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
+                           "idle_time={!r}, time_status={!r}, week={!r}, milliseconds={!r}, receiver_status={!r}, "
+                           "message_definition_crc={!r}, receiver_sw_version={!r})")
+                .format(header.usMessageId, header.ucMessageType, header.uiPortAddress, header.usLength, header.usSequence, header.ucIdleTime,
+                        header.uiTimeStatus, header.usWeek, header.dMilliseconds, header.uiReceiverStatus, header.uiMessageDefinitionCrc,
+                        header.usReceiverSwVersion);
+        });
+}
+
+void init_message_objects(nb::module_& m) {
     nb::class_<PyGpsTime>(m, "GpsTime")
         .def(nb::init())
         .def(nb::init<uint16_t, double, TIME_STATUS>(), "week"_a, "milliseconds"_a, "time_status"_a = TIME_STATUS::UNKNOWN)
@@ -222,7 +351,6 @@ void init_novatel_message_decoder(nb::module_& m)
         .def("to_dict", &PyField::to_dict, "Convert the message and its sub-messages into a dict")
         .def("__getattr__", &PyField::getattr, "field_name"_a)
         .def("__repr__", &PyField::repr)
-        .def("__str__", &PyField::repr)
         .def("__dir__", [](nb::object self) {
             // get required Python builtin functions
             nb::module_ builtins = nb::module_::import_("builtins");
@@ -250,7 +378,6 @@ void init_novatel_message_decoder(nb::module_& m)
 
     nb::class_<PyMessage, PyField>(m, "Message")
         .def_ro("header", &PyMessage::header)
-        .def_ro("name", &PyMessage::name)
         .def(
             "to_dict",
             [](const PyMessage& self, bool include_header) {
@@ -260,13 +387,20 @@ void init_novatel_message_decoder(nb::module_& m)
             },
             "include_header"_a = true, "Convert the message and its sub-messages into a dict");
 
-    nb::class_<UnknownMessage, PyMessage>(m, "UNKNOWN")
+    nb::class_<PyIncompleteMessage, PyMessage>(m, "IncompleteMessage")
         .def("__repr__",
-             [](const UnknownMessage self) {
-                 std::string name = nb::cast<std::string>(nb::str(self.bytes));
-                 return "UNKNOWN(bytes=" + name + ")";
+             [](const PyIncompleteMessage self) {
+                 std::string byte_rep = nb::str(self.bytes.attr("__repr__")()).c_str();
+                 return "IncompleteMessage(bytes=" + byte_rep + ")";
              })
-        .def_ro("bytes", &UnknownMessage::bytes);
+        .def_ro("bytes", &PyIncompleteMessage::bytes);
+
+    nb::class_<PyCompleteMessage, PyMessage>(m, "CompleteMessage")
+        .def("to_ascii", &PyCompleteMessage::to_ascii)
+        .def("to_binary", &PyCompleteMessage::to_binary)
+        .def("to_flattended_binary", &PyCompleteMessage::to_flattended_binary)
+        .def("to_json", &PyCompleteMessage::to_json)
+        .def_ro("name", &PyCompleteMessage::name);
 
     nb::class_<FieldContainer>(m, "FieldContainer")
         .def_rw("value", &FieldContainer::fieldValue)
@@ -274,84 +408,6 @@ void init_novatel_message_decoder(nb::module_& m)
         .def("__repr__", [](const FieldContainer& container) {
             return nb::str("FieldContainer(value={}, fieldDef={})").format(container.fieldValue, container.fieldDef);
         });
-
-    nb::class_<oem::MessageDecoder>(m, "MessageDecoder")
-        .def("__init__", [](oem::MessageDecoder* t) { new (t) oem::MessageDecoder(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
-        .def(nb::init<const PyMessageDatabase::Ptr&>(), "json_db"_a)
-        .def("load_json_db", &oem::MessageDecoder::LoadJsonDb, "json_db"_a)
-        .def_prop_ro("logger", [](oem::MessageDecoder& decoder) { return decoder.GetLogger(); })
-        .def(
-            "decode",
-            [](const oem::MessageDecoder& decoder, const nb::bytes& message_body, PyHeader header, oem::MetaDataStruct& metadata) {
-                std::vector<FieldContainer> fields;
-                STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(message_body.c_str()), fields, metadata);
-                PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);
-                nb::handle body_pytype;
-                nb::object body_pyinst;
-                const std::string message_name = metadata.messageName;
-                bool has_ptype = true;
-
-                if (message_name == "UNKNOWN") { body_pytype = nb::type<UnknownMessage>(); }
-                else
-                {
-                    try
-                    {
-                        PyMessageType* message_type_struct = parent_db->GetMessagesByNameDict().at(message_name);
-                        if (message_type_struct->crc == metadata.uiMessageCrc)
-                        {
-                            // If the CRCs match, use the specific message type
-                            body_pytype = message_type_struct->python_type;
-                        }
-                        else
-                        {
-                            // If the CRCs don't match, use the generic "MESSAGE" type
-                            body_pytype = nb::type<PyMessage>();
-                            has_ptype = false;
-                        }
-                    }
-                    catch (const std::out_of_range& e)
-                    {
-                        // This case should never happen, if it does there is a bug
-                        throw std::runtime_error("Message name '" + message_name + "' not found in the JSON database");
-                    }
-                }
-
-                body_pyinst = nb::inst_alloc(body_pytype);
-                if (message_name == "UNKNOWN")
-                {
-                    UnknownMessage* body_cinst = nb::inst_ptr<UnknownMessage>(body_pyinst);
-                    new (body_cinst) UnknownMessage(fields, parent_db, header, message_body);
-                }
-                else
-                {
-                    PyMessage* body_cinst = nb::inst_ptr<PyMessage>(body_pyinst);
-                    new (body_cinst) PyMessage(message_name, has_ptype, fields, parent_db, header);
-                }
-                nb::inst_mark_ready(body_pyinst);
-
-                return nb::make_tuple(status, body_pyinst);
-            },
-            "message_body"_a, "decoded_header"_a, "metadata"_a)
-        .def(
-            "_decode_ascii",
-            [](oem::MessageDecoder& decoder, const std::vector<BaseField::Ptr>& msg_def_fields, const nb::bytes& message_body) {
-                std::vector<FieldContainer> fields;
-                // Copy to ensure that the byte string is zero-delimited
-                std::string body_str(message_body.c_str(), message_body.size());
-                const char* data_ptr = body_str.c_str();
-                STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeAscii(msg_def_fields, &data_ptr, fields);
-                return nb::make_tuple(status, PyField("", false, std::move(fields), get_parent_db(decoder)));
-            },
-            "msg_def_fields"_a, "message_body"_a)
-        .def(
-            "_decode_binary",
-            [](oem::MessageDecoder& decoder, const std::vector<BaseField::Ptr>& msg_def_fields, const nb::bytes& message_body,
-               uint32_t message_length) {
-                std::vector<FieldContainer> fields;
-                const char* data_ptr = message_body.c_str();
-                STATUS status = static_cast<DecoderTester*>(&decoder)->TestDecodeBinary(msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr),
-                                                                                        fields, message_length);
-                return nb::make_tuple(status, PyField("", false, std::move(fields), get_parent_db(decoder)));
-            },
-            "msg_def_fields"_a, "message_body"_a, "message_length"_a);
 }
+
+#pragma endregion
