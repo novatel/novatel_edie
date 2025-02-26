@@ -157,7 +157,6 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     // set uiLength for likely framer
     framerRegistry.front().metadata->uiLength = framerRegistry.front().framer->uiMyFrameBufferOffset;
     if (framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE) { return STATUS::INCOMPLETE; }
-
     eActiveFramerId_ = framerRegistry.front().framerId;
 
     if (framerRegistry.front().framer->uiMyFrameBufferOffset > 0 &&
@@ -196,15 +195,26 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     // A Framer Successfully Framed a log
     auto it_success = std::find_if(framerRegistry.begin(), framerRegistry.end(),
                                     [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS); });
-    if (it_success != framerRegistry.end()) { return it_success->framer->eMyCurrentFramerStatus; }
+    if (it_success != framerRegistry.end()) { 
+        eActiveFramerId_ = idMap["UNKNOWN"];
+        return it_success->framer->eMyCurrentFramerStatus; }
 
-    // if any framer has buffer full, reset all framers
+    // if any framer has full buffer, reset all framers
     auto it_buffer_full = std::find_if(framerRegistry.begin(), framerRegistry.end(),
                                        [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::BUFFER_FULL); });
     if (it_buffer_full != framerRegistry.end())
     {
         ResetAllFramerStates();
         return STATUS::BUFFER_FULL;
+    }
+
+    // if any framer has empty buffer, reset all framers
+    auto it_buffer_empty = std::find_if(framerRegistry.begin(), framerRegistry.end(),
+                                       [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::BUFFER_EMPTY); });
+    if (it_buffer_empty != framerRegistry.end())
+    {
+        ResetAllFramerStates();
+        return STATUS::BUFFER_EMPTY;
     }
 
     auto it_null_provided = std::find_if(framerRegistry.begin(), framerRegistry.end(),

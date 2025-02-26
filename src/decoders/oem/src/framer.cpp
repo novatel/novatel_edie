@@ -121,6 +121,11 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
         // Read data from circular buffer until end is reached
         if (pclMyCircularDataBuffer->GetLength() == uiMyByteCount)
         {
+            if (uiMyByteCount == 0)
+            {
+                eMyCurrentFramerStatus = STATUS::BUFFER_EMPTY;
+                return;
+            }
             uiMyFrameBufferOffset = uiMyByteCount;
             uiMyByteCount = 0;
             // We have found a potential partial log, but we need more data to complete it

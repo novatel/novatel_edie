@@ -37,8 +37,9 @@
 #include <novatel_edie/decoders/oem/framer.hpp>
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
-#include "novatel_edie/common/framer_manager.hpp"
 #include <novatel_edie/version.h>
+
+#include "novatel_edie/common/framer_manager.hpp"
 
 namespace fs = std::filesystem;
 
@@ -102,7 +103,9 @@ int main(int argc, char* argv[])
     clFramerManager.SetReportUnknownBytes(true);
     clFramerManager.SetLoggerLevel(spdlog::level::debug);
 
+    // Assert the only framer to be used in this example
     Framer clFramer;
+
     Logger::AddConsoleLogging(clFramer.GetLogger());
     Logger::AddRotatingFileLogger(clFramer.GetLogger());
     clFramer.SetPayloadOnly(false);
@@ -142,7 +145,6 @@ int main(int argc, char* argv[])
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
 
-    MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
     // Setup file streams
@@ -168,6 +170,8 @@ int main(int argc, char* argv[])
 
             if (eFramerStatus == STATUS::SUCCESS)
             {
+                // OEM logs are the only ones allowed in this example
+                auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*(clFramerManager.framerRegistry.front().metadata));
                 if (stMetaData.bResponse)
                 {
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
@@ -219,7 +223,10 @@ int main(int argc, char* argv[])
                     pclLogger->warn("HeaderDecoder returned with status code {}", eDecoderStatus);
                 }
             }
-            else if (eFramerStatus == STATUS::UNKNOWN) { unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), clFramerManager.framerRegistry.front().metadata->uiLength); }
+            else if (eFramerStatus == STATUS::UNKNOWN)
+            {
+                unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), clFramerManager.framerRegistry.front().metadata->uiLength);
+            }
             else { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
         }
     }
