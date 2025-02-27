@@ -45,8 +45,10 @@ class ProprietaryFramerTest : public ::testing::Test
     {
         novatel::edie::FramerManager& clMyFramerManager = FramerManager::GetInstance();
         clMyFramerManager.SetLoggerLevel(spdlog::level::info);
-        std::cout << "DEBUG:FramerTest Constructed Successfully" << std::endl;
         clMyFramerManager.SetReportUnknownBytes(true);
+
+        clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<oem::Framer>(), std::make_unique<oem::MetaDataStruct>());
+
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
 

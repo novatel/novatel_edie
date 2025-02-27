@@ -104,14 +104,16 @@ int main(int argc, char* argv[])
     clFramerManager.SetLoggerLevel(spdlog::level::debug);
 
     // Assert the only framer to be used in this example
-    Framer clFramer;
+    clFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
 
-    Logger::AddConsoleLogging(clFramer.GetLogger());
-    Logger::AddRotatingFileLogger(clFramer.GetLogger());
-    clFramer.SetPayloadOnly(false);
-    clFramer.SetFrameJson(false);
+    std::unique_ptr<FramerBase>& clFramer = clFramerManager.GetFramerElement(clFramerManager.idMap["NOVATEL"])->framer;
 
-    HeaderDecoder clHeaderDecoder(clJsonDb);
+    Logger::AddConsoleLogging(clFramer->GetLogger());
+    Logger::AddRotatingFileLogger(clFramer->GetLogger());
+    clFramer->SetPayloadOnly(false);
+    clFramer->SetFrameJson(false);
+
+    HeaderDecoder clHeaderDecoder(&clJsonDb);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clHeaderDecoder.GetLogger());
     Logger::AddRotatingFileLogger(clHeaderDecoder.GetLogger());
@@ -159,7 +161,7 @@ int main(int argc, char* argv[])
     while (!ifs.eof())
     {
         ifs.read(cData.data(), cData.size());
-        clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount());
+        clFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 

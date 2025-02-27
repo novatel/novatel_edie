@@ -45,7 +45,6 @@ Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("nov
                          [&clMyFramerManager](const FramerElement& element) { return element.framerId == clMyFramerManager.idMap["NOVATEL"]; });
         if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
     }
-    clMyFramerManager.RegisterFramer("NOVATEL", std::unique_ptr<FramerBase>(this), std::make_unique<MetaDataStruct>());
 }
 
 Framer::Framer() : Framer(FramerManager::GetInstance().GetCircularBuffer()) {}
@@ -148,12 +147,9 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
             {
             case OEM4_BINARY_SYNC1: localFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC2; break;
             case OEM4_ASCII_SYNC: [[fallthrough]];
-            case OEM4_SHORT_ASCII_SYNC:
-                uiMyByteCount--;
-                uiMyFrameBufferOffset = uiMyByteCount;
-                eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;
-                return;
+            case OEM4_SHORT_ASCII_SYNC: [[fallthrough]];
             case OEM4_ABBREV_ASCII_SYNC:
+                [[fallthrough]];
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
                 eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;

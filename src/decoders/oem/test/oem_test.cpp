@@ -65,6 +65,9 @@ class FramerTest : public ::testing::Test
         FramerManager& clMyFramerManager = FramerManager::GetInstance();
         clMyFramerManager.SetLoggerLevel(spdlog::level::info);
         clMyFramerManager.SetReportUnknownBytes(true);
+
+        clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<oem::Framer>(), std::make_unique<oem::MetaDataStruct>());
+
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
 
