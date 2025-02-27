@@ -162,6 +162,15 @@ class FramerManager
     FramerElement* GetFramerElement(int framerId_);
 
     //----------------------------------------------------------------------------
+    //! \brief Get the pointer to a Framer for specified framer.
+    //
+    //! \param[in] framerId_ The ID of the framer to get the Framer for.
+    // 
+    //! \return A pointer to the Framer for the specified sframer.
+    //---------------------------------------------------------------------------
+    std::unique_ptr<FramerBase>& GetFramerInstance(std::string framerAlias_);
+
+    //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
     //
     //! \param[in] pucDataBuffer_ The data buffer containing the bytes to be
