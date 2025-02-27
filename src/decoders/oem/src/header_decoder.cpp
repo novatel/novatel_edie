@@ -255,7 +255,7 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
 
     // Reconstruct a message name that won't have a suffix of any kind.
     stMetaData_.messageName = pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY),
-                                                                       static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
+                                                                     static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
 
     return STATUS::SUCCESS;
 }
