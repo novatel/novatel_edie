@@ -147,6 +147,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     if (eActiveFramerId_ == idMap["UNKNOWN"])
     {
         ResetAllMetaDataStates();
+        ResetAllFramerStates();
         for (auto& [framerId, framer, metadata, offset] : framerRegistry) { framer->FindNextSyncByte(uiFrameBufferSize_); }
     }
 
@@ -196,7 +197,6 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     auto it_success = std::find_if(framerRegistry.begin(), framerRegistry.end(),
                                     [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS); });
     if (it_success != framerRegistry.end()) { 
-        eActiveFramerId_ = idMap["UNKNOWN"];
         return it_success->framer->eMyCurrentFramerStatus; }
 
     // if any framer has full buffer, reset all framers

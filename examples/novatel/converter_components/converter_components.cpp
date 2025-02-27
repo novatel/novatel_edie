@@ -210,22 +210,26 @@ int main(int argc, char* argv[])
                             unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                             pclLogger->warn("Encoder returned with status code {}", eEncoderStatus);
                         }
+                        eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
                     }
                     else
                     {
                         unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
+                        eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
                         pclLogger->warn("MessageDecoder returned with status code {}", eDecoderStatus);
                     }
                 }
                 else
                 {
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                    eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
                     pclLogger->warn("HeaderDecoder returned with status code {}", eDecoderStatus);
                 }
             }
             else if (eFramerStatus == STATUS::UNKNOWN)
             {
                 unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), clFramerManager.framerRegistry.front().metadata->uiLength);
+                eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
             }
             else { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
         }
