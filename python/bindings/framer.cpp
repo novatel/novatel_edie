@@ -25,15 +25,15 @@ void init_novatel_framer(nb::module_& m)
             [](oem::Framer& framer, uint32_t buffer_size) {
                 std::vector<char> buffer(buffer_size);
                 static oem::MetaDataStruct metadata;    // maintain metadata until frame is returned
-                oem::MetaDataStruct meta_data_copy;
+                oem::MetaDataStruct metadata_copy;
                 STATUS status = framer.GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
                 switch (status)
                 {
                 case STATUS::UNKNOWN:   // fall-through
                 case STATUS::SUCCESS:
-                    meta_data_copy = oem::MetaDataStruct(metadata);
+                    metadata_copy = oem::MetaDataStruct(metadata);
                     metadata = oem::MetaDataStruct();
-                    return nb::make_tuple(nb::bytes(buffer.data(), metadata.uiLength), meta_data_copy);
+                    return nb::make_tuple(nb::bytes(buffer.data(), metadata_copy.uiLength), metadata_copy);
                 case STATUS::INCOMPLETE:           // fall-through
                 case STATUS::INCOMPLETE_MORE_DATA: // fall-through
                 case STATUS::BUFFER_EMPTY: throw nb::stop_iteration("No more frames detected in buffer");
