@@ -14,7 +14,7 @@ using namespace novatel::edie;
 
 void init_common_message_database(nb::module_& m)
 {
-    nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "Data type name string represented as an enum")
+    nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "Data type name string represented as an enum", nb::is_arithmetic())
         .value("BOOL", DATA_TYPE::BOOL)
         .value("CHAR", DATA_TYPE::CHAR)
         .value("UCHAR", DATA_TYPE::UCHAR)
@@ -35,7 +35,7 @@ void init_common_message_database(nb::module_& m)
 
     m.attr("str_to_DATA_TYPE") = DataTypeEnumLookup;
 
-    nb::enum_<FIELD_TYPE>(m, "FIELD_TYPE", "Field type string represented as an enum.")
+    nb::enum_<FIELD_TYPE>(m, "FIELD_TYPE", "Field type string represented as an enum.", nb::is_arithmetic())
         .value("SIMPLE", FIELD_TYPE::SIMPLE)
         .value("ENUM", FIELD_TYPE::ENUM)
         .value("BITFIELD", FIELD_TYPE::BITFIELD)

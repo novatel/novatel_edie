@@ -35,7 +35,7 @@ void init_novatel_common(nb::module_& m)
     m.attr("OEM4_SHORT_BINARY_HEADER_LENGTH") = oem::OEM4_SHORT_BINARY_HEADER_LENGTH;
     m.attr("OEM4_PROPRIETARY_BINARY_SYNC2") = oem::OEM4_PROPRIETARY_BINARY_SYNC2;
 
-    nb::enum_<oem::ASCII_HEADER>(m, "ASCII_HEADER", "ASCII Message header format sequence")
+    nb::enum_<oem::ASCII_HEADER>(m, "ASCII_HEADER", "ASCII Message header format sequence", nb::is_arithmetic())
         .value("MESSAGE_NAME", oem::ASCII_HEADER::MESSAGE_NAME, "ASCII log Name.")
         .value("PORT", oem::ASCII_HEADER::PORT, "Receiver logging port.")
         .value("SEQUENCE", oem::ASCII_HEADER::SEQUENCE, "Embedded log sequence number.")
@@ -48,7 +48,7 @@ void init_novatel_common(nb::module_& m)
         .value("RECEIVER_SW_VERSION", oem::ASCII_HEADER::RECEIVER_SW_VERSION, "Receiver software version.")
         .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<novatel::edie::HEADER_FORMAT>(m, "HEADER_FORMAT")
+    nb::enum_<novatel::edie::HEADER_FORMAT>(m, "HEADER_FORMAT", nb::is_arithmetic())
         .value("UNKNOWN", novatel::edie::HEADER_FORMAT::UNKNOWN)
         .value("BINARY", novatel::edie::HEADER_FORMAT::BINARY)
         .value("SHORT_BINARY", novatel::edie::HEADER_FORMAT::SHORT_BINARY)
