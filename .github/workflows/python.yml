@@ -62,6 +62,8 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Check files
+        run: ls
       - name: Upload to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
