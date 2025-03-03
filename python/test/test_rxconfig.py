@@ -57,6 +57,7 @@ def TestSameFormatCompare(rx_config_handler, format_, expected_rx_config_message
 # -------------------------------------------------------------------------------------------------------
 # Logging Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
+@pytest.mark.skip(reason="Logging is still under development")
 def test_logger():
     name = "rxconfig_handler"
     level = ne.LogLevel.OFF

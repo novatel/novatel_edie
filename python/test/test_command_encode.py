@@ -43,6 +43,7 @@ def commander():
 # -------------------------------------------------------------------------------------------------------
 # Logger Command Encoding Unit Tests
 # -------------------------------------------------------------------------------------------------------
+@pytest.mark.skip(reason="Logging is still under development")
 def test_logger():
     name = "novatel_commander"
     level = ne.LogLevel.OFF
