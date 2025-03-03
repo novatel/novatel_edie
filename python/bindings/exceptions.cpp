@@ -1,8 +1,8 @@
-#include "novatel_edie/decoders/common/common.hpp"
-#include "novatel_edie/decoders/common/json_db_reader.hpp"
+#include "exceptions.hpp"
 
 #include "bindings_core.hpp"
-#include "exceptions.hpp"
+#include "novatel_edie/decoders/common/common.hpp"
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -33,23 +33,24 @@ void novatel::edie::throw_exception_from_status(STATUS status)
     }
 }
 
-void init_novatel_exceptions(nb::module_& m) {
-    nb::exception<FailureException>(m, "FailureException"); // NOLINT
-    nb::exception<UnknownException>(m, "UnknownException"); // NOLINT
-    nb::exception<IncompleteException>(m, "IncompleteException"); // NOLINT
-    nb::exception<IncompleteMoreDataException>(m, "IncompleteMoreDataException"); // NOLINT
-    nb::exception<NullProvidedException>(m, "NullProvidedException"); // NOLINT
-    nb::exception<NoDatabaseException>(m, "NoDatabaseException"); // NOLINT
-    nb::exception<NoDefinitionException>(m, "NoDefinitionException"); // NOLINT
-    nb::exception<NoDefinitionEmbeddedException>(m, "NoDefinitionEmbeddedException"); // NOLINT
-    nb::exception<BufferFullException>(m, "BufferFullException", PyExc_BufferError); // NOLINT
-    nb::exception<BufferEmptyException>(m, "BufferEmptyException", PyExc_BufferError); // NOLINT
-    nb::exception<StreamEmptyException>(m, "StreamEmptyException"); // NOLINT
-    nb::exception<UnsupportedException>(m, "UnsupportedException"); // NOLINT
-    nb::exception<MalformedInputException>(m, "MalformedInputException"); // NOLINT
-    nb::exception<DecompressionFailureException>(m, "DecompressionFailureException"); // NOLINT
-    nb::exception<JsonDbReaderFailure>(m, "JsonDbReaderException"); // NOLINT
-
+void init_novatel_exceptions(nb::module_& m)
+{
+    nb::handle base = nb::exception<EdieException>(m, "NovatelEdieException");              // NOLINT
+    nb::exception<FailureException>(m, "FailureException", base);                           // NOLINT
+    nb::exception<UnknownException>(m, "UnknownException", base);                           // NOLINT
+    nb::exception<IncompleteException>(m, "IncompleteException", base);                     // NOLINT
+    nb::exception<IncompleteMoreDataException>(m, "IncompleteMoreDataException", base);     // NOLINT
+    nb::exception<NullProvidedException>(m, "NullProvidedException", base);                 // NOLINT
+    nb::exception<NoDatabaseException>(m, "NoDatabaseException", base);                     // NOLINT
+    nb::exception<NoDefinitionException>(m, "NoDefinitionException", base);                 // NOLINT
+    nb::exception<NoDefinitionEmbeddedException>(m, "NoDefinitionEmbeddedException", base); // NOLINT
+    nb::exception<BufferFullException>(m, "BufferFullException", base);                     // NOLINT
+    nb::exception<BufferEmptyException>(m, "BufferEmptyException", base);                   // NOLINT
+    nb::exception<StreamEmptyException>(m, "StreamEmptyException", base);                   // NOLINT
+    nb::exception<UnsupportedException>(m, "UnsupportedException", base);                   // NOLINT
+    nb::exception<MalformedInputException>(m, "MalformedInputException", base);             // NOLINT
+    nb::exception<DecompressionFailureException>(m, "DecompressionFailureException", base); // NOLINT
+    nb::exception<JsonDbReaderFailure>(m, "JsonDbReaderException", base);                   // NOLINT
 
     m.def("throw_exception_from_status", &throw_exception_from_status, "status"_a);
 }
