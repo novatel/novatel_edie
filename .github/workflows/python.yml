@@ -55,6 +55,7 @@ jobs:
   publish:
     name: Publish release to PyPI
     runs-on: ubuntu-latest
+    needs: python
     environment:
       name: testpypi
       url: https://test.pypi.org/p/novatel-edie
