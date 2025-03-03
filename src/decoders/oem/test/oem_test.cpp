@@ -73,7 +73,9 @@ class FramerTest : public ::testing::Test
   public:
     template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
     {
-        MetaDataStruct stExpectedMetaData(F, uiLength_);
+        MetaDataStruct stExpectedMetaData;
+        stExpectedMetaData.eFormat = F;
+        stExpectedMetaData.uiLength = uiLength_;
         MetaDataStruct stTestMetaData;
         ASSERT_EQ(S, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, stTestMetaData));
         ASSERT_EQ(stTestMetaData, stExpectedMetaData);
@@ -179,7 +181,8 @@ TEST_F(FramerTest, ASCII_BYTE_BY_BYTE)
     uint32_t uiLogSize = sizeof(aucData) - 1;
     uint32_t uiRemainingBytes = uiLogSize;
 
-    MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ASCII);
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::ASCII;
     MetaDataStruct stTestMetaData;
 
     while (true)
@@ -363,7 +366,8 @@ TEST_F(FramerTest, BINARY_BYTE_BY_BYTE)
     uint32_t uiLogSize = sizeof(aucData);
     uint32_t uiRemainingBytes = uiLogSize;
 
-    MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN);
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
     MetaDataStruct stTestMetaData;
 
     while (true)
@@ -480,7 +484,8 @@ TEST_F(FramerTest, SHORT_ASCII_BYTE_BY_BYTE)
     uint32_t uiLogSize = sizeof(aucData) - 1;
     uint32_t uiRemainingBytes = uiLogSize;
 
-    MetaDataStruct stExpectedMetaData(HEADER_FORMAT::SHORT_ASCII);
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::SHORT_ASCII;
     MetaDataStruct stTestMetaData;
 
     while (true)
@@ -611,7 +616,8 @@ TEST_F(FramerTest, SHORT_BINARY_BYTE_BY_BYTE)
     uint32_t uiLogSize = sizeof(aucData);
     uint32_t uiRemainingBytes = uiLogSize;
 
-    MetaDataStruct stExpectedMetaData(HEADER_FORMAT::UNKNOWN);
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
     MetaDataStruct stTestMetaData;
 
     while (true)
@@ -726,7 +732,8 @@ TEST_F(FramerTest, NMEA_BYTE_BY_BYTE)
     uint32_t uiLogSize = sizeof(aucData) - 1;
     uint32_t uiRemainingBytes = uiLogSize;
 
-    MetaDataStruct stExpectedMetaData(HEADER_FORMAT::NMEA);
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::NMEA;
     MetaDataStruct stTestMetaData;
 
     while (true)
@@ -854,7 +861,8 @@ TEST_F(FramerTest, ABBREV_ASCII_MULTILINE)
 TEST_F(FramerTest, ABBREV_ASCII_RESPONSE)
 {
     constexpr unsigned char aucData[] = "<ERROR:Message is invalid for this model\r\n";
-    MetaDataStruct stExpectedMetaData(HEADER_FORMAT::ABB_ASCII);
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
     MetaDataStruct stTestMetaData;
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
     stExpectedMetaData.bResponse = true;

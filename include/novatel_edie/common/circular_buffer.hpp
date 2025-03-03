@@ -63,18 +63,18 @@ class CircularBuffer
     //----------------------------------------------------------------------------
     //! \return current capacity of buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] inline uint32_t GetCapacity() const;
+    [[nodiscard]] uint32_t GetCapacity() const { return uiMyCapacity; }
 
     //----------------------------------------------------------------------------
     //! \return number of bytes of data in buffer. Number of bytes between
     //! beginning of buffer and write cursor.
     //----------------------------------------------------------------------------
-    [[nodiscard]] inline uint32_t GetLength() const;
+    [[nodiscard]] uint32_t GetLength() const { return uiMyLength; }
 
     //----------------------------------------------------------------------------
     //! \return the current buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] inline unsigned char* GetBuffer() const;
+    [[nodiscard]] unsigned char* GetBuffer() const { return pucMyBuffer.get(); }
 
     //----------------------------------------------------------------------------
     //! \brief Append data to end of buffer. Will increase buffer size if needed.
@@ -101,7 +101,7 @@ class CircularBuffer
     //----------------------------------------------------------------------------
     //! \brief Remove all data from buffer, Buffer will be clear after this call.
     //----------------------------------------------------------------------------
-    inline void Clear();
+    void Clear() { Discard(uiMyLength); }
 
     //----------------------------------------------------------------------------
     //! \brief Copy buffer from circular buffer to target
@@ -116,7 +116,7 @@ class CircularBuffer
     //----------------------------------------------------------------------------
     //! \brief Overloading Subscript or array index operator []
     //----------------------------------------------------------------------------
-    inline unsigned char operator[](int32_t iIndex_) const;
+    unsigned char operator[](int32_t iIndex_) const { return GetByte(iIndex_); }
 
     //----------------------------------------------------------------------------
     //! \brief Return copy of byte at iIndex_ (throw exception if iIndex_ out of
@@ -128,19 +128,5 @@ class CircularBuffer
     //----------------------------------------------------------------------------
     [[nodiscard]] unsigned char GetByte(int32_t iIndex_) const;
 };
-
-//-----------------------------------------------------------------------
-// Inline Functions
-//-----------------------------------------------------------------------
-
-inline uint32_t CircularBuffer::GetCapacity() const { return uiMyCapacity; }
-
-inline uint32_t CircularBuffer::GetLength() const { return uiMyLength; }
-
-inline void CircularBuffer::Clear() { Discard(uiMyLength); }
-
-inline unsigned char* CircularBuffer::GetBuffer() const { return pucMyBuffer.get(); }
-
-inline unsigned char CircularBuffer::operator[](const int32_t iIndex_) const { return GetByte(iIndex_); }
 
 #endif // CIRCULAR_BUFFER_HPP

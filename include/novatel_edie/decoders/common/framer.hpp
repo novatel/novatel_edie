@@ -127,17 +127,14 @@ class FramerBase
     //
     //! \param[in] bReportUnknownBytes_ Set to true to return unknown bytes.
     //----------------------------------------------------------------------------
-    virtual void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
+    void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the number of bytes available in the internal circular buffer.
     //
     //! \return The number of bytes available in the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] virtual uint32_t GetBytesAvailableInBuffer() const
-    {
-        return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength();
-    }
+    [[nodiscard]] uint32_t GetBytesAvailableInBuffer() const { return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength(); }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -148,10 +145,7 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    virtual uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
-    {
-        return clMyCircularDataBuffer.Append(pucDataBuffer_, uiDataBytes_);
-    }
+    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_) { return clMyCircularDataBuffer.Append(pucDataBuffer_, uiDataBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -161,7 +155,7 @@ class FramerBase
     //
     //! \return The number of bytes flushed from the internal circular buffer.
     //----------------------------------------------------------------------------
-    virtual uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+    uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
         const uint32_t uiBytesToFlush = std::min(clMyCircularDataBuffer.GetLength(), uiBufferSize_);
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);

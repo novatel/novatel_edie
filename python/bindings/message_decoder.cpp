@@ -288,7 +288,7 @@ void init_novatel_message_decoder(nb::module_& m)
                 PyMessageDatabase::ConstPtr parent_db = get_parent_db(decoder);
                 nb::handle body_pytype;
                 nb::object body_pyinst;
-                const std::string message_name = metadata.MessageName();
+                const std::string message_name = metadata.messageName;
                 bool has_ptype = true;
 
                 if (message_name == "UNKNOWN") { body_pytype = nb::type<UnknownMessage>(); }

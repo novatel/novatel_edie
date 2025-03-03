@@ -185,21 +185,21 @@ class MessageDecoderBase
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger();
+    std::shared_ptr<spdlog::logger> GetLogger() { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     // ---------------------------------------------------------------------------
     //! \brief Get the MessageDatabase object.
     //
     //! \return A shard pointer to the MessageDatabase object.
     // ---------------------------------------------------------------------------
-    MessageDatabase::ConstPtr MessageDb() const;
+    MessageDatabase::ConstPtr MessageDb() const { return std::const_pointer_cast<const MessageDatabase>(pclMyMsgDb); }
 
     //----------------------------------------------------------------------------
     //! \brief Decode a message body from the provided frame.

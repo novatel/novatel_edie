@@ -157,12 +157,6 @@ struct EnumDataType
     uint32_t value{0};
     std::string name{};
     std::string description{};
-
-    constexpr EnumDataType() = default;
-    EnumDataType(std::string name_, uint32_t value_, std::string description_)
-        : value(value_), name(std::move(name_)), description(std::move(description_))
-    {
-    }
 };
 
 //-----------------------------------------------------------------------
@@ -174,8 +168,6 @@ struct EnumDefinition
     std::string _id{};
     std::string name{};
     std::vector<EnumDataType> enumerators{};
-
-    constexpr EnumDefinition() = default;
 
     using Ptr = std::shared_ptr<EnumDefinition>;
     using ConstPtr = std::shared_ptr<const EnumDefinition>;
@@ -191,8 +183,6 @@ struct BaseDataType
     DATA_TYPE name{DATA_TYPE::UNKNOWN};
     uint16_t length{0};
     std::string description{};
-
-    constexpr BaseDataType() = default;
 };
 
 //-----------------------------------------------------------------------
@@ -287,10 +277,6 @@ struct EnumField : BaseField
     EnumDefinition::ConstPtr enumDef{nullptr};
     uint32_t length{0};
 
-    EnumField() = default;
-
-    ~EnumField() override = default;
-
     using Ptr = std::shared_ptr<EnumField>;
     using ConstPtr = std::shared_ptr<const EnumField>;
 };
@@ -302,10 +288,6 @@ struct EnumField : BaseField
 struct ArrayField : BaseField
 {
     uint32_t arrayLength{0};
-
-    ArrayField() = default;
-
-    ~ArrayField() override = default;
 
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;
@@ -319,34 +301,6 @@ struct FieldArrayField : BaseField
 {
     uint32_t arrayLength{0}, fieldSize{0};
     std::vector<std::shared_ptr<BaseField>> fields;
-
-    FieldArrayField() = default;
-
-    FieldArrayField(const FieldArrayField& that_) : BaseField(that_)
-    {
-        fields.reserve(that_.fields.size());
-        for (const auto& field : that_.fields) { fields.emplace_back(field); }
-
-        arrayLength = that_.arrayLength;
-        fieldSize = that_.fieldSize;
-    }
-
-    FieldArrayField& operator=(const FieldArrayField that_)
-    {
-        if (this != &that_)
-        {
-            BaseField::operator=(that_);
-
-            fields.clear();
-            fields.reserve(that_.fields.size());
-            for (const auto& field : that_.fields) { fields.emplace_back(field); }
-
-            arrayLength = that_.arrayLength;
-            fieldSize = that_.fieldSize;
-        }
-
-        return *this;
-    }
 
     using Ptr = std::shared_ptr<FieldArrayField>;
     using ConstPtr = std::shared_ptr<const FieldArrayField>;
@@ -365,50 +319,6 @@ struct MessageDefinition
     std::string description;
     std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields; // map of crc keys to field definitions
     uint32_t latestMessageCrc{0};
-
-    MessageDefinition() = default;
-
-    MessageDefinition(const MessageDefinition& that_)
-    {
-        for (const auto& fieldDefinition : that_.fields)
-        {
-            const uint32_t key = fieldDefinition.first;
-            // Ensure a 0-length vector exists for this key in the case the message has no fields.
-            fields[key].clear();
-            fields[key].reserve(fieldDefinition.second.size());
-            for (const auto& field : fieldDefinition.second) { fields[key].emplace_back(field); }
-        }
-
-        _id = that_._id;
-        logID = that_.logID;
-        name = that_.name;
-        description = that_.description;
-        latestMessageCrc = that_.latestMessageCrc;
-    }
-
-    MessageDefinition& operator=(MessageDefinition that_)
-    {
-        if (this != &that_)
-        {
-            fields.clear();
-            for (const auto& fieldDefinition : that_.fields)
-            {
-                const uint32_t key = fieldDefinition.first;
-                // Ensure a 0-length vector exists for this key in the case the message has no fields.
-                fields[key].clear();
-                fields[key].reserve(fieldDefinition.second.size());
-                for (const auto& field : fieldDefinition.second) { fields[key].emplace_back(field); }
-            }
-
-            _id = that_._id;
-            logID = that_.logID;
-            name = that_.name;
-            description = that_.description;
-            latestMessageCrc = that_.latestMessageCrc;
-        }
-
-        return *this;
-    }
 
     const std::vector<BaseField::Ptr>& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
 
@@ -446,53 +356,6 @@ class MessageDatabase
     {
         GenerateEnumMappings();
         GenerateMessageMappings();
-    }
-
-    //----------------------------------------------------------------------------
-    //! \brief A copy constructor for the MessageDatabase class.
-    //
-    //! \param[in] that_ The MessageDatabase object to copy.
-    //----------------------------------------------------------------------------
-    MessageDatabase(const MessageDatabase& that_) noexcept
-    {
-        // TODO: Verify it's calling the copy constructor for the messages
-        vEnumDefinitions = that_.vEnumDefinitions;
-        vMessageDefinitions = that_.vMessageDefinitions;
-        GenerateEnumMappings();
-        GenerateMessageMappings();
-    }
-
-    //----------------------------------------------------------------------------
-    //! \brief A move constructor for the MessageDatabase class.
-    //
-    //! \param[in] that_ The MessageDatabase object to move.
-    //----------------------------------------------------------------------------
-    MessageDatabase(const MessageDatabase&& that_) noexcept
-    {
-        vMessageDefinitions = that_.vMessageDefinitions;
-        vEnumDefinitions = that_.vEnumDefinitions;
-        mMessageName = that_.mMessageName;
-        mMessageId = that_.mMessageId;
-        mEnumName = that_.mEnumName;
-        mEnumId = that_.mEnumId;
-    }
-
-    //----------------------------------------------------------------------------
-    //! \brief Overloaded assignment operator for the MessageDatabase class.
-    //
-    //! \param[in] that_ The MessageDatabase object to assign.
-    //----------------------------------------------------------------------------
-    MessageDatabase& operator=(const MessageDatabase& that_)
-    {
-        if (this != &that_)
-        {
-            vEnumDefinitions = that_.vEnumDefinitions;
-            vMessageDefinitions = that_.vMessageDefinitions;
-            GenerateEnumMappings();
-            GenerateMessageMappings();
-        }
-
-        return *this;
     }
 
     //----------------------------------------------------------------------------

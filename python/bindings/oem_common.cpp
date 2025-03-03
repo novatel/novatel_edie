@@ -1,6 +1,5 @@
 #include "bindings_core.hpp"
 #include "message_db_singleton.hpp"
-#include "novatel_edie/common/nexcept.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 
 namespace nb = nanobind;
@@ -65,7 +64,6 @@ void init_novatel_common(nb::module_& m)
 
     nb::class_<oem::MetaDataStruct>(m, "MetaData")
         .def(nb::init())
-        .def(nb::init<novatel::edie::HEADER_FORMAT, uint32_t>(), "format"_a, "length"_a)
         .def_rw("format", &oem::MetaDataStruct::eFormat)
         .def_rw("measurement_source", &oem::MetaDataStruct::eMeasurementSource)
         .def_rw("time_status", &oem::MetaDataStruct::eTimeStatus)
@@ -79,11 +77,11 @@ void init_novatel_common(nb::module_& m)
         .def_rw("message_id", &oem::MetaDataStruct::usMessageId)
         .def_rw("message_crc", &oem::MetaDataStruct::uiMessageCrc)
         .def_prop_rw(
-            "message_name", [](const oem::MetaDataStruct& self) { return nb::cast(self.acMessageName); },
+            "message_name",
+            [](const oem::MetaDataStruct& self) { return self.messageName; },
             [](oem::MetaDataStruct& self, const std::string& message_name) {
                 if (message_name.length() > oem::OEM4_ASCII_MESSAGE_NAME_MAX) { throw std::runtime_error("Message name is too long"); }
-                memcpy(self.acMessageName, message_name.c_str(), message_name.length());
-                self.acMessageName[message_name.length()] = '\0';
+                self.messageName = message_name;
             })
         .def_prop_ro("message_description",
                      [](const oem::MetaDataStruct& self) {
@@ -102,7 +100,7 @@ void init_novatel_common(nb::module_& m)
             return nb::str("MetaData(message_name={!r}, format={!r}, measurement_source={!r}, time_status={!r}, response={!r}, "
                            "week={!r}, milliseconds={!r}, binary_msg_length={!r}, length={!r}, header_length={!r}, message_id={!r}, "
                            "message_crc={!r})")
-                .format(metadata.acMessageName, metadata.eFormat, metadata.eMeasurementSource, metadata.eTimeStatus, metadata.bResponse,
+                .format(metadata.messageName, metadata.eFormat, metadata.eMeasurementSource, metadata.eTimeStatus, metadata.bResponse,
                         metadata.usWeek, metadata.dMilliseconds, metadata.uiBinaryMsgLength, metadata.uiLength, metadata.uiHeaderLength,
                         metadata.usMessageId, metadata.uiMessageCrc);
         });

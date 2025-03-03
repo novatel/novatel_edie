@@ -53,8 +53,9 @@ class FileParser
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
     FileParser(const FileParser&) = delete;
-    FileParser(const FileParser&&) = delete;
+    FileParser(FileParser&&) = delete;
     FileParser& operator=(const FileParser&) = delete;
+    FileParser& operator=(FileParser&&) = delete;
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FileParser class.
@@ -220,7 +221,10 @@ class FileParser
     //
     //! \return The number of bytes flushed from the internal Parser.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = Parser::uiParserInternalBufferSize);
+    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = Parser::uiParserInternalBufferSize)
+    {
+        return clMyParser.Flush(pucBuffer_, uiBufferSize_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Get a pointer to the current framed log raw data.

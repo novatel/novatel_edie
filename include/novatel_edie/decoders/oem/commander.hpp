@@ -79,14 +79,14 @@ class Commander
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const;
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
     //
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const;
+    void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Encode an abbreviated ASCII command to a full ASCII or BINARY

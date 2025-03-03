@@ -94,6 +94,3 @@ bool FileParser::Reset()
     }
     return true;
 }
-
-// -------------------------------------------------------------------------------------------------------
-uint32_t FileParser::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_) { return clMyParser.Flush(pucBuffer_, uiBufferSize_); }

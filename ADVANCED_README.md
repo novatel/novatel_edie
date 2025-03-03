@@ -72,6 +72,6 @@ struct MetaDataStruct
    uint32_t uiHeaderLength;                             // The length of the message header.
    uint16_t usMessageID;                                // The message ID.
    uint32_t uiMessageCRC;                               // The message definition CRC.
-   char acMessageName[OEM4_ASCII_MESSAGE_NAME_MAX+1];   // The name of the message
+   std::string messageName;                             // The name of the message
 };
 ```

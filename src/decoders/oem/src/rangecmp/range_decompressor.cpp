@@ -778,7 +778,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
     stHeader.usMessageId = RANGE_MSG_ID;
     stMetaData_.usMessageId = RANGE_MSG_ID;
     stMetaData_.uiMessageCrc = 0; // Use the first message definition
-    strcpy(stMetaData_.acMessageName, "RANGE");
+    stMetaData_.messageName = "RANGE";
 
     // The message should be returned in its original format.
     stMetaData_.eFormat = HEADER_FORMAT::BINARY;

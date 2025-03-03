@@ -57,12 +57,6 @@ void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
     vMyGpsTimeStatusDefinitions = pclMyMsgDb->GetEnumDefName("GPSTimeStatus");
 }
 
-// -------------------------------------------------------------------------------------------------------
-void RxConfigHandler::SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-// -------------------------------------------------------------------------------------------------------
-std::shared_ptr<spdlog::logger> RxConfigHandler::GetLogger() const { return pclMyLogger; }
-
 //-----------------------------------------------------------------------
 bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 {
