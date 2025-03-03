@@ -75,7 +75,6 @@ jobs:
       - name: Check files
         run:
           ls
-          ls wheelhouse/
       - name: Upload to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
