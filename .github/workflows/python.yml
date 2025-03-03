@@ -67,3 +67,4 @@ jobs:
         with:
           repository-url: https://test.pypi.org/
           verbose: true
+          packages-dir: wheelhouse/
