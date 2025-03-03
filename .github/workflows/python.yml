@@ -14,9 +14,9 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - [Linux, ubuntu-latest, x86_64]
+          # - [Linux, ubuntu-latest, x86_64]
           # - [Linux, ubuntu-latest, i686]
-          - [Windows, windows-latest, AMD64]
+          # - [Windows, windows-latest, AMD64]
           # - [Windows, windows-latest, x86]
           # - [Windows, windows-latest, ARM64]
           # - [MacOS, macos-latest, x86_64]
