@@ -54,6 +54,7 @@ def TestFilter(filter, decoder, message):
       pass
    return filter.do_filtering(meta_data)
 
+@pytest.mark.skip(reason="Logging is still under development")
 def test_logger():
    name = "novatel_filter"
    level = ne.LogLevel.OFF

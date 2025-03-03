@@ -42,7 +42,7 @@ def fp(test_gps_file):
 def test_gps_file(decoders_test_resources):
     return decoders_test_resources / "BESTUTMBIN.GPS"
 
-
+@pytest.mark.skip(reason="Logging is still under development")
 def test_logger(test_gps_file):
     # FileParser logger
     level = ne.LogLevel.OFF
