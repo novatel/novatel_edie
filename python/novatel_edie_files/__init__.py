@@ -33,7 +33,7 @@ from .bindings import (
     OEM4_BINARY_CRC_LENGTH, OEM4_ASCII_CRC_LENGTH,
     OEM4_BINARY_SYNC_LENGTH, OEM4_SHORT_ASCII_SYNC_LENGTH, OEM4_ASCII_SYNC_LENGTH, OEM4_SHORT_BINARY_SYNC_LENGTH,
     OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3,
-    FailureException, UnknownException, IncompleteException, IncompleteMoreDataException,
+    NovatelEdieException, FailureException, UnknownException, IncompleteException, IncompleteMoreDataException,
     NullProvidedException, NoDatabaseException, NoDefinitionException, NoDefinitionEmbeddedException,
     BufferFullException, BufferEmptyException, StreamEmptyException, UnsupportedException,
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,

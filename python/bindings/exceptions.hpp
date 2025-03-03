@@ -9,6 +9,13 @@ namespace nb = nanobind;
 
 namespace novatel::edie {
 
+class EdieException : public std::exception
+{
+  public:
+    const char* what() const noexcept override { return "A novatel_edie exception"; }
+};
+
+
 class FailureException : public std::exception
 {
   public:
