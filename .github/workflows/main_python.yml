@@ -9,12 +9,13 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/build_python.yml
-  get-pr-info:
+
+  increment-version:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev-riley-kinahan-github-action-improvements'
+    needs: [get-pr-info, build]
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v2
+      - name: Checkout the code
+        uses: actions/checkout@v4
 
       - name: Get Pull Request Info
         env:
@@ -40,20 +41,14 @@ jobs:
             echo "Tags: $pr_tags"
 
             if echo "$pr_tags" | grep -q "major"; then
-              echo "VERSION_TYPE=major" >> $GITHUB_ENV
+              VERSION_TYPE=major
             elif echo "$pr_tags" | grep -q "minor"; then
-              echo "VERSION_TYPE=minor" >> $GITHUB_ENV
+              VERSION_TYPE=minor
             else
-              echo "VERSION_TYPE=patch" >> $GITHUB_ENV
+              VERSION_TYPE=patch
             fi
 
             echo "VERSION_TYPE=$VERSION_TYPE"
-  increment-version:
-    runs-on: ubuntu-latest
-    needs: [get-pr-info, build]
-    steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
 
       - name: Bump version
         id: bump
@@ -61,7 +56,7 @@ jobs:
         env:
           BUMPVERSION_TAG: "true"
         with:
-          args: "patch --commit"
+          args: "$VERSION_TYPE --commit"
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check
