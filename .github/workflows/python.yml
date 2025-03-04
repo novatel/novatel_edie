@@ -38,7 +38,7 @@ jobs:
           BUMPVERSION_TAG: "true"
         with:
           args: "patch"
-          github-token: ${{ secrets.GH_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check
         if: steps.bump.outputs.bumped == 'true'
