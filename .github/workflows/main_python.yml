@@ -1,19 +1,17 @@
-name: Python
+name: Main
+
 on:
   push:
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'resources/**'
-  workflow_dispatch:
-jobs:
+    branches:
+      - main
+      - dev-riley-kinahan-github-action-improvements
 
+jobs:
   build:
     uses: ./.github/workflows/build_python.yml
   get-pr-info:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev-riley-kinahan-github-action-improvements'
-    needs: build
     steps:
       - name: Check out the repository
         uses: actions/checkout@v2
@@ -31,7 +29,7 @@ jobs:
           echo "Merged By: $(echo $pr_info | jq '.user.login')"
   increment-version:
     runs-on: ubuntu-latest
-    needs: get-pr-info
+    needs: get-pr-info, python-build
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4

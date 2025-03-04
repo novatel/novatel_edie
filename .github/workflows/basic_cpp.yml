@@ -1,0 +1,11 @@
+name: C++ Basic
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'resources/**'
+jobs:
+  build:
+    uses: ./.github/workflows/build_cpp.yml
