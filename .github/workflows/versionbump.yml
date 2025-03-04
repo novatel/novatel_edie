@@ -1,7 +1,7 @@
 name: Bump version
 
 on:
-  push:
+  workflow_dispatch:
     inputs:
       bump-type:
         description: 'Bump type'
