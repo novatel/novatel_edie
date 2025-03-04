@@ -12,6 +12,7 @@ jobs:
     uses: ./.github/workflows/build_python.yml
   get-pr-info:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev-riley-kinahan-github-action-improvements'
     needs: build
     steps:
       - name: Check out the repository
