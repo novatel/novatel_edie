@@ -1,81 +1,117 @@
 name: Python
-# on:
-#   push:
-#     paths-ignore:
-#       - '**.md'
-#       - '.gitignore'
-#       - 'resources/**'
-#   workflow_dispatch:
-# jobs:
-#   python:
-#     name: Python - ${{ matrix.platform[0] }} - ${{ matrix.platform[2] }}
-#     runs-on: ${{ matrix.platform[1] }}
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#         platform:
-#           # - [Linux, ubuntu-latest, x86_64]
-#           # - [Linux, ubuntu-latest, i686]
-#           # - [Windows, windows-latest, AMD64]
-#           # - [Windows, windows-latest, x86]
-#           # - [Windows, windows-latest, ARM64]
-#           # - [MacOS, macos-latest, x86_64]
-#           - [MacOS, macos-latest, arm64]
-#           # spdlog fails to build with the correct architecture on universal2
-#           # - [MacOS, macos-latest, universal2]
-#           # aarch64 with QEMU likely works, but builds 10x slower than the rest
-#           # - [Linux, ubuntu-latest, aarch64]
-#           # ppc64le is too obscure and slow to build due to emulation
-#           # - [Linux, ubuntu-latest, ppc64le]
-#     steps:
-#       - uses: actions/checkout@v4
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'resources/**'
+  workflow_dispatch:
+jobs:
+  get-pr-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
 
-#       - name: Set up QEMU
-#         if: runner.os == 'Linux'
-#         uses: docker/setup-qemu-action@v3
-#         with:
-#           platforms: all
+      - name: Get Pull Request Info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          commit_sha=$(git rev-parse HEAD)
+          pr_info=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/$commit_sha/pulls" \
+            | jq '.[0]')
+          echo "Pull Request Number: $(echo $pr_info | jq '.number')"
+          echo "Title: $(echo $pr_info | jq '.title')"
+          echo "Merged By: $(echo $pr_info | jq '.user.login')"
+  increment-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
 
-#       - uses: actions/setup-python@v4
-#         with:
-#           python-version: '3.12'
+      - name: Bump version
+        id: bump
+        uses: callowayproject/bump-my-version@master
+        env:
+          BUMPVERSION_TAG: "true"
+        with:
+          args: "patch"
+          github-token: ${{ secrets.GH_TOKEN }}
 
-#       - name: Install cibuildwheel
-#         run: python -m pip install --upgrade cibuildwheel
+      - name: Check
+        if: steps.bump.outputs.bumped == 'true'
+        run: |
+          echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"
+  python:
+    name: Python - ${{ matrix.platform[0] }} - ${{ matrix.platform[2] }}
+    runs-on: ${{ matrix.platform[1] }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          # - [Linux, ubuntu-latest, x86_64]
+          # - [Linux, ubuntu-latest, i686]
+          # - [Windows, windows-latest, AMD64]
+          # - [Windows, windows-latest, x86]
+          # - [Windows, windows-latest, ARM64]
+          # - [MacOS, macos-latest, x86_64]
+          - [MacOS, macos-latest, arm64]
+          # spdlog fails to build with the correct architecture on universal2
+          # - [MacOS, macos-latest, universal2]
+          # aarch64 with QEMU likely works, but builds 10x slower than the rest
+          # - [Linux, ubuntu-latest, aarch64]
+          # ppc64le is too obscure and slow to build due to emulation
+          # - [Linux, ubuntu-latest, ppc64le]
+    steps:
+      - uses: actions/checkout@v4
 
-#       - name: Build wheels
-#         run: python -m cibuildwheel --output-dir wheelhouse
-#         env:
-#           CIBW_ARCHS: ${{ matrix.platform[2] }}
-#           CIBW_BUILD: cp39* cp312*
-#           CIBW_SKIP: "*-musllinux*"
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
-#       - name: Inspect
-#         run: ls wheelhouse/
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
 
-#       - name: Store build artifacts
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: wheels
-#           path: wheelhouse/
-#   publish:
-#     name: Publish release to PyPI
-#     runs-on: ubuntu-latest
-#     needs: python
-#     environment:
-#       name: testpypi
-#       url: https://test.pypi.org/p/novatel-edie
-#     permissions:
-#       id-token: write
-#     steps:
-#       - name: Download build artifacts
-#         uses: actions/download-artifact@v4
-#         with:
-#           name: wheels
-#           path: wheelhouse/
-#       - name: Upload to PyPI
-#         uses: pypa/gh-action-pypi-publish@release/v1
-#         with:
-#           repository-url: https://test.pypi.org/legacy/
-#           verbose: true
-#           packages-dir: wheelhouse/
+      - name: Install cibuildwheel
+        run: python -m pip install --upgrade cibuildwheel
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_ARCHS: ${{ matrix.platform[2] }}
+          CIBW_BUILD: cp39* cp312*
+          CIBW_SKIP: "*-musllinux*"
+
+      - name: Inspect
+        run: ls wheelhouse/
+
+      - name: Store build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels
+          path: wheelhouse/
+  publish:
+    name: Publish release to PyPI
+    runs-on: ubuntu-latest
+    needs: python
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/novatel-edie
+    permissions:
+      id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels
+          path: wheelhouse/
+      - name: Upload to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          verbose: true
+          packages-dir: wheelhouse/
