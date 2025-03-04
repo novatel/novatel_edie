@@ -12,6 +12,17 @@ on:
         - major
         - minor
         - patch
+  push:
+    inputs:
+      bump-type:
+        description: 'Bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - major
+        - minor
+        - patch
 
 jobs:
   build:
