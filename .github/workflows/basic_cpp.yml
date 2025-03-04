@@ -6,6 +6,8 @@ on:
       - '**.md'
       - '.gitignore'
       - 'resources/**'
+    branches:
+      -main
 jobs:
   build:
     uses: ./.github/workflows/build_cpp.yml
