@@ -2,17 +2,8 @@ name: Bump version
 
 on:
   push:
-  workflow_dispatch:
-    # inputs:
-    #   bump-type:
-    #     description: 'Bump type'
-    #     required: true
-    #     default: 'patch'
-    #     type: choice
-    #     options:
-    #     - major
-    #     - minor
-    #     - patch
+    branches:
+      - main
 
 jobs:
   get-pr-info:
@@ -32,8 +23,6 @@ jobs:
           echo "Pull Request Number: $(echo $pr_info | jq '.number')"
           echo "Title: $(echo $pr_info | jq '.title')"
           echo "Merged By: $(echo $pr_info | jq '.user.login')"
-
-jobs:
   build:
     runs-on: ubuntu-latest
     steps:
