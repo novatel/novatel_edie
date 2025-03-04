@@ -15,6 +15,25 @@ on:
     #     - patch
 
 jobs:
+  get-pr-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Get Pull Request Info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          commit_sha=$(git rev-parse HEAD)
+          pr_info=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/$commit_sha/pulls" \
+            | jq '.[0]')
+          echo "Pull Request Number: $(echo $pr_info | jq '.number')"
+          echo "Title: $(echo $pr_info | jq '.title')"
+          echo "Merged By: $(echo $pr_info | jq '.user.login')"
+
+jobs:
   build:
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +46,7 @@ jobs:
         env:
           BUMPVERSION_TAG: "true"
         with:
-          args: ${{ inputs.bump-type }}
+          args: "patch"
           github-token: ${{ secrets.GH_TOKEN }}
 
       - name: Check
