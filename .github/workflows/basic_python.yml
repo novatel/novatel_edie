@@ -1,0 +1,13 @@
+name: Python Basic
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'resources/**'
+jobs:
+  build:
+    uses: ./.github/workflows/build_python.yml
