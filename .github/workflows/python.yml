@@ -37,7 +37,7 @@ jobs:
         env:
           BUMPVERSION_TAG: "true"
         with:
-            args: "patch --commit"
+          args: "patch --commit"
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check
