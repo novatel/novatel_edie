@@ -56,7 +56,7 @@ jobs:
         env:
           BUMPVERSION_TAG: "true"
         with:
-          args: "$VERSION_TYPE --commit"
+          args: "${{ VERSION_TYPE }} --commit"
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check
