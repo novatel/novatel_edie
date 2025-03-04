@@ -7,7 +7,6 @@ jobs:
   build:
     name: Python - ${{ matrix.platform[0] }} - ${{ matrix.platform[2] }}
     runs-on: ${{ matrix.platform[1] }}
-    needs: increment-version
     strategy:
       fail-fast: false
       matrix:
