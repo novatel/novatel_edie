@@ -7,8 +7,12 @@ on:
       - 'resources/**'
   workflow_dispatch:
 jobs:
+
+  build:
+    uses: ./.github/workflows/build_python.yml
   get-pr-info:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Check out the repository
         uses: actions/checkout@v2
@@ -44,5 +48,3 @@ jobs:
         if: steps.bump.outputs.bumped == 'true'
         run: |
           echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"
-  build:
-    uses: ./.github/workflows/build_python.yml
