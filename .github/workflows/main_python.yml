@@ -49,6 +49,7 @@ jobs:
             fi
 
             echo "VERSION_TYPE=$VERSION_TYPE"
+            echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
 
       - name: Bump version
         id: bump
@@ -56,7 +57,7 @@ jobs:
         env:
           BUMPVERSION_TAG: "true"
         with:
-          args: "${{ VERSION_TYPE }} --commit"
+          args: "${{ env.VERSION_TYPE }} --commit"
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check
