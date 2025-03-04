@@ -20,18 +20,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          commit_sha=$(git rev-parse HEAD)
-          pr_info=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/${{ github.repository }}/commits/$commit_sha/pulls" \
-          | jq '.[0]')
-          echo "Pull Request Number: $(echo $pr_info | jq '.number')"
-          echo "Title: $(echo $pr_info | jq '.title')"
-          echo "Merged By: $(echo $pr_info | jq '.user.login')"
-          pr_number=$(echo $pr_info | jq '.number')
-          pr_tags=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/${{ github.repository }}/issues/$pr_number/labels" \
-          | jq -r '.[].name')
-          echo "Tags: $pr_tags"
+            commit_sha=$(git rev-parse HEAD)
+            pr_info=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/$commit_sha/pulls" \
+            | jq '.[0]')
+
+            if [ "$pr_info" == "null" ]; then
+            echo "No pull request found for commit $commit_sha"
+            exit 0
+            fi
+
+            echo "Pull Request Number: $(echo $pr_info | jq '.number')"
+            echo "Title: $(echo $pr_info | jq '.title')"
+            echo "Merged By: $(echo $pr_info | jq '.user.login')"
+            pr_number=$(echo $pr_info | jq '.number')
+            pr_tags=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/$pr_number/labels" \
+            | jq -r '.[].name')
+            echo "Tags: $pr_tags"
   increment-version:
     runs-on: ubuntu-latest
     needs: [get-pr-info, build]
