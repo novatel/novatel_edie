@@ -2,6 +2,9 @@ name: Bump version
 
 on:
   push:
+  workflow_dispatch:
+    branches:
+      - dev-riley-kinahan-github-action-improvements
 
 jobs:
   get-pr-info:
