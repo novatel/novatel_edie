@@ -36,6 +36,15 @@ execute_process(
 )
 message(STATUS "All branches ${BRANCHES}")
 
+execute_process(
+    COMMAND ${GIT_EXECUTABLE} describe --always --tags --abbrev=0 --match "v*"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_RELEASE_VERSION
+    RESULT_VARIABLE GIT_RELEASE_VERSION_ERROR_CODE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message(STATUS "release version ${GIT_RELEASE_VERSION}")
+
 
 execute_process(COMMAND ${CMAKE_COMMAND}
     -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
