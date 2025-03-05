@@ -6,6 +6,7 @@ on:
     branches-ignore:
       - main
       - dev-riley-kinahan-github-action-improvements
+      - test-publish 
     paths-ignore:
       - '**.md'
       - '.gitignore'
