@@ -51,6 +51,7 @@ jobs:
         
       - name: Create files
         run: |
+          mkdir wheelhouse
           touch wheelhouse/file1.txt
           touch wheelhouse/file2.txt
 
