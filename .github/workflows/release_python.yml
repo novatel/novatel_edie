@@ -36,13 +36,12 @@ jobs:
           while read -r artifact_name; do
             echo "Downloading $artifact_name"
             artifact_dir="./all_wheels/${artifact_name}"
-            mkdir -p "$artifact_dir"
             curl -s -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" \
             | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .archive_download_url" \
             | xargs -I {} curl -sL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "$artifact_dir/${artifact_name}.zip" {}
-            unzip -q "$artifact_dir/${artifact_name}.zip" -d "$artifact_dir"
-            rm "$artifact_dir/${artifact_name}.zip"
+            unzip -q "${artifact_name}.zip"
+            rm "${artifact_name}.zip"
           done < artifacts.txt
           tree
       - name: Upload to PyPI
