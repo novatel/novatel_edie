@@ -30,14 +30,9 @@ class NovatelEdieConan(ConanFile):
     exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "LICENSE", "!doc", "!test", "CMakeLists.txt"]
 
     def set_version(self):
-        cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
-        self.version = re.search(r"novatel_edie VERSION ([\d.]+)", cmakelists_content).group(1)
-        print(f"Using version {self.version}")
-
-
         git = Git(self, self.recipe_folder)
-        new_version = git.run("describe --tags --abbrev=0").strip().lstrip("v")
-        print(f"New version {new_version}")
+        self.version = git.run("describe --tags --abbrev=0").strip().lstrip("v")
+        print(f"Using version: {self.version}")
 
     def config_options(self):
         if self.settings.os == "Windows":
