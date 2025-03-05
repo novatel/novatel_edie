@@ -31,6 +31,8 @@ jobs:
 
             if [ "$pr_info" == "null" ]; then
             echo "No pull request found for commit $commit_sha"
+            echo "VERSION_TYPE=patch" >> $GITHUB_ENV
+
             exit 0
             fi
 
