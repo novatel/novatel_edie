@@ -63,7 +63,7 @@ execute_process(
     RESULT_VARIABLE FETCHS
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-message(STATUS "Logs\n${FETCH}")
+message(STATUS "Fetch\n${FETCH}")
 
 execute_process(
     COMMAND ${GIT_EXECUTABLE} log -n 10
