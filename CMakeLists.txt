@@ -3,10 +3,22 @@ cmake_minimum_required(VERSION 3.15)
 include(cmake/ThirdParty.cmake)
 
 # Determine version from version control
+
+
+
 find_package(Git REQUIRED)
 if(NOT DEFINED GIT_BRANCH)
     set(GIT_BRANCH "main")
 endif()
+execute_process(
+    COMMAND ${GIT_EXECUTABLE} tags
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE TAGS
+    RESULT_VARIABLE TAGS_SUCCESS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message(STATUS ${TAGS})
+
 execute_process(COMMAND ${CMAKE_COMMAND}
     -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
     -D DST=${CMAKE_CURRENT_SOURCE_DIR}/include/novatel_edie/version.h
