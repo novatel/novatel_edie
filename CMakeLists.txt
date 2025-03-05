@@ -1,6 +1,36 @@
+# Setup CMake and conan config
 cmake_minimum_required(VERSION 3.15)
 include(cmake/ThirdParty.cmake)
-project(novatel_edie VERSION 3.3.7 LANGUAGES CXX)
+
+# Determine version from version control
+
+
+
+find_package(Git REQUIRED)
+if(NOT DEFINED GIT_BRANCH)
+    set(GIT_BRANCH "main")
+endif()
+execute_process(COMMAND ${CMAKE_COMMAND}
+    -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
+    -D DST=${CMAKE_CURRENT_SOURCE_DIR}/include/novatel_edie/version.h
+    -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
+    -D GIT_BRANCH=${GIT_BRANCH}
+    -D RELEASE_VERSION=${RELEASE_VERSION}
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
+    RESULT_VARIABLE result
+    OUTPUT_VARIABLE version_string
+    ERROR_VARIABLE error_output
+)
+if(result)
+    message(FATAL_ERROR "Failed to generate version header: ${error_output}")
+else()
+    string(STRIP "${version_string}" version_string)
+    message(STATUS "Version header generated successfully: ${version_string}")
+endif()
+
+
+# Build Project
+project(novatel_edie VERSION ${version_string} LANGUAGES CXX)
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
@@ -30,17 +60,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
 
 # Look for shared libs in the same directory as the executable when running tests
 set(CMAKE_BUILD_RPATH "\$ORIGIN")
-
-find_package(Git REQUIRED)
-if(NOT DEFINED GIT_BRANCH)
-    set(GIT_BRANCH "main")
-endif()
-execute_process(COMMAND ${CMAKE_COMMAND}
-    -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
-    -D DST=${CMAKE_CURRENT_SOURCE_DIR}/include/novatel_edie/version.h
-    -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
-    -D GIT_BRANCH=${GIT_BRANCH}
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
 
 # Build EDIE components
 add_subdirectory(src/common)
