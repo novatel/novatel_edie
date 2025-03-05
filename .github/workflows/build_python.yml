@@ -54,5 +54,5 @@ jobs:
       - name: Store build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: ${{ matrix.platform[0] }}-${{ matrix.platform[2] }}-wheels
           path: wheelhouse/
