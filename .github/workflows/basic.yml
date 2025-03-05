@@ -1,4 +1,6 @@
 # The basic workflow to run on most branches
+name: Basic
+
 on:
   push:
     branches-ignore:
