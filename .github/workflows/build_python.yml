@@ -51,8 +51,8 @@ jobs:
         
       - name: Create files
         run: |
-          touch file1.txt
-          touch file2.txt
+          touch wheelhouse/file1.txt
+          touch wheelhouse/file2.txt
 
       - name: Inspect
         run: ls wheelhouse/
