@@ -18,6 +18,10 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Print dir
+        run: |
+          ls
+          
       - name: List wheel artifacts
         run: |
           curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
