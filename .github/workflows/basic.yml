@@ -1,6 +1,4 @@
-# The Python workflow to run on merges or pushes to most branches.
-name: Python Basic
-
+# The basic workflow to run on most branches
 on:
   push:
     branches-ignore:
@@ -11,5 +9,7 @@ on:
       - '.gitignore'
       - 'resources/**'
 jobs:
-  build:
+  build-python:
     uses: ./.github/workflows/build_python.yml
+  build-cpp:
+    uses: ./.github/workflows/build_cpp.yml
