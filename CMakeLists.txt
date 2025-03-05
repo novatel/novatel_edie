@@ -37,7 +37,7 @@ execute_process(
 message(STATUS "All branches ${BRANCHES}")
 
 execute_process(
-    COMMAND ${GIT_EXECUTABLE} describe --always --tags --abbrev=0 --match "v*"
+    COMMAND ${GIT_EXECUTABLE} describe --always --all --abbrev=0 --match "v*"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     OUTPUT_VARIABLE GIT_RELEASE_VERSION
     RESULT_VARIABLE GIT_RELEASE_VERSION_ERROR_CODE
