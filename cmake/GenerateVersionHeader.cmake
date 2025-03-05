@@ -5,7 +5,7 @@ get_filename_component(SRC_DIR ${SRC} DIRECTORY)
 if(GIT_EXECUTABLE)
 
   execute_process(
-    COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0 --match "v*"
+    COMMAND ${GIT_EXECUTABLE} describe --always --tags --abbrev=0 --match "v*"
     WORKING_DIRECTORY ${SRC_DIR}
     OUTPUT_VARIABLE GIT_RELEASE_VERSION
     RESULT_VARIABLE GIT_RELEASE_VERSION_ERROR_CODE
