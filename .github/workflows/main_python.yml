@@ -1,3 +1,4 @@
+# The Python workflow to run on merges or pushes to the main branch.
 name: Python Main
 
 on:

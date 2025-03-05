@@ -1,3 +1,4 @@
+# Workflow for releasing a Python package to PyPI based on the current repository.
 name: Release Python
 on:
   workflow_dispatch:

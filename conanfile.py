@@ -4,6 +4,7 @@ from pathlib import Path
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
+from conan.tools.scm import Git
 from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeDeps
 from conan.tools.files import copy, rmdir
 
@@ -31,6 +32,12 @@ class NovatelEdieConan(ConanFile):
     def set_version(self):
         cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
         self.version = re.search(r"novatel_edie VERSION ([\d.]+)", cmakelists_content).group(1)
+        print(f"Using version {self.version}")
+
+
+        git = Git(self, self.recipe_folder)
+        new_version = git.run("describe --tags --abbrev=0").strip().lstrip("v")
+        print(f"New version {new_version}")
 
     def config_options(self):
         if self.settings.os == "Windows":

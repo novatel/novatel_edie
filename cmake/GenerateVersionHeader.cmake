@@ -106,6 +106,7 @@ if(NOT DEFINED BUILD_TIMESTAMP)
   message(WARNING "Failed to determine BUILD_TIMESTAMP from repository tags. Using default version \"${BUILD_TIMESTAMP}\".")
 endif()
 
+message(DEBUG "Release Version \"${RELEASE_VERSION}\".")
 message(DEBUG "Version \"${VERSION}\".")
 message(DEBUG "SHA     \"${GIT_SHA}\".")
 message(DEBUG "Branch  \"${GIT_BRANCH}\".")

@@ -1,3 +1,4 @@
+# The C++ workflow to run on merges or pushes to most branches.
 name: C++ Basic
 
 on:

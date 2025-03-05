@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.15)
 include(cmake/ThirdParty.cmake)
-project(novatel_edie VERSION 3.3.7 LANGUAGES CXX)
+
+set(VERSION_M 1)
+set(VERSION_MI 3)
+set(VERSION_P 7)
+
+project(novatel_edie VERSION 1.0.0 LANGUAGES CXX)
+
+
+message(${CMAKE_PROJECT_VERSION})
+set(RELEASE_VERSION ${CMAKE_PROJECT_VERSION})
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
@@ -40,6 +49,7 @@ execute_process(COMMAND ${CMAKE_COMMAND}
     -D DST=${CMAKE_CURRENT_SOURCE_DIR}/include/novatel_edie/version.h
     -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
     -D GIT_BRANCH=${GIT_BRANCH}
+    -D RELEASE_VERSION=${RELEASE_VERSION}
     -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
 
 # Build EDIE components

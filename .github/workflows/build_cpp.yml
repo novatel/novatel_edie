@@ -1,3 +1,4 @@
+# A reusable workflow for building and testing the C++ library.
 name: C++ Build
 
 on:

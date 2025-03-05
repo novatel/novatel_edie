@@ -1,6 +1,7 @@
 #include <string>
 
-#define RELEASE_VERSION "3.3.7"
+#define VERBOSE_VERSION "@VERBOSE_VERSION@"
+#define RELEASE_VERSION "@RELEASE_VERSION@"
 #define GIT_SHA "@GIT_SHA@"
 #define GIT_BRANCH "@GIT_BRANCH@"
 #define GIT_IS_DIRTY @GIT_IS_DIRTY@
@@ -33,7 +34,7 @@ constexpr const char* get_build_timestamp()
 
 constexpr const char* caPrettyPrint = []
 {
-   return GIT_IS_DIRTY 
+   return GIT_IS_DIRTY
       ? "Version: " RELEASE_VERSION "-Dirty\nBranch: " GIT_BRANCH "\nSHA: " GIT_SHA
       : "Version: " RELEASE_VERSION "\nBranch: " GIT_BRANCH "\nSHA: " GIT_SHA;
 }();
