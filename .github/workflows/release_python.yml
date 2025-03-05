@@ -26,7 +26,7 @@ jobs:
         run: |
           curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" \
-          | jq -r '.artifacts[] | select(.name | endswith("-wheels") and .workflow_run.id == '${{ github.run_id }}') | .name' \
+          | jq -r '.artifacts[] | select(.name | endswith("-wheels") and .workflow_run.id == (${{ github.run_id }} | tonumber)) | .name' \
           | sort > artifacts.txt
           cat artifacts.txt
           
