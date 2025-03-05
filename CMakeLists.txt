@@ -54,7 +54,7 @@ execute_process(
     RESULT_VARIABLE REFS_CODE
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-message(STATUS "refs\n${REFS}")
+message(STATUS "Refs\n${REFS}")
 
 execute_process(
     COMMAND ${GIT_EXECUTABLE} fetch --depth=1000
