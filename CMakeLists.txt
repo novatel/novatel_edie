@@ -17,7 +17,7 @@ execute_process(
     RESULT_VARIABLE TAGS_SUCCESS
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-message(STATUS ${TAGS})
+message(STATUS "All tags ${TAGS}")
 
 execute_process(COMMAND ${CMAKE_COMMAND}
     -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
