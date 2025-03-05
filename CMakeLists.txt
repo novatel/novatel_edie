@@ -57,7 +57,7 @@ execute_process(
 message(STATUS "Refs\n${REFS}")
 
 execute_process(
-    COMMAND ${GIT_EXECUTABLE} pull
+    COMMAND ${GIT_EXECUTABLE} fetch --unshallow
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     OUTPUT_VARIABLE FETCH
     RESULT_VARIABLE FETCHS
