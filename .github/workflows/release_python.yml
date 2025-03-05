@@ -44,9 +44,7 @@ jobs:
             unzip -q "$artifact_dir/${artifact_name}.zip" -d "$artifact_dir"
             rm "$artifact_dir/${artifact_name}.zip"
           done < artifacts.txt
-          ls
-          ls all_wheels
-          ls all_wheels/Linux-x86_64-wheels
+          tree
       - name: Upload to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
