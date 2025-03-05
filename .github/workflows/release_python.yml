@@ -40,7 +40,7 @@ jobs:
             | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .archive_download_url" \
             | xargs -I {} curl -sL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "./all_wheels/${artifact_name}.zip" {}
             tree
-            unzip -q "${artifact_name}.zip" -d ./all_wheels
+            unzip -q "./all_wheels/${artifact_name}.zip" -d ./all_wheels
             rm "./all_wheels/${artifact_name}.zip"
           done < artifacts.txt
           tree
