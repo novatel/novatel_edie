@@ -45,6 +45,8 @@ execute_process(
 )
 message(STATUS "release version ${GIT_RELEASE_VERSION}")
 
+
+
 execute_process(
     COMMAND ${GIT_EXECUTABLE} show-ref --tags
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -53,6 +55,15 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 message(STATUS "refs\n${REFS}")
+
+execute_process(
+    COMMAND ${GIT_EXECUTABLE} log 9f09b6a563c164e20233935837ffe6a33cabfcf6^..HEAD
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE LOGS
+    RESULT_VARIABLE LOGS_CODE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message(STATUS "Logs\n${LOGS}")
 
 
 execute_process(COMMAND ${CMAKE_COMMAND}
