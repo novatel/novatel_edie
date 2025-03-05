@@ -5,6 +5,16 @@ get_filename_component(SRC_DIR ${SRC} DIRECTORY)
 if(GIT_EXECUTABLE)
 
   execute_process(
+    COMMAND ${GIT_EXECUTABLE} fetch --unshallow
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE FETCH_ERROR_CODE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if (FETCH_ERROR_CODE)
+    message(WARNING "Commit history could not be fetched, proper release may not be identified correctly!")
+  endif()
+
+  execute_process(
     COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0 --match "v*"
     WORKING_DIRECTORY ${SRC_DIR}
     OUTPUT_VARIABLE GIT_RELEASE_VERSION
