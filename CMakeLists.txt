@@ -27,7 +27,7 @@ endif()
 
 
 # Build Project
-project(novatel_edie VERSION ${version_string} LANGUAGES CXX)
+project(novatel_edie VERSION 3.2.37 LANGUAGES CXX)
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)

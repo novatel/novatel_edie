@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-
+      - dev-riley-kinahan-github-action-improvements
 jobs:
   build-python:
     uses: ./.github/workflows/build_python.yml
@@ -55,14 +55,26 @@ jobs:
             echo "VERSION_TYPE=$VERSION_TYPE"
             echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
 
-      - name: Bump version
+      - name: Bump Python version
         id: bump
         uses: callowayproject/bump-my-version@master
         env:
           BUMPVERSION_TAG: "true"
         with:
-          args: "${{ env.VERSION_TYPE }} --commit"
+          args: "${{ env.VERSION_TYPE }}"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump C++ version
+        run: |
+          sed -i 's/project(\(.*\) VERSION [0-9]*\.[0-9]*\.[0-9]*)/project(\1 VERSION ${{ steps.bump.outputs.current-version }})/' CMakeLists.txt
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add CMakeLists.txt
+          git commit -m "Bump version: ${{ steps.bump.outputs.current-version }} → ${{ steps.bump.outputs.current-version }}"
+          git push origin main
 
       - name: Check
         if: steps.bump.outputs.bumped == 'true'
