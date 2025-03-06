@@ -62,7 +62,6 @@ jobs:
           BUMPVERSION_TAG: "true"
         with:
           args: "${{ env.VERSION_TYPE }}"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bump C++ version
         run: |
