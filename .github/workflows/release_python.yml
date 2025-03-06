@@ -25,8 +25,8 @@ jobs:
       - name: List wheel artifacts
         run: |
           curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" \
-          | jq -r '.artifacts[] | select(.name | endswith("-wheels") and .workflow_run))' \
+          "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+          | jq -r '.artifacts[] | select(.name | endswith("-wheels")) | .name' \
           | sort > artifacts.txt
           cat artifacts.txt
           
@@ -36,7 +36,7 @@ jobs:
           while read -r artifact_name; do
             echo "Downloading $artifact_name"
             curl -s -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
             | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .archive_download_url" \
             | xargs -I {} curl -sL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "./all_wheels/${artifact_name}.zip" {}
             tree
