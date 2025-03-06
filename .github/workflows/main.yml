@@ -65,7 +65,7 @@ jobs:
 
       - name: Bump C++ version
         run: |
-          sed -i -r 's/project\s*\(\s*novatel_edie\s+VERSION\s+[0-9]+\.[0-9]+\.[0-9].*\)/project(novatel_edie VERSION ${{steps.bump.outputs.current-version}} LANGUAGES CXX)/' CMakeLists.txt
+          sed -i -r '-r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ steps.bump.outputs.current-version }}\)/'' CMakeLists.txt
 
       - name: Reset credentials
         run: |
