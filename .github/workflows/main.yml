@@ -7,14 +7,14 @@ on:
       - main
       - dev-riley-kinahan-github-action-improvements
 jobs:
-  build-python:
-    uses: ./.github/workflows/build_python.yml
-  build-cpp:
-    uses: ./.github/workflows/build_cpp.yml
+  # build-python:
+  #   uses: ./.github/workflows/build_python.yml
+  # build-cpp:
+  #   uses: ./.github/workflows/build_cpp.yml
 
   increment-version:
     runs-on: ubuntu-latest
-    needs: [build-python, build-cpp]
+    # needs: [build-python, build-cpp]
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4

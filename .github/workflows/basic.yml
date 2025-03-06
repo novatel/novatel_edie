@@ -5,6 +5,7 @@ on:
   push:
     branches-ignore:
       - main
+      - dev-riley-kinahan-github-action-improvements
     paths-ignore:
       - '**.md'
       - '.gitignore'
