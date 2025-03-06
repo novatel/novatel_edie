@@ -113,7 +113,7 @@ if(NOT DEFINED GIT_BRANCH)
 endif()
 
 if(NOT DEFINED GIT_IS_DIRTY)
-  set(GIT_IS_DIRTY FALSE)
+  set(GIT_IS_DIRTY "false")
   message(WARNING "Failed to determine GIT_IS_DIRTY from repository tags. Using default version \"${GIT_IS_DIRTY}\".")
 endif()
 
