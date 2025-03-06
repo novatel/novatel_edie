@@ -67,6 +67,10 @@ jobs:
         run: |
           sed -i 's/project\s*\(\s*novatel_edie\s+VERSION\s+\d+\.\d+\.\d+\s+LANGUAGES\s+CXX\s*\)/project(novatel_edie VERSION ${{steps.bump.outputs.current-version}} LANGUAGES CXX)/' CMakeLists.txt
 
+      - name: Reset credentials
+        run: |
+          git remote set-url origin https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+    
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
 
