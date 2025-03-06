@@ -2,9 +2,7 @@
 name: Release Python
 on:
   workflow_dispatch:
-  push:
-     branches:
-      - publish-test
+
 jobs:
   build:
     uses: ./.github/workflows/build_python.yml
