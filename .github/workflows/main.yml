@@ -66,15 +66,10 @@ jobs:
 
       - name: Bump C++ version
         run: |
-          sed -i 's/project(\(.*\) VERSION [0-9]*\.[0-9]*\.[0-9]*)/project(\1 VERSION ${{ steps.bump.outputs.current-version }})/' CMakeLists.txt
+          sed -i 's/project\s*\(\s*novatel_edie\s+VERSION\s+\d+\.\d+\.\d+\s+LANGUAGES\s+CXX\s*\)/project(novatel_edie VERSION ${{steps.bump.outputs.current-version}} LANGUAGES CXX)/' CMakeLists.txt
 
       - name: Commit changes
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add CMakeLists.txt
-          git commit -m "Bump version: ${{ steps.bump.outputs.current-version }} → ${{ steps.bump.outputs.current-version }}"
-          git push origin main
+        uses: stefanzweifel/git-auto-commit-action@v5
 
       - name: Check
         if: steps.bump.outputs.bumped == 'true'
