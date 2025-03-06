@@ -2,10 +2,7 @@
 cmake_minimum_required(VERSION 3.15)
 include(cmake/ThirdParty.cmake)
 
-# Determine version from version control
-
-
-
+# Determine package version from version control
 find_package(Git REQUIRED)
 if(NOT DEFINED GIT_BRANCH)
     set(GIT_BRANCH "main")

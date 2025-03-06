@@ -14,7 +14,7 @@ jobs:
         platform:
           - [Linux, ubuntu-latest, x86_64]
           # - [Linux, ubuntu-latest, i686]
-          # - [Windows, windows-latest, AMD64]
+          - [Windows, windows-latest, AMD64]
           # - [Windows, windows-latest, x86]
           # - [Windows, windows-latest, ARM64]
           # - [MacOS, macos-latest, x86_64]
@@ -47,12 +47,6 @@ jobs:
           CIBW_ARCHS: ${{ matrix.platform[2] }}
           CIBW_BUILD: cp39* cp312*
           CIBW_SKIP: "*-musllinux*"
-
-      # - name: Create files
-      #   run: |
-      #     mkdir wheelhouse
-      #     touch wheelhouse/file1-${{ matrix.platform[0] }}-${{ matrix.platform[2] }}.txt
-      #     touch wheelhouse/file2-${{ matrix.platform[0] }}-${{ matrix.platform[2] }}.txt
 
       - name: Inspect
         run: ls wheelhouse/
