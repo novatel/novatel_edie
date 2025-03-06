@@ -65,7 +65,7 @@ jobs:
 
       - name: Bump C++ version
         run: |
-          sed -i -r '-r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ steps.bump.outputs.current-version }}\)/'' CMakeLists.txt
+          sed -i -r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ steps.bump.outputs.current-version }}\)/' CMakeLists.txt
 
       - name: Reset credentials
         run: |
