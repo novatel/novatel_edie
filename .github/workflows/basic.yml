@@ -5,6 +5,7 @@ on:
   push:
     branches-ignore:
       - main
+      - dev-riley-kinahan-test-workflows
     paths-ignore:
       - '**.md'
       - '.gitignore'
