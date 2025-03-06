@@ -1,5 +1,5 @@
 # Global source for C++ project version - format must be maintained to avoid breaking regex
-set(RELEASE_VERSION 3.2.40)
+set(RELEASE_VERSION 3.2.42)
 
 # Setup CMake and conan config
 cmake_minimum_required(VERSION 3.15)
