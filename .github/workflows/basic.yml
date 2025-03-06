@@ -1,0 +1,16 @@
+# The basic workflow to run on most branches
+name: Basic
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'resources/**'
+jobs:
+  build-python:
+    uses: ./.github/workflows/build_python.yml
+  build-cpp:
+    uses: ./.github/workflows/build_cpp.yml
