@@ -2,7 +2,13 @@ get_filename_component(SRC_DIR ${SRC} DIRECTORY)
 
 # Generate a git-describe version string from Git repository tags
 
+find_package(Git)
+
 if(GIT_EXECUTABLE)
+
+  if(NOT DEFINED GIT_BRANCH)
+    set(GIT_BRANCH "main")
+  endif()
 
   execute_process(
     COMMAND ${GIT_EXECUTABLE} fetch --unshallow
@@ -13,14 +19,6 @@ if(GIT_EXECUTABLE)
   if (FETCH_ERROR_CODE)
     message(WARNING "Commit history could not be fetched, proper release may not be identified correctly!")
   endif()
-
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} describe --tags --abbrev=0 --match "v*"
-    WORKING_DIRECTORY ${SRC_DIR}
-    OUTPUT_VARIABLE GIT_RELEASE_VERSION
-    RESULT_VARIABLE GIT_RELEASE_VERSION_ERROR_CODE
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
 
   execute_process(
     COMMAND ${GIT_EXECUTABLE} describe --always --tags --dirty --match "v*"
@@ -72,10 +70,6 @@ if(GIT_EXECUTABLE)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-  if(NOT GIT_RELEASE_VERSION_ERROR_CODE)
-    string(SUBSTRING ${GIT_RELEASE_VERSION} 1 -1 RELEASE_VERSION)
-  endif()
-
   if(NOT GIT_DESCRIBE_ERROR_CODE)
       string(SUBSTRING ${GIT_DESCRIBE_VERSION} 1 -1 VERBOSE_VERSION)
   endif()
@@ -103,14 +97,9 @@ endif()
 # Final fallback: Just use a bogus version string that is semantically older
 # than anything else and spit out a warning to the developer.
 
-if(NOT DEFINED RELEASE_VERSION)
-  set(RELEASE_VERSION 0.0.0)
-  message(WARNING "Failed to determine VERSION from repository tags. Using default version \"${RELEASE_VERSION}\".")
-endif()
-
 if(NOT DEFINED VERBOSE_VERSION)
-  set(VERBOSE_VERSION 0.0.0-unknown)
-  message(WARNING "Failed to determine VERSION from repository tags. Using default version \"${VERBOSE_VERSION}\".")
+  set(VERBOSE_VERSION RELEASE_VERSION)
+  message(WARNING "Failed to determine VERSION from repository tags. Using default version \"${RELEASE_VERSION}\".")
 endif()
 
 if(NOT DEFINED GIT_SHA)
@@ -134,13 +123,10 @@ if(NOT DEFINED BUILD_TIMESTAMP)
 endif()
 
 message(DEBUG "Release Version \"${RELEASE_VERSION}\".")
-message(DEBUG "Version \"${VERSION}\".")
+message(DEBUG "Verbose Version \"${VERBOSE_VERSION}\".")
 message(DEBUG "SHA     \"${GIT_SHA}\".")
 message(DEBUG "Branch  \"${GIT_BRANCH}\".")
 message(DEBUG "Status  \"${GIT_IS_DIRTY}\".")
 message(DEBUG "Time    \"${BUILD_TIMESTAMP}\".")
 
 configure_file(${SRC} ${DST} @ONLY)
-
-# Return release version to calling process
-execute_process(COMMAND ${CMAKE_COMMAND} -E echo ${RELEASE_VERSION})
