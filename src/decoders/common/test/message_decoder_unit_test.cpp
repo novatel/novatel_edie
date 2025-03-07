@@ -178,7 +178,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
     void TearDown() override
     {
-        Logger::Shutdown();
+        GetLoggerManager()->Shutdown();
         MsgDefFields.clear();
     }
 

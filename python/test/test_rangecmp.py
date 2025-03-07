@@ -61,19 +61,6 @@ RANGECMP4_MSG_ID = 2050
 RANGECMP5_MSG_ID = 2537
 
 # -------------------------------------------------------------------------------------------------------
-# Logging Framer Unit Tests
-# -------------------------------------------------------------------------------------------------------
-@pytest.mark.skip(reason="Logging is still under development")
-def test_logger():
-    name = "range_decompressor"
-    level = ne.LogLevel.OFF
-    logger = ne.RangeDecompressor().logger
-    logger.set_level(level)
-    assert logger.name == name
-    assert logger.level == level
-    assert ne.Logging.get(name) is not None
-
-# -------------------------------------------------------------------------------------------------------
 # Channel Tracking Status structure unit tests
 # -------------------------------------------------------------------------------------------------------
 def test_channel_tracking_status_word_1():

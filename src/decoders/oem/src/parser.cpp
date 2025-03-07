@@ -74,21 +74,6 @@ void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const std::string& sFileName_)
-{
-    clMyFramer.SetLoggerLevel(eLevel_);
-    clMyHeaderDecoder.SetLoggerLevel(eLevel_);
-    clMyMessageDecoder.SetLoggerLevel(eLevel_);
-
-    Logger::AddConsoleLogging(clMyFramer.GetLogger());
-    Logger::AddConsoleLogging(clMyHeaderDecoder.GetLogger());
-    Logger::AddConsoleLogging(clMyMessageDecoder.GetLogger());
-    Logger::AddRotatingFileLogger(clMyFramer.GetLogger(), eLevel_, sFileName_);
-    Logger::AddRotatingFileLogger(clMyHeaderDecoder.GetLogger(), eLevel_, sFileName_);
-    Logger::AddRotatingFileLogger(clMyMessageDecoder.GetLogger(), eLevel_, sFileName_);
-}
-
-// -------------------------------------------------------------------------------------------------------
 MessageDatabase::ConstPtr Parser::MessageDb() const { return std::const_pointer_cast<const MessageDatabase>(pclMyMessageDb); }
 
 // -------------------------------------------------------------------------------------------------------

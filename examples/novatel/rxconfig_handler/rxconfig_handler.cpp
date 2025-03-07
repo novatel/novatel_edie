@@ -43,11 +43,12 @@ int main(int argc, char* argv[])
 {
     // This example uses the default logger config, but you can also pass a config file to InitLogger()
     // Example config file: logger\example_logger_config.toml
-    Logger::InitLogger();
-    std::shared_ptr<spdlog::logger> pclLogger = Logger::RegisterLogger("rxconfig_converter");
+    CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
+    pclMyLoggerManager->InitLogger();
+    std::shared_ptr<spdlog::logger> pclLogger = pclMyLoggerManager->RegisterLogger("rxconfig_converter");
     pclLogger->set_level(spdlog::level::debug);
-    Logger::AddConsoleLogging(pclLogger);
-    Logger::AddRotatingFileLogger(pclLogger);
+    pclMyLoggerManager->AddConsoleLogging(pclLogger);
+    pclMyLoggerManager->AddRotatingFileLogger(pclLogger);
 
     // Get command line arguments
     pclLogger->info("Decoder library information:\n{}", caPrettyPrint);
@@ -150,6 +151,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    Logger::Shutdown();
+    pclMyLoggerManager->Shutdown();
     return 0;
 }

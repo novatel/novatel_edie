@@ -29,27 +29,21 @@
 # messages using the FileParser.
 ########################################################################
 
+import logging
 import argparse
 import atexit
 import os
 import timeit
+import pandas
 
 import novatel_edie as ne
-from novatel_edie import Logging, LogLevel
 from novatel_edie.messages import BESTPOS
-
-def _configure_logging(logger):
-    logger.set_level(LogLevel.DEBUG)
-    Logging.add_console_logging(logger)
-    Logging.add_rotating_file_logger(logger)
-
+from common import setup_example_logging
 
 def main():
-    logger = Logging().register_logger("converter")
-    _configure_logging(logger)
-    atexit.register(Logging.shutdown)
-
-    logger.info(f"Decoder library information:\n{ne.pretty_version}")
+    setup_example_logging()
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
 
     parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
     parser.add_argument("input_file", help="Input file")
@@ -64,35 +58,30 @@ def main():
         exit(0)
 
     if not os.path.exists(args.input_file):
-        logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
     file_parser = ne.FileParser(args.input_file)
     filter = ne.Filter()
     file_parser.filter = filter
-    _configure_logging(file_parser.logger)
-    _configure_logging(file_parser.filter.logger)
-    Logging.get("message_decoder").set_level(LogLevel.OFF)
 
+    # messages = 0
+    # start = timeit.default_timer()
+    # for message in file_parser:
+    #     if isinstance(message, ne.Message):
+    #         encoded_msg = message.encode(encode_format)
+    #         ascii_msg = message.to_ascii()
+    #         binary_msg = message.to_binary()
+    #         messages += 1
+    #         if isinstance(message, BESTPOS):
+    #             lat = message.latitude
+    #             lon = message.longitude
+    #     elif isinstance(message, ne.UnknownMessage):
+    #         unknown_id = message.header.message_id
+    #         payload = message.payload
+    #     elif isinstance(message, ne.UnknownBytes):
+    #         data = message.data
 
-    messages = 0
-    start = timeit.default_timer()
-    for message in file_parser:
-        if isinstance(message, ne.Message):
-            encoded_msg = message.encode(encode_format)
-            ascii_msg = message.to_ascii()
-            binary_msg = message.to_binary()
-            messages += 1
-            if isinstance(message, BESTPOS):
-                lat = message.latitude
-                lon = message.longitude
-        elif isinstance(message, ne.UnknownMessage):
-            unknown_id = message.header.message_id
-            payload = message.payload
-        elif isinstance(message, ne.UnknownBytes):
-            data = message.data
-
-    elapsed_seconds = timeit.default_timer() - start
-    logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
+    # elapsed_seconds = timeit.default_timer() - start
+    # logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
 
 
 if __name__ == "__main__":

@@ -41,19 +41,6 @@ def commander():
     return ne.Commander()
 
 # -------------------------------------------------------------------------------------------------------
-# Logger Command Encoding Unit Tests
-# -------------------------------------------------------------------------------------------------------
-@pytest.mark.skip(reason="Logging is still under development")
-def test_logger():
-    name = "novatel_commander"
-    level = ne.LogLevel.OFF
-    logger = ne.Commander().logger
-    logger.set_level(level)
-    assert logger.name == name
-    assert logger.level == level
-    assert ne.Logging.get(name) is not None
-
-# -------------------------------------------------------------------------------------------------------
 # ASCII Command Encoding Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_command_encode_ascii_configcode(commander):

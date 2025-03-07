@@ -50,7 +50,7 @@ namespace novatel::edie::oem {
 class Parser
 {
   private:
-    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_parser")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("novatel_parser")};
 
     MessageDatabase::Ptr pclMyMessageDb;
     Filter::Ptr pclMyUserFilter;
@@ -131,7 +131,7 @@ class Parser
     //! \param[in] eLevel_ The logging level to enable.
     //! \param[in] sFileName_ The logging level to enable.
     //----------------------------------------------------------------------------
-    void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log");
+    //void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log");
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.

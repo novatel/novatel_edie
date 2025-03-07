@@ -64,7 +64,6 @@ def format_frame(frame, frame_format):
 
 
 def main():
-    logger = ne.Logging.register_logger("converter")
     parser = argparse.ArgumentParser(description="Convert OEM log files using low-level components.")
     parser.add_argument("input_file", help="Input file")
     parser.add_argument(

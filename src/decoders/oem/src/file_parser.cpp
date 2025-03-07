@@ -37,7 +37,7 @@ FileParser::FileParser(const std::filesystem::path& sDbPath_) : clMyParser(Parse
 // -------------------------------------------------------------------------------------------------------
 FileParser::FileParser(const MessageDatabase::Ptr& pclMessageDb_) : clMyParser(Parser(pclMessageDb_))
 {
-    pclMyLogger = Logger::RegisterLogger("novatel_file_parser");
+    pclMyLogger = pclLoggerManager->RegisterLogger("novatel_file_parser");
     pclMyLogger->debug("FileParser initialized");
 }
 

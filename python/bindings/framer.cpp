@@ -47,7 +47,7 @@ void init_novatel_framer(nb::module_& m)
 {
     nb::class_<oem::PyFramer>(m, "Framer")
         .def(nb::init())
-        .def_prop_ro("logger", [](const oem::PyFramer& self) { return self.GetLogger(); })
+        //.def_prop_ro("logger", [](const oem::PyFramer& self) { return self.GetLogger(); })
         .def(
             "set_frame_json", [](oem::PyFramer& self, bool frame_json) { self.SetFrameJson(frame_json); }, "frame_json"_a)
         .def(

@@ -15,7 +15,7 @@ void init_novatel_range_decompressor(nb::module_& m)
     nb::class_<oem::RangeDecompressor>(m, "RangeDecompressor")
         .def("__init__", [](oem::RangeDecompressor* t) { new (t) oem::RangeDecompressor(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
         .def(nb::init<PyMessageDatabase::Ptr&>(), "message_db"_a)
-        .def_prop_ro("logger", &oem::RangeDecompressor::GetLogger)
+        //.def_prop_ro("logger", &oem::RangeDecompressor::GetLogger)
         .def("reset", &oem::RangeDecompressor::Reset)
         .def(
             "decompress",

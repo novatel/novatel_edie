@@ -43,11 +43,11 @@ int main(int argc, char* argv[])
 {
     // This example uses the default logger config, but you can also pass a config file to InitLogger()
     // Example config file: logger\example_logger_config.toml
-    Logger::InitLogger();
-    std::shared_ptr<spdlog::logger> logger = Logger::RegisterLogger("command_encoder");
+    CPPLoggerManager* pclLoggerManager = GetLoggerManager();
+    std::shared_ptr<spdlog::logger> logger = pclLoggerManager->RegisterLogger("command_encoder");
     logger->set_level(spdlog::level::debug);
-    Logger::AddConsoleLogging(logger);
-    Logger::AddRotatingFileLogger(logger);
+    pclLoggerManager->AddConsoleLogging(logger);
+    pclLoggerManager->AddRotatingFileLogger(logger);
 
     if (argc < 3)
     {

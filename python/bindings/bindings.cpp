@@ -1,4 +1,8 @@
 #include <nanobind/nanobind.h>
+#include <memory>
+
+#include "novatel_edie/common/logger.hpp"
+#include "py_logger.hpp"
 
 namespace nb = nanobind;
 
@@ -44,6 +48,6 @@ NB_MODULE(bindings, m)
     init_novatel_oem_messages(messages_mod);
     nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
     init_novatel_oem_enums(enums_mod);
-    nb::module_ interal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
-    init_decoder_tester(interal_mod);
+    nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
+    init_decoder_tester(internal_mod);
 }

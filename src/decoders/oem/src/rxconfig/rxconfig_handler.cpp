@@ -35,7 +35,7 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
       pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)),
       pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize))
 {
-    pclMyLogger = Logger::RegisterLogger("rxconfig_handler");
+    pclMyLogger = pclLoggerManager->RegisterLogger("rxconfig_handler");
 
     pclMyLogger->debug("RxConfigHandler initializing...");
 
