@@ -30,6 +30,8 @@
 #include <memory>
 
 #include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/common/framer_manager.hpp"
+#include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"
@@ -54,7 +56,6 @@ class Parser
 
     MessageDatabase::Ptr pclMyMessageDb;
     Filter::Ptr pclMyUserFilter;
-    Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;

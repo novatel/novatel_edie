@@ -63,7 +63,8 @@ enum class STATUS
     STREAM_EMPTY,           //!< The input stream is empty.
     UNSUPPORTED,            //!< An attempted operation is unsupported by this component.
     MALFORMED_INPUT,        //!< The input is recognizable, but has unexpected formatting.
-    DECOMPRESSION_FAILURE   //!< The RANGECMP log could not be decompressed.
+    DECOMPRESSION_FAILURE,  //!< The RANGECMP log could not be decompressed.
+    SYNC_BYTES_FOUND        //!< Sync bytes for the specific framer were found in the buffer.
 };
 
 inline std::string StatusToString(const STATUS eStatus_)
@@ -84,6 +85,7 @@ inline std::string StatusToString(const STATUS eStatus_)
     case STATUS::UNSUPPORTED: return "UNSUPPORTED";
     case STATUS::MALFORMED_INPUT: return "MALFORMED_INPUT";
     case STATUS::DECOMPRESSION_FAILURE: return "DECOMPRESSION_FAILURE";
+	case STATUS::SYNC_BYTES_FOUND: return "SYNC_BYTES_FOUND";
     default: return "UNKNOWN";
     }
 }
@@ -255,8 +257,14 @@ struct EnumDefinition;
 //! \brief Base class for all metadata. Contains data about the data such as header format,
 //! GPS week and milliseconds, and message ID.
 //============================================================================
-struct MetaDataBase
+class MetaDataBase
 {
+  private:
+    static constexpr uint32_t uiMessageNameMax = 40;
+
+  public:
+    MetaDataBase() = default;
+    virtual ~MetaDataBase() = 0;
     bool bResponse{false};
     HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
     uint16_t usWeek{0};
@@ -266,8 +274,18 @@ struct MetaDataBase
     uint32_t uiHeaderLength{0};
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
-    std::string messageName;
+    char acMessageName[uiMessageNameMax + 1]{};
+
+    [[nodiscard]] std::string MessageName() const { return {acMessageName}; }
+
+    void MessageName(std::string_view strMessageName_)
+    {
+        memcpy(acMessageName, strMessageName_.data(), strMessageName_.length());
+        acMessageName[strMessageName_.length()] = '\0';
+    }
 };
+
+inline MetaDataBase::~MetaDataBase() = default;
 
 } // namespace novatel::edie
 

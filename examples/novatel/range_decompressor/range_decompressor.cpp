@@ -38,6 +38,8 @@
 #include <novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp>
 #include <novatel_edie/version.h>
 
+#include "novatel_edie/common/framer_manager.hpp"
+
 namespace fs = std::filesystem;
 
 using namespace novatel::edie;
@@ -96,13 +98,18 @@ int main(int argc, char* argv[])
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(pathJsonDb.string());
     pclLogger->info("DONE ({}ms)", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
+    // get reference to static singleton instance of FramerManager
+    novatel::edie::FramerManager& clFramerManager = FramerManager::GetInstance();
+    clFramerManager.SetReportUnknownBytes(true);
+
+
     Framer clFramer;
     HeaderDecoder clHeaderDecoder(clJsonDb);
     MessageDecoder clMessageDecoder(clJsonDb);
     RangeDecompressor clRangeDecompressor(clJsonDb);
     Encoder clEncoder(clJsonDb);
 
-    clFramer.SetLoggerLevel(spdlog::level::debug);
+    clFramerManager.SetLoggerLevel(spdlog::level::debug);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
     clMessageDecoder.SetLoggerLevel(spdlog::level::debug);
     clEncoder.SetLoggerLevel(spdlog::level::debug);
@@ -115,7 +122,7 @@ int main(int argc, char* argv[])
 
     clFramer.SetFrameJson(false);
     clFramer.SetPayloadOnly(false);
-    clFramer.SetReportUnknownBytes(true);
+    clFramerManager.SetReportUnknownBytes(true);
 
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 
@@ -136,12 +143,14 @@ int main(int argc, char* argv[])
 
     auto start = std::chrono::system_clock::now();
     uint32_t uiCompletedMessages = 0;
+    auto eActiveFramerId = clFramerManager.idMap["UKNOWN"];
+
     while (true)
     {
         unsigned char* pucReadBuffer = acFrameBuffer;
 
         // Get frame, null-terminate.
-        eStatus = clFramer.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData);
+        eStatus = clFramerManager.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, eActiveFramerId);
         if (eStatus == STATUS::SUCCESS)
         {
             // Decode the header. Get metadata here and populate the Intermediate header.

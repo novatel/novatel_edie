@@ -39,6 +39,8 @@
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
 #include <novatel_edie/version.h>
 
+#include "novatel_edie/common/framer_manager.hpp"
+
 namespace fs = std::filesystem;
 
 using namespace novatel::edie;
@@ -96,15 +98,20 @@ int main(int argc, char* argv[])
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     // Set up the EDIE components
-    Framer clFramer;
-    clFramer.SetLoggerLevel(spdlog::level::debug);
-    Logger::AddConsoleLogging(clFramer.GetLogger());
-    Logger::AddRotatingFileLogger(clFramer.GetLogger());
-    clFramer.SetReportUnknownBytes(true);
-    clFramer.SetPayloadOnly(false);
-    clFramer.SetFrameJson(false);
+    // get reference to static singleton instance of FramerManager
+    novatel::edie::FramerManager& clFramerManager = FramerManager::GetInstance();
+    clFramerManager.SetReportUnknownBytes(true);
+    clFramerManager.SetLoggerLevel(spdlog::level::debug);
 
-    HeaderDecoder clHeaderDecoder(clJsonDb);
+    // Assert the only framer to be used in this example
+    clFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
+
+    Logger::AddConsoleLogging(clFramerManager.GetFramerInstance("NOVATEL")->GetLogger());
+    Logger::AddRotatingFileLogger(clFramerManager.GetFramerInstance("NOVATEL")->GetLogger());
+    clFramerManager.GetFramerInstance("NOVATEL")->SetPayloadOnly(false);
+    clFramerManager.GetFramerInstance("NOVATEL")->SetFrameJson(false);
+
+    HeaderDecoder clHeaderDecoder(&clJsonDb);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clHeaderDecoder.GetLogger());
     Logger::AddRotatingFileLogger(clHeaderDecoder.GetLogger());
@@ -126,9 +133,9 @@ int main(int argc, char* argv[])
 
     // Set up buffers
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
-    unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
-    unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
+    std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> acFrameBuffer;
+    std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> acEncodeBuffer;
+    unsigned char* pucEncodedMessageBuffer = acEncodeBuffer.data();
 
     // Initialize structures and error codes
     auto eFramerStatus = STATUS::UNKNOWN;
@@ -138,7 +145,6 @@ int main(int argc, char* argv[])
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
 
-    MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
     // Setup file streams
@@ -148,20 +154,24 @@ int main(int argc, char* argv[])
 
     tStart = std::chrono::high_resolution_clock::now();
 
+    auto eActiveFramerId = clFramerManager.idMap["UKNOWN"];
+
     while (!ifs.eof())
     {
         ifs.read(cData.data(), cData.size());
-        clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount());
+        clFramerManager.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
-            unsigned char* pucFrameBuffer = acFrameBuffer;
-            eFramerStatus = clFramer.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaData);
+            unsigned char* pucFrameBuffer = acFrameBuffer.data();
+            eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), eActiveFramerId);
 
             if (eFramerStatus == STATUS::SUCCESS)
             {
+                // OEM logs are the only ones allowed in this example
+                auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*(clFramerManager.framerRegistry.front().metadata));
                 if (stMetaData.bResponse)
                 {
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
@@ -200,27 +210,34 @@ int main(int argc, char* argv[])
                             unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                             pclLogger->warn("Encoder returned with status code {}", eEncoderStatus);
                         }
+                        eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
                     }
                     else
                     {
                         unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
+                        eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
                         pclLogger->warn("MessageDecoder returned with status code {}", eDecoderStatus);
                     }
                 }
                 else
                 {
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                    eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
                     pclLogger->warn("HeaderDecoder returned with status code {}", eDecoderStatus);
                 }
             }
-            else if (eFramerStatus == STATUS::UNKNOWN) { unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength); }
-            else if (eFramerStatus != STATUS::BUFFER_EMPTY) { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
+            else if (eFramerStatus == STATUS::UNKNOWN)
+            {
+                unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), clFramerManager.framerRegistry.front().metadata->uiLength);
+                eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
+            }
+            else { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
         }
     }
 
     // Clean up
-    uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
-    unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
+    uint32_t uiBytes = clFramerManager.Flush(acFrameBuffer.data(), sizeof(acFrameBuffer));
+    unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer.data()), uiBytes);
     Logger::Shutdown();
     return 0;
 }
