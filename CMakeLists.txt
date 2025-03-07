@@ -31,16 +31,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
 # Look for shared libs in the same directory as the executable when running tests
 set(CMAKE_BUILD_RPATH "\$ORIGIN")
 
-find_package(Git REQUIRED)
-if(NOT DEFINED GIT_BRANCH)
-    set(GIT_BRANCH "main")
-endif()
+# Create src/version.h based on CMake project and git versions
 execute_process(COMMAND ${CMAKE_COMMAND}
     -D SRC=${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
     -D DST=${CMAKE_CURRENT_SOURCE_DIR}/include/novatel_edie/version.h
-    -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
-    -D GIT_BRANCH=${GIT_BRANCH}
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake)
+    -D PROJECT_VERSION=${PROJECT_VERSION}
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
+)
 
 # Build EDIE components
 add_subdirectory(src/common)
