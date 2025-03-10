@@ -973,7 +973,7 @@ class DecodeEncodeTest : public ::testing::Test
         eStatus = pclMyMessageDecoder->Decode(pucTempPtr, stMessage, stMetaData_);
         if (STATUS::SUCCESS != eStatus) { return MESSAGE_DECODER_ERROR; }
 
-        eStatus = pclMyEncoder->Encode(&pucEncodeBuffer_, uiEncodeBufferSize_, stHeader, stMessage, stMessageData_, stMetaData_, eFormat_);
+        eStatus = pclMyEncoder->Encode(&pucEncodeBuffer_, uiEncodeBufferSize_, stHeader, stMessage, stMessageData_, stMetaData_.eFormat, eFormat_);
         if (STATUS::SUCCESS != eStatus) { return ENCODER_ERROR; }
 
         return SUCCESS;
@@ -1844,9 +1844,9 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodeBuffer = acEncodeBuffer;
 
-    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, stMetaData, ENCODE_FORMAT::UNSPECIFIED));
-    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData, stMetaData, ENCODE_FORMAT::UNSPECIFIED));
-    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, stMessageData, stMetaData, ENCODE_FORMAT::UNSPECIFIED));
+    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
+    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
+    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
 }
 
 // -------------------------------------------------------------------------------------------------------

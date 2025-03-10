@@ -2,6 +2,7 @@
 
 #include "bindings_core.hpp"
 #include "novatel_edie/decoders/oem/filter.hpp"
+#include "py_message_data.hpp"
 
 namespace nb = nanobind;
 
@@ -22,8 +23,26 @@ struct PyGpsTime
 //! \class PyField
 //! \brief A python representation for a log header.
 //============================================================================
+struct PyMessageTypeField
+{
+    uint8_t value;
+    bool IsResponse() { return (value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0; }
+    MESSAGE_FORMAT GetFormat() { return static_cast<MESSAGE_FORMAT>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MSGFORMAT)) >> 5); }
+    MEASUREMENT_SOURCE GetMeasurementSource() { return static_cast<MEASUREMENT_SOURCE>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MEASSRC))); }
+};
+
 struct PyHeader : public IntermediateHeader
 {
+    HEADER_FORMAT format;
+    PyMessageTypeField message_type;
+    uint32_t raw_length;
+    
+    PyMessageTypeField GetPyMessageType()
+    { 
+        message_type.value = ucMessageType;
+        return message_type;
+    }
+
     nb::dict to_dict() const;
 };
 
@@ -52,7 +71,7 @@ struct PyField
 
     std::vector<FieldContainer> fields;
 
-  private:
+  protected:
     mutable nb::dict cached_values_;
     mutable nb::dict cached_fields_;
 
@@ -77,18 +96,33 @@ struct PyMessage : public PyField
 };
 
 //============================================================================
-//! \class UnknownMessage
+//! \class PyIncompleteMessage
 //! \brief A python representation for an unknown log message.
 //!
 //! Contains the raw bytes of the message.
 //============================================================================
-struct UnknownMessage : public PyMessage
+struct PyIncompleteMessage : public PyMessage
 {
     nb::bytes bytes;
-    explicit UnknownMessage(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
-        : PyMessage("UNKNOWN", false, std::move(fields_), std::move(parent_db_), std::move(header_)), bytes(std::move(bytes_))
+    explicit PyIncompleteMessage(PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
+        : PyMessage("UNKNOWN", false, std::vector<FieldContainer>(), std::move(parent_db_), std::move(header_)), bytes(std::move(bytes_))
     {
     }
 };
+
+struct PyCompleteMessage : public PyMessage
+{
+    using PyMessage::PyMessage;
+
+    PyMessageData to_ascii();
+    PyMessageData to_binary();
+    PyMessageData to_flattended_binary();
+    PyMessageData to_json();
+};
+
+nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database);
+
+nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata,
+                                   PyMessageDatabase::ConstPtr database);
 
 } // namespace novatel::edie::oem

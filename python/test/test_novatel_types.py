@@ -30,7 +30,7 @@
 
 import novatel_edie as ne
 import pytest
-from novatel_edie import STATUS, FIELD_TYPE, DATA_TYPE
+from novatel_edie import STATUS, FIELD_TYPE, DATA_TYPE, DecoderTester
 from pytest import approx
 
 # -------------------------------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ ULLONG_MAX = 18446744073709551615
 
 class Helper:
     def __init__(self, db):
-        self.message_decoder = ne.MessageDecoder(db)
+        self.decoder = ne.DecoderTester(db)
         self.encoder = ne.Encoder(db)
         self.msg_def_fields = []
 
@@ -66,11 +66,11 @@ class Helper:
         self.msg_def_fields.append(enum_field)
 
     def test_decode_ascii(self, msg_def_fields, data):
-        return self.message_decoder._decode_ascii(msg_def_fields, data)
+        return self.decoder.decode_ascii(msg_def_fields, data)
 
     def test_decode_binary(self, msg_def_fields, data):
         fields_size = sum(field.data_type.length for field in msg_def_fields)
-        return self.message_decoder._decode_binary(msg_def_fields, data, fields_size)
+        return self.decoder.decode_binary(msg_def_fields, data, fields_size)
 
 
 @pytest.fixture(scope="function")
@@ -81,16 +81,6 @@ def helper(min_json_db):
 def test_get_default_database():
     db = ne.get_default_database()
     assert isinstance(db, ne.MessageDatabase)
-
-
-def test_logger():
-    name = "message_decoder"
-    level = ne.LogLevel.OFF
-    logger = ne.MessageDecoder().logger
-    logger.set_level(level)
-    assert logger.name == name
-    assert logger.level == level
-    assert ne.Logging.get(name) is not None
 
 
 def test_ascii_char_byte_valid(helper):

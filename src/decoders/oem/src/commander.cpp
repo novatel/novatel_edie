@@ -133,7 +133,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     stIntermediateHeader.uiMessageDefinitionCrc = stMetaData.uiMessageCrc;
 
     eStatus = clMyEncoder.Encode(reinterpret_cast<unsigned char**>(&pcEncodeBuffer_), uiEncodeBufferSize_, stIntermediateHeader,
-                                 stIntermediateMessage, stMessageData, stMetaData, eEncodeFormat_);
+                                 stIntermediateMessage, stMessageData, stMetaData.eFormat, eEncodeFormat_);
 
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
@@ -187,7 +187,7 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
     stIntermediateHeader.uiMessageDefinitionCrc = stMetaData.uiMessageCrc;
 
     const STATUS eEncoderStatus = clEncoder_.Encode(reinterpret_cast<unsigned char**>(&pcEncodeBuffer_), uiEncodeBufferSize_, stIntermediateHeader,
-                                                    stIntermediateMessage, stMessageData, stMetaData, eEncodeFormat_);
+                                                    stIntermediateMessage, stMessageData, stMetaData.eFormat, eEncodeFormat_);
 
     if (eEncoderStatus != STATUS::SUCCESS) { return eEncoderStatus; }
 

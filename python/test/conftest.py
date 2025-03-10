@@ -4,7 +4,6 @@ from pathlib import Path
 import novatel_edie as ne
 import pytest
 
-
 @pytest.fixture(scope="session", autouse=True)
 def change_test_dir(tmpdir_factory):
     """
@@ -70,4 +69,4 @@ def min_json_db():
       "messages": []
     }
     """
-    return ne.parse_json_db(json)
+    return ne.MessageDatabase.from_string(json)

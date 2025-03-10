@@ -48,6 +48,9 @@ void FileParser::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
     else { pclMyLogger->debug("JSON DB is a NULL pointer."); }
 }
 
+// ---------------------------------------------------------------------------
+MessageDatabase::ConstPtr FileParser::MessageDb() const { return this->clMyParser.MessageDb(); }
+
 // -------------------------------------------------------------------------------------------------------
 bool FileParser::SetStream(std::shared_ptr<std::istream> pclInputStream_)
 {
@@ -67,20 +70,37 @@ bool FileParser::ReadStream()
 }
 
 // -------------------------------------------------------------------------------------------------------
+
+template <typename ParserFunc, typename... Args> [[nodiscard]] STATUS FileParser::HandleRead(ParserFunc parserFunc_, Args&&... args_)
+{
+
+    while (true)
+    {
+        const STATUS eStatus = parserFunc_(std::forward<Args>(args_)...);
+        switch (eStatus)
+        {
+        case STATUS::SUCCESS: return STATUS::SUCCESS;
+        case STATUS::UNKNOWN: return STATUS::UNKNOWN;
+        case STATUS::NO_DEFINITION: return STATUS::NO_DEFINITION;
+        case STATUS::BUFFER_EMPTY: {
+            if (ReadStream()) { continue; }
+            return parserFunc_(std::forward<Args>(args_)..., true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
+        }
+        default: pclMyLogger->info("Encountered an error: {}\n", eStatus); return eStatus;
+        }
+    }
+}
+
+[[nodiscard]] STATUS FileParser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& header_,
+                                                  std::vector<FieldContainer>& stMessage_, MetaDataStruct& stMetaData_)
+{
+    return HandleRead([this](auto&&... params) { return clMyParser.ReadIntermediate(std::forward<decltype(params)>(params)...); }, stMessageData_,
+                      header_, stMessage_, stMetaData_);
+}
+
 [[nodiscard]] STATUS FileParser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_)
 {
-    const STATUS eStatus = clMyParser.Read(stMessageData_, stMetaData_);
-
-    switch (eStatus)
-    {
-    case STATUS::SUCCESS: return STATUS::SUCCESS;
-    case STATUS::UNKNOWN: return STATUS::UNKNOWN;
-    case STATUS::BUFFER_EMPTY: {
-        if (ReadStream()) { return STATUS::BUFFER_EMPTY; }
-        return clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
-    }
-    default: pclMyLogger->info("Encountered an error: {}\n", eStatus); return eStatus;
-    }
+    return HandleRead([this](auto&&... params) { return clMyParser.Read(std::forward<decltype(params)>(params)...); }, stMessageData_, stMetaData_);
 }
 
 // -------------------------------------------------------------------------------------------------------

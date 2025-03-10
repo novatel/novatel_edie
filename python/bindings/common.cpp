@@ -20,8 +20,8 @@ const char* DecoderException::what() const noexcept { return msg.c_str(); }
 void init_common_common(nb::module_& m)
 {
     nb::exception<DecoderException>(m, "DecoderException");
-
-    nb::enum_<STATUS>(m, "STATUS")
+    
+    nb::enum_<STATUS>(m, "STATUS", nb::is_arithmetic())
         .value("SUCCESS", STATUS::SUCCESS, "Successfully found a frame in the framer buffer.")
         .value("FAILURE", STATUS::FAILURE, "An unexpected failure occurred.")
         .value("UNKNOWN", STATUS::UNKNOWN, "Could not identify bytes as a protocol.")
@@ -46,7 +46,7 @@ void init_common_common(nb::module_& m)
             "message"_a = "")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<ENCODE_FORMAT>(m, "ENCODE_FORMAT")
+    nb::enum_<ENCODE_FORMAT>(m, "ENCODE_FORMAT", nb::is_arithmetic())
         .value("FLATTENED_BINARY", ENCODE_FORMAT::FLATTENED_BINARY,
                "NovAtel EDIE \"Flattened\" binary format.  All strings/arrays are padded to maximum length to allow programmatic access.")
         .value("ASCII", ENCODE_FORMAT::ASCII,
@@ -60,7 +60,7 @@ void init_common_common(nb::module_& m)
 
     m.def("string_to_encode_format", &StringToEncodeFormat, "str"_a);
 
-    nb::enum_<TIME_STATUS>(m, "TIME_STATUS")
+    nb::enum_<TIME_STATUS>(m, "TIME_STATUS", nb::is_arithmetic())
         .value("UNKNOWN", TIME_STATUS::UNKNOWN, "Time validity is unknown.")
         .value("APPROXIMATE", TIME_STATUS::APPROXIMATE, "Time is set approximately.")
         .value("COARSEADJUSTING", TIME_STATUS::COARSEADJUSTING, "Time is approaching coarse precision.")
@@ -76,27 +76,27 @@ void init_common_common(nb::module_& m)
         .value("EXACT", TIME_STATUS::EXACT, "Time is exact.")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<MESSAGE_FORMAT>(m, "MESSAGE_FORMAT")
+    nb::enum_<MESSAGE_FORMAT>(m, "MESSAGE_FORMAT", nb::is_arithmetic())
         .value("BINARY", MESSAGE_FORMAT::BINARY)
         .value("ASCII", MESSAGE_FORMAT::ASCII)
         .value("ABBREV", MESSAGE_FORMAT::ABBREV)
         .value("RSRVD", MESSAGE_FORMAT::RSRVD)
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<MESSAGE_TYPE_MASK>(m, "MESSAGE_TYPE_MASK")
+    nb::enum_<MESSAGE_TYPE_MASK>(m, "MESSAGE_TYPE_MASK", nb::is_arithmetic())
         .value("MEASSRC", MESSAGE_TYPE_MASK::MEASSRC)
         .value("MSGFORMAT", MESSAGE_TYPE_MASK::MSGFORMAT)
         .value("RESPONSE", MESSAGE_TYPE_MASK::RESPONSE)
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<MESSAGE_ID_MASK>(m, "MESSAGE_ID_MASK")
+    nb::enum_<MESSAGE_ID_MASK>(m, "MESSAGE_ID_MASK", nb::is_arithmetic())
         .value("LOGID", MESSAGE_ID_MASK::LOGID)
         .value("MEASSRC", MESSAGE_ID_MASK::MEASSRC)
         .value("MSGFORMAT", MESSAGE_ID_MASK::MSGFORMAT)
         .value("RESPONSE", MESSAGE_ID_MASK::RESPONSE)
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<MEASUREMENT_SOURCE>(m, "MEASUREMENT_SOURCE")
+    nb::enum_<MEASUREMENT_SOURCE>(m, "MEASUREMENT_SOURCE", nb::is_arithmetic())
         .value("PRIMARY", MEASUREMENT_SOURCE::PRIMARY)
         .value("SECONDARY", MEASUREMENT_SOURCE::SECONDARY)
         .value("MAX", MEASUREMENT_SOURCE::MAX)

@@ -55,7 +55,7 @@ void RangeDecompressor::LoadJsonDb(MessageDatabase::Ptr pclJsonDb_)
     pclMyMsgDB = pclJsonDb_;
     clMyHeaderDecoder.LoadJsonDb(pclJsonDb_);
     clMyMessageDecoder.LoadJsonDb(pclJsonDb_);
-    clMyEncoder.LoadJsonDb(pclJsonDb_);
+    clMyEncoder.LoadSharedJsonDb(pclJsonDb_);
 }
 
 //------------------------------------------------------------------------------
@@ -745,7 +745,8 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
         eStatus = clMyMessageDecoder.Decode(pucTempMessagePointer, stMessage, stMetaData_);
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
-        eStatus = clMyEncoder.Encode(&pucBuffer_, uiBufferSize_, stHeader, stMessage, stMessageData, stMetaData_, ENCODE_FORMAT::FLATTENED_BINARY);
+        eStatus =
+            clMyEncoder.Encode(&pucBuffer_, uiBufferSize_, stHeader, stMessage, stMessageData, stMetaData_.eFormat, ENCODE_FORMAT::FLATTENED_BINARY);
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
         pucTempMessagePointer = stMessageData.pucMessageBody;
@@ -799,7 +800,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
     }
 
     // Re-encode the data back into the range message buffer.
-    eStatus = clMyEncoder.Encode(&pucBuffer_, uiBufferSize_, stHeader, stMessage, stMessageData, stMetaData_, eFormat_);
+    eStatus = clMyEncoder.Encode(&pucBuffer_, uiBufferSize_, stHeader, stMessage, stMessageData, stMetaData_.eFormat, eFormat_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     // Final adjustments to MetaData

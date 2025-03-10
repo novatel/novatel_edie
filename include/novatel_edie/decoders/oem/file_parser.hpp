@@ -49,6 +49,21 @@ class FileParser
 
     [[nodiscard]] bool ReadStream();
 
+    //----------------------------------------------------------------------------
+    //! \brief Read a message from the FileParser.
+    //
+    //! \param[in] parserFunc_ the function used to read the message from the Parser.
+    //! \param[in] args_ A forwarding reference to the arguments of the ParserFunc.
+    //
+    //! \return An error code describing the result of parsing.
+    //!   SUCCESS: A message was framed, decoded, filtered, encoded and stored
+    //! internally, pointed to by stMessageData_.
+    //!   UNKNOWN: A message could not be found and unknown bytes were returned
+    //! if requested in the ParserConfigStruct given to SetConfig().
+    //!   STREAM_EMPTY: There are no more bytes to parse in the file provided.
+    //----------------------------------------------------------------------------
+    template <typename ParserFunc, typename... Args> [[nodiscard]] STATUS HandleRead(ParserFunc parserFunc_, Args&&... args_);
+
   public:
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
@@ -77,6 +92,13 @@ class FileParser
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
     void LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_);
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get the MessageDatabase object.
+    //
+    //! \return A shared pointer to the MessageDatabase object.
+    // ---------------------------------------------------------------------------
+    MessageDatabase::ConstPtr MessageDb() const;
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
@@ -200,9 +222,27 @@ class FileParser
     //! internally, pointed to by stMessageData_.
     //!   UNKNOWN: A message could not be found and unknown bytes were returned
     //! if requested in the ParserConfigStruct given to SetConfig().
-    //!   FILE_EMPTY: There are no more bytes to parse in the file provided.
+    //!   STREAM_EMPTY: There are no more bytes to parse in the file provided.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Read a log from the FileParser.
+    //
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
+    //! populated by the FileParser.
+    //! \param[out] stMetaData_ A reference to a MetaDataStruct to be populated
+    //! by the FileParser.
+    //
+    //! \return An error code describing the result of parsing.
+    //!   SUCCESS: A message was framed, decoded, filtered, encoded and stored
+    //! internally, pointed to by stMessageData_.
+    //!   UNKNOWN: A message could not be found and unknown bytes were returned
+    //! if requested in the ParserConfigStruct given to SetConfig().
+    //!   STREAM_EMPTY: There are no more bytes to parse in the file provided.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& header_, std::vector<FieldContainer>& stMessage_,
+                                          MetaDataStruct& stMetaData_);
 
     //----------------------------------------------------------------------------
     //! \brief Reset the InputFileStream, and flush all bytes from the internal

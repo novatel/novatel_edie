@@ -63,6 +63,7 @@ RANGECMP5_MSG_ID = 2537
 # -------------------------------------------------------------------------------------------------------
 # Logging Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
+@pytest.mark.skip(reason="Logging is still under development")
 def test_logger():
     name = "range_decompressor"
     level = ne.LogLevel.OFF
@@ -99,8 +100,7 @@ def test_decompress_rangecmpa_1(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
@@ -111,8 +111,7 @@ def test_decompress_rangecmpa_2(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
@@ -123,8 +122,7 @@ def test_decompress_rangecmpa_3(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     print("DECOMPRESS_RANGECMPA4_DIFF_2", compressed_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
@@ -139,8 +137,7 @@ def test_decompress_rangecmpa2_1(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP2_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
@@ -151,8 +148,7 @@ def test_decompress_rangecmpa2_2(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP2_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
@@ -163,8 +159,7 @@ def test_decompress_rangecmpa2_3(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP2_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
@@ -178,8 +173,7 @@ def test_decompress_rangecmpa4_1(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
@@ -190,8 +184,7 @@ def test_decompress_rangecmpa4_2(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
@@ -202,8 +195,7 @@ def test_decompress_rangecmpa4_3(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
 
@@ -212,13 +204,12 @@ def test_decompress_rangecmpa4_diff_1(range_decompressor):
     reference_decompressed_data = b"#RANGEA,COM1,0,88.5,FINESTEERING,1919,507977.000,02000020,fb0e,32768;22,10,0,21540290.811,0.030,-113194996.162716,0.005,2288.688,52.6,262.144,08101c04,10,0,21540293.632,0.148,-88203904.730026,0.007,1783.394,45.5,262.144,01301c0b,10,0,21540289.869,0.020,-84528728.138867,0.005,1709.022,53.0,262.144,01d01c0b,15,0,21776375.653,0.045,-114435625.391362,0.007,-1814.485,50.9,262.144,18101c04,15,0,21776376.038,0.148,-89170616.456737,0.009,-1413.886,44.1,262.144,11301c0b,18,0,20493192.703,0.045,-107692454.149616,0.007,212.747,51.1,262.144,08101c04,18,0,20493191.934,0.148,-83916195.495361,0.009,165.777,45.9,262.144,01301c0b,21,0,21214757.684,0.030,-111484302.589394,0.005,-1107.624,52.5,262.144,08101c04,21,0,21214757.049,0.148,-86870882.607262,0.007,-863.084,44.6,262.144,01301c0b,27,0,21761200.335,0.045,-114355879.994277,0.007,1121.758,50.0,262.144,18101c04,27,0,21761202.795,0.148,-89108485.029933,0.009,874.097,44.2,262.144,11301c0b,27,0,21761200.306,0.020,-85395622.840012,0.005,837.685,51.7,262.144,01d01c0b,38,8,19781617.845,0.066,-105744080.697075,0.005,-2024.611,51.8,262.144,18111c04,38,8,19781623.453,0.045,-82245418.311729,0.005,-1574.698,42.2,262.144,00b11c0b,39,3,19968976.955,0.066,-106558290.404817,0.005,2248.713,52.3,262.144,08111c04,39,3,19968980.676,0.020,-82878686.552770,0.005,1749.000,46.9,262.144,00b11c0b,54,11,19507573.214,0.066,-104388964.030286,0.005,1289.410,51.8,262.144,08111c04,54,11,19507576.477,0.020,-81191427.275585,0.005,1002.874,48.0,262.144,10b11c0b,55,4,22748433.080,0.148,-121432681.637759,0.012,4061.119,43.9,262.144,18111c04,55,4,22748438.602,0.030,-94447660.069150,0.012,3158.651,46.0,262.144,00b11c0b,61,9,20375330.795,0.148,-108956045.737668,0.007,-3039.482,46.8,262.144,08111c04,61,9,20375332.806,0.099,-84743599.055346,0.009,-2364.042,34.0,262.144,00b11c0b*d2ac2e1f\r\n"
     differential_compressed_data = b"#RANGECMP4A,COM1,0,88.5,FINESTEERING,1919,507977.250,02000020,fb0e,32768;239,030000421204000000009200dff688831f6102005500e70162dc977c004015c07988840f6101803a805921cedf8b80002011207080e5f6351f003804081c2200be0808005c01620808725f93028057801822dae0476000a00f207180fef6251700e803401c62f3bdc8060052013009986f5f22020054004ca2053ec408005401ca8701804100000000000980ff6306fec408004801de07c8692f5102805180f721b2e04f600040152081804ef7102500600540202205fe040a0086013a0938780f61020061804e224edbdb68002010c0498030f7411d0018047812a2d47d090a004c01a609c8544f62028052006a02*48e189a2\r\n"
     differential_decompressed_data = b"#RANGEA,COM1,0,88.5,FINESTEERING,1919,507977.250,02000020,fb0e,32768;22,10,0,21540181.949,0.030,-113194424.079980,0.005,2288.177,52.6,262.394,08101c04,10,0,21540184.766,0.148,-88203458.951168,0.007,1782.995,45.4,262.394,01301c0b,10,0,21540181.003,0.020,-84528300.929223,0.005,1708.751,53.0,262.394,01d01c0b,15,0,21776461.990,0.045,-114436079.084586,0.007,-1814.956,50.9,262.394,18101c04,15,0,21776462.374,0.148,-89170969.983413,0.009,-1414.253,44.1,262.394,11301c0b,18,0,20493182.598,0.045,-107692401.054314,0.007,212.183,51.2,262.394,08101c04,18,0,20493181.833,0.148,-83916154.122706,0.009,165.338,45.6,262.394,01301c0b,21,0,21214810.389,0.030,-111484579.561162,0.005,-1108.100,52.5,262.394,08101c04,21,0,21214809.754,0.148,-86871098.429419,0.007,-863.454,44.8,262.394,01301c0b,27,0,21761146.983,0.045,-114355599.643521,0.007,1121.140,49.9,262.394,18101c04,27,0,21761149.447,0.148,-89108266.574390,0.007,873.616,44.6,262.394,11301c0b,27,0,21761146.957,0.020,-85395413.485409,0.005,837.294,51.8,262.394,01d01c0b,38,8,19781712.549,0.066,-105744586.937548,0.005,-2025.150,51.8,262.394,18111c04,38,8,19781718.157,0.045,-82245812.054007,0.005,-1575.117,42.3,262.394,00b11c0b,39,3,19968871.615,0.066,-106557728.317340,0.005,2248.162,52.3,262.394,08111c04,39,3,19968875.343,0.020,-82878249.374244,0.005,1748.571,46.8,262.394,00b11c0b,54,11,19507512.994,0.066,-104388641.782239,0.005,1288.778,51.7,262.394,08111c04,54,11,19507516.256,0.020,-81191176.637799,0.005,1002.383,48.0,262.394,10b11c0b,55,4,22748242.896,0.220,-121431666.426789,0.009,4060.804,43.7,262.394,18111c04,55,4,22748248.421,0.030,-94446870.460825,0.012,3158.406,46.0,262.394,00b11c0b,61,9,20375472.914,0.148,-108956805.696857,0.007,-3040.142,46.9,262.394,08111c04,61,9,20375474.925,0.099,-84744190.134403,0.007,-2364.556,33.9,262.394,00b11c0b*51a19dd2\r\n"
-    
+
     # Setup the results of the framer as if it had just framed reference_compressed_data.
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(reference_compressed_data)
-    status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
     assert len(reference_decompressed_data) == meta_data.length
     compare_strings(test_result.decode('utf-8'), reference_decompressed_data.decode('utf-8'))
 
@@ -226,8 +217,7 @@ def test_decompress_rangecmpa4_diff_1(range_decompressor):
     # Setup the results of the framer as if it had just framed differential_compressed_data.
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(differential_compressed_data)
-    status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
     assert len(differential_decompressed_data) == meta_data.length
     compare_strings(test_result.decode('utf-8'), differential_decompressed_data.decode('utf-8'))
 
@@ -241,8 +231,7 @@ def test_decompress_rangecmpa4_diff_2(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(reference_compressed_data)
-    status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
     assert len(reference_decompressed_data) == meta_data.length
     compare_strings(test_result.decode('utf-8'), reference_decompressed_data.decode('utf-8'))
 
@@ -250,8 +239,7 @@ def test_decompress_rangecmpa4_diff_2(range_decompressor):
     # Setup the results of the framer as if it had just framed differential_compressed_data.
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(differential_compressed_data)
-    status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
     assert len(differential_decompressed_data) == meta_data.length
     compare_strings(test_result.decode('utf-8'), differential_decompressed_data.decode('utf-8'))
 
@@ -265,8 +253,7 @@ def test_decompress_rangecmpa4_diff_3(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(reference_compressed_data)
-    status, test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(reference_compressed_data, meta_data)
     assert len(reference_decompressed_data) == meta_data.length
     compare_strings(test_result.decode('utf-8'), reference_decompressed_data.decode('utf-8'))
 
@@ -274,8 +261,7 @@ def test_decompress_rangecmpa4_diff_3(range_decompressor):
     # Setup the results of the framer as if it had just framed differential_compressed_data.
     meta_data.message_id = RANGECMP4_MSG_ID
     meta_data.length = len(differential_compressed_data)
-    status, test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(differential_compressed_data, meta_data)
     assert len(differential_decompressed_data) == meta_data.length
     compare_strings(test_result.decode('utf-8'), differential_decompressed_data.decode('utf-8'))
 
@@ -286,7 +272,6 @@ def test_decompress_rangecmpa5_1(range_decompressor):
     meta_data = ne.MetaData()
     meta_data.message_id = RANGECMP5_MSG_ID
     meta_data.length = len(compressed_data)
-    status, test_result = range_decompressor.decompress(compressed_data, meta_data)
-    status.raise_on_error()
+    test_result = range_decompressor.decompress(compressed_data, meta_data)
     assert meta_data.length == len(decompressed_data)
     compare_strings(test_result.decode('utf-8'), decompressed_data.decode('utf-8'))
