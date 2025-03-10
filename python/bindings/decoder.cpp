@@ -31,19 +31,20 @@ void init_novatel_decoder(nb::module_& m)
 
     nb::class_<oem::PyDecoder>(m, "Decoder")
         .def(nb::init<>())
-        .def(nb::init<PyMessageDatabase::Ptr&>(), "message_db"_a)
+        .def(nb::init<PyMessageDatabase::Ptr>(), "message_db"_a)
         .def_prop_ro("header_logger", [](oem::PyDecoder& self) { return self.header_decoder.GetLogger(); })
         .def_prop_ro("message_logger", [](oem::PyDecoder& self) { return self.message_decoder.GetLogger(); })
         .def(
             "decode_header",
-            [](const oem::PyDecoder& decoder, const nb::bytes raw_header, oem::MetaDataStruct& metadata) {
+            [](const oem::PyDecoder& decoder, const nb::bytes raw_header, oem::MetaDataStruct* metadata) {
+                if (metadata == nullptr) { metadata = new oem::MetaDataStruct(); }
                 oem::PyHeader header;
-                STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const uint8_t*>(raw_header.c_str()), header, metadata);
+                STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const uint8_t*>(raw_header.c_str()), header, *metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
-                header.format = metadata.eFormat;
+                header.format = metadata->eFormat;
                 return header;
             },
-            "raw_header"_a, "metadata"_a = oem::MetaDataStruct())
+            "raw_header"_a, nb::arg("metadata") = nb::none())
         .def("decode_message", &oem::PyDecoder::DecodeMessage, "raw_body"_a, "decoded_header"_a, "metadata"_a)
         .def(
             "decode_message",

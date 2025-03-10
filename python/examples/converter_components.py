@@ -46,7 +46,9 @@ def read_frames(input_file, framer):
             while True:
                 try:
                     frame, meta = framer.get_frame()
-                except StopIteration:
+                except ne.BufferEmptyException:
+                    break
+                except ne.IncompleteException:
                     break
                 except ne.UnknownException:
                     continue
@@ -90,7 +92,6 @@ def main():
     framer.set_payload_only(False)
     framer.set_frame_json(False)
     decoder = ne.Decoder()
-    encoder = ne.Encoder()
     filter = ne.Filter()
 
     with open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream:
@@ -131,6 +132,5 @@ def main():
 
             except Exception as e:
                 logger.warn(str(e))
-
 if __name__ == "__main__":
     main()
