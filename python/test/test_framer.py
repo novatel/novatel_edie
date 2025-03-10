@@ -41,6 +41,7 @@ class Helper:
         self.framer.set_payload_only(False)
 
     def test_framer_errors(self, expected_error, buffer_size = ne.MESSAGE_SIZE_MAX):
+        pass
         with pytest.raises(expected_error):
             self.framer.get_frame(buffer_size)
 
@@ -115,7 +116,7 @@ def test_ascii_complete(helper):
 def test_ascii_incomplete(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1"
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_ascii_sync_error(helper):
@@ -134,7 +135,7 @@ def test_ascii_bad_crc(helper):
 def test_ascii_run_on_crc(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35ff\r\n"
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_ascii_inadequate_buffer(helper):
@@ -155,7 +156,7 @@ def test_ascii_byte_by_byte(helper):
         # We have to process the CRC all at the same time, so we can't test byte-by-byte
         # within it
         if remaining_bytes >= ne.OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
-            helper.test_framer_errors(StopIteration)
+            helper.test_framer_errors(ne.IncompleteException)
         if not remaining_bytes:
             break
     helper.test_framer(HEADER_FORMAT.ASCII, log_size)
@@ -166,21 +167,21 @@ def test_ascii_segmented(helper):
     bytes_written = 0
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_ASCII_SYNC_LENGTH])
     bytes_written += ne.OEM4_ASCII_SYNC_LENGTH
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:70])
     bytes_written += 70
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:135])
     bytes_written += 135
-    helper.test_framer_errors( StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:1])
     bytes_written += 1
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_ASCII_CRC_LENGTH + 2])
@@ -204,27 +205,27 @@ def test_abbrev_ascii_segmented(helper):
     bytes_written = 0
     helper.write_bytes_to_framer(data[bytes_written:][:1])  # Sync Byte
     bytes_written += 1
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:69])  # Header with no CRLF
     bytes_written += 69
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:1])  # CR
     bytes_written += 1
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:1])  # LF
     bytes_written += 1
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:89])  # Body
     bytes_written += 89
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:6 + 2])  # CRLF + [COM1]
@@ -258,7 +259,7 @@ def test_binary_incomplete(helper):
          0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F,
          0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00])
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_binary_buffer_full(helper):
@@ -342,7 +343,7 @@ def test_binary_byte_by_byte(helper):
             expected_meta_data.format = HEADER_FORMAT.BINARY
 
         if remaining_bytes > 0:
-            helper.test_framer_errors(StopIteration)
+            helper.test_framer_errors(ne.IncompleteException)
         else:
             break
     expected_meta_data.length = log_size
@@ -363,18 +364,18 @@ def test_binary_segmented(helper):
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
     bytes_written += ne.OEM4_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:(ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH)])
     bytes_written += (ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH)
     expected_meta_data.length = bytes_written
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:72])
     bytes_written += 72
     expected_meta_data.length = bytes_written
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
     bytes_written += ne.OEM4_BINARY_CRC_LENGTH
@@ -411,7 +412,7 @@ def test_short_ascii_complete(helper):
 def test_short_ascii_incomplete(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215"
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_short_ascii_sync_error(helper):
@@ -428,7 +429,7 @@ def test_short_ascii_bad_crc(helper):
 def test_short_ascii_run_on_crc(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7bff\r\n"
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_short_ascii_inadequate_buffer(helper):
@@ -452,7 +453,7 @@ def test_short_ascii_byte_by_byte(helper):
         # We have to process the CRC all at the same time, so we can't test byte-by-byte
         # within it
         if remaining_bytes >= ne.OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
-            helper.test_framer_errors(StopIteration)
+            helper.test_framer_errors(ne.IncompleteException)
 
         if not remaining_bytes:
             break
@@ -465,20 +466,20 @@ def test_short_ascii_segmented(helper):
     bytes_written = 0
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_SHORT_ASCII_SYNC_LENGTH])
     bytes_written += ne.OEM4_SHORT_ASCII_SYNC_LENGTH
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:26])
     bytes_written += 26
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
     helper.write_bytes_to_framer(data[bytes_written:][:82])
     bytes_written += 82
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:1])
     bytes_written += 1
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_ASCII_CRC_LENGTH + 2])
     bytes_written += ne.OEM4_ASCII_CRC_LENGTH + 2
@@ -516,7 +517,7 @@ def test_short_binary_incomplete(helper):
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
          0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87])
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_short_binary_buffer_full(helper):
@@ -588,7 +589,7 @@ def test_short_binary_byte_by_byte(helper):
             expected_meta_data.format = HEADER_FORMAT.SHORT_BINARY
 
         if remaining_bytes > 0:
-            helper.test_framer_errors(StopIteration)
+            helper.test_framer_errors(ne.IncompleteException)
         else:
             break
     expected_meta_data.length = log_size
@@ -605,16 +606,16 @@ def test_short_binary_segmented(helper):
     bytes_written = 0
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_SHORT_BINARY_SYNC_LENGTH])
     bytes_written += ne.OEM4_SHORT_BINARY_SYNC_LENGTH
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(
         data[bytes_written:][:ne.OEM4_SHORT_BINARY_HEADER_LENGTH - ne.OEM4_SHORT_BINARY_SYNC_LENGTH])
     bytes_written += ne.OEM4_SHORT_BINARY_HEADER_LENGTH - ne.OEM4_SHORT_BINARY_SYNC_LENGTH
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:40])
     bytes_written += 40
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
     bytes_written += ne.OEM4_BINARY_CRC_LENGTH
@@ -654,7 +655,7 @@ def test_nmea_complete(helper):
 def test_nmea_incomplete(helper):
     data = b"$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc4"
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_nmea_sync_error(helper):
@@ -689,7 +690,7 @@ def test_nmea_byte_by_byte(helper):
         helper.write_bytes_to_framer(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         if remaining_bytes > 0:
-            helper.test_framer_errors(StopIteration)
+            helper.test_framer_errors(ne.IncompleteException)
         else:
             break
     helper.test_framer(HEADER_FORMAT.NMEA, log_size)
@@ -700,19 +701,19 @@ def test_nmea_segmented(helper):
     bytes_written = 0
     helper.write_bytes_to_framer(data[bytes_written:][:ne.NMEA_SYNC_LENGTH])
     bytes_written += ne.NMEA_SYNC_LENGTH
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:76])
     bytes_written += 76
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:1])
     bytes_written += 1
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:ne.NMEA_CRC_LENGTH])
     bytes_written += ne.NMEA_CRC_LENGTH
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:2])
     bytes_written += 2
@@ -744,7 +745,7 @@ def test_abbrev_ascii_incomplete(helper):
     data = (b"<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
             b"<     SOL_COMPUTED SINGLE 51.15043711386 ")
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_abbrev_ascii_buffer_full(helper):

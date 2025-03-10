@@ -111,7 +111,7 @@ def test_proprietary_binary_incomplete(helper):
          0xCF, 0x59, 0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59,
          0xE3, 0xF5, 0x87, 0x8F, 0x8A])
     helper.write_bytes_to_framer(data)
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
 
 def test_proprietary_binary_sync_error(helper):
@@ -188,7 +188,7 @@ def test_proprietary_binary_byte_by_byte(helper):
         helper.write_bytes_to_framer(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         if remaining_bytes > 0:
-            helper.test_framer_errors(StopIteration)
+            helper.test_framer_errors(ne.IncompleteException)
         else:
             break
     helper.test_framer(HEADER_FORMAT.PROPRIETARY_BINARY, log_size)
@@ -205,15 +205,15 @@ def test_proprietary_binary_segmented(helper):
     bytes_written = 0
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
     bytes_written += ne.OEM4_BINARY_SYNC_LENGTH
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH])
     bytes_written += ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:44])
     bytes_written += 44
-    helper.test_framer_errors(StopIteration)
+    helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
     bytes_written += ne.OEM4_BINARY_CRC_LENGTH
