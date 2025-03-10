@@ -86,7 +86,7 @@ def test_parse_file_with_filter(fp):
             msg = fp.read()
             if isinstance(msg, ne.CompleteMessage):
                 msgs.append(msg)
-        except StopIteration:
+        except ne.StreamEmptyException:
             break
     assert len(msgs) == 2
 
