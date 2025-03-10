@@ -22,34 +22,61 @@ nb::object oem::PyFileParser::PyRead()
     STATUS status = ReadIntermediate(message_data, header, message_fields, metadata);
     header.format = metadata.eFormat;
 
-    nb::object pyinst;
     switch (status)
     {
     case STATUS::SUCCESS: return create_message_instance(header, message_fields, metadata, parent_db);
-    case STATUS::NO_DEFINITION: return create_unknown_message_instance(nb::bytes(message_data.pucMessageBody, message_data.uiMessageBodyLength), header, parent_db);
+    case STATUS::NO_DEFINITION:
+        return create_unknown_message_instance(nb::bytes(message_data.pucMessageBody, message_data.uiMessageBodyLength), header, parent_db);
     case STATUS::UNKNOWN: return nb::bytes(message_data.pucMessage, message_data.uiMessageLength);
-    case STATUS::STREAM_EMPTY: throw nb ::stop_iteration();
     default: throw_exception_from_status(status);
     }
 }
 
-oem::PyMessageData oem::FileConversionIterator::Convert()
+nb::object oem::PyFileParser::PyIterRead()
 {
-    MetaDataStruct metadata;
-    MessageDataStruct message_data;
-    PyHeader header;
-    std::vector<FieldContainer> message_fields;
+    try
+    {
+        return PyRead();
+    }
+    catch (StreamEmptyException)
+    {
+        throw nb::stop_iteration("No more messages detected in buffer");
+    }
+}
+
+nb::object oem::PyFileParser::PyConvert(ENCODE_FORMAT fmt)
+{
+    static nb::handle py_type = nb::type<PyMessageData>();
+    static oem::MetaDataStruct metadata;
+    static MessageDataStruct message_data;
+    static oem::PyHeader header;
+    static std::vector<FieldContainer> message_fields;
+
+    SetEncodeFormat(fmt);
+
+    STATUS status;
     while (true)
     {
-        STATUS status = this->parser.Read(message_data, metadata);
-        switch (status)
-        {
-        case STATUS::SUCCESS: return PyMessageData(message_data);
-        case STATUS::UNKNOWN: continue;
-        case STATUS::NO_DEFINITION: continue;
-        case STATUS::STREAM_EMPTY: throw nb::stop_iteration("No more messages detected in buffer");
-        default: throw_exception_from_status(status);
-        }
+        status = Read(message_data, metadata);
+        if (status != STATUS::UNKNOWN && status != STATUS::NO_DEFINITION) { break; }
+    }
+    throw_exception_from_status(status);
+    nb::object py_inst = nb::inst_alloc(py_type);
+    PyMessageData* c_inst = nb::inst_ptr<PyMessageData>(py_inst);
+    new (c_inst) PyMessageData(message_data);
+    nb::inst_mark_ready(py_inst);
+    return py_inst;
+}
+
+nb::object oem::FileConversionIterator::PyIterConvert()
+{
+    try
+    {
+        return this->parser.PyConvert(fmt);
+    }
+    catch (StreamEmptyException)
+    {
+        throw nb::stop_iteration("No more messages detected in buffer");
     }
 }
 
@@ -71,11 +98,11 @@ void init_novatel_file_parser(nb::module_& m)
             "input_stream"_a)
         .def("read", &oem::PyFileParser::PyRead)
         .def("__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; })
-        .def("__next__", [](oem::PyFileParser& self) { return self.PyRead(); })
-        .def("convert",
+        .def("__next__", &oem::PyFileParser::PyIterRead)
+        .def("convert", &oem::PyFileParser::PyConvert, "fmt"_a)
+        .def("iter_convert",
              [](oem::PyFileParser& self, ENCODE_FORMAT fmt) {
-                 self.SetEncodeFormat(fmt);
-                 return oem::FileConversionIterator(self);
+                 return oem::FileConversionIterator(self, fmt);
              })
         .def("reset", &oem::PyFileParser::Reset)
         .def(
@@ -92,5 +119,5 @@ void init_novatel_file_parser(nb::module_& m)
 
     nb::class_<oem::FileConversionIterator>(m, "FileConversionIterator")
         .def("__iter__", [](nb::handle_t<oem::FileConversionIterator> self) { return self; })
-        .def("__next__", &oem::FileConversionIterator::Convert);
+        .def("__next__", &oem::FileConversionIterator::PyIterConvert);
 }
