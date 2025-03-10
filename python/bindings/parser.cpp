@@ -3,15 +3,16 @@
 #include "bindings_core.hpp"
 #include "exceptions.hpp"
 #include "message_db_singleton.hpp"
+#include "parser.hpp"
 #include "py_message_data.hpp"
 #include "py_message_objects.hpp"
-#include "parser.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-nb::object oem::PyParser::PyRead(bool decode_incomplete) {
+nb::object oem::PyParser::PyRead(bool decode_incomplete)
+{
     oem::MetaDataStruct metadata;
     MessageDataStruct message_data;
     oem::PyHeader header;
@@ -20,37 +21,61 @@ nb::object oem::PyParser::PyRead(bool decode_incomplete) {
     STATUS status = ReadIntermediate(message_data, header, message_fields, metadata, decode_incomplete);
     header.format = metadata.eFormat;
 
-    nb::object pyinst;
     switch (status)
     {
-    case STATUS::SUCCESS: pyinst = create_message_instance(header, message_fields, metadata, parent_db); break;
+    case STATUS::SUCCESS: return create_message_instance(header, message_fields, metadata, parent_db);
     case STATUS::NO_DEFINITION:
-        pyinst = create_unknown_message_instance(nb::bytes(message_data.pucMessageBody, message_data.uiMessageBodyLength), header, parent_db);
-        break;
-    case STATUS::UNKNOWN: pyinst = nb::bytes(message_data.pucMessage, message_data.uiMessageLength); break;
-    case STATUS::BUFFER_EMPTY: throw nb::stop_iteration("No more messages detected in buffer");
+        return create_unknown_message_instance(nb::bytes(message_data.pucMessageBody, message_data.uiMessageBodyLength), header, parent_db);
+    case STATUS::UNKNOWN: return nb::bytes(message_data.pucMessage, message_data.uiMessageLength);
     default: throw_exception_from_status(status);
     }
-    return pyinst;
 }
 
-oem::PyMessageData oem::ConversionIterator::Convert(bool decode_incomplete)
+nb::object oem::PyParser::PyIterRead()
 {
-    oem::MetaDataStruct metadata;
-    MessageDataStruct message_data;
-    oem::PyHeader header;
-    std::vector<FieldContainer> message_fields;
+    try
+    {
+        return PyRead(false);
+    }
+    catch (BufferEmptyException)
+    {
+        throw nb::stop_iteration("No more messages detected in buffer");
+    }
+}
+
+nb::object oem::PyParser::PyConvert(ENCODE_FORMAT fmt, bool decode_incomplete)
+{
+    static nb::handle py_type = nb::type<PyMessageData>();
+    static oem::MetaDataStruct metadata;
+    static MessageDataStruct message_data;
+    static oem::PyHeader header;
+    static std::vector<FieldContainer> message_fields;
+
+    SetEncodeFormat(fmt);
+
+    STATUS status;
     while (true)
     {
-        STATUS status = this->parser.Read(message_data, metadata, decode_incomplete);
-        switch (status)
-        {
-        case STATUS::SUCCESS: return PyMessageData(message_data);
-        case STATUS::UNKNOWN: continue;
-        case STATUS::NO_DEFINITION: continue;
-        case STATUS::BUFFER_EMPTY: throw nb::stop_iteration("No more messages detected in buffer");
-        default: throw_exception_from_status(status);
-        }
+        status = Read(message_data, metadata, decode_incomplete);
+        if (status != STATUS::UNKNOWN && status != STATUS::NO_DEFINITION) { break; }
+    }
+    throw_exception_from_status(status);
+    nb::object py_inst = nb::inst_alloc(py_type);
+    PyMessageData* c_inst = nb::inst_ptr<PyMessageData>(py_inst);
+    new (c_inst) PyMessageData(message_data);
+    nb::inst_mark_ready(py_inst);
+    return py_inst;
+}
+
+nb::object oem::ConversionIterator::PyIterConvert()
+{
+    try
+    {
+        return this->parser.PyConvert(fmt, false);
+    }
+    catch (BufferEmptyException)
+    {
+        throw nb::stop_iteration("No more messages detected in buffer");
     }
 }
 
@@ -70,12 +95,10 @@ void init_novatel_parser(nb::module_& m)
              [](oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
         .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false)
         .def("__iter__", [](nb::handle_t<oem::PyParser> self) { return self; })
-        .def("__next__", [](oem::PyParser& self) { return self.PyRead(false);})
-        .def("convert",
-             [](oem::PyParser& self, ENCODE_FORMAT fmt) {
-                 self.SetEncodeFormat(fmt);
-                 return oem::ConversionIterator(self);
-             })
+        .def("__next__", &oem::PyParser::PyIterRead)
+        .def("convert", &oem::PyParser::PyConvert, "fmt"_a, "decode_incomplete_abbreviated"_a = false)
+        .def(
+            "iter_convert", [](oem::PyParser& self, ENCODE_FORMAT fmt) { return oem::ConversionIterator(self, fmt); }, "fmt"_a)
         .def(
             "flush",
             [](oem::PyParser& self, bool return_flushed_bytes) -> nb::object {
@@ -90,5 +113,5 @@ void init_novatel_parser(nb::module_& m)
 
     nb::class_<oem::ConversionIterator>(m, "ConversionIterator")
         .def("__iter__", [](nb::handle_t<oem::ConversionIterator> self) { return self; })
-        .def("__next__", &oem::ConversionIterator::Convert, "decode_incomplete_abbreviated"_a = false);
+        .def("__next__", &oem::ConversionIterator::PyIterConvert);
 }

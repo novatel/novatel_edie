@@ -68,7 +68,7 @@ def main():
         logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
     db = ne.MessageDatabase('database/database.json')
-    file_parser = ne.FileParser(args.input_file, db)
+    file_parser = ne.FileParser(args.input_file)
     filter = ne.Filter()
     file_parser.filter = filter
     encoder = ne.Encoder()
@@ -94,7 +94,8 @@ def main():
             message.latitude
 
     file_parser.reset()
-    for encoded_msg in file_parser.convert(encode_format):
+
+    for encoded_msg in file_parser.iter_convert(encode_format):
         pass
 
     elapsed_seconds = timeit.default_timer() - start

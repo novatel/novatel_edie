@@ -33,15 +33,20 @@ class PyFileParser : public FileParser
     }
 
     nb::object PyRead();
+
+    nb::object PyIterRead();
+
+    nb::object PyConvert(ENCODE_FORMAT fmt);
 };
 
 class FileConversionIterator
 {
     PyFileParser& parser;
+    ENCODE_FORMAT fmt;
 
   public:
-    FileConversionIterator(PyFileParser& parser_) : parser(parser_) {}
+    FileConversionIterator(PyFileParser& parser_, ENCODE_FORMAT fmt_) : parser(parser_), fmt(fmt_) {}
 
-    PyMessageData Convert();
+    nb::object PyIterConvert();
 };
 } // namespace novatel::edie::oem

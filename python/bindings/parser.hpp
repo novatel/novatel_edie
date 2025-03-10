@@ -17,16 +17,19 @@ class PyParser : public Parser
     using Parser::Parser;
 
     nb::object PyRead(bool decode_incomplete);
+    nb::object PyIterRead();
+    nb::object PyConvert(ENCODE_FORMAT fmt, bool decode_incomplete);
 };
 
 class ConversionIterator
 {
     PyParser& parser;
+    ENCODE_FORMAT fmt;
 
   public:
-    ConversionIterator(PyParser& parser_) : parser(parser_) {}
+    ConversionIterator(PyParser& parser_, ENCODE_FORMAT fmt_) : parser(parser_), fmt(fmt_) {}
 
-    PyMessageData Convert(bool decode_incomplete);
+    nb::object PyIterConvert();
 };
 
 }; // namespace novatel::edie::oem
