@@ -30,7 +30,8 @@
 
 import novatel_edie as ne
 import pytest
-from novatel_edie import STATUS, FIELD_TYPE, DATA_TYPE, DecoderTester
+from novatel_edie import STATUS, FIELD_TYPE, DATA_TYPE
+from novatel_edie import _internal
 from pytest import approx
 
 # -------------------------------------------------------------------------------------------------------
@@ -53,7 +54,7 @@ ULLONG_MAX = 18446744073709551615
 
 class Helper:
     def __init__(self, db):
-        self.decoder = ne.DecoderTester(db)
+        self.decoder = _internal.DecoderTester(db)
         self.encoder = ne.Encoder(db)
         self.msg_def_fields = []
 
