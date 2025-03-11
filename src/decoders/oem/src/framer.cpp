@@ -26,6 +26,8 @@
 
 #include "novatel_edie/decoders/oem/framer.hpp"
 
+#include <charconv>
+
 #include "novatel_edie/common/crc32.hpp"
 
 using namespace novatel::edie;
@@ -40,15 +42,15 @@ bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCr
 // -------------------------------------------------------------------------------------------------------
 bool Framer::IsAbbrevSeparatorCrlf(const uint32_t uiCircularBufferPosition_) const
 {
-    return IsCrlf(uiCircularBufferPosition_ + 1) && clMyCircularDataBuffer[uiCircularBufferPosition_] == OEM4_ABBREV_ASCII_SEPARATOR;
+    return IsCrlf(uiCircularBufferPosition_ + 1) && clMyBuffer[uiCircularBufferPosition_] == OEM4_ABBREV_ASCII_SEPARATOR;
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool Framer::IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const
 {
-    while (clMyCircularDataBuffer[uiCircularBufferPosition_--] == OEM4_ABBREV_ASCII_SEPARATOR)
+    while (clMyBuffer[uiCircularBufferPosition_--] == OEM4_ABBREV_ASCII_SEPARATOR)
     {
-        if (clMyCircularDataBuffer[uiCircularBufferPosition_] == OEM4_ABBREV_ASCII_SYNC) { return true; }
+        if (clMyBuffer[uiCircularBufferPosition_] == OEM4_ABBREV_ASCII_SYNC) { return true; }
     }
 
     return false;
@@ -59,20 +61,26 @@ bool Framer::IsAbbrevAsciiResponse() const
 {
     constexpr uint32_t errorLen = 5;
     constexpr uint32_t okLen = 2;
-    char szResponse[errorLen + 1];
 
-    if (uiMyAbbrevAsciiHeaderPosition + okLen < clMyCircularDataBuffer.GetLength())
+    if (uiMyAbbrevAsciiHeaderPosition + okLen < clMyBuffer.size())
     {
-        for (uint32_t i = 0; i < okLen; i++) { szResponse[i] = clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + i]; }
-
-        if (strstr(szResponse, "OK") != nullptr) { return true; }
+        if (clMyBuffer[uiMyAbbrevAsciiHeaderPosition + 0] == 'O' && //
+            clMyBuffer[uiMyAbbrevAsciiHeaderPosition + 1] == 'K')
+        {
+            return true;
+        }
     }
 
-    if (uiMyAbbrevAsciiHeaderPosition + errorLen < clMyCircularDataBuffer.GetLength())
+    if (uiMyAbbrevAsciiHeaderPosition + errorLen < clMyBuffer.size())
     {
-        for (uint32_t i = 0; i < errorLen; i++) { szResponse[i] = clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + i]; }
-
-        if (strstr(szResponse, "ERROR") != nullptr) { return true; }
+        if (clMyBuffer[uiMyAbbrevAsciiHeaderPosition + 0] == 'E' && //
+            clMyBuffer[uiMyAbbrevAsciiHeaderPosition + 1] == 'R' && //
+            clMyBuffer[uiMyAbbrevAsciiHeaderPosition + 2] == 'R' && //
+            clMyBuffer[uiMyAbbrevAsciiHeaderPosition + 3] == 'O' && //
+            clMyBuffer[uiMyAbbrevAsciiHeaderPosition + 4] == 'R')
+        {
+            return true;
+        }
     }
 
     return false;
@@ -93,7 +101,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
         stMetaData_.bResponse = false;
 
         // Read data from circular buffer until we reach the end or we didn't find a complete frame in current data buffer
-        if (clMyCircularDataBuffer.GetLength() == uiMyByteCount)
+        if (clMyBuffer.size() == uiMyByteCount)
         {
             if (eMyFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
             {
@@ -111,7 +119,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             return STATUS::UNKNOWN;
         }
 
-        const unsigned char ucDataByte = clMyCircularDataBuffer[uiMyByteCount++];
+        const unsigned char ucDataByte = clMyBuffer[uiMyByteCount++];
         stMetaData_.uiLength = uiMyByteCount;
 
         // non-ASCII characters in an ASCII message indicates a corrupt log or unknown data. Either way, mark the data as unknown
@@ -218,7 +226,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             break;
 
         case NovAtelFrameState::WAITING_FOR_ABB_ASCII_SYNC2:
-            if (ucDataByte != OEM4_ABBREV_ASCII_SEPARATOR && (isalpha(ucDataByte) != 0))
+            if (ucDataByte != OEM4_ABBREV_ASCII_SEPARATOR && isalpha(ucDataByte) != 0)
             {
                 eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_HEADER;
             }
@@ -242,10 +250,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     return STATUS::BUFFER_FULL;
                 }
 
-                Oem4BinaryHeader stOem4BinaryHeader;
-                clMyCircularDataBuffer.Copy(reinterpret_cast<unsigned char*>(&stOem4BinaryHeader), OEM4_BINARY_HEADER_LENGTH);
-                uiMyExpectedPayloadLength = static_cast<uint32_t>(stOem4BinaryHeader.usLength);
-                uiMyExpectedMessageLength = OEM4_BINARY_HEADER_LENGTH + static_cast<uint32_t>(stOem4BinaryHeader.usLength) + OEM4_BINARY_CRC_LENGTH;
+                Oem4BinaryHeader header;
+                clMyBuffer.copy_out(reinterpret_cast<unsigned char*>(&header), OEM4_BINARY_HEADER_LENGTH);
+                uiMyExpectedPayloadLength = static_cast<uint32_t>(header.usLength);
+                uiMyExpectedMessageLength = OEM4_BINARY_HEADER_LENGTH + static_cast<uint32_t>(header.usLength) + OEM4_BINARY_CRC_LENGTH;
 
                 if (uiMyExpectedPayloadLength > MAX_BINARY_MESSAGE_LENGTH || uiMyExpectedMessageLength > MAX_BINARY_MESSAGE_LENGTH)
                 {
@@ -283,10 +291,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     return STATUS::BUFFER_FULL;
                 }
 
-                Oem4BinaryShortHeader stOem4BinaryShortHeader;
-                clMyCircularDataBuffer.Copy(reinterpret_cast<unsigned char*>(&stOem4BinaryShortHeader), OEM4_SHORT_BINARY_HEADER_LENGTH);
-                uiMyExpectedPayloadLength = static_cast<uint32_t>(stOem4BinaryShortHeader.ucLength);
-                uiMyExpectedMessageLength = OEM4_SHORT_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH + stOem4BinaryShortHeader.ucLength;
+                Oem4BinaryShortHeader header;
+                clMyBuffer.copy_out(reinterpret_cast<unsigned char*>(&header), OEM4_SHORT_BINARY_HEADER_LENGTH);
+                uiMyExpectedPayloadLength = static_cast<uint32_t>(header.ucLength);
+                uiMyExpectedMessageLength = OEM4_SHORT_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH + header.ucLength;
 
                 if (uiMyExpectedPayloadLength > MAX_SHORT_BINARY_MESSAGE_LENGTH || uiMyExpectedMessageLength > MAX_SHORT_BINARY_MESSAGE_LENGTH)
                 {
@@ -322,14 +330,14 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     if (bMyPayloadOnly)
                     {
                         stMetaData_.uiLength = uiMyExpectedPayloadLength;
-                        clMyCircularDataBuffer.Discard((uiMyExpectedMessageLength - uiMyExpectedPayloadLength) + OEM4_BINARY_CRC_LENGTH);
-                        clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                        clMyCircularDataBuffer.Discard(uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH);
+                        clMyBuffer.erase_begin((uiMyExpectedMessageLength - uiMyExpectedPayloadLength) + OEM4_BINARY_CRC_LENGTH);
+                        clMyBuffer.copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                        clMyBuffer.erase_begin(uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH);
                     }
                     else
                     {
-                        clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                        clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                        clMyBuffer.copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                        clMyBuffer.erase_begin(stMetaData_.uiLength);
                     }
 
                     uiMyByteCount = 0;
@@ -350,7 +358,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             if (ucDataByte == OEM4_ASCII_CRC_DELIMITER)
             {
                 // Need to be able to check for *12345678CRLF
-                if (uiMyByteCount + OEM4_ASCII_CRC_LENGTH + 2 > clMyCircularDataBuffer.GetLength())
+                if (uiMyByteCount > clMyBuffer.size() - OEM4_ASCII_CRC_LENGTH - 2)
                 {
                     uiMyByteCount--; // Rewind so that we reprocess the '*' delimiter after getting more bytes
                     return STATUS::INCOMPLETE;
@@ -365,7 +373,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 //                                         internal CRC   |<------->|
 
                 // Check for a second CRC delimiter which indicates this is RXCONFIG
-                if (clMyCircularDataBuffer[uiMyByteCount + OEM4_ASCII_CRC_LENGTH] == OEM4_ASCII_CRC_DELIMITER
+                if (clMyBuffer[uiMyByteCount + OEM4_ASCII_CRC_LENGTH] == OEM4_ASCII_CRC_DELIMITER
                     // Look ahead for the CRLF to ensure this is a CRC delimiter and not a '*' in a log payload
                     || !IsAsciiCrc(uiMyByteCount))
                 {
@@ -399,12 +407,12 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                         return STATUS::BUFFER_FULL;
                     }
 
-                    clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                    clMyBuffer.copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                    clMyBuffer.erase_begin(stMetaData_.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 // End of buffer, can't look ahead but there should be more data
-                else if (uiMyByteCount + 2 >= clMyCircularDataBuffer.GetLength())
+                else if (uiMyByteCount >= clMyBuffer.size() - 2)
                 {
                     uiMyByteCount--; // If the data lands on the header CRLF then it can be
                                      // missed unless it's tested again when there is more data
@@ -412,8 +420,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     return STATUS::INCOMPLETE;
                 }
                 // New line with abbrev data
-                else if (clMyCircularDataBuffer[uiMyByteCount + 1] == OEM4_ABBREV_ASCII_SYNC &&
-                         clMyCircularDataBuffer[uiMyByteCount + 2] == OEM4_ABBREV_ASCII_SEPARATOR)
+                else if (clMyBuffer[uiMyByteCount + 1] == OEM4_ABBREV_ASCII_SYNC && clMyBuffer[uiMyByteCount + 2] == OEM4_ABBREV_ASCII_SEPARATOR)
                 {
                     uiMyByteCount++; // Add 1 to consume LF
                     eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_BODY;
@@ -438,11 +445,11 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
 
         case NovAtelFrameState::WAITING_FOR_ABB_ASCII_BODY:
             // End of buffer (can't look ahead, assume incomplete message)
-            if (uiMyByteCount + 3 >= clMyCircularDataBuffer.GetLength())
+            if (uiMyByteCount >= clMyBuffer.size() - 3)
             {
                 uiMyByteCount--; // If the data lands on the header CRLF then it can be missed
                                  // unless it's tested again when there is more data
-                stMetaData_.uiLength = clMyCircularDataBuffer.GetLength();
+                stMetaData_.uiLength = static_cast<uint32_t>(clMyBuffer.size());
                 return STATUS::INCOMPLETE;
             }
 
@@ -452,10 +459,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 uiMyByteCount += 2; // Consume CRLF
 
                 // New line with non abbrev data
-                if (clMyCircularDataBuffer[uiMyByteCount] != OEM4_ABBREV_ASCII_SYNC
+                if (clMyBuffer[uiMyByteCount] != OEM4_ABBREV_ASCII_SYNC
                     // Abbrev data, but is the start of a new message rather than a
                     // continuation of the current message: <NEWMESSAGE
-                    || clMyCircularDataBuffer[uiMyByteCount + 1] != OEM4_ABBREV_ASCII_SEPARATOR)
+                    || clMyBuffer[uiMyByteCount + 1] != OEM4_ABBREV_ASCII_SEPARATOR)
                 {
                     // 0 length arrays will output an empty line which suggests more data will
                     // follow In this case, this is actually the end of the log
@@ -486,8 +493,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     return STATUS::BUFFER_FULL;
                 }
 
-                clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                clMyBuffer.copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                clMyBuffer.erase_begin(stMetaData_.uiLength);
 
                 uiMyByteCount = 0;
                 uiMyAbbrevAsciiHeaderPosition = 0;
@@ -508,14 +515,16 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             {
                 uiMyByteCount--; // rewind back to delimiter before copying
                 char acCrc[OEM4_ASCII_CRC_LENGTH + 1];
-                for (int32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; i++) { acCrc[i] = clMyCircularDataBuffer[uiMyByteCount++]; }
-                uiMyByteCount += 2; // Add 2 for CRLF
+                for (int32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; i++) { acCrc[i] = clMyBuffer[uiMyByteCount + i]; }
+                uiMyByteCount += OEM4_ASCII_CRC_LENGTH + 2; // Add 2 for CRLF
                 stMetaData_.uiLength = uiMyByteCount;
                 acCrc[OEM4_ASCII_CRC_LENGTH] = '\0';
                 uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;
-                if (sscanf(acCrc, "%x", &uiMessageCrc) > 0 && uiMyCalculatedCrc32 == uiMessageCrc)
+                auto result = std::from_chars(acCrc, acCrc + OEM4_ASCII_CRC_LENGTH, uiMessageCrc, 16);
+
+                if (result.ec == std::errc() && uiMyCalculatedCrc32 == uiMessageCrc)
                 {
                     uiMyByteCount = 0;
 
@@ -525,8 +534,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                         return STATUS::BUFFER_FULL;
                     }
 
-                    clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                    clMyBuffer.copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                    clMyBuffer.erase_begin(stMetaData_.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 else
@@ -557,29 +566,27 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
         case NovAtelFrameState::WAITING_FOR_NMEA_CRC: {
             if (ucDataByte == '\n')
             {
-                uiMyExpectedPayloadLength = 0;
                 char acCrc[NMEA_CRC_LENGTH + 1];
-                for (int32_t iOffset = NMEA_CRC_LENGTH; iOffset > 0; iOffset--)
-                {
-                    acCrc[NMEA_CRC_LENGTH - iOffset] = clMyCircularDataBuffer[uiMyByteCount - iOffset - 2];
-                }
+                const size_t crcStartIndexInBuffer = uiMyByteCount - NMEA_CRC_LENGTH - 2;
+                for (int32_t i = 0; i < NMEA_CRC_LENGTH; ++i) { acCrc[i] = clMyBuffer[crcStartIndexInBuffer + i]; }
                 acCrc[NMEA_CRC_LENGTH] = '\0';
+                uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;
-                if (sscanf(acCrc, "%x", &uiMessageCrc) > 0 && uiMyCalculatedCrc32 == uiMessageCrc)
+                auto result = std::from_chars(acCrc, acCrc + NMEA_CRC_LENGTH, uiMessageCrc, 16);
+
+                if (result.ec == std::errc() && uiMyCalculatedCrc32 == uiMessageCrc)
                 {
-                    stMetaData_.uiLength = uiMyByteCount;
+                    uiMyByteCount = 0;
 
                     if (uiFrameBufferSize_ < stMetaData_.uiLength)
                     {
-                        uiMyByteCount = 0;
                         ResetState();
                         return STATUS::BUFFER_FULL;
                     }
 
-                    clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
-                    uiMyByteCount = 0;
+                    clMyBuffer.copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                    clMyBuffer.erase_begin(stMetaData_.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 else
@@ -611,8 +618,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             if (uiMyJsonObjectOpenBraces == 0)
             {
                 stMetaData_.uiLength = uiMyByteCount;
-                clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                clMyBuffer.copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                clMyBuffer.erase_begin(stMetaData_.uiLength);
                 uiMyByteCount = 0;
                 uiMyExpectedPayloadLength = 0;
                 eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;

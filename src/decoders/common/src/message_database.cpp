@@ -120,10 +120,9 @@ std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
     std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : "UNKNOWN";
 
     std::string strMessageFormatSuffix;
-    if (uiResponse != 0U) { strMessageFormatSuffix = "R"; }
-    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY)) { strMessageFormatSuffix = "B"; }
-    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)) { strMessageFormatSuffix = "A"; }
-    else { strMessageFormatSuffix = ""; } // default to abbreviated ASCII format
+    if (uiResponse != 0U) { strMessageFormatSuffix = 'R'; }
+    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY)) { strMessageFormatSuffix = 'B'; }
+    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)) { strMessageFormatSuffix = 'A'; }
 
     if (uiSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
 
@@ -131,9 +130,9 @@ std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
 }
 
 //-----------------------------------------------------------------------
-MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(const std::string& strMsgName_) const
+MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(std::string_view strMsgName_) const
 {
-    const auto it = mMessageName.find(strMsgName_);
+    const auto it = mMessageName.find(strMsgName_.data());
     return it != mMessageName.end() ? it->second : nullptr;
 }
 
@@ -148,15 +147,8 @@ MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(const int32_t iMsgId_) co
 // -------------------------------------------------------------------------------------------------------
 const std::vector<BaseField::Ptr>& MessageDefinition::GetMsgDefFromCrc([[maybe_unused]] spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const
 {
-    // If we can't find the correct CRC just default to the latest.
-    if (fields.find(uiMsgDefCrc_) == fields.end())
-    {
-        // TODO: this branch always gets triggered for decompression. Disabled logging for now.
-        // pclLogger_.info("Log DB is missing the log definition {} - {}.  Defaulting to newest version of the log definition.", name, uiMsgDefCrc_);
-        uiMsgDefCrc_ = latestMessageCrc;
-    }
-
-    return fields.at(uiMsgDefCrc_);
+    auto it = fields.find(uiMsgDefCrc_);
+    return (it != fields.end()) ? it->second : fields.at(latestMessageCrc);
 }
 
 } // namespace novatel::edie

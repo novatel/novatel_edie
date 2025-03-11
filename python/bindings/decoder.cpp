@@ -19,7 +19,7 @@ nb::object oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, oem::PyHeader
 
     switch (status)
     {
-    case STATUS::SUCCESS: return create_message_instance(header, fields, metadata, database);
+    case STATUS::SUCCESS: return create_message_instance(header, std::move(fields), metadata, database);
     case STATUS::NO_DEFINITION: return create_unknown_message_instance(raw_body, header, database);
     default: throw_exception_from_status(status);
     }
@@ -119,7 +119,7 @@ void init_novatel_decoder(nb::module_& m)
                 status = decoder.message_decoder.Decode(body_pointer, fields, metadata);
                 switch (status)
                 {
-                case STATUS::SUCCESS: return create_message_instance(header, fields, metadata, decoder.database);
+                case STATUS::SUCCESS: return create_message_instance(header, std::move(fields), metadata, decoder.database);
                 case STATUS::NO_DEFINITION:
                     return create_unknown_message_instance(nb::bytes(body_pointer, metadata.uiLength - metadata.uiHeaderLength), header,
                                                            decoder.database);

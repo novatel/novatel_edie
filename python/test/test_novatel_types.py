@@ -90,23 +90,17 @@ def test_ascii_char_byte_valid(helper):
     helper.create_base_field("INT_4", FIELD_TYPE.SIMPLE, "%B", 1, DATA_TYPE.CHAR)
     helper.create_base_field("INT_5", FIELD_TYPE.SIMPLE, "%B", 1, DATA_TYPE.CHAR)
     helper.create_base_field("INT_6", FIELD_TYPE.SIMPLE, "%B", 1, DATA_TYPE.CHAR)
-    helper.create_base_field("INT_7", FIELD_TYPE.SIMPLE, "%B", 1, DATA_TYPE.CHAR)
-    helper.create_base_field("INT_8", FIELD_TYPE.SIMPLE, "%B", 1, DATA_TYPE.CHAR)
-    helper.create_base_field("INT_9", FIELD_TYPE.SIMPLE, "%B", 1, DATA_TYPE.CHAR)
 
-    input = b"-129,-128,-127,-1,0,1,127,128,129"
+    input = b"-128,-127,-1,0,1,127"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
     throw_exception_from_status(status)
 
-    assert intermediate_format.INT_1 == 127
-    assert intermediate_format.INT_2 == -128
-    assert intermediate_format.INT_3 == -127
-    assert intermediate_format.INT_4 == -1
-    assert intermediate_format.INT_5 == 0
-    assert intermediate_format.INT_6 == 1
-    assert intermediate_format.INT_7 == 127
-    assert intermediate_format.INT_8 == -128
-    assert intermediate_format.INT_9 == -127
+    assert intermediate_format.INT_1 == -128
+    assert intermediate_format.INT_2 == -127
+    assert intermediate_format.INT_3 == -1
+    assert intermediate_format.INT_4 == 0
+    assert intermediate_format.INT_5 == 1
+    assert intermediate_format.INT_6 == 127
 
 
 def test_asci_uchar_byte_valid(helper):
@@ -114,25 +108,15 @@ def test_asci_uchar_byte_valid(helper):
     helper.create_base_field("INT_2", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
     helper.create_base_field("INT_3", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
     helper.create_base_field("INT_4", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("INT_5", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("INT_6", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("INT_7", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("INT_8", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
-    helper.create_base_field("INT_9", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
 
-    input = b"-256,-255,-254,-1,0,1,254,255,256"
+    input = b"0,1,254,255"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
     throw_exception_from_status(status)
 
     assert intermediate_format.INT_1 == 0
     assert intermediate_format.INT_2 == 1
-    assert intermediate_format.INT_3 == 2
+    assert intermediate_format.INT_3 == 254
     assert intermediate_format.INT_4 == 255
-    assert intermediate_format.INT_5 == 0
-    assert intermediate_format.INT_6 == 1
-    assert intermediate_format.INT_7 == 254
-    assert intermediate_format.INT_8 == 255
-    assert intermediate_format.INT_9 == 0
 
 
 def test_ascii_uchar_byte_invalid(helper):
@@ -244,10 +228,8 @@ def test_ascii_double_valid(helper):
     helper.create_base_field("Ht", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
     helper.create_base_field("longitude1", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
     helper.create_base_field("longitude2", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
-    helper.create_base_field("longitude3", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
-    helper.create_base_field("longitude4", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
 
-    input = b"51.11636937989,-114.03825348307,0,1.7e+308,-1.7e+308,1.7e+309,-1.7e+309"
+    input = b"51.11636937989,-114.03825348307,0,1.7e+308,-1.7e+308"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
     inf = float("inf")
     throw_exception_from_status(status)
@@ -257,8 +239,6 @@ def test_ascii_double_valid(helper):
     assert intermediate_format.Ht == approx(0, rel=1e-15)
     assert intermediate_format.longitude1 == approx(1.7e+308, rel=1e-15)
     assert intermediate_format.longitude2 == approx(-1.7e+308, rel=1e-15)
-    assert intermediate_format.longitude3 == approx(inf, rel=1e-15)
-    assert intermediate_format.longitude4 == approx(-inf, rel=1e-15)
 
 
 @pytest.mark.xfail
@@ -294,16 +274,14 @@ def test_ascii_uint_valid(helper):
     helper.create_base_field("toe1", FIELD_TYPE.SIMPLE, "%u", 4, DATA_TYPE.UINT)
     helper.create_base_field("toe2", FIELD_TYPE.SIMPLE, "%u", 4, DATA_TYPE.UINT)
     helper.create_base_field("toe3", FIELD_TYPE.SIMPLE, "%u", 4, DATA_TYPE.UINT)
-    helper.create_base_field("toe4", FIELD_TYPE.SIMPLE, "%u", 4, DATA_TYPE.UINT)
 
-    input = b"-1,0,4294967294,4294967295"
+    input = b"0,4294967294,4294967295"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
     throw_exception_from_status(status)
 
-    assert intermediate_format.toe1 == 4294967295
-    assert intermediate_format.toe2 == 0
-    assert intermediate_format.toe3 == 4294967294
-    assert intermediate_format.toe4 == 4294967295
+    assert intermediate_format.toe1 == 0
+    assert intermediate_format.toe2 == 4294967294
+    assert intermediate_format.toe3 == 4294967295
 
 
 def test_ascii_gpstime_msec_valid(helper):
@@ -359,33 +337,25 @@ def test_ascii_scientific_notation_double_valid(helper):
 def test_ascii_ulong_valid(helper):
     helper.create_base_field("rx_chars1", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.ULONG)
     helper.create_base_field("rx_chars2", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars3", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars3", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
     helper.create_base_field("rx_chars4", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars5", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars6", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars7", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars8", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars9", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars10", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars11", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars12", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars5", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars6", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars7", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars8", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONG)
 
-    input = b"-1,0,255,-1,0,65535,-1,0,4294967295,-1,0,18446744073709551615"
+    input = b"0,255,0,65535,0,4294967295,0,18446744073709551615"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
     throw_exception_from_status(status)
 
-    assert intermediate_format.rx_chars1 == 255
-    assert intermediate_format.rx_chars2 == 0
-    assert intermediate_format.rx_chars3 == 255
+    assert intermediate_format.rx_chars1 == 0
+    assert intermediate_format.rx_chars2 == 255
+    assert intermediate_format.rx_chars3 == 0
     assert intermediate_format.rx_chars4 == 65535
     assert intermediate_format.rx_chars5 == 0
-    assert intermediate_format.rx_chars6 == 65535
-    assert intermediate_format.rx_chars7 == 4294967295
-    assert intermediate_format.rx_chars8 == 0
-    assert intermediate_format.rx_chars9 == 4294967295
-    assert intermediate_format.rx_chars10 == ULLONG_MAX
-    assert intermediate_format.rx_chars11 == 0
-    assert intermediate_format.rx_chars12 == ULLONG_MAX
+    assert intermediate_format.rx_chars6 == 4294967295
+    assert intermediate_format.rx_chars7 == 0
+    assert intermediate_format.rx_chars8 == ULLONG_MAX
 
 
 @pytest.mark.xfail(reason="Need to add enum definitions to the database as well")
@@ -649,7 +619,7 @@ def test_simple_field_width_valid(helper):
     helper.create_base_field("field12", FIELD_TYPE.SIMPLE, "%e", 4, DATA_TYPE.FLOAT)
     helper.create_base_field("field13", FIELD_TYPE.SIMPLE, "%lf", 8, DATA_TYPE.DOUBLE)
 
-    input = b"TRUE,0x63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03"
+    input = b"TRUE,63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
     throw_exception_from_status(status)
 

@@ -50,7 +50,7 @@ constexpr uint16_t US_RX_CONFIG_USER_MSG_ID = 2474;
 class RxConfigHandler
 {
   private:
-    static constexpr auto szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
+    static constexpr std::string_view szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
     static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
 
     Framer clMyFramer;
@@ -113,7 +113,7 @@ class RxConfigHandler
     //
     //! \return The number of bytes successfully written to the RxConfigHandler.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_);
+    bool Write(const unsigned char* pucData_, uint32_t uiDataSize_);
 
     //----------------------------------------------------------------------------
     //! \brief Read and convert an RXCONFIG message from the handler.
@@ -144,7 +144,10 @@ class RxConfigHandler
     //
     //! \return The number of bytes flushed from the internal Framer.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize);
+    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize)
+    {
+        return clMyFramer.Flush(pucBuffer_, uiBufferSize_);
+    }
 };
 
 } // namespace novatel::edie::oem

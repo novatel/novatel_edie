@@ -39,7 +39,7 @@ def compare_message_data(test_message_data, expected_message_data):
 
 
 def write_bytes_to_handler(handler, data):
-    assert handler.write(data) == len(data)
+    assert handler.write(data)
 
 
 def TestSameFormatCompare(rx_config_handler, format_, expected_rx_config_message_data, expected_embedded_message_data):

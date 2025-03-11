@@ -1,7 +1,7 @@
 [project]
 name = "novatel_edie"
 description = "SDK for interfacing with and decoding data from NovAtel OEM7 receivers"
-version = "2.0.2"
+version = "2.0.3a1"
 license = {text = "MIT"}
 requires-python = ">=3.8"
 dependencies = [
@@ -55,14 +55,14 @@ test-requires = "pytest"
 test-command = "pytest {project}/python/test --color=yes -v"
 build-verbosity = 1
 archs = "auto64"
+manylinux-x86_64-image = "manylinux_2_28"
 
-# Needed for full C++17 support
 [tool.cibuildwheel.macos.environment]
-MACOSX_DEPLOYMENT_TARGET = "10.15"
-
+# Needed for full C++17 support
+MACOSX_DEPLOYMENT_TARGET = "13.0"
 
 [tool.bumpversion]
-current_version = "2.0.2"
+current_version = "2.0.3a1"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.

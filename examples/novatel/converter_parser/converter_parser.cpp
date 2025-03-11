@@ -103,13 +103,7 @@ int main(int argc, char* argv[])
     LOGGER_MANAGER->AddConsoleLogging(clFilter->GetLogger());
     LOGGER_MANAGER->AddRotatingFileLogger(clFilter->GetLogger());
 
-    // Initialize structures
-    MetaDataStruct stMetaData;
-    MessageDataStruct stMessageData;
-
     clParser.SetFilter(clFilter);
-
-    std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
 
     // Set up file streams
     std::ifstream ifs(pathInFilename, std::ios::binary);
@@ -124,8 +118,12 @@ int main(int argc, char* argv[])
 
     while (!ifs.eof())
     {
+        std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         ifs.read(cData.data(), cData.size());
         clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
+
+        MetaDataStruct stMetaData;
+        MessageDataStruct stMessageData;
 
         STATUS eStatus = clParser.Read(stMessageData, stMetaData);
 

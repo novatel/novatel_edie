@@ -27,6 +27,7 @@
 #ifndef MESSAGE_DATABASE_HPP
 #define MESSAGE_DATABASE_HPP
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -155,8 +156,8 @@ static const std::unordered_map<std::string, FIELD_TYPE> FieldTypeEnumLookup = {
 struct EnumDataType
 {
     uint32_t value{0};
-    std::string name{};
-    std::string description{};
+    std::string name;
+    std::string description;
 };
 
 //-----------------------------------------------------------------------
@@ -165,9 +166,12 @@ struct EnumDataType
 //-----------------------------------------------------------------------
 struct EnumDefinition
 {
-    std::string _id{};
-    std::string name{};
-    std::vector<EnumDataType> enumerators{};
+    std::string _id;
+    std::string name;
+    std::vector<EnumDataType> enumerators;
+    std::unordered_map<std::string_view, uint32_t> nameValue;
+    std::unordered_map<std::string_view, uint32_t> descriptionValue;
+    std::unordered_map<uint32_t, std::string_view> valueName;
 
     using Ptr = std::shared_ptr<EnumDefinition>;
     using ConstPtr = std::shared_ptr<const EnumDefinition>;
@@ -182,7 +186,7 @@ struct BaseDataType
 {
     DATA_TYPE name{DATA_TYPE::UNKNOWN};
     uint16_t length{0};
-    std::string description{};
+    std::string description;
 };
 
 //-----------------------------------------------------------------------
@@ -206,25 +210,29 @@ struct BaseField
     std::string description;
     std::string conversion;
     uint32_t conversionHash{0ULL};
-    int32_t conversionBeforePoint{0};
-    int32_t conversionAfterPoint{0};
+    std::optional<int32_t> width;
+    std::optional<int32_t> precision;
+    bool isString{false};
+    bool isCsv{false};
     SimpleDataType dataType;
 
     BaseField() = default;
 
-    BaseField(std::string name_, const FIELD_TYPE type_, const std::string& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
+    BaseField(std::string name_, const FIELD_TYPE type_, std::string&& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
         : name(std::move(name_)), type(type_)
     {
-        SetConversion(sConversion_);
+        SetConversion(std::move(sConversion_));
         dataType.length = static_cast<uint16_t>(length_);
         dataType.name = eDataTypeName_;
     }
 
     virtual ~BaseField() = default;
 
-    void SetConversion(const std::string& sConversion_)
+    void SetConversion(std::string&& sConversion_)
     {
-        conversion = sConversion_;
+        conversion = std::move(sConversion_);
+        width = {};
+        precision = {};
 
         const char* sConvertString = conversion.c_str();
 
@@ -234,16 +242,16 @@ struct BaseField
 
         if (std::isdigit(*sConvertString))
         {
-            conversionBeforePoint = std::stoi(sConvertString);
-            sConvertString += std::to_string(conversionBeforePoint).length();
+            width = std::stoi(sConvertString);
+            sConvertString += std::to_string(*width).length();
         }
 
         if (*sConvertString == '.') { ++sConvertString; }
 
         if (std::isdigit(*sConvertString))
         {
-            conversionAfterPoint = std::stoi(sConvertString);
-            sConvertString += std::to_string(conversionAfterPoint).length();
+            precision = std::stoi(sConvertString);
+            sConvertString += std::to_string(*precision).length();
         }
 
         conversionHash = 0;
@@ -251,16 +259,9 @@ struct BaseField
         while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
 
         if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
-    }
 
-    [[nodiscard]] bool IsString() const
-    {
-        return type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
-    }
-
-    [[nodiscard]] bool IsCsv() const
-    {
-        return !IsString() && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
+        isString = type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
+        isCsv = !isString && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
     }
 
     using Ptr = std::shared_ptr<BaseField>;
@@ -300,6 +301,7 @@ struct ArrayField : BaseField
 struct FieldArrayField : BaseField
 {
     uint32_t arrayLength{0}, fieldSize{0};
+    std::string arrayLengthRef; // TODO: use something other than string
     std::vector<std::shared_ptr<BaseField>> fields;
 
     using Ptr = std::shared_ptr<FieldArrayField>;
@@ -334,10 +336,10 @@ class MessageDatabase
 {
     std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
-    std::unordered_map<std::string, MessageDefinition::ConstPtr> mMessageName;
+    std::unordered_map<std::string_view, MessageDefinition::ConstPtr> mMessageName;
     std::unordered_map<int32_t, MessageDefinition::ConstPtr> mMessageId;
-    std::unordered_map<std::string, EnumDefinition::ConstPtr> mEnumName;
-    std::unordered_map<std::string, EnumDefinition::ConstPtr> mEnumId;
+    std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumName;
+    std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
 
   public:
     //----------------------------------------------------------------------------
@@ -381,7 +383,6 @@ class MessageDatabase
     //! \brief Append a list of message definitions to the database.
     //
     //! \param[in] vMessageDefinitions_ A vector of message definitions
-    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
     void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
     {
@@ -400,7 +401,6 @@ class MessageDatabase
     //! \brief Append a list of enum definitions to the database.
     //
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
-    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
     void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
     {
@@ -432,7 +432,7 @@ class MessageDatabase
     //
     //! \param[in] strMsgName_ A string containing the message name.
     //----------------------------------------------------------------------------
-    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(const std::string& strMsgName_) const;
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view strMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message ID.

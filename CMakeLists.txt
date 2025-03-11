@@ -1,5 +1,5 @@
 # Global source for C++ project version - format must be maintained to avoid breaking regex
-set(RELEASE_VERSION 3.7.7)
+set(RELEASE_VERSION 3.7.8)
 
 # Setup CMake and conan config
 cmake_minimum_required(VERSION 3.15)
@@ -17,6 +17,7 @@ option(BUILD_EXAMPLES "Build examples" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(BUILD_PYTHON "Build Python bindings" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Set -fPIC" ON)
+option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile commands" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
 

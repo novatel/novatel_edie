@@ -117,8 +117,6 @@ int main(int argc, char* argv[])
     clFramer.SetPayloadOnly(false);
     clFramer.SetReportUnknownBytes(true);
 
-    std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
-
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
@@ -128,22 +126,18 @@ int main(int argc, char* argv[])
 
     auto eStatus = STATUS::UNKNOWN;
 
-    IntermediateHeader stHeader;
-    std::vector<FieldContainer> stMessage;
-
-    MetaDataStruct stMetaData;
-    MessageDataStruct stMessageData;
-
     auto start = std::chrono::system_clock::now();
     uint32_t uiCompletedMessages = 0;
     while (true)
     {
         unsigned char* pucReadBuffer = acFrameBuffer;
 
+        MetaDataStruct stMetaData;
         // Get frame, null-terminate.
         eStatus = clFramer.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, stMetaData);
         if (eStatus == STATUS::SUCCESS)
         {
+            IntermediateHeader stHeader;
             // Decode the header. Get metadata here and populate the Intermediate header.
             eStatus = clHeaderDecoder.Decode(pucReadBuffer, stHeader, stMetaData);
             if (eStatus == STATUS::SUCCESS)
@@ -159,9 +153,11 @@ int main(int argc, char* argv[])
                     if (eStatus == STATUS::SUCCESS)
                     {
                         stHeader.usMessageId = stMetaData.usMessageId;
+                        std::vector<FieldContainer> stMessage;
                         eStatus = clMessageDecoder.Decode((pucReadBuffer + stMetaData.uiHeaderLength), stMessage, stMetaData);
                         if (eStatus == STATUS::SUCCESS)
                         {
+                            MessageDataStruct stMessageData;
                             // Encode our message now that we have everything we need.
                             eStatus = clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData,
                                                        stMetaData.eFormat, eEncodeFormat);
@@ -178,6 +174,7 @@ int main(int argc, char* argv[])
         else if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE)
         {
             // Read from file, write to framer.
+            std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
             ifs.read(cData.data(), cData.size());
             if (ifs.gcount() == 0)
             {
@@ -185,7 +182,7 @@ int main(int argc, char* argv[])
                 break;
             }
 
-            clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
+            if (!clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount())) { pclLogger->warn("Framer write failed."); }
         }
     }
 

@@ -56,14 +56,12 @@ unsigned char PackMsgType(const uint32_t uiSiblingId_, const uint32_t uiMsgForma
 }
 
 //-----------------------------------------------------------------------
-std::string GetEnumString(const EnumDefinition* const stEnumDef_, const uint32_t uiEnum_)
+std::string_view GetEnumString(const EnumDefinition* const stEnumDef_, const uint32_t uiEnum_)
 {
     if (stEnumDef_ != nullptr)
     {
-        for (const auto& e : stEnumDef_->enumerators)
-        {
-            if (e.value == uiEnum_) { return e.name; }
-        }
+        const auto it = stEnumDef_->valueName.find(uiEnum_);
+        if (it != stEnumDef_->valueName.end()) { return it->second; }
     }
 
     return "UNKNOWN";
@@ -74,10 +72,8 @@ int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, std::string_view st
 {
     if (stEnumDef_ != nullptr)
     {
-        for (const auto& e : stEnumDef_->enumerators)
-        {
-            if (e.name == strEnum_) { return static_cast<int32_t>(e.value); }
-        }
+        const auto it = stEnumDef_->nameValue.find(strEnum_);
+        if (it != stEnumDef_->nameValue.end()) { return it->second; }
     }
 
     return 0;
@@ -88,17 +84,14 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, std::string_view s
 {
     if (stRespDef_ != nullptr)
     {
-        for (const auto& e : stRespDef_->enumerators)
-        {
-            // response string is stored in description
-            if (e.description == strResp_) { return static_cast<int32_t>(e.value); }
-        }
+        const auto it = stRespDef_->descriptionValue.find(strResp_);
+        if (it != stRespDef_->descriptionValue.end()) { return it->second; }
     }
 
     return 0;
 }
 
-std::string GetEnumString(const std::shared_ptr<const EnumDefinition>& stEnumDef_, uint32_t uiEnum_)
+std::string_view GetEnumString(const std::shared_ptr<const EnumDefinition>& stEnumDef_, uint32_t uiEnum_)
 {
     return GetEnumString(stEnumDef_.get(), uiEnum_);
 }

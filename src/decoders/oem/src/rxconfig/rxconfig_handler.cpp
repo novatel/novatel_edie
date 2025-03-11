@@ -64,7 +64,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+bool RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
@@ -114,8 +114,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     unsigned char* pucTempEncodeBuffer = pcMyEncodeBuffer.get();
     uint32_t uiMyBufferBytesRemaining = uiInternalBufferSize;
 
-    if (eEncodeFormat_ == ENCODE_FORMAT::JSON &&
-        !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"({"header":)"))
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"({"header":)"))
     {
         return STATUS::BUFFER_FULL;
     }
@@ -127,8 +126,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     pucTempEncodeBuffer += stRxConfigMessageData_.uiMessageHeaderLength;
 
-    if (eEncodeFormat_ == ENCODE_FORMAT::JSON &&
-        !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(,"body":)"))
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(,"body":)"))
     {
         return STATUS::BUFFER_FULL;
     }
@@ -136,23 +134,14 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     stEmbeddedMessageData_.pucMessage = pucTempEncodeBuffer;
     stRxConfigMessageData_.pucMessageBody = pucTempEncodeBuffer;
 
-    // This is just dummy args that we must pass to the encoder. They will not be used.
-    uint32_t uiCRC = 0;
-
     switch (eEncodeFormat_)
     {
     case ENCODE_FORMAT::JSON:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"({"embedded_header":)"))
-        {
-            return STATUS::BUFFER_FULL;
-        }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"({"embedded_header":)")) { return STATUS::BUFFER_FULL; }
         break;
 
     case ENCODE_FORMAT::ABBREV_ASCII:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, szAbbrevAsciiEmbeddedHeaderPrefix))
-        {
-            return STATUS::BUFFER_FULL;
-        }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, szAbbrevAsciiEmbeddedHeaderPrefix)) { return STATUS::BUFFER_FULL; }
         break;
 
     default: break;
@@ -168,24 +157,21 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     switch (eEncodeFormat_)
     {
     case ENCODE_FORMAT::JSON:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(,"embedded_body":)"))
-        {
-            return STATUS::BUFFER_FULL;
-        }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(,"embedded_body":)")) { return STATUS::BUFFER_FULL; }
         break;
 
     case ENCODE_FORMAT::ABBREV_ASCII:
         // The header is going to be pointing to the wrong location, so reverse it back to
         // before the "<     " characters.
-        stEmbeddedMessageData_.pucMessageHeader -= strlen(szAbbrevAsciiEmbeddedHeaderPrefix);
-        stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(strlen(szAbbrevAsciiEmbeddedHeaderPrefix));
+        stEmbeddedMessageData_.pucMessageHeader -= szAbbrevAsciiEmbeddedHeaderPrefix.size();
+        stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(szAbbrevAsciiEmbeddedHeaderPrefix.size());
         // A normal abbreviated ASCII log would remove the final ' ' delimiter, however since
         // this is part of a message body, we should encode it to follow the standard of
         // trailing spaces in the message body. EncodeHeader() would have removed this, so add
         // it back in the message MessageHeaderLength count.
         stEmbeddedMessageData_.uiMessageHeaderLength++;
 
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "\r\n")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, "\r\n")) { return STATUS::BUFFER_FULL; }
 
         stEmbeddedMessageData_.uiMessageHeaderLength++;
         break;
@@ -204,7 +190,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     // This will be done differently depending on how we encoded the message.
     switch (eEncodeFormat_)
     {
-    case ENCODE_FORMAT::ASCII:
+    case ENCODE_FORMAT::ASCII: {
         // Move back over CRLF.
         pucTempEncodeBuffer -= 2;
         uiMyBufferBytesRemaining += 2;
@@ -213,21 +199,21 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         pucTempEncodeBuffer -= OEM4_ASCII_CRC_LENGTH;
         uiMyBufferBytesRemaining += OEM4_ASCII_CRC_LENGTH;
         // Grab the CRC from the encode buffer and invert it.
-        uiCRC = strtoul(reinterpret_cast<char*>(pucTempEncodeBuffer), nullptr, 16) ^ 0xFFFFFFFF;
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "%08x", uiCRC)) { return STATUS::BUFFER_FULL; }
+        const uint32_t crc = strtoul(reinterpret_cast<char*>(pucTempEncodeBuffer), nullptr, 16) ^ 0xFFFFFFFF;
+        if (!WriteHexToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, crc, 8)) { return STATUS::BUFFER_FULL; }
         break;
-
-    case ENCODE_FORMAT::BINARY:
+    }
+    case ENCODE_FORMAT::BINARY: {
         // Move back over the CRC.
         pucTempEncodeBuffer -= OEM4_BINARY_CRC_LENGTH;
         uiMyBufferBytesRemaining += OEM4_BINARY_CRC_LENGTH;
         // Grab the CRC from the encode buffer and invert it.
-        uiCRC = *(reinterpret_cast<uint32_t*>(pucTempEncodeBuffer)) ^ 0xFFFFFFFF;
-        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC)) { return STATUS::BUFFER_FULL; }
+        const uint32_t crc = *reinterpret_cast<uint32_t*>(pucTempEncodeBuffer) ^ 0xFFFFFFFF;
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, crc)) { return STATUS::BUFFER_FULL; }
         break;
-
+    }
     case ENCODE_FORMAT::JSON:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, '}')) { return STATUS::BUFFER_FULL; }
         break;
 
     default: break;
@@ -238,35 +224,29 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     // Put the final CRC at the end.
     switch (eEncodeFormat_)
     {
-    case ENCODE_FORMAT::ASCII:
-        uiCRC = CalculateBlockCrc32(pcMyEncodeBuffer.get() + 1, static_cast<uint32_t>(pucTempEncodeBuffer - (pcMyEncodeBuffer.get() + 1)));
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "*%08x\r\n", uiCRC))
+    case ENCODE_FORMAT::ASCII: {
+        const uint32_t crc = CalculateBlockCrc32(pcMyEncodeBuffer.get() + 1, static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get() - 1));
+        if (!CopyAllToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, '*', HexValue<uint32_t>{crc, 8}, "\r\n"))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
-
-    case ENCODE_FORMAT::BINARY:
-        uiCRC = CalculateBlockCrc32(pcMyEncodeBuffer.get(), static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get()));
-        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, &uiCRC)) { return STATUS::BUFFER_FULL; }
+    }
+    case ENCODE_FORMAT::BINARY: {
+        const uint32_t crc = CalculateBlockCrc32(pcMyEncodeBuffer.get(), static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get()));
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, crc)) { return STATUS::BUFFER_FULL; }
         break;
-
+    }
     default: break;
     }
 
     stRxConfigMessageData_.uiMessageBodyLength = static_cast<uint32_t>(pucTempEncodeBuffer - stRxConfigMessageData_.pucMessageBody);
 
     // Add the closing '}' character, but don't count it as part of the message body length.
-    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})"))
-    {
-        return STATUS::BUFFER_FULL;
-    }
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, '}')) { return STATUS::BUFFER_FULL; }
 
     stRxConfigMessageData_.pucMessage = pcMyEncodeBuffer.get();
     stRxConfigMessageData_.uiMessageLength = static_cast<uint32_t>(pucTempEncodeBuffer - pcMyEncodeBuffer.get());
 
     return STATUS::SUCCESS;
 }
-
-// -------------------------------------------------------------------------------------------------------
-uint32_t RxConfigHandler::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_) { return clMyFramer.Flush(pucBuffer_, uiBufferSize_); }

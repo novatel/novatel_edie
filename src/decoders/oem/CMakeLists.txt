@@ -5,6 +5,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES
     OUTPUT_NAME "edie_${TARGET_NAME}"
     FOLDER "decoders"
 )
+
 target_link_libraries(${TARGET_NAME} PUBLIC common decoders_common)
 target_include_directories(${TARGET_NAME} PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
