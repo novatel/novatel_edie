@@ -3,6 +3,7 @@
 #include "bindings_core.hpp"
 #include "file_parser.hpp"
 #include "message_db_singleton.hpp"
+#include "parser.hpp"
 #include "py_message_data.hpp"
 #include "py_message_objects.hpp"
 #include "pystream.hpp"
@@ -17,19 +18,11 @@ nb::object oem::PyFileParser::PyRead()
     MessageDataStruct message_data;
     PyHeader header;
     std::vector<FieldContainer> message_fields;
-    PyMessageDatabase::ConstPtr parent_db = std::dynamic_pointer_cast<const PyMessageDatabase>(this->MessageDb());
 
     STATUS status = ReadIntermediate(message_data, header, message_fields, metadata);
-    header.format = metadata.eFormat;
 
-    switch (status)
-    {
-    case STATUS::SUCCESS: return create_message_instance(header, message_fields, metadata, parent_db);
-    case STATUS::NO_DEFINITION:
-        return create_unknown_message_instance(nb::bytes(message_data.pucMessageBody, message_data.uiMessageBodyLength), header, parent_db);
-    case STATUS::UNKNOWN: return nb::bytes(message_data.pucMessage, message_data.uiMessageLength);
-    default: throw_exception_from_status(status);
-    }
+    return HandlePythonReadStatus(status, message_data, header, message_fields, metadata,
+                                  std::static_pointer_cast<const PyMessageDatabase>(this->MessageDb()));
 }
 
 nb::object oem::PyFileParser::PyIterRead()
@@ -100,10 +93,7 @@ void init_novatel_file_parser(nb::module_& m)
         .def("__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; })
         .def("__next__", &oem::PyFileParser::PyIterRead)
         .def("convert", &oem::PyFileParser::PyConvert, "fmt"_a)
-        .def("iter_convert",
-             [](oem::PyFileParser& self, ENCODE_FORMAT fmt) {
-                 return oem::FileConversionIterator(self, fmt);
-             })
+        .def("iter_convert", [](oem::PyFileParser& self, ENCODE_FORMAT fmt) { return oem::FileConversionIterator(self, fmt); })
         .def("reset", &oem::PyFileParser::Reset)
         .def(
             "flush",

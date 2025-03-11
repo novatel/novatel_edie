@@ -45,7 +45,6 @@ def _configure_logging(logger):
 
 
 def main():
-    pass
     logger = Logging().register_logger("converter")
     _configure_logging(logger)
     atexit.register(Logging.shutdown)
@@ -73,7 +72,7 @@ def main():
     file_parser.filter = filter
     encoder = ne.Encoder()
     _configure_logging(file_parser.logger)
-    # _configure_logging(file_parser.filter.logger)
+    _configure_logging(file_parser.filter.logger)
 
 
     complete_messages = 0

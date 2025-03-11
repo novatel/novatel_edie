@@ -11,24 +11,32 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
+nb::object oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, oem::PyHeader& header_,
+                                  std::vector<FieldContainer>& message_fields_, oem::MetaDataStruct& metadata_,
+                                   PyMessageDatabase::ConstPtr database_)
+{
+    header_.format = metadata_.eFormat;
+    switch (status_)
+    {
+    case STATUS::SUCCESS: return create_message_instance(header_, message_fields_, metadata_, database_);
+    case STATUS::NO_DEFINITION:
+        return create_unknown_message_instance(nb::bytes(message_data_.pucMessageBody, message_data_.uiMessageBodyLength), header_, database_);
+    case STATUS::UNKNOWN: return nb::bytes(message_data_.pucMessage, message_data_.uiMessageLength);
+    default: throw_exception_from_status(status_);
+    }
+}
+
 nb::object oem::PyParser::PyRead(bool decode_incomplete)
 {
     oem::MetaDataStruct metadata;
     MessageDataStruct message_data;
     oem::PyHeader header;
     std::vector<FieldContainer> message_fields;
-    PyMessageDatabase::ConstPtr parent_db = std::dynamic_pointer_cast<const PyMessageDatabase>(MessageDb());
-    STATUS status = ReadIntermediate(message_data, header, message_fields, metadata, decode_incomplete);
-    header.format = metadata.eFormat;
 
-    switch (status)
-    {
-    case STATUS::SUCCESS: return create_message_instance(header, message_fields, metadata, parent_db);
-    case STATUS::NO_DEFINITION:
-        return create_unknown_message_instance(nb::bytes(message_data.pucMessageBody, message_data.uiMessageBodyLength), header, parent_db);
-    case STATUS::UNKNOWN: return nb::bytes(message_data.pucMessage, message_data.uiMessageLength);
-    default: throw_exception_from_status(status);
-    }
+    STATUS status = ReadIntermediate(message_data, header, message_fields, metadata, decode_incomplete);
+    return HandlePythonReadStatus(status, message_data, header, message_fields, metadata,
+                                  std::static_pointer_cast<const PyMessageDatabase>(MessageDb()));
+
 }
 
 nb::object oem::PyParser::PyIterRead()
