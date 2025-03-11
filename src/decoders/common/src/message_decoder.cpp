@@ -62,11 +62,11 @@ void MessageDecoderBase::InitFieldMaps()
     // =========================================================
     // ASCII Field Mapping
     // =========================================================
-    // asciiFieldMap[CalculateBlockCrc32("%c")] = SimpleAsciiMapEntry<int8_t>();
+    // asciiFieldMap[CalculateBlockCrc32("c")] = SimpleAsciiMapEntry<int8_t>();
     asciiFieldMap[CalculateBlockCrc32("hd")] = SimpleAsciiMapEntry<int16_t>();
     asciiFieldMap[CalculateBlockCrc32("ld")] = SimpleAsciiMapEntry<int32_t>();
     asciiFieldMap[CalculateBlockCrc32("lld")] = SimpleAsciiMapEntry<int64_t>();
-    // asciiFieldMap[CalculateBlockCrc32("%uc")] = SimpleAsciiMapEntry<uint8_t>();
+    // asciiFieldMap[CalculateBlockCrc32("uc")] = SimpleAsciiMapEntry<uint8_t>();
     asciiFieldMap[CalculateBlockCrc32("hu")] = SimpleAsciiMapEntry<uint16_t>();
     asciiFieldMap[CalculateBlockCrc32("lu")] = SimpleAsciiMapEntry<uint32_t>();
     asciiFieldMap[CalculateBlockCrc32("llu")] = SimpleAsciiMapEntry<uint64_t>();
