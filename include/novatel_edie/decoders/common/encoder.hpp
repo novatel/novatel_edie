@@ -54,8 +54,8 @@ constexpr bool IsCommaSeparated(const BaseField& pstFieldDef_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename... Args>
-[[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, Args&&... args_) {
+template <typename... Args> [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, Args&&... args_)
+{
     const uint32_t uiBytesBuffered = fmt::format_to_n(*ppcBuffer_, uiBytesLeft_, szFormat_, std::forward<Args>(args_)...).size;
     if (uiBytesLeft_ < uiBytesBuffered) { return false; }
     *ppcBuffer_ += uiBytesBuffered;
@@ -74,31 +74,23 @@ template <typename... Args>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> constexpr std::array<char, 16> FloatingPointConversionString(const FieldContainer& fc_)
+template <typename T> constexpr std::array<char, 8> FloatingPointConversionString(const FieldContainer& fc_)
 {
     static_assert(std::is_floating_point_v<T>, "FloatingPointConversionString must be called with a floating point type");
-    std::array<char, 16> acConvert{};
+    std::array<char, 8> acConvert{};
     const int32_t iBefore = fc_.fieldDef->conversionBeforePoint;
     const int32_t iAfter = fc_.fieldDef->conversionAfterPoint;
     const auto absVal = fabs(std::get<T>(fc_.fieldValue));
 
-    // Use fmt::format_to to generate the format string
     auto it = fmt::format_to(acConvert.begin(), "{{:");
-    if (absVal < std::numeric_limits<T>::epsilon()) {
-        it = fmt::format_to(it, "0.{}f", iAfter);
-    } else if (iAfter == 0 && iBefore == 0) {
-        it = fmt::format_to(it, "0.1f");
-    } else if (absVal > std::pow(10, iBefore)) {
-        it = fmt::format_to(it, "0.{}e", iBefore + iAfter - 1);
-    } else if (absVal < std::pow(10, -iBefore)) {
-        it = fmt::format_to(it, "0.{}e", iAfter);
-    } else {
-        it = fmt::format_to(it, "0.{}f", iAfter);
-    }
-    *it++ = '}'; // Close the format string
-    *it = '\0';  // Null-terminate the string (optional, but good practice)
+    it = (absVal < std::numeric_limits<T>::epsilon()) ? fmt::format_to(it, "0.{}f", iAfter)
+         : (iAfter == 0 && iBefore == 0)              ? fmt::format_to(it, "0.1f")
+         : (absVal > std::pow(10, iBefore))           ? fmt::format_to(it, "0.{}e", iBefore + iAfter - 1)
+         : (absVal < std::pow(10, -iBefore))          ? fmt::format_to(it, "0.{}e", iAfter)
+                                                      : fmt::format_to(it, "0.{}f", iAfter);
+    *it++ = '}';
+    *it = '\0';
 
-    // Ensure the format string fits in the array
     assert(std::distance(acConvert.begin(), it) <= acConvert.size());
 
     return acConvert;
