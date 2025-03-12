@@ -56,7 +56,7 @@ constexpr bool IsCommaSeparated(const BaseField& pstFieldDef_)
 // -------------------------------------------------------------------------------------------------------
 template <typename... Args> [[nodiscard]] bool PrintToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, const char* szFormat_, Args&&... args_)
 {
-    static_assert(sizeof...(Args) >= 1, "Use CopyToBuffer if you dont need dynamic formatting.");
+    static_assert(sizeof...(Args) > 0, "Use CopyToBuffer if you dont need dynamic formatting.");
     const uint32_t uiBytesBuffered = fmt::format_to_n(*ppcBuffer_, uiBytesLeft_, szFormat_, std::forward<Args>(args_)...).size;
     if (uiBytesLeft_ < uiBytesBuffered) { return false; }
     *ppcBuffer_ += uiBytesBuffered;
@@ -456,7 +456,8 @@ template <typename Derived> class EncoderBase
 
         switch (fc_.fieldDef->dataType.name)
         {
-        case DATA_TYPE::BOOL: return CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, std::get<bool>(fc_.fieldValue) ? "TRUE" : "FALSE");
+        case DATA_TYPE::BOOL:
+            return CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, std::get<bool>(fc_.fieldValue) ? "TRUE" : "FALSE");
         case DATA_TYPE::HEXBYTE: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:02x}", std::get<uint8_t>(fc_.fieldValue));
         case DATA_TYPE::UCHAR: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint8_t>(fc_.fieldValue));
         case DATA_TYPE::CHAR: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int8_t>(fc_.fieldValue));
@@ -482,7 +483,8 @@ template <typename Derived> class EncoderBase
 
         switch (fc_.fieldDef->dataType.name)
         {
-        case DATA_TYPE::BOOL: return CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, std::get<bool>(fc_.fieldValue) ? "true" : "false");
+        case DATA_TYPE::BOOL:
+            return CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, std::get<bool>(fc_.fieldValue) ? "true" : "false");
         case DATA_TYPE::HEXBYTE: [[fallthrough]];
         case DATA_TYPE::UCHAR: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", std::get<uint8_t>(fc_.fieldValue));
         case DATA_TYPE::CHAR: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", std::get<int8_t>(fc_.fieldValue));
