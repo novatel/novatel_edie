@@ -96,8 +96,8 @@ void Encoder::InitFieldMaps()
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         const uint8_t uiValue = std::get<uint8_t>(fc_.fieldValue);
         if (uiValue == '\\') { return CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "\\\\"); } // TODO: add description
-        if (uiValue > 31 && uiValue < 127) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", uiValue); } // print the character
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x{:02x}", uiValue);                                 // print as a hex character within ()
+        if (uiValue > 31 && uiValue < 127) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", uiValue); }              // print the character
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x{:02x}", uiValue); // print as a hex character within ()
     };
 
     asciiFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
