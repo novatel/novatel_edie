@@ -29,7 +29,6 @@
 
 #include <memory>
 
-#include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/common/framer_manager.hpp"
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
@@ -223,7 +222,11 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+    uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_)
+    {
+        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        return clMyFramerManager.Write(pucData_, uiDataSize_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.

@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     // Example config file: logger\example_logger_config.toml
     Logger::InitLogger();
     std::shared_ptr<spdlog::logger> pclLogger = Logger::RegisterLogger("converter");
-    pclLogger->set_level(spdlog::level::debug);
+    pclLogger->set_level(spdlog::level::info);
     Logger::AddConsoleLogging(pclLogger);
     Logger::AddRotatingFileLogger(pclLogger);
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
     clFramerManager.GetFramerInstance("NOVATEL")->SetPayloadOnly(false);
     clFramerManager.GetFramerInstance("NOVATEL")->SetFrameJson(false);
 
-    HeaderDecoder clHeaderDecoder(&clJsonDb);
+    HeaderDecoder clHeaderDecoder(clJsonDb);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clHeaderDecoder.GetLogger());
     Logger::AddRotatingFileLogger(clHeaderDecoder.GetLogger());
@@ -133,9 +133,9 @@ int main(int argc, char* argv[])
 
     // Set up buffers
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
-    std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> acFrameBuffer;
-    std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> acEncodeBuffer;
-    unsigned char* pucEncodedMessageBuffer = acEncodeBuffer.data();
+    unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
+    unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
 
     // Initialize structures and error codes
     auto eFramerStatus = STATUS::UNKNOWN;
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
-            unsigned char* pucFrameBuffer = acFrameBuffer.data();
+            unsigned char* pucFrameBuffer = acFrameBuffer;
             eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), eActiveFramerId);
 
             if (eFramerStatus == STATUS::SUCCESS)
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
                 }
 
                 pucFrameBuffer[stMetaData.uiLength] = '\0';
-                pclLogger->info("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
+                // pclLogger->debug("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
 
                 // Decode the header. Get metadata here and populate the Intermediate header.
                 eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
                         {
                             convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                             stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
-                            pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(pucEncodedMessageBuffer));
+                            // pclLogger->debug("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(pucEncodedMessageBuffer));
                         }
                         else
                         {
@@ -236,8 +236,8 @@ int main(int argc, char* argv[])
     }
 
     // Clean up
-    uint32_t uiBytes = clFramerManager.Flush(acFrameBuffer.data(), sizeof(acFrameBuffer));
-    unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer.data()), uiBytes);
+    uint32_t uiBytes = clFramerManager.Flush(acFrameBuffer, sizeof(acFrameBuffer));
+    unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
     Logger::Shutdown();
     return 0;
 }

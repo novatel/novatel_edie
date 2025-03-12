@@ -85,7 +85,7 @@ inline std::string StatusToString(const STATUS eStatus_)
     case STATUS::UNSUPPORTED: return "UNSUPPORTED";
     case STATUS::MALFORMED_INPUT: return "MALFORMED_INPUT";
     case STATUS::DECOMPRESSION_FAILURE: return "DECOMPRESSION_FAILURE";
-	case STATUS::SYNC_BYTES_FOUND: return "SYNC_BYTES_FOUND";
+    case STATUS::SYNC_BYTES_FOUND: return "SYNC_BYTES_FOUND";
     default: return "UNKNOWN";
     }
 }
@@ -274,15 +274,7 @@ class MetaDataBase
     uint32_t uiHeaderLength{0};
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
-    char acMessageName[uiMessageNameMax + 1]{};
-
-    [[nodiscard]] std::string MessageName() const { return {acMessageName}; }
-
-    void MessageName(std::string_view strMessageName_)
-    {
-        memcpy(acMessageName, strMessageName_.data(), strMessageName_.length());
-        acMessageName[strMessageName_.length()] = '\0';
-    }
+    std::string messageName;
 };
 
 inline MetaDataBase::~MetaDataBase() = default;

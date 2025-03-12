@@ -245,7 +245,7 @@ class Filter
     //
     //! \param[in] stMetaData_  The MetaDataStruct to filter.
     //----------------------------------------------------------------------------
-    bool DoFiltering(const MetaDataStruct& stMetaData_) const;
+    bool DoFiltering(MetaDataBase& stMetaData_) const;
 
   public:
     using Ptr = std::shared_ptr<Filter>;

@@ -89,8 +89,7 @@ void FramerManager::DisplayFramerStack()
                 break;
             }
         }
-        std::cout << "Framer: " << idName
-                  << ", Offset: " << elem.framer->uiMyFrameBufferOffset << ", Status: " << elem.framer->eMyCurrentFramerStatus << std::endl;
+        pclMyLogger->debug("Framer: {}, Offset: {}, Status: {}", idName, elem.framer->uiMyFrameBufferOffset, elem.framer->eMyCurrentFramerStatus);
     }
 }
 
@@ -157,7 +156,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     }
 
     // A Framer Found A Sync Byte
-    DisplayFramerStack();
+    //DisplayFramerStack();
     SortFramers();
 
     // set uiLength for likely framer
@@ -182,7 +181,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             ResetInactiveFramerStates(framer_element.framerId);
             framer_element.framer->eMyCurrentFramerStatus =
                 framer_element.framer->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, *framer_element.metadata);
-            DisplayFramerStack();
+            //DisplayFramerStack();
             if (framer_element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS)
             {
                 pclMyCircularDataBuffer->Copy(pucFrameBuffer_, framer_element.metadata->uiLength);

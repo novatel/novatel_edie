@@ -37,7 +37,6 @@ using json = nlohmann::json;
 HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
 {
     pclMyLogger->debug("HeaderDecoder initializing...");
-
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     pclMyLogger->debug("HeaderDecoder initialized");
 }
@@ -46,7 +45,6 @@ HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
 void HeaderDecoder::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
     pclMyMsgDb = pclMessageDb_;
-
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
     vMyGpsTimeStatusDefinitions = pclMyMsgDb->GetEnumDefName("GPSTimeStatus");
