@@ -95,7 +95,7 @@ void Encoder::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("P")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         const uint8_t uiValue = std::get<uint8_t>(fc_.fieldValue);
-        if (uiValue == '\\') { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }                      // TODO: add description
+        if (uiValue == '\\') { return CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "\\\\"); } // TODO: add description
         if (uiValue > 31 && uiValue < 127) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", uiValue); } // print the character
         return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x{:02x}", uiValue);                                 // print as a hex character within ()
     };
@@ -264,7 +264,7 @@ bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, 
         PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", stInterHeader_.usReceiverSwVersion))
     {
         return bIsEmbeddedHeader_ ? PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", OEM4_ABBREV_ASCII_SEPARATOR)
-                                  : PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n");
+                                  : CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "\r\n");
     }
     return false;
 }
@@ -299,7 +299,7 @@ bool Encoder::EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHead
     return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}{}", sMsgName.c_str(), OEM4_ABBREV_ASCII_SEPARATOR) &&
            PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}{}", stInterHeader_.usWeek, OEM4_ABBREV_ASCII_SEPARATOR) &&
            PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:.3f}", stInterHeader_.dMilliseconds / 1000.0) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n");
+           CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "\r\n");
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -463,7 +463,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
     case ENCODE_FORMAT::ABBREV_ASCII:
         if (!EncodeAsciiBody<true>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pucTempBuffer--; // Remove last delimiter ' '
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         break;
 
     case ENCODE_FORMAT::FLATTENED_BINARY:

@@ -115,7 +115,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     uint32_t uiMyBufferBytesRemaining = uiInternalBufferSize;
 
     if (eEncodeFormat_ == ENCODE_FORMAT::JSON &&
-        !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"({"header":)"))
+        !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"({"header":)"))
     {
         return STATUS::BUFFER_FULL;
     }
@@ -128,7 +128,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     pucTempEncodeBuffer += stRxConfigMessageData_.uiMessageHeaderLength;
 
     if (eEncodeFormat_ == ENCODE_FORMAT::JSON &&
-        !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(,"body":)"))
+        !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(,"body":)"))
     {
         return STATUS::BUFFER_FULL;
     }
@@ -142,14 +142,14 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     switch (eEncodeFormat_)
     {
     case ENCODE_FORMAT::JSON:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"({"embedded_header":)"))
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"({"embedded_header":)"))
         {
             return STATUS::BUFFER_FULL;
         }
         break;
 
     case ENCODE_FORMAT::ABBREV_ASCII:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, szAbbrevAsciiEmbeddedHeaderPrefix))
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, szAbbrevAsciiEmbeddedHeaderPrefix))
         {
             return STATUS::BUFFER_FULL;
         }
@@ -168,7 +168,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     switch (eEncodeFormat_)
     {
     case ENCODE_FORMAT::JSON:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(,"embedded_body":)"))
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(,"embedded_body":)"))
         {
             return STATUS::BUFFER_FULL;
         }
@@ -185,7 +185,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         // it back in the message MessageHeaderLength count.
         stEmbeddedMessageData_.uiMessageHeaderLength++;
 
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "\r\n")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, "\r\n")) { return STATUS::BUFFER_FULL; }
 
         stEmbeddedMessageData_.uiMessageHeaderLength++;
         break;
@@ -227,7 +227,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         break;
 
     case ENCODE_FORMAT::JSON:
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(})")) { return STATUS::BUFFER_FULL; }
         break;
 
     default: break;
@@ -257,7 +257,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     stRxConfigMessageData_.uiMessageBodyLength = static_cast<uint32_t>(pucTempEncodeBuffer - stRxConfigMessageData_.pucMessageBody);
 
     // Add the closing '}' character, but don't count it as part of the message body length.
-    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, R"(})"))
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(})"))
     {
         return STATUS::BUFFER_FULL;
     }
