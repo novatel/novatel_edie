@@ -114,8 +114,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     unsigned char* pucTempEncodeBuffer = pcMyEncodeBuffer.get();
     uint32_t uiMyBufferBytesRemaining = uiInternalBufferSize;
 
-    if (eEncodeFormat_ == ENCODE_FORMAT::JSON &&
-        !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"({"header":)"))
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"({"header":)"))
     {
         return STATUS::BUFFER_FULL;
     }
@@ -127,8 +126,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     pucTempEncodeBuffer += stRxConfigMessageData_.uiMessageHeaderLength;
 
-    if (eEncodeFormat_ == ENCODE_FORMAT::JSON &&
-        !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(,"body":)"))
+    if (eEncodeFormat_ == ENCODE_FORMAT::JSON && !CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(,"body":)"))
     {
         return STATUS::BUFFER_FULL;
     }
@@ -142,17 +140,11 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     switch (eEncodeFormat_)
     {
     case ENCODE_FORMAT::JSON:
-        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"({"embedded_header":)"))
-        {
-            return STATUS::BUFFER_FULL;
-        }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"({"embedded_header":)")) { return STATUS::BUFFER_FULL; }
         break;
 
     case ENCODE_FORMAT::ABBREV_ASCII:
-        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, szAbbrevAsciiEmbeddedHeaderPrefix))
-        {
-            return STATUS::BUFFER_FULL;
-        }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, szAbbrevAsciiEmbeddedHeaderPrefix)) { return STATUS::BUFFER_FULL; }
         break;
 
     default: break;
@@ -168,10 +160,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     switch (eEncodeFormat_)
     {
     case ENCODE_FORMAT::JSON:
-        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(,"embedded_body":)"))
-        {
-            return STATUS::BUFFER_FULL;
-        }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiMyBufferBytesRemaining, R"(,"embedded_body":)")) { return STATUS::BUFFER_FULL; }
         break;
 
     case ENCODE_FORMAT::ABBREV_ASCII:
