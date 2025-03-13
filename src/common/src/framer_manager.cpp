@@ -28,7 +28,8 @@
 
 using namespace novatel::edie;
 
-FramerManager::FramerManager() : pclMyLogger(Logger::RegisterLogger("FramerManager")), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>())
+FramerManager::FramerManager()
+    : pclMyLogger(Logger::RegisterLogger("FramerManager")), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>()), iActiveFramerId(-1)
 {
     pclMyCircularDataBuffer->Clear();
     idMap["UNKNOWN"] = 0;
@@ -132,7 +133,7 @@ FramerElement* FramerManager::GetFramerElement(const int framerId_)
 
 std::unique_ptr<FramerBase>& FramerManager::GetFramerInstance(std::string framerAlias_) { return GetFramerElement(idMap[framerAlias_])->framer; }
 
-STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, int& eActiveFramerId_)
+STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_)
 {
     // State Machine:
     // use framers to identify sync bytes and offsets
@@ -140,12 +141,12 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     // upon successful framing of a log, reset Active Framer ID
 
     // if STATUS is INCOMPLETE upon entering GetFrame, it is stale
-    if (eActiveFramerId_ != idMap["UNKNOWN"] && framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
+    if (iActiveFramerId != idMap["UNKNOWN"] && framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
     {
         framerRegistry.front().framer->eMyCurrentFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
     }
 
-    if (eActiveFramerId_ == idMap["UNKNOWN"])
+    if (iActiveFramerId == idMap["UNKNOWN"])
     {
         ResetAllMetaDataStates();
         ResetAllFramerStates();
@@ -159,7 +160,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     // set uiLength for likely framer
     framerRegistry.front().metadata->uiLength = framerRegistry.front().framer->uiMyFrameBufferOffset;
     if (framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE) { return STATUS::INCOMPLETE; }
-    eActiveFramerId_ = framerRegistry.front().framerId;
+    iActiveFramerId = framerRegistry.front().framerId;
 
     if (framerRegistry.front().framer->uiMyFrameBufferOffset > 0 &&
         (framerRegistry.front().framer->eMyCurrentFramerStatus != STATUS::INCOMPLETE ||
@@ -173,7 +174,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     // Once active framer is identified, exclusively use it to frame. Reset active Framer at success
     for (auto& framer_element : framerRegistry)
     {
-        if (framer_element.framerId == eActiveFramerId_)
+        if (framer_element.framerId == iActiveFramerId)
         {
             ResetInactiveFramerStates(framer_element.framerId);
             framer_element.framer->eMyCurrentFramerStatus =

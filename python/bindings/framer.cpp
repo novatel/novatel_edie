@@ -21,7 +21,7 @@ void init_novatel_framer(nb::module_& m)
         .def_prop_ro("bytes_available_in_buffer", [](const oem::Framer& framer) { return framer.GetBytesAvailableInBuffer(); })
         .def(
             "get_frame",
-            [](oem::Framer& self, uint32_t buffer_size, oem::MetaDataBase* metadatabase_ptr) {
+            [](oem::Framer& self, oem::MetaDataBase* metadatabase_ptr, uint32_t buffer_size) {
                 std::vector<char> buffer(buffer_size);
                 if (metadatabase_ptr != nullptr)
                 {

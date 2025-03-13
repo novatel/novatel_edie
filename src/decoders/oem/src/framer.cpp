@@ -335,7 +335,6 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             if (uiMyByteCount == 0) { return STATUS::BUFFER_EMPTY; }
 
             uiMyFrameBufferOffset = uiMyByteCount;
-            stMetaData.uiLength = uiMyByteCount;
             return STATUS::UNKNOWN;
         }
 

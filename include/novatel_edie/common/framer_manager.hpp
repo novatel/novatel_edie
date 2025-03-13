@@ -62,22 +62,21 @@ struct FramerElement
     }
 };
 
-// Forward Declarations of Framers
-// class novatel::edie::oem::Framer;
-
 class FramerManager
 {
   private:
     FramerManager();
 
     //! NOTE: disable copies and moves.
-    FramerManager(const FramerManager&) = delete;
-    FramerManager(const FramerManager&&) = delete;
+    FramerManager(FramerManager&) = delete;
+    FramerManager(FramerManager&&) = delete;
     FramerManager& operator=(const FramerManager&) = delete;
     FramerManager& operator=(const FramerManager&&) = delete;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
+
+    int iActiveFramerId;
 
     bool bMyReportUnknownBytes{true};
 
@@ -94,6 +93,7 @@ class FramerManager
   public:
     std::unordered_map<std::string, int> idMap;
     std::deque<FramerElement> framerRegistry;
+
     void RegisterFramer(std::string framerName_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
@@ -103,6 +103,36 @@ class FramerManager
     //! \return nullptr if the framer is not found.
     //---------------------------------------------------------------------------
     MetaDataBase* GetMetaData(int framerId_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Reset the framer ID
+    //---------------------------------------------------------------------------
+    void ResetActiveFramerId() { iActiveFramerId = idMap["UNKNOWN"]; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Set the active Framer ID
+    //---------------------------------------------------------------------------
+    bool SetActiveFramerId(int iFramerId)
+    {
+        for (const auto& pair : idMap)
+        {
+            if (pair.second == iFramerId) { break; }
+        }
+        iActiveFramerId = iFramerId;
+        return (iActiveFramerId == iFramerId);
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief Set the active Framer ID
+    //---------------------------------------------------------------------------
+    bool SetActiveFramerId(std::string sFramerId)
+    {
+        if (idMap.find(sFramerId) == idMap.end()) { return false; }
+        iActiveFramerId = idMap[sFramerId];
+        return true;
+    }
+
+    int ActiveFramerId() { return iActiveFramerId; }
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
@@ -224,7 +254,7 @@ class FramerManager
     //
     //! \return The status of the frame discovery.
     //---------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, int& eActiveFramerId_);
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_);
 };
 } // namespace novatel::edie
 

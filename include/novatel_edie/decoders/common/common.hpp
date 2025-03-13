@@ -257,7 +257,7 @@ struct EnumDefinition;
 //! \brief Base class for all metadata. Contains data about the data such as header format,
 //! GPS week and milliseconds, and message ID.
 //============================================================================
-class MetaDataBase
+struct MetaDataBase
 {
   private:
     static constexpr uint32_t uiMessageNameMax = 40;

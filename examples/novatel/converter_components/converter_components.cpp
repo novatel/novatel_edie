@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
 
     tStart = std::chrono::high_resolution_clock::now();
 
-    auto eActiveFramerId = clFramerManager.idMap["UKNOWN"];
+    clFramerManager.ResetActiveFramerId();
 
     while (!ifs.eof())
     {
@@ -166,12 +166,12 @@ int main(int argc, char* argv[])
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
             unsigned char* pucFrameBuffer = acFrameBuffer;
-            eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), eActiveFramerId);
+            eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer));
 
             if (eFramerStatus == STATUS::SUCCESS)
             {
                 // OEM logs are the only ones allowed in this example
-                auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*(clFramerManager.framerRegistry.front().metadata));
+                auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*(clFramerManager.GetFramerElement(clFramerManager.ActiveFramerId()))->metadata);
                 if (stMetaData.bResponse)
                 {
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
@@ -179,7 +179,6 @@ int main(int argc, char* argv[])
                 }
 
                 pucFrameBuffer[stMetaData.uiLength] = '\0';
-                // pclLogger->debug("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
 
                 // Decode the header. Get metadata here and populate the Intermediate header.
                 eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
@@ -203,33 +202,33 @@ int main(int argc, char* argv[])
                         {
                             convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                             stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
-                            // pclLogger->debug("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(pucEncodedMessageBuffer));
+                            pclLogger->debug("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(pucEncodedMessageBuffer));
                         }
                         else
                         {
                             unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
                             pclLogger->warn("Encoder returned with status code {}", eEncoderStatus);
                         }
-                        eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
+                        clFramerManager.ResetActiveFramerId();
                     }
                     else
                     {
                         unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), uiBodyLength);
-                        eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
+                        clFramerManager.ResetActiveFramerId();
                         pclLogger->warn("MessageDecoder returned with status code {}", eDecoderStatus);
                     }
                 }
                 else
                 {
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
-                    eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
+                    clFramerManager.ResetActiveFramerId();
                     pclLogger->warn("HeaderDecoder returned with status code {}", eDecoderStatus);
                 }
             }
             else if (eFramerStatus == STATUS::UNKNOWN)
             {
                 unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), clFramerManager.framerRegistry.front().metadata->uiLength);
-                eActiveFramerId = clFramerManager.idMap["UNKNOWN"];
+                clFramerManager.ResetActiveFramerId();
             }
             else { pclLogger->warn("Framer returned with status code {}", eFramerStatus); }
         }

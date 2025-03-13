@@ -97,13 +97,13 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
     IntermediateHeader stHeader;
     std::vector<FieldContainer> stMessage;
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    int eActiveFramerId = clMyFramerManager.idMap["UNKNOWN"];
+    clMyFramerManager.ResetActiveFramerId();
 
     while (true)
     {
         pucMyFrameBufferPointer = pcMyFrameBuffer.get();   //!< Reset the buffer.
         pucMyEncodeBufferPointer = pcMyEncodeBuffer.get(); //!< Reset the buffer.
-        auto eStatus = clMyFramerManager.GetFrame(pucMyFrameBufferPointer, uiParserInternalBufferSize, eActiveFramerId);
+        auto eStatus = clMyFramerManager.GetFrame(pucMyFrameBufferPointer, uiParserInternalBufferSize);
 
         // Datasets ending with an Abbreviated ASCII message will always return an incomplete framing status
         // as there is no delimiter marking the end of the log.
