@@ -47,7 +47,13 @@ class ProprietaryFramerTest : public ::testing::Test
         clMyFramerManager.SetLoggerLevel(spdlog::level::info);
         clMyFramerManager.SetReportUnknownBytes(true);
 
-        clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<oem::Framer>(), std::make_unique<oem::MetaDataStruct>());
+        try
+        {
+            clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<oem::Framer>(), std::make_unique<oem::MetaDataStruct>());
+        }
+        catch (std::runtime_error&)
+        {
+        }
 
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
@@ -162,7 +168,8 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INCOMPLETE)
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_SYNC_ERROR)
 {
     WriteFileStreamToFramer("proprietary_binary_sync_error.BIN");
-
+    // Framer Manager will return with a number of unknown bytes equivalent to the number of false positive sync bytes it identified
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(3, MAX_BINARY_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_BINARY_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
 }
 

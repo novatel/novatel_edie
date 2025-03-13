@@ -219,7 +219,7 @@ bool Filter::FilterDecimation(const MetaDataStruct& stMetaData_) const
 // -------------------------------------------------------------------------------------------------------
 bool Filter::DoFiltering(MetaDataBase& stMetaData_) const
 {
-    MetaDataStruct& stMetaData = reinterpret_cast<MetaDataStruct&>(stMetaData_);
+    auto& stMetaData = reinterpret_cast<MetaDataStruct&>(stMetaData_);
 
     if (stMetaData.eFormat == HEADER_FORMAT::UNKNOWN) { return false; }
     if (stMetaData.eFormat == HEADER_FORMAT::NMEA) { return bMyIncludeNmea; }

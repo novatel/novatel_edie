@@ -102,7 +102,6 @@ int main(int argc, char* argv[])
     novatel::edie::FramerManager& clFramerManager = FramerManager::GetInstance();
     clFramerManager.SetReportUnknownBytes(true);
 
-
     Framer clFramer;
     HeaderDecoder clHeaderDecoder(clJsonDb);
     MessageDecoder clMessageDecoder(clJsonDb);

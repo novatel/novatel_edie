@@ -49,14 +49,6 @@
 
 namespace novatel::edie {
 
-// enum class FRAMER_ID
-//{
-//     AUTOMOTIVE,
-//     NOVATEL,
-//     NMEA,
-//     UNKNOWN
-// };
-
 struct FramerElement
 {
     int framerId;
@@ -91,9 +83,9 @@ class FramerManager
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const;
 
-    void ResetInactiveFramerStates(const int& activeFramer_);
+    void ResetInactiveFramerStates(const int& iActiveFramerId_);
 
-    void ResetInactiveMetaDataStates(const int& activeFramer_);
+    void ResetInactiveMetaDataStates(const int& iActiveFramerId_);
 
   protected:
     // TODO delete this
@@ -165,7 +157,7 @@ class FramerManager
     //! \brief Get the pointer to a Framer for specified framer.
     //
     //! \param[in] framerId_ The ID of the framer to get the Framer for.
-    // 
+    //
     //! \return A pointer to the Framer for the specified sframer.
     //---------------------------------------------------------------------------
     std::unique_ptr<FramerBase>& GetFramerInstance(std::string framerAlias_);

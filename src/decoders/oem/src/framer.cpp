@@ -43,7 +43,11 @@ Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("nov
         auto it_registered =
             std::find_if(clMyFramerManager.framerRegistry.begin(), clMyFramerManager.framerRegistry.end(),
                          [&clMyFramerManager](const FramerElement& element) { return element.framerId == clMyFramerManager.idMap["NOVATEL"]; });
-        if (it_registered != clMyFramerManager.framerRegistry.end()) { throw std::runtime_error("Framer already registered"); }
+        if (it_registered != clMyFramerManager.framerRegistry.end())
+        {
+            pclMyLogger->error("Framer already registered");
+            throw std::runtime_error("Framer already registered");
+        }
     }
 }
 
@@ -149,7 +153,6 @@ void Framer::FindNextSyncByte(const uint32_t uiFrameBufferSize_)
             case OEM4_ASCII_SYNC: [[fallthrough]];
             case OEM4_SHORT_ASCII_SYNC: [[fallthrough]];
             case OEM4_ABBREV_ASCII_SYNC:
-                [[fallthrough]];
                 uiMyByteCount--;
                 uiMyFrameBufferOffset = uiMyByteCount;
                 eMyCurrentFramerStatus = STATUS::SYNC_BYTES_FOUND;

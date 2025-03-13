@@ -171,7 +171,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
                     // Use some dummy stuff for the embedded message. The parser won't handle that now.
                     MessageDataStruct stEmbeddedMessageData;
                     MetaDataStruct stEmbeddedMetaData;
-                    clMyRxConfigHandler.Write(pucMyFrameBufferPointer, stMetaData_.uiLength);
+                    RxConfigHandler::Write(pucMyFrameBufferPointer, stMetaData_.uiLength);
                     eStatus = clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
                     if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}", eStatus); }
                     return eStatus;

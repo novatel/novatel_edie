@@ -37,16 +37,16 @@ FramerManager::FramerManager() : pclMyLogger(Logger::RegisterLogger("FramerManag
 
 void FramerManager::RegisterFramer(std::string framerName, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
 {
-    
+
     int framerId_ = -1;
     auto it = idMap.find(framerName);
-    if (it == idMap.end()) {
+    if (it == idMap.end())
+    {
         int newId = static_cast<int>(idMap.size());
         idMap[framerName] = newId;
         framerId_ = newId;
-    } else {
-        framerId_ = it->second;
-    }    
+    }
+    else { framerId_ = it->second; }
 
     framerRegistry.emplace_back(framerId_, std::move(framer_), std::move(metadata_), 0);
 }
@@ -93,11 +93,11 @@ void FramerManager::DisplayFramerStack()
     }
 }
 
-void FramerManager::ResetInactiveFramerStates(const int& eActiveFramerId_)
+void FramerManager::ResetInactiveFramerStates(const int& iActiveFramerId_)
 {
     for (auto& [framerId, framer, metadata, offset] : framerRegistry)
     {
-        if (framerId != eActiveFramerId_)
+        if (framerId != iActiveFramerId_)
         {
             framer->ResetStateAndByteCount();
             offset = 0;
@@ -107,11 +107,11 @@ void FramerManager::ResetInactiveFramerStates(const int& eActiveFramerId_)
 
 void FramerManager::ResetAllFramerStates() { ResetInactiveFramerStates(idMap["UNKNOWN"]); }
 
-void FramerManager::ResetInactiveMetaDataStates(const int& eActiveFramerId_)
+void FramerManager::ResetInactiveMetaDataStates(const int& iActiveFramerId_)
 {
     for (auto& [framerId, framer, metadata, offset] : framerRegistry)
     {
-        if (framerId != eActiveFramerId_)
+        if (framerId != iActiveFramerId_)
         {
             metadata->uiLength = 0;
             metadata->eFormat = HEADER_FORMAT::UNKNOWN;
@@ -130,10 +130,7 @@ FramerElement* FramerManager::GetFramerElement(const int framerId_)
     return nullptr;
 }
 
-std::unique_ptr<FramerBase>& FramerManager::GetFramerInstance(std::string framerAlias_)
-{
-    return GetFramerElement(idMap[framerAlias_])->framer;
-}
+std::unique_ptr<FramerBase>& FramerManager::GetFramerInstance(std::string framerAlias_) { return GetFramerElement(idMap[framerAlias_])->framer; }
 
 STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, int& eActiveFramerId_)
 {
@@ -156,7 +153,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     }
 
     // A Framer Found A Sync Byte
-    //DisplayFramerStack();
+    // DisplayFramerStack();
     SortFramers();
 
     // set uiLength for likely framer
@@ -181,7 +178,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             ResetInactiveFramerStates(framer_element.framerId);
             framer_element.framer->eMyCurrentFramerStatus =
                 framer_element.framer->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, *framer_element.metadata);
-            //DisplayFramerStack();
+            // DisplayFramerStack();
             if (framer_element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS)
             {
                 pclMyCircularDataBuffer->Copy(pucFrameBuffer_, framer_element.metadata->uiLength);
@@ -199,9 +196,8 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
     // A Framer Successfully Framed a log
     auto it_success = std::find_if(framerRegistry.begin(), framerRegistry.end(),
-                                    [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS); });
-    if (it_success != framerRegistry.end()) { 
-        return it_success->framer->eMyCurrentFramerStatus; }
+                                   [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS); });
+    if (it_success != framerRegistry.end()) { return it_success->framer->eMyCurrentFramerStatus; }
 
     // if any framer has full buffer, reset all framers
     auto it_buffer_full = std::find_if(framerRegistry.begin(), framerRegistry.end(),
@@ -214,7 +210,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
     // if any framer has empty buffer, reset all framers
     auto it_buffer_empty = std::find_if(framerRegistry.begin(), framerRegistry.end(),
-                                       [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::BUFFER_EMPTY); });
+                                        [](FramerElement& element) { return (element.framer->eMyCurrentFramerStatus == STATUS::BUFFER_EMPTY); });
     if (it_buffer_empty != framerRegistry.end())
     {
         ResetAllFramerStates();
