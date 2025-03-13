@@ -21,27 +21,19 @@ void init_novatel_framer(nb::module_& m)
         .def_prop_ro("bytes_available_in_buffer", [](const oem::Framer& framer) { return framer.GetBytesAvailableInBuffer(); })
         .def(
             "get_frame",
-            [](oem::Framer& framer, oem::MetaDataStruct* metadata_ptr, uint32_t buffer_size) {
+            [](oem::Framer& self, uint32_t buffer_size, oem::MetaDataBase* metadatabase_ptr) {
                 std::vector<char> buffer(buffer_size);
-                if (metadata_ptr != nullptr)
+                if (metadatabase_ptr != nullptr)
                 {
-                    STATUS status = framer.GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, *metadata_ptr);
-                    return nb::make_tuple(status, nb::bytes(buffer.data(), metadata_ptr->uiLength));
+                    STATUS status = framer.GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, *metadatabase_ptr);
+                    return nb::make_tuple(status, nb::bytes(buffer.data(), metadatabase_ptr->uiLength));
                 }
                 else
                 {
-                    oem::MetaDataStruct metadata;
+                    oem::MetaData metadata;
                     STATUS status = framer.GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
                     return nb::make_tuple(status, nb::bytes(buffer.data(), metadata.uiLength), metadata);
                 }
             },
-            "metadata"_a = nb::none(), "buffer_size"_a = MESSAGE_SIZE_MAX)
-        .def("write", [](oem::Framer& framer,
-                         const nb::bytes& data) { return framer.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
-        .def("flush", [](oem::Framer& framer) {
-            char buffer[MESSAGE_SIZE_MAX];
-            uint32_t buf_size = MESSAGE_SIZE_MAX;
-            uint32_t flushed = framer.Flush(reinterpret_cast<uint8_t*>(buffer), buf_size);
-            return nb::bytes(buffer, flushed);
-        });
+            "metadata"_a = nb::none(), "buffer_size"_a = MESSAGE_SIZE_MAX);
 }
