@@ -218,32 +218,41 @@ std::string PyField::repr() const
 
 #pragma region PyMessageMethods
 
-PyMessageData PyMessage::to_ascii() { 
-    PyMessageDatabase::ConstPtr db = this->parent_db_;
-    std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
-    return encoder->PyEncode(*this, ENCODE_FORMAT::ASCII);
+oem::PyMessageData PyEncode(PyMessage& py_message, const PyMessageDatabase* db, ENCODE_FORMAT format)
+{
+    STATUS status;
+    MessageDataStruct message_data = MessageDataStruct();
+    std::shared_ptr<const Encoder> encoder = db->get_encoder();
+
+    if (format == ENCODE_FORMAT::JSON)
+    {
+        // Allocate more space for JSON messages.
+        // A TRACKSTAT message can use about 47k bytes when encoded as JSON.
+        // FIXME: this is still not safe and there is no effective buffer overflow checking implemented in Encoder.
+        uint8_t buffer[MESSAGE_SIZE_MAX * 3];
+        auto* buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
+        uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
+        status = encoder->Encode(&buf_ptr, buf_size, py_message.header, py_message.fields, message_data, py_message.header.format, format);
+    }
+    else
+    {
+        uint8_t buffer[MESSAGE_SIZE_MAX];
+        auto buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
+        uint32_t buf_size = MESSAGE_SIZE_MAX;
+        status = encoder->Encode(&buf_ptr, buf_size, py_message.header, py_message.fields, message_data, py_message.header.format, format);
+    }
+    throw_exception_from_status(status);
+    return PyMessageData(message_data);
 }
 
-PyMessageData PyMessage::to_binary()
-{
-    PyMessageDatabase::ConstPtr db = this->parent_db_;
-    std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
-    return encoder->PyEncode(*this, ENCODE_FORMAT::BINARY);
-}
+PyMessageData PyMessage::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
 
-PyMessageData PyMessage::to_flattened_binary()
-{
-    PyMessageDatabase::ConstPtr db = this->parent_db_;
-    std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
-    return encoder->PyEncode(*this, ENCODE_FORMAT::FLATTENED_BINARY);
-}
+PyMessageData PyMessage::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
-PyMessageData PyMessage::to_json()
-{
-    PyMessageDatabase::ConstPtr db = this->parent_db_;
-    std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
-    return encoder->PyEncode(*this, ENCODE_FORMAT::JSON);
-}
+PyMessageData PyMessage::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
+
+PyMessageData PyMessage::to_json() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::JSON); }
+
 
 
 #pragma endregion
