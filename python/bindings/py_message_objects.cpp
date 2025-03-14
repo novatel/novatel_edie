@@ -245,9 +245,12 @@ oem::PyMessageData PyEncode(PyMessage& py_message, const PyMessageDatabase* db, 
     return PyMessageData(message_data);
 }
 
-PyMessageData PyMessage::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
+PyMessageData PyMessage::to_ascii() { 
+    return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII);
+}
 
-PyMessageData PyMessage::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
+PyMessageData PyMessage::to_binary()
+{ return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
 PyMessageData PyMessage::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
