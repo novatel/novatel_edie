@@ -202,7 +202,7 @@ class FileParser
     //! if requested in the ParserConfigStruct given to SetConfig().
     //!   FILE_EMPTY: There are no more bytes to parse in the file provided.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_);
 
     //----------------------------------------------------------------------------
     //! \brief Reset the InputFileStream, and flush all bytes from the internal

@@ -24,22 +24,21 @@ void init_novatel_parser(nb::module_& m)
         .def_prop_rw("encode_format", &oem::Parser::GetEncodeFormat, &oem::Parser::SetEncodeFormat)
         .def_prop_rw("filter", &oem::Parser::GetFilter, &oem::Parser::SetFilter)
         .def("write",
-             [](oem::Parser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
+             [](oem::Parser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const unsigned char*>(data.c_str()), data.size()); })
         .def("read",
              [](oem::Parser& self) {
                  MessageDataStruct message_data;
-                 oem::MetaDataStruct meta_data;
-                 STATUS status = self.Read(message_data, meta_data);
-                 return std::make_tuple(status, oem::PyMessageData(message_data), meta_data);
+                 STATUS status = self.Read(message_data);
+                 return std::make_tuple(status, oem::PyMessageData(message_data));
              })
         .def(
             "read",
-            [](oem::Parser& self, nb::handle_t<oem::MetaDataStruct> py_metadata, bool decode_incomplete) {
+            [](oem::Parser& self, bool decode_incomplete) {
                 MessageDataStruct message_data;
-                STATUS status = self.Read(message_data, nb::cast<oem::MetaDataStruct&>(py_metadata), decode_incomplete);
+                STATUS status = self.Read(message_data, decode_incomplete);
                 return std::make_tuple(status, oem::PyMessageData(message_data));
             },
-            "metadata"_a, "decode_incomplete_abbreviated"_a = false)
+            "decode_incomplete_abbreviated"_a = false)
         .def("__iter__", [](oem::Parser& self) { return &self; })
         .def("__next__",
              [](oem::Parser& self) {

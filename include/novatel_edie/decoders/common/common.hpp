@@ -275,6 +275,19 @@ struct MetaDataBase
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
     std::string messageName;
+
+    virtual void ResetMetaData()
+    {
+        eFormat = HEADER_FORMAT::UNKNOWN;
+        usWeek = 0;
+        dMilliseconds = 0.0;
+        uiLength = 0;
+        uiBinaryMsgLength = 0;
+        uiHeaderLength = 0;
+        usMessageId = 0;
+        uiMessageCrc = 0;
+        messageName.clear();
+    }
 };
 
 inline MetaDataBase::~MetaDataBase() = default;

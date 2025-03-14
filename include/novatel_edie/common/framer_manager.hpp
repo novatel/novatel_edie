@@ -95,6 +95,7 @@ class FramerManager
     std::deque<FramerElement> framerRegistry;
 
     void RegisterFramer(std::string framerName_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
+
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
     //
@@ -102,7 +103,40 @@ class FramerManager
     //! \return A pointer to the MetaData for the specified framer.
     //! \return nullptr if the framer is not found.
     //---------------------------------------------------------------------------
-    MetaDataBase* GetMetaData(int framerId_);
+    MetaDataBase* GetMetaData(int iFramerId_)
+    {
+        for (FramerElement& element : framerRegistry)
+        {
+            if (element.framerId == iFramerId_) { return element.metadata.get(); }
+        }
+        return nullptr;
+    }
+
+    //---------------------------------------------------------------------------
+    //! \brief Get the MetaData for the active framer.
+    //
+    //! \return A pointer to the MetaData for the specified framer.
+    //! \return nullptr if the framer is not found.
+    //---------------------------------------------------------------------------
+    MetaDataBase* GetActiveMetaData() { return GetMetaData(iActiveFramerId); }
+
+    //---------------------------------------------------------------------------
+    //! \brief Reset the MetaData for the requested framer.
+    //
+    //! \return A pointer to the MetaData for the specified framer.
+    //! \return nullptr if the framer is not found.
+    //---------------------------------------------------------------------------
+    void ResetMetaData(int iFramerId_)
+    {
+        for (FramerElement& element : framerRegistry)
+        {
+            if (element.framerId == iFramerId_)
+            {
+                element.metadata.reset();
+                break;
+            }
+        }
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Reset the framer ID
@@ -190,7 +224,7 @@ class FramerManager
     //
     //! \return A pointer to the Framer for the specified sframer.
     //---------------------------------------------------------------------------
-    std::unique_ptr<FramerBase>& GetFramerInstance(std::string framerAlias_);
+    std::unique_ptr<FramerBase>& GetFramerInstance(std::string framerName_);
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.

@@ -66,15 +66,6 @@ void FramerManager::SortFramers()
     }
 }
 
-MetaDataBase* FramerManager::GetMetaData(const int framerId_)
-{
-    for (FramerElement& element : framerRegistry)
-    {
-        if (element.framerId == framerId_) { return element.metadata.get(); }
-    }
-    return nullptr;
-}
-
 void FramerManager::DisplayFramerStack()
 {
 
@@ -112,11 +103,7 @@ void FramerManager::ResetInactiveMetaDataStates(const int& iActiveFramerId_)
 {
     for (auto& [framerId, framer, metadata, offset] : framerRegistry)
     {
-        if (framerId != iActiveFramerId_)
-        {
-            metadata->uiLength = 0;
-            metadata->eFormat = HEADER_FORMAT::UNKNOWN;
-        }
+        if (framerId != iActiveFramerId_) { metadata->ResetMetaData(); }
     }
 }
 
@@ -131,7 +118,7 @@ FramerElement* FramerManager::GetFramerElement(const int framerId_)
     return nullptr;
 }
 
-std::unique_ptr<FramerBase>& FramerManager::GetFramerInstance(std::string framerAlias_) { return GetFramerElement(idMap[framerAlias_])->framer; }
+std::unique_ptr<FramerBase>& FramerManager::GetFramerInstance(std::string framerName_) { return GetFramerElement(idMap[framerName_])->framer; }
 
 STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_)
 {
@@ -154,7 +141,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     }
 
     // A Framer Found A Sync Byte
-    // DisplayFramerStack();
+    DisplayFramerStack();
     SortFramers();
 
     // set uiLength for likely framer

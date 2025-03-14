@@ -2704,45 +2704,46 @@ TEST_F(FileParserTest, UNKNOWN_BYTES)
     ASSERT_FALSE(pclFp->GetReturnUnknownBytes());
 }
 
-//TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
-//{
-//    // Reset the FileParser with the database because a previous test assigns it to the nullptr
-//    pclFp = std::make_unique<FileParser>(std::getenv("TEST_DATABASE_PATH"));
-//    auto clFilter = std::make_shared<Filter>();
-//    clFilter->SetLoggerLevel(spdlog::level::debug);
-//    pclFp->SetFilter(clFilter);
-//    ASSERT_EQ(pclFp->GetFilter(), clFilter);
-//
-//    std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
-//    auto clInputFileStream = std::make_shared<std::ifstream>(test_gps_file.string().c_str(), std::ios::binary);
-//    ASSERT_TRUE(pclFp->SetStream(clInputFileStream));
-//
-//    MetaDataStruct stMetaData;
-//    MessageDataStruct stMessageData;
-//
-//    int numSuccess = 0;
-//    uint32_t uiExpectedMetaDataLength[2] = {213, 195};
-//    double dExpectedMilliseconds[2] = {270605000, 172189053};
-//    uint32_t uiExpectedMessageLength[2] = {213, 195};
-//
-//    pclFp->SetEncodeFormat(ENCODE_FORMAT::ASCII);
-//    ASSERT_EQ(pclFp->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
-//
-//    STATUS eStatus;
-//    while ((eStatus = pclFp->Read(stMessageData, stMetaData)) != STATUS::STREAM_EMPTY)
-//    {
-//        if (eStatus == STATUS::SUCCESS)
-//        {
-//            ASSERT_EQ(stMetaData.uiLength, uiExpectedMetaDataLength[numSuccess]);
-//            ASSERT_DOUBLE_EQ(stMetaData.dMilliseconds, dExpectedMilliseconds[numSuccess]);
-//            ASSERT_EQ(stMessageData.uiMessageLength, uiExpectedMessageLength[numSuccess]);
-//            numSuccess++;
-//        }
-//    }
-//
-//    ASSERT_EQ(pclFp->Flush(), 0);
-//    ASSERT_EQ(numSuccess, 2);
-//}
+TEST_F(FileParserTest, PARSE_FILE_WITH_FILTER)
+{
+    // Reset the FileParser with the database because a previous test assigns it to the nullptr
+    pclFp = std::make_unique<FileParser>(std::getenv("TEST_DATABASE_PATH"));
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    pclFp->SetFilter(clFilter);
+    ASSERT_EQ(pclFp->GetFilter(), clFilter);
+
+    std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
+    auto clInputFileStream = std::make_shared<std::ifstream>(test_gps_file.string().c_str(), std::ios::binary);
+    ASSERT_TRUE(pclFp->SetStream(clInputFileStream));
+
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"])));
+    MessageDataStruct stMessageData;
+
+    int numSuccess = 0;
+    uint32_t uiExpectedMetaDataLength[2] = {213, 195};
+    double dExpectedMilliseconds[2] = {270605000, 172189053};
+    uint32_t uiExpectedMessageLength[2] = {213, 195};
+
+    pclFp->SetEncodeFormat(ENCODE_FORMAT::ASCII);
+    ASSERT_EQ(pclFp->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
+
+    STATUS eStatus;
+    while ((eStatus = pclFp->Read(stMessageData)) != STATUS::STREAM_EMPTY)
+    {
+        if (eStatus == STATUS::SUCCESS)
+        {
+            ASSERT_EQ(stMetaData.uiLength, uiExpectedMetaDataLength[numSuccess]);
+            ASSERT_DOUBLE_EQ(stMetaData.dMilliseconds, dExpectedMilliseconds[numSuccess]);
+            ASSERT_EQ(stMessageData.uiMessageLength, uiExpectedMessageLength[numSuccess]);
+            numSuccess++;
+        }
+    }
+
+    ASSERT_EQ(pclFp->Flush(), 0);
+    ASSERT_EQ(numSuccess, 2);
+}
 
 TEST_F(FileParserTest, RESET)
 {
@@ -2837,54 +2838,55 @@ TEST_F(ParserTest, UNKNOWN_BYTES)
     ASSERT_FALSE(pclParser->GetReturnUnknownBytes());
 }
 
-//TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
-//{
-//    // Reset the Parser with the database because a previous test assigns it to the nullptr
-//    pclParser = std::make_unique<Parser>(std::getenv("TEST_DATABASE_PATH"));
-//    auto clFilter = std::make_shared<Filter>();
-//    clFilter->SetLoggerLevel(spdlog::level::debug);
-//    pclParser->SetFilter(clFilter);
-//    ASSERT_EQ(pclParser->GetFilter(), clFilter);
-//
-//    std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
-//    std::ifstream clInputFileStream{test_gps_file.string().c_str(), std::ios::binary};
-//
-//    MetaDataStruct stMetaData;
-//    MessageDataStruct stMessageData;
-//
-//    int numSuccess = 0;
-//    uint32_t uiExpectedMetaDataLength[2] = {213, 195};
-//    double dExpectedMilliseconds[2] = {270605000, 172189053};
-//    uint32_t uiExpectedMessageLength[2] = {213, 195};
-//
-//    pclParser->SetEncodeFormat(ENCODE_FORMAT::ASCII);
-//    ASSERT_EQ(pclParser->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
-//
-//    const std::size_t chunkSize = 32;
-//    std::vector<char> buffer(chunkSize);
-//    while (clInputFileStream.read(buffer.data(), chunkSize) || clInputFileStream.gcount() > 0) {
-//        auto n = static_cast<uint32_t>(clInputFileStream.gcount());
-//        pclParser->Write(reinterpret_cast<uint8_t*>(buffer.data()), n);
-//        while (true)
-//        {
-//            STATUS eStatus = pclParser->Read(stMessageData, stMetaData);
-//            if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE || eStatus == STATUS::INCOMPLETE_MORE_DATA)
-//            {
-//                break;
-//            }
-//            if (eStatus == STATUS::SUCCESS)
-//            {
-//                ASSERT_EQ(stMetaData.uiLength, uiExpectedMetaDataLength[numSuccess]);
-//                ASSERT_DOUBLE_EQ(stMetaData.dMilliseconds, dExpectedMilliseconds[numSuccess]);
-//                ASSERT_EQ(stMessageData.uiMessageLength, uiExpectedMessageLength[numSuccess]);
-//                numSuccess++;
-//            }
-//        }
-//    }
-//
-//    ASSERT_EQ(pclParser->Flush(), 0);
-//    ASSERT_EQ(numSuccess, 2);
-//}
+TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
+{
+    // Reset the Parser with the database because a previous test assigns it to the nullptr
+    pclParser = std::make_unique<Parser>(std::getenv("TEST_DATABASE_PATH"));
+    auto clFilter = std::make_shared<Filter>();
+    clFilter->SetLoggerLevel(spdlog::level::debug);
+    pclParser->SetFilter(clFilter);
+    ASSERT_EQ(pclParser->GetFilter(), clFilter);
+
+    std::filesystem::path test_gps_file = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTUTMBIN.GPS";
+    std::ifstream clInputFileStream{test_gps_file.string().c_str(), std::ios::binary};
+
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"])));
+    MessageDataStruct stMessageData;
+
+    int numSuccess = 0;
+    uint32_t uiExpectedMetaDataLength[2] = {213, 195};
+    double dExpectedMilliseconds[2] = {270605000, 172189053};
+    uint32_t uiExpectedMessageLength[2] = {213, 195};
+
+    pclParser->SetEncodeFormat(ENCODE_FORMAT::ASCII);
+    ASSERT_EQ(pclParser->GetEncodeFormat(), ENCODE_FORMAT::ASCII);
+
+    const std::size_t chunkSize = 32;
+    std::vector<char> buffer(chunkSize);
+    while (clInputFileStream.read(buffer.data(), chunkSize) || clInputFileStream.gcount() > 0) {
+        auto n = static_cast<uint32_t>(clInputFileStream.gcount());
+        pclParser->Write(reinterpret_cast<uint8_t*>(buffer.data()), n);
+        while (true)
+        {
+            STATUS eStatus = pclParser->Read(stMessageData);
+            if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE || eStatus == STATUS::INCOMPLETE_MORE_DATA)
+            {
+                break;
+            }
+            if (eStatus == STATUS::SUCCESS)
+            {
+                ASSERT_EQ(stMetaData.uiLength, uiExpectedMetaDataLength[numSuccess]);
+                ASSERT_DOUBLE_EQ(stMetaData.dMilliseconds, dExpectedMilliseconds[numSuccess]);
+                ASSERT_EQ(stMessageData.uiMessageLength, uiExpectedMessageLength[numSuccess]);
+                numSuccess++;
+            }
+        }
+    }
+
+    ASSERT_EQ(pclParser->Flush(), 0);
+    ASSERT_EQ(numSuccess, 2);
+}
 
 // -------------------------------------------------------------------------------------------------------
 // Novatel Types Unit Tests

@@ -143,6 +143,14 @@ struct MetaDataStruct : public MetaDataBase
         uiLength = uiLength_;
     }
 
+    void ResetMetaData() override
+    {
+        eMeasurementSource = MEASUREMENT_SOURCE::PRIMARY;
+        eTimeStatus = TIME_STATUS::UNKNOWN;
+        constellation = CONSTELLATION::UNKNOWN;
+        MetaDataBase::ResetMetaData();
+    }
+
     ~MetaDataStruct() override = default;
 
     // NOTE: C++20 automatically generates a generic operator== for this struct.

@@ -142,14 +142,14 @@ int main(int argc, char* argv[])
 
     auto start = std::chrono::system_clock::now();
     uint32_t uiCompletedMessages = 0;
-    auto eActiveFramerId = clFramerManager.idMap["UKNOWN"];
+    clFramerManager.ResetActiveFramerId();
 
     while (true)
     {
         unsigned char* pucReadBuffer = acFrameBuffer;
 
         // Get frame, null-terminate.
-        eStatus = clFramerManager.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH, eActiveFramerId);
+        eStatus = clFramerManager.GetFrame(pucReadBuffer, MAX_ASCII_MESSAGE_LENGTH);
         if (eStatus == STATUS::SUCCESS)
         {
             // Decode the header. Get metadata here and populate the Intermediate header.

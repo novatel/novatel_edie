@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
             if (eFramerStatus == STATUS::SUCCESS)
             {
                 // OEM logs are the only ones allowed in this example
-                auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*(clFramerManager.GetFramerElement(clFramerManager.ActiveFramerId()))->metadata);
+                auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*(clFramerManager.GetActiveMetaData()));
                 if (stMetaData.bResponse)
                 {
                     unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);

@@ -71,6 +71,7 @@ class Parser
     unsigned char* pucMyEncodeBufferPointer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
     unsigned char* pucMyFrameBufferPointer{nullptr};
+    // std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
 
     // Configuration options
     bool bMyDecompressRangeCmp{true};
@@ -222,7 +223,7 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(unsigned char* pucData_, uint32_t uiDataSize_)
+    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_)
     {
         FramerManager& clMyFramerManager = FramerManager::GetInstance();
         return clMyFramerManager.Write(pucData_, uiDataSize_);
@@ -246,7 +247,7 @@ class Parser
     //! if requested in the ParserConfigStruct given to SetConfig().
     //!   BUFFER_EMPTY: There are no more bytes to parse in the Parser.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
+    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, bool bDecodeIncompleteAbbreviated_ = false);
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Parser.
