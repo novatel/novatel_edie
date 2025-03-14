@@ -231,7 +231,7 @@ PyMessageData PyMessage::to_binary()
     return encoder->PyEncode(*this, ENCODE_FORMAT::BINARY);
 }
 
-PyMessageData PyMessage::to_flattended_binary()
+PyMessageData PyMessage::to_flattened_binary()
 {
     PyMessageDatabase::ConstPtr db = this->parent_db_;
     std::shared_ptr<const PyEncoder> encoder = std::static_pointer_cast<const PyEncoder>(db->get_encoder());
@@ -418,7 +418,7 @@ void init_message_objects(nb::module_& m) {
     nb::class_<PyMessage, PyMessageBase>(m, "Message")
         .def("to_ascii", &PyMessage::to_ascii)
         .def("to_binary", &PyMessage::to_binary)
-        .def("to_flattended_binary", &PyMessage::to_flattended_binary)
+        .def("to_flattended_binary", &PyMessage::to_flattened_binary)
         .def("to_json", &PyMessage::to_json)
         .def_ro("name", &PyMessage::name);
 }
