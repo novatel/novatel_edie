@@ -11,7 +11,7 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-oem::PyMessageData oem::PyEncoder::PyEncode(const oem::PyCompleteMessage& py_message, ENCODE_FORMAT format) const
+oem::PyMessageData oem::PyEncoder::PyEncode(const oem::PyMessage& py_message, ENCODE_FORMAT format) const
 {
     STATUS status;
     MessageDataStruct message_data = MessageDataStruct();

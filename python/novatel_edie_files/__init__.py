@@ -38,7 +38,7 @@ from .bindings import (
     BufferFullException, BufferEmptyException, StreamEmptyException, UnsupportedException,
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,
     string_to_encode_format, pretty_version,
-    Header, Field, Message, IncompleteMessage, CompleteMessage,
+    EdieData, UnknownBytes, Header, Field, MessageBase, UnknownMessage, Message,
     MessageDatabase, get_default_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
     Framer, Filter, Decoder, DecoderException, Encoder, Commander, Parser, FileParser,

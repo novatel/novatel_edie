@@ -73,6 +73,7 @@ def main():
     encoder = ne.Encoder()
     _configure_logging(file_parser.logger)
     _configure_logging(file_parser.filter.logger)
+    Logging.get("message_decoder").set_level(LogLevel.OFF)
 
 
     complete_messages = 0
@@ -80,22 +81,12 @@ def main():
     start = timeit.default_timer()
     loop = timeit.default_timer()
     for message in file_parser:
-        if isinstance(message, bytes):
-            pass
-        elif isinstance(message, ne.IncompleteMessage):
-            pass
-        elif isinstance(message, ne.CompleteMessage):
-            ascii_msg = message.to_ascii()
-            bin_msg = message.to_binary()
-            json_msg = message.to_json()
-            pass
-        if isinstance(message, ne.messages.BESTPOS):
-            message.latitude
-
-    file_parser.reset()
-
-    for encoded_msg in file_parser.iter_convert(encode_format):
         pass
+
+    # file_parser.reset()
+
+    # for encoded_msg in file_parser.iter_convert(encode_format):
+    #     pass
 
     elapsed_seconds = timeit.default_timer() - start
     logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")

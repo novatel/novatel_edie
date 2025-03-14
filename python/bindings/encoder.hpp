@@ -16,7 +16,7 @@ class PyEncoder : public Encoder
     PyEncoder(PyMessageDatabase* pclMessageDb_) : Encoder(pclMessageDb_) {};
     PyEncoder(PyMessageDatabase::ConstPtr pclMessageDb_) : Encoder(pclMessageDb_) {};
 
-    PyMessageData PyEncode(const oem::PyCompleteMessage& py_message, ENCODE_FORMAT format) const;
+    PyMessageData PyEncode(const oem::PyMessage& py_message, ENCODE_FORMAT format) const;
 };
 
 }

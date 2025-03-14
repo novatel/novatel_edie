@@ -8,7 +8,19 @@ namespace nb = nanobind;
 
 namespace novatel::edie::oem {
 
-struct PyGpsTime
+//============================================================================
+//! \class PyEdieData
+//! \brief Data in a structured EDIE format.
+//============================================================================
+struct PyEdieData
+{
+};
+
+//============================================================================
+//! \class PyGpsTime
+//! \brief A GPS time.
+//============================================================================
+struct PyGpsTime: public PyEdieData
 {
     PyGpsTime() = default;
     PyGpsTime(uint16_t week_, double milliseconds_, TIME_STATUS time_status_) : week(week_), milliseconds(milliseconds_), time_status(time_status_) {}
@@ -20,10 +32,21 @@ struct PyGpsTime
 };
 
 //============================================================================
-//! \class PyField
-//! \brief A python representation for a log header.
+//! \class UnknownBytes
+//! \brief A series of bytes determined to be undecodable.
 //============================================================================
-struct PyMessageTypeField
+struct PyUnknownBytes : public PyEdieData
+{
+    nb::bytes data;
+
+    explicit PyUnknownBytes(nb::bytes data_) : data(std::move(data_)) {}
+};
+
+//============================================================================
+//! \class PyMessageTypeField
+//! \brief The field in a message header which gives type information.
+//============================================================================
+struct PyMessageTypeField: public PyEdieData
 {
     uint8_t value;
     bool IsResponse() { return (value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0; }
@@ -31,7 +54,11 @@ struct PyMessageTypeField
     MEASUREMENT_SOURCE GetMeasurementSource() { return static_cast<MEASUREMENT_SOURCE>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MEASSRC))); }
 };
 
-struct PyHeader : public IntermediateHeader
+//============================================================================
+//! \class PyHeader
+//! \brief A python representation for a message header.
+//============================================================================
+struct PyHeader : public IntermediateHeader, public PyEdieData
 {
     HEADER_FORMAT format;
     PyMessageTypeField message_type;
@@ -48,12 +75,12 @@ struct PyHeader : public IntermediateHeader
 
 //============================================================================
 //! \class PyField
-//! \brief A python representation for a single log message or message field.
+//! \brief A python representation for a single message or message field.
 //!
 //! Contains a vector of FieldContainer objects, which behave like attributes
 //! within the Python API.
 //============================================================================
-struct PyField
+struct PyField : public PyEdieData
 {
     std::string name;
     bool has_ptype; // Whether the field has a specific Python type associated with it
@@ -79,46 +106,54 @@ struct PyField
 };
 
 //============================================================================
-//! \class PyMessage
-//! \brief A python representation for a single log message.
+//! \class PyMessageBase
+//! \brief A python representation for a single decoded or partially decoded message.
 //!
 //! Extends PyField with reference to the Python represenation of a Header.
 //============================================================================
-struct PyMessage : public PyField
+struct PyMessageBase : public PyField
 {
   public:
     PyHeader header;
 
-    PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_)
+    PyMessageBase(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_)
         : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)), header(std::move(header_))
     {
     }
 };
 
 //============================================================================
-//! \class PyIncompleteMessage
-//! \brief A python representation for an unknown log message.
+//! \class PyUnknownMessage
+//! \brief A python representation for an unknown message.
 //!
 //! Contains the raw bytes of the message.
 //============================================================================
-struct PyIncompleteMessage : public PyMessage
+struct PyUnknownMessage : public PyMessageBase
 {
-    nb::bytes bytes;
-    explicit PyIncompleteMessage(PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
-        : PyMessage("UNKNOWN", false, std::vector<FieldContainer>(), std::move(parent_db_), std::move(header_)), bytes(std::move(bytes_))
+    nb::bytes payload;
+    explicit PyUnknownMessage(PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
+        : PyMessageBase("UNKNOWN", false, std::vector<FieldContainer>(), std::move(parent_db_), std::move(header_)), payload(std::move(bytes_))
     {
     }
 };
 
-struct PyCompleteMessage : public PyMessage
+//============================================================================
+//! \class PyMessage
+//! \brief A python representation for a single fully decoded message.
+//!
+//! Extends PyMessageBase with additional methods for re-encoding.
+//============================================================================
+struct PyMessage : public PyMessageBase
 {
-    using PyMessage::PyMessage;
+    using PyMessageBase::PyMessageBase;
 
     PyMessageData to_ascii();
     PyMessageData to_binary();
-    PyMessageData to_flattended_binary();
+    PyMessageData to_flattened_binary();
     PyMessageData to_json();
 };
+
+nb::object create_unknown_bytes(nb::bytes data);
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database);
 
