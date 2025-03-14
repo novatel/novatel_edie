@@ -28,7 +28,6 @@ nanobind_add_module(python_bindings
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/commander.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/exceptions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/encoder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/file_parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/filter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/framer.cpp

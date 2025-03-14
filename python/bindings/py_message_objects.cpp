@@ -11,7 +11,6 @@
 #include "exceptions.hpp"
 #include "py_message_data.hpp"
 #include "py_message_objects.hpp"
-#include "encoder.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -245,28 +244,24 @@ oem::PyMessageData PyEncode(PyMessage& py_message, const PyMessageDatabase* db, 
     return PyMessageData(message_data);
 }
 
-PyMessageData PyMessage::to_ascii() { 
-    return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII);
-}
+PyMessageData PyMessage::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
 
-PyMessageData PyMessage::to_binary()
-{ return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
+PyMessageData PyMessage::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
 PyMessageData PyMessage::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
 PyMessageData PyMessage::to_json() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::JSON); }
 
-
-
 #pragma endregion
 
 #pragma region Message Constructor Functions
 
-nb::object oem::create_unknown_bytes(nb::bytes data) {
+nb::object oem::create_unknown_bytes(nb::bytes data)
+{
     nb::handle data_pytype = nb::type<PyUnknownBytes>();
     nb::object data_pyinst = nb::inst_alloc(data_pytype);
     PyUnknownBytes* data_cinst = nb::inst_ptr<PyUnknownBytes>(data_pyinst);
-    new (data_cinst) PyUnknownBytes(data); 
+    new (data_cinst) PyUnknownBytes(data);
     nb::inst_mark_ready(data_pyinst);
     return data_pyinst;
 }
@@ -281,7 +276,8 @@ nb::object oem::create_unknown_message_instance(nb::bytes data, PyHeader& header
     return message_pyinst;
 }
 
-nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata, PyMessageDatabase::ConstPtr database)
+nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata,
+                                        PyMessageDatabase::ConstPtr database)
 {
     nb::handle message_pytype;
 
@@ -321,7 +317,8 @@ nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldConta
 
 #pragma region Bindings
 
-void init_header_objects(nb::module_& m) {
+void init_header_objects(nb::module_& m)
+{
     nb::class_<oem::PyMessageTypeField>(m, "MessageType")
         .def("__repr__",
              [](nb::handle_t<PyMessageTypeField> self) {
@@ -360,7 +357,8 @@ void init_header_objects(nb::module_& m) {
         });
 }
 
-void init_message_objects(nb::module_& m) {
+void init_message_objects(nb::module_& m)
+{
 
     nb::class_<PyEdieData>(m, "EdieData");
 

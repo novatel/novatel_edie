@@ -8,9 +8,8 @@ void init_message_db_singleton(nb::module_&);
 void init_common_message_database(nb::module_&);
 void init_novatel_commander(nb::module_&);
 void init_novatel_common(nb::module_&);
-void init_novatel_exceptions(nb::module_& m);
+void init_novatel_exceptions(nb::module_&);
 void init_novatel_decoder(nb::module_&);
-void init_novatel_encoder(nb::module_&);
 void init_novatel_file_parser(nb::module_&);
 void init_novatel_filter(nb::module_&);
 void init_novatel_framer(nb::module_&);
@@ -31,7 +30,6 @@ NB_MODULE(bindings, m)
     init_novatel_commander(m);
     init_novatel_common(m);
     init_novatel_exceptions(m);
-    init_novatel_encoder(m);
     init_novatel_file_parser(m);
     init_novatel_filter(m);
     init_novatel_framer(m);

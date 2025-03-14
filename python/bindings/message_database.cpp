@@ -4,7 +4,6 @@
 
 #include "bindings_core.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
-#include "encoder.hpp"
 #include "py_database.hpp"
 #include "py_message_objects.hpp"
 
@@ -196,7 +195,7 @@ PyMessageDatabase::PyMessageDatabase()
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::PyEncoder>(this);
+    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
@@ -205,21 +204,21 @@ PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vM
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::PyEncoder>(this);
+    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::PyEncoder>(this);
+    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::PyEncoder>(this);
+    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 void PyMessageDatabase::GenerateMessageMappings()
