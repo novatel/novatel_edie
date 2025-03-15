@@ -36,8 +36,6 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
 {
     auto pclMessageDb = LoadJsonDbFile(sDbPath_);
     LoadJsonDb(pclMessageDb);
-    // FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    // pclMyCircularDataBuffer = clMyFramerManager.GetCircularBuffer();
     pclMyLogger->debug("Parser initialized");
 }
 
@@ -45,8 +43,6 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
 Parser::Parser(MessageDatabase::Ptr pclMessageDb_)
 {
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
-    // FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    // pclMyCircularDataBuffer = clMyFramerManager.GetCircularBuffer();
     pclMyLogger->debug("Parser initialized");
 }
 
@@ -215,12 +211,16 @@ Parser::Read(MessageDataStruct& stMessageData_, bool bDecodeIncompleteAbbreviate
                 clMyFramerManager.ResetActiveFramerId();
                 return STATUS::BUFFER_EMPTY;
             }
-            else
-            {
-                clMyFramerManager.ResetActiveFramerId();
-                pclMyLogger->info("Framer returned status {}", eStatus);
-            }
         }
+
+        if (eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY)
+        {
+            clMyFramerManager.ResetActiveFramerId();
+            pclMyLogger->info("Framer returned status {}", eStatus);
+            return STATUS::BUFFER_EMPTY;
+        }
+        clMyFramerManager.ResetActiveFramerId();
+        pclMyLogger->info("Framer returned status {}", eStatus);
     }
 }
 

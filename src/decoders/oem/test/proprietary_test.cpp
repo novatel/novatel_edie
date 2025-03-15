@@ -85,7 +85,7 @@ class ProprietaryFramerTest : public ::testing::Test
 
     template <HEADER_FORMAT F, STATUS S> static void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_);
 
-    void WriteFileStreamToFramer(std::string sFilename_)
+    static void WriteFileStreamToFramer(std::string sFilename_)
     {
         pclMyIFS = std::make_unique<std::ifstream>(std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_, std::ios::binary);
 

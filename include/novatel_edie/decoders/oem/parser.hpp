@@ -71,7 +71,6 @@ class Parser
     unsigned char* pucMyEncodeBufferPointer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
     unsigned char* pucMyFrameBufferPointer{nullptr};
-    // std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
 
     // Configuration options
     bool bMyDecompressRangeCmp{true};

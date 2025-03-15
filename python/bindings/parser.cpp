@@ -43,8 +43,7 @@ void init_novatel_parser(nb::module_& m)
         .def("__next__",
              [](oem::Parser& self) {
                  MessageDataStruct message_data;
-                 oem::MetaDataStruct meta_data;
-                 STATUS status = self.Read(message_data, meta_data);
+                 STATUS status = self.Read(message_data);
                  switch (status)
                  {
                  case STATUS::BUFFER_EMPTY: [[fallthrough]];
@@ -52,7 +51,7 @@ void init_novatel_parser(nb::module_& m)
                  case STATUS::INCOMPLETE_MORE_DATA: throw nb::stop_iteration();
                  default: break;
                  }
-                 return std::make_tuple(status, oem::PyMessageData(message_data), meta_data);
+                 return std::make_tuple(status, oem::PyMessageData(message_data));
              })
         .def(
             "flush",
