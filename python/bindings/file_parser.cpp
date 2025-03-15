@@ -31,26 +31,16 @@ void init_novatel_file_parser(nb::module_& m)
         .def("read",
              [](oem::FileParser& self) {
                  MessageDataStruct message_data;
-                 oem::MetaDataStruct meta_data;
-                 STATUS status = self.Read(message_data, meta_data);
-                 return std::make_tuple(status, oem::PyMessageData(message_data), meta_data);
+                 STATUS status = self.Read(message_data);
+                 return std::make_tuple(status, oem::PyMessageData(message_data));
              })
-        .def(
-            "read",
-            [](oem::FileParser& self, const nb::handle_t<oem::MetaDataStruct> py_metadata) {
-                MessageDataStruct message_data;
-                STATUS status = self.Read(message_data, nb::cast<oem::MetaDataStruct&>(py_metadata));
-                return std::make_tuple(status, oem::PyMessageData(message_data));
-            },
-            "metadata"_a)
         .def("__iter__", [](oem::FileParser& self) { return &self; })
         .def("__next__",
              [](oem::FileParser& self) {
                  MessageDataStruct message_data;
-                 oem::MetaDataStruct meta_data;
-                 STATUS status = self.Read(message_data, meta_data);
+                 STATUS status = self.Read(message_data);
                  if (status == STATUS::STREAM_EMPTY) { throw nb::stop_iteration(); }
-                 return std::make_tuple(status, oem::PyMessageData(message_data), meta_data);
+                 return std::make_tuple(status, oem::PyMessageData(message_data));
              })
         .def("reset", &oem::FileParser::Reset)
         .def(
