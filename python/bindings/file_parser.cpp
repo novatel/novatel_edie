@@ -32,15 +32,19 @@ void init_novatel_file_parser(nb::module_& m)
              [](oem::FileParser& self) {
                  MessageDataStruct message_data;
                  STATUS status = self.Read(message_data);
-                 return std::make_tuple(status, oem::PyMessageData(message_data));
+                 FramerManager& framerManager = FramerManager::GetInstance();
+                 auto& metaData = framerManager.GetMetaData("NOVATEL");
+                 return std::make_tuple(status, oem::PyMessageData(message_data), metaData);
              })
         .def("__iter__", [](oem::FileParser& self) { return &self; })
         .def("__next__",
              [](oem::FileParser& self) {
                  MessageDataStruct message_data;
                  STATUS status = self.Read(message_data);
+                 FramerManager& framerManager = FramerManager::GetInstance();
+                 auto& metaData = framerManager.GetMetaData("NOVATEL");
                  if (status == STATUS::STREAM_EMPTY) { throw nb::stop_iteration(); }
-                 return std::make_tuple(status, oem::PyMessageData(message_data));
+                 return std::make_tuple(status, oem::PyMessageData(message_data), metaData);
              })
         .def("reset", &oem::FileParser::Reset)
         .def(
