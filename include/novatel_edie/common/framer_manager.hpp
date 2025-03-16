@@ -113,6 +113,19 @@ class FramerManager
     }
 
     //---------------------------------------------------------------------------
+    //! \brief Get the MetaData for a specific framer.
+    //
+    //! \param[in] framerName The name of the framer to get the MetaData for.
+    //! \return A pointer to the MetaData for the specified framer.
+    //! \return nullptr if the framer is not found.
+    //---------------------------------------------------------------------------
+    MetaDataBase* GetMetaData(std::string sFramerName)
+    {
+        if (idMap.find(sFramerName) == idMap.end()) { return nullptr; }
+        return GetMetaData(idMap[sFramerName]);
+    }
+
+    //---------------------------------------------------------------------------
     //! \brief Get the MetaData for the active framer.
     //
     //! \return A pointer to the MetaData for the specified framer.

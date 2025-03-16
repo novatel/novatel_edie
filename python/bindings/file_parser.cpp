@@ -33,8 +33,8 @@ void init_novatel_file_parser(nb::module_& m)
                  MessageDataStruct message_data;
                  STATUS status = self.Read(message_data);
                  FramerManager& framerManager = FramerManager::GetInstance();
-                 auto& metaData = framerManager.GetMetaData("NOVATEL");
-                 return std::make_tuple(status, oem::PyMessageData(message_data), metaData);
+                 auto* metaData_ptr = framerManager.GetMetaData("NOVATEL");
+                 return std::make_tuple(status, oem::PyMessageData(message_data), *metaData_ptr);
              })
         .def("__iter__", [](oem::FileParser& self) { return &self; })
         .def("__next__",
