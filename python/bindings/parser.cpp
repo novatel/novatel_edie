@@ -101,9 +101,42 @@ void init_novatel_parser(nb::module_& m)
         .def_prop_rw("filter", &oem::PyParser::GetFilter, &oem::PyParser::SetFilter)
         .def("write",
              [](oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
-        .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false)
+        .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false,
+             nb::sig("def read(decode_incomplete_abbreviated=False) -> EdieData"),
+             R"doc(
+            Attempts to read a message from data in the Parser's buffer.
+
+            Args:
+                decode_incomplete_abbreviated: If True, the Parser will try to
+                    interpret a possibly incomplete abbreviated ASCII message as if
+                    it were complete. This is necessary when there is no data
+                    following the message to indicate that its end.
+
+            Returns:
+                A decoded `Message`,
+                an `UnknownMessage` whose header was identified but whose payload
+                could not be decoded due to no available message definition,
+                or a series of `UnknownBytes` determined to be undecodable.
+
+            Raises:
+                BufferEmptyException: There is insufficient data in the Parser's
+                buffer to decode a message.
+            )doc")
         .def("__iter__", [](nb::handle_t<oem::PyParser> self) { return self; })
-        .def("__next__", &oem::PyParser::PyIterRead)
+        .def("__next__", &oem::PyParser::PyIterRead, nb::sig("def __next__() -> EdieData"),
+             R"doc(
+            Attempts to read the next message from data in the Parser's buffer.
+
+            Returns:
+                A decoded `Message`,
+                an `UnknownMessage` whose header was identified but whose payload
+                could not be decoded due to no available message definition,
+                or a series of `UnknownBytes` determined to be undecodable.
+
+            Raises:
+                StopIteration: There is insufficient data in the Parser's
+                buffer to decode a message.
+            )doc")
         .def("convert", &oem::PyParser::PyConvert, "fmt"_a, "decode_incomplete_abbreviated"_a = false)
         .def(
             "iter_convert", [](oem::PyParser& self, ENCODE_FORMAT fmt) { return oem::ConversionIterator(self, fmt); }, "fmt"_a)

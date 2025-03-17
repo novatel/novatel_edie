@@ -89,9 +89,35 @@ void init_novatel_file_parser(nb::module_& m)
         .def(
             "set_stream", [](oem::PyFileParser& self, nb::object stream) { return self.SetStream(std::make_shared<pystream::istream>(stream, 0)); },
             "input_stream"_a)
-        .def("read", &oem::PyFileParser::PyRead)
+        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() -> EdieData"),
+             R"doc(
+            Attempts to read a message from data in the FileParser's buffer.
+
+            Returns:
+                A decoded `Message`,
+                an `UnknownMessage` whose header was identified but whose payload
+                could not be decoded due to no available message definition,
+                or a series of `UnknownBytes` determined to be undecodable.
+
+            Raises:
+                BufferEmptyException: There is insufficient data in the FileParser's
+                buffer to decode a message.
+            )doc")
         .def("__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; })
-        .def("__next__", &oem::PyFileParser::PyIterRead)
+        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __iter__() -> EdieData"),
+             R"doc(
+            Attempts to read the next message from data in the FileParser's buffer.
+
+            Returns:
+                A decoded `Message`,
+                an `UnknownMessage` whose header was identified but whose payload
+                could not be decoded due to no available message definition,
+                or a series of `UnknownBytes` determined to be undecodable.
+
+            Raises:
+                StopIteration: There is insufficient data in the FileParser's
+                buffer to decode a message.
+            )doc")
         .def("convert", &oem::PyFileParser::PyConvert, "fmt"_a)
         .def("iter_convert", [](oem::PyFileParser& self, ENCODE_FORMAT fmt) { return oem::FileConversionIterator(self, fmt); })
         .def("reset", &oem::PyFileParser::Reset)
