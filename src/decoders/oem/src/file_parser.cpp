@@ -67,9 +67,9 @@ bool FileParser::ReadStream()
 }
 
 // -------------------------------------------------------------------------------------------------------
-[[nodiscard]] STATUS FileParser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_)
+[[nodiscard]] STATUS FileParser::Read(MessageDataStruct& stMessageData_)
 {
-    const STATUS eStatus = clMyParser.Read(stMessageData_, stMetaData_);
+    const STATUS eStatus = clMyParser.Read(stMessageData_);
 
     switch (eStatus)
     {
@@ -77,7 +77,7 @@ bool FileParser::ReadStream()
     case STATUS::UNKNOWN: return STATUS::UNKNOWN;
     case STATUS::BUFFER_EMPTY: {
         if (ReadStream()) { return STATUS::BUFFER_EMPTY; }
-        return clMyParser.Read(stMessageData_, stMetaData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
+        return clMyParser.Read(stMessageData_, true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
     }
     default: pclMyLogger->info("Encountered an error: {}\n", eStatus); return eStatus;
     }

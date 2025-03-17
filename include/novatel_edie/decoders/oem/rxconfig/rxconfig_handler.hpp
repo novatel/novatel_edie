@@ -27,6 +27,7 @@
 #ifndef RXCONFIG_HANDLER_HPP
 #define RXCONFIG_HANDLER_HPP
 
+#include "novatel_edie/common/framer_manager.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
@@ -53,7 +54,6 @@ class RxConfigHandler
     static constexpr auto szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
     static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
 
-    Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
@@ -113,7 +113,7 @@ class RxConfigHandler
     //
     //! \return The number of bytes successfully written to the RxConfigHandler.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_);
+    static uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_);
 
     //----------------------------------------------------------------------------
     //! \brief Read and convert an RXCONFIG message from the handler.
@@ -144,7 +144,7 @@ class RxConfigHandler
     //
     //! \return The number of bytes flushed from the internal Framer.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize);
+    static uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize);
 };
 
 } // namespace novatel::edie::oem

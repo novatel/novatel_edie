@@ -133,6 +133,26 @@ struct MetaDataStruct : public MetaDataBase
     TIME_STATUS eTimeStatus{TIME_STATUS::UNKNOWN};
     CONSTELLATION constellation{CONSTELLATION::UNKNOWN};
 
+    MetaDataStruct() = default;
+
+    MetaDataStruct(const HEADER_FORMAT eFormat_) { eFormat = eFormat_; }
+
+    MetaDataStruct(const HEADER_FORMAT eFormat_, const uint32_t uiLength_)
+    {
+        eFormat = eFormat_;
+        uiLength = uiLength_;
+    }
+
+    void ResetMetaData() override
+    {
+        eMeasurementSource = MEASUREMENT_SOURCE::PRIMARY;
+        eTimeStatus = TIME_STATUS::UNKNOWN;
+        constellation = CONSTELLATION::UNKNOWN;
+        MetaDataBase::ResetMetaData();
+    }
+
+    ~MetaDataStruct() override = default;
+
     // NOTE: C++20 automatically generates a generic operator== for this struct.
     bool operator==(const MetaDataStruct& other_) const
     {

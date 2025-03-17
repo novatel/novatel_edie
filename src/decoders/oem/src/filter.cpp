@@ -217,11 +217,13 @@ bool Filter::FilterDecimation(const MetaDataStruct& stMetaData_) const
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Filter::DoFiltering(const MetaDataStruct& stMetaData_) const
+bool Filter::DoFiltering(MetaDataBase& stMetaData_) const
 {
-    if (stMetaData_.eFormat == HEADER_FORMAT::UNKNOWN) { return false; }
-    if (stMetaData_.eFormat == HEADER_FORMAT::NMEA) { return bMyIncludeNmea; }
+    auto& stMetaData = reinterpret_cast<MetaDataStruct&>(stMetaData_);
+
+    if (stMetaData.eFormat == HEADER_FORMAT::UNKNOWN) { return false; }
+    if (stMetaData.eFormat == HEADER_FORMAT::NMEA) { return bMyIncludeNmea; }
 
     return std::all_of(vMyFilterFunctions.begin(), vMyFilterFunctions.end(),
-                       [this, &stMetaData_](const auto& filterFunction) { return (this->*filterFunction)(stMetaData_); });
+                       [this, &stMetaData](const auto& filterFunction) { return (this->*filterFunction)(stMetaData); });
 }

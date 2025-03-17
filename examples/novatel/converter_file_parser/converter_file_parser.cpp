@@ -94,6 +94,11 @@ int main(int argc, char* argv[])
     // Set up timers
     auto tLoop = std::chrono::high_resolution_clock::now();
 
+    // get reference to static singleton instance of FramerManager
+    novatel::edie::FramerManager& clFramerManager = FramerManager::GetInstance();
+    // Assert the only framer to be used in this example
+    clFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
+
     FileParser clFileParser(clJsonDb);
     clFileParser.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clFileParser.GetLogger());
@@ -133,7 +138,7 @@ int main(int argc, char* argv[])
     {
         try
         {
-            eStatus = clFileParser.Read(stMessageData, stMetaData);
+            eStatus = clFileParser.Read(stMessageData);
             if (eStatus == STATUS::SUCCESS)
             {
                 convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);

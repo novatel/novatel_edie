@@ -63,7 +63,8 @@ enum class STATUS
     STREAM_EMPTY,           //!< The input stream is empty.
     UNSUPPORTED,            //!< An attempted operation is unsupported by this component.
     MALFORMED_INPUT,        //!< The input is recognizable, but has unexpected formatting.
-    DECOMPRESSION_FAILURE   //!< The RANGECMP log could not be decompressed.
+    DECOMPRESSION_FAILURE,  //!< The RANGECMP log could not be decompressed.
+    SYNC_BYTES_FOUND        //!< Sync bytes for the specific framer were found in the buffer.
 };
 
 inline std::string StatusToString(const STATUS eStatus_)
@@ -84,6 +85,7 @@ inline std::string StatusToString(const STATUS eStatus_)
     case STATUS::UNSUPPORTED: return "UNSUPPORTED";
     case STATUS::MALFORMED_INPUT: return "MALFORMED_INPUT";
     case STATUS::DECOMPRESSION_FAILURE: return "DECOMPRESSION_FAILURE";
+    case STATUS::SYNC_BYTES_FOUND: return "SYNC_BYTES_FOUND";
     default: return "UNKNOWN";
     }
 }
@@ -257,6 +259,12 @@ struct EnumDefinition;
 //============================================================================
 struct MetaDataBase
 {
+  private:
+    static constexpr uint32_t uiMessageNameMax = 40;
+
+  public:
+    MetaDataBase() = default;
+    virtual ~MetaDataBase() = 0;
     bool bResponse{false};
     HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
     uint16_t usWeek{0};
@@ -267,7 +275,22 @@ struct MetaDataBase
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
     std::string messageName;
+
+    virtual void ResetMetaData()
+    {
+        eFormat = HEADER_FORMAT::UNKNOWN;
+        usWeek = 0;
+        dMilliseconds = 0.0;
+        uiLength = 0;
+        uiBinaryMsgLength = 0;
+        uiHeaderLength = 0;
+        usMessageId = 0;
+        uiMessageCrc = 0;
+        messageName.clear();
+    }
 };
+
+inline MetaDataBase::~MetaDataBase() = default;
 
 } // namespace novatel::edie
 

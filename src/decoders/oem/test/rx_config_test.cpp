@@ -54,10 +54,10 @@ class RxConfigTest : public ::testing::Test
     static void TearDownTestSuite() { Logger::Shutdown(); }
 
     // Per-test setup
-    void SetUp() override { pclMyRxConfigHandler->Flush(); }
+    void SetUp() override { RxConfigHandler::Flush(); }
 
     // Per-test teardown
-    void TearDown() override { pclMyRxConfigHandler->Flush(); }
+    void TearDown() override { RxConfigHandler::Flush(); }
 
   public:
     static void WriteBytesToHandler(unsigned char* pucBytes_, uint32_t uiNumBytes_)

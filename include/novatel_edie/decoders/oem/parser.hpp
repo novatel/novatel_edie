@@ -29,6 +29,7 @@
 
 #include <memory>
 
+#include "novatel_edie/common/framer_manager.hpp"
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
@@ -54,7 +55,6 @@ class Parser
 
     MessageDatabase::Ptr pclMyMessageDb;
     Filter::Ptr pclMyUserFilter;
-    Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
@@ -222,7 +222,11 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_)
+    {
+        FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        return clMyFramerManager.Write(pucData_, uiDataSize_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.
@@ -242,7 +246,7 @@ class Parser
     //! if requested in the ParserConfigStruct given to SetConfig().
     //!   BUFFER_EMPTY: There are no more bytes to parse in the Parser.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_ = false);
+    [[nodiscard]] STATUS Read(MessageDataStruct& stMessageData_, bool bDecodeIncompleteAbbreviated_ = false);
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Parser.
