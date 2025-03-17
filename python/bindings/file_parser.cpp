@@ -89,7 +89,7 @@ void init_novatel_file_parser(nb::module_& m)
         .def(
             "set_stream", [](oem::PyFileParser& self, nb::object stream) { return self.SetStream(std::make_shared<pystream::istream>(stream, 0)); },
             "input_stream"_a)
-        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() -> EdieData"),
+        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() ->  Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read a message from data in the FileParser's buffer.
 
@@ -104,7 +104,7 @@ void init_novatel_file_parser(nb::module_& m)
                 buffer to decode a message.
             )doc")
         .def("__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; })
-        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __next__() -> EdieData"),
+        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __next__() -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read the next message from data in the FileParser's buffer.
 

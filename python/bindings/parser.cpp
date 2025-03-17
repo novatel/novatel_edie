@@ -102,7 +102,7 @@ void init_novatel_parser(nb::module_& m)
         .def("write",
              [](oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
         .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false,
-             nb::sig("def read(decode_incomplete_abbreviated=False) -> EdieData"),
+             nb::sig("def read(decode_incomplete_abbreviated=False) -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read a message from data in the Parser's buffer.
 
@@ -123,7 +123,7 @@ void init_novatel_parser(nb::module_& m)
                 buffer to decode a message.
             )doc")
         .def("__iter__", [](nb::handle_t<oem::PyParser> self) { return self; })
-        .def("__next__", &oem::PyParser::PyIterRead, nb::sig("def __next__() -> EdieData"),
+        .def("__next__", &oem::PyParser::PyIterRead, nb::sig("def __next__() -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read the next message from data in the Parser's buffer.
 
