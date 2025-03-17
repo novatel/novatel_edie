@@ -7,8 +7,8 @@
 #include <nanobind/stl/variant.h>
 
 #include "bindings_core.hpp"
-#include "message_db_singleton.hpp"
 #include "exceptions.hpp"
+#include "message_db_singleton.hpp"
 #include "py_message_data.hpp"
 #include "py_message_objects.hpp"
 
@@ -362,16 +362,14 @@ void init_header_objects(nb::module_& m)
 void init_message_objects(nb::module_& m)
 {
 
-    nb::class_<PyEdieData>(m, "EdieData");
-
-    nb::class_<PyGpsTime, PyEdieData>(m, "GpsTime")
+    nb::class_<PyGpsTime>(m, "GpsTime")
         .def(nb::init())
         .def(nb::init<uint16_t, double, TIME_STATUS>(), "week"_a, "milliseconds"_a, "time_status"_a = TIME_STATUS::UNKNOWN)
         .def_rw("week", &PyGpsTime::week)
         .def_rw("milliseconds", &PyGpsTime::milliseconds)
         .def_rw("status", &PyGpsTime::time_status);
 
-    nb::class_<PyUnknownBytes, PyEdieData>(m, "UnknownBytes")
+    nb::class_<PyUnknownBytes>(m, "UnknownBytes")
         .def("__repr__",
              [](const PyUnknownBytes self) {
                  std::string byte_rep = nb::str(self.data.attr("__repr__")()).c_str();
@@ -379,7 +377,7 @@ void init_message_objects(nb::module_& m)
              })
         .def_ro("data", &PyUnknownBytes::data);
 
-    nb::class_<PyField, PyEdieData>(m, "Field")
+    nb::class_<PyField>(m, "Field")
         .def("to_dict", &PyField::to_dict, "Convert the message and its sub-messages into a dict")
         .def("__getattr__", &PyField::getattr, "field_name"_a)
         .def("__repr__", &PyField::repr)
@@ -408,31 +406,37 @@ void init_message_objects(nb::module_& m)
             return base_list;
         });
 
-    nb::class_<PyMessageBase, PyField>(m, "MessageBase")
-        .def_ro("header", &PyMessageBase::header)
-        .def(
-            "to_dict",
-            [](const PyMessageBase& self, bool include_header) {
-                nb::dict dict = self.to_dict();
-                if (include_header) { dict["header"] = self.header.to_dict(); }
-                return dict;
-            },
-            "include_header"_a = true, "Convert the message and its sub-messages into a dict");
-
-    nb::class_<PyUnknownMessage, PyMessageBase>(m, "UnknownMessage")
+    nb::class_<PyUnknownMessage>(m, "UnknownMessage")
         .def("__repr__",
              [](const PyUnknownMessage self) {
                  std::string byte_rep = nb::str(self.payload.attr("__repr__")()).c_str();
                  return "IncompleteMessage(payload=" + byte_rep + ")";
              })
-        .def_ro("payload", &PyUnknownMessage::payload);
+        .def_ro("header", &PyUnknownMessage::header)
+        .def_ro("payload", &PyUnknownMessage::payload)
+        .def(
+            "to_dict", [](const PyUnknownMessage& self) {
+                nb::dict dict = nb::dict();
+                dict["header"] = self.header.to_dict();
+                dict["payload"] = self.payload;
+                return dict;
+            }, "Convert to a dict");
 
-    nb::class_<PyMessage, PyMessageBase>(m, "Message")
+    nb::class_<PyMessage, PyField>(m, "Message")
         .def("encode", &PyMessage::encode)
         .def("to_ascii", &PyMessage::to_ascii)
         .def("to_binary", &PyMessage::to_binary)
         .def("to_flattended_binary", &PyMessage::to_flattened_binary)
         .def("to_json", &PyMessage::to_json)
+        .def(
+            "to_dict",
+            [](const PyMessage& self, bool include_header) {
+                nb::dict dict = self.to_dict();
+                if (include_header) { dict["header"] = self.header.to_dict(); }
+                return dict;
+            },
+            "include_header"_a = true, "Convert the message its sub-fields into a dict")
+        .def_ro("header", &PyMessage::header)
         .def_ro("name", &PyMessage::name);
 }
 
