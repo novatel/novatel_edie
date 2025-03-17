@@ -104,7 +104,7 @@ void init_novatel_file_parser(nb::module_& m)
                 buffer to decode a message.
             )doc")
         .def("__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; })
-        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __iter__() -> EdieData"),
+        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __next__() -> EdieData"),
              R"doc(
             Attempts to read the next message from data in the FileParser's buffer.
 
