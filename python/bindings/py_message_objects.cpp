@@ -425,7 +425,7 @@ void init_message_objects(nb::module_& m)
                  std::string byte_rep = nb::str(self.payload.attr("__repr__")()).c_str();
                  return "IncompleteMessage(payload=" + byte_rep + ")";
              })
-        .def_ro("bytes", &PyUnknownMessage::payload);
+        .def_ro("payload", &PyUnknownMessage::payload);
 
     nb::class_<PyMessage, PyMessageBase>(m, "Message")
         .def("encode", &PyMessage::encode)

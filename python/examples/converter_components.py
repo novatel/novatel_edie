@@ -101,11 +101,7 @@ def main():
                     continue
                 logger.info(f"Framed ({len(frame)}): {format_frame(frame, meta.format)}")
 
-                # Decode in oneshot
-                message = decoder.decode(frame)
-
-
-                # Decode piecewise
+                # Decode the log header.
                 header = decoder.decode_header(frame, meta)
 
                 # Filter the log, pass over it if we don't want it.
@@ -123,11 +119,9 @@ def main():
                         value = ob.psr
                         pass
 
-                # Re-encode the log and write it to the output file.
+                # Re-encode the log
                 if isinstance(message, ne.Message):
                     encoded_message = message.to_ascii()
-                else:
-                    pass
 
             except Exception as e:
                 logger.warn(str(e))

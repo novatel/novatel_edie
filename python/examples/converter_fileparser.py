@@ -36,7 +36,7 @@ import timeit
 
 import novatel_edie as ne
 from novatel_edie import Logging, LogLevel
-
+from novatel_edie.messages import BESTPOS
 
 def _configure_logging(logger):
     logger.set_level(LogLevel.DEBUG)
@@ -66,7 +66,6 @@ def main():
     if not os.path.exists(args.input_file):
         logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
-    db = ne.MessageDatabase('database/database.json')
     file_parser = ne.FileParser(args.input_file)
     filter = ne.Filter()
     file_parser.filter = filter
@@ -75,20 +74,25 @@ def main():
     Logging.get("message_decoder").set_level(LogLevel.OFF)
 
 
-    complete_messages = 0
-    counter = 0
+    messages = 0
     start = timeit.default_timer()
-    loop = timeit.default_timer()
     for message in file_parser:
-        pass
-
-    # file_parser.reset()
-
-    # for encoded_msg in file_parser.iter_convert(encode_format):
-    #     pass
+        if isinstance(message, ne.Message):
+            encoded_msg = message.encode(encode_format)
+            ascii_msg = message.to_ascii()
+            binary_msg = message.to_binary()
+            messages += 1
+            if isinstance(message, BESTPOS):
+                lat = message.latitude
+                lon = message.longitude
+        elif isinstance(message, ne.UnknownMessage):
+            unknown_id = message.header.message_id
+            payload = message.payload
+        elif isinstance(message, ne.UnknownBytes):
+            data = message.data
 
     elapsed_seconds = timeit.default_timer() - start
-    logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
+    logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
 
 
 if __name__ == "__main__":
