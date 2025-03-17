@@ -83,7 +83,7 @@ def test_parse_file_with_filter(parser, test_gps_file):
     with test_gps_file.open("rb") as f:
         while chunk := f.read(32):
             parser.write(chunk)
-            msgs.extend([msg for msg in parser if isinstance(msg, ne.CompleteMessage)])
+            msgs.extend([msg for msg in parser if isinstance(msg, ne.Message)])
 
 
     assert len(msgs) == 2

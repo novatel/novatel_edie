@@ -64,7 +64,6 @@ def main():
         exit(0)
 
     # Load the database
-    encoder = ne.Encoder()
     logger.info("Loading Database... ")
     t0 = timeit.default_timer()
     json_db = ne.get_default_database()
@@ -95,10 +94,10 @@ def main():
             for message in parser:
                 if isinstance(message, bytes):
                     pass
-                elif isinstance(message, ne.IncompleteMessage):
+                elif isinstance(message, ne.UnknownMessage):
                     pass
                 else:
-                    encoded_message = encoder.encode(message, ne.ENCODE_FORMAT.ASCII)
+                    encoded_message = message.to_ascii()
                     if isinstance(message, ne.messages.RANGE):
                         lat = message.obs[0].psr
                     pass

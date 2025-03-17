@@ -244,6 +244,8 @@ oem::PyMessageData PyEncode(PyMessage& py_message, const PyMessageDatabase* db, 
     return PyMessageData(message_data);
 }
 
+PyMessageData PyMessage::encode(ENCODE_FORMAT fmt) { return PyEncode(*this, this->parent_db_.get(), fmt); }
+
 PyMessageData PyMessage::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
 
 PyMessageData PyMessage::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
@@ -426,6 +428,7 @@ void init_message_objects(nb::module_& m)
         .def_ro("bytes", &PyUnknownMessage::payload);
 
     nb::class_<PyMessage, PyMessageBase>(m, "Message")
+        .def("encode", &PyMessage::encode)
         .def("to_ascii", &PyMessage::to_ascii)
         .def("to_binary", &PyMessage::to_binary)
         .def("to_flattended_binary", &PyMessage::to_flattened_binary)

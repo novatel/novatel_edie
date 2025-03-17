@@ -124,11 +124,10 @@ def main():
                         pass
 
                 # Re-encode the log and write it to the output file.
-                if isinstance(message, ne.CompleteMessage):
+                if isinstance(message, ne.Message):
                     encoded_message = message.to_ascii()
                 else:
                     pass
-                # status.raise_on_error("Encoder.encode() failed")
 
             except Exception as e:
                 logger.warn(str(e))

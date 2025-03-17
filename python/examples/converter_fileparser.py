@@ -70,7 +70,6 @@ def main():
     file_parser = ne.FileParser(args.input_file)
     filter = ne.Filter()
     file_parser.filter = filter
-    encoder = ne.Encoder()
     _configure_logging(file_parser.logger)
     _configure_logging(file_parser.filter.logger)
     Logging.get("message_decoder").set_level(LogLevel.OFF)

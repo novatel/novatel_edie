@@ -147,6 +147,7 @@ struct PyMessage : public PyMessageBase
 {
     using PyMessageBase::PyMessageBase;
 
+    PyMessageData encode(ENCODE_FORMAT fmt);
     PyMessageData to_ascii();
     PyMessageData to_binary();
     PyMessageData to_flattened_binary();

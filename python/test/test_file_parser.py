@@ -84,7 +84,7 @@ def test_parse_file_with_filter(fp):
     while True:
         try:
             msg = fp.read()
-            if isinstance(msg, ne.CompleteMessage):
+            if isinstance(msg, ne.Message):
                 msgs.append(msg)
         except ne.StreamEmptyException:
             break
@@ -100,7 +100,7 @@ def test_parse_file_with_filter(fp):
 def test_file_parser_iterator(fp):
     fp.filter = ne.Filter()
     fp.filter.logger.set_level(ne.LogLevel.DEBUG)
-    msgs = [msg for msg in fp if isinstance(msg, ne.CompleteMessage)]
+    msgs = [msg for msg in fp if isinstance(msg, ne.Message)]
     assert len(msgs) == 2
 
     assert msgs[0].header.milliseconds == pytest.approx(270605000)

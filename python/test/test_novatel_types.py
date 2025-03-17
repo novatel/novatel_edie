@@ -55,7 +55,6 @@ ULLONG_MAX = 18446744073709551615
 class Helper:
     def __init__(self, db):
         self.decoder = _internal.DecoderTester(db)
-        self.encoder = ne.Encoder(db)
         self.msg_def_fields = []
 
     def create_base_field(self, name, field_type, conversion, length, data_type):

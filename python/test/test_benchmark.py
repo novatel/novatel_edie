@@ -44,7 +44,6 @@ max_count = 1000
 class Benchmarker:
     def __init__(self):
         self.decoder = ne.Decoder()
-        self.encoder = ne.Encoder()
 
     def run(self, log, encode_format):
         meta_data = ne.MetaData()
@@ -55,7 +54,7 @@ class Benchmarker:
             header = self.decoder.decode_header(log, meta_data)
             body = log[meta_data.header_length:]
             message = self.decoder.decode_message(body, header, meta_data)
-            message_data = self.encoder.encode(message, encode_format)
+            message_data = message.encode(encode_format)
         elapsed_seconds = timeit.default_timer() - start
         print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
 

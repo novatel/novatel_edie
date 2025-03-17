@@ -41,7 +41,7 @@ from .bindings import (
     EdieData, UnknownBytes, Header, Field, MessageBase, UnknownMessage, Message,
     MessageDatabase, get_default_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
-    Framer, Filter, Decoder, DecoderException, Encoder, Commander, Parser, FileParser,
+    Framer, Filter, Decoder, DecoderException, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
     Logging, LogLevel,
     messages, enums, throw_exception_from_status,
