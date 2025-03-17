@@ -30,7 +30,8 @@ class NovatelEdieConan(ConanFile):
 
     def set_version(self):
         cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
-        self.version = re.search(r"novatel_edie VERSION ([\d.]+)", cmakelists_content).group(1)
+        self.version = re.search(r"set\(RELEASE_VERSION ([\d.]+)\)", cmakelists_content).group(1)
+        print(f"Detected version: {self.version}")
 
     def config_options(self):
         if self.settings.os == "Windows":

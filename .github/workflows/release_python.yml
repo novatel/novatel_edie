@@ -1,0 +1,50 @@
+# Workflow for releasing a Python package to PyPI based on the current repository.
+name: Release Python
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: ./.github/workflows/build_python.yml
+  publish:
+    name: Publish release to PyPI
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: pypi
+      url: https://pypi.org/p/novatel-edie
+    permissions:
+      id-token: write
+    steps:
+      - name: Print dir
+        run: |
+          ls
+          
+      - name: List wheel artifacts
+        run: |
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+          | jq -r '.artifacts[] | select(.name | endswith("-wheels")) | .name' \
+          | sort > artifacts.txt
+          cat artifacts.txt
+          
+      - name: Download and extract artifacts
+        run: |
+          mkdir -p ./all_wheels
+          while read -r artifact_name; do
+            echo "Downloading $artifact_name"
+            curl -s -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .archive_download_url" \
+            | xargs -I {} curl -sL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "./all_wheels/${artifact_name}.zip" {}
+            tree
+            unzip -q "./all_wheels/${artifact_name}.zip" -d ./all_wheels
+            rm "./all_wheels/${artifact_name}.zip"
+          done < artifacts.txt
+          tree
+      - name: Upload to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://pypi.org/legacy/
+          verbose: true
+          packages-dir: all_wheels/

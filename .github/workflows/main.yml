@@ -1,0 +1,80 @@
+# The workflow to run on merges or pushes to the main branch.
+name: Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-python:
+    uses: ./.github/workflows/build_python.yml
+  build-cpp:
+    uses: ./.github/workflows/build_cpp.yml
+
+  increment-version:
+    runs-on: ubuntu-latest
+    needs: [build-python, build-cpp]
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Get Pull Request Info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+            commit_sha=$(git rev-parse HEAD)
+            pr_info=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/$commit_sha/pulls" \
+            | jq '.[0]')
+
+            if [ "$pr_info" == "null" ]; then
+            echo "No pull request found for commit $commit_sha"
+            echo "VERSION_TYPE=patch" >> $GITHUB_ENV
+
+            exit 0
+            fi
+
+            echo "Pull Request Number: $(echo $pr_info | jq '.number')"
+            echo "Title: $(echo $pr_info | jq '.title')"
+            echo "Merged By: $(echo $pr_info | jq '.user.login')"
+            pr_number=$(echo $pr_info | jq '.number')
+            pr_tags=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/$pr_number/labels" \
+            | jq -r '.[].name')
+            echo "Tags: $pr_tags"
+
+            if echo "$pr_tags" | grep -q "major"; then
+              VERSION_TYPE=major
+            elif echo "$pr_tags" | grep -q "minor"; then
+              VERSION_TYPE=minor
+            else
+              VERSION_TYPE=patch
+            fi
+
+            echo "VERSION_TYPE=$VERSION_TYPE"
+            echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
+
+      - name: Bump Python version
+        id: bump
+        uses: callowayproject/bump-my-version@master
+        env:
+          BUMPVERSION_TAG: "true"
+        with:
+          args: "${{ env.VERSION_TYPE }}"
+
+      - name: Bump C++ version
+        run: |
+          sed -i -r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ steps.bump.outputs.current-version }}\)/' CMakeLists.txt
+
+      - name: Reset credentials
+        run: |
+          git remote set-url origin https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+
+      - name: Check
+        if: steps.bump.outputs.bumped == 'true'
+        run: |
+          echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"

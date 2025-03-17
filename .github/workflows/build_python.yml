@@ -1,13 +1,11 @@
-name: Python
+# A reusable workflow for building and testing the Python package.
+name: Python Build
+
 on:
-  push:
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'resources/**'
-  workflow_dispatch:
+  workflow_call:
+
 jobs:
-  python:
+  build:
     name: Python - ${{ matrix.platform[0] }} - ${{ matrix.platform[2] }}
     runs-on: ${{ matrix.platform[1] }}
     strategy:
@@ -52,3 +50,9 @@ jobs:
 
       - name: Inspect
         run: ls wheelhouse/
+
+      - name: Store build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform[0] }}-${{ matrix.platform[2] }}-wheels
+          path: wheelhouse/

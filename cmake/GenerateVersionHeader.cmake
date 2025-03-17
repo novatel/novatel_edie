@@ -2,7 +2,23 @@ get_filename_component(SRC_DIR ${SRC} DIRECTORY)
 
 # Generate a git-describe version string from Git repository tags
 
-if(GIT_EXECUTABLE AND NOT DEFINED VERSION)
+find_package(Git)
+
+if(GIT_EXECUTABLE)
+
+  if(NOT DEFINED GIT_BRANCH)
+    set(GIT_BRANCH "main")
+  endif()
+
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} fetch --unshallow
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE FETCH_ERROR_CODE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if (FETCH_ERROR_CODE)
+    message(WARNING "Commit history could not be fetched, proper release may not be identified correctly!")
+  endif()
 
   execute_process(
     COMMAND ${GIT_EXECUTABLE} describe --always --tags --dirty --match "v*"
@@ -55,7 +71,7 @@ if(GIT_EXECUTABLE AND NOT DEFINED VERSION)
   )
 
   if(NOT GIT_DESCRIBE_ERROR_CODE)
-    set(VERSION ${GIT_DESCRIBE_VERSION})
+      string(SUBSTRING ${GIT_DESCRIBE_VERSION} 1 -1 VERBOSE_VERSION)
   endif()
 
   if(NOT GIT_SHA_ERROR_CODE)
@@ -81,9 +97,9 @@ endif()
 # Final fallback: Just use a bogus version string that is semantically older
 # than anything else and spit out a warning to the developer.
 
-if(NOT DEFINED VERSION)
-  set(VERSION v0.0.0-unknown)
-  message(WARNING "Failed to determine VERSION from repository tags. Using default version \"${VERSION}\".")
+if(NOT DEFINED VERBOSE_VERSION)
+  set(VERBOSE_VERSION RELEASE_VERSION)
+  message(WARNING "Failed to determine VERSION from repository tags. Using default version \"${RELEASE_VERSION}\".")
 endif()
 
 if(NOT DEFINED GIT_SHA)
@@ -97,7 +113,7 @@ if(NOT DEFINED GIT_BRANCH)
 endif()
 
 if(NOT DEFINED GIT_IS_DIRTY)
-  set(GIT_IS_DIRTY FALSE)
+  set(GIT_IS_DIRTY "false")
   message(WARNING "Failed to determine GIT_IS_DIRTY from repository tags. Using default version \"${GIT_IS_DIRTY}\".")
 endif()
 
@@ -106,7 +122,8 @@ if(NOT DEFINED BUILD_TIMESTAMP)
   message(WARNING "Failed to determine BUILD_TIMESTAMP from repository tags. Using default version \"${BUILD_TIMESTAMP}\".")
 endif()
 
-message(DEBUG "Version \"${VERSION}\".")
+message(DEBUG "Release Version \"${RELEASE_VERSION}\".")
+message(DEBUG "Verbose Version \"${VERBOSE_VERSION}\".")
 message(DEBUG "SHA     \"${GIT_SHA}\".")
 message(DEBUG "Branch  \"${GIT_BRANCH}\".")
 message(DEBUG "Status  \"${GIT_IS_DIRTY}\".")
