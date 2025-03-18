@@ -46,6 +46,7 @@ class NovatelEdieConan(ConanFile):
         cmake_layout(self)
 
     def requirements(self):
+        self.requires("simdjson/3.10.1")
         self.requires("nlohmann_json/[>=3.11 <3.12]", transitive_headers=True)
         self.requires("spdlog/[>=1.13 <2]", transitive_headers=True, transitive_libs=True, force=True)
         self.requires("gegles-spdlog_setup/[>=1.1 <2]", transitive_headers=True)
