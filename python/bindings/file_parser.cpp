@@ -86,9 +86,6 @@ void init_novatel_file_parser(nb::module_& m)
         .def_prop_rw("decompress_range_cmp", &oem::PyFileParser::GetDecompressRangeCmp, &oem::PyFileParser::SetDecompressRangeCmp)
         .def_prop_rw("return_unknown_bytes", &oem::PyFileParser::GetReturnUnknownBytes, &oem::PyFileParser::SetReturnUnknownBytes)
         .def_prop_rw("filter", &oem::PyFileParser::GetFilter, &oem::PyFileParser::SetFilter)
-        .def(
-            "set_stream", [](oem::PyFileParser& self, nb::object stream) { return self.SetStream(std::make_shared<pystream::istream>(stream, 0)); },
-            "input_stream"_a)
         .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() ->  Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read a message from data in the FileParser's buffer.
