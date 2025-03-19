@@ -24,6 +24,7 @@ void init_novatel_parser(nb::module_&);
 void init_novatel_range_decompressor(nb::module_&);
 void init_novatel_rxconfig_handler(nb::module_&);
 void init_decoder_tester(nb::module_&);
+void init_logger_tester(nb::module_&);
 
 NB_MODULE(bindings, m)
 {
@@ -49,4 +50,5 @@ NB_MODULE(bindings, m)
     init_novatel_oem_enums(enums_mod);
     nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
     init_decoder_tester(internal_mod);
+    init_logger_tester(internal_mod);
 }
