@@ -31,8 +31,8 @@
 #include <iosfwd>
 #include <memory>
 
-#include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/parser.hpp"
 
 namespace novatel::edie::oem {
