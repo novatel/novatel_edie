@@ -9,10 +9,9 @@ namespace spd = spdlog;
 
 void init_common_logger(nb::module_& m)
 {
-    // Shutdown existing CPPLoggerManager and replace with a PyLoggerManager
-    GetLoggerManager()->Shutdown();
-    pclLoggerManager.reset(new python_log::PyLoggerManager());
-    auto manager = static_cast<python_log::PyLoggerManager*>(pclLoggerManager.get());
+    // replace with a PyLoggerManager
+    pclLoggerManager.reset(new PyLoggerManager());
+    auto manager = static_cast<PyLoggerManager*>(pclLoggerManager.get());
 
     m.def(
         "disable_internal_logging", [manager]() { manager->DisableInternalLogging(); },

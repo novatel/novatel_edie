@@ -3,7 +3,6 @@
 
 namespace nb = nanobind;
 using namespace nb::literals;
-using namespace python_log;
 
 class PyLoggerTester
 {

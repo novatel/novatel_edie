@@ -40,10 +40,12 @@ import novatel_edie as ne
 from novatel_edie.messages import BESTPOS
 from common import setup_example_logging
 
+
 def main():
     setup_example_logging()
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
+    ne.disable_internal_logging()
 
     parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
     parser.add_argument("input_file", help="Input file")
@@ -63,25 +65,29 @@ def main():
     filter = ne.Filter()
     file_parser.filter = filter
 
-    # messages = 0
-    # start = timeit.default_timer()
-    # for message in file_parser:
-    #     if isinstance(message, ne.Message):
-    #         encoded_msg = message.encode(encode_format)
-    #         ascii_msg = message.to_ascii()
-    #         binary_msg = message.to_binary()
-    #         messages += 1
-    #         if isinstance(message, BESTPOS):
-    #             lat = message.latitude
-    #             lon = message.longitude
-    #     elif isinstance(message, ne.UnknownMessage):
-    #         unknown_id = message.header.message_id
-    #         payload = message.payload
-    #     elif isinstance(message, ne.UnknownBytes):
-    #         data = message.data
+    messages = 0
+    start = timeit.default_timer()
+    for message in file_parser:
+        if isinstance(message, ne.Message):
+            messages += 1
+        if messages > 100000:
+            break
+        # if isinstance(message, ne.Message):
+        #     encoded_msg = message.encode(encode_format)
+        #     ascii_msg = message.to_ascii()
+        #     binary_msg = message.to_binary()
+        #     messages += 1
+        #     if isinstance(message, BESTPOS):
+        #         lat = message.latitude
+        #         lon = message.longitude
+        # elif isinstance(message, ne.UnknownMessage):
+        #     unknown_id = message.header.message_id
+        #     payload = message.payload
+        # elif isinstance(message, ne.UnknownBytes):
+        #     data = message.data
 
-    # elapsed_seconds = timeit.default_timer() - start
-    # logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
+    elapsed_seconds = timeit.default_timer() - start
+    logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
 
 
 if __name__ == "__main__":

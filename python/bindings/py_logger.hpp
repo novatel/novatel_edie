@@ -14,8 +14,6 @@
 
 namespace nb = nanobind;
 
-namespace python_log {
-
 //============================================================================
 //! \class python_sink
 //! \brief A spdlog sink that marshalls logs into a python logger.
@@ -158,5 +156,3 @@ class PyLoggerManager : public LoggerManager
         for (const auto& [name, logger] : loggers) { logger->set_level(logger_level); }
     }
 };
-
-} // namespace python_log

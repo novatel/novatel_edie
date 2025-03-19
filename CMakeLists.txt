@@ -8,7 +8,6 @@ include(cmake/ThirdParty.cmake)
 # Build Project
 project(novatel_edie VERSION ${RELEASE_VERSION} LANGUAGES CXX)
 
-
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
