@@ -55,7 +55,7 @@ def test_example_log(logger_tester, caplog):
     assert record.name == 'novatel_edie.logger_tester'
     assert record.filename == 'logger_tester.cpp'
     assert isinstance(record.lineno, int)
-    assert record.funcName == 'PyLoggerTester::LogInfo'
+    assert record.funcName.endswith('LogInfo') # Namespace may also be present
 
 
 @pytest.mark.parametrize('config_point', [
