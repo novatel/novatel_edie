@@ -2,7 +2,6 @@
 #include <memory>
 
 #include "novatel_edie/common/logger.hpp"
-#include "py_logger.hpp"
 
 namespace nb = nanobind;
 

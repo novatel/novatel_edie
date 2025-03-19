@@ -2710,7 +2710,7 @@ TEST_F(FileParserTest, LOGGER)
 
     // Parser logger
     ASSERT_NE(spdlog::get("novatel_parser"), nullptr);
-    //ASSERT_NO_THROW(pclFp->EnableFramerDecoderLogging(eLevel, "novatel_parser.log"));
+    ASSERT_NO_THROW(pclFp->EnableFramerDecoderLogging(eLevel, "novatel_parser.log"));
 }
 
 TEST_F(FileParserTest, FILEPARSER_INSTANTIATION)

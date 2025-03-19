@@ -115,10 +115,10 @@ class FileParser
     //! \param[in] eLevel_ The logging level to enable.
     //! \param[in] sFileName_ The logging level to enable.
     //----------------------------------------------------------------------------
-    //void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log")
-    //{
-    //    clMyParser.EnableFramerDecoderLogging(eLevel_, sFileName_);
-    //}
+    void EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_ = spdlog::level::debug, const std::string& sFileName_ = "edie.log")
+    {
+        clMyParser.EnableFramerDecoderLogging(eLevel_, sFileName_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
