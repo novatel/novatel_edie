@@ -91,7 +91,7 @@ class CPPLoggerManager : public LoggerManager
     // ! \brief Preform default cleanup.
     // !
     // ! Users are responsible for calling shutdown themselves before program
-    // ! termination. Manipulating spdlog registry in destructor of a 
+    // ! termination. Manipulating spdlog registry in destructor of a
     // ! global object results in undefined behavior.
     // ! https://github.com/gabime/spdlog/issues/2113
     //----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ class CPPLoggerManager : public LoggerManager
 
     //----------------------------------------------------------------------------
     // ! \brief Flush all rotating file sinks and shutdown spdlog.
-    // 
+    //
     // Must be called by users before program termination.
     //----------------------------------------------------------------------------
     void Shutdown()
