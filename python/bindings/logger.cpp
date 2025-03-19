@@ -16,8 +16,8 @@ void init_common_logger(nb::module_& m)
 
     m.def(
         "disable_internal_logging", [manager]() { manager->DisableInternalLogging(); },
-        "Disable logging which originates in novatel_edie's native C++ code.");
+        "Disable logging which originates from novatel_edie's native C++ code.");
     m.def(
         "enable_internal_logging", [manager]() { manager->EnableInternalLogging(); },
-        "Enable logging which originates in novatel_edie's native C++ code.");
+        "Enable logging which originates from novatel_edie's native C++ code.");
 }
