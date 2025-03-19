@@ -11,9 +11,13 @@ void init_common_logger(nb::module_& m)
 {
     // Shutdown existing CPPLoggerManager and replace with a PyLoggerManager
     GetLoggerManager()->Shutdown();
-    pclLoggerManager.reset(new python_log::PyLoggerManager()); 
+    pclLoggerManager.reset(new python_log::PyLoggerManager());
     auto manager = static_cast<python_log::PyLoggerManager*>(pclLoggerManager.get());
 
-    m.def("disable_internal_logging", [manager]() { manager->DisableInternalLogging(); });
-    m.def("enable_internal_logging", [manager]() { manager->EnableInternalLogging(); });
+    m.def(
+        "disable_internal_logging", [manager]() { manager->DisableInternalLogging(); },
+        "Disable logging which originates in novatel_edie's native C++ code.");
+    m.def(
+        "enable_internal_logging", [manager]() { manager->EnableInternalLogging(); },
+        "Enable logging which originates in novatel_edie's native C++ code.");
 }
