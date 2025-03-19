@@ -30,7 +30,7 @@ import logging
 
 import pytest
 
-from novatel_edie import _internal
+from novatel_edie import _internal, enable_internal_logging, disable_internal_logging
 
 LOG_LEVELS = [
     logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
@@ -40,6 +40,7 @@ LOG_LEVELS = [
 def logger_tester():
     tester = _internal.LoggerTester()
     # Reset the log configuration to a default state
+    enable_internal_logging()
     logging.getLogger().setLevel(logging.DEBUG)
     logging.getLogger('novatel_edie').setLevel(logging.NOTSET)
     logging.getLogger('novatel_edie.logger_tester').setLevel(logging.NOTSET)
@@ -57,6 +58,14 @@ def test_example_log(logger_tester, caplog):
     assert isinstance(record.lineno, int)
     assert record.funcName.endswith('LogInfo') # Namespace may also be present
 
+def test_toggle_internal_logging(logger_tester, caplog):
+    # Act
+    disable_internal_logging()
+    logger_tester.LogInfo('No log message')
+    enable_internal_logging()
+    logger_tester.LogInfo('Log message')
+    # Assert
+    assert [record.message for record in caplog.records] == ['Log message']
 
 @pytest.mark.parametrize('config_point', [
     'root', 'novatel_edie', 'novatel_edie.logger_tester'])

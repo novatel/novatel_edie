@@ -26,17 +26,17 @@ class python_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
     nb::handle py_logger;
 
     //----------------------------------------------------------------------------
-    // ! \brief Checks if a python logger is enabled for a specified log level.
-    // ! \param[in] py_logger The python logger to check for.
-    // ! \param[in] level The python log level to check for.
-    // ! \return Whether the logger is enabled for the level.
+    //! \brief Checks if a python logger is enabled for a specified log level.
+    //! \param[in] py_logger The python logger to check for.
+    //! \param[in] level The python log level to check for.
+    //! \return Whether the logger is enabled for the level.
     //----------------------------------------------------------------------------
     inline bool is_enabled(int level) { return nb::cast<bool>(py_logger.attr("isEnabledFor")(level)); }
 
     //----------------------------------------------------------------------------
-    // ! \brief Convert from an spdlog level enum to an appropriate integer value.
-    // ! \param[in] level The spdlog level enum value.
-    // ! \return The integer representing that same log level in python.
+    //! \brief Convert from an spdlog level enum to an appropriate integer value.
+    //! \param[in] level The spdlog level enum value.
+    //! \return The integer representing that same log level in python.
     //----------------------------------------------------------------------------
     inline int get_python_log_level(spdlog::level::level_enum level)
     {
@@ -54,14 +54,14 @@ class python_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
 
   public:
     //----------------------------------------------------------------------------
-    // ! \brief Create a python_sink to a specfic Python logger.
-    // ! \param[in] py_logger_ A handle to the Python logger object.
+    //! \brief Create a python_sink to a specfic Python logger.
+    //! \param[in] py_logger_ A handle to the Python logger object.
     //----------------------------------------------------------------------------
     explicit python_sink(nb::handle py_logger_) : py_logger(py_logger_) {}
 
     //----------------------------------------------------------------------------
-    // ! \brief Send a log message to the attached python logger if enabled.
-    // ! \param[in] msg The message to send to the python logger.
+    //! \brief Send a log message to the attached python logger if enabled.
+    //! \param[in] msg The message to send to the python logger.
     //----------------------------------------------------------------------------
     void sink_it_(const spdlog::details::log_msg& msg) override
     {
@@ -79,7 +79,7 @@ class python_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
     }
 
     //----------------------------------------------------------------------------
-    // ! \brief Preserve default flush behavior.
+    //! \brief Preserve default flush behavior.
     //----------------------------------------------------------------------------
     void flush_() override {}
 };
@@ -87,18 +87,21 @@ class python_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
 //============================================================================
 //! \class PyLoggerManager
 //! \brief A LoggerManager capable of registering connections to Python loggers.
-//!
+//! 
 //! Will automatically be set as the global `pclLoggerManager` during
 //! Python API initialization.
+//! 
+//! Only designed for single-threaded access.
 //============================================================================
 class PyLoggerManager : public LoggerManager
 {
   private:
+    spdlog::level::level_enum logger_level = spdlog::level::trace;
     std::map<std::string, std::shared_ptr<spdlog::logger>> loggers;
 
     //----------------------------------------------------------------------------
-    // ! \brief Convert from the provided C++ logger name to an appropriate Python one.
-    // ! \return The name for the logger on the Python side.
+    //! \brief Convert from the provided C++ logger name to an appropriate Python one.
+    //! \return The name for the logger on the Python side.
     //----------------------------------------------------------------------------
     std::string CLoggerNameToPyLoggerName(std::string logger_name_)
     {
@@ -109,22 +112,22 @@ class PyLoggerManager : public LoggerManager
 
   public:
     //----------------------------------------------------------------------------
-    // ! \brief Flush all python logger sinks and clear out logger references.
-    // !
-    // ! spdlog::shutdown is not called due to certain static variables 
-    // ! required to do so being possibly deallocated at destruction time.
-    // ! This is only acceptable because the PyLoggerManager does not make use 
-    // ! of asynchronous logging and does use the spdlog logger registry.
+    //! \brief Flush all python logger sinks and clear out logger references.
+    //!
+    //! spdlog::shutdown is not called due to certain static variables
+    //! required to do so being possibly deallocated at destruction time.
+    //! This is only acceptable because the PyLoggerManager does not make use
+    //! of asynchronous logging and does use the spdlog logger registry.
     //----------------------------------------------------------------------------
     ~PyLoggerManager() override
     {
-        for (const auto& [fileName, sink] : loggers) { sink->flush(); }
+        for (const auto& [name, logger] : loggers) { logger->flush(); }
         loggers.clear();
     }
 
     //----------------------------------------------------------------------------
-    // ! \brief Register a new logger with a python logger sink.
-    // ! \return A shared pointer to the newly registered logger.
+    //! \brief Register a new logger with a python logger sink.
+    //! \return A shared pointer to the newly registered logger.
     //----------------------------------------------------------------------------
     std::shared_ptr<spdlog::logger> RegisterLogger(const std::string& logger_name_)
     {
@@ -137,10 +140,22 @@ class PyLoggerManager : public LoggerManager
         std::shared_ptr<python_sink> sink = std::make_shared<python_sink>(py_logger);
         std::shared_ptr<spdlog::logger> spd_logger = std::make_shared<spdlog::logger>(py_name, sink);
         // Ensure all messages are sent to python_sink
-        spd_logger->set_level(spdlog::level::trace);
+        spd_logger->set_level(logger_level);
         // Save and return logger - No need to use spdlog registry as accessibility is only through python
         loggers[py_name] = spd_logger;
         return spd_logger;
+    }
+
+    void DisableInternalLogging()
+    {
+        logger_level = spdlog::level::off;
+        for (const auto& [name, logger] : loggers) { logger->set_level(logger_level); }
+    }
+
+    void EnableInternalLogging()
+    {
+        logger_level = spdlog::level::trace;
+        for (const auto& [name, logger] : loggers) { logger->set_level(logger_level); }
     }
 };
 
