@@ -26,6 +26,8 @@
 
 #include "novatel_edie/decoders/oem/encoder.hpp"
 
+#include <charconv>
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
@@ -34,8 +36,19 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
 {
     const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
 
-    // Append sibling i.e. the _1 of RANGEA_1
-    if (uiSiblingId != 0U) { sMsgName_.append("_").append(std::to_string(uiSiblingId)); }
+    if (uiSiblingId != 0U) {
+        // Reserve space for the suffix: "_" + up to 3 digits (max for uint8_t)
+        constexpr size_t maxSuffixSize = 4;  // "_" + up to 3 digits
+        sMsgName_.reserve(sMsgName_.size() + maxSuffixSize);
+
+        // Append the underscore
+        sMsgName_.push_back('_');
+
+        // Convert the sibling ID to a string and append it
+        std::array<char, maxSuffixSize> buffer; // Enough space for a uint8_t (up to 3 digits) + null terminator
+        auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), uiSiblingId, 10);
+        if (ec == std::errc()) { sMsgName_.append(buffer.data(), ptr); }
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -212,12 +225,9 @@ bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    // Sync byte
     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_SYNC)) { return false; }
 
-    // Message name
     MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
-    // TODO: use string_view
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
     sMsgName.push_back(uiResponse != 0U ? 'R' : 'A'); // Append 'A' for ascii, or 'R' for ascii response
@@ -242,12 +252,9 @@ bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char**
 bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                       bool bIsEmbeddedHeader_) const
 {
-    // Sync byte
     if (!bIsEmbeddedHeader_ && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SYNC)) { return false; }
 
-    // Message name
     MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
-    // TODO: use string_view
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     AppendSiblingId(sMsgName, stInterHeader_);
 
@@ -269,11 +276,8 @@ bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    // Sync byte
     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_SHORT_ASCII_SYNC)) { return false; }
 
-    // Message name
-    // TODO: use string_view
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
     const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
     sMsgName.push_back(uiResponse != 0U ? 'R' : 'A'); // Append 'A' for ascii, or 'R' for ascii response
@@ -290,11 +294,8 @@ bool Encoder::EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, c
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    // Sync byte
     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SYNC)) { return false; }
 
-    // Message name
-    // TODO: use string_view
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
     AppendSiblingId(sMsgName, stInterHeader_);
 
@@ -309,9 +310,7 @@ bool Encoder::EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHead
 // -------------------------------------------------------------------------------------------------------
 std::string Encoder::JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const
 {
-    // Message name
     MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
-    // TODO: use string_view
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     AppendSiblingId(sMsgName, stInterHeader_);
 
