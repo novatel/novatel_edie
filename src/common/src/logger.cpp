@@ -6,6 +6,5 @@ std::unique_ptr<LoggerManager> pclLoggerManager = std::make_unique<CPPLoggerMana
 
 CPPLoggerManager* GetLoggerManager()
 {
-    CPPLoggerManager* pclManager = dynamic_cast<CPPLoggerManager*>(pclLoggerManager.get());
-    return pclManager;
+    return dynamic_cast<CPPLoggerManager*>(pclLoggerManager.get());
 }
