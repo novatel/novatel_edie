@@ -3,8 +3,9 @@
 #include <nanobind/stl/unordered_map.h>
 
 #include "bindings_core.hpp"
+#include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "py_database.hpp"
-#include "py_decoded_message.hpp"
+#include "py_message_objects.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -12,7 +13,7 @@ using namespace novatel::edie;
 
 void init_common_message_database(nb::module_& m)
 {
-    nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "Data type name string represented as an enum")
+    nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "Data type name string represented as an enum", nb::is_arithmetic())
         .value("BOOL", DATA_TYPE::BOOL)
         .value("CHAR", DATA_TYPE::CHAR)
         .value("UCHAR", DATA_TYPE::UCHAR)
@@ -33,7 +34,7 @@ void init_common_message_database(nb::module_& m)
 
     m.attr("str_to_DATA_TYPE") = DataTypeEnumLookup;
 
-    nb::enum_<FIELD_TYPE>(m, "FIELD_TYPE", "Field type string represented as an enum.")
+    nb::enum_<FIELD_TYPE>(m, "FIELD_TYPE", "Field type string represented as an enum.", nb::is_arithmetic())
         .value("SIMPLE", FIELD_TYPE::SIMPLE)
         .value("ENUM", FIELD_TYPE::ENUM)
         .value("BITFIELD", FIELD_TYPE::BITFIELD)
@@ -167,26 +168,34 @@ void init_common_message_database(nb::module_& m)
         });
 
     nb::class_<PyMessageDatabase>(m, "MessageDatabase")
-        .def(nb::init())
-        .def(nb::init<std::vector<MessageDefinition::ConstPtr>, std::vector<EnumDefinition::ConstPtr>>(), "msg_defs"_a, "enum_defs"_a)
-        .def(nb::init<PyMessageDatabase>(), "other_db"_a)
+        .def(nb::new_([]() { return std::make_shared<PyMessageDatabase>(); }))
+        .def(nb::new_([](std::filesystem::path& file_path) { return std::make_shared<PyMessageDatabase>(std::move(*LoadJsonDbFile(file_path))); }),
+             "file_path"_a)
+        .def_static(
+            "from_string", [](std::string_view json_data) { return std::make_shared<PyMessageDatabase>(std::move(*ParseJsonDb(json_data))); },
+            "json_data"_a)
         .def("merge", &PyMessageDatabase::Merge, "other_db"_a)
-        .def("append_messages", &PyMessageDatabase::AppendMessages, "file_path"_a)
-        .def("append_enumerations", &PyMessageDatabase::AppendEnumerations, "file_path"_a)
-        .def("remove_message", &PyMessageDatabase::RemoveMessage, "msg_id"_a)
-        .def("remove_enumeration", &PyMessageDatabase::RemoveEnumeration, "enumeration"_a)
+        .def("append_messages", &PyMessageDatabase::PyAppendMessages, "messages"_a)
+        .def("append_enumerations", &PyMessageDatabase::PyAppendEnumerations, "enums"_a)
+        .def("remove_message", &PyMessageDatabase::PyRemoveMessage, "msg_id"_a)
+        .def("remove_enumeration", &PyMessageDatabase::PyRemoveEnumeration, "enumeration"_a)
         .def("get_msg_def", nb::overload_cast<const std::string&>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
         .def("get_msg_def", nb::overload_cast<int32_t>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefId, "enum_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a)
-        .def_prop_ro("enums", &PyMessageDatabase::GetEnumsByNameDict)
-        .def_prop_ro("messages", &PyMessageDatabase::GetMessagesByNameDict);
+        .def(
+            "get_msg_type", [](PyMessageDatabase& self, std::string name) { return self.GetMessagesByNameDict().at(name)->python_type; }, "name"_a)
+        .def(
+            "get_enum_type_by_name", [](PyMessageDatabase& self, std::string name) { return self.GetEnumsByNameDict().at(name); }, "name"_a)
+        .def("get_enum_type_by_id", [](PyMessageDatabase& self, std::string id) { return self.GetEnumsByIdDict().at(id); }, "id"_a);
 }
+
 
 PyMessageDatabase::PyMessageDatabase()
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
+    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
@@ -195,18 +204,21 @@ PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vM
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
+    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
+    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
+    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 void PyMessageDatabase::GenerateMessageMappings()

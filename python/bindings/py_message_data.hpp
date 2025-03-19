@@ -22,6 +22,8 @@ struct PyMessageData
 
     [[nodiscard]] nb::object body() const { return message_[nb::slice(body_offset, body_offset + body_size)]; }
 
+    std::string GetRepr() { return "MessageData(" + std::string(nb::cast<nb::str>(message_.attr("__repr__")()).c_str()) + ")"; }
+
   private:
     const nb::bytes message_;
     const uint32_t header_offset;
@@ -35,6 +37,7 @@ struct PyMessageData
 inline void define_pymessagedata(nb::module_& m)
 {
     nb::class_<novatel::edie::oem::PyMessageData>(m, "MessageData")
+        .def("__repr__", &novatel::edie::oem::PyMessageData::GetRepr)
         .def_prop_ro("message", &novatel::edie::oem::PyMessageData::message)
         .def_prop_ro("header", &novatel::edie::oem::PyMessageData::header)
         .def_prop_ro("body", &novatel::edie::oem::PyMessageData::body);

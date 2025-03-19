@@ -45,21 +45,7 @@ PyMessageDatabase::Ptr& MessageDbSingleton::get()
     return json_db;
 }
 
-void init_common_json_db_reader(nb::module_& m)
+void init_message_db_singleton(nb::module_& m)
 {
-    nb::exception<JsonDbReaderFailure>(m, "JsonDbReaderFailure"); // NOLINT
-
-    m.def(
-        "load_json_db_file",
-        [](const std::filesystem::path& file_path) { //
-            return std::make_shared<PyMessageDatabase>(std::move(*LoadJsonDbFile(file_path)));
-        },
-        "file_path"_a);
-    m.def(
-        "parse_json_db",
-        [](const std::string_view json_data) { //
-            return std::make_shared<PyMessageDatabase>(std::move(*ParseJsonDb(json_data)));
-        },
-        "json_data"_a);
     m.def("get_default_database", &MessageDbSingleton::get, "Get the default JSON database singleton");
 }

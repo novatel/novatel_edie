@@ -29,6 +29,14 @@ class PyMessageDatabase final : public MessageDatabase
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
 
+    void PyAppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_) { AppendMessages(vMessageDefinitions_); }
+
+    void PyAppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_) { AppendEnumerations(vEnumDefinitions_); }
+
+    void PyRemoveMessage(const uint32_t iMsgId_) { RemoveMessage(iMsgId_); }
+
+    void PyRemoveEnumeration(std::string_view strEnumeration_) { RemoveEnumeration(strEnumeration_); }
+
   private:
     void GenerateMessageMappings() override;
     void GenerateEnumMappings() override;
@@ -57,7 +65,12 @@ class PyMessageDatabase final : public MessageDatabase
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};
 
+    std::shared_ptr<oem::Encoder> encoder;  // This must always be a PyEncoder
+
   public:
+    
+    std::shared_ptr<const oem::Encoder> get_encoder() const { return encoder; }
+
     using Ptr = std::shared_ptr<PyMessageDatabase>;
     using ConstPtr = std::shared_ptr<const PyMessageDatabase>;
 };

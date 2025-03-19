@@ -108,9 +108,9 @@ template <typename T> [[nodiscard]] bool CopyToBuffer(unsigned char** ppucBuffer
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, MessageDatabase&)> BasicMapEntry(const char* pcF_)
+template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicMapEntry(const char* pcF_)
 {
-    return [pcF_](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+    return [pcF_](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcF_, std::get<T>(fc_.fieldValue));
     };
 }
@@ -123,14 +123,16 @@ template <typename Derived> class EncoderBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("encoder")};
-    MessageDatabase::Ptr pclMyMsgDb{nullptr};
+    MessageDatabase::ConstPtr pclMyMsgDbStrongRef{nullptr};
+    const MessageDatabase* pclMyMsgDb{nullptr};
 
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
-    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] MessageDatabase&)>> asciiFieldMap;
-    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] MessageDatabase&)>> jsonFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] const MessageDatabase&)>>
+        asciiFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] const MessageDatabase&)>> jsonFieldMap;
 
     template <bool Flatten, bool Align>
     [[nodiscard]] bool EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
@@ -649,10 +651,16 @@ template <typename Derived> class EncoderBase
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    EncoderBase(MessageDatabase::Ptr pclMessageDb_ = nullptr)
+    EncoderBase(const MessageDatabase* pclMessageDb_ = nullptr)
     {
         InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
+    }
+
+    EncoderBase(MessageDatabase::ConstPtr pclMessageDb_)
+    {
+        InitFieldMaps();
+        if (pclMessageDb_ != nullptr) { LoadSharedJsonDb(pclMessageDb_); }
     }
 
     //----------------------------------------------------------------------------
@@ -665,10 +673,16 @@ template <typename Derived> class EncoderBase
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
+    void LoadJsonDb(const MessageDatabase* pclMessageDb_)
     {
         pclMyMsgDb = pclMessageDb_;
         InitEnumDefinitions();
+    }
+
+    void LoadSharedJsonDb(MessageDatabase::ConstPtr pclMessageDb_)
+    {
+        pclMyMsgDbStrongRef = pclMessageDb_;
+        LoadJsonDb(pclMessageDb_.get());
     }
 
     //----------------------------------------------------------------------------

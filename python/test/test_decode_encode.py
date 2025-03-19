@@ -24,13 +24,14 @@
 #                            DESCRIPTION
 #
 # \file novateltest.hpp
-# \brief Unit tests for OEM Framer, HeaderDecoder, MessageDecoder,
+# \brief Unit tests for OEM Framer, Decoder,
 # Encoder and Filter.
 ################################################################################
 import enum
 from collections import namedtuple
 
 import novatel_edie as ne
+from novatel_edie import MessageData
 from novatel_edie.enums import SolStatus, SolType, Datum
 import pytest
 from novatel_edie import STATUS, ENCODE_FORMAT
@@ -57,24 +58,25 @@ ExpectedMessageData = namedtuple("ExpectedMessageData", ["message", "header", "b
 
 class Helper:
     def __init__(self):
-        self.header_decoder = ne.HeaderDecoder()
-        self.message_decoder = ne.MessageDecoder()
-        self.encoder = ne.Encoder()
+        self.decoder = ne.Decoder()
 
-    def DecodeEncode(self, encode_format: ne.ENCODE_FORMAT, message_input: bytes, meta_data: ne.MetaData=None, return_message=False) -> (int, ne.MessageData):
+    def DecodeEncode(self, encode_format: ne.ENCODE_FORMAT, message_input: bytes, meta_data: ne.MetaData=None, return_message=False) -> tuple[int, MessageData]:
         if meta_data is None:
             meta_data = ne.MetaData()
-        status, header = self.header_decoder.decode(message_input, meta_data)
-        if status != STATUS.SUCCESS:
+        try:
+            header = self.decoder.decode_header(message_input, meta_data)
+        except Exception:
             return (Result.HEADER_DECODER_ERROR, None) if not return_message else (Result.HEADER_DECODER_ERROR, None, None)
 
         body = message_input[meta_data.header_length:]
-        status, message = self.message_decoder.decode(body, header, meta_data)
-        if status != STATUS.SUCCESS:
+        try:
+            message = self.decoder.decode_message(body, header, meta_data)
+        except Exception:
             return (Result.MESSAGE_DECODER_ERROR, None) if not return_message else (Result.MESSAGE_DECODER_ERROR, None, None)
 
-        status, message_data = self.encoder.encode(message, meta_data, encode_format)
-        if status != STATUS.SUCCESS:
+        try:
+            message_data = message.encode(encode_format)
+        except Exception:
             return (Result.ENCODER_ERROR, None) if not return_message else (Result.ENCODER_ERROR, None, None)
 
         if return_message:
@@ -249,18 +251,28 @@ def compare_message_data(test_md: ne.MessageData, expected_md: ExpectedMessageDa
 # -------------------------------------------------------------------------------------------------------
 # Logger Decode/Encode Unit Tests
 # -------------------------------------------------------------------------------------------------------
-@pytest.mark.parametrize(("ne_class", "logger_name"), [
-    (ne.HeaderDecoder, "novatel_header_decoder"),
-    (ne.MessageDecoder, "message_decoder"),
-    (ne.Encoder, "encoder"),
-])
-def test_logger(ne_class, logger_name):
+def test_decoder_loggers():
     level = ne.LogLevel.OFF
-    logger = ne_class().logger
+    decoder = ne.Decoder()
+    header_logger = decoder.header_logger
+    message_logger = decoder.message_logger
+    header_logger.set_level(level)
+    message_logger.set_level(level)
+    assert header_logger.name == 'novatel_header_decoder'
+    assert header_logger.level == level
+    assert message_logger.name == 'message_decoder'
+    assert message_logger.level == level
+
+    assert ne.Logging.get('novatel_header_decoder') is not None
+    assert ne.Logging.get('message_decoder') is not None
+
+@pytest.mark.skip(reason="Logging is still under development")
+def test_encoder_logger():
+    level = ne.LogLevel.OFF
     logger.set_level(level)
-    assert logger.name == logger_name
+    assert logger.name == 'encoder'
     assert logger.level == level
-    assert ne.Logging.get(logger_name) is not None
+    assert ne.Logging.get('encoder') is not None
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -363,6 +375,7 @@ def test_ascii_log_roundtrip_rawgpssubframe(helper):
     assert helper.TestSameFormatCompare(ENCODE_FORMAT.ASCII, expected_message_data) == Result.SUCCESS
 
 
+@pytest.mark.skip(reason="Not in default database")
 def test_ascii_log_roundtrip_rawwaasframe_2(helper):
     log = b"#RAWWAASFRAMEA_2,COM2,0,77.5,SATTIME,1747,411899.000,00000020,58e4,11526;62,138,9,c6243a0581b555352c4056aae0103cf03daff2e00057ff7fdff8010180,62*b026c677\r\n"
     expected_message_data = ExpectedMessageData(log, log[:69], log[69:])

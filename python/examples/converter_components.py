@@ -35,8 +35,7 @@ from binascii import hexlify
 
 import novatel_edie as ne
 from novatel_edie.messages import RANGE
-from novatel_edie import STATUS
-from novatel_edie.enums import Datum
+from novatel_edie import STATUS, ENCODE_FORMAT
 
 
 def read_frames(input_file, framer):
@@ -45,13 +44,15 @@ def read_frames(input_file, framer):
         while read_data := input_stream.read(ne.MESSAGE_SIZE_MAX):
             framer.write(read_data)
             while True:
-                status, frame, meta = framer.get_frame()
-                if status in [STATUS.BUFFER_EMPTY, STATUS.INCOMPLETE]:
+                try:
+                    frame, meta = framer.get_frame()
+                except ne.BufferEmptyException:
                     break
-                if status == STATUS.UNKNOWN or meta.response:
-                    unknown_bytes_stream.write(frame)
+                except ne.IncompleteException:
+                    break
+                except ne.UnknownException:
                     continue
-                yield status, frame, meta
+                yield frame, meta
         unknown_bytes_stream.write(framer.flush())
 
 
@@ -90,20 +91,18 @@ def main():
     framer.set_report_unknown_bytes(True)
     framer.set_payload_only(False)
     framer.set_frame_json(False)
-    header_decoder = ne.HeaderDecoder()
-    message_decoder = ne.MessageDecoder()
-    encoder = ne.Encoder()
+    decoder = ne.Decoder()
     filter = ne.Filter()
 
     with open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream:
-        for framer_status, frame, meta in read_frames(args.input_file, framer):
+        for frame, meta in read_frames(args.input_file, framer):
             try:
-                framer_status.raise_on_error("Framer.get_frame() failed")
+                if meta.format == ne.HEADER_FORMAT.UNKNOWN:
+                    continue
                 logger.info(f"Framed ({len(frame)}): {format_frame(frame, meta.format)}")
 
-                # Decode the header.
-                status, header = header_decoder.decode(frame, meta)
-                status.raise_on_error("HeaderDecoder.decode() failed")
+                # Decode the log header.
+                header = decoder.decode_header(frame, meta)
 
                 # Filter the log, pass over it if we don't want it.
                 if not filter.do_filtering(meta):
@@ -111,8 +110,7 @@ def main():
 
                 # Decode the log body.
                 body = frame[meta.header_length:]
-                status, message = message_decoder.decode(body, header, meta)
-                status.raise_on_error("MessageDecoder.decode() failed")
+                message = decoder.decode_message(body, header, meta)
 
                 # Get info from the log.
                 if isinstance(message, RANGE):
@@ -121,15 +119,11 @@ def main():
                         value = ob.psr
                         pass
 
+                # Re-encode the log
+                if isinstance(message, ne.Message):
+                    encoded_message = message.to_ascii()
 
-                # Re-encode the log and write it to the output file.
-                status, encoded_message = encoder.encode(message, meta, encode_format)
-                status.raise_on_error("Encoder.encode() failed")
-
-                converted_logs_stream.write(encoded_message.message)
-                logger.info( f"Encoded ({len(encoded_message.message)}): {format_frame(encoded_message.message, encode_format)}")
-            except ne.DecoderException as e:
+            except Exception as e:
                 logger.warn(str(e))
-
 if __name__ == "__main__":
     main()

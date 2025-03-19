@@ -1,5 +1,6 @@
 #include "bindings_core.hpp"
 #include "message_db_singleton.hpp"
+#include "py_message_objects.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;

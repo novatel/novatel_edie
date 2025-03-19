@@ -36,7 +36,7 @@ import timeit
 
 import novatel_edie as ne
 from novatel_edie import Logging, LogLevel
-
+from novatel_edie.messages import BESTPOS
 
 def _configure_logging(logger):
     logger.set_level(LogLevel.DEBUG)
@@ -66,39 +66,33 @@ def main():
     if not os.path.exists(args.input_file):
         logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
-
-    file_parser = ne.FileParser()
-    file_parser.filter = ne.Filter()
-    file_parser.encode_format = encode_format
+    file_parser = ne.FileParser(args.input_file)
+    filter = ne.Filter()
+    file_parser.filter = filter
     _configure_logging(file_parser.logger)
     _configure_logging(file_parser.filter.logger)
+    Logging.get("message_decoder").set_level(LogLevel.OFF)
 
-    with (open(args.input_file, "rb") as input_stream,
-          open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream):
-        if not file_parser.set_stream(input_stream):
-            logger.error("Input stream could not be set.  The stream is either unavailable or exhausted.")
-            exit(-1)
 
-        complete_messages = 0
-        counter = 0
-        start = timeit.default_timer()
-        loop = timeit.default_timer()
-        for status, message_data, meta in file_parser:
-            if status != ne.STATUS.SUCCESS:
-                logger.error(f"Failed to read a message: {status}: {status.__doc__}")
-                continue
-
-            converted_logs_stream.write(message_data.message)
-            logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
-            complete_messages += 1
-
-            if timeit.default_timer() - loop > 1:
-                counter += 1
-                logger.info(f"{file_parser.percent_read}% {complete_messages / counter} logs/s")
-                loop = timeit.default_timer()
+    messages = 0
+    start = timeit.default_timer()
+    for message in file_parser:
+        if isinstance(message, ne.Message):
+            encoded_msg = message.encode(encode_format)
+            ascii_msg = message.to_ascii()
+            binary_msg = message.to_binary()
+            messages += 1
+            if isinstance(message, BESTPOS):
+                lat = message.latitude
+                lon = message.longitude
+        elif isinstance(message, ne.UnknownMessage):
+            unknown_id = message.header.message_id
+            payload = message.payload
+        elif isinstance(message, ne.UnknownBytes):
+            data = message.data
 
     elapsed_seconds = timeit.default_timer() - start
-    logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
+    logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
 
 
 if __name__ == "__main__":

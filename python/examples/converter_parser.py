@@ -35,6 +35,7 @@ import timeit
 
 import novatel_edie as ne
 from novatel_edie import Logging, LogLevel
+from novatel_edie.messages import BESTPOS
 
 
 def _configure_logging(logger):
@@ -78,38 +79,33 @@ def main():
 
     parser = ne.Parser(json_db)
     parser.filter = ne.Filter()
-    parser.encode_format = encode_format
     _configure_logging(parser.logger)
     _configure_logging(parser.filter.logger)
 
     with (open(args.input_file, "rb") as input_stream,
           open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream):
         meta = ne.MetaData()
-        complete_messages = 0
-        counter = 0
+        messages = 0
         start = timeit.default_timer()
-        loop = timeit.default_timer()
         while read_data := input_stream.read(ne.MESSAGE_SIZE_MAX):
             parser.write(read_data)
-
-            status = None
-            while status != ne.STATUS.BUFFER_EMPTY:
-                status, message_data = parser.read(meta)
-                if status != ne.STATUS.SUCCESS:
-                    logger.error(f"Failed to read a message: {status}: {status.__doc__}")
-                    continue
-
-                converted_logs_stream.write(message_data.message)
-                logger.info(f"Encoded: ({len(message_data.message)}) {message_data.message}")
-                complete_messages += 1
-
-                if timeit.default_timer() - loop > 1:
-                    counter += 1
-                    logger.info(f"{complete_messages / counter} logs/s")
-                    loop = timeit.default_timer()
+            for message in parser:
+                if isinstance(message, ne.Message):
+                    encoded_msg = message.encode(encode_format)
+                    ascii_msg = message.to_ascii()
+                    binary_msg = message.to_binary()
+                    messages += 1
+                    if isinstance(message, BESTPOS):
+                        lat = message.latitude
+                        lon = message.longitude
+                elif isinstance(message, ne.UnknownMessage):
+                    unknown_id = message.header.message_id
+                    payload = message.payload
+                elif isinstance(message, ne.UnknownBytes):
+                    data = message.data
 
     elapsed_seconds = timeit.default_timer() - start
-    logger.info(f"Converted {complete_messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
+    logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
     Logging.shutdown()
 
 

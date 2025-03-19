@@ -197,7 +197,7 @@ class MessageDecoderBase
     // ---------------------------------------------------------------------------
     //! \brief Get the MessageDatabase object.
     //
-    //! \return A shard pointer to the MessageDatabase object.
+    //! \return A shared pointer to the MessageDatabase object.
     // ---------------------------------------------------------------------------
     MessageDatabase::ConstPtr MessageDb() const { return std::const_pointer_cast<const MessageDatabase>(pclMyMsgDb); }
 
