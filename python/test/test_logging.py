@@ -32,12 +32,15 @@ import pytest
 
 from novatel_edie import _internal, enable_internal_logging, disable_internal_logging
 
+# pylint: disable=redefined-outer-name
+
 LOG_LEVELS = [
     logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
 ]
 
 @pytest.fixture(scope='function')
 def logger_tester():
+    """A helper object for logging within C++ code."""
     tester = _internal.LoggerTester()
     # Reset the log configuration to a default state
     enable_internal_logging()
@@ -47,6 +50,7 @@ def logger_tester():
     return tester
 
 def test_example_log(logger_tester, caplog):
+    """Tests that an example log message is logged correctly."""
     # Act
     logger_tester.LogInfo('Info message')
     # Assert
@@ -59,6 +63,7 @@ def test_example_log(logger_tester, caplog):
     assert record.funcName.endswith('LogInfo') # Namespace may also be present
 
 def test_toggle_internal_logging(logger_tester, caplog):
+    """Tests turning internal logging off and on has the intended effect."""
     # Act
     disable_internal_logging()
     logger_tester.LogInfo('No log message')
