@@ -32,7 +32,6 @@ NB_MODULE(bindings, m)
     nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
     nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
 
-    std::cout << "Starting" << std::endl;
     init_common_common(m);
     init_common_logger(m, internal_mod);
     init_message_db_singleton(m);
@@ -53,5 +52,4 @@ NB_MODULE(bindings, m)
     init_novatel_oem_enums(enums_mod);
     init_decoder_tester(internal_mod);
     init_logger_tester(internal_mod);
-    std::cout << "Ending" << std::endl;
 }

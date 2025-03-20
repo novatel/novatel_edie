@@ -9,10 +9,11 @@ namespace spd = spdlog;
 
 void init_common_logger(nb::module_& m, nb::module_& internal_m)
 {
-    // replace with a PyLoggerManager
+    // Set the global LoggerManager to be a PyLoggerManager
     pclLoggerManager.reset(new PyLoggerManager());
     auto manager = static_cast<PyLoggerManager*>(pclLoggerManager.get());
 
+    // Add public functions for configuring internal logging
     m.def(
         "disable_internal_logging", [manager]() { manager->DisableInternalLogging(); },
         "Disable logging which originates from novatel_edie's native C++ code.");
@@ -20,13 +21,14 @@ void init_common_logger(nb::module_& m, nb::module_& internal_m)
         "enable_internal_logging", [manager]() { manager->EnableInternalLogging(); },
         "Enable logging which originates from novatel_edie's native C++ code.");
 
-    internal_m.def("set_level", [manager](nb::handle self, nb::args args_, nb::kwargs kwargs_) { manager->SetLoggerLevel(self, args_, kwargs_);
-    });
-
+    // Create python entry-point to custom setLevel and cleanup functions
+    internal_m.def("set_level", [manager](nb::handle self, nb::args args_, nb::kwargs kwargs_) { manager->SetLoggerLevel(self, args_, kwargs_); });
     internal_m.def("exit_cleanup", [manager]() { manager->Shutdown(); });
 
+    // Provide these the setLevel entry-point to the LoggerManager
     manager->SetInternalMod(internal_m);
 
+    // Run the custom cleanup code before any normal termination of the Python interpreter
     nb::module_ atexit = nb::module_::import_("atexit");
     atexit.attr("register")(internal_m.attr("exit_cleanup"));
 }

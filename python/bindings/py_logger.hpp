@@ -182,7 +182,6 @@ class PyLoggerManager : public LoggerManager
     std::shared_ptr<spdlog::logger> RegisterPythonLogger(const std::string& logger_name_)
     {
         // Get the logger if it exists
-        std::cout << "Registering " << logger_name_ << std::endl;
         auto it = loggers.find(logger_name_);
         if (it != loggers.end()) { return it->second; }
 
