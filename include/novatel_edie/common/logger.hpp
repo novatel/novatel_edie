@@ -48,16 +48,24 @@ class LoggerManager
 {
   public:
     //----------------------------------------------------------------------------
-    // ! \brief Preform any cleanup and destroy the manager object.
+    //! \brief Preform any cleanup and destroy the manager object.
     //----------------------------------------------------------------------------
     virtual void Shutdown() = 0;
 
+    //----------------------------------------------------------------------------
+    //! \brief Virutal destructor for required for virtual functions.
+    //! 
+    //! In general leaving cleanup to destructor is unsafe as LoggerManager's 
+    //! lifetime is undefined in relation to other static objects it relies upon.
+    //! Instead `Shutdown()` method of concrete subclass should be called prior
+    //! to termination.
+    //----------------------------------------------------------------------------
     virtual ~LoggerManager() = 0;
 
     //----------------------------------------------------------------------------
-    // ! \brief Register a logger with the root logger's sinks.
-    // ! \param[in] sLoggerName_ A name for the logger
-    // ! \return A shared pointer to the logger.
+    //! \brief Register a logger with the root logger's sinks.
+    //! \param[in] sLoggerName_ A name for the logger
+    //! \return A shared pointer to the logger.
     //----------------------------------------------------------------------------
     virtual std::shared_ptr<spdlog::logger> RegisterLogger(const std::string& sLoggerName_) = 0;
 };
@@ -75,7 +83,7 @@ class CPPLoggerManager : public LoggerManager
     std::map<std::string, std::shared_ptr<spdlog::sinks::rotating_file_sink_mt>> rotatingFiles;
 
     //----------------------------------------------------------------------------
-    // ! \brief Preform a basic initialization of the root logger.
+    //! \brief Preform a basic initialization of the root logger.
     //----------------------------------------------------------------------------
     void InitRootLogger()
     {
@@ -89,12 +97,17 @@ class CPPLoggerManager : public LoggerManager
     }
 
   public:
+    //----------------------------------------------------------------------------
+    //! \brief Destructs the CPPLoggerManager.
+    //!
+    //! Shutdown should be called first.
+    //----------------------------------------------------------------------------
     ~CPPLoggerManager() = default;
 
     //----------------------------------------------------------------------------
-    // ! \brief Flush all rotating file sinks and shutdown spdlog.
-    //
-    // Must be called by users before program termination.
+    //! \brief Flushes all rotating file sinks and shutdown spdlog.
+    //!
+    //! Must be called by users before program termination.
     //----------------------------------------------------------------------------
     void Shutdown() override
     {
@@ -110,9 +123,10 @@ class CPPLoggerManager : public LoggerManager
     }
 
     //----------------------------------------------------------------------------
-    // ! \brief Register a logger with the root logger's sinks.
-    // ! \param[in] sLoggerName_ A name for the logger.
-    // ! \return A shared pointer to the logger.
+    //! \brief Registers a logger with the root logger's sinks.
+    //! 
+    //! \param[in] sLoggerName_ A name for the logger.
+    //! \return A shared pointer to the logger.
     //----------------------------------------------------------------------------
     std::shared_ptr<spdlog::logger> RegisterLogger(const std::string& sLoggerName_) override
     {
@@ -140,14 +154,16 @@ class CPPLoggerManager : public LoggerManager
     }
 
     //----------------------------------------------------------------------------
-    // ! \brief Change the global spdlog logging level.
-    // ! \param[in] eLevel_ The logging level to set.
+    //! \brief Changes the global spdlog logging level.
+    //! 
+    //! \param[in] eLevel_ The logging level to set.
     //----------------------------------------------------------------------------
     void SetLoggingLevel(spdlog::level::level_enum eLevel_) { spdlog::set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
-    // ! \brief Initialize the logger with an optional configuration file.
-    // ! \param[in] configPath_ The path to the configuration file.
+    //! \brief Initializes the logger with an optional configuration file.
+    //! 
+    //! \param[in] configPath_ The path to the configuration file.
     //----------------------------------------------------------------------------
     void InitLogger(const std::filesystem::path& configPath_ = "")
     {
@@ -174,9 +190,10 @@ class CPPLoggerManager : public LoggerManager
     }
 
     //----------------------------------------------------------------------------
-    // ! \brief Add console output to a logger.
-    // ! \param[in] lgr  The logger to add a console sink to.
-    // ! \param[in] eLevel_  The logging level to enable.
+    //! \brief Adds console output to a logger.
+    //! 
+    //! \param[in] lgr  The logger to add a console sink to.
+    //! \param[in] eLevel_  The logging level to enable.
     //----------------------------------------------------------------------------
     void AddConsoleLogging(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::info)
     {
@@ -188,13 +205,14 @@ class CPPLoggerManager : public LoggerManager
     }
 
     //----------------------------------------------------------------------------
-    // ! \brief Add file output to a logger.
-    // ! \param[in] lgr  The logger to add a rotating file sink to.
-    // ! \param[in] eLevel_  Logging level to enable.
-    // ! \param[in] sFileName_  Logger output file name.
-    // ! \param[in] uiFileSize_  Max file size.
-    // ! \param[in] uiMaxFiles_  Max number of rotating files.
-    // ! \param[in] bRotateOnOpen_  Rotate files on open.
+    //! \brief Adds file output to a logger.
+    //! 
+    //! \param[in] lgr  The logger to add a rotating file sink to.
+    //! \param[in] eLevel_  Logging level to enable.
+    //! \param[in] sFileName_  Logger output file name.
+    //! \param[in] uiFileSize_  Max file size.
+    //! \param[in] uiMaxFiles_  Max number of rotating files.
+    //! \param[in] bRotateOnOpen_  Rotate files on open.
     //----------------------------------------------------------------------------
     void AddRotatingFileLogger(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum level = spdlog::level::info,
                                const std::string& sFileName = "default.log", size_t maxFileSize = 5 * 1024 * 1024, size_t maxFiles = 3,
@@ -214,8 +232,9 @@ class CPPLoggerManager : public LoggerManager
 extern std::unique_ptr<LoggerManager> pclLoggerManager;
 
 //----------------------------------------------------------------------------
-// ! \brief Get a LoggerManager to alter logging configuration.
-// ! \return A pointer to the current LoggingManager.
+//! \brief Gets a LoggerManager to alter logging configuration.
+//! 
+//! \return A pointer to the current LoggingManager.
 //----------------------------------------------------------------------------
 extern CPPLoggerManager* GetLoggerManager();
 

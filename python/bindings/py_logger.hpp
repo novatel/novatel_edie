@@ -26,6 +26,7 @@ class python_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
 
     //----------------------------------------------------------------------------
     //! \brief Checks if a python logger is enabled for a specified log level.
+    //!
     //! \param[in] py_logger The python logger to check for.
     //! \param[in] level The python log level to check for.
     //! \return Whether the logger is enabled for the level.
@@ -34,6 +35,7 @@ class python_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
 
     //----------------------------------------------------------------------------
     //! \brief Converts from an spdlog level enum to an appropriate integer value.
+    //!
     //! \param[in] level The spdlog level enum value.
     //! \return The integer representing that same log level in python.
     //----------------------------------------------------------------------------
@@ -54,12 +56,14 @@ class python_sink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
   public:
     //----------------------------------------------------------------------------
     //! \brief Creates a python_sink to a specfic Python logger.
+    //!
     //! \param[in] py_logger_ A handle to the Python logger object.
     //----------------------------------------------------------------------------
     explicit python_sink(nb::handle py_logger_) : py_logger(py_logger_) {}
 
     //----------------------------------------------------------------------------
     //! \brief Sends a log message to the attached python logger if enabled.
+    //!
     //! \param[in] msg The message to send to the python logger.
     //----------------------------------------------------------------------------
     void sink_it_(const spdlog::details::log_msg& msg) override
@@ -208,22 +212,24 @@ class PyLoggerManager : public LoggerManager
     }
 
     //----------------------------------------------------------------------------
-    //! \brief Refreshes the spdlog
+    //! \brief Refreshes the log levels of all spd loggers.
     //!
-    //! \param[in] logger_name_  The name of the logger on the Python side.
-    //! \return A shared pointer to the newly registered or pre-existing spd logger.
+    //! Log level of an spd logger is set according to corresponding Python
+    //! logger or to `off` if internal logging is disabled.
     //----------------------------------------------------------------------------
     void RefreshSpdLoggerLevels()
     {
         nb::handle logging = nb::module_::import_("logging");
-        if (!disabled) {
+        if (!disabled)
+        {
             for (const auto& [name, logger] : loggers)
             {
                 nb::handle py_logger = logging.attr("getLogger")(name);
                 logger->set_level(GetEffectiveLogLevel(py_logger));
             }
         }
-        else {
+        else
+        {
             for (const auto& [name, logger] : loggers)
             {
                 nb::handle py_logger = logging.attr("getLogger")(name);
@@ -233,6 +239,11 @@ class PyLoggerManager : public LoggerManager
     }
 
   public:
+    //----------------------------------------------------------------------------
+    //! \brief Destructs the PyLoggerManager.
+    //!
+    //! Shutdown should be called first.
+    //----------------------------------------------------------------------------
     ~PyLoggerManager() = default;
 
     //----------------------------------------------------------------------------
@@ -248,6 +259,14 @@ class PyLoggerManager : public LoggerManager
         set_level_funcs.clear();
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Sets the log level of a Python logger and refreshes spd logger levels
+    //!
+    //! The level of the Python logger is set exactly as it would have been
+    //! if the `setLevel` method of an unaltered Python logger had been called.
+    //! If the level is set successfully the log level of all spd loggers will
+    //! also be updated to match the new configuration.
+    //----------------------------------------------------------------------------
     void SetLoggerLevel(nb::handle logger, nb::args args_, nb::kwargs kwargs_)
     {
         // Call original function first in case of exception
