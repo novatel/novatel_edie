@@ -386,7 +386,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
 
         if (*ppucLogBuf_ - pucTempStart >= static_cast<int32_t>(uiMessageLength_)) { return STATUS::SUCCESS; }
     }
-
+    SPDLOG_LOGGER_DEBUG(pclMyLogger, "Binary decoded successfully");
     return STATUS::SUCCESS;
 }
 

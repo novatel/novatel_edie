@@ -8,6 +8,8 @@ include(cmake/ThirdParty.cmake)
 # Build Project
 project(novatel_edie VERSION ${RELEASE_VERSION} LANGUAGES CXX)
 
+add_definitions(-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
 option(BUILD_BENCHMARKS "Build benchmarks" OFF)
