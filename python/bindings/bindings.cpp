@@ -6,7 +6,7 @@
 namespace nb = nanobind;
 
 void init_common_common(nb::module_&);
-void init_common_logger(nb::module_&);
+void init_common_logger(nb::module_&, nb::module_&);
 void init_message_db_singleton(nb::module_&);
 void init_common_message_database(nb::module_&);
 void init_novatel_commander(nb::module_&);
@@ -28,8 +28,13 @@ void init_logger_tester(nb::module_&);
 
 NB_MODULE(bindings, m)
 {
+    nb::module_ messages_mod = m.def_submodule("messages", "NovAtel OEM message definitions.");
+    nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
+    nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
+
+    std::cout << "Starting" << std::endl;
     init_common_common(m);
-    init_common_logger(m);
+    init_common_logger(m, internal_mod);
     init_message_db_singleton(m);
     init_novatel_commander(m);
     init_novatel_common(m);
@@ -44,11 +49,9 @@ NB_MODULE(bindings, m)
     init_novatel_parser(m);
     init_novatel_rxconfig_handler(m);
     init_novatel_range_decompressor(m);
-    nb::module_ messages_mod = m.def_submodule("messages", "NovAtel OEM message definitions.");
     init_novatel_oem_messages(messages_mod);
-    nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
     init_novatel_oem_enums(enums_mod);
-    nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
     init_decoder_tester(internal_mod);
     init_logger_tester(internal_mod);
+    std::cout << "Ending" << std::endl;
 }

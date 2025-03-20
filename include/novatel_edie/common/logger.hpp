@@ -50,7 +50,7 @@ class LoggerManager
     //----------------------------------------------------------------------------
     // ! \brief Preform any cleanup and destroy the manager object.
     //----------------------------------------------------------------------------
-    virtual ~LoggerManager() = 0;
+    virtual void Shutdown() = 0;
 
     //----------------------------------------------------------------------------
     // ! \brief Register a logger with the root logger's sinks.

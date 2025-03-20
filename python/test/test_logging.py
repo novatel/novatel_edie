@@ -62,16 +62,6 @@ def test_example_log(logger_tester, caplog):
     assert isinstance(record.lineno, int)
     assert record.funcName.endswith('LogInfo') # Namespace may also be present
 
-def test_toggle_internal_logging(logger_tester, caplog):
-    """Tests turning internal logging off and on has the intended effect."""
-    # Act
-    disable_internal_logging()
-    logger_tester.LogInfo('No log message')
-    enable_internal_logging()
-    logger_tester.LogInfo('Log message')
-    # Assert
-    assert [record.message for record in caplog.records] == ['Log message']
-
 @pytest.mark.parametrize('config_point', [
     'root', 'novatel_edie', 'novatel_edie.logger_tester'])
 @pytest.mark.parametrize('log_level', LOG_LEVELS)
@@ -88,3 +78,46 @@ def test_log_level_config(log_level, config_point, logger_tester, caplog):
     logger_tester.LogCritical('Critical message')
     # Assert
     assert [rec.levelno for rec in caplog.records] == exp_log_levels
+
+@pytest.mark.parametrize('config_point', [
+    'root', 'novatel_edie', 'novatel_edie.logger_tester'])
+def test_toggle_logging_level(config_point, logger_tester, caplog):
+    """Tests that log level can be toggled back and forth appropriately."""
+    logger = logging.getLogger(config_point)
+    # Act
+    logger.setLevel(logging.WARNING)
+    logger_tester.LogInfo('No log message')
+    logger.setLevel(logging.DEBUG)
+    logger_tester.LogInfo('Log message')
+    # Assert
+    assert [record.message for record in caplog.records] == ['Log message']
+
+@pytest.mark.parametrize('base_logger_point', ['root', 'novatel_edie'])
+@pytest.mark.parametrize('log_level', [logging.NOTSET] + LOG_LEVELS)
+def test_overriding_log_levels(log_level, base_logger_point, logger_tester, caplog):
+    """Tests that log levels inherit from parent only when not set."""
+    # Arrange
+    base_level = logging.WARNING
+    logging.getLogger('novatel_edie.logger_tester').setLevel(log_level)
+    logging.getLogger(base_logger_point).setLevel(base_level)
+    exp_level = log_level if log_level else base_level
+    exp_log_levels = [level for level in LOG_LEVELS if level >= exp_level]
+    # Act
+    logger_tester.LogDebug('Debug message')
+    logger_tester.LogInfo('Info message')
+    logger_tester.LogWarn('Warn message')
+    logger_tester.LogError('Error message')
+    logger_tester.LogCritical('Critical message')
+    # Assert
+    assert [rec.levelno for rec in caplog.records] == exp_log_levels
+
+def test_toggle_internal_logging(logger_tester, caplog):
+    """Tests turning internal logging off and on has the intended effect."""
+    # Act
+    disable_internal_logging()
+    logging.getLogger().setLevel(logging.DEBUG)
+    logger_tester.LogInfo('No log message')
+    enable_internal_logging()
+    logger_tester.LogInfo('Log message')
+    # Assert
+    assert [record.message for record in caplog.records] == ['Log message']

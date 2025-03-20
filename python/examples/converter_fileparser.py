@@ -42,8 +42,8 @@ from common import setup_example_logging
 
 
 def main():
-    setup_example_logging(logging.WARNING)
-    logger = logging.getLogger(__name__)    \
+    setup_example_logging(logging.WARN)
+    logger = logging.getLogger(__name__)
     # ne.disable_internal_logging()
 
     parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
