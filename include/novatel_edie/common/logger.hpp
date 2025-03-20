@@ -247,7 +247,7 @@ class Logger
     static void InitLogger(const std::filesystem::path& configPath = "") { GetLoggerManager()->InitLogger(configPath); }
     static void Shutdown() { GetLoggerManager()->Shutdown(); }
     static void SetLoggingLevel(spdlog::level::level_enum eLevel_) { GetLoggerManager()->SetLoggingLevel(eLevel_); }
-    static std::shared_ptr<spdlog::logger> RegisterLogger(const std::string& sLoggerName_) { GetLoggerManager()->RegisterLogger(sLoggerName_); }
+    static std::shared_ptr<spdlog::logger> RegisterLogger(const std::string& sLoggerName_) { return GetLoggerManager()->RegisterLogger(sLoggerName_); }
     static void AddConsoleLogging(const std::shared_ptr<spdlog::logger>& lgr, spdlog::level::level_enum eLevel_ = spdlog::level::info)
     {
         GetLoggerManager()->AddConsoleLogging(lgr, eLevel_);
