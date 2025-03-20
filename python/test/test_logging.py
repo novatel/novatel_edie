@@ -121,3 +121,23 @@ def test_toggle_internal_logging(logger_tester, caplog):
     logger_tester.LogInfo('Log message')
     # Assert
     assert [record.message for record in caplog.records] == ['Log message']
+
+@pytest.mark.parametrize('logger_name', ['root', 'novatel_edie', 'novatel_edie.logger_tester'])
+@pytest.mark.parametrize('func_input, exp_result', [
+    ('INVALID', ValueError), ('DEBUG', logging.DEBUG), ('INFO', logging.INFO),
+    ('WARNING', logging.WARNING), ('WARN', logging.WARN), ('ERROR', logging.ERROR),
+    ('CRITICAL', logging.CRITICAL), ('NOTSET', logging.NOTSET),
+    (32.31, TypeError), ((logging.ERROR, 'ERROR'), TypeError)
+])
+def test_set_level(func_input, logger_name, exp_result, logger_tester):
+    """Tests default behavior of setLevel is not impacted by update hook."""
+    # Arrange
+    func_input = (func_input,) if not isinstance(func_input, tuple) else func_input
+    logger = logging.getLogger(logger_name)
+    # Act and Assert
+    if isinstance(exp_result, type) and issubclass(exp_result, Exception):
+        with pytest.raises(exp_result):
+            logger.setLevel(*func_input)
+    else:
+        logger.setLevel(*func_input)
+        assert logger.level == exp_result

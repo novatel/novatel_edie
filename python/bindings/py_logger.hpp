@@ -148,8 +148,8 @@ class PyLoggerManager : public LoggerManager
 
     //----------------------------------------------------------------------------
     //! \brief Injects a hook into the setLevel function of the provided logger.
-    //! 
-    //! Allows the PyLoggerManager to update an spdlogger's level on changes to the 
+    //!
+    //! Allows the PyLoggerManager to update an spdlogger's level on changes to the
     //! corresponding Python logger's level.
     //!
     //! \param[in] logger_ The logger whose level to get.
@@ -171,7 +171,7 @@ class PyLoggerManager : public LoggerManager
 
     //----------------------------------------------------------------------------
     //! \brief Registers a new logger associated with a Python one.
-    //! 
+    //!
     //! \param[in] logger_name_  The name of the logger on the Python side.
     //! \return A shared pointer to the newly registered or pre-existing spd logger.
     //----------------------------------------------------------------------------
@@ -207,29 +207,29 @@ class PyLoggerManager : public LoggerManager
         return spd_logger;
     }
 
-    void SetSpdLoggerLevel(nb::handle logger, int level)
+    void RefreshSpdLoggerLevel(nb::handle logger)
     {
         std::string logger_name = nb::cast<std::string>(logger.attr("name"));
 
+        // Check whether logger is under management
         auto it = loggers.find(logger_name);
-        // Ignore logger if it is not under management
         if (it == loggers.end()) { return; }
 
+        // Refresh any children also under management
         nb::set children = nb::cast<nb::set>(logger.attr("getChildren")());
-        for (auto child : children)
-        {
-            if (nb::cast<int>(child.attr("level")) == 0) { SetSpdLoggerLevel(child, level); }
-        }
+        for (auto child : children) { RefreshSpdLoggerLevel(child); }
 
-        std::cout << "Setting " << logger_name << " to " << level << std::endl;
+        // Refresh logger level
         std::shared_ptr<spdlog::logger> spd_logger = it->second;
-        spd_logger->set_level(get_spd_log_level(level));
+        spd_logger->set_level(GetEffectiveLogLevel(logger));
     }
+
   public:
     //----------------------------------------------------------------------------
     //! \brief Cleans up managed loggers and stored Python objects.
     //!
-    //! Flush
+    //! Flushes managed spd loggers, deallocates them, and deallocates
+    //! stored Python setLevel callbacks.
     //----------------------------------------------------------------------------
     void Shutdown()
     {
@@ -238,22 +238,31 @@ class PyLoggerManager : public LoggerManager
         set_level_funcs.clear();
     }
 
-    void SetLoggerLevel(nb::handle logger, int level)
+    void SetLoggerLevel(nb::handle logger, nb::args args_, nb::kwargs kwargs_)
     {
-
-        if (!disabled) { SetSpdLoggerLevel(logger, level); }
-
-        // Proceed with orginal function call
+        // Call original function first in case of exception
         std::string logger_name = nb::cast<std::string>(logger.attr("name"));
         auto it = set_level_funcs.find(logger_name);
         if (it == set_level_funcs.end()) { throw std::runtime_error("The logger is under management but has no associated setLevel function"); }
         nb::callable original_func = it->second;
-        original_func(level);
+        try
+        {
+            // Directly forward arguments to original setLevel function
+            original_func(*args_, **kwargs_);
+        }
+        catch (const nb::python_error& e)
+        {
+            // Throw errors according to original function implementation
+            throw;
+        }
+
+        // Update spdlog levels to match new ones
+        if (!disabled) { RefreshSpdLoggerLevel(logger); }
     }
 
     //----------------------------------------------------------------------------
     //! \brief Sets the reference for accessing internal novatel_edie Python functions.
-    //! 
+    //!
     //! Includes `set_level` function used for triggering custom log level manipulation.
     //!
     //! \param[in] internal_mod_ The module of internal functionality.

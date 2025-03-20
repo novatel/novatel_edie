@@ -20,8 +20,7 @@ void init_common_logger(nb::module_& m, nb::module_& internal_m)
         "enable_internal_logging", [manager]() { manager->EnableInternalLogging(); },
         "Enable logging which originates from novatel_edie's native C++ code.");
 
-    internal_m.def("set_level", [manager](nb::handle logger, int level) {
-        manager->SetLoggerLevel(logger, level);
+    internal_m.def("set_level", [manager](nb::handle self, nb::args args_, nb::kwargs kwargs_) { manager->SetLoggerLevel(self, args_, kwargs_);
     });
 
     internal_m.def("exit_cleanup", [manager]() { manager->Shutdown(); });
