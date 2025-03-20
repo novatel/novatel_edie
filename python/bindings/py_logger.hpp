@@ -207,6 +207,12 @@ class PyLoggerManager : public LoggerManager
         return spd_logger;
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Refreshes the spdlog
+    //!
+    //! \param[in] logger_name_  The name of the logger on the Python side.
+    //! \return A shared pointer to the newly registered or pre-existing spd logger.
+    //----------------------------------------------------------------------------
     void RefreshSpdLoggerLevel(nb::handle logger)
     {
         std::string logger_name = nb::cast<std::string>(logger.attr("name"));
@@ -231,7 +237,7 @@ class PyLoggerManager : public LoggerManager
     //! Flushes managed spd loggers, deallocates them, and deallocates
     //! stored Python setLevel callbacks.
     //----------------------------------------------------------------------------
-    void Shutdown()
+    void Shutdown() override
     {
         for (const auto& [name, logger] : loggers) { logger->flush(); }
         loggers.clear();

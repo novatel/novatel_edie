@@ -88,21 +88,11 @@ class CPPLoggerManager : public LoggerManager
 
   public:
     //----------------------------------------------------------------------------
-    // ! \brief Preform default cleanup.
-    // !
-    // ! Users are responsible for calling shutdown themselves before program
-    // ! termination. Manipulating spdlog registry in destructor of a
-    // ! global object results in undefined behavior.
-    // ! https://github.com/gabime/spdlog/issues/2113
-    //----------------------------------------------------------------------------
-    ~CPPLoggerManager() = default;
-
-    //----------------------------------------------------------------------------
     // ! \brief Flush all rotating file sinks and shutdown spdlog.
     //
     // Must be called by users before program termination.
     //----------------------------------------------------------------------------
-    void Shutdown()
+    void Shutdown() override
     {
         std::lock_guard<std::mutex> lock(loggerMutex);
         if (rootLogger) { rootLogger->flush(); }
