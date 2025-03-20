@@ -213,21 +213,23 @@ class PyLoggerManager : public LoggerManager
     //! \param[in] logger_name_  The name of the logger on the Python side.
     //! \return A shared pointer to the newly registered or pre-existing spd logger.
     //----------------------------------------------------------------------------
-    void RefreshSpdLoggerLevel(nb::handle logger)
+    void RefreshSpdLoggerLevels()
     {
-        std::string logger_name = nb::cast<std::string>(logger.attr("name"));
-
-        // Check whether logger is under management
-        auto it = loggers.find(logger_name);
-        if (it == loggers.end()) { return; }
-
-        // Refresh any children also under management
-        nb::set children = nb::cast<nb::set>(logger.attr("getChildren")());
-        for (auto child : children) { RefreshSpdLoggerLevel(child); }
-
-        // Refresh logger level
-        std::shared_ptr<spdlog::logger> spd_logger = it->second;
-        spd_logger->set_level(GetEffectiveLogLevel(logger));
+        nb::handle logging = nb::module_::import_("logging");
+        if (!disabled) {
+            for (const auto& [name, logger] : loggers)
+            {
+                nb::handle py_logger = logging.attr("getLogger")(name);
+                logger->set_level(GetEffectiveLogLevel(py_logger));
+            }
+        }
+        else {
+            for (const auto& [name, logger] : loggers)
+            {
+                nb::handle py_logger = logging.attr("getLogger")(name);
+                logger->set_level(spdlog::level::off);
+            }
+        }
     }
 
   public:
@@ -265,7 +267,7 @@ class PyLoggerManager : public LoggerManager
         }
 
         // Update spdlog levels to match new ones
-        if (!disabled) { RefreshSpdLoggerLevel(logger); }
+        RefreshSpdLoggerLevels();
     }
 
     //----------------------------------------------------------------------------
@@ -298,7 +300,7 @@ class PyLoggerManager : public LoggerManager
     void DisableInternalLogging()
     {
         disabled = true;
-        for (const auto& [name, logger] : loggers) { logger->set_level(spdlog::level::off); }
+        RefreshSpdLoggerLevels();
     }
 
     //----------------------------------------------------------------------------
@@ -309,11 +311,6 @@ class PyLoggerManager : public LoggerManager
     void EnableInternalLogging()
     {
         disabled = false;
-        nb::handle logging = nb::module_::import_("logging");
-        for (const auto& [name, logger] : loggers)
-        {
-            nb::handle py_logger = logging.attr("getLogger")(name);
-            logger->set_level(GetEffectiveLogLevel(py_logger));
-        }
+        RefreshSpdLoggerLevels();
     }
 };
