@@ -52,6 +52,9 @@ class LoggerManager
     //----------------------------------------------------------------------------
     virtual void Shutdown() = 0;
 
+    virtual ~LoggerManager() = 0;
+
+
     //----------------------------------------------------------------------------
     // ! \brief Register a logger with the root logger's sinks.
     // ! \param[in] sLoggerName_ A name for the logger
@@ -87,6 +90,8 @@ class CPPLoggerManager : public LoggerManager
     }
 
   public:
+    ~CPPLoggerManager() = default;
+
     //----------------------------------------------------------------------------
     // ! \brief Flush all rotating file sinks and shutdown spdlog.
     //

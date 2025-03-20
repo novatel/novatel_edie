@@ -231,6 +231,8 @@ class PyLoggerManager : public LoggerManager
     }
 
   public:
+    ~PyLoggerManager() = default;
+
     //----------------------------------------------------------------------------
     //! \brief Cleans up managed loggers and stored Python objects.
     //!
