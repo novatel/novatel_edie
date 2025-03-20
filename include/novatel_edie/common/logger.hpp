@@ -54,7 +54,6 @@ class LoggerManager
 
     virtual ~LoggerManager() = 0;
 
-
     //----------------------------------------------------------------------------
     // ! \brief Register a logger with the root logger's sinks.
     // ! \param[in] sLoggerName_ A name for the logger
