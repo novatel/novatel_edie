@@ -152,7 +152,7 @@ template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
     for ([[maybe_unused]] auto _ : state)
     {
         unsigned char* bufferPtr = encodeBuffer;
-        (void)encoder.Encode(&bufferPtr, sizeof(encodeBuffer), header, message, messageData, metaData, Format);
+        (void)encoder.Encode(&bufferPtr, sizeof(encodeBuffer), header, message, messageData, metaData.eFormat, Format);
     }
 
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
