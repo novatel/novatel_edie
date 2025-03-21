@@ -93,8 +93,6 @@ void init_novatel_parser(nb::module_& m)
     nb::class_<oem::PyParser>(m, "Parser")
         .def("__init__", [](oem::PyParser* t) { new (t) oem::PyParser(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
         .def(nb::init<const PyMessageDatabase::Ptr&>(), "message_db"_a)
-        //.def_prop_ro("logger", &oem::PyParser::GetLogger)
-        //.def("enable_framer_decoder_logging", &oem::PyParser::EnableFramerDecoderLogging, "level"_a = spdlog::level::debug, "filename"_a = "edie.log")
         .def_prop_rw("ignore_abbreviated_ascii_responses", &oem::PyParser::GetIgnoreAbbreviatedAsciiResponses,
                      &oem::PyParser::SetIgnoreAbbreviatedAsciiResponses)
         .def_prop_rw("decompress_range_cmp", &oem::PyParser::GetDecompressRangeCmp, &oem::PyParser::SetDecompressRangeCmp)

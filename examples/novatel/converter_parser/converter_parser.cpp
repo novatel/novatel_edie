@@ -43,7 +43,6 @@ int main(int argc, char* argv[])
     // This example uses the default logger config, but you can also pass a config file to InitLogger()
     // Example config file: logger\example_logger_config.toml
     CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
-
     pclMyLoggerManager->InitLogger();
     std::shared_ptr<spdlog::logger> pclLogger = pclMyLoggerManager->RegisterLogger("converter_parser");
     pclLogger->set_level(spdlog::level::debug);

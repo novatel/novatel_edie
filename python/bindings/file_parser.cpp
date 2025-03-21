@@ -78,9 +78,6 @@ void init_novatel_file_parser(nb::module_& m)
     nb::class_<oem::PyFileParser>(m, "FileParser")
         .def(nb::init<const std::filesystem::path&>(), "file_path"_a)
         .def(nb::init<const std::filesystem::path&, const PyMessageDatabase::Ptr&>(), "file_path"_a, "message_db"_a)
-        //.def_prop_ro("logger", &oem::PyFileParser::GetLogger)
-        //.def("enable_framer_decoder_logging", &oem::PyFileParser::EnableFramerDecoderLogging, "level"_a = spdlog::level::debug,
-        //     "filename"_a = "edie.log")
         .def_prop_rw("ignore_abbreviated_ascii_responses", &oem::PyFileParser::GetIgnoreAbbreviatedAsciiResponses,
                      &oem::PyFileParser::SetIgnoreAbbreviatedAsciiResponses)
         .def_prop_rw("decompress_range_cmp", &oem::PyFileParser::GetDecompressRangeCmp, &oem::PyFileParser::SetDecompressRangeCmp)

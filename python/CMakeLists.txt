@@ -43,7 +43,6 @@ nanobind_add_module(python_bindings
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/py_message_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/internal/decoder_tester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/internal/logger_tester.cpp
-
 )
 
 set_target_properties(python_bindings PROPERTIES OUTPUT_NAME bindings)

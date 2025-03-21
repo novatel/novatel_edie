@@ -32,8 +32,6 @@ void init_novatel_decoder(nb::module_& m)
     nb::class_<oem::PyDecoder>(m, "Decoder")
         .def(nb::init<>())
         .def(nb::init<PyMessageDatabase::Ptr>(), "message_db"_a)
-        //.def_prop_ro("header_logger", [](oem::PyDecoder& self) { return self.header_decoder.GetLogger(); })
-        //.def_prop_ro("message_logger", [](oem::PyDecoder& self) { return self.message_decoder.GetLogger(); })
         .def(
             "decode_header",
             [](const oem::PyDecoder& decoder, const nb::bytes raw_header, oem::MetaDataStruct* metadata) {

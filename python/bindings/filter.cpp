@@ -10,7 +10,6 @@ void init_novatel_filter(nb::module_& m)
 {
     nb::class_<oem::Filter>(m, "Filter")
         .def(nb::init())
-        //.def_prop_ro("logger", &oem::Filter::GetLogger)
         .def("set_lower_time_bound", &oem::Filter::SetIncludeLowerTimeBound, "week"_a, "seconds"_a)
         .def("set_upper_time_bound", &oem::Filter::SetIncludeUpperTimeBound, "week"_a, "seconds"_a)
         .def("invert_time_filter", &oem::Filter::InvertTimeFilter, "invert"_a)

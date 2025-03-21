@@ -295,11 +295,6 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
                                  std::vector<FieldContainer>& vIntermediateFormat_, const uint32_t uiMessageLength_) const
 {
     const unsigned char* pucTempStart = *ppucLogBuf_;
-    SPDLOG_LOGGER_DEBUG(pclMyLogger, "Binary decoding started");
-    SPDLOG_LOGGER_DEBUG(pclMyLogger, "Binary decoding started");
-    SPDLOG_LOGGER_DEBUG(pclMyLogger, "Binary decoding started");
-    SPDLOG_LOGGER_DEBUG(pclMyLogger, "Binary decoding started");
-    SPDLOG_LOGGER_DEBUG(pclMyLogger, "Binary decoding started");
 
     for (const auto& field : vMsgDefFields_)
     {
@@ -391,8 +386,6 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
 
         if (*ppucLogBuf_ - pucTempStart >= static_cast<int32_t>(uiMessageLength_)) { return STATUS::SUCCESS; }
     }
-    SPDLOG_LOGGER_DEBUG(pclMyLogger, "Binary decoded successfully");
-    SPDLOG_LOGGER_DEBUG(pclMyLogger, "Binary decoded successfully");
     return STATUS::SUCCESS;
 }
 
