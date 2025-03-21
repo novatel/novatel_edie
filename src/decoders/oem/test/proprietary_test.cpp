@@ -50,7 +50,7 @@ class ProprietaryFramerTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { Logger::Shutdown(); }
+    static void TearDownTestSuite() { GetLoggerManager()->Shutdown(); }
 
     // Per-test setup
     void SetUp() override { FlushFramer(); }

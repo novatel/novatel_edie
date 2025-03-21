@@ -29,75 +29,47 @@
 # messages using the low-level components.
 ########################################################################
 
-import argparse
-import os
+import logging
 from binascii import hexlify
 
-import novatel_edie as ne
+from novatel_edie import HEADER_FORMAT, ENCODE_FORMAT, pretty_version, Framer, Decoder, Filter, Message, MESSAGE_SIZE_MAX
 from novatel_edie.messages import RANGE
-from novatel_edie import STATUS, ENCODE_FORMAT
 
-
-def read_frames(input_file, framer):
-    # Write unrecognized and incomplete messages to a separate file.
-    with open(input_file, "rb") as input_stream, open(f"{input_file}.UNKNOWN", "wb") as unknown_bytes_stream:
-        while read_data := input_stream.read(ne.MESSAGE_SIZE_MAX):
-            framer.write(read_data)
-            while True:
-                try:
-                    frame, meta = framer.get_frame()
-                except ne.BufferEmptyException:
-                    break
-                except ne.IncompleteException:
-                    break
-                except ne.UnknownException:
-                    continue
-                yield frame, meta
-        unknown_bytes_stream.write(framer.flush())
+from common_setup import setup_example_logging, handle_args
 
 
 def format_frame(frame, frame_format):
-    if frame_format in [ne.HEADER_FORMAT.BINARY, ne.HEADER_FORMAT.SHORT_BINARY, ne.HEADER_FORMAT.PROPRIETARY_BINARY,
-                        ne.ENCODE_FORMAT.BINARY, ne.ENCODE_FORMAT.FLATTENED_BINARY]:
+    """Format the frame into a human-readable string."""
+    if frame_format in [HEADER_FORMAT.BINARY, HEADER_FORMAT.SHORT_BINARY,
+                        HEADER_FORMAT.PROPRIETARY_BINARY,
+                        ENCODE_FORMAT.BINARY, ENCODE_FORMAT.FLATTENED_BINARY]:
         return hexlify(frame, sep=" ").decode("ascii").upper()
     return frame
 
 
 def main():
-    logger = ne.Logging.register_logger("converter")
-    parser = argparse.ArgumentParser(description="Convert OEM log files using low-level components.")
-    parser.add_argument("input_file", help="Input file")
-    parser.add_argument(
-        "output_format",
-        nargs="?",
-        choices=["ASCII", "ABBREV_ASCII", "BINARY", "FLATTENED_BINARY", "JSON"],
-        help="Output format",
-        default="ASCII",
-    )
-    parser.add_argument("-V", "--version", action="store_true")
-    args = parser.parse_args()
-    encode_format = ne.string_to_encode_format(args.output_format)
+    """Example framer usage."""
+    # Setup logging
+    setup_example_logging(logging.WARNING)
+    logger = logging.getLogger(__name__)
+    logger.info(f"Decoder library information:\n{pretty_version}")
 
-    logger.info(f"Decoder library information:\n{ne.pretty_version}")
-    if args.version:
-        exit(0)
-
-    if not os.path.exists(args.input_file):
-        logger.error(f'File "{args.input_file}" does not exist')
-        exit(1)
+    # Handle CLI arguments
+    input_file, encode_format = handle_args(logger)
 
     # Set up the EDIE components
-    framer = ne.Framer()
+    framer = Framer()
     framer.set_report_unknown_bytes(True)
     framer.set_payload_only(False)
     framer.set_frame_json(False)
-    decoder = ne.Decoder()
-    filter = ne.Filter()
+    decoder = Decoder()
+    my_filter = Filter()
 
-    with open(f"{args.input_file}.{encode_format}", "wb") as converted_logs_stream:
-        for frame, meta in read_frames(args.input_file, framer):
-            try:
-                if meta.format == ne.HEADER_FORMAT.UNKNOWN:
+    with open(input_file, "rb") as input_stream:
+        while read_data := input_stream.read(MESSAGE_SIZE_MAX):
+            framer.write(read_data)
+            for frame, meta in framer:
+                if meta.format == HEADER_FORMAT.UNKNOWN:
                     continue
                 logger.info(f"Framed ({len(frame)}): {format_frame(frame, meta.format)}")
 
@@ -105,7 +77,7 @@ def main():
                 header = decoder.decode_header(frame, meta)
 
                 # Filter the log, pass over it if we don't want it.
-                if not filter.do_filtering(meta):
+                if not my_filter.do_filtering(meta):
                     continue
 
                 # Decode the log body.
@@ -120,10 +92,8 @@ def main():
                         pass
 
                 # Re-encode the log
-                if isinstance(message, ne.Message):
+                if isinstance(message, Message):
                     encoded_message = message.to_ascii()
 
-            except Exception as e:
-                logger.warn(str(e))
 if __name__ == "__main__":
     main()

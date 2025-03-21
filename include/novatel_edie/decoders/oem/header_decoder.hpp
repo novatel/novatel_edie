@@ -43,7 +43,7 @@ namespace novatel::edie::oem {
 class HeaderDecoder
 {
   private:
-    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_header_decoder")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("novatel_header_decoder")};
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};

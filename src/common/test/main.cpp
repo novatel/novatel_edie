@@ -31,6 +31,7 @@
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
-    Logger::InitLogger();
+    CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
+    pclMyLoggerManager->InitLogger();
     return RUN_ALL_TESTS();
 }

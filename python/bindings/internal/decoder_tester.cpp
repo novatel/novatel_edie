@@ -1,14 +1,14 @@
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
+#include "novatel_edie/decoders/oem/common.hpp"
 
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/list.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/variant.h>
 
-#include "bindings_core.hpp"
-#include "message_db_singleton.hpp"
-#include "novatel_edie/decoders/oem/common.hpp"
-#include "py_message_objects.hpp"
+#include "../bindings_core.hpp"
+#include "../message_db_singleton.hpp"
+#include "../py_message_objects.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;

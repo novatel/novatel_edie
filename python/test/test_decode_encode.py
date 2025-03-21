@@ -33,10 +33,13 @@ from collections import namedtuple
 import novatel_edie as ne
 from novatel_edie import MessageData
 from novatel_edie.enums import SolStatus, SolType, Datum
+from novatel_edie import ENCODE_FORMAT
+from novatel_edie.messages import BESTPOS, GLOEPHEMERIS
+
 import pytest
-from novatel_edie import STATUS, ENCODE_FORMAT
-from novatel_edie.messages import *
 from pytest import approx
+
+# pylint: disable=redefined-outer-name
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -246,34 +249,6 @@ def compare_message_data(test_md: ne.MessageData, expected_md: ExpectedMessageDa
         print("MessageData.body contents do not match")
         result = False
     return result
-
-
-# -------------------------------------------------------------------------------------------------------
-# Logger Decode/Encode Unit Tests
-# -------------------------------------------------------------------------------------------------------
-def test_decoder_loggers():
-    level = ne.LogLevel.OFF
-    decoder = ne.Decoder()
-    header_logger = decoder.header_logger
-    message_logger = decoder.message_logger
-    header_logger.set_level(level)
-    message_logger.set_level(level)
-    assert header_logger.name == 'novatel_header_decoder'
-    assert header_logger.level == level
-    assert message_logger.name == 'message_decoder'
-    assert message_logger.level == level
-
-    assert ne.Logging.get('novatel_header_decoder') is not None
-    assert ne.Logging.get('message_decoder') is not None
-
-@pytest.mark.skip(reason="Logging is still under development")
-def test_encoder_logger():
-    level = ne.LogLevel.OFF
-    logger.set_level(level)
-    assert logger.name == 'encoder'
-    assert logger.level == level
-    assert ne.Logging.get('encoder') is not None
-
 
 # -------------------------------------------------------------------------------------------------------
 # ASCII Log Decode/Encode Unit Tests
