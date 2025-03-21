@@ -274,7 +274,7 @@ template <typename Derived> class EncoderBase
                 switch (field.fieldDef->type)
                 {
                 case FIELD_TYPE::STRING: { // STRING types can be handled all at once because they are a single element and have a null terminator
-                    std::string_view sv = std::get<std::string>(field.fieldValue).c_str();
+                    std::string_view sv = std::get<std::string_view>(field.fieldValue);
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, sv)) { return false; }
 
                     // For a flattened version of the log, fill in the remaining characters with 0x00.
@@ -307,7 +307,7 @@ template <typename Derived> class EncoderBase
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &std::get<int32_t>(field.fieldValue))) { return false; }
                     break;
                 case FIELD_TYPE::RESPONSE_STR:
-                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<std::string>(field.fieldValue).c_str())) { return false; }
+                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<std::string_view>(field.fieldValue))) { return false; }
                     break;
                 case FIELD_TYPE::SIMPLE:
                     if (!FieldToBinary(field, ppucOutBuf_, uiBytesLeft_)) { return false; }
@@ -471,7 +471,7 @@ template <typename Derived> class EncoderBase
                 switch (field.fieldDef->type)
                 {
                 case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
-                    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"{}\"", std::get<std::string>(field.fieldValue).c_str()) ||
+                    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"{}\"", std::get<std::string_view>(field.fieldValue)) ||
                         !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
@@ -496,7 +496,7 @@ template <typename Derived> class EncoderBase
                 }
                 case FIELD_TYPE::RESPONSE_ID: break; // Do nothing, ascii logs don't output this field
                 case FIELD_TYPE::RESPONSE_STR:
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string>(field.fieldValue).c_str()) ||
+                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string_view>(field.fieldValue)) ||
                         !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
@@ -647,7 +647,7 @@ template <typename Derived> class EncoderBase
                 {
                 case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
                     if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("{}": "{}",)", field.fieldDef->name.c_str(),
-                                       std::get<std::string>(field.fieldValue).c_str()))
+                                       std::get<std::string_view>(field.fieldValue)))
                     {
                         return false;
                     }
@@ -668,7 +668,7 @@ template <typename Derived> class EncoderBase
                     break;
                 case FIELD_TYPE::RESPONSE_STR:
                     if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("{}": "{}",)", field.fieldDef->name.c_str(),
-                                       std::get<std::string>(field.fieldValue).c_str()))
+                                       std::get<std::string_view>(field.fieldValue)))
                     {
                         return false;
                     }
