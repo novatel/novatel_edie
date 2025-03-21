@@ -36,9 +36,10 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
 {
     const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
 
-    if (uiSiblingId != 0U) {
+    if (uiSiblingId != 0U)
+    {
         // Reserve space for the suffix: "_" + up to 3 digits (max for uint8_t)
-        constexpr size_t maxSuffixSize = 4;  // "_" + up to 3 digits
+        constexpr size_t maxSuffixSize = 4; // "_" + up to 3 digits
         sMsgName_.reserve(sMsgName_.size() + maxSuffixSize);
 
         // Append the underscore
