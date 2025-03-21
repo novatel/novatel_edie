@@ -56,7 +56,7 @@ void init_novatel_framer(nb::module_& m)
             "report_unknown_bytes"_a)
         .def_prop_ro("bytes_available_in_buffer", [](const oem::PyFramer& framer) { return framer.GetBytesAvailableInBuffer(); })
         .def("get_frame", &oem::PyFramer::PyGetFrame, "buffer_size"_a = MESSAGE_SIZE_MAX)
-        .def("__iter__", [](nb::handle_t<oem::Framer> self) { return self; })
+        .def("__iter__", [](nb::handle_t<oem::PyFramer> self) { return self; })
         .def("__next__", &oem::PyFramer::PyIterGetFrame)
         .def("write",
              [](oem::PyFramer& framer, const nb::bytes& data) { return framer.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
