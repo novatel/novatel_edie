@@ -86,14 +86,14 @@ class MessageDecoderTypesTest : public ::testing::Test
             }
         }
 
-        template <typename T, DATA_TYPE D> void InvalidSizeSimpleASCIIHelper(std::string strTestInput)
+        template <typename T, DATA_TYPE D> void InvalidSizeSimpleASCIIHelper(std::string_view strTestInput)
         {
             std::vector<FieldContainer> vIntermediateFormat;
             vIntermediateFormat.reserve(1);
 
             const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
-            const char* tempStr = strTestInput.c_str();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(stMessageDataType, &tempStr, strTestInput.length(), vIntermediateFormat),
+            const char* tempStr = strTestInput.data();
+            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(stMessageDataType, &tempStr, strTestInput.size(), vIntermediateFormat),
                          std::runtime_error);
         }
 
@@ -182,13 +182,13 @@ class MessageDecoderTypesTest : public ::testing::Test
         MsgDefFields.clear();
     }
 
-    void CreateEnumField(std::string name, std::string description, int32_t value)
+    void CreateEnumField(const std::string& name, const std::string& description, int32_t value)
     {
         auto stField = std::make_shared<EnumField>();
         auto enumDef = std::make_shared<EnumDefinition>();
         EnumDataType enumDT;
-        enumDT.name = std::move(name);
-        enumDT.description = std::move(description);
+        enumDT.name = name;
+        enumDT.description = description;
         enumDT.value = value;
         enumDef->enumerators.push_back(enumDT);
         stField->enumDef = enumDef;
@@ -304,7 +304,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
     for (size_t sz = 0; sz < testInputs.size(); ++sz)
     {
         ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
-        ASSERT_EQ(std::get<std::string>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
+        ASSERT_EQ(std::get<std::string_view>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
 
         vIntermediateFormat.clear();
     }
