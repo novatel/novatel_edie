@@ -197,8 +197,8 @@ static const std::unordered_map<std::string, FIELD_TYPE> FieldTypeEnumLookup = {
 struct EnumDataType
 {
     uint32_t value{0};
-    std::string name{};
-    std::string description{};
+    std::string name;
+    std::string description;
 };
 
 //-----------------------------------------------------------------------
@@ -207,9 +207,12 @@ struct EnumDataType
 //-----------------------------------------------------------------------
 struct EnumDefinition
 {
-    std::string _id{};
-    std::string name{};
-    std::vector<EnumDataType> enumerators{};
+    std::string _id;
+    std::string name;
+    std::vector<EnumDataType> enumerators;
+    std::unordered_map<std::string_view, uint32_t> nameValue;
+    std::unordered_map<std::string_view, uint32_t> descriptionValue;
+    std::unordered_map<uint32_t, std::string_view> valueName;
 
     using Ptr = std::shared_ptr<EnumDefinition>;
     using ConstPtr = std::shared_ptr<const EnumDefinition>;
@@ -224,7 +227,7 @@ struct BaseDataType
 {
     DATA_TYPE name{DATA_TYPE::UNKNOWN};
     uint16_t length{0};
-    std::string description{};
+    std::string description;
 };
 
 //-----------------------------------------------------------------------
