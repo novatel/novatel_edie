@@ -27,6 +27,7 @@
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 
 #include <bitset>
+#include <charconv>
 #include <cmath>
 
 #include <nlohmann/json.hpp>
@@ -122,22 +123,41 @@ void MessageDecoder::InitOemFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("id")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                  const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        auto sTemp(clJsonField_.get<std::string>());
-
+        std::string_view sTemp = clJsonField_.get<std::string_view>();
         size_t sDelimiter = sTemp.find_last_of('+');
-        if (sDelimiter == std::string::npos) { sDelimiter = sTemp.find_last_of('-'); }
+        if (sDelimiter == std::string_view::npos) { sDelimiter = sTemp.find_last_of('-'); }
 
         uint16_t usSlot;
         int16_t sFreq;
 
-        if (sDelimiter != std::string::npos)
+        if (sDelimiter != std::string_view::npos)
         {
-            usSlot = static_cast<uint16_t>(strtoul(sTemp.substr(0, sDelimiter).c_str(), nullptr, 10));
-            sFreq = static_cast<int16_t>(strtol(sTemp.substr(sDelimiter).c_str(), nullptr, 10));
+            // Parse the slot part
+            std::string_view slotView = sTemp.substr(0, sDelimiter);
+            auto result = std::from_chars(slotView.data(), slotView.data() + slotView.size(), usSlot);
+            if (result.ec != std::errc() || result.ptr != slotView.data() + slotView.size())
+            {
+                throw std::invalid_argument("Invalid slot value in id field");
+            }
+
+            // Parse the frequency part
+            std::string_view freqView = sTemp.substr(sDelimiter + 1);
+            result = std::from_chars(freqView.data(), freqView.data() + freqView.size(), sFreq);
+            if (result.ec != std::errc() || result.ptr != freqView.data() + freqView.size())
+            {
+                throw std::invalid_argument("Invalid frequency value in id field");
+            }
+
+            if (sTemp[sDelimiter] == '-') { sFreq = -sFreq; }
         }
         else
         {
-            usSlot = static_cast<uint16_t>(strtoul(sTemp.c_str(), nullptr, 10));
+            // Parse the entire string as the slot
+            auto result = std::from_chars(sTemp.data(), sTemp.data() + sTemp.size(), usSlot);
+            if (result.ec != std::errc() || result.ptr != sTemp.data() + sTemp.size())
+            {
+                throw std::invalid_argument("Invalid slot value in id field");
+            }
             sFreq = 0;
         }
 
@@ -147,7 +167,7 @@ void MessageDecoder::InitOemFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("R")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                 const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(clJsonField_.get<std::string>());
+        MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(clJsonField_.get<std::string_view>());
         vIntermediateFormat_.emplace_back(pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, 0, 1, 0) : 0, pstMessageDataType_);
     };
 }
