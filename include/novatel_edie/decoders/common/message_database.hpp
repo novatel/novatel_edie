@@ -477,7 +477,7 @@ class MessageDatabase
     //
     //! \param[in] strMsgName_ A string containing the message name.
     //----------------------------------------------------------------------------
-    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(const std::string& strMsgName_) const;
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view strMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message ID.

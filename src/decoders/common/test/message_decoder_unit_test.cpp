@@ -257,16 +257,16 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
     ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_[0].fieldValue), '4');
 }
 
-TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
+TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("B_True", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    const auto* testInput = "True";
+    const auto* testInput = "TRUE";
     pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
-    ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), false);
+    ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), true);
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
