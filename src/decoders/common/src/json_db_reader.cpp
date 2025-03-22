@@ -147,7 +147,17 @@ void from_json(const json& j_, EnumDefinition& ed_)
 {
     ed_._id = j_.at("_id");
     ed_.name = j_.at("name");
+
+    // Parse enumerators into the vector
     ParseEnumerators(j_.at("enumerators"), ed_.enumerators);
+
+    // Populate the lookup maps
+    for (const auto& enumerator : ed_.enumerators)
+    {
+        ed_.nameValue[enumerator.name] = enumerator.value;
+        ed_.valueName[enumerator.value] = enumerator.name;
+        ed_.descriptionValue[enumerator.description] = enumerator.value;
+    }
 }
 
 //-----------------------------------------------------------------------
