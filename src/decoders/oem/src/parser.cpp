@@ -193,11 +193,10 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
 STATUS
 Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_)
 {
-    IntermediateHeader stHeader;
-    std::vector<FieldContainer> stMessage;
-
     while (true)
     {
+        IntermediateHeader stHeader;
+        std::vector<FieldContainer> stMessage;
         STATUS eStatus = ReadIntermediate(stMessageData_, stHeader, stMessage, stMetaData_, bDecodeIncompleteAbbreviated_);
         pucMyEncodeBufferPointer = pcMyEncodeBuffer.get(); //!< Reset the buffer.
 
