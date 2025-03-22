@@ -325,8 +325,8 @@ unsigned char PackMsgType(uint32_t uiSiblingId_, uint32_t uiMsgFormat_, uint32_t
 //
 //! \return The enum in string form.
 //-----------------------------------------------------------------------
-std::string GetEnumString(const novatel::edie::EnumDefinition* stEnumDef_, uint32_t uiEnum_);
-std::string GetEnumString(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, uint32_t uiEnum_);
+std::string_view GetEnumString(const novatel::edie::EnumDefinition* stEnumDef_, uint32_t uiEnum_);
+std::string_view GetEnumString(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, uint32_t uiEnum_);
 
 //-----------------------------------------------------------------------
 //! \brief Get the value of an enum string in integer form.

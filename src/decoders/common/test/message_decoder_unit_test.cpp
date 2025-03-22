@@ -86,14 +86,14 @@ class MessageDecoderTypesTest : public ::testing::Test
             }
         }
 
-        template <typename T, DATA_TYPE D> void InvalidSizeSimpleASCIIHelper(std::string strTestInput)
+        template <typename T, DATA_TYPE D> void InvalidSizeSimpleASCIIHelper(std::string_view strTestInput)
         {
             std::vector<FieldContainer> vIntermediateFormat;
             vIntermediateFormat.reserve(1);
 
             const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
-            const char* tempStr = strTestInput.c_str();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(stMessageDataType, &tempStr, strTestInput.length(), vIntermediateFormat),
+            const char* tempStr = strTestInput.data();
+            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(stMessageDataType, &tempStr, strTestInput.size(), vIntermediateFormat),
                          std::runtime_error);
         }
 
@@ -182,13 +182,13 @@ class MessageDecoderTypesTest : public ::testing::Test
         MsgDefFields.clear();
     }
 
-    void CreateEnumField(std::string name, std::string description, int32_t value)
+    void CreateEnumField(const std::string& name, const std::string& description, int32_t value)
     {
         auto stField = std::make_shared<EnumField>();
         auto enumDef = std::make_shared<EnumDefinition>();
         EnumDataType enumDT;
-        enumDT.name = std::move(name);
-        enumDT.description = std::move(description);
+        enumDT.name = name;
+        enumDT.description = description;
         enumDT.value = value;
         enumDef->enumerators.push_back(enumDT);
         stField->enumDef = enumDef;
@@ -257,16 +257,16 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
     ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_[0].fieldValue), '4');
 }
 
-TEST_F(MessageDecoderTypesTest, ASCII_BOOL_INVALID_INPUT)
+TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("B_True", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
-    const auto* testInput = "True";
+    const auto* testInput = "TRUE";
     pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInput, vIntermediateFormat_);
 
-    ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), false);
+    ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), true);
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
@@ -304,7 +304,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
     for (size_t sz = 0; sz < testInputs.size(); ++sz)
     {
         ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
-        ASSERT_EQ(std::get<std::string>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
+        ASSERT_EQ(std::get<std::string_view>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
 
         vIntermediateFormat.clear();
     }

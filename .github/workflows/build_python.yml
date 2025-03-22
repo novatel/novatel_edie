@@ -45,7 +45,7 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS: ${{ matrix.platform[2] }}
-          CIBW_BUILD: cp39* cp312*
+          CIBW_BUILD: cp313*
           CIBW_SKIP: "*-musllinux*"
 
       - name: Inspect

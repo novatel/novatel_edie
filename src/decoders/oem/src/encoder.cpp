@@ -26,7 +26,7 @@
 
 #include "novatel_edie/decoders/oem/encoder.hpp"
 
-#include <bitset>
+#include <charconv>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -36,8 +36,20 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
 {
     const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
 
-    // Append sibling i.e. the _1 of RANGEA_1
-    if (uiSiblingId != 0U) { sMsgName_.append("_").append(std::to_string(uiSiblingId)); }
+    if (uiSiblingId != 0U)
+    {
+        // Reserve space for the suffix: "_" + up to 3 digits (max for uint8_t)
+        constexpr size_t maxSuffixSize = 4; // "_" + up to 3 digits
+        sMsgName_.reserve(sMsgName_.size() + maxSuffixSize);
+
+        // Append the underscore
+        sMsgName_.push_back('_');
+
+        // Convert the sibling ID to a string and append it
+        std::array<char, maxSuffixSize> buffer; // Enough space for a uint8_t (up to 3 digits) + null terminator
+        auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), uiSiblingId, 10);
+        if (ec == std::errc()) { sMsgName_.append(buffer.data(), ptr); }
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -69,18 +81,18 @@ void Encoder::InitFieldMaps()
     // =========================================================
     asciiFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c",
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}",
                              fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR ? std::get<uint8_t>(fc_.fieldValue) : std::get<int8_t>(fc_.fieldValue));
     };
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s", pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue)).c_str());
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue)).c_str());
     };
 
     asciiFieldMap[CalculateBlockCrc32("T")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%.3lf", std::get<uint32_t>(fc_.fieldValue) / 1000.0);
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:.3f}", std::get<uint32_t>(fc_.fieldValue) / 1000.0);
     };
 
     asciiFieldMap[CalculateBlockCrc32("id")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -89,15 +101,15 @@ void Encoder::InitFieldMaps()
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
         // short circuit eval when sGloChan == 0, otherwise print to buffer
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%u", usSv) && (sGloChan == 0 || PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%+d", sGloChan));
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", usSv) && (sGloChan == 0 || PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:+d}", sGloChan));
     };
 
     asciiFieldMap[CalculateBlockCrc32("P")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         const uint8_t uiValue = std::get<uint8_t>(fc_.fieldValue);
-        if (uiValue == '\\') { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }                      // TODO: add description
-        if (uiValue > 31 && uiValue < 127) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", uiValue); } // print the character
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x%02x", uiValue);                                   // print as a hex character within ()
+        if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }                         // TODO: add description
+        if (uiValue > 31 && uiValue < 127) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}", uiValue); } // print the character
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x{:02x}", uiValue);                                   // print as a hex character within ()
     };
 
     asciiFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -114,11 +126,11 @@ void Encoder::InitFieldMaps()
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         if (fc_.fieldDef->dataType.length == 1) //
         {
-            return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", std::get<uint8_t>(fc_.fieldValue));
+            return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}", std::get<uint8_t>(fc_.fieldValue));
         }
         if (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DATA_TYPE::ULONG)
         {
-            return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", std::get<uint32_t>(fc_.fieldValue));
+            return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}", std::get<uint32_t>(fc_.fieldValue));
         }
         return false;
     };
@@ -126,16 +138,16 @@ void Encoder::InitFieldMaps()
     // =========================================================
     // Json Field Mapping
     // =========================================================
-    jsonFieldMap[CalculateBlockCrc32("P")] = BasicMapEntry<uint8_t>("%hhu");
+    jsonFieldMap[CalculateBlockCrc32("P")] = BasicMapEntry<uint8_t>("{}");
 
     jsonFieldMap[CalculateBlockCrc32("T")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%.3lf", std::get<uint32_t>(fc_.fieldValue) / 1000.0);
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:.3f}", std::get<uint32_t>(fc_.fieldValue) / 1000.0);
     };
 
     jsonFieldMap[CalculateBlockCrc32("m")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%s")", pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue)).c_str());
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("{}")", pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue)).c_str());
     };
 
     jsonFieldMap[CalculateBlockCrc32("id")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -143,9 +155,9 @@ void Encoder::InitFieldMaps()
         const auto uiTempId = std::get<uint32_t>(fc_.fieldValue);
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
-        if (sGloChan < 0) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u%d")", usSv, sGloChan); }
-        if (sGloChan != 0) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u+%d")", usSv, sGloChan); }
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("%u")", usSv);
+        if (sGloChan < 0) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("{}{}")", usSv, sGloChan); }
+        if (sGloChan != 0) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("{}+{}")", usSv, sGloChan); }
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("{}")", usSv);
     };
 
     jsonFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -160,16 +172,16 @@ void Encoder::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c",
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}",
                              (fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR) ? std::get<uint8_t>(fc_.fieldValue)
                                                                                : std::get<int8_t>(fc_.fieldValue));
     };
 
     jsonFieldMap[CalculateBlockCrc32("c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return (fc_.fieldDef->dataType.length == 1 && PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"%c\"", std::get<uint8_t>(fc_.fieldValue))) ||
+        return (fc_.fieldDef->dataType.length == 1 && PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"{:c}\"", std::get<uint8_t>(fc_.fieldValue))) ||
                (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DATA_TYPE::ULONG &&
-                PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"%c\"", std::get<uint32_t>(fc_.fieldValue)));
+                PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"{:c}\"", std::get<uint32_t>(fc_.fieldValue)));
     };
 }
 
@@ -214,97 +226,91 @@ bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    // Sync byte
-    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", OEM4_ASCII_SYNC)) { return false; }
+    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_SYNC)) { return false; }
 
-    // Message name
     MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
-    sMsgName.append(uiResponse != 0U ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
+    sMsgName.push_back(uiResponse != 0U ? 'R' : 'A'); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
-    return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress).c_str(),
-                         OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%hu%c", stInterHeader_.usSequence, OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%.1f%c", stInterHeader_.ucIdleTime * 0.500, OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus).c_str(),
-                         OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%hu%c", stInterHeader_.usWeek, OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%.3f%c", stInterHeader_.dMilliseconds / 1000.0, OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%08lx%c", stInterHeader_.uiReceiverStatus, OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%04x%c", stInterHeader_.uiMessageDefinitionCrc, OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%hu%c", stInterHeader_.usReceiverSwVersion, OEM4_ASCII_HEADER_TERMINATOR);
+    return CopyFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_FIELD_SEPARATOR,                                   //
+                                 std::pair{sMsgName.c_str(), ""},                                                        //
+                                 std::pair{GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress), ""},  //
+                                 std::pair{stInterHeader_.usSequence, "{}"},                                             //
+                                 std::pair{static_cast<float>(stInterHeader_.ucIdleTime) * 0.500F, "{:.1f}"},            //
+                                 std::pair{GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus), ""}, //
+                                 std::pair{stInterHeader_.usWeek, "{}"},                                                 //
+                                 std::pair{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"},                             //
+                                 std::pair{stInterHeader_.uiReceiverStatus, "{:08x}"},                                   //
+                                 std::pair{stInterHeader_.uiMessageDefinitionCrc, "{:04x}"},                             //
+                                 std::pair{stInterHeader_.usReceiverSwVersion, "{}"}                                     //
+                                 ) &&
+           CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_HEADER_TERMINATOR);
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                       bool bIsEmbeddedHeader_) const
 {
-    // Sync byte
-    if (!bIsEmbeddedHeader_ && !PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", OEM4_ABBREV_ASCII_SYNC)) { return false; }
+    if (!bIsEmbeddedHeader_ && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SYNC)) { return false; }
 
-    // Message name
     MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     AppendSiblingId(sMsgName, stInterHeader_);
 
-    if (PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress).c_str(),
-                      OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%hu%c", stInterHeader_.usSequence, OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%.1f%c", stInterHeader_.ucIdleTime * 0.500, OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus).c_str(),
-                      OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%hu%c", stInterHeader_.usWeek, OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%.3f%c", stInterHeader_.dMilliseconds / 1000.0, OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%08lx%c", stInterHeader_.uiReceiverStatus, OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%04x%c", stInterHeader_.uiMessageDefinitionCrc, OEM4_ABBREV_ASCII_SEPARATOR) &&
-        PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%hu", stInterHeader_.usReceiverSwVersion))
-    {
-        return bIsEmbeddedHeader_ ? PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", OEM4_ABBREV_ASCII_SEPARATOR)
-                                  : PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n");
-    }
-    return false;
+    return CopyFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR,                                  //
+                                 std::pair{sMsgName.c_str(), ""},                                                        //
+                                 std::pair{GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress), ""},  //
+                                 std::pair{stInterHeader_.usSequence, "{}"},                                             //
+                                 std::pair{static_cast<float>(stInterHeader_.ucIdleTime) * 0.500F, "{:.1f}"},            //
+                                 std::pair{GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus), ""}, //
+                                 std::pair{stInterHeader_.usWeek, "{}"},                                                 //
+                                 std::pair{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"},                             //
+                                 std::pair{stInterHeader_.uiReceiverStatus, "{:08x}"},                                   //
+                                 std::pair{stInterHeader_.uiMessageDefinitionCrc, "{:04x}"},                             //
+                                 std::pair{stInterHeader_.usReceiverSwVersion, "{}"}                                     //
+                                 ) &&
+           (bIsEmbeddedHeader_ ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR)
+                               : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n"));
 }
-
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    // Sync byte
-    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", OEM4_SHORT_ASCII_SYNC)) { return false; }
+    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_SHORT_ASCII_SYNC)) { return false; }
 
-    // Message name
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
     const uint32_t uiResponse = (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE)) >> 7;
-    sMsgName.append(uiResponse != 0U ? "R" : "A"); // Append 'A' for ascii, or 'R' for ascii response
+    sMsgName.push_back(uiResponse != 0U ? 'R' : 'A'); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
-    return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%hu%c", stInterHeader_.usWeek, OEM4_ASCII_FIELD_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%.3f%c", stInterHeader_.dMilliseconds / 1000.0, OEM4_ASCII_HEADER_TERMINATOR);
+    return CopyFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_FIELD_SEPARATOR,      //
+                                 std::pair{sMsgName.c_str(), ""},                           //
+                                 std::pair{stInterHeader_.usWeek, "{}"},                    //
+                                 std::pair{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"} //
+                                 ) &&
+           CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_HEADER_TERMINATOR);
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    // Sync byte
-    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%c", OEM4_ABBREV_ASCII_SYNC)) { return false; }
+    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SYNC)) { return false; }
 
-    // Message name
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
     AppendSiblingId(sMsgName, stInterHeader_);
 
-    return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%s%c", sMsgName.c_str(), OEM4_ABBREV_ASCII_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%hu%c", stInterHeader_.usWeek, OEM4_ABBREV_ASCII_SEPARATOR) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "%.3f", stInterHeader_.dMilliseconds / 1000.0) && PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n");
+    return CopyFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR,     //
+                                 std::pair{sMsgName.c_str(), ""},                           //
+                                 std::pair{stInterHeader_.usWeek, "{}"},                    //
+                                 std::pair{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"} //
+                                 ) &&
+           CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n");
 }
 
 // -------------------------------------------------------------------------------------------------------
 std::string Encoder::JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const
 {
-    // Message name
     MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
     AppendSiblingId(sMsgName, stInterHeader_);
@@ -315,32 +321,32 @@ std::string Encoder::JsonHeaderToMsgName(const IntermediateHeader& stInterHeader
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    return CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "{") &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("message": "%s",)", JsonHeaderToMsgName(stInterHeader_).c_str()) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("id": %hu,)", stInterHeader_.usMessageId) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("port": "%s",)",
-                         GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress).c_str()) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("sequence_num": %hu,)", stInterHeader_.usSequence) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("percent_idle_time": %.1f,)", static_cast<float>(stInterHeader_.ucIdleTime) * 0.500) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("time_status": "%s",)",
-                         GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus).c_str()) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("week": %hu,)", stInterHeader_.usWeek) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("seconds": %.3f,)", (stInterHeader_.dMilliseconds / 1000.0)) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("receiver_status": %ld,)", stInterHeader_.uiReceiverStatus) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("HEADER_reserved1": %d,)", stInterHeader_.uiMessageDefinitionCrc) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("receiver_sw_version": %hu)", stInterHeader_.usReceiverSwVersion) &&
-           CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "}");
+    // TODO: make a function to process all of these in a call, with a variadic of pairs like CopyFormattedToBuffer
+    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '{') &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("message": "{}",)", JsonHeaderToMsgName(stInterHeader_).c_str()) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("id": {},)", stInterHeader_.usMessageId) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("port": "{}",)", GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress)) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("sequence_num": {},)", stInterHeader_.usSequence) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("percent_idle_time": {:.1f},)", static_cast<float>(stInterHeader_.ucIdleTime) * 0.500) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("time_status": "{}",)",
+                         GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus)) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("week": {},)", stInterHeader_.usWeek) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("seconds": {:.3f},)", (stInterHeader_.dMilliseconds / 1000.0)) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("receiver_status": {},)", stInterHeader_.uiReceiverStatus) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("HEADER_reserved1": {},)", stInterHeader_.uiMessageDefinitionCrc) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("receiver_sw_version": {})", stInterHeader_.usReceiverSwVersion) &&
+           CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '}');
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    return CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "{") &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("message": "%s",)", JsonHeaderToMsgName(stInterHeader_).c_str()) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("id": %hu,)", stInterHeader_.usMessageId) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("week": %hu,)", stInterHeader_.usWeek) &&
-           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("seconds": %.3f)", (stInterHeader_.dMilliseconds / 1000.0)) &&
-           CopyToBuffer(reinterpret_cast<unsigned char**>(ppcOutBuf_), uiBytesLeft_, "}");
+    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '{') &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("message": "{}",)", JsonHeaderToMsgName(stInterHeader_).c_str()) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("id": {},)", stInterHeader_.usMessageId) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("week": {},)", stInterHeader_.usWeek) &&
+           PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("seconds": {:.3f})", (stInterHeader_.dMilliseconds / 1000.0)) &&
+           CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '}');
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -357,7 +363,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"({"header": )")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"({"header": )")) { return STATUS::BUFFER_FULL; }
     }
 
     STATUS eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, eHeaderFormat_, eFormat_);
@@ -367,7 +373,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"(,"body": )")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"(,"body": )")) { return STATUS::BUFFER_FULL; }
     }
 
     eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, stMessageData_, eHeaderFormat_, eFormat_);
@@ -377,7 +383,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"(})")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"(})")) { return STATUS::BUFFER_FULL; }
     }
 
     stMessageData_.pucMessage = *ppucBuffer_;
@@ -456,13 +462,13 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         if (!EncodeAsciiBody<false>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pucTempBuffer--; // Remove last delimiter ','
         const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1, pucTempBuffer - stMessageData_.pucMessageHeader - 1);
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "*%08x\r\n", uiCrc)) { return STATUS::BUFFER_FULL; }
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "*{:08x}\r\n", uiCrc)) { return STATUS::BUFFER_FULL; }
         break;
     }
     case ENCODE_FORMAT::ABBREV_ASCII:
         if (!EncodeAsciiBody<true>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pucTempBuffer--; // Remove last delimiter ' '
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         break;
 
     case ENCODE_FORMAT::FLATTENED_BINARY:
