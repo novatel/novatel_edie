@@ -107,9 +107,6 @@ int main(int argc, char* argv[])
     // Initialize structures and error codes
     auto eStatus = STATUS::UNKNOWN;
 
-    MetaDataStruct stMetaData;
-    MessageDataStruct stMessageData;
-
     clFileParser.SetFilter(clFilter);
     clFileParser.SetEncodeFormat(eEncodeFormat);
 
@@ -133,6 +130,8 @@ int main(int argc, char* argv[])
     {
         try
         {
+            MetaDataStruct stMetaData;
+            MessageDataStruct stMessageData;
             eStatus = clFileParser.Read(stMessageData, stMetaData);
             if (eStatus == STATUS::SUCCESS)
             {

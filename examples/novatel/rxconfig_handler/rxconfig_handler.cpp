@@ -90,24 +90,23 @@ int main(int argc, char* argv[])
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
-    std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
-
     // Set up file streams
     std::ifstream ifs(pathInFilename, std::ios::binary);
     std::ofstream convertedOfs(pathInFilename.string() + "." + sEncodeFormat, std::ios::binary);
     std::ofstream strippedOfs(pathInFilename.string() + ".STRIPPED." + sEncodeFormat, std::ios::binary);
 
-    MetaDataStruct stMetaData;
-    MetaDataStruct stEmbeddedMetaData;
-    MessageDataStruct stMessageData;
-    MessageDataStruct stEmbeddedMessageData;
-
     RxConfigHandler clRxConfigHandler(clJsonDb);
 
     while (!ifs.eof())
     {
+        std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         ifs.read(cData.data(), cData.size());
         clRxConfigHandler.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount());
+
+        MetaDataStruct stMetaData;
+        MetaDataStruct stEmbeddedMetaData;
+        MessageDataStruct stMessageData;
+        MessageDataStruct stEmbeddedMessageData;
 
         STATUS eStatus = clRxConfigHandler.Convert(stMessageData, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eEncodeFormat);
 
