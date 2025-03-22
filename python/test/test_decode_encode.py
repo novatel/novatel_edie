@@ -83,7 +83,6 @@ class Helper:
             return (Result.ENCODER_ERROR, None) if not return_message else (Result.ENCODER_ERROR, None, None)
 
         if return_message:
-            print(f"{body}")
             return Result.SUCCESS, message_data, message
 
         return Result.SUCCESS, message_data
