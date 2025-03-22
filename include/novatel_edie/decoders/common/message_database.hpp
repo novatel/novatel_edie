@@ -382,10 +382,10 @@ class MessageDatabase
 {
     std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
-    std::unordered_map<std::string, MessageDefinition::ConstPtr> mMessageName;
+    std::unordered_map<std::string_view, MessageDefinition::ConstPtr> mMessageName;
     std::unordered_map<int32_t, MessageDefinition::ConstPtr> mMessageId;
-    std::unordered_map<std::string, EnumDefinition::ConstPtr> mEnumName;
-    std::unordered_map<std::string, EnumDefinition::ConstPtr> mEnumId;
+    std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumName;
+    std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
 
   public:
     //----------------------------------------------------------------------------
