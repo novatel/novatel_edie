@@ -102,10 +102,8 @@ void MessageDecoderBase::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
-        {
-            vIntermediateFormat_.emplace_back(std::string(*ppcToken_, tokenLength_) == "TRUE", pstMessageDataType_);
-        }
+        constexpr uint32_t nTrue = 4; // "TRUE"
+        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL) { vIntermediateFormat_.emplace_back(tokenLength_ == nTrue, pstMessageDataType_); }
         else { vIntermediateFormat_.emplace_back(static_cast<int32_t>(strtol(*ppcToken_, nullptr, 10)), pstMessageDataType_); }
     };
 
