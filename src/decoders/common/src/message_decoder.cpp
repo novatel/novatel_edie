@@ -77,74 +77,74 @@ void MessageDecoderBase::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("g")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("lg")] = SimpleAsciiMapEntry<double>();
 
-    asciiFieldMap[CalculateBlockCrc32("e")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    asciiFieldMap[CalculateBlockCrc32("e")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
-        case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), pstMessageDataType_); return;
+        case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
+        case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
         default: throw std::runtime_error("%e: invalid float length");
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    asciiFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), pstMessageDataType_); return;
-        case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), pstMessageDataType_); return;
+            case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
+        case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
         default: throw std::runtime_error("%f: invalid float length");
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    asciiFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         constexpr uint32_t nTrue = 4; // "TRUE"
-        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL) { vIntermediateFormat_.emplace_back(tokenLength_ == nTrue, pstMessageDataType_); }
-        else { vIntermediateFormat_.emplace_back(static_cast<int32_t>(strtol(*ppcToken_, nullptr, 10)), pstMessageDataType_); }
+        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL) { vIntermediateFormat_.emplace_back(tokenLength_ == nTrue, std::move(pstMessageDataType_)); }
+        else { vIntermediateFormat_.emplace_back(static_cast<int32_t>(strtol(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    asciiFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 10)), pstMessageDataType_); return;
-        case 2: vIntermediateFormat_.emplace_back(static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 10)), pstMessageDataType_); return;
-        case 4: vIntermediateFormat_.emplace_back(static_cast<uint32_t>(strtoul(*ppcToken_, nullptr, 10)), pstMessageDataType_); return;
-        case 8: vIntermediateFormat_.emplace_back(static_cast<uint64_t>(strtoull(*ppcToken_, nullptr, 10)), pstMessageDataType_); return;
+        case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); return;
+        case 2: vIntermediateFormat_.emplace_back(static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); return;
+        case 4: vIntermediateFormat_.emplace_back(static_cast<uint32_t>(strtoul(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); return;
+        case 8: vIntermediateFormat_.emplace_back(static_cast<uint64_t>(strtoull(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); return;
         default: throw std::runtime_error("invalid unsigned length");
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    asciiFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 16)), pstMessageDataType_); return;
-        case 2: vIntermediateFormat_.emplace_back(static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 16)), pstMessageDataType_); return;
-        case 4: vIntermediateFormat_.emplace_back(static_cast<uint32_t>(strtoul(*ppcToken_, nullptr, 16)), pstMessageDataType_); return;
-        case 8: vIntermediateFormat_.emplace_back(static_cast<uint64_t>(strtoull(*ppcToken_, nullptr, 16)), pstMessageDataType_); return;
+        case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 16)), std::move(pstMessageDataType_)); return;
+        case 2: vIntermediateFormat_.emplace_back(static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 16)), std::move(pstMessageDataType_)); return;
+        case 4: vIntermediateFormat_.emplace_back(static_cast<uint32_t>(strtoul(*ppcToken_, nullptr, 16)), std::move(pstMessageDataType_)); return;
+        case 8: vIntermediateFormat_.emplace_back(static_cast<uint64_t>(strtoull(*ppcToken_, nullptr, 16)), std::move(pstMessageDataType_)); return;
         default: throw std::runtime_error("invalid hex length");
         }
     };
 
     asciiFieldMap[CalculateBlockCrc32("X")] = asciiFieldMap[CalculateBlockCrc32("x")];
 
-    asciiFieldMap[CalculateBlockCrc32("c")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    asciiFieldMap[CalculateBlockCrc32("c")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        vIntermediateFormat_.emplace_back(static_cast<int8_t>(**ppcToken_), pstMessageDataType_);
+        vIntermediateFormat_.emplace_back(static_cast<int8_t>(**ppcToken_), std::move(pstMessageDataType_));
     };
 
-    asciiFieldMap[CalculateBlockCrc32("uc")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    asciiFieldMap[CalculateBlockCrc32("uc")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                   const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                   [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        vIntermediateFormat_.emplace_back(static_cast<uint8_t>(**ppcToken_), pstMessageDataType_);
+        vIntermediateFormat_.emplace_back(static_cast<uint8_t>(**ppcToken_), std::move(pstMessageDataType_));
     };
 
     // =========================================================
@@ -168,42 +168,42 @@ void MessageDecoderBase::InitFieldMaps()
     jsonFieldMap[CalculateBlockCrc32("g")] = SimpleJsonMapEntry<float>();
     jsonFieldMap[CalculateBlockCrc32("lg")] = SimpleJsonMapEntry<double>();
 
-    jsonFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    jsonFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 4: PushElement<float>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
-        case 8: PushElement<double>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 4: PushElement<float>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
+        case 8: PushElement<double>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
         default: throw std::runtime_error("invalid float length");
         }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    jsonFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL) { PushElement<bool>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); }
-        else { PushElement<int32_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); }
+        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL) { PushElement<bool>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); }
+        else { PushElement<int32_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    jsonFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 1: PushElement<uint8_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
-        case 2: PushElement<uint16_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
-        case 4: PushElement<uint32_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
-        case 8: PushElement<uint64_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 1: PushElement<uint8_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
+        case 2: PushElement<uint16_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
+        case 4: PushElement<uint32_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
+        case 8: PushElement<uint64_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
         default: throw std::runtime_error("invalid unsigned length");
         }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
+    jsonFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 1: PushElement<uint8_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
-        case 2: PushElement<uint16_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
-        case 4: PushElement<uint32_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
-        case 8: PushElement<uint64_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 1: PushElement<uint8_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
+        case 2: PushElement<uint16_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
+        case 4: PushElement<uint32_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
+        case 8: PushElement<uint64_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); return;
         default: throw std::runtime_error("invalid hex length");
         }
     };
@@ -252,25 +252,25 @@ void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr pstMessageDataTyp
 {
     switch (pstMessageDataType_->dataType.name)
     {
-    case DATA_TYPE::BOOL: vIntermediateFormat_.emplace_back(*reinterpret_cast<const bool*>(*ppucLogBuf_), pstMessageDataType_); break;
+    case DATA_TYPE::BOOL: vIntermediateFormat_.emplace_back(*reinterpret_cast<const bool*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint8_t*>(*ppucLogBuf_), pstMessageDataType_); break;
-    case DATA_TYPE::CHAR: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int8_t*>(*ppucLogBuf_), pstMessageDataType_); break;
-    case DATA_TYPE::USHORT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint16_t*>(*ppucLogBuf_), pstMessageDataType_); break;
-    case DATA_TYPE::SHORT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int16_t*>(*ppucLogBuf_), pstMessageDataType_); break;
+    case DATA_TYPE::UCHAR: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint8_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::CHAR: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int8_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::USHORT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint16_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::SHORT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int16_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::UINT: [[fallthrough]];
     case DATA_TYPE::SATELLITEID: [[fallthrough]];
-    case DATA_TYPE::ULONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint32_t*>(*ppucLogBuf_), pstMessageDataType_); break;
+    case DATA_TYPE::ULONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint32_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int32_t*>(*ppucLogBuf_), pstMessageDataType_); break;
-    case DATA_TYPE::ULONGLONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint64_t*>(*ppucLogBuf_), pstMessageDataType_); break;
-    case DATA_TYPE::LONGLONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int64_t*>(*ppucLogBuf_), pstMessageDataType_); break;
-    case DATA_TYPE::FLOAT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const float*>(*ppucLogBuf_), pstMessageDataType_); break;
-    case DATA_TYPE::DOUBLE: vIntermediateFormat_.emplace_back(*reinterpret_cast<const double*>(*ppucLogBuf_), pstMessageDataType_); break;
+    case DATA_TYPE::LONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int32_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::ULONGLONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint64_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::LONGLONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int64_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::FLOAT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const float*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::DOUBLE: vIntermediateFormat_.emplace_back(*reinterpret_cast<const double*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     default: throw std::runtime_error("DecodeBinaryField(): Unknown field type\n");
     }
 
-    *ppucLogBuf_ += pstMessageDataType_->dataType.length;
+    *ppucLogBuf_ += vIntermediateFormat_.back().fieldDef->dataType.length;
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -279,7 +279,7 @@ void MessageDecoderBase::DecodeAsciiField(BaseField::ConstPtr pstMessageDataType
 {
     const auto it = asciiFieldMap.find(pstMessageDataType_->conversionHash);
     if (it == asciiFieldMap.end()) { throw std::runtime_error("DecodeAsciiField(): Unknown field type\n"); }
-    it->second(vIntermediateFormat_, pstMessageDataType_, ppcToken_, tokenLength_, *pclMyMsgDb);
+    it->second(vIntermediateFormat_, std::move(pstMessageDataType_), ppcToken_, tokenLength_, *pclMyMsgDb);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -731,7 +731,7 @@ void MessageDecoderBase::DecodeJsonField(BaseField::ConstPtr pstMessageDataType_
 {
     const auto it = jsonFieldMap.find(pstMessageDataType_->conversionHash);
     if (it == jsonFieldMap.end()) { throw std::runtime_error("DecodeJsonField(): Unknown field type\n"); }
-    it->second(vIntermediateFormat_, pstMessageDataType_, clJsonField_, *pclMyMsgDb);
+    it->second(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_, *pclMyMsgDb);
 }
 
 // -------------------------------------------------------------------------------------------------------
