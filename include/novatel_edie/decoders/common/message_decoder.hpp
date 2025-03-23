@@ -55,7 +55,10 @@ struct FieldContainer
     FieldValueVariant fieldValue;
     BaseField::ConstPtr fieldDef;
 
-    template <class T> FieldContainer(T tFieldValue_, BaseField::ConstPtr&& pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(std::move(pstFieldDef_)) {}
+    template <class T>
+    FieldContainer(T tFieldValue_, BaseField::ConstPtr&& pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(std::move(pstFieldDef_))
+    {
+    }
 };
 
 //============================================================================
@@ -99,11 +102,11 @@ class MessageDecoderBase
     [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, simdjson::dom::element jsonData,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
-    static void DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, const unsigned char** ppucLogBuf_,
+    static void DecodeBinaryField(BaseField::ConstPtr&& pstMessageDataType_, const unsigned char** ppucLogBuf_,
                                   std::vector<FieldContainer>& vIntermediateFormat_);
-    void DecodeAsciiField(BaseField::ConstPtr pstMessageDataType_, const char** ppcToken_, size_t tokenLength_,
+    void DecodeAsciiField(BaseField::ConstPtr&& pstMessageDataType_, const char** ppcToken_, size_t tokenLength_,
                           std::vector<FieldContainer>& vIntermediateFormat_) const;
-    void DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, simdjson::dom::element clJsonField_,
+    void DecodeJsonField(BaseField::ConstPtr&& pstMessageDataType_, simdjson::dom::element clJsonField_,
                          std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     // -------------------------------------------------------------------------------------------------------
@@ -153,7 +156,8 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static void PushElement(std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr&& pstMessageDataType_, simdjson::dom::element clJsonField_)
+    static void PushElement(std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr&& pstMessageDataType_,
+                            simdjson::dom::element clJsonField_)
     {
         // Determine the intermediate type to use for simdjson::get
         using IntermediateType =
