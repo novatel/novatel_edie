@@ -168,7 +168,7 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
 
     for (const auto& field : j_)
     {
-        const auto sFieldType = field.at("type").get<std::string>();
+        const auto sFieldType = field.at("type").get<std::string_view>();
         const auto stDataType = field.at("dataType").get<BaseDataType>();
 
         if (sFieldType == "SIMPLE")
