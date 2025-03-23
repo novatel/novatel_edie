@@ -93,7 +93,7 @@ void MessageDecoderBase::InitFieldMaps()
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-            case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
+        case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
         case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
         default: throw std::runtime_error("%f: invalid float length");
         }
@@ -103,7 +103,10 @@ void MessageDecoderBase::InitFieldMaps()
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         constexpr uint32_t nTrue = 4; // "TRUE"
-        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL) { vIntermediateFormat_.emplace_back(tokenLength_ == nTrue, std::move(pstMessageDataType_)); }
+        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
+        {
+            vIntermediateFormat_.emplace_back(tokenLength_ == nTrue, std::move(pstMessageDataType_));
+        }
         else { vIntermediateFormat_.emplace_back(static_cast<int32_t>(strtol(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); }
     };
 
@@ -180,7 +183,10 @@ void MessageDecoderBase::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL) { PushElement<bool>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); }
+        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
+        {
+            PushElement<bool>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_);
+        }
         else { PushElement<int32_t>(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_); }
     };
 
@@ -247,7 +253,7 @@ void MessageDecoderBase::CreateResponseMsgDefinitions()
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, const unsigned char** ppucLogBuf_,
+void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr&& pstMessageDataType_, const unsigned char** ppucLogBuf_,
                                            std::vector<FieldContainer>& vIntermediateFormat_)
 {
     switch (pstMessageDataType_->dataType.name)
@@ -256,15 +262,21 @@ void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr pstMessageDataTyp
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
     case DATA_TYPE::UCHAR: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint8_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::CHAR: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int8_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
-    case DATA_TYPE::USHORT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint16_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::USHORT:
+        vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint16_t*>(*ppucLogBuf_), std::move(pstMessageDataType_));
+        break;
     case DATA_TYPE::SHORT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int16_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::UINT: [[fallthrough]];
     case DATA_TYPE::SATELLITEID: [[fallthrough]];
     case DATA_TYPE::ULONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint32_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::INT: [[fallthrough]];
     case DATA_TYPE::LONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int32_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
-    case DATA_TYPE::ULONGLONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint64_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
-    case DATA_TYPE::LONGLONG: vIntermediateFormat_.emplace_back(*reinterpret_cast<const int64_t*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::ULONGLONG:
+        vIntermediateFormat_.emplace_back(*reinterpret_cast<const uint64_t*>(*ppucLogBuf_), std::move(pstMessageDataType_));
+        break;
+    case DATA_TYPE::LONGLONG:
+        vIntermediateFormat_.emplace_back(*reinterpret_cast<const int64_t*>(*ppucLogBuf_), std::move(pstMessageDataType_));
+        break;
     case DATA_TYPE::FLOAT: vIntermediateFormat_.emplace_back(*reinterpret_cast<const float*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::DOUBLE: vIntermediateFormat_.emplace_back(*reinterpret_cast<const double*>(*ppucLogBuf_), std::move(pstMessageDataType_)); break;
     default: throw std::runtime_error("DecodeBinaryField(): Unknown field type\n");
@@ -274,7 +286,7 @@ void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr pstMessageDataTyp
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::DecodeAsciiField(BaseField::ConstPtr pstMessageDataType_, const char** ppcToken_, const size_t tokenLength_,
+void MessageDecoderBase::DecodeAsciiField(BaseField::ConstPtr&& pstMessageDataType_, const char** ppcToken_, const size_t tokenLength_,
                                           std::vector<FieldContainer>& vIntermediateFormat_) const
 {
     const auto it = asciiFieldMap.find(pstMessageDataType_->conversionHash);
@@ -726,7 +738,7 @@ STATUS MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDef
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, simdjson::dom::element clJsonField_,
+void MessageDecoderBase::DecodeJsonField(BaseField::ConstPtr&& pstMessageDataType_, simdjson::dom::element clJsonField_,
                                          std::vector<FieldContainer>& vIntermediateFormat_) const
 {
     const auto it = jsonFieldMap.find(pstMessageDataType_->conversionHash);
