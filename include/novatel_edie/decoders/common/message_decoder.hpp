@@ -55,7 +55,7 @@ struct FieldContainer
     FieldValueVariant fieldValue;
     BaseField::ConstPtr fieldDef;
 
-    template <class T> FieldContainer(T tFieldValue_, BaseField::ConstPtr pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_) {}
+    template <class T> FieldContainer(T tFieldValue_, BaseField::ConstPtr&& pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(std::move(pstFieldDef_)) {}
 };
 
 //============================================================================
@@ -84,11 +84,11 @@ class MessageDecoderBase
     void CreateResponseMsgDefinitions();
 
   protected:
-    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, const char**, [[maybe_unused]] size_t,
+    std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr&&, const char**, [[maybe_unused]] size_t,
                                                     [[maybe_unused]] MessageDatabase&)>>
         asciiFieldMap;
     std::unordered_map<
-        uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, simdjson::dom::element, [[maybe_unused]] MessageDatabase&)>>
+        uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr&&, simdjson::dom::element, [[maybe_unused]] MessageDatabase&)>>
         jsonFieldMap;
 
     [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefFields_, const unsigned char** ppucLogBuf_,
@@ -108,11 +108,11 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, const char**, size_t, MessageDatabase&)> SimpleAsciiMapEntry()
+    static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr&&, const char**, size_t, MessageDatabase&)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
-        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstField_, const char** ppcToken_,
+        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr&& pstField_, const char** ppcToken_,
                   [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
             if constexpr (std::is_same_v<T, int8_t>)
             {
@@ -153,7 +153,7 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static void PushElement(std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstMessageDataType_, simdjson::dom::element clJsonField_)
+    static void PushElement(std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr&& pstMessageDataType_, simdjson::dom::element clJsonField_)
     {
         // Determine the intermediate type to use for simdjson::get
         using IntermediateType =
@@ -169,7 +169,7 @@ class MessageDecoderBase
         if (clJsonField_.get(intermediateValue) == simdjson::SUCCESS)
         {
             T value = static_cast<T>(intermediateValue);
-            vIntermediate_.emplace_back(value, pstMessageDataType_);
+            vIntermediate_.emplace_back(value, std::move(pstMessageDataType_));
         }
         else
         {
@@ -179,10 +179,10 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, simdjson::dom::element, MessageDatabase&)> SimpleJsonMapEntry()
+    static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr&&, simdjson::dom::element, MessageDatabase&)> SimpleJsonMapEntry()
     {
-        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstMessageDataType_, simdjson::dom::element clJsonField_,
-                  [[maybe_unused]] MessageDatabase& pclMsgDb_) { PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_); };
+        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr&& pstMessageDataType_, simdjson::dom::element clJsonField_,
+                  [[maybe_unused]] MessageDatabase& pclMsgDb_) { PushElement<T>(vIntermediate_, std::move(pstMessageDataType_), clJsonField_); };
     }
 
   public:
