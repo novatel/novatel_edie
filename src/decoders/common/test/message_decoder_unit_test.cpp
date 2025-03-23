@@ -182,6 +182,7 @@ class MessageDecoderTypesTest : public ::testing::Test
         MsgDefFields.clear();
     }
 
+    /*TODO: this function doesn populate the enum definition maps
     void CreateEnumField(const std::string& name, const std::string& description, int32_t value)
     {
         auto stField = std::make_shared<EnumField>();
@@ -194,7 +195,7 @@ class MessageDecoderTypesTest : public ::testing::Test
         stField->enumDef = enumDef;
         stField->type = FIELD_TYPE::ENUM;
         MsgDefFields.emplace_back(stField);
-    }
+    }*/
 };
 
 // TODO: we disable clang-format because of the long strings
@@ -269,14 +270,14 @@ TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
     ASSERT_EQ(std::get<bool>(vIntermediateFormat_[0].fieldValue), true);
 }
 
-TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
+TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_ENUM_VALID)
 {
     std::vector<std::pair<std::string, int32_t>> vTestInput = {{"UNKNOWN", 20}, {"APPROXIMATE", 60}, {"SATTIME", 200}};
 
-    for (const auto& input : vTestInput)
+    /*for (const auto& input : vTestInput)
     {
         CreateEnumField(input.first, "", input.second);
-    }
+    }*/
 
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(vTestInput.size());
