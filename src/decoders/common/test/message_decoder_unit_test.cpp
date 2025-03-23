@@ -73,9 +73,9 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
-                DecodeAsciiField(stMessageDataType, &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
+                DecodeAsciiField(std::move(stMessageDataType), &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {
@@ -91,9 +91,9 @@ class MessageDecoderTypesTest : public ::testing::Test
             std::vector<FieldContainer> vIntermediateFormat;
             vIntermediateFormat.reserve(1);
 
-            const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
+            auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
             const char* tempStr = strTestInput.data();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(stMessageDataType, &tempStr, strTestInput.size(), vIntermediateFormat),
+            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(std::move(stMessageDataType), &tempStr, strTestInput.size(), vIntermediateFormat),
                          std::runtime_error);
         }
 
@@ -112,10 +112,10 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                const auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 // there should be a better way to do this
                 const uint8_t* pucTestInput = vvucTestInput[sz].data();
-                DecodeBinaryField(stMessageDataType, &pucTestInput, vIntermediateFormat_);
+                DecodeBinaryField(std::move(stMessageDataType), &pucTestInput, vIntermediateFormat_);
 
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {
