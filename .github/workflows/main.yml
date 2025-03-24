@@ -85,7 +85,7 @@ jobs:
             echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE" >> $GITHUB_ENV
 
             echo "PY_VERSION_TYPE=$PY_VERSION_TYPE"
-            echo "PY_VERSION_TYPE=$CPP_VERSION_TYPE" >> $GITHUB_ENV
+            echo "PY_VERSION_TYPE=$PY_VERSION_TYPE" >> $GITHUB_ENV
 
             echo "PY_PRERELEASE=$PY_PRERELEASE"
             echo "PY_PRERELEASE=$PY_PRERELEASE" >> $GITHUB_ENV
