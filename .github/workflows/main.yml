@@ -86,36 +86,27 @@ jobs:
             echo "PY_PRERELEASE=$PY_PRERELEASE"
             echo "PY_PRERELEASE=$PY_PRERELEASE" >> $GITHUB_ENV
 
-      - name: Reset credentials
-        run: |
-          git remote set-url origin https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
-
       - name: Bump Python version
         run: |
           if [[ "$PY_VERSION_TYPE" == "none" ]]; then
             echo "Skipping version bump"
             exit 0
           fi
-          if [[ "$PY_PRERELEASE" == "true" ]]; then
-            TAG_FLAG="no_tag"
-          else
-            TAG_FLAG="tag"
-          fi
           current_version=$(bump-my-version show current_version)
           if [[ "$current_version" == *"a"* ]] && [[ "$PY_VERSION_TYPE" == "automatic" ]] ; then
             if [[ "$PY_PRERELEASE" == true ]]; then
               echo "Bumping pre-release to next iteration"
-              bump-my-version bump pre_n --${TAG_FLAG}
+              bump-my-version bump pre_n
             else
               echo "Dropping pre-release label"
-              bump-my-version bump pre_label --${TAG_FLAG}
+              bump-my-version bump pre_label
             fi
           else
             if [[ "$PY_VERSION_TYPE" == "automatic" ]]; then
               PY_VERSION_TYPE=patch
             fi
             echo "Bumping version by ${PY_VERSION_TYPE}"
-            bump-my-version bump ${PY_VERSION_TYPE} --${TAG_FLAG}
+            bump-my-version bump ${PY_VERSION_TYPE}
             if [[ "$PY_PRERELEASE" == true ]]; then
               echo "Adding pre-release label"
               bump-my-version bump pre_n
@@ -139,7 +130,6 @@ jobs:
           sed -i -r "s/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${new_cpp_version})/" CMakeLists.txt
           updated_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
           echo "updated_version=$updated_version"
-          git tag "CPP-v${updated_version}"
 
       - name: Reset credentials
         run: |
@@ -150,5 +140,13 @@ jobs:
         with:
           commit_message: Version Increment
 
-      - name: Push Tags
-        run: git push origin --tags
+      - name: Create Tags
+        run: |
+          if [[ "$PY_VERSION_TYPE" != "none" ]] && [[ "$PY_PRERELEASE" == "false" ]]; then
+            py_update_version=$(bump-my-version show current_version)
+            git tag "Python-v${py_update_version}"
+          fi
+          if [[ "$CPP_VERSION_TYPE" != "none" ]]; then
+            git tag "CPP-v${updated_version}"
+          fi
+          git push origin --tags
