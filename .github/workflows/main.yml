@@ -72,7 +72,6 @@ jobs:
           echo "cpp_version=$cpp_version"
           new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${{ env.VERSION_TYPE }} new_version)
           echo "new_cpp_version=$new_cpp_version"
-          sed -i -r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ new_cpp_version }}\)/' CMakeLists.txt
 
       - name: Reset credentials
         run: |
