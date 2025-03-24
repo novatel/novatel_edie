@@ -204,26 +204,8 @@ bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf
 {
     switch (fc_.fieldDef->dataType.name)
     {
-    case DATA_TYPE::BOOL: {
-        // Ensure consitent 4-byte representation of bool e.g. 0x00000001 for true 0x00000000 for false
-        auto i4ByteBool = static_cast<int32_t>(std::get<bool>(fc_.fieldValue));
-        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &i4ByteBool);
-    }
-    case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint8_t>(fc_.fieldValue));
-    case DATA_TYPE::CHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int8_t>(fc_.fieldValue));
-    case DATA_TYPE::USHORT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint16_t>(fc_.fieldValue));
-    case DATA_TYPE::SHORT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int16_t>(fc_.fieldValue));
-    case DATA_TYPE::UINT: [[fallthrough]];
-    case DATA_TYPE::SATELLITEID: [[fallthrough]];
-    case DATA_TYPE::ULONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint32_t>(fc_.fieldValue));
-    case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int32_t>(fc_.fieldValue));
-    case DATA_TYPE::ULONGLONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint64_t>(fc_.fieldValue));
-    case DATA_TYPE::LONGLONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int64_t>(fc_.fieldValue));
-    case DATA_TYPE::FLOAT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<float>(fc_.fieldValue));
-    case DATA_TYPE::DOUBLE: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<double>(fc_.fieldValue));
-    default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToBinary(): unknown type."); throw std::runtime_error("FieldToBinary(): unknown type.");
+    case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, reinterpret_cast<const int32_t*>(&std::get<bool>(fc_.fieldValue)));
+    default: return EncoderBase::FieldToBinary(fc_, ppcOutBuf_, uiBytesLeft_);
     }
 }
 
