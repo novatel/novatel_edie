@@ -68,7 +68,6 @@ jobs:
           bump-my-version ${{ env.VERSION_TYPE }}
 
       - name: Get C++ version
-        id: get_cpp_version
         run: |
           cpp_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
           echo "cpp_version=$cpp_version"
