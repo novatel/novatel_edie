@@ -92,21 +92,26 @@ jobs:
             echo "Skipping version bump"
             exit 0
           fi
+          if [[ "$PY_PRERELEASE" == "true" ]]; then
+            TAG_FLAG="no_tag"
+          else
+            TAG_FLAG="tag"
+          fi
           current_version=$(bump-my-version show current_version)
           if [[ "$current_version" == *"a"* ]] && [[ "$PY_VERSION_TYPE" == "automatic" ]] ; then
             if [[ "$PY_PRERELEASE" == true ]]; then
               echo "Bumping pre-release to next iteration"
-              bump-my-version bump pre_n
+              bump-my-version bump pre_n --${TAG_FLAG}
             else
               echo "Dropping pre-release label"
-              bump-my-version bump pre_label
+              bump-my-version bump pre_label --${TAG_FLAG}
             fi
           else
             if [[ "$PY_VERSION_TYPE" == "automatic" ]]; then
               PY_VERSION_TYPE=patch
             fi
             echo "Bumping version by ${PY_VERSION_TYPE}"
-            bump-my-version bump ${PY_VERSION_TYPE}
+            bump-my-version bump ${PY_VERSION_TYPE} --${TAG_FLAG}
             if [[ "$PY_PRERELEASE" == true ]]; then
               echo "Adding pre-release label"
               bump-my-version bump pre_n
