@@ -33,8 +33,8 @@ jobs:
 
             if [ "$pr_info" == "null" ]; then
               echo "No pull request found for commit $commit_sha"
-              VERSION_TYPE=automatic
-              PRERELEASE=false
+              PY_VERSION_TYPE=automatic
+              PY_PRERELEASE=false
             else
               echo "Pull Request Number: $(echo $pr_info | jq '.number')"
               echo "Title: $(echo $pr_info | jq '.title')"
@@ -45,38 +45,57 @@ jobs:
               | jq -r '.[].name')
               echo "Tags: $pr_tags"
 
-              if echo "$pr_tags" | grep -q "major"; then
-                VERSION_TYPE=major
-              elif echo "$pr_tags" | grep -q "minor"; then
-                VERSION_TYPE=minor
-              elif echo "$pr_tags" | grep -q "patch"; then
-                VERSION_TYPE=patch
+              if echo "$pr_tags" | grep -q "C++ major"; then
+                CPP_VERSION_TYPE=major
+              elif echo "$pr_tags" | grep -q "C++ minor"; then
+                CPP_VERSION_TYPE=minor
+              elif echo "$pr_tags" | grep -q "C++ patch"; then
+                CPP_VERSION_TYPE=patch
+              elif echo "$pr_tags" | grep -q "C++ no-update"; then
+                CPP_VERSION_TYPE=none
               else
-                VERSION_TYPE=automatic
+                CPP_VERSION_TYPE=automatic
               fi
 
-              if echo "$pr_tags" | grep -q "prerelease"; then
-                PRERELEASE=true
+              if echo "$pr_tags" | grep -q "python major"; then
+                PY_VERSION_TYPE=major
+              elif echo "$pr_tags" | grep -q "python minor"; then
+                PY_VERSION_TYPE=minor
+              elif echo "$pr_tags" | grep -q "python patch"; then
+                PY_VERSION_TYPE=patch
+              elif echo "$pr_tags" | grep -q "python no-update"; then
+                PY_VERSION_TYPE=none
               else
-                PRERELEASE=false
+                PY_VERSION_TYPE=automatic
+              fi
+
+              if echo "$pr_tags" | grep -q "python prerelease"; then
+                PY_PRERELEASE=true
+              else
+                PY_PRERELEASE=false
               fi
             fi
 
 
-            PRERELEASE=true
-            VERSION_TYPE=patch
+            PY_PRERELEASE=true
+            PY_VERSION_TYPE=none
+            CPP_VERSION_TYPE=none
 
-            echo "VERSION_TYPE=$VERSION_TYPE"
-            echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
+            echo "PY_VERSION_TYPE=$VERSION_TYPE"
+            echo "PY_VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
 
-            echo "PRERELEASE=$PRERELEASE"
-            echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
+            echo "PY_PRERELEASE=$PRERELEASE"
+            echo "PY_PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
 
       - name: Bump Python version
         run: |
+          if [[ "$PY_VERSION_TYPE" == "none" ]]; then
+            echo "Skipping version bump"
+            exit 0
+          fi
           current_version=$(bump-my-version show current_version)
-          if [[ "$current_version" == *"a"* ]] && [[ "$VERSION_TYPE" == "automatic" ]] ; then
-            if [[ "$PRERELEASE" == true ]]; then
+          if [[ "$current_version" == *"a"* ]] && [[ "$PY_VERSION_TYPE" == "automatic" ]] ; then
+            if [[ "$PY_PRERELEASE" == true ]]; then
               echo "Bumping pre-release to next iteration"
               bump-my-version bump pre_n
             else
@@ -84,12 +103,12 @@ jobs:
               bump-my-version bump pre_label
             fi
           else
-            if [[ "$VERSION_TYPE" == "automatic" ]]; then
-              VERSION_TYPE=patch
+            if [[ "$PY_VERSION_TYPE" == "automatic" ]]; then
+              PY_VERSION_TYPE=patch
             fi
-            echo "Bumping version by ${VERSION_TYPE}"
-            bump-my-version bump ${VERSION_TYPE}
-            if [[ "$PRERELEASE" == true ]]; then
+            echo "Bumping version by ${PY_VERSION_TYPE}"
+            bump-my-version bump ${PY_VERSION_TYPE}
+            if [[ "$PY_PRERELEASE" == true ]]; then
               echo "Adding pre-release label"
               bump-my-version bump pre_n
             fi
@@ -97,12 +116,13 @@ jobs:
 
       - name: Get C++ version
         run: |
-          if [[ "$VERSION_TYPE" == "automatic" ]]; then
-            VERSION_TYPE=patch
+          if [[ "$CPP_VERSION_TYPE" == "none" ]]; then
+            echo "Skipping version bump"
+            exit 0
           fi
           cpp_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
           echo "current_version=$cpp_version"
-          new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${VERSION_TYPE} new_version)
+          new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${CPP_VERSION_TYPE} new_version)
           sed -i -r "s/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${new_cpp_version})/" CMakeLists.txt
           updated_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
           echo "updated_version=$updated_version"
