@@ -4,7 +4,7 @@ name: Main
 on:
   push:
     branches:
-      - dev-riley-kinahan-enable-prerelease
+      - main
 jobs:
   # build-python:
   #   uses: ./.github/workflows/build_python.yml
