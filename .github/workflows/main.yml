@@ -63,6 +63,8 @@ jobs:
               PRERELEASE=false
             fi
 
+            PRERELEASE=true
+
             echo "VERSION_TYPE=$VERSION_TYPE"
             echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
 
