@@ -48,6 +48,10 @@ jobs:
               VERSION_TYPE=major
             elif echo "$pr_tags" | grep -q "minor"; then
               VERSION_TYPE=minor
+            elif echo "$pr_tags" | grep -q "patch"; then
+              VERSION_TYPE=patch
+            elif echo "$pr_tags" | grep -q "prerelease"; then
+              VERSION_TYPE=prerelease
             else
               VERSION_TYPE=patch
             fi
