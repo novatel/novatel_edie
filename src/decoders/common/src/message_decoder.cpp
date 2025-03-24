@@ -82,22 +82,13 @@ void MessageDecoderBase::InitFieldMaps()
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
-        case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
-        default: throw std::runtime_error("%e: invalid float length");
+        case 4: ParseAndEmplace<float>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
+        case 8: ParseAndEmplace<double>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
+        default: throw std::runtime_error("invalid float length");
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        switch (pstMessageDataType_->dataType.length)
-        {
-        case 4: vIntermediateFormat_.emplace_back(strtof(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
-        case 8: vIntermediateFormat_.emplace_back(strtod(*ppcToken_, nullptr), std::move(pstMessageDataType_)); return;
-        default: throw std::runtime_error("%f: invalid float length");
-        }
-    };
+    asciiFieldMap[CalculateBlockCrc32("f")] = asciiFieldMap[CalculateBlockCrc32("e")];
 
     asciiFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
@@ -107,7 +98,7 @@ void MessageDecoderBase::InitFieldMaps()
         {
             vIntermediateFormat_.emplace_back(tokenLength_ == nTrue, std::move(pstMessageDataType_));
         }
-        else { vIntermediateFormat_.emplace_back(static_cast<int32_t>(strtol(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); }
+        else { ParseAndEmplace<int32_t>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); }
     };
 
     asciiFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
@@ -115,10 +106,10 @@ void MessageDecoderBase::InitFieldMaps()
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); return;
-        case 2: vIntermediateFormat_.emplace_back(static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); return;
-        case 4: vIntermediateFormat_.emplace_back(static_cast<uint32_t>(strtoul(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); return;
-        case 8: vIntermediateFormat_.emplace_back(static_cast<uint64_t>(strtoull(*ppcToken_, nullptr, 10)), std::move(pstMessageDataType_)); return;
+        case 1: ParseAndEmplace<uint8_t>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
+        case 2: ParseAndEmplace<uint16_t>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
+        case 4: ParseAndEmplace<uint32_t>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
+        case 8: ParseAndEmplace<uint64_t>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
         default: throw std::runtime_error("invalid unsigned length");
         }
     };
@@ -128,10 +119,13 @@ void MessageDecoderBase::InitFieldMaps()
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(strtoul(*ppcToken_, nullptr, 16)), std::move(pstMessageDataType_)); return;
-        case 2: vIntermediateFormat_.emplace_back(static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 16)), std::move(pstMessageDataType_)); return;
-        case 4: vIntermediateFormat_.emplace_back(static_cast<uint32_t>(strtoul(*ppcToken_, nullptr, 16)), std::move(pstMessageDataType_)); return;
-        case 8: vIntermediateFormat_.emplace_back(static_cast<uint64_t>(strtoull(*ppcToken_, nullptr, 16)), std::move(pstMessageDataType_)); return;
+        case 1: ParseAndEmplace<uint8_t, 16>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
+        case 2: ParseAndEmplace<uint16_t, 16>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
+        case 4: ParseAndEmplace<uint32_t, 16>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_); return;
+        case 8:
+            ParseAndEmplace<uint64_t, 16>(vIntermediateFormat_, std::move(pstMessageDataType_), *ppcToken_, tokenLength_);
+            return;
+            ;
         default: throw std::runtime_error("invalid hex length");
         }
     };
@@ -489,7 +483,8 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength; }
             else
             {
-                uiArraySize = strtoul(*ppcLogBuf_, nullptr, 10);
+                auto result = std::from_chars(*ppcLogBuf_, nullptr, uiArraySize);
+                if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse array size"); }
 
                 if (uiArraySize > dynamic_cast<const ArrayField*>(field.get())->arrayLength)
                 {
@@ -579,7 +574,11 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
-            const uint32_t uiArraySize = strtoul(*ppcLogBuf_, const_cast<char**>(ppcLogBuf_), 10); // TODO: const cast like this is bad
+            uint32_t uiArraySize;
+            auto result = std::from_chars(*ppcLogBuf_, nullptr, uiArraySize);
+            if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse array size"); }
+
+            *ppcLogBuf_ = result.ptr;
 
             ++*ppcLogBuf_;
             const auto* subFieldDefinitions = dynamic_cast<FieldArrayField*>(field.get());
