@@ -34,6 +34,7 @@ jobs:
             if [ "$pr_info" == "null" ]; then
               echo "No pull request found for commit $commit_sha"
               PY_VERSION_TYPE=automatic
+              CPP_VERSION_TYPE=automatic
               PY_PRERELEASE=false
             else
               echo "Pull Request Number: $(echo $pr_info | jq '.number')"
