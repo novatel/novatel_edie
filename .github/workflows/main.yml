@@ -118,6 +118,9 @@ jobs:
             echo "Skipping version bump"
             exit 0
           fi
+          if [[ "$CPP_VERSION_TYPE" == "automatic" ]]; then
+            CPP_VERSION_TYPE=patch
+          fi
           cpp_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
           echo "current_version=$cpp_version"
           new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${CPP_VERSION_TYPE} new_version)
