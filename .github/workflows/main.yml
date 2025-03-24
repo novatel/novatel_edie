@@ -63,11 +63,6 @@ jobs:
           pip install bump-my-version
 
       - name: Bump Python version
-        uses: callowayproject/bump-my-version@master
-        env:
-          BUMPVERSION_TAG: "true"
-        with:
-          args: "${{ env.VERSION_TYPE }}"
         run: |
           bump-my-version bump  ${{ env.VERSION_TYPE }} new_version
           bump-my-version ${{ env.VERSION_TYPE }}
