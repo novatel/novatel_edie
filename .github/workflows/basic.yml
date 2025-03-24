@@ -5,6 +5,7 @@ on:
   push:
     branches-ignore:
       - main
+      - dev-riley-kinahan-enable-prerelease
     paths-ignore:
       - '**.md'
       - '.gitignore'
