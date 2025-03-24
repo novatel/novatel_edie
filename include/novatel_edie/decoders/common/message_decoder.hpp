@@ -27,6 +27,7 @@
 #ifndef MESSAGE_DECODER_HPP
 #define MESSAGE_DECODER_HPP
 
+#include <charconv>
 #include <string>
 #include <utility>
 #include <variant>
@@ -111,46 +112,29 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
+    static void ParseAndEmplace(std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_, const char* token,
+                                size_t tokenLength)
+    {
+        T value;
+        std::from_chars_result result;
+
+        if constexpr (std::is_integral_v<T>) { result = std::from_chars(token, token + tokenLength, value, R); }
+        else if constexpr (std::is_floating_point_v<T>) { result = std::from_chars(token, token + tokenLength, value); }
+
+        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
+
+        vIntermediateFormat_.emplace_back(value, std::move(pstMessageDataType_));
+    }
+
+    // -------------------------------------------------------------------------------------------------------
+    template <typename T, int R = 10>
     static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr&&, const char**, size_t, MessageDatabase&)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
         return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr&& pstField_, const char** ppcToken_,
                   [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            if constexpr (std::is_same_v<T, int8_t>)
-            {
-                vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), std::move(pstField_));
-            }
-            if constexpr (std::is_same_v<T, int16_t>)
-            {
-                vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), std::move(pstField_));
-            }
-            if constexpr (std::is_same_v<T, int32_t>)
-            {
-                vIntermediate_.emplace_back(static_cast<T>(strtol(*ppcToken_, nullptr, R)), std::move(pstField_));
-            }
-            if constexpr (std::is_same_v<T, int64_t>)
-            {
-                vIntermediate_.emplace_back(static_cast<T>(strtoll(*ppcToken_, nullptr, R)), std::move(pstField_));
-            }
-            if constexpr (std::is_same_v<T, uint8_t>)
-            {
-                vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), std::move(pstField_));
-            }
-            if constexpr (std::is_same_v<T, uint16_t>)
-            {
-                vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), std::move(pstField_));
-            }
-            if constexpr (std::is_same_v<T, uint32_t>)
-            {
-                vIntermediate_.emplace_back(static_cast<T>(strtoul(*ppcToken_, nullptr, R)), std::move(pstField_));
-            }
-            if constexpr (std::is_same_v<T, uint64_t>)
-            {
-                vIntermediate_.emplace_back(static_cast<T>(strtoull(*ppcToken_, nullptr, R)), std::move(pstField_));
-            }
-            if constexpr (std::is_same_v<T, float>) { vIntermediate_.emplace_back(strtof(*ppcToken_, nullptr), std::move(pstField_)); }
-            if constexpr (std::is_same_v<T, double>) { vIntermediate_.emplace_back(strtod(*ppcToken_, nullptr), std::move(pstField_)); }
+            ParseAndEmplace<T, R>(vIntermediate_, std::move(pstField_), *ppcToken_, tokenLength_);
         };
     }
 

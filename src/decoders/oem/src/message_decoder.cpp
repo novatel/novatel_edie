@@ -68,8 +68,10 @@ void MessageDecoder::InitOemFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("T")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::llround(strtod(*ppcToken_, nullptr) * SEC_TO_MILLI_SEC)),
-                                          std::move(pstMessageDataType_));
+        double value;
+        std::from_chars_result result = std::from_chars(*ppcToken_, *ppcToken_ + tokenLength_, value);
+        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse double value"); }
+        vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::llround(value * SEC_TO_MILLI_SEC)), std::move(pstMessageDataType_));
     };
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
@@ -84,8 +86,21 @@ void MessageDecoder::InitOemFieldMaps()
         const auto* pcDelimiter = static_cast<const char*>(memchr(*ppcToken_, '+', tokenLength_));
         if (pcDelimiter == nullptr) { pcDelimiter = static_cast<const char*>(memchr(*ppcToken_, '-', tokenLength_)); }
 
-        auto usSlot = static_cast<uint16_t>(strtoul(*ppcToken_, nullptr, 10));
-        int16_t sFreq = pcDelimiter != nullptr ? static_cast<int16_t>(strtol(pcDelimiter, nullptr, 10)) : 0;
+        uint16_t usSlot;
+        auto result = std::from_chars(*ppcToken_, *ppcToken_ + tokenLength_, usSlot);
+        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse usSlot"); }
+
+        int16_t sFreq = 0;
+        if (pcDelimiter != nullptr)
+        {
+            const char* start = pcDelimiter + 1;
+            const char* end = *ppcToken_ + tokenLength_;
+
+            result = std::from_chars(start, end, sFreq);
+            if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse sFreq"); }
+
+            if (*pcDelimiter == '-') { sFreq = -sFreq; }
+        }
 
         const uint32_t uiSatId = usSlot | (sFreq << 16);
         vIntermediateFormat_.emplace_back(uiSatId, std::move(pstMessageDataType_));
