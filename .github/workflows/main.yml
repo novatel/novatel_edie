@@ -68,6 +68,9 @@ jobs:
           BUMPVERSION_TAG: "true"
         with:
           args: "${{ env.VERSION_TYPE }}"
+        run: |
+          bump-my-version bump  ${{ env.VERSION_TYPE }} new_version
+          bump-my-version ${{ env.VERSION_TYPE }}
 
       - name: Get C++ version
         id: get_cpp_version
