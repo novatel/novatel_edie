@@ -4,8 +4,6 @@
 
 # NovAtel EDIE
 
-Change
-
 EDIE (Encode Decode Interface Engine) is a C++ SDK (Software Development Kit) that can encode and decode messages from NovAtel's [**OEM7**](https://novatel.com/products/receivers/oem-receiver-boards/oem7-receivers) receivers
 from one format into another. For example, converting an ASCII log into a Binary log.
 
