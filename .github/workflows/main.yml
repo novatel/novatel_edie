@@ -32,36 +32,36 @@ jobs:
             | jq '.[0]')
 
             if [ "$pr_info" == "null" ]; then
-            echo "No pull request found for commit $commit_sha"
-            echo "VERSION_TYPE=automatic" >> $GITHUB_ENV
-
-            exit 0
-            fi
-
-            echo "Pull Request Number: $(echo $pr_info | jq '.number')"
-            echo "Title: $(echo $pr_info | jq '.title')"
-            echo "Merged By: $(echo $pr_info | jq '.user.login')"
-            pr_number=$(echo $pr_info | jq '.number')
-            pr_tags=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/$pr_number/labels" \
-            | jq -r '.[].name')
-            echo "Tags: $pr_tags"
-
-            if echo "$pr_tags" | grep -q "major"; then
-              VERSION_TYPE=major
-            elif echo "$pr_tags" | grep -q "minor"; then
-              VERSION_TYPE=minor
-            elif echo "$pr_tags" | grep -q "patch"; then
-              VERSION_TYPE=patch
-            else
+              echo "No pull request found for commit $commit_sha"
               VERSION_TYPE=automatic
+              PRERELEASE=false
+            else
+              echo "Pull Request Number: $(echo $pr_info | jq '.number')"
+              echo "Title: $(echo $pr_info | jq '.title')"
+              echo "Merged By: $(echo $pr_info | jq '.user.login')"
+              pr_number=$(echo $pr_info | jq '.number')
+              pr_tags=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/$pr_number/labels" \
+              | jq -r '.[].name')
+              echo "Tags: $pr_tags"
+
+              if echo "$pr_tags" | grep -q "major"; then
+                VERSION_TYPE=major
+              elif echo "$pr_tags" | grep -q "minor"; then
+                VERSION_TYPE=minor
+              elif echo "$pr_tags" | grep -q "patch"; then
+                VERSION_TYPE=patch
+              else
+                VERSION_TYPE=automatic
+              fi
+
+              if echo "$pr_tags" | grep -q "prerelease"; then
+                PRERELEASE=true
+              else
+                PRERELEASE=false
+              fi
             fi
 
-            if echo "$pr_tags" | grep -q "prerelease"; then
-              PRERELEASE=true
-            else
-              PRERELEASE=false
-            fi
 
             PRERELEASE=true
 
