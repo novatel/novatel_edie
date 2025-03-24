@@ -483,7 +483,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength; }
             else
             {
-                auto result = std::from_chars(*ppcLogBuf_, nullptr, uiArraySize);
+                auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + strlen(*ppcLogBuf_), uiArraySize);
                 if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse array size"); }
 
                 if (uiArraySize > dynamic_cast<const ArrayField*>(field.get())->arrayLength)
@@ -575,7 +575,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             uint32_t uiArraySize;
-            auto result = std::from_chars(*ppcLogBuf_, nullptr, uiArraySize);
+            auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + strlen(*ppcLogBuf_), uiArraySize);
             if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse array size"); }
 
             *ppcLogBuf_ = result.ptr;
