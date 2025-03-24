@@ -52,7 +52,7 @@ jobs:
               elif echo "$pr_tags" | grep -q "C++ patch"; then
                 CPP_VERSION_TYPE=patch
               elif echo "$pr_tags" | grep -q "C++ no-update"; then
-                CPP_VERSION_TYPE="none"
+                CPP_VERSION_TYPE=none
               else
                 CPP_VERSION_TYPE=automatic
               fi
@@ -64,7 +64,7 @@ jobs:
               elif echo "$pr_tags" | grep -q "python patch"; then
                 PY_VERSION_TYPE=patch
               elif echo "$pr_tags" | grep -q "python no-update"; then
-                PY_VERSION_TYPE="none"
+                PY_VERSION_TYPE=none
               else
                 PY_VERSION_TYPE=automatic
               fi
@@ -78,11 +78,11 @@ jobs:
 
 
             PY_PRERELEASE=true
-            PY_VERSION_TYPE="none"
-            CPP_VERSION_TYPE="none"
+            PY_VERSION_TYPE=none
+            CPP_VERSION_TYPE=none
 
-            echo "PY_VERSION_TYPE=$VERSION_TYPE"
-            echo "PY_VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
+            echo "PY_VERSION_TYPE=$PY_VERSION_TYPE"
+            echo "PY_VERSION_TYPE=$CPP_VERSION_TYPE" >> $GITHUB_ENV
 
             echo "PY_PRERELEASE=$PRERELEASE"
             echo "PY_PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
