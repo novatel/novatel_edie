@@ -77,6 +77,8 @@ jobs:
               fi
             fi
 
+            PY_PRERELEASE=true
+
             echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE"
             echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE" >> $GITHUB_ENV
 
@@ -143,7 +145,6 @@ jobs:
 
       - name: Create Tags
         run: |
-          echo ${CPP_UPDATED_VERSION}
           if [[ "$PY_VERSION_TYPE" != "none" ]] && [[ "$PY_PRERELEASE" == "false" ]]; then
             py_update_version=$(bump-my-version show current_version)
             git tag "Python-v${py_update_version}"
