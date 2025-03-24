@@ -130,6 +130,7 @@ jobs:
           sed -i -r "s/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${new_cpp_version})/" CMakeLists.txt
           updated_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
           echo "updated_version=$updated_version"
+          git tag "CPP-v${updated_version}"
 
       - name: Reset credentials
         run: |
