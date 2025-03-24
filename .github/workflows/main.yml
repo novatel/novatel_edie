@@ -89,7 +89,7 @@ jobs:
 
       - name: Bump Python version
         run: |
-          if [[ "$PY_VERSION_TYPE" == "none" ]]; then
+          if [[ "$PY_VERSION_TYPE" == none ]]; then
             echo "Skipping version bump"
             exit 0
           fi
@@ -116,7 +116,7 @@ jobs:
 
       - name: Get C++ version
         run: |
-          if [[ "$CPP_VERSION_TYPE" == "none" ]]; then
+          if [[ "$CPP_VERSION_TYPE" == none ]]; then
             echo "Skipping version bump"
             exit 0
           fi
