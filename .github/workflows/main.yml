@@ -78,6 +78,8 @@ jobs:
             fi
 
             CPP_VERSION_TYPE=none
+            PY_VERSION_TYPE=major
+            PY_PRERELEASE=true
 
             echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE"
             echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE" >> $GITHUB_ENV
