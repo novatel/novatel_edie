@@ -27,6 +27,7 @@
 #ifndef ENCODER_HPP
 #define ENCODER_HPP
 
+#include <array>
 #include <cstdarg>
 
 #include "novatel_edie/common/logger.hpp"
@@ -36,7 +37,7 @@
 namespace novatel::edie {
 
 // -------------------------------------------------------------------------------------------------------
-constexpr bool PrintAsString(const BaseField& pstFieldDef_)
+inline bool PrintAsString(const BaseField& pstFieldDef_)
 {
     // Printing as a string means two things:
     // 1. The field will be surrounded by quotes
@@ -46,42 +47,81 @@ constexpr bool PrintAsString(const BaseField& pstFieldDef_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-constexpr bool IsCommaSeparated(const BaseField& pstFieldDef_)
+inline bool IsCommaSeparated(const BaseField& pstFieldDef_)
 {
     // In certain cases there are no separators printed between array elements
     return !PrintAsString(pstFieldDef_) && pstFieldDef_.conversionHash != CalculateBlockCrc32("Z") &&
            pstFieldDef_.conversionHash != CalculateBlockCrc32("P");
 }
 
+constexpr auto powLookup = [] {
+    std::array<double, 16> arr{};
+    arr[0] = 1.0;
+    for (size_t i = 1; i < arr.size(); ++i) arr[i] = arr[i - 1] * 10.0;
+    return arr;
+}();
+
+constexpr auto npowLookup = [] {
+    std::array<double, 16> arr{};
+    arr[0] = 1.0;
+    for (size_t i = 1; i < arr.size(); ++i) arr[i] = arr[i - 1] / 10.0;
+    return arr;
+}();
+
+constexpr auto MakeFormatString(int precision, char notation)
+{
+    std::array<char, 9> format{};
+
+    if (precision < 10)
+    {
+        // Single-digit: {:0.Xf}
+        format = {'{', ':', '0', '.', static_cast<char>('0' + precision), notation, '}', '\0'};
+    }
+    else
+    {
+        // Double-digit: {:0.XXf}
+        format = {'{', ':', '0', '.', static_cast<char>('0' + (precision / 10)), static_cast<char>('0' + (precision % 10)), notation, '}', '\0'};
+    }
+
+    return format;
+}
+
+constexpr auto fixedLookup = [] {
+    std::array<std::array<char, 9>, 16> arr{};
+    for (size_t i = 0; i < arr.size(); ++i) { arr[i] = MakeFormatString(i, 'f'); }
+    return arr;
+}();
+
+constexpr auto scientificLookup = [] {
+    std::array<std::array<char, 9>, 16> arr{};
+    for (size_t i = 0; i < arr.size(); ++i) { arr[i] = MakeFormatString(i, 'e'); }
+    return arr;
+}();
+
 // -------------------------------------------------------------------------------------------------------
-template <typename T> constexpr std::array<char, 9> FloatingPointConversionString(const FieldContainer& fc_)
+template <typename T> inline std::array<char, 9> FloatingPointConversionString(const FieldContainer& fc_)
 {
     static_assert(std::is_floating_point_v<T>, "FloatingPointConversionString must be called with a floating point type");
-    std::array<char, 9> acConvert{};
+
     const int32_t iBefore = fc_.fieldDef->conversionBeforePoint;
     const int32_t iAfter = fc_.fieldDef->conversionAfterPoint;
-    const auto absVal = fabs(std::get<T>(fc_.fieldValue));
 
-    auto it = fmt::format_to(acConvert.begin(), "{{:");
-    it = (absVal < std::numeric_limits<T>::epsilon()) ? fmt::format_to(it, "0.{}f", iAfter)
-         : (iAfter == 0 && iBefore == 0)              ? fmt::format_to(it, "0.1f")
-         : (absVal > std::pow(10, iBefore))           ? fmt::format_to(it, "0.{}e", iBefore + iAfter - 1)
-         : (absVal < std::pow(10, -iBefore))          ? fmt::format_to(it, "0.{}e", iAfter)
-                                                      : fmt::format_to(it, "0.{}f", iAfter);
-    *it++ = '}';
-    *it = '\0';
+    if (iAfter == 0 && iBefore == 0) { return fixedLookup[1]; }
 
-    assert(static_cast<size_t>(std::distance(acConvert.begin(), it)) <= acConvert.size());
+    const auto absVal = std::abs(std::get<T>(fc_.fieldValue));
 
-    return acConvert;
+    return (absVal < std::numeric_limits<T>::epsilon()) ? fixedLookup[iAfter]
+           : (absVal > powLookup[iBefore])              ? scientificLookup[iBefore + iAfter - 1]
+           : (absVal < npowLookup[iBefore])             ? scientificLookup[iAfter]
+                                                        : fixedLookup[iAfter];
 }
 
 // -------------------------------------------------------------------------------------------------------
 template <typename BufferType, typename... Args>
 [[nodiscard]] bool PrintToBuffer(BufferType* ppcBuffer_, uint32_t& uiBytesLeft_, fmt::format_string<Args...> szFormat_, Args&&... args_)
 {
+    // NOTE: This function comprises almost all of the runtime for ASCII encoding. Changes can have huge impacts on performance.
     // TODO: In C++20 we can do compile time checking to ensure format string is valid for args.
-    static_assert(sizeof...(Args) > 0, "Use CopyToBuffer if you don't need dynamic formatting.");
     const auto result = fmt::format_to_n(*ppcBuffer_, uiBytesLeft_, szFormat_, std::forward<Args>(args_)...);
     if (result.size > uiBytesLeft_) { return false; }
     *ppcBuffer_ += result.size;
@@ -103,11 +143,17 @@ template <typename BufferType>
 // -------------------------------------------------------------------------------------------------------
 template <typename BufferType, typename T> [[nodiscard]] bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, T* ptItem_)
 {
-    uint32_t uiItemSize;
+    if (uiBytesLeft_ < sizeof(T)) { return false; }
+    std::memcpy(*ppucBuffer_, ptItem_, sizeof(T));
+    *ppucBuffer_ += sizeof(T);
+    uiBytesLeft_ -= sizeof(T);
+    return true;
+}
 
-    if constexpr (std::is_same<T, const char>()) { uiItemSize = static_cast<uint32_t>(std::strlen(ptItem_)); }
-    else { uiItemSize = sizeof(*ptItem_); }
-
+// -------------------------------------------------------------------------------------------------------
+template <typename BufferType> [[nodiscard]] bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const char* ptItem_)
+{
+    auto uiItemSize = static_cast<uint32_t>(std::strlen(ptItem_));
     if (uiBytesLeft_ < uiItemSize) { return false; }
     std::memcpy(*ppucBuffer_, ptItem_, uiItemSize);
     *ppucBuffer_ += uiItemSize;
@@ -321,25 +367,9 @@ template <typename Derived> class EncoderBase
 
     [[nodiscard]] virtual bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
-        switch (fc_.fieldDef->dataType.name)
-        {
-        case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<bool>(fc_.fieldValue));
-        case DATA_TYPE::HEXBYTE: [[fallthrough]];
-        case DATA_TYPE::UCHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint8_t>(fc_.fieldValue));
-        case DATA_TYPE::CHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int8_t>(fc_.fieldValue));
-        case DATA_TYPE::USHORT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint16_t>(fc_.fieldValue));
-        case DATA_TYPE::SHORT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int16_t>(fc_.fieldValue));
-        case DATA_TYPE::UINT: [[fallthrough]];
-        case DATA_TYPE::SATELLITEID: [[fallthrough]];
-        case DATA_TYPE::ULONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint32_t>(fc_.fieldValue));
-        case DATA_TYPE::INT: [[fallthrough]];
-        case DATA_TYPE::LONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int32_t>(fc_.fieldValue));
-        case DATA_TYPE::ULONGLONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint64_t>(fc_.fieldValue));
-        case DATA_TYPE::LONGLONG: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int64_t>(fc_.fieldValue));
-        case DATA_TYPE::FLOAT: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<float>(fc_.fieldValue));
-        case DATA_TYPE::DOUBLE: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<double>(fc_.fieldValue));
-        default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToBinary(): unknown type."); throw std::runtime_error("FieldToBinary(): unknown type.");
-        }
+        auto visitor = [ppcOutBuf_, &uiBytesLeft_](auto&& value) -> bool { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &value); };
+
+        return std::visit(visitor, fc_.fieldValue);
     }
 
     template <bool Abbreviated>
