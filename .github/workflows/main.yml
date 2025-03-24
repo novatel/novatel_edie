@@ -63,7 +63,6 @@ jobs:
           pip install bump-my-version
 
       - name: Bump Python version
-        id: bump
         uses: callowayproject/bump-my-version@master
         env:
           BUMPVERSION_TAG: "true"
@@ -77,10 +76,7 @@ jobs:
           echo "cpp_version=$cpp_version"
           new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${{ env.VERSION_TYPE }} new_version)
           echo "new_cpp_version=$new_cpp_version"
-
-      - name: Bump C++ version
-        run: |
-          sed -i -r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ steps.bump.outputs.current-version }}\)/' CMakeLists.txt
+          sed -i -r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ new_cpp_version }}\)/' CMakeLists.txt
 
       - name: Reset credentials
         run: |
@@ -88,8 +84,3 @@ jobs:
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
-
-      - name: Check
-        if: steps.bump.outputs.bumped == 'true'
-        run: |
-          echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"
