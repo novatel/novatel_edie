@@ -77,6 +77,8 @@ jobs:
               fi
             fi
 
+            CPP_VERSION_TYPE=none
+
             echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE"
             echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE" >> $GITHUB_ENV
 
