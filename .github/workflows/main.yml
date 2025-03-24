@@ -67,7 +67,7 @@ jobs:
           args: "${{ env.VERSION_TYPE }}"
 
       - name: Set pre-release
-        id: bump
+        id: set_pre
         uses: callowayproject/bump-my-version@master
         env:
           BUMPVERSION_TAG: "true"
