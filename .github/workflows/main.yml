@@ -83,7 +83,9 @@ jobs:
               bump-my-version bump pre_label
             fi
           else
-            VERSION_TYPE=patch
+            if [[ "$VERSION_TYPE" == "automatic" ]]; then
+              VERSION_TYPE=patch
+            fi
             echo "Bumping version by ${VERSION_TYPE}"
             bump-my-version bump ${VERSION_TYPE}
             if [[ "$PRERELEASE" == "true" ]]; then
