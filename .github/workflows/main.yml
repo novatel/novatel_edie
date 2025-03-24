@@ -128,9 +128,9 @@ jobs:
 
           new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${CPP_VERSION_TYPE} new_version)
           sed -i -r "s/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${new_cpp_version})/" CMakeLists.txt
-          cpp_updated_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
-          echo "cpp_updated_version=$updated_version"
-          echo "cpp_updated_version=$updated_version" >> $GITHUB_ENV
+          CPP_UPDATED_VERSION=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
+          echo "CPP_UPDATED_VERSION=$updated_version"
+          echo "CPP_UPDATED_VERSION=$updated_version" >> $GITHUB_ENV
 
       - name: Reset credentials
         run: |
