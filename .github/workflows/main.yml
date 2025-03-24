@@ -86,6 +86,10 @@ jobs:
             echo "PY_PRERELEASE=$PY_PRERELEASE"
             echo "PY_PRERELEASE=$PY_PRERELEASE" >> $GITHUB_ENV
 
+      - name: Reset credentials
+        run: |
+          git remote set-url origin https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+
       - name: Bump Python version
         run: |
           if [[ "$PY_VERSION_TYPE" == "none" ]]; then
