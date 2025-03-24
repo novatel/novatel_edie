@@ -129,8 +129,8 @@ jobs:
           new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${CPP_VERSION_TYPE} new_version)
           sed -i -r "s/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${new_cpp_version})/" CMakeLists.txt
           CPP_UPDATED_VERSION=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
-          echo "CPP_UPDATED_VERSION=$updated_version"
-          echo "CPP_UPDATED_VERSION=$updated_version" >> $GITHUB_ENV
+          echo "CPP_UPDATED_VERSION=$CPP_UPDATED_VERSION"
+          echo "CPP_UPDATED_VERSION=$CPP_UPDATED_VERSION" >> $GITHUB_ENV
 
       - name: Reset credentials
         run: |
@@ -143,6 +143,7 @@ jobs:
 
       - name: Create Tags
         run: |
+          echo ${CPP_UPDATED_VERSION}
           if [[ "$PY_VERSION_TYPE" != "none" ]] && [[ "$PY_PRERELEASE" == "false" ]]; then
             py_update_version=$(bump-my-version show current_version)
             git tag "Python-v${py_update_version}"
