@@ -64,6 +64,7 @@ jobs:
 
 
             PRERELEASE=true
+            VERSION_TYPE=patch
 
             echo "VERSION_TYPE=$VERSION_TYPE"
             echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
@@ -113,4 +114,4 @@ jobs:
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Increment versions
+          commit_message: Version Increment
