@@ -148,6 +148,6 @@ jobs:
             git tag "Python-v${py_update_version}"
           fi
           if [[ "$CPP_VERSION_TYPE" != "none" ]]; then
-            git tag "CPP-v${cpp_updated_version}"
+            git tag "CPP-v${CPP_UPDATED_VERSION}"
           fi
           git push origin --tags
