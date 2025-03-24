@@ -52,7 +52,7 @@ jobs:
               elif echo "$pr_tags" | grep -q "C++ patch"; then
                 CPP_VERSION_TYPE=patch
               elif echo "$pr_tags" | grep -q "C++ no-update"; then
-                CPP_VERSION_TYPE=none
+                CPP_VERSION_TYPE="none"
               else
                 CPP_VERSION_TYPE=automatic
               fi
@@ -64,7 +64,7 @@ jobs:
               elif echo "$pr_tags" | grep -q "python patch"; then
                 PY_VERSION_TYPE=patch
               elif echo "$pr_tags" | grep -q "python no-update"; then
-                PY_VERSION_TYPE=none
+                PY_VERSION_TYPE="none"
               else
                 PY_VERSION_TYPE=automatic
               fi
@@ -78,8 +78,8 @@ jobs:
 
 
             PY_PRERELEASE=true
-            PY_VERSION_TYPE=none
-            CPP_VERSION_TYPE=none
+            PY_VERSION_TYPE="none"
+            CPP_VERSION_TYPE="none"
 
             echo "PY_VERSION_TYPE=$VERSION_TYPE"
             echo "PY_VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
@@ -89,7 +89,7 @@ jobs:
 
       - name: Bump Python version
         run: |
-          if [[ "$PY_VERSION_TYPE" == none ]]; then
+          if [[ "$PY_VERSION_TYPE" == "none" ]]; then
             echo "Skipping version bump"
             exit 0
           fi
@@ -116,7 +116,7 @@ jobs:
 
       - name: Get C++ version
         run: |
-          if [[ "$CPP_VERSION_TYPE" == none ]]; then
+          if [[ "$CPP_VERSION_TYPE" == "none" ]]; then
             echo "Skipping version bump"
             exit 0
           fi
