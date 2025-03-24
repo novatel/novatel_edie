@@ -75,7 +75,7 @@ jobs:
         run: |
           current_version=$(bump-my-version show current_version)
           if [[ "$current_version" == *"a"* ]] && [[ "$VERSION_TYPE" == "automatic" ]] ; then
-            if [[ "$PRERELEASE" == "true" ]]; then
+            if [[ "$PRERELEASE" == true ]]; then
               echo "Bumping pre-release to next iteration"
               bump-my-version bump pre_n
             else
@@ -88,7 +88,7 @@ jobs:
             fi
             echo "Bumping version by ${VERSION_TYPE}"
             bump-my-version bump ${VERSION_TYPE}
-            if [[ "$PRERELEASE" == "true" ]]; then
+            if [[ "$PRERELEASE" == true ]]; then
               echo "Adding pre-release label"
               bump-my-version bump pre_n
             fi
@@ -96,6 +96,9 @@ jobs:
 
       - name: Get C++ version
         run: |
+          if [[ "$VERSION_TYPE" == "automatic" ]]; then
+            VERSION_TYPE=patch
+          fi
           cpp_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
           echo "cpp_version=$cpp_version"
           new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${VERSION_TYPE} new_version)
