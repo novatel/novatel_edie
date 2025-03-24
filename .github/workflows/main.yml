@@ -75,7 +75,7 @@ jobs:
       - name: Bump C++ version
         run: |
 
-          echo "cpp_version=${{ steps.get_cpp_version.outputs.cpp_version }}"
+          echo "cpp_version=${{ env.cpp_version }}"
           sed -i -r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ steps.bump.outputs.current-version }}\)/' CMakeLists.txt
 
       - name: Reset credentials
