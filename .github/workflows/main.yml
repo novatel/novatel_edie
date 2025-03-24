@@ -18,6 +18,10 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
 
+      - name: Install BumpMyVersion
+        run: |
+          pip install bump-my-version
+
       - name: Get Pull Request Info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,22 +53,41 @@ jobs:
               VERSION_TYPE=minor
             elif echo "$pr_tags" | grep -q "patch"; then
               VERSION_TYPE=patch
-            elif echo "$pr_tags" | grep -q "prerelease"; then
-              VERSION_TYPE=prerelease
             else
-              VERSION_TYPE=patch
+              VERSION_TYPE=automatic
+            fi
+
+            if echo "$pr_tags" | grep -q "prerelease"; then
+              PRERELEASE=true
+            else
+              PRERELEASE=false
             fi
 
             echo "VERSION_TYPE=$VERSION_TYPE"
             echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
 
-      - name: Install BumpMyVersion
-        run: |
-          pip install bump-my-version
+            echo "PRERELEASE=$PRERELEASE"
+            echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
 
       - name: Bump Python version
         run: |
-          bump-my-version bump ${{ env.VERSION_TYPE }}
+          current_version=$(bump-my-version show current_version)
+          if [[ "$current_version" == *"a"* ]] && [[ "$VERSION_TYPE" == "automatic" ]] ; then
+            if [[ "$PRERELEASE" == "true" ]]; then
+              echo "Bumping pre-release to next iteration"
+              bump-my-version bump pre_n
+            else
+              echo "Dropping pre-release label"
+              bump-my-version bump pre_label
+            fi
+          else
+            echo "Bumping version by ${VERSION_TYPE}"
+            bump-my-version bump ${{ env.VERSION_TYPE }}
+            if [[ "$PRERELEASE" == "true" ]]; then
+              echo "Adding pre-release label"
+              bump-my-version bump pre_n
+            fi
+          fi
 
       - name: Get C++ version
         run: |
