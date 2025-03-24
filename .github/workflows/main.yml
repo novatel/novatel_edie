@@ -64,13 +64,14 @@ jobs:
 
       - name: Bump Python version
         run: |
-          bump-my-version bump ${{ env.VERSION_TYPE }}
-          bump-my-version show current-version
+          bump-my-version bump  ${{ env.VERSION_TYPE }} new_version
+          bump-my-version ${{ env.VERSION_TYPE }}
 
       - name: Get C++ version
         run: |
           cpp_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
           echo "cpp_version=$cpp_version"
+
 
       - name: Reset credentials
         run: |
