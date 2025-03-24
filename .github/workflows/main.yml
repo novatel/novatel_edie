@@ -64,7 +64,6 @@ jobs:
 
 
             PRERELEASE=true
-            VERSION_TYPE=major
 
             echo "VERSION_TYPE=$VERSION_TYPE"
             echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
