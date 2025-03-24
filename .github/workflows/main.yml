@@ -33,7 +33,7 @@ jobs:
 
             if [ "$pr_info" == "null" ]; then
             echo "No pull request found for commit $commit_sha"
-            echo "VERSION_TYPE=patch" >> $GITHUB_ENV
+            echo "VERSION_TYPE=automatic" >> $GITHUB_ENV
 
             exit 0
             fi
@@ -83,6 +83,7 @@ jobs:
               bump-my-version bump pre_label
             fi
           else
+            VERSION_TYPE=patch
             echo "Bumping version by ${VERSION_TYPE}"
             bump-my-version bump ${VERSION_TYPE}
             if [[ "$PRERELEASE" == "true" ]]; then
