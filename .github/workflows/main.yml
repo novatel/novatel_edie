@@ -64,7 +64,7 @@ jobs:
 
       - name: Bump Python version
         run: |
-          bump-my-version bump  ${{ env.VERSION_TYPE }} new_version
+          bump-my-version bump  ${{ env.VERSION_TYPE }}
           bump-my-version ${{ env.VERSION_TYPE }}
 
       - name: Get C++ version
