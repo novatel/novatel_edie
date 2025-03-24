@@ -58,6 +58,10 @@ jobs:
             echo "VERSION_TYPE=$VERSION_TYPE"
             echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
 
+      - name: Install BumpMyVersion
+        run: |
+          pip install bump-my-version
+
       - name: Bump Python version
         id: bump
         uses: callowayproject/bump-my-version@master
