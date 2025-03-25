@@ -35,7 +35,7 @@ void novatel::edie::throw_exception_from_status(STATUS status)
 
 void init_novatel_exceptions(nb::module_& m)
 {
-    nb::handle base = nb::exception<EdieException>(m, "NovatelEdieException");              // NOLINT
+    nb::handle base = nb::exception<EdieException>(m, "NovatelEdieException");          // NOLINT
     nb::exception<FailureException>(m, "FailureException", base);                           // NOLINT
     nb::exception<UnknownException>(m, "UnknownException", base);                           // NOLINT
     nb::exception<IncompleteException>(m, "IncompleteException", base);                     // NOLINT
@@ -71,5 +71,5 @@ void init_novatel_exceptions(nb::module_& m)
     .value("DECOMPRESSION_FAILURE", STATUS::DECOMPRESSION_FAILURE, "The RANGECMPx log could not be decompressed.")
     .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    m.def("throw_exception_from_status", &throw_exception_from_status, "status"_a);
+        m.def("throw_exception_from_status", &throw_exception_from_status, "status"_a);
 }
