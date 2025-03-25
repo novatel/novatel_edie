@@ -53,6 +53,7 @@ class ProprietaryFramerTest : public ::testing::Test
         }
         catch (std::runtime_error&)
         {
+            clMyFramerManager.GetLogger()->log(spdlog::level::info, "Framer Already Registered");
         }
 
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB

@@ -27,14 +27,14 @@ void init_novatel_file_parser(nb::module_& m)
         .def_prop_rw("filter", &oem::FileParser::GetFilter, &oem::FileParser::SetFilter)
         .def(
             "set_stream", [](oem::FileParser& self, nb::object stream) { return self.SetStream(std::make_shared<pystream::istream>(stream, 0)); },
-            "input_stream"_a)
+            nb::arg("input_stream"))
         .def("read",
              [](oem::FileParser& self) {
                  MessageDataStruct message_data;
                  STATUS status = self.Read(message_data);
                  FramerManager& framerManager = FramerManager::GetInstance();
                  auto* metaData_ptr = framerManager.GetMetaData("NOVATEL");
-                 return std::make_tuple(status, oem::PyMessageData(message_data), *metaData_ptr);
+                 return std::make_tuple(status, oem::PyMessageData(message_data), metaData_ptr);
              })
         .def("__iter__", [](oem::FileParser& self) { return &self; })
         .def("__next__",
@@ -42,9 +42,9 @@ void init_novatel_file_parser(nb::module_& m)
                  MessageDataStruct message_data;
                  STATUS status = self.Read(message_data);
                  FramerManager& framerManager = FramerManager::GetInstance();
-                 auto& metaData = framerManager.GetMetaData("NOVATEL");
+                 auto* metaData_ptr = framerManager.GetMetaData("NOVATEL");
                  if (status == STATUS::STREAM_EMPTY) { throw nb::stop_iteration(); }
-                 return std::make_tuple(status, oem::PyMessageData(message_data), metaData);
+                 return std::make_tuple(status, oem::PyMessageData(message_data), metaData_ptr);
              })
         .def("reset", &oem::FileParser::Reset)
         .def(
@@ -55,7 +55,7 @@ void init_novatel_file_parser(nb::module_& m)
                 uint32_t count = self.Flush(reinterpret_cast<uint8_t*>(buffer), oem::Parser::uiParserInternalBufferSize);
                 return nb::bytes(buffer, count);
             },
-            "return_flushed_bytes"_a = false)
+            nb::arg("return_flushed_bytes") = false)
         .def_prop_ro("internal_buffer",
                      [](const oem::FileParser& self) { return nb::bytes(self.GetInternalBuffer(), oem::Parser::uiParserInternalBufferSize); });
 }

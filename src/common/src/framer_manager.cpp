@@ -118,7 +118,7 @@ FramerElement* FramerManager::GetFramerElement(const int framerId_)
     return nullptr;
 }
 
-std::unique_ptr<FramerBase>& FramerManager::GetFramerInstance(std::string framerName_) { return GetFramerElement(idMap[framerName_])->framer; }
+
 
 STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_)
 {

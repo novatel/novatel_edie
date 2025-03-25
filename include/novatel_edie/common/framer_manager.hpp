@@ -135,9 +135,6 @@ class FramerManager
 
     //---------------------------------------------------------------------------
     //! \brief Reset the MetaData for the requested framer.
-    //
-    //! \return A pointer to the MetaData for the specified framer.
-    //! \return nullptr if the framer is not found.
     //---------------------------------------------------------------------------
     void ResetMetaData(int iFramerId_)
     {
@@ -237,7 +234,7 @@ class FramerManager
     //
     //! \return A pointer to the Framer for the specified sframer.
     //---------------------------------------------------------------------------
-    std::unique_ptr<FramerBase>& GetFramerInstance(std::string framerName_);
+    std::unique_ptr<FramerBase>& FramerManager::GetFramerInstance(std::string framerName_) { return GetFramerElement(idMap[framerName_])->framer; }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.

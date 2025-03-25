@@ -31,6 +31,7 @@ nanobind_add_module(python_bindings
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/file_parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/filter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/framer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/framer_manager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/header_decoder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/json_db_reader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/logger.cpp

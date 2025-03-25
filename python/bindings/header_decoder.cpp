@@ -65,14 +65,5 @@ void init_novatel_header_decoder(nb::module_& m)
                 STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(raw_header.c_str()), header, metadata);
                 return nb::make_tuple(status, header);
             },
-            "header"_a, "metadata"_a)
-        .def(
-            "decode",
-            [](const oem::HeaderDecoder& decoder, const nb::bytes& raw_header) {
-                oem::MetaDataStruct metadata;
-                oem::IntermediateHeader header;
-                STATUS status = decoder.Decode(reinterpret_cast<const uint8_t*>(raw_header.c_str()), header, metadata);
-                return nb::make_tuple(status, header, metadata);
-            },
-            "header"_a);
+            "header"_a, "metadata"_a);
 }
