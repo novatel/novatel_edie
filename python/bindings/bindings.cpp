@@ -28,9 +28,9 @@ void init_logger_tester(nb::module_&);
 
 NB_MODULE(bindings, m)
 {
-    nb::module_ messages_mod = m.def_submodule("messages", "NovAtel OEM message definitions.");
-    nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
     nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
+    nb::module_ messages_mod = m.def_submodule("messages", "NovAtel OEM message types.");
+    nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
 
     init_common_common(m);
     init_common_logger(m, internal_mod);
