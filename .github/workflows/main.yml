@@ -113,7 +113,7 @@ jobs:
             fi
           fi
 
-      - name: Get C++ version
+      - name: Bump C++ version
         run: |
           if [[ "$CPP_VERSION_TYPE" == "none" ]]; then
             echo "Skipping version bump"
