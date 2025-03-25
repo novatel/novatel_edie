@@ -76,16 +76,33 @@ nb::object oem::FileConversionIterator::PyIterConvert()
 void init_novatel_file_parser(nb::module_& m)
 {
     nb::class_<oem::PyFileParser>(m, "FileParser")
-        .def(nb::init<const std::filesystem::path&>(), "file_path"_a)
-        .def(nb::init<const std::filesystem::path&, const PyMessageDatabase::Ptr&>(), "file_path"_a, "message_db"_a)
+        .def(
+            "__init__",
+            [](oem::PyFileParser* self, const std::filesystem::path& file_path, PyMessageDatabase::Ptr message_db) {
+                if (!message_db) { message_db = MessageDbSingleton::get(); }
+                new (self) oem::PyFileParser(file_path, message_db);
+            },
+            "file_path"_a,
+            nb::arg("message_db") = nb::none(),
+            R"doc(
+             Initializes a FileParser.
+
+             Args:
+                 file_path: The path to the file to be parsed.
+                 message_db: The message database to parse message with.
+                    If None, use the default database.
+            )doc")
         .def_prop_rw("ignore_abbreviated_ascii_responses", &oem::PyFileParser::GetIgnoreAbbreviatedAsciiResponses,
-                     &oem::PyFileParser::SetIgnoreAbbreviatedAsciiResponses)
-        .def_prop_rw("decompress_range_cmp", &oem::PyFileParser::GetDecompressRangeCmp, &oem::PyFileParser::SetDecompressRangeCmp)
-        .def_prop_rw("return_unknown_bytes", &oem::PyFileParser::GetReturnUnknownBytes, &oem::PyFileParser::SetReturnUnknownBytes)
-        .def_prop_rw("filter", &oem::PyFileParser::GetFilter, &oem::PyFileParser::SetFilter)
-        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() ->  Message | UnknownMessage | UnknownBytes"),
+                     &oem::PyFileParser::SetIgnoreAbbreviatedAsciiResponses,
+                     "Whether to skip over abbreviated ASCII message responses e.g. `<OK`/`<ERROR`.")
+        .def_prop_rw("decompress_range_cmp", &oem::PyFileParser::GetDecompressRangeCmp, &oem::PyFileParser::SetDecompressRangeCmp,
+                     "Whether to decompress compressed RANGE messages.")
+        .def_prop_rw("return_unknown_bytes", &oem::PyFileParser::GetReturnUnknownBytes, &oem::PyFileParser::SetReturnUnknownBytes,
+                     "Whether to return unidentifiable data.")
+        .def_prop_rw("filter", &oem::PyFileParser::GetFilter, &oem::PyFileParser::SetFilter, "The filter which controls which data is skipped over.")
+        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
-            Attempts to read a message from data in the FileParser's buffer.
+            Attempts to read a message from remaining data in the file.
 
             Returns:
                 A decoded `Message`,
@@ -94,13 +111,19 @@ void init_novatel_file_parser(nb::module_& m)
                 or a series of `UnknownBytes` determined to be undecodable.
 
             Raises:
-                BufferEmptyException: There is insufficient data in the FileParser's
-                buffer to decode a message.
+                StreamEmptyException: There is insufficient data in the remaining 
+                    in the file to decode a message.
             )doc")
-        .def("__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; })
+        .def("__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; },
+             R"doc(
+            Marks FileParser as Iterable.
+
+            Returns:
+                The FileParser itself as an Iterator.
+            )doc")
         .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __next__() -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
-            Attempts to read the next message from data in the FileParser's buffer.
+            Attempts to read the next message from remaining data in the file.
 
             Returns:
                 A decoded `Message`,
@@ -109,12 +132,37 @@ void init_novatel_file_parser(nb::module_& m)
                 or a series of `UnknownBytes` determined to be undecodable.
 
             Raises:
-                StopIteration: There is insufficient data in the FileParser's
-                buffer to decode a message.
+                StopIteration: There is insufficient data in the remaining
+                    file to decode a message.
             )doc")
-        .def("convert", &oem::PyFileParser::PyConvert, "fmt"_a)
-        .def("iter_convert", [](oem::PyFileParser& self, ENCODE_FORMAT fmt) { return oem::FileConversionIterator(self, fmt); })
-        .def("reset", &oem::PyFileParser::Reset)
+        .def("convert", &oem::PyFileParser::PyConvert, "fmt"_a,
+             R"doc(
+            Converts the next message in the file to the specified format.
+
+            Args:
+                fmt: The format to convert the message to.
+
+            Returns:
+                The converted message.
+
+            Raises:
+                StreamEmptyException: There is insufficient data in the remaining 
+                    in the file to decode a message.
+            )doc")
+        .def("iter_convert", [](oem::PyFileParser& self, ENCODE_FORMAT fmt) { return oem::FileConversionIterator(self, fmt); }, "fmt"_a,
+             R"doc(
+            Creates an iterator which parses and converts messages to a specified format.
+
+            Args:
+                fmt: The format to convert messages to.
+
+            Returns:
+                An iterator that directly converts messages.
+            )doc")
+        .def("reset", &oem::PyFileParser::Reset,
+             R"doc(
+            Resets the FileParser, clearing its internal state.
+            )doc")
         .def(
             "flush",
             [](oem::PyFileParser& self, bool return_flushed_bytes) -> nb::object {
@@ -123,11 +171,35 @@ void init_novatel_file_parser(nb::module_& m)
                 uint32_t count = self.Flush(reinterpret_cast<uint8_t*>(buffer), oem::Parser::uiParserInternalBufferSize);
                 return nb::bytes(buffer, count);
             },
-            "return_flushed_bytes"_a = false)
-        .def_prop_ro("internal_buffer",
-                     [](const oem::PyFileParser& self) { return nb::bytes(self.GetInternalBuffer(), oem::Parser::uiParserInternalBufferSize); });
+            "return_flushed_bytes"_a = false,
+            R"doc(
+            Flushes all bytes from the FileParser.
+
+            Args:
+                return_flushed_bytes: If True, the flushed bytes will be returned.
+
+            Returns:
+                The number of bytes flushed if return_flushed_bytes is False,
+                otherwise the flushed bytes.
+            )doc");
 
     nb::class_<oem::FileConversionIterator>(m, "FileConversionIterator")
-        .def("__iter__", [](nb::handle_t<oem::FileConversionIterator> self) { return self; })
-        .def("__next__", &oem::FileConversionIterator::PyIterConvert);
+        .def("__iter__", [](nb::handle_t<oem::FileConversionIterator> self) { return self; },
+             R"doc(
+            Marks FileConversionIterator as Iterable.
+
+            Returns:
+                The FileConversionIterator itself as an Iterator.
+            )doc")
+        .def("__next__", &oem::FileConversionIterator::PyIterConvert, nb::sig("def __next__() -> MessageData"),
+             R"doc(
+            Converts the next message in the file to the specified format.
+
+            Returns:
+                The converted message.
+
+            Raises:
+                StopIteration: There is insufficient data in the remaining
+                    file to decode a message.
+            )doc");
 }

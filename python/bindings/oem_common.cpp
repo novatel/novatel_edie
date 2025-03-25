@@ -48,7 +48,7 @@ void init_novatel_common(nb::module_& m)
         .value("RECEIVER_SW_VERSION", oem::ASCII_HEADER::RECEIVER_SW_VERSION, "Receiver software version.")
         .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<novatel::edie::HEADER_FORMAT>(m, "HEADER_FORMAT", nb::is_arithmetic())
+    nb::enum_<novatel::edie::HEADER_FORMAT>(m, "HEADER_FORMAT", nb::is_arithmetic(), "Formats for novatel headers.")
         .value("UNKNOWN", novatel::edie::HEADER_FORMAT::UNKNOWN)
         .value("BINARY", novatel::edie::HEADER_FORMAT::BINARY)
         .value("SHORT_BINARY", novatel::edie::HEADER_FORMAT::SHORT_BINARY)
@@ -62,7 +62,10 @@ void init_novatel_common(nb::module_& m)
         .value("ALL", novatel::edie::HEADER_FORMAT::ALL)
         .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::class_<oem::MetaDataStruct>(m, "MetaData")
+    nb::class_<oem::MetaDataStruct>(m, "MetaData", R"doc(
+            Metadata for a specific message.
+        
+            Used as a storehouse for information during piece-wise decoding.)doc")
         .def(nb::init())
         .def_rw("format", &oem::MetaDataStruct::eFormat)
         .def_rw("measurement_source", &oem::MetaDataStruct::eMeasurementSource)
@@ -105,7 +108,7 @@ void init_novatel_common(nb::module_& m)
                         metadata.usMessageId, metadata.uiMessageCrc);
         });
 
-    nb::class_<oem::Oem4BinaryHeader>(m, "Oem4BinaryHeader")
+    nb::class_<oem::Oem4BinaryHeader>(m, "Oem4BinaryHeader", "Not currently part of public API.")
         .def(nb::init())
         .def("__init__",
              [](oem::Oem4BinaryHeader* t, const nb::bytes& header_data) {
@@ -144,7 +147,7 @@ void init_novatel_common(nb::module_& m)
                         self.uiStatus, self.usMsgDefCrc, self.usReceiverSwVersion);
         });
 
-    nb::class_<oem::Oem4BinaryShortHeader>(m, "Oem4BinaryShortHeader")
+    nb::class_<oem::Oem4BinaryShortHeader>(m, "Oem4BinaryShortHeader", "Not currently part of public API.")
         .def(nb::init())
         .def("__init__",
              [](oem::Oem4BinaryShortHeader* t, const nb::bytes& header_data) {

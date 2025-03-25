@@ -13,7 +13,7 @@ using namespace novatel::edie;
 
 void init_common_message_database(nb::module_& m)
 {
-    nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "Data type name string represented as an enum", nb::is_arithmetic())
+    nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "The concrete data types of base-level message fields.", nb::is_arithmetic())
         .value("BOOL", DATA_TYPE::BOOL)
         .value("CHAR", DATA_TYPE::CHAR)
         .value("UCHAR", DATA_TYPE::UCHAR)
@@ -32,21 +32,19 @@ void init_common_message_database(nb::module_& m)
         .value("UNKNOWN", DATA_TYPE::UNKNOWN)
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    m.attr("str_to_DATA_TYPE") = DataTypeEnumLookup;
-
-    nb::enum_<FIELD_TYPE>(m, "FIELD_TYPE", "Field type string represented as an enum.", nb::is_arithmetic())
-        .value("SIMPLE", FIELD_TYPE::SIMPLE)
-        .value("ENUM", FIELD_TYPE::ENUM)
-        .value("BITFIELD", FIELD_TYPE::BITFIELD)
-        .value("FIXED_LENGTH_ARRAY", FIELD_TYPE::FIXED_LENGTH_ARRAY)
-        .value("VARIABLE_LENGTH_ARRAY", FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
-        .value("STRING", FIELD_TYPE::STRING)
-        .value("FIELD_ARRAY", FIELD_TYPE::FIELD_ARRAY)
-        .value("RESPONSE_ID", FIELD_TYPE::RESPONSE_ID)
-        .value("RESPONSE_STR", FIELD_TYPE::RESPONSE_STR)
-        .value("RXCONFIG_HEADER", FIELD_TYPE::RXCONFIG_HEADER)
-        .value("RXCONFIG_BODY", FIELD_TYPE::RXCONFIG_BODY)
-        .value("UNKNOWN", FIELD_TYPE::UNKNOWN)
+    nb::enum_<FIELD_TYPE>(m, "FIELD_TYPE", "The abstracted types of a message field.", nb::is_arithmetic())
+        .value("SIMPLE", FIELD_TYPE::SIMPLE, "A value with a simple data type such as a integer or float.")
+        .value("ENUM", FIELD_TYPE::ENUM, "An enum value.")
+        .value("BITFIELD", FIELD_TYPE::BITFIELD, "A bitfield value.")
+        .value("FIXED_LENGTH_ARRAY", FIELD_TYPE::FIXED_LENGTH_ARRAY, "An array with a pre-determined length.")
+        .value("VARIABLE_LENGTH_ARRAY", FIELD_TYPE::VARIABLE_LENGTH_ARRAY, "An array whose length length may differ across different messages.")
+        .value("STRING", FIELD_TYPE::STRING, "A string value.")
+        .value("FIELD_ARRAY", FIELD_TYPE::FIELD_ARRAY, "An array of complex fields with their own sub-fields.")
+        .value("RESPONSE_ID", FIELD_TYPE::RESPONSE_ID, "A fabricated response ID.")
+        .value("RESPONSE_STR", FIELD_TYPE::RESPONSE_STR, "A fabricated response string.")
+        .value("RXCONFIG_HEADER", FIELD_TYPE::RXCONFIG_HEADER, "A fabricated RXCONFIG header.")
+        .value("RXCONFIG_BODY", FIELD_TYPE::RXCONFIG_BODY, "A fabricated RXCONFIG body.")
+        .value("UNKNOWN", FIELD_TYPE::UNKNOWN, "A value with an unknown type.")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
     m.attr("str_to_FIELD_TYPE") = FieldTypeEnumLookup;
@@ -63,7 +61,7 @@ void init_common_message_database(nb::module_& m)
                 .format(enum_data_type.name, enum_data_type.value, enum_data_type.description);
         });
 
-    nb::class_<EnumDefinition>(m, "EnumDefinition", "Enum Definition representing contents of UI DB")
+    nb::class_<EnumDefinition>(m, "EnummeratorDefinition", "Enum Definition representing contents of UI DB")
         .def(nb::init())
         .def_rw("id", &EnumDefinition::_id)
         .def_rw("name", &EnumDefinition::name)

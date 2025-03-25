@@ -1,52 +1,15 @@
 #include "novatel_edie/decoders/common/common.hpp"
 
 #include "bindings_core.hpp"
-#include "decoder_exception.hpp"
 #include "novatel_edie/version.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-DecoderException::DecoderException(nb::handle_t<STATUS> status, std::string message) : msg(std::move(message))
-{
-    std::string name = nb::str(status).c_str();
-    if (!msg.empty()) { msg += " - "; }
-    msg += name + ": " + nb::cast<std::string>(status.doc());
-}
-
-const char* DecoderException::what() const noexcept { return msg.c_str(); }
-
 void init_common_common(nb::module_& m)
 {
-    nb::exception<DecoderException>(m, "DecoderException");
-    
-    nb::enum_<STATUS>(m, "STATUS", nb::is_arithmetic())
-        .value("SUCCESS", STATUS::SUCCESS, "Successfully found a frame in the framer buffer.")
-        .value("FAILURE", STATUS::FAILURE, "An unexpected failure occurred.")
-        .value("UNKNOWN", STATUS::UNKNOWN, "Could not identify bytes as a protocol.")
-        .value("INCOMPLETE", STATUS::INCOMPLETE, "It is possible that a valid frame exists in the frame buffer, but more information is needed.")
-        .value("INCOMPLETE_MORE_DATA", STATUS::INCOMPLETE_MORE_DATA, "The current frame buffer is incomplete but more data is expected.")
-        .value("NULL_PROVIDED", STATUS::NULL_PROVIDED, "A null pointer was provided.")
-        .value("NO_DATABASE", STATUS::NO_DATABASE, "No database has been provided to the component.")
-        .value("NO_DEFINITION", STATUS::NO_DEFINITION, "No definition could be found in the database for the provided message.")
-        .value("NO_DEFINITION_EMBEDDED", STATUS::NO_DEFINITION_EMBEDDED,
-               "No definition could be found in the database for the embedded message in the RXCONFIG log.")
-        .value("BUFFER_FULL", STATUS::BUFFER_FULL, "The provided destination buffer is not big enough to contain the frame.")
-        .value("BUFFER_EMPTY", STATUS::BUFFER_EMPTY, "The internal circular buffer does not contain any unread bytes")
-        .value("STREAM_EMPTY", STATUS::STREAM_EMPTY, "The input stream is empty.")
-        .value("UNSUPPORTED", STATUS::UNSUPPORTED, "An attempted operation is unsupported by this component.")
-        .value("MALFORMED_INPUT", STATUS::MALFORMED_INPUT, "The input is recognizable, but has unexpected formatting.")
-        .value("DECOMPRESSION_FAILURE", STATUS::DECOMPRESSION_FAILURE, "The RANGECMPx log could not be decompressed.")
-        .def(
-            "raise_on_error",
-            [](nb::handle_t<STATUS> status, nb::str message) {
-                if (nb::cast<STATUS>(status) != STATUS::SUCCESS) throw DecoderException(status, nb::cast<std::string>(message));
-            },
-            "message"_a = "")
-        .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
-
-    nb::enum_<ENCODE_FORMAT>(m, "ENCODE_FORMAT", nb::is_arithmetic())
+    nb::enum_<ENCODE_FORMAT>(m, "ENCODE_FORMAT", nb::is_arithmetic(), "Formats which a novatel message can be encoded to.")
         .value("FLATTENED_BINARY", ENCODE_FORMAT::FLATTENED_BINARY,
                "NovAtel EDIE \"Flattened\" binary format.  All strings/arrays are padded to maximum length to allow programmatic access.")
         .value("ASCII", ENCODE_FORMAT::ASCII,
@@ -58,9 +21,7 @@ void init_common_common(nb::module_& m)
         .value("UNSPECIFIED", ENCODE_FORMAT::UNSPECIFIED, "No encode format was specified.")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    m.def("string_to_encode_format", &StringToEncodeFormat, "str"_a);
-
-    nb::enum_<TIME_STATUS>(m, "TIME_STATUS", nb::is_arithmetic())
+    nb::enum_<TIME_STATUS>(m, "TIME_STATUS", nb::is_arithmetic(), "Indications of how well a GPS reference time is known.")
         .value("UNKNOWN", TIME_STATUS::UNKNOWN, "Time validity is unknown.")
         .value("APPROXIMATE", TIME_STATUS::APPROXIMATE, "Time is set approximately.")
         .value("COARSEADJUSTING", TIME_STATUS::COARSEADJUSTING, "Time is approaching coarse precision.")
@@ -76,41 +37,45 @@ void init_common_common(nb::module_& m)
         .value("EXACT", TIME_STATUS::EXACT, "Time is exact.")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<MESSAGE_FORMAT>(m, "MESSAGE_FORMAT", nb::is_arithmetic())
-        .value("BINARY", MESSAGE_FORMAT::BINARY)
-        .value("ASCII", MESSAGE_FORMAT::ASCII)
-        .value("ABBREV", MESSAGE_FORMAT::ABBREV)
-        .value("RSRVD", MESSAGE_FORMAT::RSRVD)
+    nb::enum_<MESSAGE_FORMAT>(m, "MESSAGE_FORMAT", nb::is_arithmetic(), "Message formats supported natively by a novatel reciever.")
+        .value("BINARY", MESSAGE_FORMAT::BINARY, "Binary format.")
+        .value("ASCII", MESSAGE_FORMAT::ASCII, "ASCII format.")
+        .value("ABBREV", MESSAGE_FORMAT::ABBREV, "Abbreviated ASCII format.")
+        .value("RSRVD", MESSAGE_FORMAT::RSRVD, "Format reserved for future use.")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<MESSAGE_TYPE_MASK>(m, "MESSAGE_TYPE_MASK", nb::is_arithmetic())
-        .value("MEASSRC", MESSAGE_TYPE_MASK::MEASSRC)
-        .value("MSGFORMAT", MESSAGE_TYPE_MASK::MSGFORMAT)
-        .value("RESPONSE", MESSAGE_TYPE_MASK::RESPONSE)
+    nb::enum_<MESSAGE_TYPE_MASK>(
+        m, "MESSAGE_TYPE_MASK", nb::is_arithmetic(),
+        "Bitmasks for extracting data from binary `message type` fields which appear within novatel headers and certain logs.")
+        .value("MEASSRC", MESSAGE_TYPE_MASK::MEASSRC, "Bitmask for extracting the source of message.")
+        .value("MSGFORMAT", MESSAGE_TYPE_MASK::MSGFORMAT, "Bitmask for extracting the format of a message.")
+        .value("RESPONSE", MESSAGE_TYPE_MASK::RESPONSE, "Bitmask for extracting the response status of a message.")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<MESSAGE_ID_MASK>(m, "MESSAGE_ID_MASK", nb::is_arithmetic())
-        .value("LOGID", MESSAGE_ID_MASK::LOGID)
-        .value("MEASSRC", MESSAGE_ID_MASK::MEASSRC)
-        .value("MSGFORMAT", MESSAGE_ID_MASK::MSGFORMAT)
-        .value("RESPONSE", MESSAGE_ID_MASK::RESPONSE)
+    nb::enum_<MESSAGE_ID_MASK>(
+        m, "MESSAGE_ID_MASK", nb::is_arithmetic(),
+        "Bitmasks for extracting data from `message id` and `message type` fields which appear within novatel headers and certain logs.")
+        .value("LOGID", MESSAGE_ID_MASK::LOGID, "Bitmask for extracting the id of message/log.")
+        .value("MEASSRC", MESSAGE_ID_MASK::MEASSRC, "Bitmask for extracting the source of message.")
+        .value("MSGFORMAT", MESSAGE_ID_MASK::MSGFORMAT, "Bitmask for extracting the format of a message.")
+        .value("RESPONSE", MESSAGE_ID_MASK::RESPONSE, "Bitmask for extracting the response status of a message.")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::enum_<MEASUREMENT_SOURCE>(m, "MEASUREMENT_SOURCE", nb::is_arithmetic())
-        .value("PRIMARY", MEASUREMENT_SOURCE::PRIMARY)
-        .value("SECONDARY", MEASUREMENT_SOURCE::SECONDARY)
+    nb::enum_<MEASUREMENT_SOURCE>(m, "MEASUREMENT_SOURCE", nb::is_arithmetic(), "Origins for a message.")
+        .value("PRIMARY", MEASUREMENT_SOURCE::PRIMARY, "Originates from primary antenna.")
+        .value("SECONDARY", MEASUREMENT_SOURCE::SECONDARY, "Originates from secondary antenna.")
         .value("MAX", MEASUREMENT_SOURCE::MAX)
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
     nb::class_<SatelliteId>(m, "SatelliteId")
         .def(nb::init())
-        .def_rw("prn_or_slot", &SatelliteId::usPrnOrSlot)
-        .def_rw("frequency_channel", &SatelliteId::sFrequencyChannel)
+        .def_rw("prn_or_slot", &SatelliteId::usPrnOrSlot, "The satellite PRN for GPS or the slot for GLONASS.")
+        .def_rw("frequency_channel", &SatelliteId::sFrequencyChannel, "The frequency channel if it is a GLONASS satilite, otherwise left as zero.")
         .def("__repr__", [](SatelliteId id) {
             return nb::str("SatelliteId(prn_or_slot={!r}, frequency_channel={!r})").format(id.usPrnOrSlot, id.sFrequencyChannel);
         });
 
-    m.attr("MESSAGE_SIZE_MAX") = MESSAGE_SIZE_MAX;
+    m.attr("MAX_MESSAGE_LENGTH") = MESSAGE_SIZE_MAX;
     m.attr("MAX_ASCII_MESSAGE_LENGTH") = MAX_ASCII_MESSAGE_LENGTH;
     m.attr("MAX_BINARY_MESSAGE_LENGTH") = MAX_BINARY_MESSAGE_LENGTH;
     m.attr("MAX_SHORT_ASCII_MESSAGE_LENGTH") = MAX_SHORT_ASCII_MESSAGE_LENGTH;
@@ -118,10 +83,10 @@ void init_common_common(nb::module_& m)
     m.attr("MAX_ABB_ASCII_RESPONSE_LENGTH") = MAX_ABB_ASCII_RESPONSE_LENGTH;
     m.attr("MAX_NMEA_MESSAGE_LENGTH") = MAX_NMEA_MESSAGE_LENGTH;
 
-    m.attr("version") = RELEASE_VERSION;
-    m.attr("git_sha") = GIT_SHA;
-    m.attr("git_branch") = GIT_BRANCH;
-    m.attr("git_is_dirty") = GIT_IS_DIRTY;
-    m.attr("build_timestamp") = BUILD_TIMESTAMP;
-    m.attr("pretty_version") = caPrettyPrint;
+    m.attr("CPP_VERSION") = RELEASE_VERSION;
+    m.attr("GIT_SHA") = GIT_SHA;
+    m.attr("GIT_BRANCH") = GIT_BRANCH;
+    m.attr("GIT_IS_DIRTY") = GIT_IS_DIRTY;
+    m.attr("BUILD_TIMESTAMP") = BUILD_TIMESTAMP;
+    m.attr("CPP_PRETTY_VERSION") = caPrettyPrint;
 }
