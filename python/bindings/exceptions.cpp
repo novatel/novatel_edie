@@ -52,8 +52,6 @@ void init_novatel_exceptions(nb::module_& m)
     nb::exception<DecompressionFailureException>(m, "DecompressionFailureException", base); // NOLINT
     nb::exception<JsonDbReaderFailure>(m, "JsonDbReaderException", base);                   // NOLINT
 
-    m.def("throw_exception_from_status", &throw_exception_from_status, "status"_a);
-
     nb::enum_<STATUS>(m, "STATUS", nb::is_arithmetic())
     .value("SUCCESS", STATUS::SUCCESS, "Successfully found a frame in the framer buffer.")
     .value("FAILURE", STATUS::FAILURE, "An unexpected failure occurred.")
@@ -72,4 +70,6 @@ void init_novatel_exceptions(nb::module_& m)
     .value("MALFORMED_INPUT", STATUS::MALFORMED_INPUT, "The input is recognizable, but has unexpected formatting.")
     .value("DECOMPRESSION_FAILURE", STATUS::DECOMPRESSION_FAILURE, "The RANGECMPx log could not be decompressed.")
     .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
+
+    m.def("throw_exception_from_status", &throw_exception_from_status, "status"_a);
 }

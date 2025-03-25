@@ -34,17 +34,17 @@ NB_MODULE(bindings, m)
 
     init_common_common(m);
     init_common_logger(m, internal_mod);
+    init_common_message_database(m);
     init_message_db_singleton(m);
-    init_novatel_commander(m);
+    init_header_objects(m);
+    init_message_objects(m);
     init_novatel_common(m);
     init_novatel_exceptions(m);
+    init_novatel_commander(m);
     init_novatel_file_parser(m);
     init_novatel_filter(m);
     init_novatel_framer(m);
     init_novatel_decoder(m);
-    init_header_objects(m);
-    init_message_objects(m);
-    init_common_message_database(m);
     init_novatel_parser(m);
     init_novatel_rxconfig_handler(m);
     init_novatel_range_decompressor(m);

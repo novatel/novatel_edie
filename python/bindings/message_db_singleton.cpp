@@ -47,5 +47,5 @@ PyMessageDatabase::Ptr& MessageDbSingleton::get()
 
 void init_message_db_singleton(nb::module_& m)
 {
-    m.def("get_default_database", &MessageDbSingleton::get, "Get the default JSON database singleton");
+    m.def("get_default_database", &MessageDbSingleton::get, "Get the default JSON database singleton.");
 }
