@@ -321,7 +321,8 @@ nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldConta
 
 void init_header_objects(nb::module_& m)
 {
-    nb::class_<oem::PyMessageTypeField>(m, "MessageType")
+    nb::class_<oem::PyMessageTypeField>(m, "MessageType",
+                                        "A message field which provides information about its source, format, and whether it is a response.")
         .def("__repr__",
              [](nb::handle_t<PyMessageTypeField> self) {
                  std::string source = nb::cast<nb::str>(self.attr("source").attr("__repr__")()).c_str();
@@ -330,24 +331,32 @@ void init_header_objects(nb::module_& m)
 
                  return "MessageType(source=" + source + ", format=" + format + ", response=" + response + ")";
              })
-        .def_prop_ro("is_response", &oem::PyMessageTypeField::IsResponse)
-        .def_prop_ro("format", &oem::PyMessageTypeField::GetFormat)
-        .def_prop_ro("source", &oem::PyMessageTypeField::GetMeasurementSource);
+        .def_prop_ro("is_response", &oem::PyMessageTypeField::IsResponse, "Whether the message is a response.")
+        .def_prop_ro("format", &oem::PyMessageTypeField::GetFormat, "The original format of the message.")
+        .def_prop_ro("source", &oem::PyMessageTypeField::GetMeasurementSource, "Where the message originates from.");
 
     nb::class_<oem::PyHeader>(m, "Header")
-        .def_ro("message_id", &oem::PyHeader::usMessageId)
-        .def_prop_ro("message_type", &oem::PyHeader::GetPyMessageType)
-        .def_ro("port_address", &oem::PyHeader::uiPortAddress)
-        .def_ro("length", &oem::PyHeader::usLength)
-        .def_ro("sequence", &oem::PyHeader::usSequence)
-        .def_ro("idle_time", &oem::PyHeader::ucIdleTime)
-        .def_ro("time_status", &oem::PyHeader::uiTimeStatus)
-        .def_ro("week", &oem::PyHeader::usWeek)
-        .def_ro("milliseconds", &oem::PyHeader::dMilliseconds)
-        .def_ro("receiver_status", &oem::PyHeader::uiReceiverStatus)
-        .def_ro("message_definition_crc", &oem::PyHeader::uiMessageDefinitionCrc)
-        .def_ro("receiver_sw_version", &oem::PyHeader::usReceiverSwVersion)
-        .def("to_dict", [](const oem::PyHeader& self) { return self.to_dict(); })
+        .def_ro("message_id", &oem::PyHeader::usMessageId, "The Message ID number.")
+        .def_prop_ro("message_type", &oem::PyHeader::GetPyMessageType, "Information regarding the type of the message.")
+        .def_ro("port_address", &oem::PyHeader::uiPortAddress, "The port the message was sent from.")
+        .def_ro("length", &oem::PyHeader::usLength, "The length of the message. Will be 0 if unknown.")
+        .def_ro("sequence", &oem::PyHeader::usSequence, "Number of remaning related messages following this one. Will be 0 for most messages.")
+        .def_ro("idle_time", &oem::PyHeader::ucIdleTime, "Time that the processor is idle. Divide by two to get the percentage.")
+        .def_ro("time_status", &oem::PyHeader::uiTimeStatus, "The quality of the GPS reference time.")
+        .def_ro("week", &oem::PyHeader::usWeek, "GPS reference wekk number.")
+        .def_ro("milliseconds", &oem::PyHeader::dMilliseconds, "Milliseconds from the beginning of the GPS reference week.")
+        .def_ro("receiver_status", &oem::PyHeader::uiReceiverStatus,
+                "32-bits representing the status of various hardware and software components of the receiver.")
+        .def_ro("message_definition_crc", &oem::PyHeader::uiMessageDefinitionCrc, "A value for validating the message definition used for decoding.")
+        .def_ro("receiver_sw_version", &oem::PyHeader::usReceiverSwVersion, "A value (0 - 65535) representing the receiver software build number.")
+        .def(
+            "to_dict", [](const oem::PyHeader& self) { return self.to_dict(); },
+            R"doc(
+            Converts the header to a dictionary.
+
+            Returns:
+                A dictionary representation of the header.
+            )doc")
         .def("__repr__", [](const nb::handle self) {
             auto& header = nb::cast<oem::PyHeader&>(self);
             return nb::str("Header(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
@@ -362,23 +371,29 @@ void init_header_objects(nb::module_& m)
 void init_message_objects(nb::module_& m)
 {
 
-    nb::class_<PyGpsTime>(m, "GpsTime")
+    nb::class_<PyGpsTime>(m, "GpsTime", "A GPS reference time.")
         .def(nb::init())
         .def(nb::init<uint16_t, double, TIME_STATUS>(), "week"_a, "milliseconds"_a, "time_status"_a = TIME_STATUS::UNKNOWN)
-        .def_rw("week", &PyGpsTime::week)
-        .def_rw("milliseconds", &PyGpsTime::milliseconds)
-        .def_rw("status", &PyGpsTime::time_status);
+        .def_rw("week", &PyGpsTime::week, "GPS reference week number.")
+        .def_rw("milliseconds", &PyGpsTime::milliseconds, "Milliseconds from the beginning of the GPS reference week.")
+        .def_rw("status", &PyGpsTime::time_status, "The quality of the GPS reference time.");
 
-    nb::class_<PyUnknownBytes>(m, "UnknownBytes")
+    nb::class_<PyUnknownBytes>(m, "UnknownBytes", "A set of bytes which was determined to be undecodable by EDIE.")
         .def("__repr__",
              [](const PyUnknownBytes self) {
                  std::string byte_rep = nb::str(self.data.attr("__repr__")()).c_str();
                  return "UnknownBytes(" + byte_rep + ")";
              })
-        .def_ro("data", &PyUnknownBytes::data);
+        .def_ro("data", &PyUnknownBytes::data, "The raw bytes determined to be undecodable.");
 
     nb::class_<PyField>(m, "Field")
-        .def("to_dict", &PyField::to_dict, "Convert the message and its sub-messages into a dict")
+        .def("to_dict", &PyField::to_dict,
+             R"doc(
+            Converts the field to a dictionary.
+
+            Returns:
+                A dictionary representation of the field.
+            )doc")
         .def("__getattr__", &PyField::getattr, "field_name"_a)
         .def("__repr__", &PyField::repr)
         .def("__dir__", [](nb::object self) {
@@ -412,15 +427,22 @@ void init_message_objects(nb::module_& m)
                  std::string byte_rep = nb::str(self.payload.attr("__repr__")()).c_str();
                  return "IncompleteMessage(payload=" + byte_rep + ")";
              })
-        .def_ro("header", &PyUnknownMessage::header)
-        .def_ro("payload", &PyUnknownMessage::payload)
+        .def_ro("header", &PyUnknownMessage::header, "The header of the message.")
+        .def_ro("payload", &PyUnknownMessage::payload, "The undecoded bytes that make up the message's payload.")
         .def(
-            "to_dict", [](const PyUnknownMessage& self) {
+            "to_dict",
+            [](const PyUnknownMessage& self) {
                 nb::dict dict = nb::dict();
                 dict["header"] = self.header.to_dict();
                 dict["payload"] = self.payload;
                 return dict;
-            }, "Convert to a dict");
+            },
+            R"doc(
+            Converts the message to a dictionary.
+
+            Returns:
+                A dictionary representation of the message.
+            )doc");
 
     nb::class_<PyMessage, PyField>(m, "Message")
         .def("encode", &PyMessage::encode)
@@ -435,9 +457,19 @@ void init_message_objects(nb::module_& m)
                 if (include_header) { dict["header"] = self.header.to_dict(); }
                 return dict;
             },
-            "include_header"_a = true, "Convert the message its sub-fields into a dict")
-        .def_ro("header", &PyMessage::header)
-        .def_ro("name", &PyMessage::name);
+            "include_header"_a = true, 
+            R"doc(
+            Converts the message to a dictionary.
+            
+            Args:
+                include_header: Whether to include the header of the message in the 
+                    new representation.
+
+            Returns:
+                A dictionary representation of the message.
+            )doc")
+        .def_ro("header", &PyMessage::header, "The header of the message.")
+        .def_ro("name", &PyMessage::name, "The type of message it is.");
 }
 
 #pragma endregion
