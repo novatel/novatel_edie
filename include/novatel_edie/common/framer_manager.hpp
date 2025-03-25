@@ -234,7 +234,7 @@ class FramerManager
     //
     //! \return A pointer to the Framer for the specified sframer.
     //---------------------------------------------------------------------------
-    std::unique_ptr<FramerBase>& FramerManager::GetFramerInstance(std::string framerName_) { return GetFramerElement(idMap[framerName_])->framer; }
+    std::unique_ptr<FramerBase>& GetFramerInstance(std::string framerName_) { return GetFramerElement(idMap[framerName_])->framer; }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
