@@ -44,8 +44,6 @@ class Framer : public FramerBase
     uint32_t uiMyJsonObjectOpenBraces{0};
     uint32_t uiMyAbbrevAsciiHeaderPosition{0};
 
-    void ResetState() override;
-
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
     //! \param[in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
@@ -58,6 +56,22 @@ class Framer : public FramerBase
 
   public:
     //----------------------------------------------------------------------------
+    //! \brief Reset the state of the Framer.
+    //----------------------------------------------------------------------------
+    void ResetState() override;
+
+    //----------------------------------------------------------------------------
+    //! \brief Reset the state of the Framer and the byte count.
+    //----------------------------------------------------------------------------
+    void ResetStateAndByteCount() override;
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the Framer class.
+    //! \param [in] circularBuffer a shared pointer to the framer manager's circular buffer.
+    //----------------------------------------------------------------------------
+    Framer(std::shared_ptr<CircularBuffer> circularBuffer);
+
+    //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
     //----------------------------------------------------------------------------
     Framer();
@@ -68,7 +82,7 @@ class Framer : public FramerBase
     //! \param[out] pucFrameBuffer_ The buffer which the Framer should copy the
     //! framed OEM message to.
     //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
-    //! \param[out] stMetaData_ A MetaDataStruct to contain some information
+    //! \param[out] stMetaData_ A MetaDataBase to contain some information
     //! about OEM message frame.
     //
     //! \return An error code describing the result of framing.
@@ -81,7 +95,7 @@ class Framer : public FramerBase
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_) override;
 };
 
 } // namespace novatel::edie::oem
