@@ -122,6 +122,7 @@ template <typename BufferType, typename... Args>
 [[nodiscard]] bool PrintToBuffer(BufferType* ppcBuffer_, uint32_t& uiBytesLeft_, fmt::format_string<Args...> szFormat_, Args&&... args_)
 {
     // NOTE: This function comprises almost all of the runtime for ASCII encoding. Changes can have huge impacts on performance.
+    // NOTE: We call this function far more often than we need to. Pretty much all calls with a {} format string have faster alternatives.
     // TODO: In C++20 we can do compile time checking to ensure format string is valid for args.
     const auto result = fmt::format_to_n(*ppcBuffer_, uiBytesLeft_, szFormat_, std::forward<Args>(args_)...);
     if (result.size > uiBytesLeft_) { return false; }
@@ -168,10 +169,11 @@ template <typename BufferType>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType, typename T> [[nodiscard]] bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, T* ptItem_)
+template <typename BufferType, typename T> [[nodiscard]] bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const T& item)
 {
+    static_assert(!std::is_pointer_v<T>, "Pointers not allowed.");
     if (uiBytesLeft_ < sizeof(T)) { return false; }
-    std::memcpy(*ppucBuffer_, ptItem_, sizeof(T));
+    std::memcpy(*ppucBuffer_, &item, sizeof(T));
     *ppucBuffer_ += sizeof(T);
     uiBytesLeft_ -= sizeof(T);
     return true;
@@ -199,15 +201,6 @@ template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, unsigned char ucItem_)
-{
-    if (uiBytesLeft_ < 1) { return false; }
-    *(*ppucBuffer_)++ = ucItem_;
-    uiBytesLeft_--;
-    return true;
-}
-
-// -------------------------------------------------------------------------------------------------------
 template <typename BufferType, typename... Args>
 [[nodiscard]] bool CopyFormattedToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const char cSeparator_, Args&&... args_)
 {
@@ -220,17 +213,18 @@ template <typename BufferType, typename... Args>
         else { return PrintToBuffer(ppucBuffer_, uiBytesLeft_, szFormat, arg); }
     };
 
-    bool bSuccess = true;
+    bool success = true;
     size_t i = 0;
-    auto CopyWithSeparator = [&](auto&& arg) -> bool {
-        bSuccess &= CopyArg(arg.first, arg.second);
-        if (bSuccess && (i++ < sizeof...(Args) - 1)) { bSuccess &= CopyToBuffer(ppucBuffer_, uiBytesLeft_, cSeparator_); }
-        return bSuccess;
-    };
+    (
+        [&](auto&& arg) {
+            if (!success) { return; }
+            success &= CopyArg(arg.first, arg.second);
+            // Copy the separator to the buffer for every item except the last.
+            if (success && (i++ < sizeof...(Args) - 1)) { success &= CopyToBuffer(ppucBuffer_, uiBytesLeft_, cSeparator_); }
+        }(std::forward<Args>(args_)),
+        ...);
 
-    (CopyWithSeparator(args_), ...);
-
-    return bSuccess;
+    return success;
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -293,8 +287,7 @@ template <typename Derived> class EncoderBase
                 {
                     const auto& vCurrentFieldArrayField = std::get<std::vector<FieldContainer>>(field.fieldValue);
 
-                    auto uiFieldCount = static_cast<uint32_t>(vCurrentFieldArrayField.size());
-                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &uiFieldCount)) { return false; }
+                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vCurrentFieldArrayField.size()))) { return false; }
 
                     pucTempStart = *ppucOutBuf_; // Move the start placeholder to the front of the array start
 
@@ -325,8 +318,7 @@ template <typename Derived> class EncoderBase
                     if (field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
                     {
                         // if the field is a variable array, print the size first
-                        const auto uiVarArraySize = static_cast<uint32_t>(vFcCurrentVectorField.size());
-                        if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &uiVarArraySize)) { return false; }
+                        if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vFcCurrentVectorField.size()))) { return false; }
                     }
 
                     pucTempStart = *ppucOutBuf_; // Move the start placeholder to the front of the array start
@@ -376,16 +368,16 @@ template <typename Derived> class EncoderBase
                     switch (field.fieldDef->dataType.length)
                     {
                     case 2:
-                        if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &std::get<int16_t>(field.fieldValue))) { return false; }
+                        if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<int16_t>(field.fieldValue))) { return false; }
                         break;
                     case 4:
-                        if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &std::get<int32_t>(field.fieldValue))) { return false; }
+                        if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<int32_t>(field.fieldValue))) { return false; }
                         break;
                     default: return false;
                     }
                     break;
                 case FIELD_TYPE::RESPONSE_ID:
-                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &std::get<int32_t>(field.fieldValue))) { return false; }
+                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<int32_t>(field.fieldValue))) { return false; }
                     break;
                 case FIELD_TYPE::RESPONSE_STR:
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<std::string_view>(field.fieldValue))) { return false; }
@@ -402,7 +394,7 @@ template <typename Derived> class EncoderBase
 
     [[nodiscard]] virtual bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
-        auto visitor = [ppcOutBuf_, &uiBytesLeft_](auto&& value) -> bool { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &value); };
+        auto visitor = [ppcOutBuf_, &uiBytesLeft_](auto&& value) -> bool { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, value); };
 
         return std::visit(visitor, fc_.fieldValue);
     }

@@ -188,15 +188,13 @@ void Encoder::InitFieldMaps()
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
 {
-    Oem4BinaryHeader stBinaryHeader(stInterHeader_);
-    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &stBinaryHeader);
+    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, Oem4BinaryHeader(stInterHeader_));
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
 {
-    Oem4BinaryShortHeader stBinaryHeader(stInterHeader_);
-    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &stBinaryHeader);
+    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, Oem4BinaryShortHeader(stInterHeader_));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -204,7 +202,7 @@ bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf
 {
     switch (fc_.fieldDef->dataType.name)
     {
-    case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, reinterpret_cast<const int32_t*>(&std::get<bool>(fc_.fieldValue)));
+    case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(std::get<bool>(fc_.fieldValue)));
     default: return EncoderBase::FieldToBinary(fc_, ppcOutBuf_, uiBytesLeft_);
     }
 }
@@ -479,7 +477,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
             reinterpret_cast<Oem4BinaryShortHeader*>(stMessageData_.pucMessageHeader)->ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
         }
         uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader, pucTempBuffer - stMessageData_.pucMessageHeader);
-        if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, &uiCrc)) { return STATUS::BUFFER_FULL; }
+        if (!CopyToBuffer(&pucTempBuffer, uiBufferSize_, uiCrc)) { return STATUS::BUFFER_FULL; }
         break;
     }
     case ENCODE_FORMAT::JSON:
