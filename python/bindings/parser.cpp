@@ -101,7 +101,7 @@ void init_novatel_parser(nb::module_& m)
              Initializes a Parser.
 
              Args:
-                 message_db: The message database to parse message with.
+                 message_db: The message database to parse messages with.
                     If None, use the default database.
             )doc")
         .def_prop_rw("ignore_abbreviated_ascii_responses", &oem::PyParser::GetIgnoreAbbreviatedAsciiResponses,

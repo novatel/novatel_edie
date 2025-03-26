@@ -2,7 +2,7 @@ import os
 import logging
 import argparse
 
-from novatel_edie import string_to_encode_format, ENCODE_FORMAT
+from novatel_edie import ENCODE_FORMAT
 
 def setup_example_logging(log_level):
     root_logger = logging.getLogger()
@@ -30,6 +30,6 @@ def handle_args(logger) -> tuple[str, ENCODE_FORMAT]:
         logger.error(f'File "{args.input_file}" does not exist')
         exit(1)
 
-    encode_format = string_to_encode_format(args.output_format)
+    encode_format = ENCODE_FORMAT[args.output_format]
 
     return args.input_file, encode_format

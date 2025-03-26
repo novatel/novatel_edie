@@ -30,36 +30,53 @@ void init_novatel_decoder(nb::module_& m)
     define_pymessagedata(m);
 
     nb::class_<oem::PyDecoder>(m, "Decoder")
-        .def(nb::init<>())
-        .def(nb::init<PyMessageDatabase::Ptr>(), "message_db"_a)
+        .def(
+            "__init__",
+            [](oem::PyDecoder* self, PyMessageDatabase::Ptr message_db) {
+                if (!message_db) { message_db = MessageDbSingleton::get(); }
+                new (self) oem::PyDecoder(message_db);
+            },
+            nb::arg("message_db") = nb::none(),
+            R"doc(
+             Initializes a Decoder.
+
+             Args:
+                 message_db: The message database to decode messages with.
+                    If None, use the default database.
+            )doc")
         .def(
             "decode_header",
             [](const oem::PyDecoder& decoder, const nb::bytes raw_header, oem::MetaDataStruct* metadata) {
-                if (metadata == nullptr) { metadata = new oem::MetaDataStruct(); }
                 oem::PyHeader header;
+                if (metadata == nullptr) { 
+                    oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
+                    metadata = &default_metadata;
+                }
                 STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const uint8_t*>(raw_header.c_str()), header, *metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 header.format = metadata->eFormat;
                 return header;
             },
             "raw_header"_a, nb::arg("metadata") = nb::none())
-        .def("decode_message", &oem::PyDecoder::DecodeMessage, "raw_body"_a, "decoded_header"_a, "metadata"_a)
         .def(
             "decode_message",
-            [](const oem::PyDecoder& decoder, const nb::bytes raw_body, oem::PyHeader& header) {
-                oem::MetaDataStruct metadata;
-                metadata.uiHeaderLength = header.usLength;
-                metadata.uiBinaryMsgLength = raw_body.size();
-                metadata.uiLength = metadata.uiHeaderLength + metadata.uiBinaryMsgLength;
-                metadata.uiMessageCrc = header.uiMessageDefinitionCrc;
-                metadata.eFormat = header.format;
-                metadata.usMessageId = header.usMessageId;
-                metadata.messageName = decoder.database->MsgIdToMsgName(CreateMsgId(
-                    header.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY), static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
-                metadata.bResponse = header.GetPyMessageType().IsResponse();
-                return decoder.DecodeMessage(raw_body, header, metadata);
+            [](const oem::PyDecoder& decoder, const nb::bytes raw_body, oem::PyHeader& header, oem::MetaDataStruct* metadata) {
+                if (metadata == nullptr) { 
+                    oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
+                    default_metadata.uiHeaderLength = header.usLength;
+                    default_metadata.uiBinaryMsgLength = raw_body.size();
+                    default_metadata.uiLength = default_metadata.uiHeaderLength + default_metadata.uiBinaryMsgLength;
+                    default_metadata.uiMessageCrc = header.uiMessageDefinitionCrc;
+                    default_metadata.eFormat = header.format;
+                    default_metadata.usMessageId = header.usMessageId;
+                    default_metadata.messageName = decoder.database->MsgIdToMsgName(CreateMsgId(
+                        header.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY), static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
+                    default_metadata.bResponse = header.GetPyMessageType().IsResponse();
+                    metadata = &default_metadata;
+                }
+                return decoder.DecodeMessage(raw_body, header, *metadata);
             },
-            "raw_body"_a, "decoded_header"_a)
+            "raw_body"_a, "decoded_header"_a, nb::arg("metadata") = nb::none())
         .def(
             "decode",
             [](const oem::PyDecoder& decoder, const nb::bytes message) {
