@@ -50,7 +50,7 @@ constexpr uint16_t US_RX_CONFIG_USER_MSG_ID = 2474;
 class RxConfigHandler
 {
   private:
-    static constexpr auto szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
+    static constexpr std::string_view szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
     static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
 
     Framer clMyFramer;
