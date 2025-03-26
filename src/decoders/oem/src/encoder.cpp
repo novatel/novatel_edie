@@ -101,7 +101,7 @@ void Encoder::InitFieldMaps()
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
         // short circuit eval when sGloChan == 0, otherwise print to buffer
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{}", usSv) && (sGloChan == 0 || PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:+d}", sGloChan));
+        return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, usSv) && (sGloChan == 0 || (PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:+d}", sGloChan)));
     };
 
     asciiFieldMap[CalculateBlockCrc32("P")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
