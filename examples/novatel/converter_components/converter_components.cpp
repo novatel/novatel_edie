@@ -33,6 +33,7 @@
 #include <novatel_edie/decoders/common/json_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/filter.hpp>
+#include <novatel_edie/decoders/oem/framer.hpp>
 
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
@@ -105,11 +106,15 @@ int main(int argc, char* argv[])
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
+    novatel::edie::oem::Framer clFramerManager;
+    
+
+
     // Set up the EDIE components
     // get reference to static singleton instance of FramerManager
-    novatel::edie::FramerManager& clFramerManager = FramerManager({"OEM"});
-    clFramerManager.SetReportUnknownBytes(true);
-    clFramerManager.SetLoggerLevel(spdlog::level::debug);
+    //novatel::edie::FramerManager& clFramerManager = FramerManager({"OEM"});
+    //clFramerManager.SetReportUnknownBytes(true);
+    //clFramerManager.SetLoggerLevel(spdlog::level::debug);
 
     //novatel::edie::oem::Framer clFramer;
     //clFramer.SetPayloadOnly(false);
@@ -172,7 +177,7 @@ int main(int argc, char* argv[])
         {
             unsigned char* pucFrameBuffer = acFrameBuffer;
             int framerId = 0;
-            eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), framerId);
+            eFramerStatus = clFramerManager.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaData);
 
             if (eFramerStatus == STATUS::SUCCESS)
             {
