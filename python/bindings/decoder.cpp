@@ -48,7 +48,8 @@ void init_novatel_decoder(nb::module_& m)
             "decode_header",
             [](const oem::PyDecoder& decoder, const nb::bytes raw_header, oem::MetaDataStruct* metadata) {
                 oem::PyHeader header;
-                if (metadata == nullptr) { 
+                if (metadata == nullptr)
+                {
                     oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
                     metadata = &default_metadata;
                 }
@@ -57,11 +58,20 @@ void init_novatel_decoder(nb::module_& m)
                 header.format = metadata->eFormat;
                 return header;
             },
-            "raw_header"_a, nb::arg("metadata") = nb::none())
+            "raw_header"_a, nb::arg("metadata") = nb::none(), R"doc(
+            Decode the header from a piece of framed data.
+
+            Args:
+                raw_header: A frame of raw bytes containing the header information to decode.
+                metadata: A storehouse for additional information determined as part of the decoding process.
+                    Supplying metadata is optional, but without it there will be no way of later accessing
+                    information such as the number of raw bytes that are included in the header.
+            )doc")
         .def(
             "decode_message",
             [](const oem::PyDecoder& decoder, const nb::bytes raw_body, oem::PyHeader& header, oem::MetaDataStruct* metadata) {
-                if (metadata == nullptr) { 
+                if (metadata == nullptr)
+                {
                     oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
                     default_metadata.uiHeaderLength = header.usLength;
                     default_metadata.uiBinaryMsgLength = raw_body.size();
@@ -86,6 +96,7 @@ void init_novatel_decoder(nb::module_& m)
                 oem::PyHeader header;
                 const unsigned char* message_pointer = reinterpret_cast<const uint8_t*>(message.c_str());
                 STATUS status = decoder.header_decoder.Decode(message_pointer, header, metadata);
+                header.format = metadata.eFormat;
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 const unsigned char* body_pointer = message_pointer + metadata.uiHeaderLength;
                 status = decoder.message_decoder.Decode(body_pointer, fields, metadata);
