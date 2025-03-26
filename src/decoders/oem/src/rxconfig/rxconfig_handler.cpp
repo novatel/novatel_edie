@@ -163,8 +163,8 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     case ENCODE_FORMAT::ABBREV_ASCII:
         // The header is going to be pointing to the wrong location, so reverse it back to
         // before the "<     " characters.
-        stEmbeddedMessageData_.pucMessageHeader -= strlen(szAbbrevAsciiEmbeddedHeaderPrefix);
-        stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(strlen(szAbbrevAsciiEmbeddedHeaderPrefix));
+        stEmbeddedMessageData_.pucMessageHeader -= szAbbrevAsciiEmbeddedHeaderPrefix.size();
+        stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>(szAbbrevAsciiEmbeddedHeaderPrefix.size());
         // A normal abbreviated ASCII log would remove the final ' ' delimiter, however since
         // this is part of a message body, we should encode it to follow the standard of
         // trailing spaces in the message body. EncodeHeader() would have removed this, so add
