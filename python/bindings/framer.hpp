@@ -10,6 +10,12 @@ class PyFramer : public Framer
   public:
     PyFramer() : Framer() {};
 
+    bool GetFrameJson() { return bMyFrameJson; }
+
+    bool GetPayloadOnly() { return bMyPayloadOnly; }
+
+    bool GetReportUnknownBytes() { return bMyReportUnknownBytes; }
+
     nb::tuple PyGetFrame(uint32_t buffer_size);
 
     nb::tuple PyIterGetFrame();

@@ -42,9 +42,9 @@ NB_MODULE(bindings, m)
     init_novatel_exceptions(m);
     init_novatel_parser(m);
     init_novatel_file_parser(m);
-    init_novatel_filter(m);
     init_novatel_framer(m);
     init_novatel_decoder(m);
+    init_novatel_filter(m);
     init_novatel_commander(m);
     init_novatel_rxconfig_handler(m);
     init_novatel_range_decompressor(m);

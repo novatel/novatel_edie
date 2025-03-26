@@ -75,7 +75,7 @@ void init_common_common(nb::module_& m)
             return nb::str("SatelliteId(prn_or_slot={!r}, frequency_channel={!r})").format(id.usPrnOrSlot, id.sFrequencyChannel);
         });
 
-    m.attr("MESSAGE_SIZE_MAX") = MESSAGE_SIZE_MAX;
+    m.attr("MAX_MESSAGE_LENGTH") = MESSAGE_SIZE_MAX;
     m.attr("MAX_ASCII_MESSAGE_LENGTH") = MAX_ASCII_MESSAGE_LENGTH;
     m.attr("MAX_BINARY_MESSAGE_LENGTH") = MAX_BINARY_MESSAGE_LENGTH;
     m.attr("MAX_SHORT_ASCII_MESSAGE_LENGTH") = MAX_SHORT_ASCII_MESSAGE_LENGTH;

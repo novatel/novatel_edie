@@ -46,24 +46,73 @@ nb::tuple oem::PyFramer::PyIterGetFrame()
 void init_novatel_framer(nb::module_& m)
 {
     nb::class_<oem::PyFramer>(m, "Framer")
-        .def(nb::init())
+        .def(nb::init(), "Initializes a Framer.")
+        .def_prop_rw("frame_json", &oem::PyFramer::GetFrameJson, &oem::PyFramer::SetFrameJson,
+                     "Whether to detect, frame, and return messages in JSON format.")
+        .def_prop_rw("payload_only", &oem::PyFramer::GetPayloadOnly, &oem::PyFramer::SetPayloadOnly,
+                     "Whether to frame and return only the payload of detected messages.")
+        .def_prop_rw("report_unknown_bytes", &oem::PyFramer::GetReportUnknownBytes, &oem::PyFramer::SetReportUnknownBytes,
+             "Whether to frame and return undecodable data.")
+        .def_prop_ro("bytes_available_in_buffer", &oem::PyFramer::GetBytesAvailableInBuffer,
+                     "The number of bytes remaining in the Framer's internal buffer.")
+        .def("get_frame", &oem::PyFramer::PyGetFrame, "buffer_size"_a = MESSAGE_SIZE_MAX,
+             nb::sig("def get_frame(buffer_size = MAX_MESSAGE_LENGTH) -> tuple[bytes, MetaData]"),
+             R"doc(
+            Attempts to get a frame from the Framer's buffer.
+
+            Args:
+                buffer_size: The maximum number of bytes to use for a framed message.
+
+            Returns:
+                The framed data and metadata.
+
+            Raises:
+                BufferEmptyException: There are no more bytes in the internal buffer.
+                BufferFullException: The framed message does not fit in the provided
+                    buffer size.
+                IncompleteException: The framer found the start of a message, but 
+                    there are no more bytes in the internal buffer.
+            )doc")
         .def(
-            "set_frame_json", [](oem::PyFramer& self, bool frame_json) { self.SetFrameJson(frame_json); }, "frame_json"_a)
+            "__iter__", [](nb::handle_t<oem::PyFramer> self) { return self; },
+            R"doc(
+            Marks Framer as Iterable.
+
+            Returns:
+                The Framer itself as an Iterator.
+            )doc")
+        .def("__next__", &oem::PyFramer::PyIterGetFrame, nb::sig("def __next__() -> tuple[bytes, MetaData]"),
+             R"doc(
+            Attempts to get the next frame from the Framer's buffer.
+
+            Returns:
+                The framed data and its metadata.
+
+            Raises:
+                StopIteration: There is insufficient data in the Framer's
+                    buffer to get a complete frame.
+            )doc")
         .def(
-            "set_payload_only", [](oem::PyFramer& self, bool payload_only) { self.SetPayloadOnly(payload_only); }, "payload_only"_a)
+            "write",
+            [](oem::PyFramer& framer, const nb::bytes& data) { return framer.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); },
+            R"doc(
+            Writes data to the Framer's buffer.
+
+            Args:
+                data: The data to write to the buffer.
+            )doc")
         .def(
-            "set_report_unknown_bytes", [](oem::PyFramer& self, bool report_unknown_bytes) { self.SetReportUnknownBytes(report_unknown_bytes); },
-            "report_unknown_bytes"_a)
-        .def_prop_ro("bytes_available_in_buffer", [](const oem::PyFramer& framer) { return framer.GetBytesAvailableInBuffer(); })
-        .def("get_frame", &oem::PyFramer::PyGetFrame, "buffer_size"_a = MESSAGE_SIZE_MAX)
-        .def("__iter__", [](nb::handle_t<oem::PyFramer> self) { return self; })
-        .def("__next__", &oem::PyFramer::PyIterGetFrame)
-        .def("write",
-             [](oem::PyFramer& framer, const nb::bytes& data) { return framer.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); })
-        .def("flush", [](oem::PyFramer& framer) {
-            char buffer[MESSAGE_SIZE_MAX];
-            uint32_t buf_size = MESSAGE_SIZE_MAX;
-            uint32_t flushed = framer.Flush(reinterpret_cast<uint8_t*>(buffer), buf_size);
-            return nb::bytes(buffer, flushed);
-        });
+            "flush",
+            [](oem::PyFramer& framer) {
+                char buffer[MESSAGE_SIZE_MAX];
+                uint32_t buf_size = MESSAGE_SIZE_MAX;
+                uint32_t flushed = framer.Flush(reinterpret_cast<uint8_t*>(buffer), buf_size);
+                return nb::bytes(buffer, flushed);
+            },
+            R"doc(
+            Flushes all bytes from the internal Framer.
+
+            Returns:
+                The flushed bytes.
+            )doc");
 }
