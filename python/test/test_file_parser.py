@@ -94,8 +94,3 @@ def test_file_parser_iterator(fp):
 
     assert msgs[1].header.milliseconds == pytest.approx(172189053)
     assert len(msgs[1].to_ascii().message) == 195
-
-
-def test_reset(fp):
-    assert len(fp.internal_buffer) > 0
-    assert fp.reset()

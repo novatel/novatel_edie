@@ -76,20 +76,21 @@ nb::object oem::FileConversionIterator::PyIterConvert()
 void init_novatel_file_parser(nb::module_& m)
 {
     nb::class_<oem::PyFileParser>(m, "FileParser")
-        .def(nb::init<const std::filesystem::path&>(), "file_path"_a,
-             R"doc(
-             Initializes a FileParser with the specified file path.
+        .def(
+            "__init__",
+            [](oem::PyFileParser* self, const std::filesystem::path& file_path, PyMessageDatabase::Ptr message_db) {
+                if (!message_db) { message_db = MessageDbSingleton::get(); }
+                new (self) oem::PyFileParser(file_path, message_db);
+            },
+            "file_path"_a,
+            nb::arg("message_db") = nb::none(),
+            R"doc(
+             Initializes a FileParser.
 
              Args:
                  file_path: The path to the file to be parsed.
-            )doc")
-        .def(nb::init<const std::filesystem::path&, const PyMessageDatabase::Ptr&>(), "file_path"_a, "message_db"_a,
-             R"doc(
-             Initializes a FileParser with the specified file path and message database.
-
-             Args:
-                 file_path: The path to the file to be parsed.
-                 message_db: The message database to parse messages with.
+                 message_db: The message database to parse message with.
+                    If None, use the default database.
             )doc")
         .def_prop_rw("ignore_abbreviated_ascii_responses", &oem::PyFileParser::GetIgnoreAbbreviatedAsciiResponses,
                      &oem::PyFileParser::SetIgnoreAbbreviatedAsciiResponses,
