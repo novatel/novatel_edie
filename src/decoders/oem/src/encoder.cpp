@@ -81,8 +81,9 @@ void Encoder::InitFieldMaps()
     // =========================================================
     asciiFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}",
-                             fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR ? std::get<uint8_t>(fc_.fieldValue) : std::get<int8_t>(fc_.fieldValue));
+        return fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR
+                   ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(std::get<uint8_t>(fc_.fieldValue)))
+                   : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int8_t>(fc_.fieldValue));
     };
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -107,9 +108,9 @@ void Encoder::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("P")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         const uint8_t uiValue = std::get<uint8_t>(fc_.fieldValue);
-        if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }                         // TODO: add description
-        if (uiValue > 31 && uiValue < 127) { return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}", uiValue); } // print the character
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x{:02x}", uiValue);                                   // print as a hex character within ()
+        if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }
+        if (uiValue > 31 && uiValue < 127) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(uiValue)); }
+        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x{:02x}", uiValue);
     };
 
     asciiFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -126,11 +127,11 @@ void Encoder::InitFieldMaps()
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         if (fc_.fieldDef->dataType.length == 1) //
         {
-            return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}", std::get<uint8_t>(fc_.fieldValue));
+            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(std::get<uint8_t>(fc_.fieldValue)));
         }
         if (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DATA_TYPE::ULONG)
         {
-            return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}", std::get<uint32_t>(fc_.fieldValue));
+            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(std::get<uint32_t>(fc_.fieldValue)));
         }
         return false;
     };
@@ -172,9 +173,9 @@ void Encoder::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:c}",
-                             (fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR) ? std::get<uint8_t>(fc_.fieldValue)
-                                                                               : std::get<int8_t>(fc_.fieldValue));
+        return fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR
+                   ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(std::get<uint8_t>(fc_.fieldValue)))
+                   : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int8_t>(fc_.fieldValue));
     };
 
     jsonFieldMap[CalculateBlockCrc32("c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
