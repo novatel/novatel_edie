@@ -112,7 +112,6 @@ int main(int argc, char* argv[])
     // Initialize structures and error codes
     auto eStatus = STATUS::UNKNOWN;
 
-    MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
     clFileParser.SetFilter(clFilter);

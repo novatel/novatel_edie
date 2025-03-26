@@ -90,7 +90,7 @@ class Framer : public FramerBase
     //! \param[out] pucFrameBuffer_ The buffer which the Framer should copy the
     //! framed OEM message to.
     //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
-    //! \param[out] stMetaData_ A MetaDataStruct to contain some information
+    //! \param[out] stMetaData_ A MetaDataBase to contain some information
     //! about OEM message frame.
     //
     //! \return An error code describing the result of framing.

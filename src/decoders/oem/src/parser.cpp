@@ -36,6 +36,8 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
 {
     auto pclMessageDb = LoadJsonDbFile(sDbPath_);
     LoadJsonDb(pclMessageDb);
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
     pclMyLogger->debug("Parser initialized");
 }
 
@@ -43,6 +45,8 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
 Parser::Parser(MessageDatabase::Ptr pclMessageDb_)
 {
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
     pclMyLogger->debug("Parser initialized");
 }
 

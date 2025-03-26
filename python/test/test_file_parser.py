@@ -28,6 +28,7 @@
 # Encoder and Filter.
 ################################################################################
 
+from email import message
 import novatel_edie as ne
 import pytest
 from novatel_edie import STATUS, ENCODE_FORMAT
@@ -87,10 +88,10 @@ def test_parse_file_with_filter(fp, test_gps_file):
         status = STATUS.UNKNOWN
         success = 0
         while status != STATUS.STREAM_EMPTY:
-            status, message_data, meta_data = fp.read()
+            status, message_data = fp.read()
             if status == STATUS.SUCCESS:
-                assert meta_data.length == [213, 195][success]
-                assert meta_data.milliseconds == pytest.approx([270605000, 172189053][success])
+                assert message_data.length == [213, 195][success]
+                assert message_data.milliseconds == pytest.approx([270605000, 172189053][success])
                 assert len(message_data.message) == [213, 195][success]
                 success += 1
         assert success == 2
