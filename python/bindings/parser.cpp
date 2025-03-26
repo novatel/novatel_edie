@@ -96,7 +96,7 @@ void init_novatel_parser(nb::module_& m)
                 if (!message_db) { message_db = MessageDbSingleton::get(); }
                 new (self) oem::PyParser(message_db);
             },
-            nb::arg("message_db") = nb::none(), 
+            nb::arg("message_db") = nb::none(),
             R"doc(
              Initializes a Parser.
 
@@ -105,11 +105,12 @@ void init_novatel_parser(nb::module_& m)
                     If None, use the default database.
             )doc")
         .def_prop_rw("ignore_abbreviated_ascii_responses", &oem::PyParser::GetIgnoreAbbreviatedAsciiResponses,
-                     &oem::PyParser::SetIgnoreAbbreviatedAsciiResponses, "Whether to skip over abbreviated ascii message responses e.g. `<OK`/`<ERROR`.")
+                     &oem::PyParser::SetIgnoreAbbreviatedAsciiResponses,
+                     "Whether to skip over abbreviated ascii message responses e.g. `<OK`/`<ERROR`.")
         .def_prop_rw("decompress_range_cmp", &oem::PyParser::GetDecompressRangeCmp, &oem::PyParser::SetDecompressRangeCmp,
                      "Whether to decompress compressed RANGE messages.")
         .def_prop_rw("return_unknown_bytes", &oem::PyParser::GetReturnUnknownBytes, &oem::PyParser::SetReturnUnknownBytes,
-                     "Whether return unidentifiable data.")
+                     "Whether to return unidentifiable data.")
         .def_prop_rw("filter", &oem::PyParser::GetFilter, &oem::PyParser::SetFilter, "The filter which controls which data is skipped over.")
         .def(
             "write",
@@ -154,7 +155,14 @@ void init_novatel_parser(nb::module_& m)
                 BufferEmptyException: There is insufficient data in the Parser's
                 buffer to decode a message.
             )doc")
-        .def("__iter__", [](nb::handle_t<oem::PyParser> self) { return self; })
+        .def(
+            "__iter__", [](nb::handle_t<oem::PyParser> self) { return self; },
+            R"doc(
+            Marks Parser as Iterable.
+
+            Returns:
+                The Parser itself as an Iterator.
+            )doc")
         .def("__next__", &oem::PyParser::PyIterRead, nb::sig("def __next__() -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read the next message from data in the Parser's buffer.
@@ -220,7 +228,13 @@ void init_novatel_parser(nb::module_& m)
             )doc");
 
     nb::class_<oem::ConversionIterator>(m, "ConversionIterator")
-        .def("__iter__", [](nb::handle_t<oem::ConversionIterator> self) { return self; })
+        .def("__iter__", [](nb::handle_t<oem::ConversionIterator> self) { return self; },
+            R"doc(
+            Marks ConversionIterator as Iterable.
+
+            Returns:
+                The ConversionIterator itself as an Iterator.
+            )doc")
         .def("__next__", &oem::ConversionIterator::PyIterConvert, nb::sig("def __next__() -> MessageData"),
              R"doc(
             Converts the next message in the buffer to the specified format.
