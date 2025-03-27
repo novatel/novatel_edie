@@ -43,8 +43,8 @@ void init_decoder_tester(nb::module_ &m)
             [](DecoderTester& decoder, const std::vector<BaseField::Ptr>& msg_def_fields, const nb::bytes& message_body) {
                 std::vector<FieldContainer> fields;
                 // Copy to ensure that the byte string is zero-delimited
-                std::string body_str(message_body.c_str(), message_body.size());
-                const char* data_ptr = body_str.c_str();
+                std::string_view body_str(message_body.c_str(), message_body.size());
+                const char* data_ptr = body_str.data();
                 STATUS status = decoder.TestDecodeAscii(msg_def_fields, &data_ptr, fields);
                 return nb::make_tuple(status,
                                       PyField("", false, std::move(fields), std::dynamic_pointer_cast<const PyMessageDatabase>(decoder.MessageDb())));
