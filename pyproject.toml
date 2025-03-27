@@ -59,7 +59,7 @@ manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.macos.environment]
 # Needed for full C++17 support
-MACOSX_DEPLOYMENT_TARGET = "14.0"
+MACOSX_DEPLOYMENT_TARGET = "13.0"
 
 [tool.bumpversion]
 current_version = "3.5.0"
