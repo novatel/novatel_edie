@@ -244,7 +244,7 @@ template <typename... Args> [[nodiscard]] bool CopyAllToBuffer(char** ppucBuffer
         if constexpr (std::is_integral_v<Decayed> && !std::is_same_v<Decayed, char>) { return PrintIntToBuffer(ppucBuffer_, uiBytesLeft_, arg); }
         if constexpr (is_specialization_of_v<Decayed, FormattedValue>) { return PrintToBuffer(ppucBuffer_, uiBytesLeft_, arg.format, arg.value); }
         if constexpr (is_specialization_of_v<Decayed, HexValue>) { return PrintHexToBuffer(ppucBuffer_, uiBytesLeft_, arg.minDigits, arg.value); }
-        return CopyToBuffer(ppucBuffer_, uiBytesLeft_, arg);
+        else { return CopyToBuffer(ppucBuffer_, uiBytesLeft_, arg); }
     }(args_) &&
             ...);
 }
