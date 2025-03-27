@@ -52,13 +52,13 @@ jobs:
         shell: bash
         run: |
           if [ "${{ env.COMPILER }}" == "msvc" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang-cl" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL #TODO: -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL -DBUILD_BENCHMARKS=ON #TODO: -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "gnu" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           fi
 
       - name: Build
