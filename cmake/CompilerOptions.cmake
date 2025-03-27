@@ -1,7 +1,7 @@
 if(MSVC)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
     add_definitions(-DWIN32 -D_WINDOWS)
-    add_compile_options(/W4 /GR /EHsc /utf-8 /wd4244 /wd4293 /wd4996)
+    add_compile_options(/W4 /GR /EHsc /utf-8 /wd2220 /wd4244 /wd4293 /wd4996)
     add_compile_options("$<$<CONFIG:Release>:/Ox;/Ob2>")
     if(WARNINGS_AS_ERRORS)
         add_compile_options(/WX)
