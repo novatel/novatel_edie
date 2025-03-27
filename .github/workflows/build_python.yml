@@ -44,12 +44,8 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_ARCHS: ${{ matrix.platform[2] }}
           CIBW_BUILD: cp313*
           CIBW_SKIP: "*-musllinux*"
-          CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28
-          MACOSX_DEPLOYMENT_TARGET: "13.0"
-          CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=13.0"
 
       - name: Inspect
         run: ls wheelhouse/
