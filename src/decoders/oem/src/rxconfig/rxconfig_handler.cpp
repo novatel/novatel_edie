@@ -200,7 +200,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
         uiMyBufferBytesRemaining += OEM4_ASCII_CRC_LENGTH;
         // Grab the CRC from the encode buffer and invert it.
         uint32_t uiCRC = strtoul(reinterpret_cast<char*>(pucTempEncodeBuffer), nullptr, 16) ^ 0xFFFFFFFF;
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "{:08x}", uiCRC)) { return STATUS::BUFFER_FULL; }
+        if (!PrintHexToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, 8, uiCRC)) { return STATUS::BUFFER_FULL; }
         break;
     }
     case ENCODE_FORMAT::BINARY: {
@@ -226,7 +226,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     {
     case ENCODE_FORMAT::ASCII: {
         uint32_t uiCRC = CalculateBlockCrc32(pcMyEncodeBuffer.get() + 1, static_cast<uint32_t>(pucTempEncodeBuffer - (pcMyEncodeBuffer.get() + 1)));
-        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, "*{:08x}\r\n", uiCRC))
+        if (!CopyAllToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiMyBufferBytesRemaining, '*', HexValue<uint32_t>{8, uiCRC}, "\r\n"))
         {
             return STATUS::BUFFER_FULL;
         }
