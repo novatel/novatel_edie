@@ -132,29 +132,43 @@ template <typename BufferType, typename... Args>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType, typename... Args> [[nodiscard]] bool PrintIntToBuffer(BufferType* ppcBuffer_, uint32_t& uiBytesLeft_, Args&&... args_)
+template <typename T> [[nodiscard]] bool PrintIntToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, T&& arg)
 {
-    static_assert((std::is_integral_v<std::decay_t<Args>> && ...), "All arguments must be integral types");
+    static_assert(std::is_integral_v<std::decay_t<T>>, "Argument must be integral type.");
+    auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, arg);
+    if (ec != std::errc{}) { return false; }
+    const auto written = static_cast<uint32_t>(end - *ppcBuffer_);
+    *ppcBuffer_ = end;
+    uiBytesLeft_ -= written;
+    return true;
+}
 
-    bool success = true;
-    (
-        [&](auto&& arg) {
-            if (!success) { return; }
+// -------------------------------------------------------------------------------------------------------
+template <typename T> [[nodiscard]] bool PrintHexToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, uint32_t minDigits, T&& arg)
+{
+    static_assert(std::is_integral_v<std::decay_t<T>>, "Argument must be integral type.");
 
-            auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, arg);
-            if (ec != std::errc{})
-            {
-                success = false;
-                return;
-            }
+    constexpr uint32_t kMaxHexDigits = sizeof(T) * 2;
+    const uint32_t requiredSpace = std::max(minDigits, kMaxHexDigits);
 
-            const auto written = static_cast<uint32_t>(end - *ppcBuffer_);
-            *ppcBuffer_ = end;
-            uiBytesLeft_ -= written;
-        }(std::forward<Args>(args_)),
-        ...);
+    if (uiBytesLeft_ < requiredSpace) { return false; }
 
-    return success;
+    auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, arg, 16);
+    if (ec != std::errc{}) { return false; }
+
+    const auto num_digits = static_cast<uint32_t>(end - *ppcBuffer_);
+    if (num_digits < minDigits)
+    {
+        const uint32_t pad_chars = minDigits - num_digits;
+        std::memmove(*ppcBuffer_ + pad_chars, *ppcBuffer_, num_digits);
+        std::fill_n(*ppcBuffer_, pad_chars, '0');
+        end += pad_chars;
+    }
+
+    const auto written = static_cast<uint32_t>(end - *ppcBuffer_);
+    *ppcBuffer_ = end;
+    uiBytesLeft_ -= written;
+    return true;
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -206,6 +220,12 @@ template <typename T> struct FormattedValue
     std::string_view format;
 };
 
+template <typename T> struct HexValue
+{
+    T value;
+    uint32_t minDigits;
+};
+
 template <typename T, template <typename> class Template> struct is_specialization_of : std::false_type
 {
 };
@@ -217,14 +237,13 @@ template <typename T, template <typename> class Template> struct is_specializati
 template <typename T, template <typename> class Template> inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
 
 // -------------------------------------------------------------------------------------------------------
-template <typename BufferType, typename... Args> [[nodiscard]] bool CopyAllToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, Args&&... args_)
+template <typename... Args> [[nodiscard]] bool CopyAllToBuffer(char** ppucBuffer_, uint32_t& uiBytesLeft_, Args&&... args_)
 {
-    // TODO: 8 bit ints and chars both look the same and are treated as integers, even though we often just want to print a character.
-    // For now my solution is just to call CopyToBuffer independently, or pass characters as string views.
     return ([&](auto&& arg) {
         using Decayed = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_integral_v<Decayed>) { return PrintIntToBuffer(ppucBuffer_, uiBytesLeft_, arg); }
+        if constexpr (std::is_integral_v<Decayed> && !std::is_same_v<Decayed, char>) { return PrintIntToBuffer(ppucBuffer_, uiBytesLeft_, arg); }
         if constexpr (is_specialization_of_v<Decayed, FormattedValue>) { return PrintToBuffer(ppucBuffer_, uiBytesLeft_, arg.format, arg.value); }
+        if constexpr (is_specialization_of_v<Decayed, HexValue>) { return PrintHexToBuffer(ppucBuffer_, uiBytesLeft_, arg.minDigits, arg.value); }
         return CopyToBuffer(ppucBuffer_, uiBytesLeft_, arg);
     }(args_) &&
             ...);
@@ -261,6 +280,14 @@ template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t
 {
     return [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<T>(fc_.fieldValue));
+    };
+}
+
+// -------------------------------------------------------------------------------------------------------
+template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicHexMapEntry(uint32_t min)
+{
+    return [min](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return PrintHexToBuffer(ppcOutBuf_, uiBytesLeft_, min, std::get<T>(fc_.fieldValue));
     };
 }
 
@@ -599,7 +626,7 @@ template <typename Derived> class EncoderBase
         switch (fc_.fieldDef->dataType.name)
         {
         case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::string_view(std::get<bool>(fc_.fieldValue) ? "TRUE" : "FALSE"));
-        case DATA_TYPE::HEXBYTE: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:02x}", std::get<uint8_t>(fc_.fieldValue));
+        case DATA_TYPE::HEXBYTE: return PrintHexToBuffer(ppcOutBuf_, uiBytesLeft_, 2, std::get<uint8_t>(fc_.fieldValue));
         case DATA_TYPE::UCHAR: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint8_t>(fc_.fieldValue));
         case DATA_TYPE::CHAR: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int8_t>(fc_.fieldValue));
         case DATA_TYPE::USHORT: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint16_t>(fc_.fieldValue));
@@ -655,7 +682,7 @@ template <typename Derived> class EncoderBase
                 // FIELD_ARRAY types contain several classes and so will use a recursive call
                 if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
                 {
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", std::string_view(field.fieldDef->name), R"(": [)")) { return false; }
+                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), R"(": [)")) { return false; }
                     const auto& vCurrentFieldArrayField = std::get<std::vector<FieldContainer>>(field.fieldValue);
                     if (vCurrentFieldArrayField.empty())
                     {
@@ -681,10 +708,10 @@ template <typename Derived> class EncoderBase
 
                     if (bPrintAsString)
                     {
-                        if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", field.fieldDef->name.c_str(), R"(": ")")) { return false; }
+                        if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), R"(": ")")) { return false; }
                     }
                     // This is an array of simple elements
-                    else if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", field.fieldDef->name.c_str(), R"(": [)") ||
+                    else if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), R"(": [)") ||
                              (vFcCurrentVectorField.empty() && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ']')))
                     {
                         return false;
@@ -724,7 +751,7 @@ template <typename Derived> class EncoderBase
                 switch (field.fieldDef->type)
                 {
                 case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", std::string_view(field.fieldDef->name), "\": \"",
+                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), "\": \"",
                                          std::get<std::string_view>(field.fieldValue), "\","))
                     {
                         return false;
@@ -733,7 +760,7 @@ template <typename Derived> class EncoderBase
 
                 case FIELD_TYPE::ENUM:
                     if (!CopyAllToBuffer(
-                            ppcOutBuf_, uiBytesLeft_, "\"", std::string_view(field.fieldDef->name), "\": \"",
+                            ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), "\": \"",
                             GetEnumString(dynamic_cast<const EnumField*>(field.fieldDef.get())->enumDef, std::get<int32_t>(field.fieldValue)), "\","))
                     {
                         return false;
@@ -741,15 +768,15 @@ template <typename Derived> class EncoderBase
                     break;
 
                 case FIELD_TYPE::RESPONSE_ID:
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", std::string_view(field.fieldDef->name),
-                                         "\": ", std::get<int32_t>(field.fieldValue), ","))
+                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name),
+                                         "\": ", std::get<int32_t>(field.fieldValue), ','))
                     {
                         return false;
                     }
                     break;
 
                 case FIELD_TYPE::RESPONSE_STR:
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", std::string_view(field.fieldDef->name), "\": \"",
+                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), "\": \"",
                                          std::get<std::string_view>(field.fieldValue), "\","))
                     {
                         return false;
@@ -757,7 +784,7 @@ template <typename Derived> class EncoderBase
                     break;
 
                 case FIELD_TYPE::SIMPLE:
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", std::string_view(field.fieldDef->name), "\": ") ||
+                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), "\": ") ||
                         !FieldToJson(field, ppcOutBuf_, uiBytesLeft_) || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
                     {
                         return false;
@@ -784,7 +811,7 @@ template <typename Derived> class EncoderBase
         // =========================================================
         asciiFieldMap[CalculateBlockCrc32("UB")] = BasicIntMapEntry<uint8_t>();
         asciiFieldMap[CalculateBlockCrc32("B")] = BasicIntMapEntry<int8_t>();
-        asciiFieldMap[CalculateBlockCrc32("XB")] = BasicMapEntry<uint8_t>("{:02x}");
+        asciiFieldMap[CalculateBlockCrc32("XB")] = BasicHexMapEntry<uint8_t>(2);
     }
 
   public:

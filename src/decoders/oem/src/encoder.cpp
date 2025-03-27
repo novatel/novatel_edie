@@ -101,8 +101,9 @@ void Encoder::InitFieldMaps()
         const uint32_t uiTempId = std::get<uint32_t>(fc_.fieldValue);
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
-        // short circuit eval when sGloChan == 0, otherwise print to buffer
-        return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, usSv) && (sGloChan == 0 || PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:+d}", sGloChan));
+        return (sGloChan < 0)    ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, usSv, sGloChan)
+               : (sGloChan != 0) ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, usSv, '+', sGloChan)
+                                 : PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, usSv);
     };
 
     asciiFieldMap[CalculateBlockCrc32("P")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -110,7 +111,7 @@ void Encoder::InitFieldMaps()
         const uint8_t uiValue = std::get<uint8_t>(fc_.fieldValue);
         if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }
         if (uiValue > 31 && uiValue < 127) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(uiValue)); }
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x{:02x}", uiValue);
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x") && PrintHexToBuffer(ppcOutBuf_, uiBytesLeft_, 2, uiValue);
     };
 
     asciiFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -156,9 +157,9 @@ void Encoder::InitFieldMaps()
         const auto uiTempId = std::get<uint32_t>(fc_.fieldValue);
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
-        if (sGloChan < 0) { return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", usSv, sGloChan, "\""); }
-        if (sGloChan != 0) { return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", usSv, "+", sGloChan, "\""); }
-        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", usSv, "\"");
+        return (sGloChan < 0)    ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, sGloChan, '"')
+               : (sGloChan != 0) ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, "+", sGloChan, '"')
+                                 : CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, '"');
     };
 
     jsonFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -173,24 +174,20 @@ void Encoder::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR
-                   ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(std::get<uint8_t>(fc_.fieldValue)))
-                   : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int8_t>(fc_.fieldValue));
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_,
+                            fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR ? static_cast<int8_t>(std::get<uint8_t>(fc_.fieldValue))
+                                                                            : std::get<int8_t>(fc_.fieldValue));
     };
 
     jsonFieldMap[CalculateBlockCrc32("c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         if (fc_.fieldDef->dataType.length == 1)
         {
-            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\"") &&
-                   CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(std::get<uint8_t>(fc_.fieldValue))) &&
-                   CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\"");
+            return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', static_cast<int8_t>(std::get<uint8_t>(fc_.fieldValue)), '"');
         }
         if (fc_.fieldDef->dataType.length == 4 && fc_.fieldDef->dataType.name == DATA_TYPE::ULONG)
         {
-            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\"") &&
-                   CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(std::get<uint32_t>(fc_.fieldValue))) &&
-                   CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\"");
+            return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', static_cast<int8_t>(std::get<uint32_t>(fc_.fieldValue)), '"');
         }
         return false;
     };
@@ -237,18 +234,17 @@ bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char**
                                     GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus),                 //
                                     stInterHeader_.usWeek,                                                                   //
                                     FormattedValue<double>{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"},                 //
-                                    FormattedValue<uint32_t>{stInterHeader_.uiReceiverStatus, "{:08x}"},                     //
-                                    FormattedValue<uint32_t>{stInterHeader_.uiMessageDefinitionCrc, "{:04x}"},               //
+                                    HexValue<uint32_t>{stInterHeader_.uiReceiverStatus, 8},                                  //
+                                    HexValue<uint32_t>{stInterHeader_.uiMessageDefinitionCrc, 4},                            //
                                     stInterHeader_.usReceiverSwVersion                                                       //
                                     ) &&
            CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_HEADER_TERMINATOR);
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                      bool bIsEmbeddedHeader_) const
+bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, bool bIsEmbedded_) const
 {
-    if (!bIsEmbeddedHeader_ && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SYNC)) { return false; }
+    if (!bIsEmbedded_ && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SYNC)) { return false; }
 
     MessageDefinition::ConstPtr pclMessageDef = pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId);
     std::string sMsgName(pclMessageDef != nullptr ? pclMessageDef->name : GetEnumString(vMyCommandDefinitions, stInterHeader_.usMessageId));
@@ -262,12 +258,11 @@ bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, 
                                     GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus),                 //
                                     stInterHeader_.usWeek,                                                                   //
                                     FormattedValue<double>{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"},                 //
-                                    FormattedValue<uint32_t>{stInterHeader_.uiReceiverStatus, "{:08x}"},                     //
-                                    FormattedValue<uint32_t>{stInterHeader_.uiMessageDefinitionCrc, "{:04x}"},               //
+                                    HexValue<uint32_t>{stInterHeader_.uiReceiverStatus, 8},                                  //
+                                    HexValue<uint32_t>{stInterHeader_.uiMessageDefinitionCrc, 4},                            //
                                     stInterHeader_.usReceiverSwVersion                                                       //
                                     ) &&
-           (bIsEmbeddedHeader_ ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR)
-                               : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n"));
+           (bIsEmbedded_ ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR) : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n"));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -328,7 +323,7 @@ bool Encoder::EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** 
                            R"(,"seconds": )", FormattedValue<double>{(stInterHeader_.dMilliseconds / 1000.0), "{:.3f}"},                          //
                            R"(,"receiver_status": )", stInterHeader_.uiReceiverStatus,                                                            //
                            R"(,"HEADER_reserved1": )", stInterHeader_.uiMessageDefinitionCrc,                                                     //
-                           R"(,"receiver_sw_version": )", stInterHeader_.usReceiverSwVersion, "}");
+                           R"(,"receiver_sw_version": )", stInterHeader_.usReceiverSwVersion, '}');
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -468,7 +463,10 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         if (!EncodeAsciiBody<false>(stMessage_, reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pucTempBuffer--; // Remove last delimiter ','
         const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1, pucTempBuffer - stMessageData_.pucMessageHeader - 1);
-        if (!PrintToBuffer(&pucTempBuffer, uiBufferSize_, "*{:08x}\r\n", uiCrc)) { return STATUS::BUFFER_FULL; }
+        if (!CopyAllToBuffer(reinterpret_cast<char**>(&pucTempBuffer), uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n"))
+        {
+            return STATUS::BUFFER_FULL;
+        }
         break;
     }
     case ENCODE_FORMAT::ABBREV_ASCII:
