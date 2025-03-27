@@ -62,7 +62,7 @@ class Encoder : public EncoderBase<Encoder>
     [[nodiscard]] bool EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
     [[nodiscard]] bool EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
     [[nodiscard]] bool EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                               bool bIsEmbeddedHeader_ = false) const;
+                                               bool bIsEmbedded_ = false) const;
     [[nodiscard]] bool EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
 
     // Encode JSON
