@@ -1,7 +1,7 @@
 [project]
 name = "novatel_edie"
 description = "SDK for interfacing with and decoding data from NovAtel OEM7 receivers"
-version = "3.5.0"
+version = "1.0.0"
 license = {text = "MIT"}
 requires-python = ">=3.8"
 dependencies = [
@@ -62,9 +62,19 @@ MACOSX_DEPLOYMENT_TARGET = "10.15"
 
 
 [tool.bumpversion]
-current_version = "3.5.0"
-parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
-serialize = ["{major}.{minor}.{patch}"]
+current_version = "1.0.0"
+parse = """(?x)
+    (?P<major>\\d+)\\.
+    (?P<minor>\\d+)\\.
+    (?P<patch>\\d+)
+    (?:
+        (?P<pre_label>[a-zA-Z-]+)         # pre-release label
+        (?P<pre_n>0|[1-9]\\d*)        # pre-release version number
+    )?                                # pre-release section is optional
+"""
+serialize = [
+    "{major}.{minor}.{patch}{pre_label}{pre_n}",
+    "{major}.{minor}.{patch}"]
 search = "{current_version}"
 replace = "{new_version}"
 regex = false
@@ -72,9 +82,9 @@ ignore_missing_version = false
 ignore_missing_files = false
 tag = false
 sign_tags = false
-tag_name = "v{new_version}"
+tag_name = "Python-v{new_version}"
 tag_message = "Bump version: {current_version} → {new_version}"
-allow_dirty = false
+allow_dirty = true
 commit = false
 message = "Bump version: {current_version} → {new_version}"
 moveable_tags = []
@@ -84,3 +94,6 @@ pre_commit_hooks = []
 post_commit_hooks = []
 [project.scripts]
 novatel_edie = "novatel_edie.cli:app"
+
+[tool.bumpversion.parts.pre_label]
+values = ["a", ""]

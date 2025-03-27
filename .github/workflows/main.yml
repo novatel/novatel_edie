@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-
 jobs:
   build-python:
     uses: ./.github/workflows/build_python.yml
@@ -19,6 +18,10 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
 
+      - name: Install BumpMyVersion
+        run: |
+          pip install bump-my-version
+
       - name: Get Pull Request Info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -29,43 +32,105 @@ jobs:
             | jq '.[0]')
 
             if [ "$pr_info" == "null" ]; then
-            echo "No pull request found for commit $commit_sha"
-            echo "VERSION_TYPE=patch" >> $GITHUB_ENV
-
-            exit 0
-            fi
-
-            echo "Pull Request Number: $(echo $pr_info | jq '.number')"
-            echo "Title: $(echo $pr_info | jq '.title')"
-            echo "Merged By: $(echo $pr_info | jq '.user.login')"
-            pr_number=$(echo $pr_info | jq '.number')
-            pr_tags=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/$pr_number/labels" \
-            | jq -r '.[].name')
-            echo "Tags: $pr_tags"
-
-            if echo "$pr_tags" | grep -q "major"; then
-              VERSION_TYPE=major
-            elif echo "$pr_tags" | grep -q "minor"; then
-              VERSION_TYPE=minor
+              echo "No pull request found for commit $commit_sha"
+              PY_VERSION_TYPE=automatic
+              CPP_VERSION_TYPE=automatic
+              PY_PRERELEASE=false
             else
-              VERSION_TYPE=patch
+              echo "Pull Request Number: $(echo $pr_info | jq '.number')"
+              echo "Title: $(echo $pr_info | jq '.title')"
+              echo "Merged By: $(echo $pr_info | jq '.user.login')"
+              pr_number=$(echo $pr_info | jq '.number')
+              pr_tags=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/$pr_number/labels" \
+              | jq -r '.[].name')
+              echo "Tags: $pr_tags"
+
+              if echo "$pr_tags" | grep -q "C++ major"; then
+                CPP_VERSION_TYPE=major
+              elif echo "$pr_tags" | grep -q "C++ minor"; then
+                CPP_VERSION_TYPE=minor
+              elif echo "$pr_tags" | grep -q "C++ patch"; then
+                CPP_VERSION_TYPE=patch
+              elif echo "$pr_tags" | grep -q "C++ no-update"; then
+                CPP_VERSION_TYPE=none
+              else
+                CPP_VERSION_TYPE=automatic
+              fi
+
+              if echo "$pr_tags" | grep -q "python major"; then
+                PY_VERSION_TYPE=major
+              elif echo "$pr_tags" | grep -q "python minor"; then
+                PY_VERSION_TYPE=minor
+              elif echo "$pr_tags" | grep -q "python patch"; then
+                PY_VERSION_TYPE=patch
+              elif echo "$pr_tags" | grep -q "python no-update"; then
+                PY_VERSION_TYPE=none
+              else
+                PY_VERSION_TYPE=automatic
+              fi
+
+              if echo "$pr_tags" | grep -q "python prerelease"; then
+                PY_PRERELEASE=true
+              else
+                PY_PRERELEASE=false
+              fi
             fi
 
-            echo "VERSION_TYPE=$VERSION_TYPE"
-            echo "VERSION_TYPE=$VERSION_TYPE" >> $GITHUB_ENV
+            echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE"
+            echo "CPP_VERSION_TYPE=$CPP_VERSION_TYPE" >> $GITHUB_ENV
+
+            echo "PY_VERSION_TYPE=$PY_VERSION_TYPE"
+            echo "PY_VERSION_TYPE=$PY_VERSION_TYPE" >> $GITHUB_ENV
+
+            echo "PY_PRERELEASE=$PY_PRERELEASE"
+            echo "PY_PRERELEASE=$PY_PRERELEASE" >> $GITHUB_ENV
 
       - name: Bump Python version
-        id: bump
-        uses: callowayproject/bump-my-version@master
-        env:
-          BUMPVERSION_TAG: "true"
-        with:
-          args: "${{ env.VERSION_TYPE }}"
+        run: |
+          if [[ "$PY_VERSION_TYPE" == "none" ]]; then
+            echo "Skipping version bump"
+            exit 0
+          fi
+          current_version=$(bump-my-version show current_version)
+          if [[ "$current_version" == *"a"* ]] && [[ "$PY_VERSION_TYPE" == "automatic" ]] ; then
+            if [[ "$PY_PRERELEASE" == true ]]; then
+              echo "Bumping pre-release to next iteration"
+              bump-my-version bump pre_n
+            else
+              echo "Dropping pre-release label"
+              bump-my-version bump pre_label
+            fi
+          else
+            if [[ "$PY_VERSION_TYPE" == "automatic" ]]; then
+              PY_VERSION_TYPE=patch
+            fi
+            echo "Bumping version by ${PY_VERSION_TYPE}"
+            bump-my-version bump ${PY_VERSION_TYPE}
+            if [[ "$PY_PRERELEASE" == true ]]; then
+              echo "Adding pre-release label"
+              bump-my-version bump pre_n
+            fi
+          fi
 
       - name: Bump C++ version
         run: |
-          sed -i -r 's/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${{ steps.bump.outputs.current-version }}\)/' CMakeLists.txt
+          if [[ "$CPP_VERSION_TYPE" == "none" ]]; then
+            echo "Skipping version bump"
+            exit 0
+          fi
+          if [[ "$CPP_VERSION_TYPE" == "automatic" ]]; then
+            CPP_VERSION_TYPE=patch
+          fi
+          cpp_version=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
+          echo "current_version=$cpp_version"
+          echo "Bumping version by $CPP_VERSION_TYPE"
+
+          new_cpp_version=$(bump-my-version show --current-version $cpp_version --increment ${CPP_VERSION_TYPE} new_version)
+          sed -i -r "s/set\(RELEASE_VERSION (.*)\)/set\(RELEASE_VERSION ${new_cpp_version})/" CMakeLists.txt
+          CPP_UPDATED_VERSION=$(grep -E "set\(RELEASE_VERSION (.*)\)" CMakeLists.txt | awk -F'[()]' '{print $2}' | awk '{print $2}')
+          echo "CPP_UPDATED_VERSION=$CPP_UPDATED_VERSION"
+          echo "CPP_UPDATED_VERSION=$CPP_UPDATED_VERSION" >> $GITHUB_ENV
 
       - name: Reset credentials
         run: |
@@ -73,8 +138,16 @@ jobs:
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Version Increment
 
-      - name: Check
-        if: steps.bump.outputs.bumped == 'true'
+      - name: Create Tags
         run: |
-          echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"
+          if [[ "$PY_VERSION_TYPE" != "none" ]] && [[ "$PY_PRERELEASE" == "false" ]]; then
+            py_update_version=$(bump-my-version show current_version)
+            git tag "Python-v${py_update_version}"
+          fi
+          if [[ "$CPP_VERSION_TYPE" != "none" ]]; then
+            git tag "CPP-v${CPP_UPDATED_VERSION}"
+          fi
+          git push origin --tags
