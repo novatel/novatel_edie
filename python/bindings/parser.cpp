@@ -2,6 +2,7 @@
 
 #include "bindings_core.hpp"
 #include "exceptions.hpp"
+#include "filter.hpp"
 #include "message_db_singleton.hpp"
 #include "parser.hpp"
 #include "py_logger.hpp"
@@ -111,7 +112,14 @@ void init_novatel_parser(nb::module_& m)
                      "Whether to decompress compressed RANGE messages.")
         .def_prop_rw("return_unknown_bytes", &oem::PyParser::GetReturnUnknownBytes, &oem::PyParser::SetReturnUnknownBytes,
                      "Whether to return unidentifiable data.")
-        .def_prop_rw("filter", &oem::PyParser::GetFilter, &oem::PyParser::SetFilter, "The filter which controls which data is skipped over.")
+        .def_prop_rw(
+            "filter",
+            [](oem::PyParser& self) {
+                // This static cast is safe so long as the Parser's filter is set only via the Python interface
+                return std::static_pointer_cast<oem::PyFilter>(self.GetFilter());
+            },
+            [](oem::PyParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); },
+            "The filter which controls which data is skipped over.")
         .def(
             "write",
             [](oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); },

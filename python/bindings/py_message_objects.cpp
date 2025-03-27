@@ -373,7 +373,10 @@ void init_message_objects(nb::module_& m)
 
     nb::class_<PyGpsTime>(m, "GpsTime", "A GPS reference time.")
         .def(nb::init())
+        .def(nb::init<uint16_t, double>(), "week"_a, "milliseconds"_a = TIME_STATUS::UNKNOWN)
         .def(nb::init<uint16_t, double, TIME_STATUS>(), "week"_a, "milliseconds"_a, "time_status"_a = TIME_STATUS::UNKNOWN)
+        .def("__repr__", [](PyGpsTime& self) { return "GPSTime(" + std::to_string(self.week) + ", " + std::to_string(self.milliseconds) + ")";
+            })
         .def_rw("week", &PyGpsTime::week, "GPS reference week number.")
         .def_rw("milliseconds", &PyGpsTime::milliseconds, "Milliseconds from the beginning of the GPS reference week.")
         .def_rw("status", &PyGpsTime::time_status, "The quality of the GPS reference time.");

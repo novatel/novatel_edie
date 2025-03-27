@@ -2,6 +2,7 @@
 
 #include "bindings_core.hpp"
 #include "file_parser.hpp"
+#include "filter.hpp"
 #include "message_db_singleton.hpp"
 #include "parser.hpp"
 #include "py_message_data.hpp"
@@ -99,8 +100,16 @@ void init_novatel_file_parser(nb::module_& m)
                      "Whether to decompress compressed RANGE messages.")
         .def_prop_rw("return_unknown_bytes", &oem::PyFileParser::GetReturnUnknownBytes, &oem::PyFileParser::SetReturnUnknownBytes,
                      "Whether to return unidentifiable data.")
-        .def_prop_rw("filter", &oem::PyFileParser::GetFilter, &oem::PyFileParser::SetFilter, "The filter which controls which data is skipped over.")
-        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() -> Message | UnknownMessage | UnknownBytes"),
+        .def_prop_rw(
+            "filter",
+            [](oem::PyFileParser& self) {
+                // This static cast is safe so long as the FileParser's filter is set only via the Python interface
+                return std::static_pointer_cast<oem::PyFilter>(self.GetFilter());
+            },
+            [](oem::PyFileParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); },
+            "The filter which controls which data is skipped over."
+            )
+        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() ->  Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read a message from remaining data in the file.
 

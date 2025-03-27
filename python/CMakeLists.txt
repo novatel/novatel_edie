@@ -57,6 +57,7 @@ target_compile_definitions(python_bindings PRIVATE
 
 nanobind_add_stub(
     bindings_stub
+    PATTERN_FILE  ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
     MODULE bindings
     OUTPUT stubs/bindings.pyi
     PYTHON_PATH $<TARGET_FILE_DIR:python_bindings>

@@ -49,7 +49,7 @@ namespace novatel::edie::oem {
 //============================================================================
 class Parser
 {
-  private:
+  protected:
     std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("novatel_parser")};
 
     MessageDatabase::Ptr pclMyMessageDb;

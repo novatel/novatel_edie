@@ -39,12 +39,15 @@ Filter::Filter()
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const)
+template <typename T> void Filter::PushUnique(std::vector<T>& vec_, const T& element_)
 {
-    if (std::find(vMyFilterFunctions.begin(), vMyFilterFunctions.end(), filter_) == vMyFilterFunctions.end())
-    {
-        vMyFilterFunctions.push_back(filter_);
-    }
+    if (std::find(vec_.begin(), vec_.end(), element_) == vec_.end()) { vec_.push_back(element_); }
+}
+
+template <typename T> void Filter::Remove(std::vector<T>& vec_, const T& element_)
+{
+    auto it = std::find(vec_.begin(), vec_.end(), element_);
+    if (it != vec_.end()) { vec_.erase(it); }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -53,66 +56,134 @@ void Filter::SetIncludeLowerTimeBound(uint32_t uiWeek_, double dSec_)
     bMyFilterLowerTime = true;
     uiMyLowerWeek = uiWeek_;
     uiMyLowerMSec = static_cast<uint32_t>(dSec_ * 1000.0);
-    PushUnique(&Filter::FilterTime);
+    PushUnique(vMyFilterFunctions, &Filter::FilterTime);
 }
 
-// -------------------------------------------------------------------------------------------------------
 void Filter::SetIncludeUpperTimeBound(uint32_t uiWeek_, double dSec_)
 {
     bMyFilterUpperTime = true;
     uiMyUpperWeek = uiWeek_;
     uiMyUpperMSec = static_cast<uint32_t>(dSec_ * 1000.0);
-    PushUnique(&Filter::FilterTime);
+    PushUnique(vMyFilterFunctions, &Filter::FilterTime);
+}
+
+void Filter::ClearLowerTimeBound()
+{
+    bMyFilterLowerTime = false;
+    if (!bMyFilterUpperTime) { Remove(vMyFilterFunctions, &Filter::FilterTime); }
+}
+
+void Filter::ClearUpperTimeBound()
+{
+    bMyFilterUpperTime = false;
+    if (!bMyFilterLowerTime) { Remove(vMyFilterFunctions, &Filter::FilterTime); }
+}
+
+void Filter::ClearTimeBounds()
+{
+    ClearLowerTimeBound();
+    ClearUpperTimeBound();
 }
 
 // -------------------------------------------------------------------------------------------------------
 void Filter::SetIncludeDecimation(double dPeriodSec_)
 {
+    SetIncludeDecimationMs(static_cast<uint32_t>(dPeriodSec_ * 1000.0)); // Convert provided seconds to MSec
+}
+
+void Filter::SetIncludeDecimationMs(uint32_t dPeriodMSec_)
+{
     bMyDecimate = true;
-    uiMyDecimationPeriodMilliSec = static_cast<uint32_t>(dPeriodSec_ * 1000.0); // Convert provided seconds to MSec
-    PushUnique(&Filter::FilterDecimation);
+    uiMyDecimationPeriodMilliSec = dPeriodMSec_; // Convert double to int
+    PushUnique(vMyFilterFunctions, &Filter::FilterDecimation);
+}
+
+void Filter::ClearDecimationFilter()
+{
+    bMyDecimate = false;
+    Remove(vMyFilterFunctions, &Filter::FilterDecimation);
 }
 
 // -------------------------------------------------------------------------------------------------------
 void Filter::IncludeTimeStatus(TIME_STATUS eTimeStatus_)
 {
-    vMyTimeStatusFilters.push_back(eTimeStatus_);
-    PushUnique(&Filter::FilterTimeStatus);
+    PushUnique(vMyTimeStatusFilters, eTimeStatus_);
+    PushUnique(vMyFilterFunctions, &Filter::FilterTimeStatus);
 }
 
-// -------------------------------------------------------------------------------------------------------
 void Filter::IncludeTimeStatus(std::vector<TIME_STATUS> vTimeStatuses_)
 {
-    vMyTimeStatusFilters.insert(vMyTimeStatusFilters.end(), vTimeStatuses_.begin(), vTimeStatuses_.end());
-    PushUnique(&Filter::FilterTimeStatus);
+    for (const auto& status : vTimeStatuses_) { PushUnique(vMyTimeStatusFilters, status); }
+    PushUnique(vMyFilterFunctions, &Filter::FilterTimeStatus);
+}
+
+void Filter::RemoveTimeStatus(TIME_STATUS eTimeStatus_)
+{
+    Remove(vMyTimeStatusFilters, eTimeStatus_);
+    if (vMyTimeStatusFilters.empty()) { Remove(vMyFilterFunctions, &Filter::FilterTimeStatus); }
+}
+
+void Filter::ClearTimeStatuses()
+{
+    vMyTimeStatusFilters.clear();
+    bMyInvertTimeStatusFilter = false;
+    Remove(vMyFilterFunctions, &Filter::FilterTimeStatus);
 }
 
 // -------------------------------------------------------------------------------------------------------
 void Filter::IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
-    vMyMessageIdFilters.emplace_back(uiId_, eFormat_, eSource_);
-    PushUnique(&Filter::FilterMessageId);
+    auto tMessageId = std::make_tuple(uiId_, eFormat_, eSource_);
+    PushUnique(vMyMessageIdFilters, tMessageId);
+    PushUnique(vMyFilterFunctions, &Filter::FilterMessageId);
 }
 
-// -------------------------------------------------------------------------------------------------------
 void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vIds_)
 {
-    vMyMessageIdFilters.insert(vMyMessageIdFilters.end(), vIds_.begin(), vIds_.end());
-    PushUnique(&Filter::FilterMessageId);
+    for (const auto& id : vIds_) { PushUnique(vMyMessageIdFilters, id); }
+    PushUnique(vMyFilterFunctions, &Filter::FilterMessageId);
+}
+
+void Filter::RemoveMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+{
+    auto tMessageId = std::make_tuple(uiId_, eFormat_, eSource_);
+    Remove(vMyMessageIdFilters, tMessageId);
+    if (vMyMessageIdFilters.empty()) { Remove(vMyFilterFunctions, &Filter::FilterMessageId); }
+}
+
+void Filter::ClearMessageIds()
+{
+    vMyMessageIdFilters.clear();
+    bMyInvertMessageIdFilter = false;
+    Remove(vMyFilterFunctions, &Filter::FilterMessageId);
 }
 
 // -------------------------------------------------------------------------------------------------------
 void Filter::IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
 {
-    vMyMessageNameFilters.emplace_back(szMsgName_, eFormat_, eSource_);
-    PushUnique(&Filter::FilterMessage);
+    auto tMessageName = std::make_tuple(std::string(szMsgName_), eFormat_, eSource_);
+    PushUnique(vMyMessageNameFilters, tMessageName);
+    PushUnique(vMyFilterFunctions, &Filter::FilterMessage);
 }
 
-// -------------------------------------------------------------------------------------------------------
 void Filter::IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vNames_)
 {
-    vMyMessageNameFilters.insert(vMyMessageNameFilters.end(), vNames_.begin(), vNames_.end());
-    PushUnique(&Filter::FilterMessage);
+    for (const auto& name : vNames_) { PushUnique(vMyMessageNameFilters, name); }
+    PushUnique(vMyFilterFunctions, &Filter::FilterMessage);
+}
+
+void Filter::RemoveMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+{
+    auto tMessageName = std::make_tuple(std::string(szMsgName_), eFormat_, eSource_);
+    Remove(vMyMessageNameFilters, tMessageName);
+    if (vMyMessageNameFilters.empty()) { Remove(vMyFilterFunctions, &Filter::FilterMessage); }
+}
+
+void Filter::ClearMessageNames()
+{
+    vMyMessageNameFilters.clear();
+    bMyInvertMessageNameFilter = false;
+    Remove(vMyFilterFunctions, &Filter::FilterMessage);
 }
 
 // -------------------------------------------------------------------------------------------------------
