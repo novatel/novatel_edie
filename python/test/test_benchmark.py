@@ -53,7 +53,7 @@ class Benchmarker:
         for count in range(max_count):
             header = self.decoder.decode_header(log, meta_data)
             body = log[meta_data.header_length:]
-            message = self.decoder.decode_message(body, header, meta_data)
+            message = self.decoder.decode_payload(body, header, meta_data)
             message_data = message.encode(encode_format)
         elapsed_seconds = timeit.default_timer() - start
         print(f"TIME ELAPSED: {elapsed_seconds} seconds.\nPS: {(float(count) / elapsed_seconds)}")
