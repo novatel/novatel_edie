@@ -47,11 +47,11 @@ int main(int argc, char* argv[])
 {
     // This example uses the default logger config, but you can also pass a config file to InitLogger()
     // Example config file: logger\example_logger_config.toml
-    Logger::InitLogger();
-    std::shared_ptr<spdlog::logger> pclLogger = Logger::RegisterLogger("range_decompressor");
+    LOGGER_MANAGER->InitLogger();
+    auto pclLogger = CREATE_LOGGER();
     pclLogger->set_level(spdlog::level::debug);
-    Logger::AddConsoleLogging(pclLogger);
-    Logger::AddRotatingFileLogger(pclLogger);
+    LOGGER_MANAGER->AddConsoleLogging(pclLogger);
+    LOGGER_MANAGER->AddRotatingFileLogger(pclLogger);
 
     if (argc == 2 && strcmp(argv[1], "-V") == 0)
     {
@@ -106,12 +106,12 @@ int main(int argc, char* argv[])
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
     clMessageDecoder.SetLoggerLevel(spdlog::level::debug);
     clEncoder.SetLoggerLevel(spdlog::level::debug);
-    Logger::AddConsoleLogging(clFramer.GetLogger());
-    Logger::AddConsoleLogging(clHeaderDecoder.GetLogger());
-    Logger::AddConsoleLogging(clMessageDecoder.GetLogger());
-    Logger::AddRotatingFileLogger(clFramer.GetLogger());
-    Logger::AddRotatingFileLogger(clHeaderDecoder.GetLogger());
-    Logger::AddRotatingFileLogger(clMessageDecoder.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clFramer.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clHeaderDecoder.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clMessageDecoder.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clFramer.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clHeaderDecoder.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clMessageDecoder.GetLogger());
 
     clFramer.SetFrameJson(false);
     clFramer.SetPayloadOnly(false);
@@ -192,6 +192,6 @@ int main(int argc, char* argv[])
     std::chrono::duration<double> elapsedSeconds = std::chrono::system_clock::now() - start;
     pclLogger->info("Decoded {} messages in {}s. ({}msg/s)", uiCompletedMessages, elapsedSeconds.count(),
                     uiCompletedMessages / elapsedSeconds.count());
-    Logger::Shutdown();
+    LOGGER_MANAGER->Shutdown();
     return 0;
 }

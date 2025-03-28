@@ -35,13 +35,14 @@ nanobind_add_module(python_bindings
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/message_db_singleton.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/message_database.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/decoder_tester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/oem_common.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/init_modules.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/range_decompressor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/rxconfig_handler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bindings/py_message_objects.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/internal/decoder_tester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/internal/logger_tester.cpp
 )
 
 set_target_properties(python_bindings PROPERTIES OUTPUT_NAME bindings)

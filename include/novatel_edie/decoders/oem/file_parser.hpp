@@ -31,6 +31,7 @@
 #include <iosfwd>
 #include <memory>
 
+#include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/parser.hpp"
 
@@ -43,7 +44,7 @@ namespace novatel::edie::oem {
 class FileParser
 {
   private:
-    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_file_parser")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("novatel_file_parser")};
     Parser clMyParser;
     std::shared_ptr<std::istream> pclMyInputStream{nullptr};
 

@@ -41,18 +41,18 @@ using namespace novatel::edie::oem;
 
 int main(int argc, char* argv[])
 {
-    // This example uses the default logger config, but you can also pass a config file to InitLogger()
-    // Example config file: logger\example_logger_config.toml
-    Logger::InitLogger();
-    std::shared_ptr<spdlog::logger> logger = Logger::RegisterLogger("command_encoder");
-    logger->set_level(spdlog::level::debug);
-    Logger::AddConsoleLogging(logger);
-    Logger::AddRotatingFileLogger(logger);
+    // This example uses the default pclLogger config, but you can also pass a config file to InitLogger()
+    // Example config file: pclLogger\example_logger_config.toml
+    LOGGER_MANAGER->InitLogger();
+    auto pclLogger = CREATE_LOGGER();
+    pclLogger->set_level(spdlog::level::debug);
+    LOGGER_MANAGER->AddConsoleLogging(pclLogger);
+    LOGGER_MANAGER->AddRotatingFileLogger(pclLogger);
 
     if (argc < 3)
     {
-        logger->error("Format: command_encoding <path to Json DB> <output format> <abbreviated ascii command>\n");
-        logger->error("Example: command_encoding database/database.json ASCII \"RTKTIMEOUT 30\"\n");
+        pclLogger->error("Format: command_encoding <path to Json DB> <output format> <abbreviated ascii command>\n");
+        pclLogger->error("Example: command_encoding database/database.json ASCII \"RTKTIMEOUT 30\"\n");
         return 1;
     }
 
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
     const fs::path pathJsonDb = argv[1];
     if (!fs::exists(pathJsonDb))
     {
-        logger->error("File \"{}\" does not exist", pathJsonDb.string());
+        pclLogger->error("File \"{}\" does not exist", pathJsonDb.string());
         return 1;
     }
 
@@ -69,14 +69,15 @@ int main(int argc, char* argv[])
     ENCODE_FORMAT eEncodeFormat = StringToEncodeFormat(strEncodeFormat);
     if (eEncodeFormat == ENCODE_FORMAT::UNSPECIFIED)
     {
-        logger->error("Unsupported output format. Choose from:\n\tASCII\n\tBINARY");
+        pclLogger->error("Unsupported output format. Choose from:\n\tASCII\n\tBINARY");
         return 1;
     }
 
     auto tStart = std::chrono::high_resolution_clock::now();
-    logger->info("Loading Database... ");
+    pclLogger->info("Loading Database... ");
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(pathJsonDb.string());
-    logger->info("Done in {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
+    pclLogger->info("Done in {}ms",
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     Commander clCommander(clJsonDb);
 
@@ -84,17 +85,18 @@ int main(int argc, char* argv[])
     char* pcEncodedMessageBuffer = acEncodeBuffer;
     uint32_t uiEncodeBufferLength = MAX_ASCII_MESSAGE_LENGTH;
 
-    logger->info("Converting \"{}\" to {}", argv[3], strEncodeFormat);
+    pclLogger->info("Converting \"{}\" to {}", argv[3], strEncodeFormat);
     STATUS eCommanderStatus =
         clCommander.Encode(argv[3], static_cast<uint32_t>(strlen(argv[3])), pcEncodedMessageBuffer, uiEncodeBufferLength, eEncodeFormat);
     if (eCommanderStatus != STATUS::SUCCESS)
     {
-        logger->info("Failed to formulate a command ({})", eCommanderStatus);
+        pclLogger->info("Failed to formulate a command ({})", eCommanderStatus);
         return -1;
     }
 
     std::string sOutFilename = std::string("COMMAND.").append(strEncodeFormat);
     std::ofstream ofs(sOutFilename.c_str(), std::ios::binary);
     ofs.write(pcEncodedMessageBuffer, uiEncodeBufferLength);
+    LOGGER_MANAGER->Shutdown();
     return 0;
 }

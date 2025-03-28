@@ -14,7 +14,6 @@ void init_novatel_commander(nb::module_& m)
         .def("__init__", [](oem::Commander* t) { new (t) oem::Commander(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
         .def(nb::init<PyMessageDatabase::Ptr&>(), "message_db"_a)
         .def("load_db", &oem::Commander::LoadJsonDb, "message_db"_a)
-        .def_prop_ro("logger", &oem::Commander::GetLogger)
         .def(
             "encode",
             [](oem::Commander& commander, const nb::bytes& command, const ENCODE_FORMAT format) {

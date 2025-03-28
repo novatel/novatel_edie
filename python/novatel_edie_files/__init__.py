@@ -38,12 +38,12 @@ from .bindings import (
     BufferFullException, BufferEmptyException, StreamEmptyException, UnsupportedException,
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,
     string_to_encode_format, pretty_version,
+    enable_internal_logging, disable_internal_logging,
     UnknownBytes, Header, Field, UnknownMessage, Message,
     MessageDatabase, get_default_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
     Framer, Filter, Decoder, DecoderException, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
-    Logging, LogLevel,
     messages, enums, throw_exception_from_status,
     EnumField, EnumDataType,
     _internal

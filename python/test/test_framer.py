@@ -91,20 +91,6 @@ def compare_metadata(test_md, expected_md, ignore_length=False):
 
 
 # -------------------------------------------------------------------------------------------------------
-# Logger Framer Unit Tests
-#  -------------------------------------------------------------------------------------------------------
-@pytest.mark.skip(reason="Logging is still under development")
-def test_logger():
-    name = "novatel_framer"
-    level = ne.LogLevel.OFF
-    logger = ne.Framer().logger
-    logger.set_level(level)
-    assert logger.name == name
-    assert logger.level == level
-    assert ne.Logging.get(name) is not None
-
-
-# -------------------------------------------------------------------------------------------------------
 # ASCII Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------
 def test_ascii_complete(helper):

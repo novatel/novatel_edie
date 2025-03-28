@@ -30,69 +30,59 @@
 ########################################################################
 
 import argparse
-import atexit
+import logging
 import os
 import timeit
 
-import novatel_edie as ne
-from novatel_edie import Logging, LogLevel
+from novatel_edie import Message, UnknownMessage, UnknownBytes, Filter, FileParser, pretty_version
 from novatel_edie.messages import BESTPOS
 
-def _configure_logging(logger):
-    logger.set_level(LogLevel.DEBUG)
-    Logging.add_console_logging(logger)
-    Logging.add_rotating_file_logger(logger)
-
+from common_setup import setup_example_logging, handle_args
 
 def main():
-    logger = Logging().register_logger("converter")
-    _configure_logging(logger)
-    atexit.register(Logging.shutdown)
+    """Example FileParser usage."""
+    # Setup logging
+    setup_example_logging(logging.WARNING)
+    logger = logging.getLogger(__name__)
+    logger.info(f"Decoder library information:\n{pretty_version}")
 
-    logger.info(f"Decoder library information:\n{ne.pretty_version}")
+    # Handle CLI arguments
+    input_file, encode_format = handle_args(logger)
 
-    parser = argparse.ArgumentParser(description="Convert OEM log files using FileParser.")
-    parser.add_argument("input_file", help="Input file")
-    parser.add_argument("output_format", nargs="?",
-                        choices=["ASCII", "ABBREV_ASCII", "BINARY", "FLATTENED_BINARY", "JSON"],
-                        help="Output format", default="ASCII")
-    parser.add_argument("-V", "--version", action="store_true")
-    args = parser.parse_args()
-    encode_format = ne.string_to_encode_format(args.output_format)
+    # Create a FileParser
+    file_parser = FileParser(input_file)
 
-    if args.version:
-        exit(0)
+    # Setup a custom filter here
+    my_filter = Filter()
+    file_parser.filter = my_filter
 
-    if not os.path.exists(args.input_file):
-        logger.error(f'File "{args.input_file}" does not exist')
-        exit(1)
-    file_parser = ne.FileParser(args.input_file)
-    filter = ne.Filter()
-    file_parser.filter = filter
-    _configure_logging(file_parser.logger)
-    _configure_logging(file_parser.filter.logger)
-    Logging.get("message_decoder").set_level(LogLevel.OFF)
-
-
+    # Iterate through the messages
     messages = 0
     start = timeit.default_timer()
     for message in file_parser:
-        if isinstance(message, ne.Message):
+        # Handle messages that can be fully decoded
+        if isinstance(message, Message):
+            # Encode the message into different formats
             encoded_msg = message.encode(encode_format)
             ascii_msg = message.to_ascii()
             binary_msg = message.to_binary()
+            dict_msg = message.to_dict()
             messages += 1
+            # Handle BESTPOS messages
             if isinstance(message, BESTPOS):
+                # Access specific fields
                 lat = message.latitude
                 lon = message.longitude
-        elif isinstance(message, ne.UnknownMessage):
+        # Handle messages that did not match any known definitions
+        elif isinstance(message, UnknownMessage):
             unknown_id = message.header.message_id
             payload = message.payload
-        elif isinstance(message, ne.UnknownBytes):
+        # Handle bytes that could not be parsed into a message
+        elif isinstance(message, UnknownBytes):
             data = message.data
 
     elapsed_seconds = timeit.default_timer() - start
-    logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {args.input_file}")
+    logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {input_file}")
 
 
 if __name__ == "__main__":

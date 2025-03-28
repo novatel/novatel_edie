@@ -47,7 +47,7 @@ namespace novatel::edie::oem {
 class Filter
 {
   private:
-    std::shared_ptr<spdlog::logger> pclMyLogger{Logger::RegisterLogger("novatel_filter")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("novatel_filter")};
 
     std::vector<bool (Filter::*)(const MetaDataStruct&) const> vMyFilterFunctions;
 

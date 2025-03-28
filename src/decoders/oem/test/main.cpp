@@ -34,7 +34,7 @@
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
-    Logger::InitLogger();
+    LOGGER_MANAGER->InitLogger();
 
     std::filesystem::path pathSourceFile = __FILE__;
     std::filesystem::path pathRepoDir = pathSourceFile.parent_path().parent_path().parent_path().parent_path().parent_path();

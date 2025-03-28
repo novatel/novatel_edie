@@ -41,18 +41,6 @@ def parser():
 def test_gps_file(decoders_test_resources):
     return decoders_test_resources / "BESTUTMBIN.GPS"
 
-@pytest.mark.skip(reason="Logging is still under development")
-def test_logger():
-    # Parser logger
-    level = ne.LogLevel.OFF
-    parser = ne.Parser()
-    logger = parser.logger
-    logger.set_level(level)
-    assert logger.name == "novatel_parser"
-    assert logger.level == level
-    # Parser logger
-    parser.enable_framer_decoder_logging(level, "novatel_parser.log")
-
 
 @pytest.mark.skip(reason="Slow and redundant")
 def test_parser_instantiation(json_db, json_db_path):
@@ -78,7 +66,6 @@ def test_unknown_bytes(parser):
 
 def test_parse_file_with_filter(parser, test_gps_file):
     parser.filter = ne.Filter()
-    parser.filter.logger.set_level(ne.LogLevel.DEBUG)
     msgs = []
     with test_gps_file.open("rb") as f:
         while chunk := f.read(32):

@@ -386,7 +386,6 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
 
         if (*ppucLogBuf_ - pucTempStart >= static_cast<int32_t>(uiMessageLength_)) { return STATUS::SUCCESS; }
     }
-
     return STATUS::SUCCESS;
 }
 
@@ -727,7 +726,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
 
         if (vMsgDef == nullptr)
         {
-            pclMyLogger->warn("No log definition for ID {}", stMetaData_.usMessageId);
+            SPDLOG_LOGGER_INFO(pclMyLogger, "No log definition for ID {}", stMetaData_.usMessageId);
             return STATUS::NO_DEFINITION;
         }
 

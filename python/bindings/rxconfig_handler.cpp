@@ -15,7 +15,6 @@ void init_novatel_rxconfig_handler(nb::module_& m)
         .def("__init__", [](oem::RxConfigHandler* t) { new (t) oem::RxConfigHandler(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
         .def(nb::init<const PyMessageDatabase::Ptr&>(), "message_db"_a)
         .def("load_db", &oem::RxConfigHandler::LoadJsonDb, "message_db"_a)
-        .def_prop_ro("logger", &oem::RxConfigHandler::GetLogger)
         .def("write", [](oem::RxConfigHandler& self,
                          const nb::bytes& data) { return self.Write(reinterpret_cast<uint8_t*>(const_cast<char*>(data.c_str())), data.size()); })
         .def(

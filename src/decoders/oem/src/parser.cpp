@@ -80,12 +80,13 @@ void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const
     clMyHeaderDecoder.SetLoggerLevel(eLevel_);
     clMyMessageDecoder.SetLoggerLevel(eLevel_);
 
-    Logger::AddConsoleLogging(clMyFramer.GetLogger());
-    Logger::AddConsoleLogging(clMyHeaderDecoder.GetLogger());
-    Logger::AddConsoleLogging(clMyMessageDecoder.GetLogger());
-    Logger::AddRotatingFileLogger(clMyFramer.GetLogger(), eLevel_, sFileName_);
-    Logger::AddRotatingFileLogger(clMyHeaderDecoder.GetLogger(), eLevel_, sFileName_);
-    Logger::AddRotatingFileLogger(clMyMessageDecoder.GetLogger(), eLevel_, sFileName_);
+    CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
+    pclMyLoggerManager->AddConsoleLogging(clMyFramer.GetLogger());
+    pclMyLoggerManager->AddConsoleLogging(clMyHeaderDecoder.GetLogger());
+    pclMyLoggerManager->AddConsoleLogging(clMyMessageDecoder.GetLogger());
+    pclMyLoggerManager->AddRotatingFileLogger(clMyFramer.GetLogger(), eLevel_, sFileName_);
+    pclMyLoggerManager->AddRotatingFileLogger(clMyHeaderDecoder.GetLogger(), eLevel_, sFileName_);
+    pclMyLoggerManager->AddRotatingFileLogger(clMyMessageDecoder.GetLogger(), eLevel_, sFileName_);
 }
 
 // -------------------------------------------------------------------------------------------------------
