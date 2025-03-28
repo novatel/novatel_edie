@@ -76,7 +76,8 @@ int main(int argc, char* argv[])
     auto tStart = std::chrono::high_resolution_clock::now();
     pclLogger->info("Loading Database... ");
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(pathJsonDb.string());
-    pclLogger->info("Done in {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
+    pclLogger->info("Done in {}ms",
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     Commander clCommander(clJsonDb);
 
