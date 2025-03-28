@@ -62,7 +62,7 @@ class FramerTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { GetLoggerManager()->Shutdown(); }
+    static void TearDownTestSuite() { LOGGER_MANAGER->Shutdown(); }
 
     // Per-test setup
     void SetUp() override { FlushFramer(); }
@@ -943,7 +943,7 @@ class DecodeEncodeTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { GetLoggerManager()->Shutdown(); }
+    static void TearDownTestSuite() { LOGGER_MANAGER->Shutdown(); }
 
   public:
     using logChecker = void (*)(char*, char*);
@@ -2162,7 +2162,7 @@ class CommandEncodeTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { GetLoggerManager()->Shutdown(); }
+    static void TearDownTestSuite() { LOGGER_MANAGER->Shutdown(); }
 
   public:
     static STATUS TestCommandConversion(std::string sCommandToEncode_, char* pcEncodedCommandBuffer_, uint32_t uiEncodedCommandBufferSize_, ENCODE_FORMAT eFormat_)
@@ -2296,7 +2296,7 @@ class FilterTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { GetLoggerManager()->Shutdown(); }
+    static void TearDownTestSuite() { LOGGER_MANAGER->Shutdown(); }
 
     void SetUp() override { pclMyFilter->ClearFilters(); }
 
@@ -2693,7 +2693,7 @@ class FileParserTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { GetLoggerManager()->Shutdown(); }
+    static void TearDownTestSuite() { LOGGER_MANAGER->Shutdown(); }
 };
 
 std::unique_ptr<FileParser> FileParserTest::pclFp = nullptr;
@@ -2832,7 +2832,7 @@ class ParserTest : public ::testing::Test
         }
     }
 
-    static void TearDownTestSuite() { GetLoggerManager()->Shutdown(); }
+    static void TearDownTestSuite() { LOGGER_MANAGER->Shutdown(); }
 };
 
 std::unique_ptr<Parser> ParserTest::pclParser = nullptr;
@@ -3034,7 +3034,7 @@ class NovatelTypesTest : public ::testing::Test
         }
     }
 
-    void TearDown() override { GetLoggerManager()->Shutdown(); }
+    void TearDown() override { LOGGER_MANAGER->Shutdown(); }
 
     void CreateEnumField(std::string_view strName, std::string_view strDescription, int32_t iValue)
     {

@@ -238,6 +238,10 @@ extern std::unique_ptr<LoggerManager> pclLoggerManager;
 //----------------------------------------------------------------------------
 extern CPPLoggerManager* GetLoggerManager();
 
+// Macro for easy user creation of loggers
+#define LOGGER_MANAGER GetLoggerManager()
+#define CREATE_LOGGER() GetLoggerManager()->RegisterLogger(std::filesystem::path(__FILE__).stem().string())
+
 //----------------------------------------------------------------------------
 //! \brief A wrapper class for CPPLoggerManager to allow backwards compatibility in the API
 //----------------------------------------------------------------------------

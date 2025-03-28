@@ -46,7 +46,7 @@ class RangeCmpTest : public ::testing::Test
     }
 
     // Per-test-suite teardown
-    static void TearDownTestSuite() { GetLoggerManager()->Shutdown(); }
+    static void TearDownTestSuite() { LOGGER_MANAGER->Shutdown(); }
 
     void SetUp() override { pclMyRangeDecompressor->Reset(); }
 

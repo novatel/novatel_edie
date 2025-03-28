@@ -48,12 +48,12 @@ int main(int argc, char* argv[])
 {
     // This example uses the default logger config, but you can also pass a config file to InitLogger()
     // Example config file: logger\example_logger_config.toml
-    CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
-    pclMyLoggerManager->InitLogger();
-    std::shared_ptr<spdlog::logger> pclLogger = pclLoggerManager->RegisterLogger("converter");
+    LOGGER_MANAGER->InitLogger();
+
+    auto pclLogger = CREATE_LOGGER();
     pclLogger->set_level(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(pclLogger);
-    pclMyLoggerManager->AddRotatingFileLogger(pclLogger);
+    LOGGER_MANAGER->AddConsoleLogging(pclLogger);
+    LOGGER_MANAGER->AddRotatingFileLogger(pclLogger);
 
     // Get command line arguments
     pclLogger->info("Decoder library information:\n{}", caPrettyPrint);
@@ -99,31 +99,31 @@ int main(int argc, char* argv[])
     // Set up the EDIE components
     Framer clFramer;
     clFramer.SetLoggerLevel(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(clFramer.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clFramer.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clFramer.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clFramer.GetLogger());
     clFramer.SetReportUnknownBytes(true);
     clFramer.SetPayloadOnly(false);
     clFramer.SetFrameJson(false);
 
     HeaderDecoder clHeaderDecoder(clJsonDb);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(clHeaderDecoder.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clHeaderDecoder.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clHeaderDecoder.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clHeaderDecoder.GetLogger());
 
     MessageDecoder clMessageDecoder(clJsonDb);
     clMessageDecoder.SetLoggerLevel(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(clMessageDecoder.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clMessageDecoder.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clMessageDecoder.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clMessageDecoder.GetLogger());
 
     Encoder clEncoder(clJsonDb);
     clEncoder.SetLoggerLevel(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(clEncoder.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clEncoder.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clEncoder.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clEncoder.GetLogger());
 
     Filter clFilter;
     clFilter.SetLoggerLevel(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(clFilter.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clFilter.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clFilter.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clFilter.GetLogger());
 
     // Set up buffers
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
@@ -222,6 +222,6 @@ int main(int argc, char* argv[])
     // Clean up
     uint32_t uiBytes = clFramer.Flush(acFrameBuffer, sizeof(acFrameBuffer));
     unknownOfs.write(reinterpret_cast<char*>(acFrameBuffer), uiBytes);
-    pclMyLoggerManager->Shutdown();
+    LOGGER_MANAGER->Shutdown();
     return 0;
 }

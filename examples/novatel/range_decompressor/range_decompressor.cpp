@@ -47,12 +47,11 @@ int main(int argc, char* argv[])
 {
     // This example uses the default logger config, but you can also pass a config file to InitLogger()
     // Example config file: logger\example_logger_config.toml
-    CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
-    pclMyLoggerManager->InitLogger();
-    std::shared_ptr<spdlog::logger> pclLogger = pclMyLoggerManager->RegisterLogger("range_decompressor");
+    LOGGER_MANAGER->InitLogger();
+    auto pclLogger = CREATE_LOGGER();
     pclLogger->set_level(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(pclLogger);
-    pclMyLoggerManager->AddRotatingFileLogger(pclLogger);
+    LOGGER_MANAGER->AddConsoleLogging(pclLogger);
+    LOGGER_MANAGER->AddRotatingFileLogger(pclLogger);
 
     if (argc == 2 && strcmp(argv[1], "-V") == 0)
     {
@@ -107,12 +106,12 @@ int main(int argc, char* argv[])
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
     clMessageDecoder.SetLoggerLevel(spdlog::level::debug);
     clEncoder.SetLoggerLevel(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(clFramer.GetLogger());
-    pclMyLoggerManager->AddConsoleLogging(clHeaderDecoder.GetLogger());
-    pclMyLoggerManager->AddConsoleLogging(clMessageDecoder.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clFramer.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clHeaderDecoder.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clMessageDecoder.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clFramer.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clHeaderDecoder.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clMessageDecoder.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clFramer.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clHeaderDecoder.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clMessageDecoder.GetLogger());
 
     clFramer.SetFrameJson(false);
     clFramer.SetPayloadOnly(false);
@@ -193,6 +192,6 @@ int main(int argc, char* argv[])
     std::chrono::duration<double> elapsedSeconds = std::chrono::system_clock::now() - start;
     pclLogger->info("Decoded {} messages in {}s. ({}msg/s)", uiCompletedMessages, elapsedSeconds.count(),
                     uiCompletedMessages / elapsedSeconds.count());
-    pclMyLoggerManager->Shutdown();
+    LOGGER_MANAGER->Shutdown();
     return 0;
 }

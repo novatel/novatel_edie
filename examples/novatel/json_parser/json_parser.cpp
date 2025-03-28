@@ -42,13 +42,11 @@ int main(int argc, char* argv[])
 {
     // This example uses the default logger config, but you can also pass a config file to InitLogger()
     // Example config file: logger\example_logger_config.toml
-
-    CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
-    pclMyLoggerManager->InitLogger();
-    std::shared_ptr<spdlog::logger> pclLogger = pclMyLoggerManager->RegisterLogger("json_parser");
+    LOGGER_MANAGER->InitLogger();
+    auto pclLogger = CREATE_LOGGER();
     pclLogger->set_level(spdlog::level::debug);
-    pclMyLoggerManager->AddConsoleLogging(pclLogger);
-    pclMyLoggerManager->AddRotatingFileLogger(pclLogger);
+    LOGGER_MANAGER->AddConsoleLogging(pclLogger);
+    LOGGER_MANAGER->AddRotatingFileLogger(pclLogger);
 
     // Get command line arguments
     pclLogger->info("Decoder library information:\n{}", caPrettyPrint);
@@ -106,13 +104,13 @@ int main(int argc, char* argv[])
     Parser clParser(clJsonDb);
     clParser.SetEncodeFormat(eEncodeFormat);
     clParser.SetLoggerLevel(spdlog::level::debug);
-    GetLoggerManager()->AddConsoleLogging(clParser.GetLogger());
-    GetLoggerManager()->AddRotatingFileLogger(clParser.GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clParser.GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clParser.GetLogger());
 
     auto clFilter = std::make_shared<Filter>();
     clFilter->SetLoggerLevel(spdlog::level::debug);
-    GetLoggerManager()->AddConsoleLogging(clFilter->GetLogger());
-    GetLoggerManager()->AddRotatingFileLogger(clFilter->GetLogger());
+    LOGGER_MANAGER->AddConsoleLogging(clFilter->GetLogger());
+    LOGGER_MANAGER->AddRotatingFileLogger(clFilter->GetLogger());
 
     // Initialize structures
     MetaDataStruct stMetaData;
@@ -164,6 +162,6 @@ int main(int argc, char* argv[])
     pclLogger->info("Converted {} logs in {}ms from {}", uiCompleteMessages,
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count(),
                     pathInFilename.string().c_str());
-    pclMyLoggerManager->Shutdown();
+    LOGGER_MANAGER->Shutdown();
     return 0;
 }
