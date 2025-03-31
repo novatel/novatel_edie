@@ -7,7 +7,7 @@ on:
       python_versions:
         description: 'Which versions to build wheels for'
         required: false
-        default: cp39-* cp312-*
+        default: cp39* cp313*
         type: string
 
 
