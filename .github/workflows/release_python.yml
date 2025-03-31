@@ -7,7 +7,7 @@ jobs:
   build:
     uses: ./.github/workflows/build_python.yml
     with:
-        python_versions: cp37* cp38* cp39* cp10* cp11* cp12*
+        python_versions: cp39* cp10* cp11* cp12*
   publish:
     name: Publish release to PyPI
     runs-on: ubuntu-latest
