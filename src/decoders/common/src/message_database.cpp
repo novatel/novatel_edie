@@ -147,15 +147,8 @@ MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(const int32_t iMsgId_) co
 // -------------------------------------------------------------------------------------------------------
 const std::vector<BaseField::Ptr>& MessageDefinition::GetMsgDefFromCrc([[maybe_unused]] spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const
 {
-    // If we can't find the correct CRC just default to the latest.
-    if (fields.find(uiMsgDefCrc_) == fields.end())
-    {
-        // TODO: this branch always gets triggered for decompression. Disabled logging for now.
-        // pclLogger_.info("Log DB is missing the log definition {} - {}.  Defaulting to newest version of the log definition.", name, uiMsgDefCrc_);
-        uiMsgDefCrc_ = latestMessageCrc;
-    }
-
-    return fields.at(uiMsgDefCrc_);
+    auto it = fields.find(uiMsgDefCrc_);
+    return (it != fields.end()) ? it->second : fields.at(latestMessageCrc);
 }
 
 } // namespace novatel::edie
