@@ -144,7 +144,10 @@ class RxConfigHandler
     //
     //! \return The number of bytes flushed from the internal Framer.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize);
+    uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize)
+    {
+        return clMyFramer.Flush(pucBuffer_, uiBufferSize_);
+    }
 };
 
 } // namespace novatel::edie::oem

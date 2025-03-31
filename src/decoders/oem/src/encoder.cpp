@@ -158,7 +158,7 @@ void Encoder::InitFieldMaps()
         const uint16_t usSv = uiTempId & 0x0000FFFF;
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
         return (sGloChan < 0)    ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, sGloChan, '"')
-               : (sGloChan != 0) ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, "+", sGloChan, '"')
+               : (sGloChan != 0) ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, '+', sGloChan, '"')
                                  : CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, '"');
     };
 
@@ -208,11 +208,9 @@ bool Encoder::EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    switch (fc_.fieldDef->dataType.name)
-    {
-    case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(std::get<bool>(fc_.fieldValue)));
-    default: return EncoderBase::FieldToBinary(fc_, ppcOutBuf_, uiBytesLeft_);
-    }
+    if (const auto* pValue = std::get_if<bool>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(*pValue)); }
+
+    return EncoderBase::FieldToBinary(fc_, ppcOutBuf_, uiBytesLeft_);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -487,7 +485,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
         // MessageData must have a valid MessageHeader pointer to populate the length field.
         if (stMessageData_.pucMessageHeader == nullptr) { return STATUS::FAILURE; }
         // Go back and set the length field in the header.
-        // TODO: this little block of code below is what's blocking us from moving this function to common
+        // TODO: this block of code below is what's blocking us from moving this function to common (can solve this with dynamic casting or CRTP?)
         if (eHeaderFormat_ == HEADER_FORMAT::ASCII || eHeaderFormat_ == HEADER_FORMAT::BINARY || eHeaderFormat_ == HEADER_FORMAT::ABB_ASCII)
         {
             reinterpret_cast<Oem4BinaryHeader*>(stMessageData_.pucMessageHeader)->usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
