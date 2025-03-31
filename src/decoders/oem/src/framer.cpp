@@ -59,20 +59,26 @@ bool Framer::IsAbbrevAsciiResponse() const
 {
     constexpr uint32_t errorLen = 5;
     constexpr uint32_t okLen = 2;
-    char szResponse[errorLen + 1];
 
     if (uiMyAbbrevAsciiHeaderPosition + okLen < clMyCircularDataBuffer.GetLength())
     {
-        for (uint32_t i = 0; i < okLen; i++) { szResponse[i] = clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + i]; }
-
-        if (strstr(szResponse, "OK") != nullptr) { return true; }
+        if (clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 0] == 'O' && //
+            clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 1] == 'K')
+        {
+            return true;
+        }
     }
 
     if (uiMyAbbrevAsciiHeaderPosition + errorLen < clMyCircularDataBuffer.GetLength())
     {
-        for (uint32_t i = 0; i < errorLen; i++) { szResponse[i] = clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + i]; }
-
-        if (strstr(szResponse, "ERROR") != nullptr) { return true; }
+        if (clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 0] == 'E' && //
+            clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 1] == 'R' && //
+            clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 2] == 'R' && //
+            clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 3] == 'O' && //
+            clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 4] == 'R')
+        {
+            return true;
+        }
     }
 
     return false;
