@@ -44,8 +44,6 @@ static void LoadJson(benchmark::State& state)
     for ([[maybe_unused]] auto _ : state) { (void)LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH")); }
 }
 
-BENCHMARK(LoadJson);
-
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
@@ -69,6 +67,7 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
 
 static void DecodeFlattenedBinaryLog(benchmark::State& state)
 {
+    // TODO: this is the same as the regular binary log we are benchmarking. Not actually flattened?
     constexpr unsigned char data[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
                                       0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
                                       0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10,
@@ -116,12 +115,6 @@ static void DecodeJsonLog(benchmark::State& state)
     DecodeLog(state, data);
 }
 
-BENCHMARK(DecodeFlattenedBinaryLog);
-BENCHMARK(DecodeAsciiLog);
-BENCHMARK(DecodeAbbrevAsciiLog);
-BENCHMARK(DecodeBinaryLog);
-BENCHMARK(DecodeJsonLog);
-
 template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
 {
     constexpr unsigned char data[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -164,12 +157,6 @@ static void EncodeAbbrevAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FOR
 static void EncodeBinaryLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::BINARY>(state); }
 static void EncodeJsonLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::JSON>(state); }
 
-BENCHMARK(EncodeFlattenedBinaryLog);
-BENCHMARK(EncodeAsciiLog);
-BENCHMARK(EncodeAbbrevAsciiLog);
-BENCHMARK(EncodeBinaryLog);
-BENCHMARK(EncodeJsonLog);
-
 static void DecompressRangeCmp(benchmark::State& state, uint32_t id, const char* compressedData)
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
@@ -203,6 +190,17 @@ static void DecompressRangeCmp2(benchmark::State& state) { DecompressRangeCmp(st
 static void DecompressRangeCmp4(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP4_MSG_ID, rangecmp4Log.data()); }
 static void DecompressRangeCmp5(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP5_MSG_ID, rangecmp5Log.data()); }
 
+BENCHMARK(LoadJson);
+BENCHMARK(DecodeFlattenedBinaryLog);
+BENCHMARK(DecodeAsciiLog);
+BENCHMARK(DecodeAbbrevAsciiLog);
+BENCHMARK(DecodeBinaryLog);
+BENCHMARK(DecodeJsonLog);
+BENCHMARK(EncodeFlattenedBinaryLog);
+BENCHMARK(EncodeAsciiLog);
+BENCHMARK(EncodeAbbrevAsciiLog);
+BENCHMARK(EncodeBinaryLog);
+BENCHMARK(EncodeJsonLog);
 BENCHMARK(DecompressRangeCmp);
 BENCHMARK(DecompressRangeCmp2);
 BENCHMARK(DecompressRangeCmp4);
