@@ -753,7 +753,6 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
 
     const unsigned char* pucTempInData = pucMessage_;
     MessageDefinition::ConstPtr vMsgDef;
-    std::vector<BaseField::Ptr> pvCurrentMsgFields;
 
     if (stMetaData_.bResponse)
     {
@@ -764,7 +763,6 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
             return STATUS::NO_DEFINITION;
         }
         vMsgDef = stMyRespDef;
-        pvCurrentMsgFields = vMsgDef->fields.at(0);
     }
     else
     {
@@ -777,26 +775,27 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
             SPDLOG_LOGGER_INFO(pclMyLogger, "No log definition for ID {}", stMetaData_.usMessageId);
             return STATUS::NO_DEFINITION;
         }
-
-        pvCurrentMsgFields = vMsgDef->GetMsgDefFromCrc(*pclMyLogger, stMetaData_.uiMessageCrc);
     }
+
+    const std::vector<BaseField::Ptr>& msgFields =
+        stMetaData_.bResponse ? vMsgDef->fields.at(0) : vMsgDef->GetMsgDefFromCrc(*pclMyLogger, stMetaData_.uiMessageCrc);
 
     // Expand the intermediate format vector to prevent the copy constructor from being called when the vector grows in size
     stInterMessage_.clear();
-    stInterMessage_.reserve(pvCurrentMsgFields.size());
+    stInterMessage_.reserve(msgFields.size()); // TODO: this does not account for field arrays, could improve performance by doing so.
 
     // Decode the detected format
     switch (stMetaData_.eFormat)
     {
     case HEADER_FORMAT::ASCII: [[fallthrough]];
     case HEADER_FORMAT::SHORT_ASCII: //
-        return DecodeAscii<false>(pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_);
+        return DecodeAscii<false>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_);
     case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
     case HEADER_FORMAT::SHORT_ABB_ASCII: //
-        return DecodeAscii<true>(pvCurrentMsgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_);
+        return DecodeAscii<true>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_);
     case HEADER_FORMAT::BINARY: [[fallthrough]];
     case HEADER_FORMAT::SHORT_BINARY: //
-        return DecodeBinary(pvCurrentMsgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
+        return DecodeBinary(msgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
     case HEADER_FORMAT::JSON: {
         simdjson::dom::parser parser;
         simdjson::dom::element clJsonFields;
@@ -817,7 +816,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
             return STATUS::MALFORMED_INPUT;
         }
 
-        return DecodeJson(pvCurrentMsgFields, body, stInterMessage_);
+        return DecodeJson(msgFields, body, stInterMessage_);
     }
     default: //
         return STATUS::UNKNOWN;
