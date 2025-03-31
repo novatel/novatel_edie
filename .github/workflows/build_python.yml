@@ -3,6 +3,13 @@ name: Python Build
 
 on:
   workflow_call:
+    inputs:
+      python_versions:
+        description: 'Which versions to build wheels for'
+        required: false
+        default: cp37-* cp312-*
+        type: string
+
 
 jobs:
   build:
@@ -45,7 +52,7 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS: ${{ matrix.platform[2] }}
-          CIBW_BUILD: cp39* cp312*
+          CIBW_BUILD: ${{ inputs.python_versions }}
           CIBW_SKIP: "*-musllinux*"
 
       - name: Inspect

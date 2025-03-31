@@ -12,5 +12,7 @@ on:
 jobs:
   build-python:
     uses: ./.github/workflows/build_python.yml
+    with:
+        python_versions: cp39* cp310* cp311* cp312*
   build-cpp:
     uses: ./.github/workflows/build_cpp.yml
