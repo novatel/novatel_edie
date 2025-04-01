@@ -120,10 +120,9 @@ std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
     std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : "UNKNOWN";
 
     std::string strMessageFormatSuffix;
-    if (uiResponse != 0U) { strMessageFormatSuffix = "R"; }
-    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY)) { strMessageFormatSuffix = "B"; }
-    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)) { strMessageFormatSuffix = "A"; }
-    else { strMessageFormatSuffix = ""; } // default to abbreviated ASCII format
+    if (uiResponse != 0U) { strMessageFormatSuffix = 'R'; }
+    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY)) { strMessageFormatSuffix = 'B'; }
+    else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)) { strMessageFormatSuffix = 'A'; }
 
     if (uiSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
 
