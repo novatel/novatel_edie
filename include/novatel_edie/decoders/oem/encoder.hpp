@@ -44,19 +44,19 @@ class Encoder : public EncoderBase<Encoder>
 {
   private:
     // Enum util functions
-    void InitEnumDefinitions() override;
-    void InitFieldMaps() override;
+    void InitEnumDefinitions();
+    void InitFieldMaps();
     [[nodiscard]] std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
 
   protected:
     static constexpr char separatorAscii = OEM4_ASCII_FIELD_SEPARATOR;
     static constexpr char separatorAbbAscii = OEM4_ABBREV_ASCII_SEPARATOR;
-    static constexpr uint32_t indentationLengthAbbAscii = OEM4_ABBREV_ASCII_INDENTATION_LENGTH;
+    static constexpr uint32_t indentLengthAbbAscii = OEM4_ABBREV_ASCII_INDENTATION_LENGTH;
 
     // Encode binary
+    [[nodiscard]] static bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
     [[nodiscard]] static bool EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
     [[nodiscard]] static bool EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
-    [[nodiscard]] bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const override;
 
     // Encode ascii
     [[nodiscard]] bool EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
@@ -152,7 +152,7 @@ class Encoder : public EncoderBase<Encoder>
     //! This must be populated by the MessageDecoder.
     //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
     //! populated by the encoder.
-    //! \param[in] eHeaderFormat The original format of the message's header.
+    //! \param[in] eHeaderFormat_ The original format of the message's header.
     //! \param[in] eFormat_ The format to encode the message to.
     //
     //! \return An error code describing the result of encoding.
