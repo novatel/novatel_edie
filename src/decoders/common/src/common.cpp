@@ -56,7 +56,7 @@ unsigned char PackMsgType(const uint32_t uiSiblingId_, const uint32_t uiMsgForma
 }
 
 //-----------------------------------------------------------------------
-std::string GetEnumString(const EnumDefinition* const stEnumDef_, const uint32_t uiEnum_)
+std::string_view GetEnumString(const EnumDefinition* const stEnumDef_, const uint32_t uiEnum_)
 {
     if (stEnumDef_ != nullptr)
     {
@@ -98,7 +98,7 @@ int32_t GetResponseId(const EnumDefinition* const stRespDef_, std::string_view s
     return 0;
 }
 
-std::string GetEnumString(const std::shared_ptr<const EnumDefinition>& stEnumDef_, uint32_t uiEnum_)
+std::string_view GetEnumString(const std::shared_ptr<const EnumDefinition>& stEnumDef_, uint32_t uiEnum_)
 {
     return GetEnumString(stEnumDef_.get(), uiEnum_);
 }
