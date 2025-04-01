@@ -119,7 +119,7 @@ template <typename T> inline std::array<char, 9> FloatingPointConversionString(c
 
 // -------------------------------------------------------------------------------------------------------
 template <typename BufferType, typename... Args>
-[[nodiscard]] bool PrintToBuffer(BufferType* ppcBuffer_, uint32_t& uiBytesLeft_, fmt::format_string<Args...> szFormat_, Args&&... args_)
+[[nodiscard]] bool WriteFormattedToBuffer(BufferType* ppcBuffer_, uint32_t& uiBytesLeft_, fmt::format_string<Args...> szFormat_, Args&&... args_)
 {
     // NOTE: This function comprises almost all of the runtime for ASCII encoding. Changes can have huge impacts on performance.
     // NOTE: We call this function far more often than we need to. Pretty much all calls with a {} format string have faster alternatives.
@@ -132,7 +132,7 @@ template <typename BufferType, typename... Args>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> [[nodiscard]] bool PrintIntToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, T&& arg)
+template <typename T> [[nodiscard]] bool WriteIntToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, T&& arg)
 {
     static_assert(std::is_integral_v<std::decay_t<T>>, "Argument must be integral type.");
     auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, arg);
@@ -144,7 +144,7 @@ template <typename T> [[nodiscard]] bool PrintIntToBuffer(char** ppcBuffer_, uin
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> [[nodiscard]] bool PrintHexToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, uint32_t minDigits, T&& arg)
+template <typename T> [[nodiscard]] bool WriteHexToBuffer(char** ppcBuffer_, uint32_t& uiBytesLeft_, uint32_t minDigits, T&& arg)
 {
     static_assert(std::is_integral_v<std::decay_t<T>>, "Argument must be integral type.");
 
@@ -241,9 +241,12 @@ template <typename... Args> [[nodiscard]] bool CopyAllToBuffer(char** ppucBuffer
 {
     return ([&](auto&& arg) {
         using Decayed = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_integral_v<Decayed> && !std::is_same_v<Decayed, char>) { return PrintIntToBuffer(ppucBuffer_, uiBytesLeft_, arg); }
-        if constexpr (is_specialization_of_v<Decayed, FormattedValue>) { return PrintToBuffer(ppucBuffer_, uiBytesLeft_, arg.format, arg.value); }
-        if constexpr (is_specialization_of_v<Decayed, HexValue>) { return PrintHexToBuffer(ppucBuffer_, uiBytesLeft_, arg.minDigits, arg.value); }
+        if constexpr (std::is_integral_v<Decayed> && !std::is_same_v<Decayed, char>) { return WriteIntToBuffer(ppucBuffer_, uiBytesLeft_, arg); }
+        if constexpr (is_specialization_of_v<Decayed, FormattedValue>)
+        {
+            return WriteFormattedToBuffer(ppucBuffer_, uiBytesLeft_, arg.format, arg.value);
+        }
+        if constexpr (is_specialization_of_v<Decayed, HexValue>) { return WriteHexToBuffer(ppucBuffer_, uiBytesLeft_, arg.minDigits, arg.value); }
         return CopyToBuffer(ppucBuffer_, uiBytesLeft_, arg);
     }(args_) &&
             ...);
@@ -271,7 +274,7 @@ template <typename BufferType, typename... Args>
 template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicMapEntry(const char* pcF_)
 {
     return [pcF_](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcF_, std::get<T>(fc_.fieldValue));
+        return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcF_, std::get<T>(fc_.fieldValue));
     };
 }
 
@@ -279,7 +282,7 @@ template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t
 template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicIntMapEntry()
 {
     return [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<T>(fc_.fieldValue));
+        return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<T>(fc_.fieldValue));
     };
 }
 
@@ -287,7 +290,7 @@ template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t
 template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicHexMapEntry(uint32_t min)
 {
     return [min](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintHexToBuffer(ppcOutBuf_, uiBytesLeft_, min, std::get<T>(fc_.fieldValue));
+        return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, min, std::get<T>(fc_.fieldValue));
     };
 }
 
@@ -466,7 +469,7 @@ template <typename Derived> class EncoderBase
                 // FIELD_ARRAY types contain several classes and so will use a recursive call
                 if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
                 {
-                    if (!PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, vFcCurrentVectorField.size()) ||
+                    if (!WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, vFcCurrentVectorField.size()) ||
                         !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
@@ -518,7 +521,7 @@ template <typename Derived> class EncoderBase
 
                     // if the field is a variable array, print the size first
                     if ((field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY &&
-                         (!PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, vFcCurrentVectorField.size()) ||
+                         (!WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, vFcCurrentVectorField.size()) ||
                           !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))) ||
                         (bPrintAsString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '\"')))
                     {
@@ -606,19 +609,19 @@ template <typename Derived> class EncoderBase
         switch (fc_.fieldDef->dataType.name)
         {
         case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::string_view(std::get<bool>(fc_.fieldValue) ? "TRUE" : "FALSE"));
-        case DATA_TYPE::HEXBYTE: return PrintHexToBuffer(ppcOutBuf_, uiBytesLeft_, 2, std::get<uint8_t>(fc_.fieldValue));
-        case DATA_TYPE::UCHAR: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint8_t>(fc_.fieldValue));
-        case DATA_TYPE::CHAR: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int8_t>(fc_.fieldValue));
-        case DATA_TYPE::USHORT: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint16_t>(fc_.fieldValue));
-        case DATA_TYPE::SHORT: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int16_t>(fc_.fieldValue));
-        case DATA_TYPE::UINT: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint32_t>(fc_.fieldValue));
-        case DATA_TYPE::INT: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int32_t>(fc_.fieldValue));
-        case DATA_TYPE::ULONG: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint32_t>(fc_.fieldValue));
-        case DATA_TYPE::ULONGLONG: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint64_t>(fc_.fieldValue));
-        case DATA_TYPE::LONG: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int32_t>(fc_.fieldValue));
-        case DATA_TYPE::LONGLONG: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int64_t>(fc_.fieldValue));
-        case DATA_TYPE::FLOAT: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<float>(fc_.fieldValue));
-        case DATA_TYPE::DOUBLE: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<double>(fc_.fieldValue));
+        case DATA_TYPE::HEXBYTE: return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, 2, std::get<uint8_t>(fc_.fieldValue));
+        case DATA_TYPE::UCHAR: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint8_t>(fc_.fieldValue));
+        case DATA_TYPE::CHAR: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int8_t>(fc_.fieldValue));
+        case DATA_TYPE::USHORT: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint16_t>(fc_.fieldValue));
+        case DATA_TYPE::SHORT: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int16_t>(fc_.fieldValue));
+        case DATA_TYPE::UINT: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint32_t>(fc_.fieldValue));
+        case DATA_TYPE::INT: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int32_t>(fc_.fieldValue));
+        case DATA_TYPE::ULONG: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint32_t>(fc_.fieldValue));
+        case DATA_TYPE::ULONGLONG: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<uint64_t>(fc_.fieldValue));
+        case DATA_TYPE::LONG: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int32_t>(fc_.fieldValue));
+        case DATA_TYPE::LONGLONG: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<int64_t>(fc_.fieldValue));
+        case DATA_TYPE::FLOAT: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<float>(fc_.fieldValue));
+        case DATA_TYPE::DOUBLE: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<double>(fc_.fieldValue));
         default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToAscii(): unknown type."); throw std::runtime_error("FieldToAscii(): unknown type.");
         }
     }
@@ -633,18 +636,18 @@ template <typename Derived> class EncoderBase
         {
         case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::string_view(std::get<bool>(fc_.fieldValue) ? "true" : "false"));
         case DATA_TYPE::HEXBYTE: [[fallthrough]];
-        case DATA_TYPE::UCHAR: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint8_t>(fc_.fieldValue));
-        case DATA_TYPE::CHAR: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int8_t>(fc_.fieldValue));
-        case DATA_TYPE::USHORT: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint16_t>(fc_.fieldValue));
-        case DATA_TYPE::SHORT: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int16_t>(fc_.fieldValue));
-        case DATA_TYPE::UINT: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue));
-        case DATA_TYPE::INT: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int32_t>(fc_.fieldValue));
-        case DATA_TYPE::ULONG: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue));
-        case DATA_TYPE::LONG: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int32_t>(fc_.fieldValue));
-        case DATA_TYPE::ULONGLONG: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint64_t>(fc_.fieldValue));
-        case DATA_TYPE::LONGLONG: return PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int64_t>(fc_.fieldValue));
-        case DATA_TYPE::FLOAT: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<float>(fc_.fieldValue));
-        case DATA_TYPE::DOUBLE: return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<double>(fc_.fieldValue));
+        case DATA_TYPE::UCHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint8_t>(fc_.fieldValue));
+        case DATA_TYPE::CHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int8_t>(fc_.fieldValue));
+        case DATA_TYPE::USHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint16_t>(fc_.fieldValue));
+        case DATA_TYPE::SHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int16_t>(fc_.fieldValue));
+        case DATA_TYPE::UINT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue));
+        case DATA_TYPE::INT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int32_t>(fc_.fieldValue));
+        case DATA_TYPE::ULONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue));
+        case DATA_TYPE::LONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int32_t>(fc_.fieldValue));
+        case DATA_TYPE::ULONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint64_t>(fc_.fieldValue));
+        case DATA_TYPE::LONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<int64_t>(fc_.fieldValue));
+        case DATA_TYPE::FLOAT: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<float>(fc_.fieldValue));
+        case DATA_TYPE::DOUBLE: return WriteFormattedToBuffer(ppcOutBuf_, uiBytesLeft_, pcConvertString, std::get<double>(fc_.fieldValue));
         default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToJson(): unknown type."); throw std::runtime_error("FieldToJson(): unknown type.");
         }
     }
