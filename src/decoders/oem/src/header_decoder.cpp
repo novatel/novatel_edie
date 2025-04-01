@@ -26,12 +26,10 @@
 
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 
-#include <nlohmann/json.hpp>
+#include <simdjson.h>
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
-
-using json = nlohmann::json;
 
 // -------------------------------------------------------------------------------------------------------
 HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
@@ -130,18 +128,74 @@ bool HeaderDecoder::DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, 
 }
 
 // -------------------------------------------------------------------------------------------------------
-void HeaderDecoder::DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stInterHeader_) const
+void HeaderDecoder::DecodeJsonHeader(std::string_view pcTempBuf_, IntermediateHeader& stInterHeader_) const
 {
-    stInterHeader_.usMessageId = clJsonHeader_["id"].get<uint16_t>();
-    stInterHeader_.uiPortAddress = static_cast<uint32_t>(GetEnumValue(vMyPortAddressDefinitions, clJsonHeader_["port"].get<std::string>()));
-    stInterHeader_.usSequence = clJsonHeader_["sequence_num"].get<uint16_t>();
-    stInterHeader_.ucIdleTime = static_cast<uint8_t>(clJsonHeader_["percent_idle_time"].get<float>() * 2.0);
-    stInterHeader_.uiTimeStatus = static_cast<uint32_t>(GetEnumValue(vMyGpsTimeStatusDefinitions, clJsonHeader_["time_status"].get<std::string>()));
-    stInterHeader_.usWeek = clJsonHeader_["week"].get<uint16_t>();
-    stInterHeader_.dMilliseconds = clJsonHeader_["seconds"].get<double>() * 1000.0;
-    stInterHeader_.uiReceiverStatus = clJsonHeader_["receiver_status"].get<uint32_t>();
-    stInterHeader_.usReceiverSwVersion = clJsonHeader_["receiver_sw_version"].get<uint16_t>();
-    stInterHeader_.uiMessageDefinitionCrc = clJsonHeader_["HEADER_reserved1"].get<uint32_t>();
+    simdjson::dom::parser parser;
+    simdjson::dom::element doc;
+    // Parse the JSON
+    auto error = parser.parse(pcTempBuf_.data(), pcTempBuf_.size()).get(doc);
+    if (error)
+    {
+        std::cerr << "JSON parsing error: " << error << '\n';
+        return;
+    }
+
+    // Access the "header" object
+    simdjson::dom::element clJsonHeader_;
+    if (doc["header"].get(clJsonHeader_) != simdjson::SUCCESS)
+    {
+        std::cerr << "Error: JSON does not contain a 'header' object\n";
+        return;
+    }
+
+    // Decode the fields
+    int64_t messageId;
+    if (clJsonHeader_["id"].get(messageId) == simdjson::SUCCESS) { stInterHeader_.usMessageId = static_cast<uint16_t>(messageId); }
+
+    std::string_view port;
+    if (clJsonHeader_["port"].get(port) == simdjson::SUCCESS)
+    {
+        stInterHeader_.uiPortAddress = static_cast<uint32_t>(GetEnumValue(vMyPortAddressDefinitions, port));
+    }
+
+    int64_t sequence;
+    if (clJsonHeader_["sequence_num"].get(sequence) == simdjson::SUCCESS) { stInterHeader_.usSequence = static_cast<uint16_t>(sequence); }
+
+    double percentIdleTime;
+    if (clJsonHeader_["percent_idle_time"].get(percentIdleTime) == simdjson::SUCCESS)
+    {
+        stInterHeader_.ucIdleTime = static_cast<uint8_t>(percentIdleTime * 2.0);
+    }
+
+    std::string_view timeStatus;
+    if (clJsonHeader_["time_status"].get(timeStatus) == simdjson::SUCCESS)
+    {
+        stInterHeader_.uiTimeStatus = static_cast<uint32_t>(GetEnumValue(vMyGpsTimeStatusDefinitions, timeStatus));
+    }
+
+    int64_t week;
+    if (clJsonHeader_["week"].get(week) == simdjson::SUCCESS) { stInterHeader_.usWeek = static_cast<uint16_t>(week); }
+
+    double seconds;
+    if (clJsonHeader_["seconds"].get(seconds) == simdjson::SUCCESS) { stInterHeader_.dMilliseconds = seconds * 1000.0; }
+
+    int64_t receiverStatus;
+    if (clJsonHeader_["receiver_status"].get(receiverStatus) == simdjson::SUCCESS)
+    {
+        stInterHeader_.uiReceiverStatus = static_cast<uint32_t>(receiverStatus);
+    }
+
+    int64_t receiverSwVersion;
+    if (clJsonHeader_["receiver_sw_version"].get(receiverSwVersion) == simdjson::SUCCESS)
+    {
+        stInterHeader_.usReceiverSwVersion = static_cast<uint16_t>(receiverSwVersion);
+    }
+
+    int64_t messageDefinitionCrc;
+    if (clJsonHeader_["HEADER_reserved1"].get(messageDefinitionCrc) == simdjson::SUCCESS)
+    {
+        stInterHeader_.uiMessageDefinitionCrc = static_cast<uint32_t>(messageDefinitionCrc);
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -271,7 +325,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     case HEADER_FORMAT::JSON:
         try
         {
-            DecodeJsonHeader(json::parse(pcTempBuf)["header"], stInterHeader_);
+            DecodeJsonHeader(pcTempBuf, stInterHeader_);
         }
         catch (std::exception& e)
         {
