@@ -373,7 +373,7 @@ template <typename Derived> class EncoderBase
                     // This is an array of simple elements
                     for (const auto& arrayField : vFcCurrentVectorField)
                     {
-                        if (!FieldToBinary(arrayField, ppucOutBuf_, uiBytesLeft_)) { return false; }
+                        if (!Derived::FieldToBinary(arrayField, ppucOutBuf_, uiBytesLeft_)) { return false; }
                     }
 
                     // For a flattened version of the log, fill in the remaining fields with 0x00.
@@ -430,7 +430,7 @@ template <typename Derived> class EncoderBase
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<std::string_view>(field.fieldValue))) { return false; }
                     break;
                 case FIELD_TYPE::SIMPLE:
-                    if (!FieldToBinary(field, ppucOutBuf_, uiBytesLeft_)) { return false; }
+                    if (!Derived::FieldToBinary(field, ppucOutBuf_, uiBytesLeft_)) { return false; }
                     break;
                 default: return false;
                 }
@@ -439,28 +439,9 @@ template <typename Derived> class EncoderBase
         return true;
     }
 
-    // TODO: This should be faster using CRTP but it ends up being slower. Find a way to do it right. We shouldn't have virtual functions.
-    [[nodiscard]] virtual bool FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
-    {
-        // TODO: could get better performance by ordering these by how common they are. (Compare totals in JSON DB)
-        if (const auto* pValue = std::get_if<uint8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<float>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<double>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<bool>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<int8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<int16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<int32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<int64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<uint16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<uint32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-        if (const auto* pValue = std::get_if<uint64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
-
-        throw std::runtime_error("Unsupported field type");
-    }
-
     template <bool Abbreviated>
     [[nodiscard]] bool EncodeAsciiBody(const std::vector<FieldContainer>& vIntermediateFormat_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                       const uint32_t uiIndentationLevel_ = 1) const
+                                       const uint32_t uiIndents_ = 1) const
     {
         constexpr char separator = Abbreviated ? Derived::separatorAbbAscii : Derived::separatorAscii;
 
@@ -469,7 +450,7 @@ template <typename Derived> class EncoderBase
         if constexpr (Abbreviated)
         {
             if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '<') ||
-                !SetInBuffer(ppcOutBuf_, uiBytesLeft_, ' ', uiIndentationLevel_ * Derived::indentationLengthAbbAscii))
+                !SetInBuffer(ppcOutBuf_, uiBytesLeft_, ' ', uiIndents_ * Derived::indentLengthAbbAscii))
             {
                 return false;
             }
@@ -482,7 +463,7 @@ template <typename Derived> class EncoderBase
                 if (newIndentLine)
                 {
                     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n<") ||
-                        !SetInBuffer(ppcOutBuf_, uiBytesLeft_, ' ', uiIndentationLevel_ * Derived::indentationLengthAbbAscii))
+                        !SetInBuffer(ppcOutBuf_, uiBytesLeft_, ' ', uiIndents_ * Derived::indentLengthAbbAscii))
                     {
                         return false;
                     }
@@ -511,7 +492,7 @@ template <typename Derived> class EncoderBase
                         if (vCurrentFieldArrayField.empty())
                         {
                             if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n<") ||
-                                !SetInBuffer(ppcOutBuf_, uiBytesLeft_, ' ', (uiIndentationLevel_ + 1) * Derived::indentationLengthAbbAscii))
+                                !SetInBuffer(ppcOutBuf_, uiBytesLeft_, ' ', (uiIndents_ + 1) * Derived::indentLengthAbbAscii))
                             {
                                 return false;
                             }
@@ -523,7 +504,7 @@ template <typename Derived> class EncoderBase
                             {
                                 if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n") ||
                                     !EncodeAsciiBody<true>(std::get<std::vector<FieldContainer>>(clFieldArray.fieldValue), ppcOutBuf_, uiBytesLeft_,
-                                                           uiIndentationLevel_ + 1))
+                                                           uiIndents_ + 1))
                                 {
                                     return false;
                                 }
@@ -810,21 +791,6 @@ template <typename Derived> class EncoderBase
         return true;
     }
 
-    virtual void InitEnumDefinitions() {}
-
-    virtual void InitFieldMaps()
-    {
-        asciiFieldMap.clear();
-        jsonFieldMap.clear();
-
-        // =========================================================
-        // ASCII Field Mapping
-        // =========================================================
-        asciiFieldMap[CalculateBlockCrc32("UB")] = BasicIntMapEntry<uint8_t>();
-        asciiFieldMap[CalculateBlockCrc32("B")] = BasicIntMapEntry<int8_t>();
-        asciiFieldMap[CalculateBlockCrc32("XB")] = BasicHexMapEntry<uint8_t>(2);
-    }
-
   public:
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Encoder class.
@@ -833,20 +799,20 @@ template <typename Derived> class EncoderBase
     //----------------------------------------------------------------------------
     EncoderBase(const MessageDatabase* pclMessageDb_ = nullptr)
     {
-        InitFieldMaps();
+        static_cast<Derived*>(this)->InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     }
 
     EncoderBase(MessageDatabase::ConstPtr pclMessageDb_)
     {
-        InitFieldMaps();
+        static_cast<Derived*>(this)->InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadSharedJsonDb(pclMessageDb_); }
     }
 
     //----------------------------------------------------------------------------
     //! \brief A destructor for the Encoder class.
     //----------------------------------------------------------------------------
-    virtual ~EncoderBase() = default;
+    ~EncoderBase() = default;
 
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
@@ -856,7 +822,7 @@ template <typename Derived> class EncoderBase
     void LoadJsonDb(const MessageDatabase* pclMessageDb_)
     {
         pclMyMsgDb = pclMessageDb_;
-        InitEnumDefinitions();
+        static_cast<Derived*>(this)->InitEnumDefinitions();
     }
 
     void LoadSharedJsonDb(MessageDatabase::ConstPtr pclMessageDb_)
