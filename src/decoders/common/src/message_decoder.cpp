@@ -26,11 +26,9 @@
 
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
-#include <nlohmann/json.hpp>
+#include <simdjson.h>
 
 using namespace novatel::edie;
-
-using json = nlohmann::json;
 
 // -------------------------------------------------------------------------------------------------------
 MessageDecoderBase::MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_)
@@ -173,44 +171,41 @@ void MessageDecoderBase::InitFieldMaps()
     jsonFieldMap[CalculateBlockCrc32("lg")] = SimpleJsonMapEntry<double>();
 
     jsonFieldMap[CalculateBlockCrc32("f")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
-                                                const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 4: vIntermediateFormat_.emplace_back(clJsonField_.get<float>(), pstMessageDataType_); return;
-        case 8: vIntermediateFormat_.emplace_back(clJsonField_.get<double>(), pstMessageDataType_); return;
+        case 4: PushElement<float>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 8: PushElement<double>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
         default: throw std::runtime_error("invalid float length");
         }
     };
 
     jsonFieldMap[CalculateBlockCrc32("d")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
-                                                const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
-        {
-            vIntermediateFormat_.emplace_back(clJsonField_.get<bool>(), pstMessageDataType_);
-        }
-        else { vIntermediateFormat_.emplace_back(clJsonField_.get<int32_t>(), pstMessageDataType_); }
+                                                simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL) { PushElement<bool>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); }
+        else { PushElement<int32_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); }
     };
 
     jsonFieldMap[CalculateBlockCrc32("u")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
-                                                const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 1: vIntermediateFormat_.emplace_back(clJsonField_.get<uint8_t>(), pstMessageDataType_); return;
-        case 2: vIntermediateFormat_.emplace_back(clJsonField_.get<uint16_t>(), pstMessageDataType_); return;
-        case 4: vIntermediateFormat_.emplace_back(clJsonField_.get<uint32_t>(), pstMessageDataType_); return;
-        case 8: vIntermediateFormat_.emplace_back(clJsonField_.get<uint64_t>(), pstMessageDataType_); return;
+        case 1: PushElement<uint8_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 2: PushElement<uint16_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 4: PushElement<uint32_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 8: PushElement<uint64_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
         default: throw std::runtime_error("invalid unsigned length");
         }
     };
 
     jsonFieldMap[CalculateBlockCrc32("x")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr pstMessageDataType_,
-                                                const json& clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
-        case 1: vIntermediateFormat_.emplace_back(clJsonField_.get<uint8_t>(), pstMessageDataType_); return;
-        case 2: vIntermediateFormat_.emplace_back(clJsonField_.get<uint16_t>(), pstMessageDataType_); return;
-        case 4: vIntermediateFormat_.emplace_back(clJsonField_.get<uint32_t>(), pstMessageDataType_); return;
-        case 8: vIntermediateFormat_.emplace_back(clJsonField_.get<uint64_t>(), pstMessageDataType_); return;
+        case 1: PushElement<uint8_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 2: PushElement<uint16_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 4: PushElement<uint32_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
+        case 8: PushElement<uint64_t>(vIntermediateFormat_, pstMessageDataType_, clJsonField_); return;
         default: throw std::runtime_error("invalid hex length");
         }
     };
@@ -424,7 +419,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             *ppcLogBuf_ += tokenLength + 1;
             break;
         case FIELD_TYPE::ENUM: {
-            auto sEnum = std::string(*ppcLogBuf_, tokenLength);
+            std::string_view sEnum(*ppcLogBuf_, tokenLength);
             const auto* enumField = dynamic_cast<EnumField*>(field.get());
             switch (enumField->length)
             {
@@ -439,15 +434,15 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             // Empty Field
             if (0 == strcspn(*ppcLogBuf_, ",*"))
             {
-                vIntermediateFormat_.emplace_back(std::string(""), field);
+                vIntermediateFormat_.emplace_back("", field);
                 *ppcLogBuf_ += 1;
             }
             // Quoted String
-            else if (0 == strcspn(*ppcLogBuf_, "\""))
+            else if (**ppcLogBuf_ == '\"')
             {
                 // If a field delimiter character is in the string, the previous tokenLength value is invalid.
                 tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '\"' character, skipping past the first.
-                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to traverse opening double-quote.
+                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to pass opening double-quote.
                 // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
                 *ppcLogBuf_ += 1 + tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data());
             }
@@ -456,7 +451,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             {
                 // String that isn't surrounded by quotes
                 tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '\"' or '*' character, skipping past the first.
-                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field); // +1 to traverse opening double-quote.
+                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
                 // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
                 *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
             }
@@ -464,7 +459,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         case FIELD_TYPE::RESPONSE_ID: {
             // Ensure we get the whole response (skip over delimiters in responses)
             tokenLength = strcspn(*ppcLogBuf_, responseDelimiters.data());
-            std::string sResponse(*ppcLogBuf_, tokenLength);
+            std::string sResponse(*ppcLogBuf_, tokenLength); // TODO: string_view?
             if (sResponse == "OK") { vIntermediateFormat_.emplace_back(1, field); }
             // Note: This won't match responses with format specifiers in them (%d, %s, etc.), they will be given id=0
             else { vIntermediateFormat_.emplace_back(GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length())), field); }
@@ -526,7 +521,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                     pvFieldContainer.emplace_back(static_cast<uint8_t>(uiValueRead), field);
                 }
                 // End of string, remove trailing double-quote
-                else if (bPrintAsString && strncmp("\"", pcPosition, 1) == 0)
+                else if (bPrintAsString && *pcPosition == '\"')
                 {
                     for (uint32_t j = 0; j < uiArraySize - i; j++) { pvFieldContainer.emplace_back(static_cast<uint8_t>(0), field); }
                     break;
@@ -618,29 +613,48 @@ template STATUS MessageDecoderBase::DecodeAscii<true>(const std::vector<BaseFiel
 template STATUS MessageDecoderBase::DecodeAscii<false>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&) const;
 
 // -------------------------------------------------------------------------------------------------------
-STATUS
-MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, json clJsonFields_,
-                               std::vector<FieldContainer>& vIntermediateFormat_) const
+STATUS MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, simdjson::dom::element jsonData,
+                                      std::vector<FieldContainer>& vIntermediateFormat_) const
 {
     for (const auto& field : vMsgDefFields_)
     {
-        json clField = clJsonFields_[field->name];
+        simdjson::dom::element clField;
+        if (jsonData[field->name].get(clField) != simdjson::SUCCESS)
+        {
+            SPDLOG_LOGGER_WARN(pclMyLogger, "Field '{}' not found in JSON", field->name);
+            continue;
+        }
 
         switch (field->type)
         {
         case FIELD_TYPE::SIMPLE: DecodeJsonField(field, clField, vIntermediateFormat_); break;
-        case FIELD_TYPE::ENUM:
-            vIntermediateFormat_.emplace_back(GetEnumValue(dynamic_cast<EnumField*>(field.get())->enumDef, clField.get<std::string>()), field);
-            break;
-        case FIELD_TYPE::STRING: [[fallthrough]];
-        case FIELD_TYPE::RESPONSE_STR: vIntermediateFormat_.emplace_back(clField.get<std::string>(), field); break;
-        case FIELD_TYPE::RESPONSE_ID: {
-            auto sResponse(clField.get<std::string>());
-            if (sResponse == "OK") { vIntermediateFormat_.emplace_back(clField.get<std::string>(), field); }
-            // Note: This won't match responses with format specifiers in them (%d, %s, etc.), they will be given id=0
-            else { vIntermediateFormat_.emplace_back(GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length())), field); }
+
+        case FIELD_TYPE::ENUM: {
+            std::string_view enumValue;
+            if (clField.get(enumValue) == simdjson::SUCCESS)
+            {
+                vIntermediateFormat_.emplace_back(GetEnumValue(dynamic_cast<EnumField*>(field.get())->enumDef, enumValue), field);
+            }
             break;
         }
+
+        case FIELD_TYPE::STRING: [[fallthrough]];
+        case FIELD_TYPE::RESPONSE_STR: {
+            std::string_view strValue; // TODO: this is bad, make intermediate format work with string view
+            if (clField.get(strValue) == simdjson::SUCCESS) { vIntermediateFormat_.emplace_back(std::string(strValue), field); }
+            break;
+        }
+
+        case FIELD_TYPE::RESPONSE_ID: {
+            std::string_view sResponse;
+            if (clField.get(sResponse) == simdjson::SUCCESS)
+            {
+                if (sResponse == "OK") { vIntermediateFormat_.emplace_back("OK", field); }
+                else { vIntermediateFormat_.emplace_back(GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length())), field); }
+            }
+            break;
+        }
+
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
@@ -648,39 +662,64 @@ MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_
 
             if (field->IsString())
             {
-                pvFieldContainer.reserve(clField.get<std::string>().size());
-                for (const char& cValRead : clField.get<std::string>()) { pvFieldContainer.emplace_back(static_cast<uint8_t>(cValRead), field); }
+                std::string_view strValue;
+                if (clField.get(strValue) == simdjson::SUCCESS)
+                {
+                    pvFieldContainer.reserve(strValue.size());
+                    for (char c : strValue) { pvFieldContainer.emplace_back(static_cast<uint8_t>(c), field); }
+                }
             }
             else
             {
-                pvFieldContainer.reserve(clField.size());
-                for (const auto& it : clField)
+                simdjson::dom::array array;
+                if (clField.get(array) == simdjson::SUCCESS)
                 {
-                    if (field->conversionHash == CalculateBlockCrc32("Z")) { pvFieldContainer.emplace_back(it.get<uint8_t>(), field); }
-                    else if (field->conversionHash == CalculateBlockCrc32("P")) { pvFieldContainer.emplace_back(it.get<int8_t>(), field); }
+                    pvFieldContainer.reserve(array.size());
+                    for (simdjson::dom::element it : array)
+                    {
+                        if (field->conversionHash == CalculateBlockCrc32("Z"))
+                        {
+                            uint64_t value;
+                            if (it.get(value) == simdjson::SUCCESS) { pvFieldContainer.emplace_back(static_cast<uint8_t>(value), field); }
+                        }
+                        else if (field->conversionHash == CalculateBlockCrc32("P"))
+                        {
+                            int64_t value;
+                            if (it.get(value) == simdjson::SUCCESS) { pvFieldContainer.emplace_back(static_cast<int8_t>(value), field); }
+                        }
+                    }
                 }
             }
             break;
         }
+
         case FIELD_TYPE::FIELD_ARRAY: {
-            const auto uiArraySize = static_cast<uint32_t>(clField.size());
+            simdjson::dom::array array;
+            auto error = clField.get(array);
+            if (error) { return STATUS::MALFORMED_INPUT; }
+
             const auto* subFieldDefinitions = dynamic_cast<FieldArrayField*>(field.get());
+            if (!subFieldDefinitions) { return STATUS::MALFORMED_INPUT; }
+
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
-            pvFieldArrayContainer.reserve(uiArraySize);
+            pvFieldArrayContainer.reserve(array.size());
 
-            for (uint32_t i = 0; i < uiArraySize; ++i)
+            for (simdjson::dom::element element : array)
             {
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvSubFieldContainer = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().fieldValue);
                 pvSubFieldContainer.reserve(subFieldDefinitions->fields.size());
-                STATUS eStatus = DecodeJson(subFieldDefinitions->fields, clField[i], pvSubFieldContainer);
+
+                // Recursively decode the subfields
+                STATUS eStatus = DecodeJson(subFieldDefinitions->fields, element, pvSubFieldContainer);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
             break;
         }
+
         default:
-            SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeJson(): Unknown field type");
+            SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeJson(): Unknown field type '{}'", field->name);
             throw std::runtime_error("DecodeJson(): Unknown field type");
         }
     }
@@ -689,7 +728,7 @@ MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, const json& clJsonField_,
+void MessageDecoderBase::DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, simdjson::dom::element clJsonField_,
                                          std::vector<FieldContainer>& vIntermediateFormat_) const
 {
     const auto it = jsonFieldMap.find(pstMessageDataType_->conversionHash);
@@ -755,8 +794,28 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
     case HEADER_FORMAT::BINARY: [[fallthrough]];
     case HEADER_FORMAT::SHORT_BINARY: //
         return DecodeBinary(pvCurrentMsgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
-    case HEADER_FORMAT::JSON: //
-        return DecodeJson(pvCurrentMsgFields, json::parse(pucTempInData)["body"], stInterMessage_);
+    case HEADER_FORMAT::JSON: {
+        simdjson::dom::parser parser;
+        simdjson::dom::element clJsonFields;
+
+        std::string_view jsonStringView(reinterpret_cast<const char*>(pucTempInData)); // Assumes null-terminated data
+
+        auto error = parser.parse(jsonStringView).get(clJsonFields);
+        if (error)
+        {
+            SPDLOG_LOGGER_ERROR(pclMyLogger, "JSON parsing error:"); // TODO: {}", error.message());
+            return STATUS::MALFORMED_INPUT;
+        }
+
+        simdjson::dom::element body;
+        if (clJsonFields["body"].get(body) != simdjson::SUCCESS)
+        {
+            SPDLOG_LOGGER_WARN(pclMyLogger, "Field 'body' not found in JSON");
+            return STATUS::MALFORMED_INPUT;
+        }
+
+        return DecodeJson(pvCurrentMsgFields, body, stInterMessage_);
+    }
     default: //
         return STATUS::UNKNOWN;
     }

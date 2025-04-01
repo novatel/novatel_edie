@@ -31,8 +31,7 @@
 #include <utility>
 #include <variant>
 
-#include <nlohmann/json.hpp> // TODO: move to .cpp file
-#include <nlohmann/json_fwd.hpp>
+#include <simdjson.h>
 
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
@@ -54,14 +53,9 @@ using FieldValueVariant = std::variant<CONTAINER_TYPES>;
 struct FieldContainer
 {
     FieldValueVariant fieldValue;
-    BaseField::ConstPtr fieldDef{};
+    BaseField::ConstPtr fieldDef;
 
     template <class T> FieldContainer(T tFieldValue_, BaseField::ConstPtr pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_) {}
-
-    // [[deprecated("Avoid copying of FieldContainer objects")]]
-    // FieldContainer([[maybe_unused]] const FieldContainer& obj_) = default;
-    // [[deprecated("Avoid copying of FieldContainer objects")]]
-    // FieldContainer& operator=([[maybe_unused]] const FieldContainer& obj_) = default;
 };
 
 //============================================================================
@@ -93,8 +87,8 @@ class MessageDecoderBase
     std::unordered_map<uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, const char**, [[maybe_unused]] size_t,
                                                     [[maybe_unused]] MessageDatabase&)>>
         asciiFieldMap;
-    std::unordered_map<uint32_t,
-                       std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, nlohmann::json, [[maybe_unused]] MessageDatabase&)>>
+    std::unordered_map<
+        uint32_t, std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, simdjson::dom::element, [[maybe_unused]] MessageDatabase&)>>
         jsonFieldMap;
 
     [[nodiscard]] STATUS DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefFields_, const unsigned char** ppucLogBuf_,
@@ -102,14 +96,14 @@ class MessageDecoderBase
     template <bool Abbreviated>
     [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, const char** ppcLogBuf_,
                                      std::vector<FieldContainer>& vIntermediateFormat_) const;
-    [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, nlohmann::json clJsonFields_,
+    [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, simdjson::dom::element jsonData,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     static void DecodeBinaryField(BaseField::ConstPtr pstMessageDataType_, const unsigned char** ppucLogBuf_,
                                   std::vector<FieldContainer>& vIntermediateFormat_);
     void DecodeAsciiField(BaseField::ConstPtr pstMessageDataType_, const char** ppcToken_, size_t tokenLength_,
                           std::vector<FieldContainer>& vIntermediateFormat_) const;
-    void DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, const nlohmann::json& clJsonField_,
+    void DecodeJsonField(BaseField::ConstPtr pstMessageDataType_, simdjson::dom::element clJsonField_,
                          std::vector<FieldContainer>& vIntermediateFormat_) const;
 
     // -------------------------------------------------------------------------------------------------------
@@ -159,10 +153,36 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, nlohmann::json, MessageDatabase&)> SimpleJsonMapEntry()
+    static void PushElement(std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstMessageDataType_, simdjson::dom::element clJsonField_)
     {
-        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstMessageDataType_, nlohmann::json clJsonField_,
-                  [[maybe_unused]] MessageDatabase& pclMsgDb_) { vIntermediate_.emplace_back(clJsonField_.get<T>(), pstMessageDataType_); };
+        // Determine the intermediate type to use for simdjson::get
+        using IntermediateType =
+            std::conditional_t<std::is_same_v<T, bool>, bool,                                                   // Handle bool directly
+                               std::conditional_t<std::is_integral_v<T> && sizeof(T) <= sizeof(int64_t),        // For integers <= 64 bits
+                                                  std::conditional_t<std::is_signed_v<T>, int64_t, uint64_t>,   // Use int64_t or uint64_t
+                                                  std::conditional_t<std::is_floating_point_v<T>, double, void> // Use double for floating-point
+                                                  >>;
+
+        static_assert(!std::is_same_v<IntermediateType, void>, "Unsupported type for PushElement");
+
+        IntermediateType intermediateValue;
+        if (clJsonField_.get(intermediateValue) == simdjson::SUCCESS)
+        {
+            T value = static_cast<T>(intermediateValue);
+            vIntermediate_.emplace_back(value, pstMessageDataType_);
+        }
+        else
+        {
+            // Handle error (e.g., log a warning or throw an exception)
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------------------
+    template <typename T>
+    static std::function<void(std::vector<FieldContainer>&, BaseField::ConstPtr, simdjson::dom::element, MessageDatabase&)> SimpleJsonMapEntry()
+    {
+        return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr pstMessageDataType_, simdjson::dom::element clJsonField_,
+                  [[maybe_unused]] MessageDatabase& pclMsgDb_) { PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_); };
     }
 
   public:
