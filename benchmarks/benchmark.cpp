@@ -208,7 +208,7 @@ BENCHMARK(DecompressRangeCmp5);
 
 int main(int argc, char** argv)
 {
-    getLoggerManager() -> InitManager();
+    LOGGER_MANAGER->InitLogger();
 
     std::filesystem::path pathSourceFile = __FILE__;
     std::filesystem::path pathRepoDir = pathSourceFile.parent_path().parent_path();
