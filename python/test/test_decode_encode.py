@@ -71,20 +71,25 @@ class Helper:
         except Exception:
             return (Result.HEADER_DECODER_ERROR, None) if not return_message else (Result.HEADER_DECODER_ERROR, None, None)
 
+        print(f"a")
         body = message_input[meta_data.header_length:]
         try:
             message = self.decoder.decode_payload(body, header, meta_data)
         except Exception:
             return (Result.MESSAGE_DECODER_ERROR, None) if not return_message else (Result.MESSAGE_DECODER_ERROR, None, None)
 
+        print(f"b")
         try:
             message_data = message.encode(encode_format)
         except Exception:
             return (Result.ENCODER_ERROR, None) if not return_message else (Result.ENCODER_ERROR, None, None)
 
+        print(f"c")
         if return_message:
+            print(f"{body}")
             return Result.SUCCESS, message_data, message
 
+        print(f"d")
         return Result.SUCCESS, message_data
 
     def TestDecodeEncode(self, format_, encoded_message):
@@ -617,6 +622,7 @@ def test_flat_binary_log_decode_psrdopb(helper):
 def test_flat_binary_log_decode_validmodelsb(helper):
     log = bytes([0xAA, 0x44, 0x12, 0x1C, 0xCE, 0x00, 0x00, 0x20, 0x1C, 0x00, 0x00, 0x00, 0x89, 0xB4, 0x78, 0x08, 0x95, 0xBD, 0x55, 0x09, 0x20, 0x08, 0x00, 0x02, 0x2F, 0x34, 0x00, 0x80, 0x01, 0x00, 0x00, 0x00, 0x46, 0x46, 0x4E, 0x52, 0x4E, 0x4E, 0x43, 0x42, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xCC, 0xE0, 0xA2, 0x68])
     ret_code, message_data, validmodels = helper.DecodeEncode(ENCODE_FORMAT.FLATTENED_BINARY, log, return_message=True)
+    print(f"one")
     assert ret_code == Result.SUCCESS
     assert 708 == len(message_data.message)
 
