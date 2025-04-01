@@ -148,7 +148,7 @@ void Encoder::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("m")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", std::string_view(pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue))), "\"");
+        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue))), '"');
     };
 
     jsonFieldMap[CalculateBlockCrc32("id")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,

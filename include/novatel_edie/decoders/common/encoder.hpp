@@ -350,22 +350,18 @@ template <typename Derived> class EncoderBase
                     // For a flattened version of the log, fill in the remaining fields with 0x00.
                     if constexpr (Flatten)
                     {
-                        if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) <
-                                dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->fieldSize &&
-                            !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0',
-                                         dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->fieldSize -
-                                             static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
-                        {
-                            return false;
-                        }
+                        const uint32_t maxSize = dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->fieldSize;
+                        const auto diff = static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart);
+                        if (diff < maxSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', maxSize - diff)) { return false; }
                     }
                 }
                 else
                 {
-                    if (field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+                    // if the field is a variable array, print the size first
+                    if (field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY &&
+                        !CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vFcCurrentVectorField.size())))
                     {
-                        // if the field is a variable array, print the size first
-                        if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vFcCurrentVectorField.size()))) { return false; }
+                        return false;
                     }
 
                     pucTempStart = *ppucOutBuf_; // Move the start placeholder to the front of the array start
@@ -379,13 +375,9 @@ template <typename Derived> class EncoderBase
                     // For a flattened version of the log, fill in the remaining fields with 0x00.
                     if constexpr (Flatten)
                     {
-                        const uint32_t uiMaxArraySize =
-                            dynamic_cast<const ArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
-                        if (static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart) < uiMaxArraySize &&
-                            !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart)))
-                        {
-                            return false;
-                        }
+                        const uint32_t maxSize = dynamic_cast<const ArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
+                        const auto diff = static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart);
+                        if (diff < maxSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', maxSize - diff)) { return false; }
                     }
                 }
             }
@@ -400,13 +392,9 @@ template <typename Derived> class EncoderBase
                     // For a flattened version of the log, fill in the remaining characters with 0x00.
                     if constexpr (Flatten)
                     {
-                        const auto uiStringLength = static_cast<uint32_t>(sv.size());
-                        const uint32_t uiMaxArraySize =
-                            dynamic_cast<const ArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
-                        if (uiStringLength < uiMaxArraySize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', uiMaxArraySize - uiStringLength))
-                        {
-                            return false;
-                        }
+                        const auto diff = static_cast<uint32_t>(sv.size());
+                        const uint32_t maxSize = dynamic_cast<const ArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
+                        if (diff < maxSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', maxSize - diff)) { return false; }
                     }
                     else if (!SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', 4 - (reinterpret_cast<uint64_t>(*ppucOutBuf_) % 4))) { return false; }
                     break;
@@ -568,7 +556,7 @@ template <typename Derived> class EncoderBase
                 switch (field.fieldDef->type)
                 {
                 case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", std::get<std::string_view>(field.fieldValue), "\"") ||
+                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::get<std::string_view>(field.fieldValue), '"') ||
                         !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
