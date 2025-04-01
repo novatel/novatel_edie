@@ -12,9 +12,11 @@ target_include_directories(${TARGET_NAME} PUBLIC
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
 
 find_package(nlohmann_json REQUIRED CONFIG)
+find_package(simdjson REQUIRED CONFIG)
 target_link_libraries(${TARGET_NAME} PUBLIC
     common
     nlohmann_json::nlohmann_json
+    simdjson::simdjson
 )
 
 install(TARGETS ${TARGET_NAME}

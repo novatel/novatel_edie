@@ -33,7 +33,6 @@
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
-#include "novatel_edie/decoders/oem/header_decoder.hpp"
 
 namespace novatel::edie::oem {
 
@@ -94,7 +93,7 @@ class Filter
     //
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
-    std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
@@ -245,7 +244,7 @@ class Filter
     //
     //! \param[in] stMetaData_  The MetaDataStruct to filter.
     //----------------------------------------------------------------------------
-    bool DoFiltering(const MetaDataStruct& stMetaData_) const;
+    [[nodiscard]] bool DoFiltering(const MetaDataStruct& stMetaData_) const;
 
   public:
     using Ptr = std::shared_ptr<Filter>;
