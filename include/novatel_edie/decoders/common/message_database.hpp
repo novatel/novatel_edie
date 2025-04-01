@@ -109,6 +109,48 @@ inline std::string DataTypeConversion(const DATA_TYPE eType_)
     }
 }
 
+inline std::string PrintfToPythonFormat(const std::string& printfFormat)
+{
+    // Regex to match printf-style format specifiers
+    std::regex printfRegex(R"((%)([0-9]*)(\.?[0-9]*)([a-zA-Z%]+))");
+    std::smatch match;
+    std::string pythonFormat = printfFormat;
+    std::string::const_iterator searchStart(printfFormat.cbegin());
+
+    while (std::regex_search(searchStart, printfFormat.cend(), match, printfRegex))
+    {
+        const std::string fullMatch = match.str(0); // The full matched format specifier
+        const std::string flag = match.str(1);      // The % character
+        const std::string width = match.str(2);     // The width (e.g., 08 in %08lx)
+        const std::string precision = match.str(3); // The precision (e.g., .3 in %.3f)
+        const std::string specifier = match.str(4); // The format specifier (e.g., lx, f, hu, c, s)
+
+        std::string pythonSpec;
+
+        if (specifier == "%") { pythonSpec = "%"; }
+        else
+        {
+            pythonSpec = "{:";
+
+            if (!width.empty()) { pythonSpec += width; }
+            if (!precision.empty()) { pythonSpec += precision; }
+
+            if (specifier == "lx" || specifier == "x") { pythonSpec += "x"; }
+            else if (specifier == "f" || specifier == "lf" || specifier == "k" || specifier == "lk") { pythonSpec += "f"; }
+            else { return "{}"; }
+
+            pythonSpec += "}";
+        }
+
+        // Replace the printf format specifier with the Python format specifier
+        const size_t pos = pythonFormat.find(fullMatch, searchStart - printfFormat.cbegin());
+        if (pos != std::string::npos) { pythonFormat.replace(pos, fullMatch.length(), pythonSpec); }
+        else { break; }
+    }
+
+    return pythonFormat;
+}
+
 //!< Mapping from String to data type enums.
 static const std::unordered_map<std::string, DATA_TYPE> DataTypeEnumLookup = {
     {"BOOL", DATA_TYPE::BOOL},      {"HEXBYTE", DATA_TYPE::HEXBYTE},   {"CHAR", DATA_TYPE::CHAR},
@@ -205,6 +247,7 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
+    std::string pythonConversion;
     uint32_t conversionHash{0ULL};
     int32_t conversionBeforePoint{0};
     int32_t conversionAfterPoint{0};
@@ -212,19 +255,21 @@ struct BaseField
 
     BaseField() = default;
 
-    BaseField(std::string name_, const FIELD_TYPE type_, const std::string& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
+    BaseField(std::string name_, const FIELD_TYPE type_, std::string&& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
         : name(std::move(name_)), type(type_)
     {
-        SetConversion(sConversion_);
+        SetConversion(std::move(sConversion_));
         dataType.length = static_cast<uint16_t>(length_);
         dataType.name = eDataTypeName_;
     }
 
     virtual ~BaseField() = default;
 
-    void SetConversion(const std::string& sConversion_)
+    void SetConversion(std::string&& sConversion_)
     {
-        conversion = sConversion_;
+        conversion = std::move(sConversion_);
+
+        pythonConversion = PrintfToPythonFormat(conversion);
 
         const char* sConvertString = conversion.c_str();
 

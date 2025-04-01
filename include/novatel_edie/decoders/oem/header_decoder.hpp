@@ -27,8 +27,6 @@
 #ifndef NOVATEL_HEADER_DECODER_HPP
 #define NOVATEL_HEADER_DECODER_HPP
 
-#include <nlohmann/json_fwd.hpp>
-
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
@@ -55,7 +53,7 @@ class HeaderDecoder
     [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
     template <const char pcDelimiter[], ASCII_HEADER... eFields>
     [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
-    void DecodeJsonHeader(nlohmann::json clJsonHeader_, IntermediateHeader& stInterHeader_) const;
+    void DecodeJsonHeader(std::string_view pcTempBuf_, IntermediateHeader& stInterHeader_) const;
 
   public:
     //----------------------------------------------------------------------------
