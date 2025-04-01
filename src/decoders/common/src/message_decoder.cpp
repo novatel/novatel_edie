@@ -435,29 +435,27 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             break;
         }
         case FIELD_TYPE::STRING:
-            // Empty Field
-            if (0 == strcspn(*ppcLogBuf_, ",*"))
+            switch (**ppcLogBuf_)
             {
-                vIntermediateFormat_.emplace_back("", field);
+            case ',': [[fallthrough]];
+            case '*':
+                vIntermediateFormat_.emplace_back(std::string_view(""), field);
                 *ppcLogBuf_ += 1;
-            }
-            // Quoted String
-            else if (**ppcLogBuf_ == '\"')
-            {
+                break;
+            case '"':
                 // If a field delimiter character is in the string, the previous tokenLength value is invalid.
-                tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '\"' character, skipping past the first.
+                tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '"' character, skipping past the first.
                 vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to pass opening double-quote.
-                // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
-                *ppcLogBuf_ += 1 + tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data());
-            }
-            // Unquoted String
-            else
-            {
-                // String that isn't surrounded by quotes
-                tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '\"' or '*' character, skipping past the first.
-                vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
-                // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
+                // Skip past the first '"', string token and the remaining characters ('"' and ',').
                 *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
+                break;
+            default:
+                // String that isn't surrounded by quotes
+                tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '"' or '*' character, skipping past the first.
+                vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
+                // Skip past the first '"', string token and the remaining characters ('"' and ',').
+                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
+                break;
             }
             break;
         case FIELD_TYPE::RESPONSE_ID: {
