@@ -55,11 +55,11 @@ test-requires = "pytest"
 test-command = "pytest {project}/python/test --color=yes -v"
 build-verbosity = 1
 archs = "auto64"
+manylinux-x86_64-image = "manylinux_2_28"
 
-# Needed for full C++17 support
 [tool.cibuildwheel.macos.environment]
-MACOSX_DEPLOYMENT_TARGET = "10.15"
-
+# Needed for full C++17 support
+MACOSX_DEPLOYMENT_TARGET = "13.0"
 
 [tool.bumpversion]
 current_version = "2.0.2"
