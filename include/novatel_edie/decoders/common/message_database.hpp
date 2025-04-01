@@ -109,6 +109,48 @@ inline std::string DataTypeConversion(const DATA_TYPE eType_)
     }
 }
 
+inline std::string PrintfToPythonFormat(const std::string& printfFormat)
+{
+    // Regex to match printf-style format specifiers
+    std::regex printfRegex(R"((%)([0-9]*)(\.?[0-9]*)([a-zA-Z%]+))");
+    std::smatch match;
+    std::string pythonFormat = printfFormat;
+    std::string::const_iterator searchStart(printfFormat.cbegin());
+
+    while (std::regex_search(searchStart, printfFormat.cend(), match, printfRegex))
+    {
+        const std::string fullMatch = match.str(0); // The full matched format specifier
+        const std::string flag = match.str(1);      // The % character
+        const std::string width = match.str(2);     // The width (e.g., 08 in %08lx)
+        const std::string precision = match.str(3); // The precision (e.g., .3 in %.3f)
+        const std::string specifier = match.str(4); // The format specifier (e.g., lx, f, hu, c, s)
+
+        std::string pythonSpec;
+
+        if (specifier == "%") { pythonSpec = "%"; }
+        else
+        {
+            pythonSpec = "{:";
+
+            if (!width.empty()) { pythonSpec += width; }
+            if (!precision.empty()) { pythonSpec += precision; }
+
+            if (specifier == "lx" || specifier == "x") { pythonSpec += "x"; }
+            else if (specifier == "f" || specifier == "lf" || specifier == "k" || specifier == "lk") { pythonSpec += "f"; }
+            else { return "{}"; }
+
+            pythonSpec += "}";
+        }
+
+        // Replace the printf format specifier with the Python format specifier
+        const size_t pos = pythonFormat.find(fullMatch, searchStart - printfFormat.cbegin());
+        if (pos != std::string::npos) { pythonFormat.replace(pos, fullMatch.length(), pythonSpec); }
+        else { break; }
+    }
+
+    return pythonFormat;
+}
+
 //!< Mapping from String to data type enums.
 static const std::unordered_map<std::string, DATA_TYPE> DataTypeEnumLookup = {
     {"BOOL", DATA_TYPE::BOOL},      {"HEXBYTE", DATA_TYPE::HEXBYTE},   {"CHAR", DATA_TYPE::CHAR},
@@ -155,8 +197,8 @@ static const std::unordered_map<std::string, FIELD_TYPE> FieldTypeEnumLookup = {
 struct EnumDataType
 {
     uint32_t value{0};
-    std::string name{};
-    std::string description{};
+    std::string name;
+    std::string description;
 };
 
 //-----------------------------------------------------------------------
@@ -165,9 +207,12 @@ struct EnumDataType
 //-----------------------------------------------------------------------
 struct EnumDefinition
 {
-    std::string _id{};
-    std::string name{};
-    std::vector<EnumDataType> enumerators{};
+    std::string _id;
+    std::string name;
+    std::vector<EnumDataType> enumerators;
+    std::unordered_map<std::string_view, uint32_t> nameValue;
+    std::unordered_map<std::string_view, uint32_t> descriptionValue;
+    std::unordered_map<uint32_t, std::string_view> valueName;
 
     using Ptr = std::shared_ptr<EnumDefinition>;
     using ConstPtr = std::shared_ptr<const EnumDefinition>;
@@ -182,7 +227,7 @@ struct BaseDataType
 {
     DATA_TYPE name{DATA_TYPE::UNKNOWN};
     uint16_t length{0};
-    std::string description{};
+    std::string description;
 };
 
 //-----------------------------------------------------------------------
@@ -205,6 +250,7 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
+    std::string pythonConversion;
     uint32_t conversionHash{0ULL};
     int32_t conversionBeforePoint{0};
     int32_t conversionAfterPoint{0};
@@ -212,19 +258,21 @@ struct BaseField
 
     BaseField() = default;
 
-    BaseField(std::string name_, const FIELD_TYPE type_, const std::string& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
+    BaseField(std::string name_, const FIELD_TYPE type_, std::string&& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
         : name(std::move(name_)), type(type_)
     {
-        SetConversion(sConversion_);
+        SetConversion(std::move(sConversion_));
         dataType.length = static_cast<uint16_t>(length_);
         dataType.name = eDataTypeName_;
     }
 
     virtual ~BaseField() = default;
 
-    void SetConversion(const std::string& sConversion_)
+    void SetConversion(std::string&& sConversion_)
     {
-        conversion = sConversion_;
+        conversion = std::move(sConversion_);
+
+        pythonConversion = PrintfToPythonFormat(conversion);
 
         const char* sConvertString = conversion.c_str();
 
@@ -334,10 +382,10 @@ class MessageDatabase
 {
     std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
-    std::unordered_map<std::string, MessageDefinition::ConstPtr> mMessageName;
+    std::unordered_map<std::string_view, MessageDefinition::ConstPtr> mMessageName;
     std::unordered_map<int32_t, MessageDefinition::ConstPtr> mMessageId;
-    std::unordered_map<std::string, EnumDefinition::ConstPtr> mEnumName;
-    std::unordered_map<std::string, EnumDefinition::ConstPtr> mEnumId;
+    std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumName;
+    std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
 
   public:
     //----------------------------------------------------------------------------
@@ -432,7 +480,7 @@ class MessageDatabase
     //
     //! \param[in] strMsgName_ A string containing the message name.
     //----------------------------------------------------------------------------
-    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(const std::string& strMsgName_) const;
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view strMsgName_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Get a UI DB message definition for the provided message ID.

@@ -11,7 +11,7 @@ namespace nb = nanobind;
 namespace novatel::edie::oem {
 
 nb::object HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, oem::PyHeader& header_,
-                                  std::vector<FieldContainer>& message_fields_, oem::MetaDataStruct& metadata_,
+                                  std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
                                   PyMessageDatabase::ConstPtr database_);
 
 class PyParser : public Parser
