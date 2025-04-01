@@ -53,17 +53,9 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
 }
 
 // -------------------------------------------------------------------------------------------------------
-Encoder::Encoder(MessageDatabase* pclMessageDb_) : EncoderBase(pclMessageDb_)
-{
-    InitFieldMaps();
-    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
-}
+Encoder::Encoder(MessageDatabase* pclMessageDb_) : EncoderBase(pclMessageDb_) {}
 
-Encoder::Encoder(MessageDatabase::ConstPtr pclMessageDb_) : EncoderBase(pclMessageDb_)
-{
-    InitFieldMaps();
-    if (pclMessageDb_ != nullptr) { LoadSharedJsonDb(pclMessageDb_); }
-}
+Encoder::Encoder(MessageDatabase::ConstPtr pclMessageDb_) : EncoderBase(pclMessageDb_) {}
 
 // -------------------------------------------------------------------------------------------------------
 void Encoder::InitEnumDefinitions()
@@ -76,9 +68,16 @@ void Encoder::InitEnumDefinitions()
 // -------------------------------------------------------------------------------------------------------
 void Encoder::InitFieldMaps()
 {
+    asciiFieldMap.clear();
+    jsonFieldMap.clear();
+
     // =========================================================
     // ASCII Field Mapping
     // =========================================================
+    asciiFieldMap[CalculateBlockCrc32("UB")] = BasicIntMapEntry<uint8_t>();
+    asciiFieldMap[CalculateBlockCrc32("B")] = BasicIntMapEntry<int8_t>();
+    asciiFieldMap[CalculateBlockCrc32("XB")] = BasicHexMapEntry<uint8_t>(2);
+
     asciiFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         return fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR
@@ -193,6 +192,23 @@ void Encoder::InitFieldMaps()
     };
 }
 
+bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
+{
+    if (const auto* pValue = std::get_if<uint8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<float>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<double>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<bool>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(*pValue)); }
+    if (const auto* pValue = std::get_if<int8_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<int16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<int32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<int64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<uint16_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<uint32_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+    if (const auto* pValue = std::get_if<uint64_t>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, *pValue); }
+
+    throw std::runtime_error("Unsupported field type");
+}
+
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
 {
@@ -203,14 +219,6 @@ bool Encoder::EncodeBinaryHeader(const IntermediateHeader& stInterHeader_, unsig
 bool Encoder::EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
 {
     return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, Oem4BinaryShortHeader(stInterHeader_));
-}
-
-// -------------------------------------------------------------------------------------------------------
-bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
-{
-    if (const auto* pValue = std::get_if<bool>(&fc_.fieldValue)) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(*pValue)); }
-
-    return EncoderBase::FieldToBinary(fc_, ppcOutBuf_, uiBytesLeft_);
 }
 
 // -------------------------------------------------------------------------------------------------------
