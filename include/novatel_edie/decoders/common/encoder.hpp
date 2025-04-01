@@ -161,9 +161,9 @@ template <typename BufferType, typename... Args>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, MessageDatabase&)> BasicMapEntry(const char* pcF_)
+template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t&, const MessageDatabase&)> BasicMapEntry(const char* pcF_)
 {
-    return [pcF_](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+    return [pcF_](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, pcF_, std::get<T>(fc_.fieldValue));
     };
 }
@@ -176,14 +176,16 @@ template <typename Derived> class EncoderBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("encoder")};
-    MessageDatabase::Ptr pclMyMsgDb{nullptr};
+    MessageDatabase::ConstPtr pclMyMsgDbStrongRef{nullptr};
+    const MessageDatabase* pclMyMsgDb{nullptr};
 
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
-    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] MessageDatabase&)>> asciiFieldMap;
-    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] MessageDatabase&)>> jsonFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] const MessageDatabase&)>>
+        asciiFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] const MessageDatabase&)>> jsonFieldMap;
 
     template <bool Flatten, bool Align>
     [[nodiscard]] bool EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
@@ -272,7 +274,7 @@ template <typename Derived> class EncoderBase
                 switch (field.fieldDef->type)
                 {
                 case FIELD_TYPE::STRING: { // STRING types can be handled all at once because they are a single element and have a null terminator
-                    std::string_view sv = std::get<std::string_view>(field.fieldValue);
+                    std::string_view sv = std::get<std::string>(field.fieldValue).c_str();
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, sv)) { return false; }
 
                     // For a flattened version of the log, fill in the remaining characters with 0x00.
@@ -305,7 +307,7 @@ template <typename Derived> class EncoderBase
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, &std::get<int32_t>(field.fieldValue))) { return false; }
                     break;
                 case FIELD_TYPE::RESPONSE_STR:
-                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<std::string_view>(field.fieldValue))) { return false; }
+                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<std::string>(field.fieldValue).c_str())) { return false; }
                     break;
                 case FIELD_TYPE::SIMPLE:
                     if (!FieldToBinary(field, ppucOutBuf_, uiBytesLeft_)) { return false; }
@@ -469,7 +471,7 @@ template <typename Derived> class EncoderBase
                 switch (field.fieldDef->type)
                 {
                 case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
-                    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"{}\"", std::get<std::string_view>(field.fieldValue)) ||
+                    if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "\"{}\"", std::get<std::string>(field.fieldValue).c_str()) ||
                         !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
@@ -494,7 +496,7 @@ template <typename Derived> class EncoderBase
                 }
                 case FIELD_TYPE::RESPONSE_ID: break; // Do nothing, ascii logs don't output this field
                 case FIELD_TYPE::RESPONSE_STR:
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string_view>(field.fieldValue)) ||
+                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string>(field.fieldValue).c_str()) ||
                         !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
@@ -645,7 +647,7 @@ template <typename Derived> class EncoderBase
                 {
                 case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
                     if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("{}": "{}",)", field.fieldDef->name.c_str(),
-                                       std::get<std::string_view>(field.fieldValue)))
+                                       std::get<std::string>(field.fieldValue).c_str()))
                     {
                         return false;
                     }
@@ -666,7 +668,7 @@ template <typename Derived> class EncoderBase
                     break;
                 case FIELD_TYPE::RESPONSE_STR:
                     if (!PrintToBuffer(ppcOutBuf_, uiBytesLeft_, R"("{}": "{}",)", field.fieldDef->name.c_str(),
-                                       std::get<std::string_view>(field.fieldValue)))
+                                       std::get<std::string>(field.fieldValue).c_str()))
                     {
                         return false;
                     }
@@ -715,10 +717,16 @@ template <typename Derived> class EncoderBase
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    EncoderBase(MessageDatabase::Ptr pclMessageDb_ = nullptr)
+    EncoderBase(const MessageDatabase* pclMessageDb_ = nullptr)
     {
         InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
+    }
+
+    EncoderBase(MessageDatabase::ConstPtr pclMessageDb_)
+    {
+        InitFieldMaps();
+        if (pclMessageDb_ != nullptr) { LoadSharedJsonDb(pclMessageDb_); }
     }
 
     //----------------------------------------------------------------------------
@@ -731,10 +739,16 @@ template <typename Derived> class EncoderBase
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
+    void LoadJsonDb(const MessageDatabase* pclMessageDb_)
     {
         pclMyMsgDb = pclMessageDb_;
         InitEnumDefinitions();
+    }
+
+    void LoadSharedJsonDb(MessageDatabase::ConstPtr pclMessageDb_)
+    {
+        pclMyMsgDbStrongRef = pclMessageDb_;
+        LoadJsonDb(pclMessageDb_.get());
     }
 
     //----------------------------------------------------------------------------
