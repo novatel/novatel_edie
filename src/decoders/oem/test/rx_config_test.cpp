@@ -122,7 +122,7 @@ TEST_F(RxConfigTest, DISABLED_RXCONFIG_ROUNDTRIP_ASCII)
     stExpectedEmbeddedMessageData.pucMessageBody = &aucLog[149];
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
 
-    WriteBytesToHandler(aucLog, sizeof(aucLog));
+    WriteBytesToHandler(aucLog, sizeof(aucLog) - 1);
     ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
@@ -149,7 +149,7 @@ TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ABBREV)
     stExpectedEmbeddedMessageData.pucMessageBody = &aucLog[129];
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
 
-    WriteBytesToHandler(aucLog, sizeof(aucLog));
+    WriteBytesToHandler(aucLog, sizeof(aucLog) - 1);
     ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
@@ -205,7 +205,7 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_ASCII_TO_JSON)
     stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[514];
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
 
-    WriteBytesToHandler(aucLog, sizeof(aucLog));
+    WriteBytesToHandler(aucLog, sizeof(aucLog) - 1);
     ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 
@@ -231,7 +231,7 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_ABBREV_TO_JSON)
     stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[516];
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
 
-    WriteBytesToHandler(aucLog, sizeof(aucLog));
+    WriteBytesToHandler(aucLog, sizeof(aucLog) - 1);
     ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));
 }
 

@@ -18,11 +18,10 @@ class MessageDbSingleton
 {
   public:
     MessageDbSingleton() = delete;
-    
 
     //----------------------------------------------------------------------------
     //! \brief Method to get the MessageDbSingleton.
-    //! 
+    //!
     //! If the instance does not yet exist, it will be created and returned.
     //----------------------------------------------------------------------------
     [[nodiscard]] static PyMessageDatabase::Ptr& get();

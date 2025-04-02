@@ -1,4 +1,3 @@
-#include "bindings_core.hpp"
 #include "message_db_singleton.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 

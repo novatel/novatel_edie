@@ -415,8 +415,7 @@ class streambuf : public std::basic_streambuf<char>
     class istream : public std::istream
     {
       public:
-        explicit istream(streambuf& buf) : std::istream(&buf) {
-            exceptions(std::ios_base::badbit); }
+        explicit istream(streambuf& buf) : std::istream(&buf) { exceptions(std::ios_base::badbit); }
 
         ~istream() override
         {

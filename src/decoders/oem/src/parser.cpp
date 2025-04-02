@@ -43,7 +43,8 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
     }
     catch (std::runtime_error& e)
     {
-        pclMyLogger->debug("Parser Has tried to register an existing framer");
+
+        pclMyLogger->debug(e.what(), " | Parser Has tried to register an existing framer");
     }
     pclMyLogger->debug("Parser initialized");
 }
@@ -59,7 +60,7 @@ Parser::Parser(MessageDatabase::Ptr pclMessageDb_)
     }
     catch (std::runtime_error& e)
     {
-        pclMyLogger->debug("Parser Has tried to register an existing framer");
+        pclMyLogger->debug(e.what(), " | Parser Has tried to register an existing framer");
     }
 
     pclMyLogger->debug("Parser initialized");
@@ -194,7 +195,8 @@ Parser::Read(MessageDataStruct& stMessageData_, bool bDecodeIncompleteAbbreviate
                         MessageDataStruct stEmbeddedMessageData;
                         MetaDataStruct stEmbeddedMetaData;
                         RxConfigHandler::Write(pucMyFrameBufferPointer, stMetaData->uiLength);
-                        eStatus = clMyRxConfigHandler.Convert(stMessageData_, *stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
+                        eStatus =
+                            clMyRxConfigHandler.Convert(stMessageData_, *stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
                         if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}", eStatus); }
                         return eStatus;
                     }

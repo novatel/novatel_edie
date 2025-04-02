@@ -58,7 +58,6 @@ class Parser
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
-    
 
     // Niche components
     RangeDecompressor clMyRangeDecompressor;
@@ -125,7 +124,6 @@ class Parser
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
     const MetaDataStruct* GetMetaData() const { return pRecentActiveMetaData; }
-
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal components'

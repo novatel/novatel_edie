@@ -1,8 +1,8 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
-#include "novatel_edie/decoders/oem/common.hpp"
 
 #include "bindings_core.hpp"
 #include "message_db_singleton.hpp"
+#include "novatel_edie/decoders/oem/common.hpp"
 #include "py_message_data.hpp"
 #include "pystream.hpp"
 
@@ -34,8 +34,8 @@ void init_novatel_file_parser(nb::module_& m)
              [](oem::FileParser& self) {
                  MessageDataStruct message_data;
                  STATUS status = self.Read(message_data);
-                 //FramerManager& framerManager = FramerManager::GetInstance();
-                 //oem::MetaDataStruct metaData = *(reinterpret_cast<oem::MetaDataStruct*>(framerManager.GetMetaData("NOVATEL")));
+                 // FramerManager& framerManager = FramerManager::GetInstance();
+                 // oem::MetaDataStruct metaData = *(reinterpret_cast<oem::MetaDataStruct*>(framerManager.GetMetaData("NOVATEL")));
                  return std::make_tuple(status, oem::PyMessageData(message_data));
              })
         .def("__iter__", [](oem::FileParser& self) { return &self; })
@@ -43,8 +43,8 @@ void init_novatel_file_parser(nb::module_& m)
              [](oem::FileParser& self) {
                  MessageDataStruct message_data;
                  STATUS status = self.Read(message_data);
-                 //FramerManager& framerManager = FramerManager::GetInstance();
-                 //oem::MetaDataStruct metaData = *(reinterpret_cast<oem::MetaDataStruct*>(framerManager.GetMetaData("NOVATEL")));
+                 // FramerManager& framerManager = FramerManager::GetInstance();
+                 // oem::MetaDataStruct metaData = *(reinterpret_cast<oem::MetaDataStruct*>(framerManager.GetMetaData("NOVATEL")));
                  if (status == STATUS::STREAM_EMPTY) { throw nb::stop_iteration(); }
                  return std::make_tuple(status, oem::PyMessageData(message_data));
              })

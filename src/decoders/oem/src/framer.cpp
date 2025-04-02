@@ -46,7 +46,7 @@ Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("nov
         if (it_registered != clMyFramerManager.framerRegistry.end())
         {
             pclMyLogger->error("Framer already registered");
-            throw std::runtime_error("Framer already registered"); 
+            throw std::runtime_error("Framer already registered");
         }
     }
 }

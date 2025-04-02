@@ -1,7 +1,7 @@
 #include "novatel_edie/decoders/oem/framer.hpp"
-#include "novatel_edie/decoders/common/framer.hpp"
 
 #include "bindings_core.hpp"
+#include "novatel_edie/decoders/common/framer.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;

@@ -40,7 +40,7 @@ struct PyField
     bool has_ptype; // Whether the field has a specific Python type associated with it
 
     explicit PyField(std::string name_, bool has_ptype_, std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_)
-        : name(std::move(name_)), has_ptype(has_ptype_), fields(std::move(message_)), parent_db_(std::move(parent_db_)) {};
+        : name(std::move(name_)), has_ptype(has_ptype_), fields(std::move(message_)), parent_db_(std::move(parent_db_)){};
     nb::dict& get_values() const;
     nb::dict& get_fields() const;
     nb::dict to_dict() const;

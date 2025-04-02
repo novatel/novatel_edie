@@ -183,7 +183,8 @@ class FramerManager
     //
     //! \return Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<spdlog::logger> GetFramerLogger(std::string sFramerName) { 
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetFramerLogger(std::string sFramerName)
+    {
         if (idMap.find(sFramerName) == idMap.end()) { return nullptr; }
         return GetFramerInstance(sFramerName)->GetLogger();
     }
