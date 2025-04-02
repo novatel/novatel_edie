@@ -52,11 +52,11 @@ namespace novatel::edie {
 struct FramerElement
 {
     int framerId;
-    std::unique_ptr<FramerBase> framer;
-    std::unique_ptr<MetaDataBase> metadata;
+    std::shared_ptr<FramerBase> framer;
+    std::shared_ptr<MetaDataBase> metadata;
     int32_t offset;
 
-    FramerElement(int framerId_, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_, int32_t offset_)
+    FramerElement(int framerId_, std::shared_ptr<FramerBase> framer_, std::shared_ptr<MetaDataBase> metadata_, int32_t offset_)
         : framerId(framerId_), framer(std::move(framer_)), metadata(std::move(metadata_)), offset(offset_)
     {
     }
@@ -94,7 +94,7 @@ class FramerManager
     std::unordered_map<std::string, int> idMap;
     std::deque<FramerElement> framerRegistry;
 
-    void RegisterFramer(std::string framerName_, std::unique_ptr<FramerBase>, std::unique_ptr<MetaDataBase>);
+    void RegisterFramer(std::string framerName_, std::shared_ptr<FramerBase>, std::shared_ptr<MetaDataBase>);
 
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
@@ -169,14 +169,24 @@ class FramerManager
     //----------------------------------------------------------------------------
     //! \brief Set the active Framer ID
     //---------------------------------------------------------------------------
-    bool SetActiveFramerId(std::string sFramerId)
+    bool SetActiveFramerId(std::string sFramerName)
     {
-        if (idMap.find(sFramerId) == idMap.end()) { return false; }
-        iActiveFramerId = idMap[sFramerId];
+        if (idMap.find(sFramerName) == idMap.end()) { return false; }
+        iActiveFramerId = idMap[sFramerName];
         return true;
     }
 
-    int ActiveFramerId() { return iActiveFramerId; }
+    int GetActiveFramerId() { return iActiveFramerId; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the internal framer logger.
+    //
+    //! \return Shared pointer to the internal logger object.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetFramerLogger(std::string sFramerName) { 
+        if (idMap.find(sFramerName) == idMap.end()) { return nullptr; }
+        return GetFramerInstance(sFramerName)->GetLogger();
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
@@ -225,7 +235,7 @@ class FramerManager
     //
     //! \return A pointer to the FramerElement for the specified framer.
     //---------------------------------------------------------------------------
-    FramerElement* GetFramerElement(int framerId_);
+    FramerElement* GetFramerElement(int iFramerId);
 
     //----------------------------------------------------------------------------
     //! \brief Get the pointer to a Framer for specified framer.
@@ -234,7 +244,25 @@ class FramerManager
     //
     //! \return A pointer to the Framer for the specified sframer.
     //---------------------------------------------------------------------------
-    std::unique_ptr<FramerBase>& GetFramerInstance(std::string framerName_) { return GetFramerElement(idMap[framerName_])->framer; }
+    std::shared_ptr<FramerBase> GetFramerInstance(int iFramerId) { return GetFramerElement(iFramerId)->framer; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the pointer to a Framer for specified framer.
+    //
+    //! \param[in] framerId_ The ID of the framer to get the Framer for.
+    //
+    //! \return A pointer to the Framer for the specified sframer.
+    //---------------------------------------------------------------------------
+    std::shared_ptr<FramerBase> GetFramerInstance(std::string sFramerName) { return GetFramerElement(idMap[sFramerName])->framer; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the pointer to a Framer for specified framer.
+    //
+    //! \param[in] framerId_ The ID of the framer to get the Framer for.
+    //
+    //! \return A pointer to the Framer for the specified sframer.
+    //---------------------------------------------------------------------------
+    std::shared_ptr<FramerBase> GetActiveFramerInstance() { return GetFramerInstance(iActiveFramerId); }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -294,7 +322,6 @@ class FramerManager
     //
     //! \param[in] pucFrameBuffer_ The buffer to contain the discovered frame.
     //! \param[in] uiFrameBufferSize_ The size of the provided buffer.
-    //! \param[out] eActiveFramerId_ The ID of the framer that discovered the frame.
     //
     //! \return The status of the frame discovery.
     //---------------------------------------------------------------------------

@@ -58,6 +58,7 @@ class Parser
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
+    
 
     // Niche components
     RangeDecompressor clMyRangeDecompressor;
@@ -79,6 +80,7 @@ class Parser
     ENCODE_FORMAT eMyEncodeFormat{ENCODE_FORMAT::ASCII};
 
   public:
+    MetaDataStruct* pRecentActiveMetaData{nullptr};
     //! \brief uiParserInternalBufferSize: the size of the parser's internal buffer.
     static constexpr uint32_t uiParserInternalBufferSize = MESSAGE_SIZE_MAX;
 
@@ -116,6 +118,14 @@ class Parser
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
     std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the recently active MetaData
+    //
+    //! \return A shared_ptr to the spdlog::logger.
+    //----------------------------------------------------------------------------
+    const MetaDataStruct* GetMetaData() const { return pRecentActiveMetaData; }
+
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal components'

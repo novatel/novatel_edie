@@ -37,7 +37,14 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
     auto pclMessageDb = LoadJsonDbFile(sDbPath_);
     LoadJsonDb(pclMessageDb);
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
+    try
+    {
+        clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
+    }
+    catch (std::runtime_error& e)
+    {
+        pclMyLogger->debug("Parser Has tried to register an existing framer");
+    }
     pclMyLogger->debug("Parser initialized");
 }
 
@@ -46,7 +53,15 @@ Parser::Parser(MessageDatabase::Ptr pclMessageDb_)
 {
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
+    try
+    {
+        clMyFramerManager.RegisterFramer("NOVATEL", std::make_unique<Framer>(), std::make_unique<MetaDataStruct>());
+    }
+    catch (std::runtime_error& e)
+    {
+        pclMyLogger->debug("Parser Has tried to register an existing framer");
+    }
+
     pclMyLogger->debug("Parser initialized");
 }
 
@@ -114,17 +129,17 @@ Parser::Read(MessageDataStruct& stMessageData_, bool bDecodeIncompleteAbbreviate
         // If bDecodeIncompleteAbbreviated is set, the Framer status is STATUS::INCOMPLETE, and MetaData
         // eFormat is HEADER_FORMAT::ABB_ASCII or HEADER_FORMAT::SHORT_ABB_ASCII then flush the framer
         // and attempt to decode that data.
-        if (clMyFramerManager.ActiveFramerId() == clMyFramerManager.idMap["NOVATEL"])
+        if (clMyFramerManager.GetActiveFramerId() == clMyFramerManager.idMap["NOVATEL"])
         {
-            auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*clMyFramerManager.GetActiveMetaData());
+            auto* stMetaData = reinterpret_cast<MetaDataStruct*>(clMyFramerManager.GetActiveMetaData());
             if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE &&
-                (stMetaData.eFormat == HEADER_FORMAT::ABB_ASCII || stMetaData.eFormat == HEADER_FORMAT::SHORT_ABB_ASCII))
+                (stMetaData->eFormat == HEADER_FORMAT::ABB_ASCII || stMetaData->eFormat == HEADER_FORMAT::SHORT_ABB_ASCII))
             {
                 uint32_t uiFlushSize = clMyFramerManager.Flush(pucMyFrameBufferPointer, uiParserInternalBufferSize);
                 if (uiFlushSize > 0)
                 {
                     eStatus = STATUS::SUCCESS;
-                    stMetaData.uiLength = uiFlushSize;
+                    stMetaData->uiLength = uiFlushSize;
                 }
             }
 
@@ -136,7 +151,7 @@ Parser::Read(MessageDataStruct& stMessageData_, bool bDecodeIncompleteAbbreviate
                 if (bMyReturnUnknownBytes)
                 {
                     stMessageData_.pucMessageHeader = pucMyFrameBufferPointer;
-                    stMessageData_.uiMessageHeaderLength = stMetaData.uiLength;
+                    stMessageData_.uiMessageHeaderLength = stMetaData->uiLength;
                     stMessageData_.pucMessageBody = nullptr;
                     clMyFramerManager.ResetActiveFramerId();
                     return STATUS::UNKNOWN;
@@ -144,27 +159,27 @@ Parser::Read(MessageDataStruct& stMessageData_, bool bDecodeIncompleteAbbreviate
             }
             else if (eStatus == STATUS::SUCCESS)
             {
-                if ((!bMyIgnoreAbbreviatedAsciiResponse) && (stMetaData.bResponse) && (stMetaData.eFormat == HEADER_FORMAT::ABB_ASCII))
+                if ((!bMyIgnoreAbbreviatedAsciiResponse) && (stMetaData->bResponse) && (stMetaData->eFormat == HEADER_FORMAT::ABB_ASCII))
                 {
                     stMessageData_.uiMessageHeaderLength = 0;
                     stMessageData_.pucMessageHeader = nullptr;
                     stMessageData_.uiMessageBodyLength = 0;
                     stMessageData_.pucMessageBody = nullptr;
                     stMessageData_.pucMessage = pucMyFrameBufferPointer;
-                    stMessageData_.uiMessageLength = stMetaData.uiLength;
+                    stMessageData_.uiMessageLength = stMetaData->uiLength;
                     return STATUS::SUCCESS;
                 }
 
-                eStatus = clMyHeaderDecoder.Decode(pucMyFrameBufferPointer, stHeader, stMetaData);
+                eStatus = clMyHeaderDecoder.Decode(pucMyFrameBufferPointer, stHeader, (*stMetaData));
                 if (eStatus == STATUS::SUCCESS)
                 {
-                    if ((pclMyUserFilter != nullptr) && (!pclMyUserFilter->DoFiltering(stMetaData))) { continue; }
+                    if ((pclMyUserFilter != nullptr) && (!pclMyUserFilter->DoFiltering(*stMetaData))) { continue; }
 
                     // Should we decompress this?
-                    if (clMyRangeCmpFilter.DoFiltering(stMetaData) && bMyDecompressRangeCmp)
+                    if (clMyRangeCmpFilter.DoFiltering(*stMetaData) && bMyDecompressRangeCmp)
                     {
-                        eStatus = clMyRangeDecompressor.Decompress(pucMyFrameBufferPointer, uiParserInternalBufferSize, stMetaData);
-                        if (eStatus == STATUS::SUCCESS) { stHeader.usMessageId = stMetaData.usMessageId; }
+                        eStatus = clMyRangeDecompressor.Decompress(pucMyFrameBufferPointer, uiParserInternalBufferSize, *stMetaData);
+                        if (eStatus == STATUS::SUCCESS) { stHeader.usMessageId = stMetaData->usMessageId; }
                         else
                         {
                             pclMyLogger->info("RangeDecompressor returned status {}", eStatus);
@@ -173,25 +188,26 @@ Parser::Read(MessageDataStruct& stMessageData_, bool bDecodeIncompleteAbbreviate
                         // Continue if we succeeded.
                     }
 
-                    if (clMyRxConfigFilter.DoFiltering(stMetaData))
+                    if (clMyRxConfigFilter.DoFiltering(*stMetaData))
                     {
                         // Use some dummy stuff for the embedded message. The parser won't handle that now.
                         MessageDataStruct stEmbeddedMessageData;
                         MetaDataStruct stEmbeddedMetaData;
-                        RxConfigHandler::Write(pucMyFrameBufferPointer, stMetaData.uiLength);
-                        eStatus = clMyRxConfigHandler.Convert(stMessageData_, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
+                        RxConfigHandler::Write(pucMyFrameBufferPointer, stMetaData->uiLength);
+                        eStatus = clMyRxConfigHandler.Convert(stMessageData_, *stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
                         if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}", eStatus); }
                         return eStatus;
                     }
 
-                    pucMyFrameBufferPointer += stMetaData.uiHeaderLength;
-                    eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage, stMetaData);
+                    pucMyFrameBufferPointer += stMetaData->uiHeaderLength;
+                    eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage, *stMetaData);
                     if (eStatus == STATUS::SUCCESS)
                     {
                         eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
-                                                     stMetaData, eMyEncodeFormat);
+                                                     *stMetaData, eMyEncodeFormat);
                         if (eStatus == STATUS::SUCCESS)
                         {
+                            pRecentActiveMetaData = stMetaData;
                             clMyFramerManager.ResetActiveFramerId();
                             return STATUS::SUCCESS;
                         }

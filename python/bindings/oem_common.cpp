@@ -62,8 +62,10 @@ void init_novatel_common(nb::module_& m)
         .value("ALL", novatel::edie::HEADER_FORMAT::ALL)
         .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::class_<oem::MetaDataStruct>(m, "MetaData")
-        .def(nb::init())
+    nb::class_<novatel::edie::MetaDataBase>(m, "MetaDataBase");
+
+    nb::class_<oem::MetaDataStruct, novatel::edie::MetaDataBase>(m, "MetaData")
+        .def(nb::init(), nb::rv_policy::move)
         .def_rw("format", &oem::MetaDataStruct::eFormat)
         .def_rw("measurement_source", &oem::MetaDataStruct::eMeasurementSource)
         .def_rw("time_status", &oem::MetaDataStruct::eTimeStatus)
@@ -104,6 +106,8 @@ void init_novatel_common(nb::module_& m)
                         metadata.usWeek, metadata.dMilliseconds, metadata.uiBinaryMsgLength, metadata.uiLength, metadata.uiHeaderLength,
                         metadata.usMessageId, metadata.uiMessageCrc);
         });
+
+    m.def("create_metadata", []() -> novatel::edie::MetaDataBase* { return new oem::MetaDataStruct(); });
 
     nb::class_<oem::Oem4BinaryHeader>(m, "Oem4BinaryHeader")
         .def(nb::init())

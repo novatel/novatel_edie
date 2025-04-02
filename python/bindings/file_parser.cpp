@@ -26,6 +26,7 @@ void init_novatel_file_parser(nb::module_& m)
         .def_prop_rw("return_unknown_bytes", &oem::FileParser::GetReturnUnknownBytes, &oem::FileParser::SetReturnUnknownBytes)
         .def_prop_rw("encode_format", &oem::FileParser::GetEncodeFormat, &oem::FileParser::SetEncodeFormat)
         .def_prop_rw("filter", &oem::FileParser::GetFilter, &oem::FileParser::SetFilter)
+        .def("metadata", &oem::FileParser::GetMetaData, nb::rv_policy::reference)
         .def(
             "set_stream", [](oem::FileParser& self, nb::object stream) { return self.SetStream(std::make_shared<pystream::istream>(stream, 0)); },
             nb::arg("input_stream"))

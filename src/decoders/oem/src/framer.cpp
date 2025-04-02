@@ -46,7 +46,7 @@ Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("nov
         if (it_registered != clMyFramerManager.framerRegistry.end())
         {
             pclMyLogger->error("Framer already registered");
-            throw std::runtime_error("Framer already registered");
+            throw std::runtime_error("Framer already registered"); 
         }
     }
 }
@@ -302,6 +302,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             {
                 stMetaData.eFormat = HEADER_FORMAT::JSON;
                 eMyFrameState = NovAtelFrameState::WAITING_FOR_JSON_OBJECT;
+                uiMyByteCount++;
                 uiMyJsonObjectOpenBraces++;
             }
             break;

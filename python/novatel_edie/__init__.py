@@ -28,6 +28,7 @@ from .bindings import (
     messages, enums,
     HEADER_FORMAT, ENCODE_FORMAT, STATUS, FIELD_TYPE, DATA_TYPE, TIME_STATUS, MEASUREMENT_SOURCE,
     MESSAGE_SIZE_MAX, MAX_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH,
+    MAX_SHORT_BINARY_MESSAGE_LENGTH,
     NMEA_SYNC_LENGTH, NMEA_CRC_LENGTH,
     OEM4_BINARY_HEADER_LENGTH, OEM4_SHORT_BINARY_HEADER_LENGTH,
     OEM4_BINARY_CRC_LENGTH, OEM4_ASCII_CRC_LENGTH,
@@ -36,11 +37,14 @@ from .bindings import (
     string_to_encode_format, pretty_version,
     Header, Field, Message,
     MessageDatabase, get_default_database, load_json_db_file, parse_json_db,
-    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
-    Framer, Filter, HeaderDecoder, MessageDecoder, DecoderException, Encoder, Commander, Parser, FileParser,
+    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaDataBase, MetaData, create_metadata,
+    MessageData, MessageDefinition, BaseField,
+    FramerBase, Framer, create_framer, FramerManager,
+    Filter, HeaderDecoder, MessageDecoder, DecoderException, Encoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
     Logging, LogLevel
 )
+
 
 def default_json_db_path():
     """Returns a context manager that yields the path to the default JSON database."""

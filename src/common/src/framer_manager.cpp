@@ -36,7 +36,7 @@ FramerManager::FramerManager()
     pclMyLogger->debug("Framer Manager initialized");
 }
 
-void FramerManager::RegisterFramer(std::string framerName, std::unique_ptr<FramerBase> framer_, std::unique_ptr<MetaDataBase> metadata_)
+void FramerManager::RegisterFramer(std::string framerName, std::shared_ptr<FramerBase> framer_, std::shared_ptr<MetaDataBase> metadata_)
 {
 
     int framerId_ = -1;
@@ -81,7 +81,7 @@ void FramerManager::DisplayFramerStack()
                 break;
             }
         }
-        pclMyLogger->debug("Framer: {}, Offset: {}, Status: {}", idName, elem.framer->uiMyFrameBufferOffset, elem.framer->eMyCurrentFramerStatus);
+        pclMyLogger->debug("Framer: {}, Offset: {}, Status: {}\n", idName, elem.framer->uiMyFrameBufferOffset, elem.framer->eMyCurrentFramerStatus);
     }
 }
 
@@ -109,16 +109,14 @@ void FramerManager::ResetInactiveMetaDataStates(const int& iActiveFramerId_)
 
 void FramerManager::ResetAllMetaDataStates() { ResetInactiveMetaDataStates(idMap["UNKNOWN"]); }
 
-FramerElement* FramerManager::GetFramerElement(const int framerId_)
+FramerElement* FramerManager::GetFramerElement(const int iFramerId)
 {
     for (FramerElement& element : framerRegistry)
     {
-        if (element.framerId == framerId_) { return &element; }
+        if (element.framerId == iFramerId) { return &element; }
     }
     return nullptr;
 }
-
-
 
 STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_)
 {
@@ -127,10 +125,17 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     // once sync bytes are identified, set Active Framer and perform framing using type specific framer, reset inactive framers
     // upon successful framing of a log, reset Active Framer ID
 
-    // if STATUS is INCOMPLETE upon entering GetFrame, it is stale
-    if (iActiveFramerId != idMap["UNKNOWN"] && framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
+    // if STATUS is INCOMPLETE or SUCCESS upon entering GetFrame, it is stale
+    if (iActiveFramerId != idMap["UNKNOWN"])
     {
-        framerRegistry.front().framer->eMyCurrentFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
+        if (framerRegistry.front().framer->eMyCurrentFramerStatus == STATUS::INCOMPLETE)
+        {
+            framerRegistry.front().framer->eMyCurrentFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
+        }
+
+        ResetActiveFramerId();
+        ResetAllMetaDataStates();
+        ResetAllFramerStates();
     }
 
     if (iActiveFramerId == idMap["UNKNOWN"])
@@ -166,7 +171,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             ResetInactiveFramerStates(framer_element.framerId);
             framer_element.framer->eMyCurrentFramerStatus =
                 framer_element.framer->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, *framer_element.metadata);
-            // DisplayFramerStack();
+            DisplayFramerStack();
             if (framer_element.framer->eMyCurrentFramerStatus == STATUS::SUCCESS)
             {
                 pclMyCircularDataBuffer->Copy(pucFrameBuffer_, framer_element.metadata->uiLength);
@@ -202,6 +207,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     if (it_buffer_empty != framerRegistry.end())
     {
         ResetAllFramerStates();
+        ResetActiveFramerId();
         return STATUS::BUFFER_EMPTY;
     }
 
@@ -210,6 +216,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     if (it_null_provided != framerRegistry.end())
     {
         ResetAllFramerStates();
+        ResetActiveFramerId();
         return STATUS::NULL_PROVIDED;
     }
 

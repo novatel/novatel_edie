@@ -23,6 +23,7 @@ void init_novatel_parser(nb::module_& m)
         .def_prop_rw("return_unknown_bytes", &oem::Parser::GetReturnUnknownBytes, &oem::Parser::SetReturnUnknownBytes)
         .def_prop_rw("encode_format", &oem::Parser::GetEncodeFormat, &oem::Parser::SetEncodeFormat)
         .def_prop_rw("filter", &oem::Parser::GetFilter, &oem::Parser::SetFilter)
+        .def("metadata", &oem::Parser::GetMetaData, nb::rv_policy::reference)
         .def("write",
              [](oem::Parser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const unsigned char*>(data.c_str()), data.size()); })
         .def("read",

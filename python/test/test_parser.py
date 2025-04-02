@@ -84,9 +84,10 @@ def test_parse_file_with_filter(parser, test_gps_file):
         success = 0
         while chunk := f.read(32):
             parser.write(chunk)
-            for status, message_data, meta_data in parser:
+            for status, message_data in parser:
                 print(status)
                 if status == STATUS.SUCCESS:
+                    meta_data = parser.metadata()
                     assert meta_data.length == [213, 195][success]
                     assert meta_data.milliseconds == pytest.approx([270605000, 172189053][success])
                     assert len(message_data.message) == [213, 195][success]

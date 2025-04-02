@@ -19,10 +19,21 @@ from novatel_edie import STATUS, ENCODE_FORMAT
 import pytest
 
 
+
+
 @pytest.fixture(scope="function")
 def rx_config_handler():
     return ne.RxConfigHandler()
 
+@pytest.fixture(autouse=True)
+def setup_and_teardown(rx_config_handler):
+    # Setup
+    rx_config_handler.flush()
+    # Test Run
+    yield
+
+    # Teardown
+    rx_config_handler.flush()
 
 def compare_message_data(test_message_data, expected_message_data):
     result = True

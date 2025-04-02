@@ -79,6 +79,7 @@ class FramerTest : public ::testing::Test
         FlushTestFixture();
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128k
         FramerManager& clMyFramerManager = FramerManager::GetInstance();
+        clMyFramerManager.SetLoggerLevel(spdlog::level::debug);
         clMyFramerManager.ResetAllFramerStates();
         clMyFramerManager.ResetAllMetaDataStates();
     }
@@ -363,7 +364,7 @@ TEST_F(FramerTest, BINARY_INCOMPLETE)
     // "<incomplete binary BESTPOS log>"
     constexpr unsigned char aucData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00};
     WriteBytesToFramer(aucData, sizeof(aucData));
-    FramerHelper<HEADER_FORMAT::BINARY, STATUS::INCOMPLETE>(sizeof(aucData), MAX_BINARY_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::BINARY, STATUS::INCOMPLETE>(sizeof(aucData), sizeof(aucData));
 }
 
 TEST_F(FramerTest, BINARY_BUFFER_FULL)
@@ -852,6 +853,22 @@ TEST_F(FramerTest, ABBREV_ASCII_EMPTY_ARRAY)
     constexpr unsigned char aucData[] = "<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     0 \r\n<         \r\n[COM1]";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
     FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 7, MAX_ASCII_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerTest, JSON_COMPLETE)
+{
+    constexpr unsigned char aucData[] = "{\"header\": {\"message\": \"BESTSATS\",\"id\": 1194,\"port\": \"COM1\",\"sequence_num\": 0,\"percent_idle_time\": 50.0,\"time_status\": \"FINESTEERING\",\"week\": 2167,\"seconds\": 244820.000,\"receiver_status\": 33554432,\"HEADER_reserved1\": 48645,\"receiver_sw_version\": 16248},\"body\": {\"satellite_entries\": [{\"system_type\": \"GPS\",\"id\": \"2\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"20\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"29\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"13\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"15\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"16\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"18\",\"status\": \"GOOD\",\"status_mask\": 7},{\"system_type\": \"GPS\",\"id\": \"25\",\"status\": \"GOOD\",\"status_mask\": 7},{\"system_type\": \"GPS\",\"id\": \"5\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"26\",\"status\": \"GOOD\",\"status_mask\": 7},{\"system_type\": \"GPS\",\"id\": \"23\",\"status\": \"GOOD\",\"status_mask\": 7},{\"system_type\": \"QZSS\",\"id\": \"194\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 7},{\"system_type\": \"SBAS\",\"id\": \"131\",\"status\": \"NOTUSED\",\"status_mask\": 0},{\"system_type\": \"SBAS\",\"id\": \"133\",\"status\": \"NOTUSED\",\"status_mask\": 0},{\"system_type\": \"SBAS\",\"id\": \"138\",\"status\": \"NOTUSED\",\"status_mask\": 0},{\"system_type\": \"GLONASS\",\"id\": \"8+6\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"9-2\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"1+1\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"24+2\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"2-4\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"17+4\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"16-1\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"18-3\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"15\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GALILEO\",\"id\": \"26\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"12\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"19\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"GALILEO\",\"id\": \"31\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"25\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"GALILEO\",\"id\": \"33\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"8\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"GALILEO\",\"id\": \"7\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"24\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"BEIDOU\",\"id\": \"35\",\"status\": \"LOCKEDOUT\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"29\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1},{\"system_type\": \"BEIDOU\",\"id\": \"25\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"20\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1},{\"system_type\": \"BEIDOU\",\"id\": \"22\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1},{\"system_type\": \"BEIDOU\",\"id\": \"44\",\"status\": \"LOCKEDOUT\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"57\",\"status\": \"NOEPHEMERIS\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"12\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"24\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1},{\"system_type\": \"BEIDOU\",\"id\": \"19\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1}]}}";
+    FramerManager& clMyFramerManager = FramerManager::GetInstance();
+    auto novatelFramer = clMyFramerManager.GetFramerInstance("NOVATEL");
+    novatelFramer->SetFrameJson(true);
+    MetaDataStruct stExpectedMetaData(HEADER_FORMAT::JSON);
+    stExpectedMetaData.uiLength = sizeof(aucData) - 1;
+    auto* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"]));
+
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    ASSERT_EQ(STATUS::SUCCESS, clMyFramerManager.GetFrame(pucMyTestFrameBuffer.get(), MESSAGE_SIZE_MAX));
+    ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
+
 }
 
 // -------------------------------------------------------------------------------------------------------

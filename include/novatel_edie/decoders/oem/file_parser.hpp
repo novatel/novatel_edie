@@ -86,6 +86,13 @@ class FileParser
     [[nodiscard]] std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
+    //! \brief Get the recently active MetaData
+    //
+    //! \return A shared_ptr to the spdlog::logger.
+    //----------------------------------------------------------------------------
+    const MetaDataStruct* GetMetaData() const { return clMyParser.pRecentActiveMetaData; }
+
+    //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal components'
     //! internal loggers
     //
