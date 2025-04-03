@@ -65,6 +65,7 @@ struct FramerElement
 class FramerManager
 {
   private:
+    const std::string framerManagerName;
     FramerManager();
 
     //! NOTE: disable copies and moves.
@@ -73,7 +74,6 @@ class FramerManager
     FramerManager& operator=(const FramerManager&) = delete;
     FramerManager& operator=(const FramerManager&&) = delete;
 
-    std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
 
     int iActiveFramerId;
@@ -91,6 +91,7 @@ class FramerManager
     void DisplayFramerStack();
 
   public:
+    std::shared_ptr<spdlog::logger> pclMyLogger;
     std::unordered_map<std::string, int> idMap;
     std::deque<FramerElement> framerRegistry;
 
@@ -177,17 +178,6 @@ class FramerManager
     }
 
     int GetActiveFramerId() { return iActiveFramerId; }
-
-    //----------------------------------------------------------------------------
-    //! \brief Get the internal framer logger.
-    //
-    //! \return Shared pointer to the internal logger object.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<spdlog::logger> GetFramerLogger(std::string sFramerName)
-    {
-        if (idMap.find(sFramerName) == idMap.end()) { return nullptr; }
-        return GetFramerInstance(sFramerName)->GetLogger();
-    }
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
@@ -312,6 +302,17 @@ class FramerManager
     //! \param[in] eLevel_ Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
     void SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the internal framer logger.
+    //
+    //! \return Shared pointer to the internal logger object.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] std::shared_ptr<spdlog::logger> GetFramerLogger(std::string sFramerName)
+    {
+        if (idMap.find(sFramerName) == idMap.end()) { return nullptr; }
+        return GetFramerInstance(sFramerName)->GetLogger();
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Shutdown the internal logger.

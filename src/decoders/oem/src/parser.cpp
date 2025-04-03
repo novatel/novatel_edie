@@ -43,7 +43,6 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
     }
     catch (std::runtime_error& e)
     {
-
         pclMyLogger->debug(e.what(), " | Parser Has tried to register an existing framer");
     }
     pclMyLogger->debug("Parser initialized");

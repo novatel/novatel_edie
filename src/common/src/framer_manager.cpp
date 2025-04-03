@@ -29,7 +29,8 @@
 using namespace novatel::edie;
 
 FramerManager::FramerManager()
-    : pclMyLogger(Logger::RegisterLogger("FramerManager")), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>()), iActiveFramerId(-1)
+    : framerManagerName("FramerManager"), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>()), iActiveFramerId(-1),
+      pclMyLogger(Logger::RegisterLogger(framerManagerName))
 {
     pclMyCircularDataBuffer->Clear();
     idMap["UNKNOWN"] = 0;

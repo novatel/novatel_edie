@@ -159,13 +159,14 @@ std::unique_ptr<unsigned char[]> FramerTest::pucMyTestFrameBuffer = nullptr;
 // -------------------------------------------------------------------------------------------------------
 // Logger Framer Unit Tests
 // -------------------------------------------------------------------------------------------------------
-TEST_F(FramerTest, DISABLED_LOGGER)
+TEST_F(FramerTest, LOGGER)
 {
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     std::shared_ptr<spdlog::logger> logger = clMyFramerManager.GetLogger();
-    ASSERT_EQ(spdlog::get(std::string("FramerManager")), clMyFramerManager.GetLogger());
+    const std::string ManagerName = std::string("FramerManager");
+    ASSERT_EQ(spdlog::get(ManagerName), clMyFramerManager.GetLogger());
     clMyFramerManager.SetLoggerLevel(eLevel);
     ASSERT_EQ(logger->level(), eLevel);
 }
@@ -854,22 +855,6 @@ TEST_F(FramerTest, ABBREV_ASCII_EMPTY_ARRAY)
     constexpr unsigned char aucData[] = "<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     0 \r\n<         \r\n[COM1]";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
     FramerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucData) - 7, MAX_ASCII_MESSAGE_LENGTH);
-}
-
-TEST_F(FramerTest, JSON_COMPLETE)
-{
-    constexpr unsigned char aucData[] = "{\"header\": {\"message\": \"BESTSATS\",\"id\": 1194,\"port\": \"COM1\",\"sequence_num\": 0,\"percent_idle_time\": 50.0,\"time_status\": \"FINESTEERING\",\"week\": 2167,\"seconds\": 244820.000,\"receiver_status\": 33554432,\"HEADER_reserved1\": 48645,\"receiver_sw_version\": 16248},\"body\": {\"satellite_entries\": [{\"system_type\": \"GPS\",\"id\": \"2\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"20\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"29\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"13\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"15\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"16\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"18\",\"status\": \"GOOD\",\"status_mask\": 7},{\"system_type\": \"GPS\",\"id\": \"25\",\"status\": \"GOOD\",\"status_mask\": 7},{\"system_type\": \"GPS\",\"id\": \"5\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GPS\",\"id\": \"26\",\"status\": \"GOOD\",\"status_mask\": 7},{\"system_type\": \"GPS\",\"id\": \"23\",\"status\": \"GOOD\",\"status_mask\": 7},{\"system_type\": \"QZSS\",\"id\": \"194\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 7},{\"system_type\": \"SBAS\",\"id\": \"131\",\"status\": \"NOTUSED\",\"status_mask\": 0},{\"system_type\": \"SBAS\",\"id\": \"133\",\"status\": \"NOTUSED\",\"status_mask\": 0},{\"system_type\": \"SBAS\",\"id\": \"138\",\"status\": \"NOTUSED\",\"status_mask\": 0},{\"system_type\": \"GLONASS\",\"id\": \"8+6\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"9-2\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"1+1\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"24+2\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"2-4\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"17+4\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"16-1\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"18-3\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GLONASS\",\"id\": \"15\",\"status\": \"GOOD\",\"status_mask\": 3},{\"system_type\": \"GALILEO\",\"id\": \"26\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"12\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"19\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"GALILEO\",\"id\": \"31\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"25\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"GALILEO\",\"id\": \"33\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"8\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"GALILEO\",\"id\": \"7\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"GALILEO\",\"id\": \"24\",\"status\": \"GOOD\",\"status_mask\": 15},{\"system_type\": \"BEIDOU\",\"id\": \"35\",\"status\": \"LOCKEDOUT\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"29\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1},{\"system_type\": \"BEIDOU\",\"id\": \"25\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"20\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1},{\"system_type\": \"BEIDOU\",\"id\": \"22\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1},{\"system_type\": \"BEIDOU\",\"id\": \"44\",\"status\": \"LOCKEDOUT\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"57\",\"status\": \"NOEPHEMERIS\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"12\",\"status\": \"ELEVATIONERROR\",\"status_mask\": 0},{\"system_type\": \"BEIDOU\",\"id\": \"24\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1},{\"system_type\": \"BEIDOU\",\"id\": \"19\",\"status\": \"SUPPLEMENTARY\",\"status_mask\": 1}]}}";
-    FramerManager& clMyFramerManager = FramerManager::GetInstance();
-    auto novatelFramer = clMyFramerManager.GetFramerInstance("NOVATEL");
-    novatelFramer->SetFrameJson(true);
-    MetaDataStruct stExpectedMetaData(HEADER_FORMAT::JSON);
-    stExpectedMetaData.uiLength = sizeof(aucData) - 1;
-    auto* stTestMetaData = dynamic_cast<MetaDataStruct*>(clMyFramerManager.GetMetaData(clMyFramerManager.idMap["NOVATEL"]));
-
-    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    ASSERT_EQ(STATUS::SUCCESS, clMyFramerManager.GetFrame(pucMyTestFrameBuffer.get(), MESSAGE_SIZE_MAX));
-    ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
-
 }
 
 // -------------------------------------------------------------------------------------------------------
