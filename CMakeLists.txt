@@ -8,6 +8,8 @@ include(cmake/ThirdParty.cmake)
 # Build Project
 project(novatel_edie VERSION ${RELEASE_VERSION} LANGUAGES CXX)
 
+# Disable compiler optimization known to cause incompatibility with certain packages (pandas + pyarrow v18)
+# Background info on issue: https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio
 add_definitions(-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 
 option(BUILD_TESTS "Build tests" ON)

@@ -73,7 +73,7 @@ class Helper:
 
         body = message_input[meta_data.header_length:]
         try:
-            message = self.decoder.decode_message(body, header, meta_data)
+            message = self.decoder.decode_payload(body, header, meta_data)
         except Exception:
             return (Result.MESSAGE_DECODER_ERROR, None) if not return_message else (Result.MESSAGE_DECODER_ERROR, None, None)
 

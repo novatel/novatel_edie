@@ -32,7 +32,7 @@
 import logging
 from binascii import hexlify
 
-from novatel_edie import HEADER_FORMAT, ENCODE_FORMAT, pretty_version, Framer, Decoder, Filter, Message, MESSAGE_SIZE_MAX
+from novatel_edie import HEADER_FORMAT, ENCODE_FORMAT, CPP_PRETTY_VERSION, Framer, Decoder, Filter, Message, MAX_MESSAGE_LENGTH
 from novatel_edie.messages import RANGE
 
 from common_setup import setup_example_logging, handle_args
@@ -52,21 +52,21 @@ def main():
     # Setup logging
     setup_example_logging(logging.WARNING)
     logger = logging.getLogger(__name__)
-    logger.info(f"Decoder library information:\n{pretty_version}")
+    logger.info(f"Decoder library information:\n{CPP_PRETTY_VERSION}")
 
     # Handle CLI arguments
     input_file, encode_format = handle_args(logger)
 
     # Set up the EDIE components
     framer = Framer()
-    framer.set_report_unknown_bytes(True)
-    framer.set_payload_only(False)
-    framer.set_frame_json(False)
+    framer.report_unknown_bytes = True
+    framer.payload_only= False
+    framer.frame_json = False
     decoder = Decoder()
     my_filter = Filter()
 
     with open(input_file, "rb") as input_stream:
-        while read_data := input_stream.read(MESSAGE_SIZE_MAX):
+        while read_data := input_stream.read(MAX_MESSAGE_LENGTH):
             framer.write(read_data)
             for frame, meta in framer:
                 if meta.format == HEADER_FORMAT.UNKNOWN:

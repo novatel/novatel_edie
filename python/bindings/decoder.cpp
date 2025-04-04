@@ -30,45 +30,88 @@ void init_novatel_decoder(nb::module_& m)
     define_pymessagedata(m);
 
     nb::class_<oem::PyDecoder>(m, "Decoder")
-        .def(nb::init<>())
-        .def(nb::init<PyMessageDatabase::Ptr>(), "message_db"_a)
+        .def(
+            "__init__",
+            [](oem::PyDecoder* self, PyMessageDatabase::Ptr message_db) {
+                if (!message_db) { message_db = MessageDbSingleton::get(); }
+                new (self) oem::PyDecoder(message_db);
+            },
+            nb::arg("message_db") = nb::none(),
+            R"doc(
+             Initializes a Decoder.
+
+             Args:
+                 message_db: The message database to decode messages with.
+                    If None, use the default database.
+            )doc")
         .def(
             "decode_header",
             [](const oem::PyDecoder& decoder, const nb::bytes raw_header, oem::MetaDataStruct* metadata) {
-                if (metadata == nullptr) { metadata = new oem::MetaDataStruct(); }
                 oem::PyHeader header;
+                if (metadata == nullptr)
+                {
+                    oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
+                    metadata = &default_metadata;
+                }
                 STATUS status = decoder.header_decoder.Decode(reinterpret_cast<const uint8_t*>(raw_header.c_str()), header, *metadata);
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 header.format = metadata->eFormat;
                 return header;
             },
-            "raw_header"_a, nb::arg("metadata") = nb::none())
-        .def("decode_message", &oem::PyDecoder::DecodeMessage, "raw_body"_a, "decoded_header"_a, "metadata"_a)
+            "raw_header"_a, nb::arg("metadata") = nb::none(),
+            R"doc(
+            Decode the header from a piece of framed data.
+
+            Args:
+                raw_header: A frame of raw bytes containing the header information to decode.
+                metadata: A storehouse for additional information determined as part of the decoding process.
+                    Supplying metadata is optional, but without it there will be no way of later accessing
+                    information such as the number of bytes that make up the original header representation.
+
+            Returns:
+                A decoded `Header`.
+            )doc")
         .def(
-            "decode_message",
-            [](const oem::PyDecoder& decoder, const nb::bytes raw_body, oem::PyHeader& header) {
-                oem::MetaDataStruct metadata;
-                metadata.uiHeaderLength = header.usLength;
-                metadata.uiBinaryMsgLength = raw_body.size();
-                metadata.uiLength = metadata.uiHeaderLength + metadata.uiBinaryMsgLength;
-                metadata.uiMessageCrc = header.uiMessageDefinitionCrc;
-                metadata.eFormat = header.format;
-                metadata.usMessageId = header.usMessageId;
-                metadata.messageName = decoder.database->MsgIdToMsgName(CreateMsgId(
-                    header.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY), static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
-                metadata.bResponse = header.GetPyMessageType().IsResponse();
-                return decoder.DecodeMessage(raw_body, header, metadata);
+            "decode_payload",
+            [](const oem::PyDecoder& decoder, const nb::bytes raw_payload, oem::PyHeader& header, oem::MetaDataStruct* metadata) {
+                if (metadata == nullptr)
+                {
+                    oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
+                    default_metadata.uiHeaderLength = header.usLength;
+                    default_metadata.uiBinaryMsgLength = raw_payload.size();
+                    default_metadata.uiLength = default_metadata.uiHeaderLength + default_metadata.uiBinaryMsgLength;
+                    default_metadata.uiMessageCrc = header.uiMessageDefinitionCrc;
+                    default_metadata.eFormat = header.format;
+                    default_metadata.usMessageId = header.usMessageId;
+                    default_metadata.messageName = decoder.database->MsgIdToMsgName(CreateMsgId(
+                        header.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY), static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
+                    default_metadata.bResponse = header.GetPyMessageType().IsResponse();
+                    metadata = &default_metadata;
+                }
+                return decoder.DecodeMessage(raw_payload, header, *metadata);
             },
-            "raw_body"_a, "decoded_header"_a)
+            "raw_body"_a, "decoded_header"_a, nb::arg("metadata") = nb::none(),
+            R"doc(
+            Decode the payload of a message given the associated header.
+
+            Args:
+                raw_header: A frame of raw bytes containing the payload information to decode.
+                metadata: An optional way of supplying data to aid in decoding. If not provided
+                    decoding will attempt to use only information from the header.
+
+            Returns:
+                A decoded `Message`.
+            )doc")
         .def(
             "decode",
-            [](const oem::PyDecoder& decoder, const nb::bytes message) {
+            [](const oem::PyDecoder& decoder, const nb::bytes raw_message) {
                 oem::MetaDataStruct metadata;
-                metadata.uiLength = message.size();
+                metadata.uiLength = raw_message.size();
                 std::vector<FieldContainer> fields;
                 oem::PyHeader header;
-                const unsigned char* message_pointer = reinterpret_cast<const uint8_t*>(message.c_str());
+                const unsigned char* message_pointer = reinterpret_cast<const uint8_t*>(raw_message.c_str());
                 STATUS status = decoder.header_decoder.Decode(message_pointer, header, metadata);
+                header.format = metadata.eFormat;
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 const unsigned char* body_pointer = message_pointer + metadata.uiHeaderLength;
                 status = decoder.message_decoder.Decode(body_pointer, fields, metadata);
@@ -81,5 +124,15 @@ void init_novatel_decoder(nb::module_& m)
                 default: throw_exception_from_status(status);
                 }
             },
-            "message"_a);
+            "message"_a,
+            R"doc(
+            Decode the payload of a message given the associated header.
+
+            Args:
+                raw_message: A frame of raw bytes containing the message information to decode.
+
+            Returns:
+                A decoded `Message` or an `UnknownMessage` whose header was identified but whose payload
+                could not be decoded due to no available message definition.
+            )doc");
 }
