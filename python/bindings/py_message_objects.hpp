@@ -1,7 +1,11 @@
 #pragma once
 
-#include "bindings_core.hpp"
 #include "novatel_edie/decoders/oem/filter.hpp"
+
+
+#include "bindings_core.hpp"
+#include "py_database.hpp"
+#include "message_db_singleton.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -15,7 +19,9 @@ namespace novatel::edie::oem {
 struct PyGpsTime
 {
     PyGpsTime() = default;
+    PyGpsTime(uint16_t week_, double milliseconds_) : week(week_), milliseconds(milliseconds_) {}
     PyGpsTime(uint16_t week_, double milliseconds_, TIME_STATUS time_status_) : week(week_), milliseconds(milliseconds_), time_status(time_status_) {}
+
     explicit PyGpsTime(const MetaDataStruct& meta_) : week(meta_.usWeek), milliseconds(meta_.dMilliseconds), time_status(meta_.eTimeStatus) {}
 
     uint16_t week{0};
@@ -125,8 +131,8 @@ struct PyMessage : public PyField
     PyHeader header;
 
     explicit PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
-                                    PyHeader header_)
-                      : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)), header(std::move(header_)){};
+                       PyHeader header_)
+        : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)), header(std::move(header_)) {};
 
     PyMessageData encode(ENCODE_FORMAT fmt);
     PyMessageData to_ascii();

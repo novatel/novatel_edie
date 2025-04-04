@@ -46,7 +46,7 @@ namespace novatel::edie::oem {
 //============================================================================
 class Filter
 {
-  private:
+  protected:
     std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("novatel_filter")};
 
     std::vector<bool (Filter::*)(const MetaDataStruct&) const> vMyFilterFunctions;
@@ -75,7 +75,20 @@ class Filter
 
     bool bMyIncludeNmea{};
 
-    void PushUnique(bool (Filter::*filter_)(const MetaDataStruct&) const);
+    //----------------------------------------------------------------------------
+    //! \brief Push an element into a vector unless its already included
+    //!
+    //! \param[in] vec_ The vector to push the element into.
+    //! \param[in] element_ The element to insert.
+    //----------------------------------------------------------------------------
+    template <typename T> void PushUnique(std::vector<T>& vec_, const T& element_);
+    //----------------------------------------------------------------------------
+    //! \brief Remove an element from a vector.
+    //!
+    //! \param[in] vec_ The vector to remove the element from.
+    //! \param[in] element_ The element to remove.
+    //----------------------------------------------------------------------------
+    template <typename T> void Remove(std::vector<T>& vec_, const T& element_);
 
     [[nodiscard]] bool FilterTime(const MetaDataStruct& stMetaData_) const;
     [[nodiscard]] bool FilterTimeStatus(const MetaDataStruct& stMetaData_) const;
@@ -91,21 +104,21 @@ class Filter
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
-    //
+    //!
     //! \return A shared_ptr to the spdlog::logger.
     //----------------------------------------------------------------------------
     std::shared_ptr<spdlog::logger> GetLogger() const { return pclMyLogger; }
 
     //----------------------------------------------------------------------------
     //! \brief Set the level of detail produced by the internal logger.
-    //
+    //!
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
 
     //----------------------------------------------------------------------------
     //! \brief Include messages at and above the lower time bound (inclusive).
-    //
+    //!
     //! \param[in] uiWeek_  The week lower bound.
     //! \param[in] dSec_   The second lower bound.
     //----------------------------------------------------------------------------
@@ -113,7 +126,7 @@ class Filter
 
     //----------------------------------------------------------------------------
     //! \brief Include messages at and below the upper time bound (inclusive).
-    //
+    //!
     //! \param[in] uiWeek_  The week upper bound.
     //! \param[in] dSec_   The second upper bound.
     //----------------------------------------------------------------------------
@@ -127,20 +140,42 @@ class Filter
     //! the bound. If both the lower and upper bounds are set with invert time
     //! filter as true, then only messages outside the timespan are kept (excludes
     //! the bounds).
-    //
+    //!
     //! \param[in] bInvert_  True to invert the time filter.
     //----------------------------------------------------------------------------
     void InvertTimeFilter(bool bInvert_) { bMyInvertTimeFilter = bInvert_; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Clear the lower time bound filter.
+    //----------------------------------------------------------------------------
+    void ClearLowerTimeBound();
+
+    //----------------------------------------------------------------------------
+    //! \brief Clear the upper time bound filter.
+    //----------------------------------------------------------------------------
+    void ClearUpperTimeBound();
+
+    //----------------------------------------------------------------------------
+    //! \brief Clear both the lower and upper time bound filters.
+    //----------------------------------------------------------------------------
+    void ClearTimeBounds();
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match the decimation period.
     //!
     //! For example, keep all messages with a decimation period of 500
     //! milliseconds.
-    //
+    //!
     //! \param[in] dPeriodSec_  Period in milliseconds.
     //----------------------------------------------------------------------------
     void SetIncludeDecimation(double dPeriodSec_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Include messages that match the decimation period in milliseconds.
+    //!
+    //! \param[in] dPeriodMSec_  Period in milliseconds.
+    //----------------------------------------------------------------------------
+    void SetIncludeDecimationMs(uint32_t dPeriodMSec_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the decimation filter.
@@ -148,14 +183,19 @@ class Filter
     //! For example, if the decimation period is set to one thousand milliseconds
     //! and invert decimation is true, then keep all messages that do not have a
     //! period of one thousand milliseconds.
-    //
+    //!
     //! \param[in] bInvert_  True to invert the decimation filter.
     //----------------------------------------------------------------------------
     void InvertDecimationFilter(bool bInvert_) { bMyInvertDecimation = bInvert_; }
 
     //----------------------------------------------------------------------------
+    //! \brief Clear the decimation filter.
+    //----------------------------------------------------------------------------
+    void ClearDecimationFilter();
+
+    //----------------------------------------------------------------------------
     //! \brief Include messages that match the time status.
-    //
+    //!
     //! \param[in] eTimeStatus_  The time status.
     //----------------------------------------------------------------------------
     void IncludeTimeStatus(TIME_STATUS eTimeStatus_);
@@ -164,21 +204,33 @@ class Filter
     //! \brief Include messages that match multiple time statuses.
     //!
     //! For example, include messages with either the "COARSE" or "FINE" status.
-    //
+    //!
     //! \param[in] vTimeStatuses_ Multiple time statuses.
     //----------------------------------------------------------------------------
     void IncludeTimeStatus(std::vector<TIME_STATUS> vTimeStatuses_);
 
     //----------------------------------------------------------------------------
+    //! \brief Remove a specific time status from the filter.
+    //!
+    //! \param[in] eTimeStatus_  The time status to remove.
+    //----------------------------------------------------------------------------
+    void RemoveTimeStatus(TIME_STATUS eTimeStatus_);
+
+    //----------------------------------------------------------------------------
     //! \brief Invert the time status filter.
-    //
+    //!
     //! \param[in] bInvert_  True to invert the time status filter.
     //----------------------------------------------------------------------------
     void InvertTimeStatusFilter(bool bInvert_) { bMyInvertTimeStatusFilter = bInvert_; }
 
     //----------------------------------------------------------------------------
+    //! \brief Clear all time status filters.
+    //----------------------------------------------------------------------------
+    void ClearTimeStatuses();
+
+    //----------------------------------------------------------------------------
     //! \brief Include messages that match the message ID.
-    //
+    //!
     //! \param[in] uiId_  The message ID.
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
@@ -187,22 +239,36 @@ class Filter
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message IDs.
-    //
+    //!
     //! \param[in] vIds_  Vector of tuples containing: message ID, message format,
     //! and antenna source.
     //----------------------------------------------------------------------------
     void IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vIds_);
 
     //----------------------------------------------------------------------------
+    //! \brief Remove a specific message ID from the filter.
+    //!
+    //! \param[in] uiId_  The message ID to remove.
+    //! \param[in] eFormat_  The message format.
+    //! \param[in] eSource_  The antenna source.
+    //----------------------------------------------------------------------------
+    void RemoveMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_);
+
+    //----------------------------------------------------------------------------
     //! \brief Invert the message ID filter.
-    //
+    //!
     //! \param[in] bInvert_   True to invert the message ID filter.
     //----------------------------------------------------------------------------
     void InvertMessageIdFilter(bool bInvert_) { bMyInvertMessageIdFilter = bInvert_; }
 
     //----------------------------------------------------------------------------
+    //! \brief Clear all message ID filters.
+    //----------------------------------------------------------------------------
+    void ClearMessageIds();
+
+    //----------------------------------------------------------------------------
     //! \brief Include messages that match the message name.
-    //
+    //!
     //! \param[in] szMsgName_  The message name.
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
@@ -212,24 +278,38 @@ class Filter
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message names.
-    //
+    //!
     //! \param[in] vNames_  Vector of tuples containing: message name,
     //! message format, and antenna source.
     //----------------------------------------------------------------------------
     void IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vNames_);
 
     //----------------------------------------------------------------------------
+    //! \brief Remove a specific message name from the filter.
+    //!
+    //! \param[in] szMsgName_  The message name to remove.
+    //! \param[in] eFormat_  The message format.
+    //! \param[in] eSource_  The antenna source.
+    //----------------------------------------------------------------------------
+    void RemoveMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_);
+
+    //----------------------------------------------------------------------------
     //! \brief Invert the message name filter.
-    //
+    //!
     //! \param[in] bInvert_  True to invert the message name filter.
     //----------------------------------------------------------------------------
     void InvertMessageNameFilter(bool bInvert_) { bMyInvertMessageNameFilter = bInvert_; }
 
     //----------------------------------------------------------------------------
+    //! \brief Clear all message name filters.
+    //----------------------------------------------------------------------------
+    void ClearMessageNames();
+
+    //----------------------------------------------------------------------------
     //! \brief Include NMEA logs.
     //!
     //! Defaults to false (exclude NMEA logs).
-    //
+    //!
     //! \param[in] bIncludeNmea_  True to keep/include NMEA logs.
     //----------------------------------------------------------------------------
     void IncludeNmeaMessages(bool bIncludeNmea_) { bMyIncludeNmea = bIncludeNmea_; }
@@ -242,8 +322,10 @@ class Filter
     //----------------------------------------------------------------------------
     //! \brief Filter the MetaDataStruct based on the current Filter
     //! settings.
-    //
+    //!
     //! \param[in] stMetaData_  The MetaDataStruct to filter.
+    //!
+    //! \return True if the message passes the filter, false otherwise.
     //----------------------------------------------------------------------------
     bool DoFiltering(const MetaDataStruct& stMetaData_) const;
 

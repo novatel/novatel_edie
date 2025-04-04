@@ -1,0 +1,15 @@
+bindings.Filter.(lower|upper)_time_bound:
+    @property
+    def \1_time_bound(self) -> GpsTime | None:
+        \doc
+
+    @lower_time_bound.setter
+    def \1_time_bound(self, value: GpsTime | None) -> None: ...
+
+bindings.Filter.decimation_period$:
+    @property
+    def decimation_period(self) -> int | None:
+        \doc
+
+    @decimation_period.setter
+    def decimation_period(self, value: int | None) -> None: ...
