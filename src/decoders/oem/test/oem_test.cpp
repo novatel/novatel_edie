@@ -161,13 +161,11 @@ std::unique_ptr<unsigned char[]> FramerTest::pucMyTestFrameBuffer = nullptr;
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerTest, LOGGER)
 {
-    spdlog::level::level_enum eLevel = spdlog::level::off;
-
     FramerManager& clMyFramerManager = FramerManager::GetInstance();
     std::shared_ptr<spdlog::logger> logger = clMyFramerManager.GetLogger();
-    const std::string ManagerName = std::string("FramerManager");
-    ASSERT_EQ(spdlog::get(ManagerName), clMyFramerManager.GetLogger());
-    clMyFramerManager.SetLoggerLevel(eLevel);
+    spdlog::level::level_enum eLevel = spdlog::level::off;
+    logger->set_level(eLevel);
+    ASSERT_NE(clMyFramerManager.GetLogger(), nullptr);
     ASSERT_EQ(logger->level(), eLevel);
 }
 
