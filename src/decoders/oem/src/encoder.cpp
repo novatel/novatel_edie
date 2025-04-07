@@ -78,6 +78,16 @@ void Encoder::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("B")] = BasicIntMapEntry<int8_t>();
     asciiFieldMap[CalculateBlockCrc32("XB")] = BasicHexMapEntry<uint8_t>(2);
 
+    asciiFieldMap[CalculateBlockCrc32("x")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        if (fc_.fieldDef->dataType.length == 1) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint8_t>(fc_.fieldValue), 2); }
+        if (fc_.fieldDef->dataType.length == 2) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint16_t>(fc_.fieldValue), 4); }
+        if (fc_.fieldDef->dataType.length == 4) { return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue), 8); }
+        return false;
+    };
+
+    asciiFieldMap[CalculateBlockCrc32("X")] = asciiFieldMap[CalculateBlockCrc32("x")];
+
     asciiFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         return fc_.fieldDef->dataType.name == DATA_TYPE::UCHAR
@@ -92,7 +102,7 @@ void Encoder::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("T")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:.3f}", std::get<uint32_t>(fc_.fieldValue) / 1000.0);
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue) / 1000.0, std::chars_format::fixed, 3);
     };
 
     asciiFieldMap[CalculateBlockCrc32("id")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -102,7 +112,7 @@ void Encoder::InitFieldMaps()
         const int16_t sGloChan = (uiTempId & 0xFFFF0000) >> 16;
         return (sGloChan < 0)    ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, usSv, sGloChan)
                : (sGloChan != 0) ? CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, usSv, '+', sGloChan)
-                                 : PrintIntToBuffer(ppcOutBuf_, uiBytesLeft_, usSv);
+                                 : WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, usSv);
     };
 
     asciiFieldMap[CalculateBlockCrc32("P")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -110,17 +120,47 @@ void Encoder::InitFieldMaps()
         const uint8_t uiValue = std::get<uint8_t>(fc_.fieldValue);
         if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }
         if (uiValue > 31 && uiValue < 127) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(uiValue)); }
-        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x") && PrintHexToBuffer(ppcOutBuf_, uiBytesLeft_, 2, uiValue);
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x") && WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, uiValue, 2);
+    };
+
+    asciiFieldMap[CalculateBlockCrc32("f")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        if (fc_.fieldDef->dataType.length == 4)
+        {
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+        }
+        if (fc_.fieldDef->dataType.length == 8)
+        {
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+        }
+        return false;
+    };
+
+    asciiFieldMap[CalculateBlockCrc32("lf")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+    };
+
+    asciiFieldMap[CalculateBlockCrc32("e")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::scientific, fc_.fieldDef->precision);
+    };
+
+    asciiFieldMap[CalculateBlockCrc32("le")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::scientific, fc_.fieldDef->precision);
     };
 
     asciiFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, FloatingPointConversionString<float>(fc_).data(), std::get<float>(fc_.fieldValue));
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), FloatingPointFormat<float>(fc_),
+                                  fc_.fieldDef->precision);
     };
 
     asciiFieldMap[CalculateBlockCrc32("lk")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                   [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, FloatingPointConversionString<double>(fc_).data(), std::get<double>(fc_.fieldValue));
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), FloatingPointFormat<double>(fc_),
+                                  fc_.fieldDef->precision);
     };
 
     asciiFieldMap[CalculateBlockCrc32("c")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -143,12 +183,12 @@ void Encoder::InitFieldMaps()
 
     jsonFieldMap[CalculateBlockCrc32("T")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, "{:.3f}", std::get<uint32_t>(fc_.fieldValue) / 1000.0);
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<uint32_t>(fc_.fieldValue) / 1000.0, std::chars_format::fixed, 3);
     };
 
     jsonFieldMap[CalculateBlockCrc32("m")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, "\"", std::string_view(pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue))), "\"");
+        return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(pclMsgDb_.MsgIdToMsgName(std::get<uint32_t>(fc_.fieldValue))), '"');
     };
 
     jsonFieldMap[CalculateBlockCrc32("id")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -161,14 +201,44 @@ void Encoder::InitFieldMaps()
                                  : CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', usSv, '"');
     };
 
+    jsonFieldMap[CalculateBlockCrc32("f")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        if (fc_.fieldDef->dataType.length == 4)
+        {
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+        }
+        if (fc_.fieldDef->dataType.length == 8)
+        {
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+        }
+        return false;
+    };
+
+    jsonFieldMap[CalculateBlockCrc32("lf")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::fixed, fc_.fieldDef->precision);
+    };
+
+    jsonFieldMap[CalculateBlockCrc32("e")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::scientific, fc_.fieldDef->precision);
+    };
+
+    jsonFieldMap[CalculateBlockCrc32("le")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::scientific, fc_.fieldDef->precision);
+    };
+
     jsonFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                 [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, FloatingPointConversionString<float>(fc_).data(), std::get<float>(fc_.fieldValue));
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), FloatingPointFormat<float>(fc_),
+                                  fc_.fieldDef->precision);
     };
 
     jsonFieldMap[CalculateBlockCrc32("lk")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return PrintToBuffer(ppcOutBuf_, uiBytesLeft_, FloatingPointConversionString<double>(fc_).data(), std::get<double>(fc_.fieldValue));
+        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), FloatingPointFormat<double>(fc_),
+                                  fc_.fieldDef->precision);
     };
 
     jsonFieldMap[CalculateBlockCrc32("s")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
@@ -233,16 +303,16 @@ bool Encoder::EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char**
     AppendSiblingId(sMsgName, stInterHeader_);
 
     return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_FIELD_SEPARATOR,
-                                    std::string_view(sMsgName),                                                              //
-                                    GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress),                  //
-                                    stInterHeader_.usSequence,                                                               //
-                                    FormattedValue<float>{static_cast<float>(stInterHeader_.ucIdleTime) * 0.500F, "{:.1f}"}, //
-                                    GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus),                 //
-                                    stInterHeader_.usWeek,                                                                   //
-                                    FormattedValue<double>{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"},                 //
-                                    HexValue<uint32_t>{stInterHeader_.uiReceiverStatus, 8},                                  //
-                                    HexValue<uint32_t>{stInterHeader_.uiMessageDefinitionCrc, 4},                            //
-                                    stInterHeader_.usReceiverSwVersion                                                       //
+                                    std::string_view(sMsgName),                                                                             //
+                                    GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress),                                 //
+                                    stInterHeader_.usSequence,                                                                              //
+                                    FloatValue<float>{static_cast<float>(stInterHeader_.ucIdleTime) * 0.500F, std::chars_format::fixed, 1}, //
+                                    GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus),                                //
+                                    stInterHeader_.usWeek,                                                                                  //
+                                    FloatValue<double>{stInterHeader_.dMilliseconds / 1000.0, std::chars_format::fixed, 3},                 //
+                                    HexValue<uint32_t>{stInterHeader_.uiReceiverStatus, 8},                                                 //
+                                    HexValue<uint32_t>{stInterHeader_.uiMessageDefinitionCrc, 4},                                           //
+                                    stInterHeader_.usReceiverSwVersion                                                                      //
                                     ) &&
            CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_HEADER_TERMINATOR);
 }
@@ -257,16 +327,16 @@ bool Encoder::EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, 
     AppendSiblingId(sMsgName, stInterHeader_);
 
     return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR,
-                                    std::string_view(sMsgName),                                                              //
-                                    GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress),                  //
-                                    stInterHeader_.usSequence,                                                               //
-                                    FormattedValue<float>{static_cast<float>(stInterHeader_.ucIdleTime) * 0.500F, "{:.1f}"}, //
-                                    GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus),                 //
-                                    stInterHeader_.usWeek,                                                                   //
-                                    FormattedValue<double>{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"},                 //
-                                    HexValue<uint32_t>{stInterHeader_.uiReceiverStatus, 8},                                  //
-                                    HexValue<uint32_t>{stInterHeader_.uiMessageDefinitionCrc, 4},                            //
-                                    stInterHeader_.usReceiverSwVersion                                                       //
+                                    std::string_view(sMsgName),                                                                             //
+                                    GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress),                                 //
+                                    stInterHeader_.usSequence,                                                                              //
+                                    FloatValue<float>{static_cast<float>(stInterHeader_.ucIdleTime) * 0.500F, std::chars_format::fixed, 1}, //
+                                    GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus),                                //
+                                    stInterHeader_.usWeek,                                                                                  //
+                                    FloatValue<double>{stInterHeader_.dMilliseconds / 1000.0, std::chars_format::fixed, 3},                 //
+                                    HexValue<uint32_t>{stInterHeader_.uiReceiverStatus, 8},                                                 //
+                                    HexValue<uint32_t>{stInterHeader_.uiMessageDefinitionCrc, 4},                                           //
+                                    stInterHeader_.usReceiverSwVersion                                                                      //
                                     ) &&
            (bIsEmbedded_ ? CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR) : CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n"));
 }
@@ -281,10 +351,10 @@ bool Encoder::EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, c
     sMsgName.push_back(uiResponse != 0U ? 'R' : 'A'); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
-    return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_FIELD_SEPARATOR,                   //
-                                    std::string_view(sMsgName),                                             //
-                                    stInterHeader_.usWeek,                                                  //
-                                    FormattedValue<double>{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"} //
+    return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_FIELD_SEPARATOR,                                  //
+                                    std::string_view(sMsgName),                                                            //
+                                    stInterHeader_.usWeek,                                                                 //
+                                    FloatValue<double>{stInterHeader_.dMilliseconds / 1000.0, std::chars_format::fixed, 3} //
                                     ) &&
            CopyToBuffer(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_HEADER_TERMINATOR);
 }
@@ -297,10 +367,10 @@ bool Encoder::EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHead
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
     AppendSiblingId(sMsgName, stInterHeader_);
 
-    return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR,                  //
-                                    std::string_view(sMsgName),                                             //
-                                    stInterHeader_.usWeek,                                                  //
-                                    FormattedValue<double>{stInterHeader_.dMilliseconds / 1000.0, "{:.3f}"} //
+    return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR,                                 //
+                                    std::string_view(sMsgName),                                                            //
+                                    stInterHeader_.usWeek,                                                                 //
+                                    FloatValue<double>{stInterHeader_.dMilliseconds / 1000.0, std::chars_format::fixed, 3} //
                                     ) &&
            CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n");
 }
@@ -318,28 +388,30 @@ std::string Encoder::JsonHeaderToMsgName(const IntermediateHeader& stInterHeader
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_,                                                                                              //
-                           R"({"message": ")", JsonHeaderToMsgName(stInterHeader_).c_str(),                                                       //
-                           R"(","id": )", stInterHeader_.usMessageId,                                                                             //
-                           R"(,"port": ")", GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress),                               //
-                           R"(","sequence_num": )", stInterHeader_.usSequence,                                                                    //
-                           R"(,"percent_idle_time": )", FormattedValue<double>{static_cast<double>(stInterHeader_.ucIdleTime) * 0.500, "{:.1f}"}, //
-                           R"(,"time_status": ")", GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus),                       //
-                           R"(","week": )", stInterHeader_.usWeek,                                                                                //
-                           R"(,"seconds": )", FormattedValue<double>{(stInterHeader_.dMilliseconds / 1000.0), "{:.3f}"},                          //
-                           R"(,"receiver_status": )", stInterHeader_.uiReceiverStatus,                                                            //
-                           R"(,"HEADER_reserved1": )", stInterHeader_.uiMessageDefinitionCrc,                                                     //
+    return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_,                                                                //
+                           R"({"message": ")", JsonHeaderToMsgName(stInterHeader_).c_str(),                         //
+                           R"(","id": )", stInterHeader_.usMessageId,                                               //
+                           R"(,"port": ")", GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress), //
+                           R"(","sequence_num": )", stInterHeader_.usSequence,                                      //
+                           R"(,"percent_idle_time": )",
+                           FloatValue<double>{static_cast<double>(stInterHeader_.ucIdleTime) * 0.500, std::chars_format::fixed, 1},     //
+                           R"(,"time_status": ")", GetEnumString(vMyGpsTimeStatusDefinitions, stInterHeader_.uiTimeStatus),             //
+                           R"(","week": )", stInterHeader_.usWeek,                                                                      //
+                           R"(,"seconds": )", FloatValue<double>{(stInterHeader_.dMilliseconds / 1000.0), std::chars_format::fixed, 3}, //
+                           R"(,"receiver_status": )", stInterHeader_.uiReceiverStatus,                                                  //
+                           R"(,"HEADER_reserved1": )", stInterHeader_.uiMessageDefinitionCrc,                                           //
                            R"(,"receiver_sw_version": )", stInterHeader_.usReceiverSwVersion, '}');
 }
 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_,                                        //
-                           R"({"message": ")", JsonHeaderToMsgName(stInterHeader_).c_str(), //
-                           R"(","id": )", stInterHeader_.usMessageId,                       //
-                           R"(,"week": )", stInterHeader_.usWeek,                           //
-                           R"(,"seconds": )", FormattedValue<double>{(stInterHeader_.dMilliseconds / 1000.0), "{:.3f}}"});
+    return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_,                                                                                    //
+                           R"({"message": ")", JsonHeaderToMsgName(stInterHeader_).c_str(),                                             //
+                           R"(","id": )", stInterHeader_.usMessageId,                                                                   //
+                           R"(,"week": )", stInterHeader_.usWeek,                                                                       //
+                           R"(,"seconds": )", FloatValue<double>{(stInterHeader_.dMilliseconds / 1000.0), std::chars_format::fixed, 3}, //
+                           '}');
 }
 
 // -------------------------------------------------------------------------------------------------------

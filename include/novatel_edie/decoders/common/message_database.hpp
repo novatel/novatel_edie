@@ -27,6 +27,7 @@
 #ifndef MESSAGE_DATABASE_HPP
 #define MESSAGE_DATABASE_HPP
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -107,48 +108,6 @@ inline std::string DataTypeConversion(const DATA_TYPE eType_)
     case DATA_TYPE::SATELLITEID: return "%id";
     default: return "%";
     }
-}
-
-inline std::string PrintfToPythonFormat(const std::string& printfFormat)
-{
-    // Regex to match printf-style format specifiers
-    std::regex printfRegex(R"((%)([0-9]*)(\.?[0-9]*)([a-zA-Z%]+))");
-    std::smatch match;
-    std::string pythonFormat = printfFormat;
-    std::string::const_iterator searchStart(printfFormat.cbegin());
-
-    while (std::regex_search(searchStart, printfFormat.cend(), match, printfRegex))
-    {
-        const std::string fullMatch = match.str(0); // The full matched format specifier
-        const std::string flag = match.str(1);      // The % character
-        const std::string width = match.str(2);     // The width (e.g., 08 in %08lx)
-        const std::string precision = match.str(3); // The precision (e.g., .3 in %.3f)
-        const std::string specifier = match.str(4); // The format specifier (e.g., lx, f, hu, c, s)
-
-        std::string pythonSpec;
-
-        if (specifier == "%") { pythonSpec = "%"; }
-        else
-        {
-            pythonSpec = "{:";
-
-            if (!width.empty()) { pythonSpec += width; }
-            if (!precision.empty()) { pythonSpec += precision; }
-
-            if (specifier == "lx" || specifier == "x") { pythonSpec += "x"; }
-            else if (specifier == "f" || specifier == "lf" || specifier == "k" || specifier == "lk") { pythonSpec += "f"; }
-            else { return "{}"; }
-
-            pythonSpec += "}";
-        }
-
-        // Replace the printf format specifier with the Python format specifier
-        const size_t pos = pythonFormat.find(fullMatch, searchStart - printfFormat.cbegin());
-        if (pos != std::string::npos) { pythonFormat.replace(pos, fullMatch.length(), pythonSpec); }
-        else { break; }
-    }
-
-    return pythonFormat;
 }
 
 //!< Mapping from String to data type enums.
@@ -250,10 +209,11 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
-    std::string pythonConversion;
     uint32_t conversionHash{0ULL};
-    int32_t conversionBeforePoint{0};
-    int32_t conversionAfterPoint{0};
+    std::optional<int32_t> width;
+    std::optional<int32_t> precision;
+    bool isString{false};
+    bool isCsv{false};
     SimpleDataType dataType;
 
     BaseField() = default;
@@ -271,8 +231,8 @@ struct BaseField
     void SetConversion(std::string&& sConversion_)
     {
         conversion = std::move(sConversion_);
-
-        pythonConversion = PrintfToPythonFormat(conversion);
+        width = {};
+        precision = {};
 
         const char* sConvertString = conversion.c_str();
 
@@ -282,16 +242,16 @@ struct BaseField
 
         if (std::isdigit(*sConvertString))
         {
-            conversionBeforePoint = std::stoi(sConvertString);
-            sConvertString += std::to_string(conversionBeforePoint).length();
+            width = std::stoi(sConvertString);
+            sConvertString += std::to_string(*width).length();
         }
 
         if (*sConvertString == '.') { ++sConvertString; }
 
         if (std::isdigit(*sConvertString))
         {
-            conversionAfterPoint = std::stoi(sConvertString);
-            sConvertString += std::to_string(conversionAfterPoint).length();
+            precision = std::stoi(sConvertString);
+            sConvertString += std::to_string(*precision).length();
         }
 
         conversionHash = 0;
@@ -299,16 +259,9 @@ struct BaseField
         while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
 
         if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
-    }
 
-    [[nodiscard]] bool IsString() const
-    {
-        return type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
-    }
-
-    [[nodiscard]] bool IsCsv() const
-    {
-        return !IsString() && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
+        isString = type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
+        isCsv = !isString && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
     }
 
     using Ptr = std::shared_ptr<BaseField>;
