@@ -432,29 +432,27 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             break;
         }
         case FIELD_TYPE::STRING:
-            // Empty Field
-            if (0 == strcspn(*ppcLogBuf_, ",*"))
+            switch (**ppcLogBuf_)
             {
-                vIntermediateFormat_.emplace_back("", field);
+            case ',': [[fallthrough]];
+            case '*':
+                vIntermediateFormat_.emplace_back(std::string_view(""), field);
                 *ppcLogBuf_ += 1;
-            }
-            // Quoted String
-            else if (**ppcLogBuf_ == '\"')
-            {
+                break;
+            case '"':
                 // If a field delimiter character is in the string, the previous tokenLength value is invalid.
-                tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '\"' character, skipping past the first.
+                tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '"' character, skipping past the first.
                 vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to pass opening double-quote.
-                // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
-                *ppcLogBuf_ += 1 + tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data());
-            }
-            // Unquoted String
-            else
-            {
-                // String that isn't surrounded by quotes
-                tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '\"' or '*' character, skipping past the first.
-                vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
-                // Skip past the first '\"', string token and the remaining characters ('\"' and ',').
+                // Skip past the first '"', string token and the remaining characters ('"' and ',').
                 *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
+                break;
+            default:
+                // String that isn't surrounded by quotes
+                tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '"' or '*' character, skipping past the first.
+                vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
+                // Skip past the first '"', string token and the remaining characters ('"' and ',').
+                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
+                break;
             }
             break;
         case FIELD_TYPE::RESPONSE_ID: {
@@ -497,11 +495,8 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
             pvFieldContainer.reserve(uiArraySize);
 
-            const bool bPrintAsString = field->IsString();
-            const bool bIsCommaSeparated = field->IsCsv();
-
             const char* pcPosition = *ppcLogBuf_;
-            if (bPrintAsString)
+            if (field->isString)
             {
                 // Ensure we grabbed the whole string, it might contain delimiters
                 tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data());
@@ -523,7 +518,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                     pvFieldContainer.emplace_back(static_cast<uint8_t>(uiValueRead), field);
                 }
                 // End of string, remove trailing double-quote
-                else if (bPrintAsString && *pcPosition == '\"')
+                else if (field->isString && *pcPosition == '"')
                 {
                     for (uint32_t j = 0; j < uiArraySize - i; j++) { pvFieldContainer.emplace_back(static_cast<uint8_t>(0), field); }
                     break;
@@ -553,7 +548,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                 else
                 {
                     // Ascii character
-                    if (!bIsCommaSeparated)
+                    if (!field->isCsv)
                     {
                         pvFieldContainer.emplace_back(static_cast<uint8_t>(*pcPosition), field);
                         pcPosition++; // Consume 1 char
@@ -567,7 +562,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                     }
                 }
             }
-            if (!bIsCommaSeparated) { *ppcLogBuf_ += tokenLength + 1; }
+            if (!field->isCsv) { *ppcLogBuf_ += tokenLength + 1; }
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
@@ -666,7 +661,7 @@ STATUS MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDef
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
 
-            if (field->IsString())
+            if (field->isString)
             {
                 std::string_view strValue;
                 if (clField.get(strValue) == simdjson::SUCCESS)
