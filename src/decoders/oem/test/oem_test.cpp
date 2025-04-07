@@ -1776,14 +1776,14 @@ TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_BESTSATS)
 
 TEST_F(DecodeEncodeTest, JSON_LOG_ROUNDTRIP_GPSEPHEM)
 {
-    unsigned char aucLog[] = R"({"header": {"message": "GPSEPHEM","id": 7,"port": "COM1","sequence_num": 12,"percent_idle_time": 45.5,"time_status": "SATTIME","week": 2098,"seconds": 427560.000,"receiver_status": 33816608,"HEADER_reserved1": 4628,"receiver_sw_version": 15668},"body": {"satellite_id": 3,"tow": 427560.0,"health7": 0,"iode1": 68,"iode2": 68,"wn": 2098,"zwn": 2098,"toe": 432000.0,"a": 2.655942598e+07,"delta_n": 4.844487507e-09,"m0": 5.4111299713e-01,"ecc": 2.6812178548e-03,"omega": 6.9765460014e-01,"cuc": -7.003545761e-07,"cus": 4.092231393e-06,"crc": 3.00875000e+02,"crs": -1.35937500e+01,"cic": 1.490116119e-08,"cis": 3.352761269e-08,"i0": 9.6490477291e-01,"i_dot": -2.146517983e-10,"omega0": -1.042300444e+00,"omega_dot": -8.37642034e-09,"iodc": 68,"toc": 432000.0,"tgd": 1.862645149e-09,"af0": -1.28527e-04,"af1": -1.02318e-11,"af2": 0.00000,"anti_spoofing": true,"n": 1.458664175e-04,"eph_var": 4.00000000e+00}})";
+    unsigned char aucLog[] = R"({"header": {"message": "GPSEPHEM","id": 7,"port": "COM1","sequence_num": 12,"percent_idle_time": 45.5,"time_status": "SATTIME","week": 2098,"seconds": 427560.000,"receiver_status": 33816608,"HEADER_reserved1": 4628,"receiver_sw_version": 15668},"body": {"satellite_id": 3,"tow": 427560.0,"health7": 0,"iode1": 68,"iode2": 68,"wn": 2098,"zwn": 2098,"toe": 432000.0,"a": 2.6559425980e+07,"delta_n": 4.844487507e-09,"m0": 5.4111299713e-01,"ecc": 2.6812178548e-03,"omega": 6.9765460014e-01,"cuc": -7.003545761e-07,"cus": 4.092231393e-06,"crc": 3.008750000e+02,"crs": -1.359375000e+01,"cic": 1.490116119e-08,"cis": 3.352761269e-08,"i0": 9.6490477291e-01,"i_dot": -2.146517983e-10,"omega0": -1.0423004440e+00,"omega_dot": -8.37642034e-09,"iodc": 68,"toc": 432000.0,"tgd": 1.862645149e-09,"af0": -1.28527e-04,"af1": -1.02318e-11,"af2": 0.00000,"anti_spoofing": true,"n": 1.458664175e-04,"eph_var": 4.000000000e+00}})";
     MessageDataStruct stExpectedMessageData;
     stExpectedMessageData.pucMessage = aucLog;
     stExpectedMessageData.uiMessageLength = sizeof(aucLog) - 1;
     stExpectedMessageData.pucMessageHeader = aucLog + 11;
     stExpectedMessageData.uiMessageHeaderLength = 233;
     stExpectedMessageData.pucMessageBody = stExpectedMessageData.pucMessageHeader + stExpectedMessageData.uiMessageHeaderLength + 9;
-    stExpectedMessageData.uiMessageBodyLength = 649;
+    stExpectedMessageData.uiMessageBodyLength = 654;
 
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedMessageData));
 }
