@@ -130,9 +130,9 @@ struct PyMessage : public PyField
 {
     PyHeader header;
 
-    explicit PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
-                       PyHeader header_)
-        : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)), header(std::move(header_)) {};
+    explicit PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr parent_db_,
+                                    PyHeader header_)
+                      : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)), header(std::move(header_)){};
 
     PyMessageData encode(ENCODE_FORMAT fmt);
     PyMessageData to_ascii();
@@ -145,7 +145,7 @@ nb::object create_unknown_bytes(nb::bytes data);
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database);
 
-nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata,
+nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>&& message_fields, MetaDataStruct& metadata,
                                    PyMessageDatabase::ConstPtr database);
 
 } // namespace novatel::edie::oem
