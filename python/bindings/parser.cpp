@@ -14,13 +14,13 @@ using namespace nb::literals;
 using namespace novatel::edie;
 
 nb::object oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, oem::PyHeader& header_,
-                                       std::vector<FieldContainer>& message_fields_, oem::MetaDataStruct& metadata_,
-                                       PyMessageDatabase::ConstPtr database_)
+                                  std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
+                                   PyMessageDatabase::ConstPtr database_)
 {
     header_.format = metadata_.eFormat;
     switch (status_)
     {
-    case STATUS::SUCCESS: return create_message_instance(header_, message_fields_, metadata_, database_);
+    case STATUS::SUCCESS: return create_message_instance(header_, std::move(message_fields_), metadata_, database_);
     case STATUS::NO_DEFINITION:
         return create_unknown_message_instance(nb::bytes(message_data_.pucMessageBody, message_data_.uiMessageBodyLength), header_, database_);
     case STATUS::UNKNOWN: return create_unknown_bytes(nb::bytes(message_data_.pucMessage, message_data_.uiMessageLength));
@@ -36,7 +36,7 @@ nb::object oem::PyParser::PyRead(bool decode_incomplete)
     std::vector<FieldContainer> message_fields;
 
     STATUS status = ReadIntermediate(message_data, header, message_fields, metadata, decode_incomplete);
-    return HandlePythonReadStatus(status, message_data, header, message_fields, metadata,
+    return HandlePythonReadStatus(status, message_data, header, std::move(message_fields), metadata,
                                   std::static_pointer_cast<const PyMessageDatabase>(MessageDb()));
 }
 
