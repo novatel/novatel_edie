@@ -36,8 +36,9 @@ build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 cmake.minimum-version = "3.24"
-cmake.targets = ["python_bindings", "bindings_stub", "dynamic_stubs"]
 install.components = ["python"]
+build.targets = ["python_bindings", "bindings_stub", "dynamic_stubs"]
+build.verbose = true
 wheel.license-files = ["LICENSE"]
 build-dir = "out/build/{wheel_tag}"
 # Build stable ABI wheels for CPython 3.12+
@@ -52,8 +53,6 @@ build = "*"
 # Disable building of PyPy wheels on all platforms
 skip = "pp*"
 test-requires = "pytest"
-build.targets = ["python_bindings", "bindings_stub", "dynamic_stubs"]
-build.verbose = true
 test-command = "pytest {project}/python/test --color=yes -v"
 build-verbosity = 1
 archs = "auto64"
