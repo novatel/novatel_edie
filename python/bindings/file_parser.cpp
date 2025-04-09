@@ -22,7 +22,7 @@ nb::object oem::PyFileParser::PyRead()
 
     STATUS status = ReadIntermediate(message_data, header, message_fields, metadata);
 
-    return HandlePythonReadStatus(status, message_data, header, message_fields, metadata,
+    return HandlePythonReadStatus(status, message_data, header, std::move(message_fields), metadata,
                                   std::static_pointer_cast<const PyMessageDatabase>(this->MessageDb()));
 }
 
