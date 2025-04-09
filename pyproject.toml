@@ -52,6 +52,8 @@ build = "*"
 # Disable building of PyPy wheels on all platforms
 skip = "pp*"
 test-requires = "pytest"
+build.targets = ["python_bindings", "bindings_stub", "dynamic_stubs"]
+build.verbose = true
 test-command = "pytest {project}/python/test --color=yes -v"
 build-verbosity = 1
 archs = "auto64"
