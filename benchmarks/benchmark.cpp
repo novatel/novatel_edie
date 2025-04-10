@@ -31,6 +31,7 @@
 #include <benchmark/benchmark.h>
 #include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
+#include <novatel_edie/decoders/oem/file_parser.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
 #include <novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp>
 
@@ -42,6 +43,42 @@ using namespace novatel::edie::oem;
 static void LoadJson(benchmark::State& state)
 {
     for ([[maybe_unused]] auto _ : state) { (void)LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH")); }
+}
+
+static void Parse(benchmark::State& state)
+{
+    MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
+
+    for ([[maybe_unused]] auto _ : state)
+    {
+        const auto format = ENCODE_FORMAT::BINARY;
+
+        FileParser clFileParser(clJsonDb);
+        auto clFilter = std::make_shared<Filter>();
+        auto eStatus = STATUS::UNKNOWN;
+
+        clFileParser.SetFilter(clFilter);
+        clFileParser.SetEncodeFormat(format);
+
+        auto pathInFilename = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTPOS.GPS";
+        auto ifs = std::make_shared<std::ifstream>(pathInFilename, std::ios::binary);
+        std::ofstream convertedOfs(pathInFilename.string(), std::ios::binary);
+        std::ofstream unknownOfs(pathInFilename.string() + ".UNKNOWN", std::ios::binary);
+
+        if (!clFileParser.SetStream(ifs)) { exit(-1); }
+
+        while (eStatus != STATUS::STREAM_EMPTY)
+        {
+            MetaDataStruct stMetaData;
+            MessageDataStruct stMessageData;
+            eStatus = clFileParser.Read(stMessageData, stMetaData);
+            if (eStatus == STATUS::SUCCESS)
+            {
+                convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
+            }
+        }
+    }
 }
 
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
@@ -191,6 +228,7 @@ static void DecompressRangeCmp4(benchmark::State& state) { DecompressRangeCmp(st
 static void DecompressRangeCmp5(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP5_MSG_ID, rangecmp5Log.data()); }
 
 BENCHMARK(LoadJson);
+BENCHMARK(Parse);
 BENCHMARK(DecodeFlattenedBinaryLog);
 BENCHMARK(DecodeAsciiLog);
 BENCHMARK(DecodeAbbrevAsciiLog);
@@ -213,13 +251,17 @@ int main(int argc, char** argv)
     std::filesystem::path pathSourceFile = __FILE__;
     std::filesystem::path pathRepoDir = pathSourceFile.parent_path().parent_path();
     std::filesystem::path pathDatabaseFile = pathRepoDir / "database" / "database.json";
+    std::filesystem::path pathResourceFolder = pathRepoDir / "regression" / "resource";
 
     std::string strDatabaseVar = pathDatabaseFile.string();
+    std::string strResourceVar = pathResourceFolder.string();
 
 #ifdef _WIN32
     if (_putenv_s("TEST_DATABASE_PATH", strDatabaseVar.c_str()) != 0) { throw std::runtime_error("Failed to set db path."); }
+    if (_putenv_s("TEST_RESOURCE_PATH", strResourceVar.c_str()) != 0) { throw std::runtime_error("Failed to set resource path."); }
 #else
     if (setenv("TEST_DATABASE_PATH", strDatabaseVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set db path."); }
+    if (setenv("TEST_RESOURCE_PATH", strResourceVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set resource path."); }
 #endif
 
     benchmark::Initialize(&argc, argv);
