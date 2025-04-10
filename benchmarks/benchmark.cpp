@@ -51,7 +51,7 @@ static void Parse(benchmark::State& state)
 
     for ([[maybe_unused]] auto _ : state)
     {
-        const auto format = ENCODE_FORMAT::BINARY;
+        const auto format = ENCODE_FORMAT::ASCII;
 
         FileParser clFileParser(clJsonDb);
         auto clFilter = std::make_shared<Filter>();
@@ -62,8 +62,12 @@ static void Parse(benchmark::State& state)
 
         auto pathInFilename = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTPOS.GPS";
         auto ifs = std::make_shared<std::ifstream>(pathInFilename, std::ios::binary);
-        std::ofstream convertedOfs(pathInFilename.string(), std::ios::binary);
-        std::ofstream unknownOfs(pathInFilename.string() + ".UNKNOWN", std::ios::binary);
+
+#ifdef _WIN32
+        std::ofstream ofs("NUL");
+#else
+        std::ofstream ofs("/dev/null");
+#endif
 
         if (!clFileParser.SetStream(ifs)) { exit(-1); }
 
@@ -74,7 +78,7 @@ static void Parse(benchmark::State& state)
             eStatus = clFileParser.Read(stMessageData, stMetaData);
             if (eStatus == STATUS::SUCCESS)
             {
-                convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                ofs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
             }
         }
@@ -251,7 +255,7 @@ int main(int argc, char** argv)
     std::filesystem::path pathSourceFile = __FILE__;
     std::filesystem::path pathRepoDir = pathSourceFile.parent_path().parent_path();
     std::filesystem::path pathDatabaseFile = pathRepoDir / "database" / "database.json";
-    std::filesystem::path pathResourceFolder = pathRepoDir / "regression" / "resource";
+    std::filesystem::path pathResourceFolder = pathRepoDir / "benchmarks" / "resources";
 
     std::string strDatabaseVar = pathDatabaseFile.string();
     std::string strResourceVar = pathResourceFolder.string();
