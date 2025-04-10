@@ -48,11 +48,17 @@ static void LoadJson(benchmark::State& state)
 static void Parse(benchmark::State& state)
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
+    auto pathInFilename = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTPOS.GPS";
+    const auto format = ENCODE_FORMAT::ABBREV_ASCII;
+
+#ifdef _WIN32
+    std::ofstream ofs("NUL");
+#else
+    std::ofstream ofs("/dev/null");
+#endif
 
     for ([[maybe_unused]] auto _ : state)
     {
-        const auto format = ENCODE_FORMAT::ASCII;
-
         FileParser clFileParser(clJsonDb);
         auto clFilter = std::make_shared<Filter>();
         auto eStatus = STATUS::UNKNOWN;
@@ -60,16 +66,9 @@ static void Parse(benchmark::State& state)
         clFileParser.SetFilter(clFilter);
         clFileParser.SetEncodeFormat(format);
 
-        auto pathInFilename = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTPOS.GPS";
         auto ifs = std::make_shared<std::ifstream>(pathInFilename, std::ios::binary);
 
-#ifdef _WIN32
-        std::ofstream ofs("NUL");
-#else
-        std::ofstream ofs("/dev/null");
-#endif
-
-        if (!clFileParser.SetStream(ifs)) { exit(-1); }
+        (void)clFileParser.SetStream(ifs);
 
         while (eStatus != STATUS::STREAM_EMPTY)
         {
