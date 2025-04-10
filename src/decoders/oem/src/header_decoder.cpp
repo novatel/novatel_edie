@@ -174,14 +174,13 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
     case HEADER_FORMAT::ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '#'
         if (!DecodeAsciiHeaderFields<pcAsciiRegularDelim, ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::PORT, ASCII_HEADER::SEQUENCE,
-                                     ASCII_HEADER::IDLE_TIME,
-                                     ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS, ASCII_HEADER::RECEIVER_STATUS,
-                                     ASCII_HEADER::MSG_DEF_CRC, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf))
+                                     ASCII_HEADER::IDLE_TIME, ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS,
+                                     ASCII_HEADER::RECEIVER_STATUS, ASCII_HEADER::MSG_DEF_CRC, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_,
+                                                                                                                                  &pcTempBuf))
         {
             return STATUS::FAILURE;
         }
-        if (!DecodeAsciiHeaderField<pcAsciiFinalDelim, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf)) { return STATUS::FAILURE;
-        }
+        if (!DecodeAsciiHeaderField<pcAsciiFinalDelim, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf)) { return STATUS::FAILURE; }
         break;
 
     case HEADER_FORMAT::ABB_ASCII:
