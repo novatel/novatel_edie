@@ -37,7 +37,6 @@ using namespace novatel::edie::oem;
 HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
 {
     pclMyLogger->debug("HeaderDecoder initializing...");
-
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     pclMyLogger->debug("HeaderDecoder initialized");
 }
@@ -91,14 +90,22 @@ template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(Interm
     case ASCII_HEADER::SEQUENCE: {
         uint16_t usSequence = 0;
         auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, usSequence);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse SEQUENCE"); }
+        if (result.ec != std::errc())
+        {
+            pclMyLogger->debug("Failed to parse SEQUENCE.");
+            return false;
+        }
         stInterHeader_.usSequence = usSequence;
         break;
     }
     case ASCII_HEADER::IDLE_TIME: {
         float fIdleTime = 0.0F;
         auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, fIdleTime);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse IDLE_TIME"); }
+        if (result.ec != std::errc())
+        {
+            pclMyLogger->debug("Failed to parse IDLE_TIME.");
+            return false;
+        }
         stInterHeader_.ucIdleTime = static_cast<uint8_t>(std::lround(2.0F * fIdleTime));
         break;
     }
@@ -108,35 +115,55 @@ template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(Interm
     case ASCII_HEADER::WEEK: {
         uint16_t usWeek = 0;
         auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, usWeek);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse WEEK"); }
+        if (result.ec != std::errc())
+        {
+            pclMyLogger->debug("Failed to parse WEEK.");
+            return false;
+        }
         stInterHeader_.usWeek = usWeek;
         break;
     }
     case ASCII_HEADER::SECONDS: {
         double dSeconds = 0.0;
         auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, dSeconds);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse SECONDS"); }
+        if (result.ec != std::errc())
+        {
+            pclMyLogger->debug("Failed to parse SECONDS.");
+            return false;
+        }
         stInterHeader_.dMilliseconds = 1000.0 * dSeconds;
         break;
     }
     case ASCII_HEADER::RECEIVER_STATUS: {
         uint32_t uiReceiverStatus = 0;
         auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, uiReceiverStatus, 16);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse RECEIVER_STATUS"); }
+        if (result.ec != std::errc())
+        {
+            pclMyLogger->debug("Failed to parse RECIEVER_STATUS.");
+            return false;
+        }
         stInterHeader_.uiReceiverStatus = uiReceiverStatus;
         break;
     }
     case ASCII_HEADER::MSG_DEF_CRC: {
         uint32_t uiMessageDefinitionCrc = 0;
         auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, uiMessageDefinitionCrc, 16);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse MSG_DEF_CRC"); }
+        if (result.ec != std::errc())
+        {
+            pclMyLogger->debug("Failed to parse MSG_DEF_CRC.");
+            return false;
+        }
         stInterHeader_.uiMessageDefinitionCrc = uiMessageDefinitionCrc;
         break;
     }
     case ASCII_HEADER::RECEIVER_SW_VERSION: {
         uint16_t usReceiverSwVersion = 0;
         auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, usReceiverSwVersion);
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse RECEIVER_SW_VERSION"); }
+        if (result.ec != std::errc())
+        {
+            pclMyLogger->debug("Failed to parse RECEIVER_SW_VERSION.");
+            return false;
+        }
         stInterHeader_.usReceiverSwVersion = usReceiverSwVersion;
         break;
     }
