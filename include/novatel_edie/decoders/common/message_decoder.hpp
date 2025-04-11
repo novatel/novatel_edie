@@ -43,7 +43,7 @@ namespace novatel::edie {
 
 struct FieldContainer;
 
-#define NOVATEL_TYPES bool, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, std::string_view
+#define NOVATEL_TYPES bool, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, std::string
 #define CONTAINER_TYPES NOVATEL_TYPES, std::vector<FieldContainer>
 using FieldValueVariant = std::variant<CONTAINER_TYPES>;
 
