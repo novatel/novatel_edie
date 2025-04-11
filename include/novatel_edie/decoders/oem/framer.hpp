@@ -58,7 +58,7 @@ class Framer : public FramerBase
     //----------------------------------------------------------------------------
     //! \brief Reset the state of the Framer.
     //----------------------------------------------------------------------------
-    void ResetState() override;
+    void ResetState() { eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC; };
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of the Framer and the byte count.
@@ -75,6 +75,14 @@ class Framer : public FramerBase
     //! \brief A constructor for the Framer class.
     //----------------------------------------------------------------------------
     Framer();
+
+    //----------------------------------------------------------------------------
+    //! \brief Find the next sync byte in the circular buffer.
+    //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
+    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
+    //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.
+    //---------------------------------------------------------------------------
+    uint32_t FindSyncOffset(uint32_t uiFrameBufferSize_, STATUS& offsetStatus) override;
 
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
@@ -95,7 +103,8 @@ class Framer : public FramerBase
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_) override;
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
+                                  bool bMetadataOnly_ = false) override;
 };
 
 } // namespace novatel::edie::oem

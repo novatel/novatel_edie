@@ -33,6 +33,10 @@
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 
+using namespace novatel::edie;
+
+namespace novatel::edie {
+
 //============================================================================
 //! \class FramerBase
 //! \brief Base class for all framers. Contains necessary buffers and member
@@ -60,13 +64,13 @@ class FramerBase
     }
 
   public:
-    STATUS eMyCurrentFramerStatus{STATUS::UNKNOWN};
-    uint32_t uiMyFrameBufferOffset{0U};
+    //STATUS eMyCurrentFramerStatus{STATUS::UNKNOWN};
+    //uint32_t uiMyFrameBufferOffset{0U};
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of the Framer.
     //----------------------------------------------------------------------------
-    virtual void ResetState() { eMyCurrentFramerStatus = STATUS::UNKNOWN; }
+    virtual void ResetState() = 0;
 
 protected:
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
@@ -93,6 +97,18 @@ protected:
     //! \param[in] strLoggerName_ String to name the internal logger.
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(Logger::RegisterLogger(strLoggerName_))
+    {
+        pclMyCircularDataBuffer->Clear();
+        pclMyLogger->debug("Framer initialized");
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the FramerBase class.
+    //
+    //! \param[in] strLoggerName_ String to name the internal logger.
+    //----------------------------------------------------------------------------
+    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<CircularBuffer> circularBuffer_)
+        : pclMyLogger(Logger::RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(circularBuffer_)
     {
         pclMyCircularDataBuffer->Clear();
         pclMyLogger->debug("Framer initialized");
@@ -197,6 +213,14 @@ protected:
     }
 
     //----------------------------------------------------------------------------
+    //! \brief Find the next sync byte in the circular buffer.
+    //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
+    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
+    //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.
+    //---------------------------------------------------------------------------
+    virtual uint32_t FindSyncOffset(uint32_t uiFrameBufferSize_, STATUS& offsetStatus) = 0;
+
+    //----------------------------------------------------------------------------
     //! \brief virtual function to be overridden with casting MetaDataBase to type-specific MetaDataStruct
     //
     //! \param [out] pucFrameBuffer_ The buffer which the Framer should copy the
@@ -204,6 +228,7 @@ protected:
     //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
     //! \param [out] stMetaData_ A MetaDataBase to contain some information
     //! about the message frame.
+    //! \param [out] bMetadataOnly_ Only populate metadata and do not copy the message.
     //
     //! \return An error code describing the result of framing.
     //!   SUCCESS: A message frame was found.
@@ -215,12 +240,9 @@ protected:
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_) = 0;
-
-    //----------------------------------------------------------------------------
-    //! \brief A destructor for the FramerBase class.
-    //----------------------------------------------------------------------------
-    virtual ~FramerBase() = default;
+    [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
+                                          bool bMetadataOnly_ = false) = 0;
 };
+} // namespace novatel::edie
 
 #endif // FRAMER_HPP
