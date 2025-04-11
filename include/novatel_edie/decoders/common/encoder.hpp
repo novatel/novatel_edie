@@ -173,6 +173,16 @@ template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType
     return true;
 }
 
+// -------------------------------------------------------------------------------------------------------
+template <typename BufferType> [[nodiscard]] inline bool CopyToBuffer(BufferType* ppucBuffer_, uint32_t& uiBytesLeft_, const std::string& str)
+{
+    if (uiBytesLeft_ < str.size()) { return false; }
+    std::memcpy(*ppucBuffer_, str.data(), str.size());
+    *ppucBuffer_ += str.size();
+    uiBytesLeft_ -= static_cast<uint32_t>(str.size());
+    return true;
+}
+
 template <typename T> struct FloatValue
 {
     T value;
@@ -350,7 +360,7 @@ template <typename Derived> class EncoderBase
                 switch (field.fieldDef->type)
                 {
                 case FIELD_TYPE::STRING: { // STRING types can be handled all at once because they are a single element and have a null terminator
-                    auto sv = std::get<std::string_view>(field.fieldValue);
+                    auto sv = std::get<std::string>(field.fieldValue);
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, sv)) { return false; }
 
                     // For a flattened version of the log, fill in the remaining characters with 0x00.
@@ -379,7 +389,7 @@ template <typename Derived> class EncoderBase
                     if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<int32_t>(field.fieldValue))) { return false; }
                     break;
                 case FIELD_TYPE::RESPONSE_STR:
-                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<std::string_view>(field.fieldValue))) { return false; }
+                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, std::get<std::string>(field.fieldValue))) { return false; }
                     break;
                 case FIELD_TYPE::SIMPLE:
                     if (!Derived::FieldToBinary(field, ppucOutBuf_, uiBytesLeft_)) { return false; }
@@ -517,7 +527,7 @@ template <typename Derived> class EncoderBase
                 switch (field.fieldDef->type)
                 {
                 case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::get<std::string_view>(field.fieldValue), '"') ||
+                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::get<std::string>(field.fieldValue), '"') ||
                         !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
@@ -542,7 +552,7 @@ template <typename Derived> class EncoderBase
                 }
                 case FIELD_TYPE::RESPONSE_ID: break; // Do nothing, ascii logs don't output this field
                 case FIELD_TYPE::RESPONSE_STR:
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string_view>(field.fieldValue)) ||
+                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string>(field.fieldValue)) ||
                         !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
@@ -699,7 +709,7 @@ template <typename Derived> class EncoderBase
                 {
                 case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
                     if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), "\": \"",
-                                         std::get<std::string_view>(field.fieldValue), "\","))
+                                         std::get<std::string>(field.fieldValue), "\","))
                     {
                         return false;
                     }
@@ -724,7 +734,7 @@ template <typename Derived> class EncoderBase
 
                 case FIELD_TYPE::RESPONSE_STR:
                     if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(field.fieldDef->name), "\": \"",
-                                         std::get<std::string_view>(field.fieldValue), "\","))
+                                         std::get<std::string>(field.fieldValue), "\","))
                     {
                         return false;
                     }
