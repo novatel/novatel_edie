@@ -36,6 +36,9 @@
 
 namespace novatel::edie::oem {
 
+
+
+
 //============================================================================
 //! \class HeaderDecoder
 //! \brief Decode framed OEM message headers.
@@ -51,9 +54,9 @@ class HeaderDecoder
     MessageDefinition stMyResponseDefinition;
 
     // Decode novatel headers
-    template <const char* delimiter, ASCII_HEADER eField>
+    template <const char pcDelimiter[], size_t ullDelimiterSize, ASCII_HEADER eField>
     [[nodiscard]] bool DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
-    template <const char* pcDelimiter, ASCII_HEADER... eFields>
+    template <const char pcDelimiter[], size_t ullDelimiterSize, ASCII_HEADER... eFields>
     [[nodiscard]] bool DecodeAsciiHeaderFields(IntermediateHeader& stInterHeader_, const char** ppcLogBuf_) const;
     void DecodeJsonHeader(nlohmann::json clJsonHeader_, IntermediateHeader& stInterHeader_) const;
 
