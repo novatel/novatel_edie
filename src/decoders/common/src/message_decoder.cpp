@@ -322,10 +322,10 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             *ppucLogBuf_ += sizeof(int32_t);
             break;
         case FIELD_TYPE::RESPONSE_STR: {
-            std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), uiMessageLength_ - sizeof(int32_t)); // Remove CRC
+            std::string sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), uiMessageLength_ - sizeof(int32_t)); // Remove CRC
             vIntermediateFormat_.emplace_back(sTemp, field);
             // Binary response string is not null terminated or 4 byte aligned
-            *ppucLogBuf_ += sTemp.size();
+            *ppucLogBuf_ += sTemp.length();
             break;
         }
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
@@ -349,9 +349,9 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
         }
         case FIELD_TYPE::STRING: {
             // This version of a string is different. It is hopefully null terminated.
-            std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_));
+            std::string sTemp(reinterpret_cast<const char*>(*ppucLogBuf_));
             vIntermediateFormat_.emplace_back(sTemp, field);
-            *ppucLogBuf_ += sTemp.size() + 1; // + 1 to consume the NULL at the end of the string. This is to maintain byte alignment.
+            *ppucLogBuf_ += sTemp.length() + 1; // + 1 to consume the NULL at the end of the string. This is to maintain byte alignment.
             // TODO: what was this for? It breaks RXCOMMANDSB.GPS. Is 4 supposed to be usTypeAlignment instead?
             // if (reinterpret_cast<std::uint64_t>(*ppucLogBuf_) % 4 != 0) { *ppucLogBuf_ += 4 - reinterpret_cast<std::uint64_t>(*ppucLogBuf_) % 4; }
             break;
@@ -436,20 +436,20 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             {
             case ',': [[fallthrough]];
             case '*':
-                vIntermediateFormat_.emplace_back(std::string_view(""), field);
+                vIntermediateFormat_.emplace_back("", field);
                 *ppcLogBuf_ += 1;
                 break;
             case '"':
                 // If a field delimiter character is in the string, the previous tokenLength value is invalid.
                 tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '"' character, skipping past the first.
-                vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to pass opening double-quote.
+                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to pass opening double-quote.
                 // Skip past the first '"', string token and the remaining characters ('"' and ',').
                 *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
                 break;
             default:
                 // String that isn't surrounded by quotes
                 tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '"' or '*' character, skipping past the first.
-                vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
+                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
                 // Skip past the first '"', string token and the remaining characters ('"' and ',').
                 *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
                 break;
@@ -469,7 +469,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         case FIELD_TYPE::RESPONSE_STR:
             // Response strings aren't surrounded by double quotes, ensure we get the whole response (skip over certain delimiters in responses)
             tokenLength = strcspn(*ppcLogBuf_, responseDelimiters.data());
-            vIntermediateFormat_.emplace_back(std::string_view(*ppcLogBuf_, tokenLength), field);
+            vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field);
             *ppcLogBuf_ += tokenLength + 1;
             break;
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
@@ -642,7 +642,7 @@ STATUS MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDef
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR: {
             std::string_view strValue;
-            if (clField.get(strValue) == simdjson::SUCCESS) { vIntermediateFormat_.emplace_back(strValue, field); }
+            if (clField.get(strValue) == simdjson::SUCCESS) { vIntermediateFormat_.emplace_back(std::string(strValue), field); }
             break;
         }
 

@@ -305,7 +305,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
     for (size_t sz = 0; sz < testInputs.size(); ++sz)
     {
         ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(MsgDefFields, &testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
-        ASSERT_EQ(std::get<std::string_view>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
+        ASSERT_EQ(std::get<std::string>(vIntermediateFormat[0].fieldValue), testTargets[sz]);
 
         vIntermediateFormat.clear();
     }
