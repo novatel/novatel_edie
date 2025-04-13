@@ -11,3 +11,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(MSVC AND NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
+
+if(NOT MSVC)
+    # Use libstdc++11 ABI instead of libstc++ by default
+    if(NOT DEFINED GNU_LIBSTDCXX_IS_CXX11_ABI OR GNU_LIBSTDCXX_IS_CXX11_ABI)
+        add_compile_definitions(_GNU_LIBSTDCXX_IS_CXX11_ABI=1)
+    endif()
+endif()
