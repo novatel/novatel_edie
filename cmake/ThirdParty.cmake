@@ -14,6 +14,8 @@ if(USE_CONAN)
     include("${CMAKE_CURRENT_LIST_DIR}/SetDefaultProfile.cmake")
     # Set build cppstd for patchelf
     set(CONAN_INSTALL_ARGS --build missing --settings:build compiler.cppstd=17 CACHE INTERNAL "")
+    # Use libstdc++11 ABI instead of libstc++ by default for GCC
+    set(_CONAN_GNU_LIBSTDCXX_IS_CXX11_ABI TRUE CACHE BOOL "")
     list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/conan_provider.cmake)
 endif()
 
