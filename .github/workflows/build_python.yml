@@ -31,9 +31,10 @@ jobs:
           - os: Windows
             runs-on: windows-latest
             arch: AMD64
-          - os: Windows
-            runs-on: windows-latest
-            arch: ARM64
+          # Windows ARM64 is cross-compiled, but stubgen.py fails due to a missing native interpreter
+          # - os: Windows
+          #   runs-on: windows-latest
+          #   arch: ARM64
           - os: macOS
             runs-on: macos-13
             arch: x86_64
