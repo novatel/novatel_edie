@@ -28,6 +28,7 @@
 
 #include <charconv>
 
+#include <fast_float/fast_float.h>
 #include <simdjson.h>
 
 using namespace novatel::edie;
@@ -100,7 +101,7 @@ template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(Interm
     }
     case ASCII_HEADER::IDLE_TIME: {
         float fIdleTime = 0.0F;
-        auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, fIdleTime);
+        auto result = fast_float::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, fIdleTime);
         if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse IDLE_TIME.");
@@ -125,7 +126,7 @@ template <ASCII_HEADER eField> bool HeaderDecoder::DecodeAsciiHeaderField(Interm
     }
     case ASCII_HEADER::SECONDS: {
         double dSeconds = 0.0;
-        auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, dSeconds);
+        auto result = fast_float::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, dSeconds);
         if (result.ec != std::errc())
         {
             pclMyLogger->debug("Failed to parse SECONDS.");
