@@ -174,13 +174,10 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     {
     case HEADER_FORMAT::ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '#'
-        if (!DecodeAsciiHeaderFields<pcAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::PORT,
-                                     ASCII_HEADER::SEQUENCE, ASCII_HEADER::IDLE_TIME, ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK,
-                                     ASCII_HEADER::SECONDS, ASCII_HEADER::RECEIVER_STATUS, ASCII_HEADER::MSG_DEF_CRC>(stInterHeader_, &pcTempBuf))
-        {
-            return STATUS::FAILURE;
-        }
-        if (!DecodeAsciiHeaderField<pcAsciiFinalDelimiter, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf))
+        if (!DecodeAsciiHeaderFields<pcAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::PORT, ASCII_HEADER::SEQUENCE,
+                                     ASCII_HEADER::IDLE_TIME, ASCII_HEADER::TIME_STATUS, ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS,
+                                     ASCII_HEADER::RECEIVER_STATUS, ASCII_HEADER::MSG_DEF_CRC>(stInterHeader_, &pcTempBuf) ||
+            !DecodeAsciiHeaderField<pcAsciiFinalDelimiter, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf))
         {
             return STATUS::FAILURE;
         }
@@ -190,19 +187,14 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         ++pcTempBuf; // Move the input buffer past the sync char '<'
         // At this point, we do not know if the format is short or not, but both have a message
         // field
-        if (!DecodeAsciiHeaderField<pcAbbrevAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME>(stInterHeader_, &pcTempBuf))
-        {
-            return STATUS::FAILURE;
-        }
+        if (!DecodeAsciiHeaderField<pcAbbrevAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME>(stInterHeader_, &pcTempBuf)) { return STATUS::FAILURE; }
         if (DecodeAsciiHeaderField<pcAbbrevAsciiRegDelimiter, ASCII_HEADER::PORT>(stInterHeader_, &pcTempBuf))
         {
             // Port field succeeded, so this is not short format
-            if (!DecodeAsciiHeaderFields<pcAbbrevAsciiRegDelimiter, ASCII_HEADER::SEQUENCE, ASCII_HEADER::IDLE_TIME,
-                                         ASCII_HEADER::TIME_STATUS,
+            if (!DecodeAsciiHeaderFields<pcAbbrevAsciiRegDelimiter, ASCII_HEADER::SEQUENCE, ASCII_HEADER::IDLE_TIME, ASCII_HEADER::TIME_STATUS,
                                          ASCII_HEADER::WEEK, ASCII_HEADER::SECONDS, ASCII_HEADER::RECEIVER_STATUS, ASCII_HEADER::MSG_DEF_CRC>(
                     stInterHeader_, &pcTempBuf) ||
-                !DecodeAsciiHeaderField<pcAbbrevAsciiFinalDelimiter, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_,
-                                                                                                                                  &pcTempBuf))
+                !DecodeAsciiHeaderField<pcAbbrevAsciiFinalDelimiter, ASCII_HEADER::RECEIVER_SW_VERSION>(stInterHeader_, &pcTempBuf))
             {
                 return STATUS::FAILURE;
             }
@@ -221,8 +213,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
 
     case HEADER_FORMAT::SHORT_ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '%'
-        if (!DecodeAsciiHeaderFields<pcAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::WEEK>(stInterHeader_,
-                                                                                                                                     &pcTempBuf) ||
+        if (!DecodeAsciiHeaderFields<pcAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME, ASCII_HEADER::WEEK>(stInterHeader_, &pcTempBuf) ||
             !DecodeAsciiHeaderField<pcAsciiFinalDelimiter, ASCII_HEADER::SECONDS>(stInterHeader_, &pcTempBuf))
         {
             return STATUS::FAILURE;

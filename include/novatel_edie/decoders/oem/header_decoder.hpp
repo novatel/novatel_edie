@@ -36,9 +36,6 @@
 
 namespace novatel::edie::oem {
 
-
-
-
 //============================================================================
 //! \class HeaderDecoder
 //! \brief Decode framed OEM message headers.
