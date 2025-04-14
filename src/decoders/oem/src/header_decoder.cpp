@@ -76,10 +76,18 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, c
 
     // Find next delimiter
     const char* pcNextDelimiter = strchr(*ppcLogBuf_, pcDelimiter[0]);
-    if (pcNextDelimiter == nullptr) { return false; }
+    if (pcNextDelimiter == nullptr)
+    {
+        SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded as the expected field delimiter could not be found.");
+        return false;
+    }
 
     // Check that full delimiter is correct
-    if (ullDelimiterSize > 1 && std::strncmp(pcNextDelimiter, pcDelimiter, ullDelimiterSize) != 0) { return false; };
+    if (ullDelimiterSize > 1 && std::strncmp(pcNextDelimiter, pcDelimiter, ullDelimiterSize) != 0)
+    {
+        SPDLOG_LOGGER_ERROR(pclMyLogger, "Message header could not be decoded due to an invalid delimiter.");
+        return false;
+    };
 
     // Process field value up until delimiter
     size_t ullTokenLength = pcNextDelimiter - *ppcLogBuf_;
