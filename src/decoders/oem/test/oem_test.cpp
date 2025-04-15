@@ -1285,7 +1285,6 @@ TEST_F(DecodeEncodeTest, ABBREV_ASCII_NULL_IN_HEADER)
     };
     MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 69);
     ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedMessageData));
-
 }
 
 // -------------------------------------------------------------------------------------------------------
