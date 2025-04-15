@@ -1,7 +1,16 @@
 if(MSVC)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
     add_definitions(-DWIN32 -D_WINDOWS)
-    add_compile_options(/W4 /GR /EHsc /utf-8 /wd4244 /wd4293 /wd4996)
+    add_compile_options(
+        /W4     # Enable high warning level
+        /GR     # Enable RTTI (Runtime Type Information
+        /EHsc   # Enable C++ exception handling
+        /utf-8  # Force UTF-8 source encoding
+        /wd4244 # Disabled Warning: Conversion from 'type1' to 'type2', possible loss of data
+        /wd4293 # Disabled Warning: Shift count negative or too big, undefined behavior
+        /wd4702 # Disabled Warning: Unreachable code detected
+        /wd4996 # Disabled Warning: Deprecated function or unsafe CRT library function
+    )
     add_compile_options("$<$<CONFIG:Release>:/Ox;/Ob2>")
     if(WARNINGS_AS_ERRORS)
         add_compile_options(/WX)

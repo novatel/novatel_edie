@@ -31,6 +31,7 @@
 #include <benchmark/benchmark.h>
 #include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
+#include <novatel_edie/decoders/oem/file_parser.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
 #include <novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp>
 
@@ -44,7 +45,44 @@ static void LoadJson(benchmark::State& state)
     for ([[maybe_unused]] auto _ : state) { (void)LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH")); }
 }
 
-BENCHMARK(LoadJson);
+static void Parse(benchmark::State& state)
+{
+    MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
+    auto pathInFilename = std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / "BESTPOS.GPS";
+    const auto format = ENCODE_FORMAT::ABBREV_ASCII;
+
+#ifdef _WIN32
+    std::ofstream ofs("NUL");
+#else
+    std::ofstream ofs("/dev/null");
+#endif
+
+    for ([[maybe_unused]] auto _ : state)
+    {
+        FileParser clFileParser(clJsonDb);
+        auto clFilter = std::make_shared<Filter>();
+        auto eStatus = STATUS::UNKNOWN;
+
+        clFileParser.SetFilter(clFilter);
+        clFileParser.SetEncodeFormat(format);
+
+        auto ifs = std::make_shared<std::ifstream>(pathInFilename, std::ios::binary);
+
+        (void)clFileParser.SetStream(ifs);
+
+        while (eStatus != STATUS::STREAM_EMPTY)
+        {
+            MetaDataStruct stMetaData;
+            MessageDataStruct stMessageData;
+            eStatus = clFileParser.Read(stMessageData, stMetaData);
+            if (eStatus == STATUS::SUCCESS)
+            {
+                ofs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
+                stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
+            }
+        }
+    }
+}
 
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
 {
@@ -69,6 +107,7 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
 
 static void DecodeFlattenedBinaryLog(benchmark::State& state)
 {
+    // TODO: this is the same as the regular binary log we are benchmarking. Not actually flattened?
     constexpr unsigned char data[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
                                       0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
                                       0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10,
@@ -116,12 +155,6 @@ static void DecodeJsonLog(benchmark::State& state)
     DecodeLog(state, data);
 }
 
-BENCHMARK(DecodeFlattenedBinaryLog);
-BENCHMARK(DecodeAsciiLog);
-BENCHMARK(DecodeAbbrevAsciiLog);
-BENCHMARK(DecodeBinaryLog);
-BENCHMARK(DecodeJsonLog);
-
 template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
 {
     constexpr unsigned char data[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
@@ -152,7 +185,7 @@ template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
     for ([[maybe_unused]] auto _ : state)
     {
         unsigned char* bufferPtr = encodeBuffer;
-        (void)encoder.Encode(&bufferPtr, sizeof(encodeBuffer), header, message, messageData, metaData, Format);
+        (void)encoder.Encode(&bufferPtr, sizeof(encodeBuffer), header, message, messageData, metaData.eFormat, Format);
     }
 
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
@@ -163,12 +196,6 @@ static void EncodeAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::A
 static void EncodeAbbrevAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::ABBREV_ASCII>(state); }
 static void EncodeBinaryLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::BINARY>(state); }
 static void EncodeJsonLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::JSON>(state); }
-
-BENCHMARK(EncodeFlattenedBinaryLog);
-BENCHMARK(EncodeAsciiLog);
-BENCHMARK(EncodeAbbrevAsciiLog);
-BENCHMARK(EncodeBinaryLog);
-BENCHMARK(EncodeJsonLog);
 
 static void DecompressRangeCmp(benchmark::State& state, uint32_t id, const char* compressedData)
 {
@@ -203,6 +230,18 @@ static void DecompressRangeCmp2(benchmark::State& state) { DecompressRangeCmp(st
 static void DecompressRangeCmp4(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP4_MSG_ID, rangecmp4Log.data()); }
 static void DecompressRangeCmp5(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP5_MSG_ID, rangecmp5Log.data()); }
 
+BENCHMARK(LoadJson);
+BENCHMARK(Parse);
+BENCHMARK(DecodeFlattenedBinaryLog);
+BENCHMARK(DecodeAsciiLog);
+BENCHMARK(DecodeAbbrevAsciiLog);
+BENCHMARK(DecodeBinaryLog);
+BENCHMARK(DecodeJsonLog);
+BENCHMARK(EncodeFlattenedBinaryLog);
+BENCHMARK(EncodeAsciiLog);
+BENCHMARK(EncodeAbbrevAsciiLog);
+BENCHMARK(EncodeBinaryLog);
+BENCHMARK(EncodeJsonLog);
 BENCHMARK(DecompressRangeCmp);
 BENCHMARK(DecompressRangeCmp2);
 BENCHMARK(DecompressRangeCmp4);
@@ -210,18 +249,22 @@ BENCHMARK(DecompressRangeCmp5);
 
 int main(int argc, char** argv)
 {
-    getLoggerManager() -> InitManager();
+    LOGGER_MANAGER->InitLogger();
 
     std::filesystem::path pathSourceFile = __FILE__;
     std::filesystem::path pathRepoDir = pathSourceFile.parent_path().parent_path();
     std::filesystem::path pathDatabaseFile = pathRepoDir / "database" / "database.json";
+    std::filesystem::path pathResourceFolder = pathRepoDir / "benchmarks" / "resources";
 
     std::string strDatabaseVar = pathDatabaseFile.string();
+    std::string strResourceVar = pathResourceFolder.string();
 
 #ifdef _WIN32
     if (_putenv_s("TEST_DATABASE_PATH", strDatabaseVar.c_str()) != 0) { throw std::runtime_error("Failed to set db path."); }
+    if (_putenv_s("TEST_RESOURCE_PATH", strResourceVar.c_str()) != 0) { throw std::runtime_error("Failed to set resource path."); }
 #else
     if (setenv("TEST_DATABASE_PATH", strDatabaseVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set db path."); }
+    if (setenv("TEST_RESOURCE_PATH", strResourceVar.c_str(), 1) != 0) { throw std::runtime_error("Failed to set resource path."); }
 #endif
 
     benchmark::Initialize(&argc, argv);
