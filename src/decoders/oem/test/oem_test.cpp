@@ -1273,6 +1273,21 @@ TEST_F(DecodeEncodeTest, ABBREV_ASCII_EMPTY_ARRAY)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedMessageData));
 }
 
+TEST_F(DecodeEncodeTest, ABBREV_ASCII_NULL_IN_HEADER)
+{
+    unsigned char aucLog[] = {
+        '<', 'P', 'P', 'P', 'S', 'A', 'T', 'S', ' ', 'C', 'O', 'M', '1', ' ', '0', ' ', '7', '4', '.', '0', ' ', 'F', 'I', 'N', 'E', 'S', 'T', 'E', 'E', 'R', 'I', 'N', 'G', ' ',
+             '2', '3', '5', '8', ' ', '1', '9', '1', '5', '0', '.', '0', '0', '0', ' ', '1', 'a', '0', '0', '8', '0', '0', '0', ' ', 'c', 'e', '3', 'f', ' ', 
+             '1', '\0', '7', '3', '4', '5', '\r', '\n',
+        '<', ' ', ' ', ' ', ' ', '2', '\r', '\n',
+        '<', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'G', 'P', 'S', ' ', '1', '8', ' ', 'G', 'O', 'O', 'D', ' ', '0', '0', '0', '0', '0', '0', '0', '7', '\r', '\n',
+        '<', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'G', 'P', 'S', ' ', '1', '6', ' ', 'G', 'O', 'O', 'D', ' ', '0', '0', '0', '0', '0', '0', '0', '3', '\r', '\n'
+    };
+    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 69);
+    ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestSameFormatCompare(ENCODE_FORMAT::ABBREV_ASCII, &stExpectedMessageData));
+
+}
+
 // -------------------------------------------------------------------------------------------------------
 // BINARY Log Decode/Encode Unit Tests
 // -------------------------------------------------------------------------------------------------------
