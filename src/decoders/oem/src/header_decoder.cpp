@@ -146,12 +146,14 @@ void HeaderDecoder::DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stI
 
 // -------------------------------------------------------------------------------------------------------
 
-constexpr char pcAsciiRegDelimiter[] = ",";
-constexpr char pcAsciiFinalDelimiter[] = ";";
-constexpr char pcAbbrevAsciiRegDelimiter[] = " ";
-constexpr char pcAbbrevAsciiFinalDelimiter[] = "\r\n";
+
 STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const
 {
+    static constexpr char pcAsciiRegDelimiter[] = ",";
+    static constexpr char pcAsciiFinalDelimiter[] = ";";
+    static constexpr char pcAbbrevAsciiRegDelimiter[] = " ";
+    static constexpr char pcAbbrevAsciiFinalDelimiter[] = "\r\n";
+
     if (pucLogBuf_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
