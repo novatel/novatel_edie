@@ -146,7 +146,6 @@ void HeaderDecoder::DecodeJsonHeader(json clJsonHeader_, IntermediateHeader& stI
 
 // -------------------------------------------------------------------------------------------------------
 
-
 STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInterHeader_, MetaDataStruct& stMetaData_) const
 {
     static constexpr char pcAsciiRegDelimiter[] = ",";
