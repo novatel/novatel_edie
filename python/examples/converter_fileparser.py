@@ -34,7 +34,7 @@ import logging
 import os
 import timeit
 
-from novatel_edie import Message, UnknownMessage, UnknownBytes, Filter, FileParser, pretty_version
+from novatel_edie import Message, UnknownMessage, UnknownBytes, Filter, FileParser, CPP_PRETTY_VERSION
 from novatel_edie.messages import BESTPOS
 
 from common_setup import setup_example_logging, handle_args
@@ -44,7 +44,7 @@ def main():
     # Setup logging
     setup_example_logging(logging.WARNING)
     logger = logging.getLogger(__name__)
-    logger.info(f"Decoder library information:\n{pretty_version}")
+    logger.info(f"Decoder library information:\n{CPP_PRETTY_VERSION}")
 
     # Handle CLI arguments
     input_file, encode_format = handle_args(logger)
