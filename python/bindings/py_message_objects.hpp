@@ -1,11 +1,9 @@
 #pragma once
 
-#include "novatel_edie/decoders/oem/filter.hpp"
-
-
 #include "bindings_core.hpp"
-#include "py_database.hpp"
 #include "message_db_singleton.hpp"
+#include "novatel_edie/decoders/oem/filter.hpp"
+#include "py_database.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -40,6 +38,19 @@ struct PyUnknownBytes
     explicit PyUnknownBytes(nb::bytes data_) : data(std::move(data_)) {}
 };
 
+
+//============================================================================
+//! \class PyRecieverStatus
+//! \brief The field in a message header which gives type information.
+//============================================================================
+struct PyRecieverStatus
+{
+    uint32_t value;
+
+    PyRecieverStatus(uint32_t value_) : value(value_) {}
+};
+
+
 //============================================================================
 //! \class PyMessageTypeField
 //! \brief The field in a message header which gives type information.
@@ -47,6 +58,9 @@ struct PyUnknownBytes
 struct PyMessageTypeField
 {
     uint8_t value;
+
+    PyMessageTypeField(uint8_t value_) : value(value_) {}
+
     bool IsResponse() { return (value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0; }
     MESSAGE_FORMAT GetFormat() { return static_cast<MESSAGE_FORMAT>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MSGFORMAT)) >> 5); }
     MEASUREMENT_SOURCE GetMeasurementSource() { return static_cast<MEASUREMENT_SOURCE>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MEASSRC))); }
@@ -59,13 +73,15 @@ struct PyMessageTypeField
 struct PyHeader : public IntermediateHeader
 {
     HEADER_FORMAT format;
-    PyMessageTypeField message_type;
     uint32_t raw_length;
 
     PyMessageTypeField GetPyMessageType()
     {
-        message_type.value = ucMessageType;
-        return message_type;
+        return PyMessageTypeField(ucMessageType);
+    }
+    PyRecieverStatus GetRecieverStatus()
+    {
+        return PyRecieverStatus(uiReceiverStatus);
     }
 
     nb::dict to_dict() const;
@@ -147,5 +163,4 @@ nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyM
 
 nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata,
                                    PyMessageDatabase::ConstPtr database);
-
 } // namespace novatel::edie::oem
