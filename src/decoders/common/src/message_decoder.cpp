@@ -439,7 +439,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             {
             case ',': [[fallthrough]];
             case '*':
-                vIntermediateFormat_.emplace_back("", field);
+                vIntermediateFormat_.emplace_back(std::string(""), field);
                 *ppcLogBuf_ += 1;
                 break;
             case '"':
