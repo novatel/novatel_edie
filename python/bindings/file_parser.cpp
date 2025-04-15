@@ -83,8 +83,7 @@ void init_novatel_file_parser(nb::module_& m)
                 if (!message_db) { message_db = MessageDbSingleton::get(); }
                 new (self) oem::PyFileParser(file_path, message_db);
             },
-            "file_path"_a,
-            nb::arg("message_db") = nb::none(),
+            "file_path"_a, nb::arg("message_db") = nb::none(),
             R"doc(
              Initializes a FileParser.
 
@@ -107,9 +106,8 @@ void init_novatel_file_parser(nb::module_& m)
                 return std::static_pointer_cast<oem::PyFilter>(self.GetFilter());
             },
             [](oem::PyFileParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); },
-            "The filter which controls which data is skipped over."
-            )
-        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read() ->  Message | UnknownMessage | UnknownBytes"),
+            "The filter which controls which data is skipped over.")
+        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read(self) ->  Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read a message from remaining data in the file.
 
@@ -123,14 +121,16 @@ void init_novatel_file_parser(nb::module_& m)
                 StreamEmptyException: There is insufficient data in the remaining 
                     in the file to decode a message.
             )doc")
-        .def("__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; },
-             R"doc(
+        .def(
+            "__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; },
+            nb::sig("def __iter__(self) -> Iterator[Message|UnknownMessage|UnknownBytes]"),
+            R"doc(
             Marks FileParser as Iterable.
 
             Returns:
                 The FileParser itself as an Iterator.
             )doc")
-        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __next__() -> Message | UnknownMessage | UnknownBytes"),
+        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __next__(self) -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read the next message from remaining data in the file.
 
@@ -158,8 +158,9 @@ void init_novatel_file_parser(nb::module_& m)
                 StreamEmptyException: There is insufficient data in the remaining 
                     in the file to decode a message.
             )doc")
-        .def("iter_convert", [](oem::PyFileParser& self, ENCODE_FORMAT fmt) { return oem::FileConversionIterator(self, fmt); }, "fmt"_a,
-             R"doc(
+        .def(
+            "iter_convert", [](oem::PyFileParser& self, ENCODE_FORMAT fmt) { return oem::FileConversionIterator(self, fmt); }, "fmt"_a,
+            R"doc(
             Creates an iterator which parses and converts messages to a specified format.
 
             Args:
@@ -193,8 +194,9 @@ void init_novatel_file_parser(nb::module_& m)
             )doc");
 
     nb::class_<oem::FileConversionIterator>(m, "FileConversionIterator")
-        .def("__iter__", [](nb::handle_t<oem::FileConversionIterator> self) { return self; },
-             R"doc(
+        .def(
+            "__iter__", [](nb::handle_t<oem::FileConversionIterator> self) { return self; }, nb::sig("def __iter__(self) -> Iterator[MessageData]"),
+            R"doc(
             Marks FileConversionIterator as Iterable.
 
             Returns:

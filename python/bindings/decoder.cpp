@@ -59,6 +59,7 @@ void init_novatel_decoder(nb::module_& m)
                 return header;
             },
             "raw_header"_a, nb::arg("metadata") = nb::none(),
+            nb::sig("def decode_header(self, raw_header: bytes, metadata: MetaData | None = None) -> Header"),
             R"doc(
             Decode the header from a piece of framed data.
 
@@ -85,12 +86,13 @@ void init_novatel_decoder(nb::module_& m)
                     default_metadata.usMessageId = header.usMessageId;
                     default_metadata.messageName = decoder.database->MsgIdToMsgName(CreateMsgId(
                         header.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY), static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
-                    default_metadata.bResponse = header.GetPyMessageType().IsResponse();
+                    default_metadata.bResponse = ((header.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0);
                     metadata = &default_metadata;
                 }
                 return decoder.DecodeMessage(raw_payload, header, *metadata);
             },
             "raw_body"_a, "decoded_header"_a, nb::arg("metadata") = nb::none(),
+            nb::sig("def decode_payload(self, raw_payload: bytes, header: Header, metadata: MetaData | None = None) -> Message"),
             R"doc(
             Decode the payload of a message given the associated header.
 
@@ -124,7 +126,7 @@ void init_novatel_decoder(nb::module_& m)
                 default: throw_exception_from_status(status);
                 }
             },
-            "message"_a,
+            "message"_a, nb::sig("def decode_payload(self, raw_message: bytes) -> Message"),
             R"doc(
             Decode the payload of a message given the associated header.
 

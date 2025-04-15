@@ -38,6 +38,19 @@ struct PyUnknownBytes
     explicit PyUnknownBytes(nb::bytes data_) : data(std::move(data_)) {}
 };
 
+
+//============================================================================
+//! \class PyRecieverStatus
+//! \brief The field in a message header which gives type information.
+//============================================================================
+struct PyRecieverStatus
+{
+    uint32_t value;
+
+    PyRecieverStatus(uint32_t value_) : value(value_) {}
+};
+
+
 //============================================================================
 //! \class PyMessageTypeField
 //! \brief The field in a message header which gives type information.
@@ -45,6 +58,9 @@ struct PyUnknownBytes
 struct PyMessageTypeField
 {
     uint8_t value;
+
+    PyMessageTypeField(uint8_t value_) : value(value_) {}
+
     bool IsResponse() { return (value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0; }
     MESSAGE_FORMAT GetFormat() { return static_cast<MESSAGE_FORMAT>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MSGFORMAT)) >> 5); }
     MEASUREMENT_SOURCE GetMeasurementSource() { return static_cast<MEASUREMENT_SOURCE>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MEASSRC))); }
@@ -57,13 +73,15 @@ struct PyMessageTypeField
 struct PyHeader : public IntermediateHeader
 {
     HEADER_FORMAT format;
-    PyMessageTypeField message_type;
     uint32_t raw_length;
 
     PyMessageTypeField GetPyMessageType()
     {
-        message_type.value = ucMessageType;
-        return message_type;
+        return PyMessageTypeField(ucMessageType);
+    }
+    PyRecieverStatus GetRecieverStatus()
+    {
+        return PyRecieverStatus(uiReceiverStatus);
     }
 
     nb::dict to_dict() const;

@@ -1,3 +1,6 @@
+bindings.__prefix__:
+    from typing import Iterator
+
 bindings.Filter.(lower|upper)_time_bound:
     @property
     def \1_time_bound(self) -> GpsTime | None:
