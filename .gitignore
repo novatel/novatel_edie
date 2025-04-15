@@ -1,4 +1,5 @@
 .vs/
+.venv/
 .vscode/
 .idea/
 build/
