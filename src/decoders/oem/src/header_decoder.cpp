@@ -157,7 +157,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, c
         auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + ullTokenLength, uiReceiverStatus, 16);
         if (result.ec != std::errc())
         {
-            pclMyLogger->debug("Failed to parse RECIEVER_STATUS.");
+            pclMyLogger->debug("Failed to parse RECEIVER_STATUS.");
             return false;
         }
         stInterHeader_.uiReceiverStatus = uiReceiverStatus;
