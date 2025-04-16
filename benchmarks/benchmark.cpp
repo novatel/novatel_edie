@@ -132,6 +132,41 @@ static void FrameJson(benchmark::State& state)
     Frame(state, bestsatsJson);
 }
 
+template <size_t N> static void Frame(benchmark::State& state, const unsigned char(&data)[N])
+{
+    std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> buffer;
+    
+    for ([[maybe_unused]] auto _ : state) {
+        Framer clFramer;
+        clFramer.Write(data, sizeof(data));
+        MetaDataStruct stMetaData;
+        (void)clFramer.GetFrame(buffer.data(), buffer.size(), stMetaData);
+    }
+    
+    state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
+}
+
+static void FrameAscii(benchmark::State& state)
+{
+    constexpr unsigned char data[] =
+        "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17."
+        "0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
+
+    Frame(state, data);
+}
+
+static void FrameBinary(benchmark::State& state)
+{
+    constexpr unsigned char data[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74,
+                                      0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
+                                      0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10,
+                                      0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F,
+                                      0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                      0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
+
+    Frame(state, data);
+}
+
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
