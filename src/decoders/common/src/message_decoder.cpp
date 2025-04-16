@@ -322,10 +322,10 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             *ppucLogBuf_ += sizeof(int32_t);
             break;
         case FIELD_TYPE::RESPONSE_STR: {
-            std::string sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), uiMessageLength_ - sizeof(int32_t)); // Remove CRC
-            vIntermediateFormat_.emplace_back(sTemp, field);
+            std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_), uiMessageLength_ - sizeof(int32_t)); // Remove CRC
+            vIntermediateFormat_.emplace_back(std::string(sTemp), field);
             // Binary response string is not null terminated or 4 byte aligned
-            *ppucLogBuf_ += sTemp.length();
+            *ppucLogBuf_ += sTemp.size();
             break;
         }
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
@@ -349,9 +349,9 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
         }
         case FIELD_TYPE::STRING: {
             // This version of a string is different. It is hopefully null terminated.
-            std::string sTemp(reinterpret_cast<const char*>(*ppucLogBuf_));
-            vIntermediateFormat_.emplace_back(sTemp, field);
-            *ppucLogBuf_ += sTemp.length() + 1; // + 1 to consume the NULL at the end of the string. This is to maintain byte alignment.
+            std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_));
+            vIntermediateFormat_.emplace_back(std::string(sTemp), field);
+            *ppucLogBuf_ += sTemp.size() + 1; // + 1 to consume the NULL at the end of the string. This is to maintain byte alignment.
             // TODO: what was this for? It breaks RXCOMMANDSB.GPS. Is 4 supposed to be usTypeAlignment instead?
             // if (reinterpret_cast<std::uint64_t>(*ppucLogBuf_) % 4 != 0) { *ppucLogBuf_ += 4 - reinterpret_cast<std::uint64_t>(*ppucLogBuf_) % 4; }
             break;
