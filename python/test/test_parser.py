@@ -81,3 +81,32 @@ def test_parse_file_with_filter(parser, test_gps_file):
     assert msgs[1].header.milliseconds == pytest.approx(172189053)
     assert len(msgs[1].to_ascii().message) == 195
     assert parser.flush(return_flushed_bytes=True) == b""
+
+@pytest.mark.parametrize("ignore_responses", [True, False])
+@pytest.mark.parametrize("response_str, context", [("OK", b"\r\n<OK\r\nfdfa")])
+def test_parse_abbrev_ascii_resp(response_str, context, ignore_responses, parser):
+    # Arrange
+    parser.ignore_abbreviated_ascii_responses = ignore_responses
+    permutations = [(context[:i], context[i:]) for i in range(len(context) + 1)]
+    msg_sets = []
+
+    # Act
+    for part1, part2 in permutations:
+        parser.write(part1)
+        msgs = [msg for msg in parser]
+        parser.write(part2)
+        new_msgs = [msg for msg in parser]
+        msgs.extend(new_msgs)
+        msg_sets.append(msgs)
+
+    # Assert
+    for i, msgs in enumerate(msg_sets):
+        responses = [msg for msg in msgs if isinstance(msg, ne.Response)]
+        try:
+            if ignore_responses:
+                assert len(responses) == 0
+            else:
+                assert responses[0].response_str == response_str
+        except AssertionError as e:
+            raise AssertionError(
+                f"Failure at permutation {permutations[i]}: {e}") from e

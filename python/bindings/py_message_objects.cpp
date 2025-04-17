@@ -248,6 +248,8 @@ PyMessageData PyMessage::encode(ENCODE_FORMAT fmt) { return PyEncode(*this, this
 
 PyMessageData PyMessage::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
 
+PyMessageData PyMessage::to_abbrev_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ABBREV_ASCII); }
+
 PyMessageData PyMessage::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
 PyMessageData PyMessage::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
@@ -281,12 +283,23 @@ nb::object oem::create_unknown_message_instance(nb::bytes data, PyHeader& header
 nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata,
                                         PyMessageDatabase::ConstPtr database)
 {
+
     nb::handle message_pytype;
 
     const std::string message_name = metadata.messageName;
 
     bool has_ptype = true;
 
+    if (metadata.bResponse)
+    {
+
+        nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
+        PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
+        new (response_cinst) PyResponse(message_name, message_fields, database, header);
+        nb::inst_mark_ready(response_pyinst);
+
+        return response_pyinst;
+    }
     try
     {
         PyMessageType* message_type_struct = database->GetMessagesByNameDict().at(message_name);
@@ -375,8 +388,7 @@ void init_message_objects(nb::module_& m)
         .def(nb::init())
         .def(nb::init<uint16_t, double>(), "week"_a, "milliseconds"_a = TIME_STATUS::UNKNOWN)
         .def(nb::init<uint16_t, double, TIME_STATUS>(), "week"_a, "milliseconds"_a, "time_status"_a = TIME_STATUS::UNKNOWN)
-        .def("__repr__", [](PyGpsTime& self) { return "GPSTime(" + std::to_string(self.week) + ", " + std::to_string(self.milliseconds) + ")";
-            })
+        .def("__repr__", [](PyGpsTime& self) { return "GPSTime(" + std::to_string(self.week) + ", " + std::to_string(self.milliseconds) + ")"; })
         .def_rw("week", &PyGpsTime::week, "GPS reference week number.")
         .def_rw("milliseconds", &PyGpsTime::milliseconds, "Milliseconds from the beginning of the GPS reference week.")
         .def_rw("status", &PyGpsTime::time_status, "The quality of the GPS reference time.");
@@ -450,6 +462,7 @@ void init_message_objects(nb::module_& m)
     nb::class_<PyMessage, PyField>(m, "Message")
         .def("encode", &PyMessage::encode)
         .def("to_ascii", &PyMessage::to_ascii)
+        .def("to_abbrev_ascii", &PyMessage::to_ascii)
         .def("to_binary", &PyMessage::to_binary)
         .def("to_flattended_binary", &PyMessage::to_flattened_binary)
         .def("to_json", &PyMessage::to_json)
@@ -460,7 +473,7 @@ void init_message_objects(nb::module_& m)
                 if (include_header) { dict["header"] = self.header.to_dict(); }
                 return dict;
             },
-            "include_header"_a = true, 
+            "include_header"_a = true,
             R"doc(
             Converts the message to a dictionary.
             
@@ -473,6 +486,37 @@ void init_message_objects(nb::module_& m)
             )doc")
         .def_ro("header", &PyMessage::header, "The header of the message.")
         .def_ro("name", &PyMessage::name, "The type of message it is.");
+
+    nb::class_<PyResponse, PyMessage>(m, "Response")
+        // Class typehinting signature defined in stubgen_pattern.txt
+        .def(
+            "to_dict",
+            [](const PyResponse& self, bool include_header) {
+                nb::dict dict = self.to_dict();
+                if (include_header)
+                {
+                    if (self.header.usMessageId == 0) { dict["header"] = nb::none(); }
+                    else { dict["header"] = self.header.to_dict(); }
+                }
+                return dict;
+            },
+            "include_header"_a = true,
+            R"doc(
+            Converts the response to a dictionary.
+            
+            Args:
+                include_header: Whether to include the header of the response in the 
+                    new representation.
+
+            Returns:
+                A dictionary representation of the response.
+            )doc")
+        // TODO: FINISH REPR
+        .def("__repr__", [](const PyResponse& self) { return nb::str("Response()"); })
+        .def_prop_ro("header", [](const PyResponse& self) {
+            if (self.header.usMessageId == 0) { return nb::none(); }
+            return nb::cast(self.header);
+        });
 }
 
 #pragma endregion

@@ -135,15 +135,10 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
         }
         else if (eStatus == STATUS::SUCCESS)
         {
-            if ((!bMyIgnoreAbbreviatedAsciiResponse) && (stMetaData_.bResponse) && (stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII))
+            if (stMetaData_.bResponse && stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII && bMyIgnoreAbbreviatedAsciiResponse)
             {
-                stMessageData_.uiMessageHeaderLength = 0;
-                stMessageData_.pucMessageHeader = nullptr;
-                stMessageData_.uiMessageBodyLength = 0;
-                stMessageData_.pucMessageBody = nullptr;
-                stMessageData_.pucMessage = pucMyFrameBufferPointer;
-                stMessageData_.uiMessageLength = stMetaData_.uiLength;
-                return STATUS::SUCCESS;
+                pclMyLogger->debug("Abbreviated ascii response ignored");
+                continue;
             }
 
             eStatus = clMyHeaderDecoder.Decode(pucMyFrameBufferPointer, stHeader_, stMetaData_);

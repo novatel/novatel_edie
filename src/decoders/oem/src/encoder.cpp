@@ -347,7 +347,7 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 STATUS
 Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
-                const ENCODE_FORMAT eFormat_) const
+                ENCODE_FORMAT eFormat_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
@@ -360,10 +360,24 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
         if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, R"({"header": )")) { return STATUS::BUFFER_FULL; }
     }
 
-    STATUS eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, eHeaderFormat_, eFormat_);
-    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    if (eFormat_ == ENCODE_FORMAT::ABBREV_ASCII && ((stHeader_.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0))
+    {
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, "<")) { return STATUS::BUFFER_FULL; }
+        stMessageData_.uiMessageHeaderLength = 1;
 
+        std::string sResponse = std::get<std::string>(stMessage_[1].fieldValue);
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
+        if (!PrintToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
+        stMessageData_.pucMessage = *ppucBuffer_;
+        stMessageData_.uiMessageLength = pucTempEncodeBuffer - *ppucBuffer_;
+        stMessageData_.uiMessageBodyLength = stMessageData_.uiMessageLength - stMessageData_.uiMessageHeaderLength;
+
+        return STATUS::SUCCESS;
+    }
+
+    STATUS eStatus = EncodeHeader(&pucTempEncodeBuffer, uiBufferSize_, stHeader_, stMessageData_, eHeaderFormat_, eFormat_);
     pucTempEncodeBuffer += stMessageData_.uiMessageHeaderLength;
+    if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {

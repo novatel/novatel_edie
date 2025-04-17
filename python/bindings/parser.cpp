@@ -30,8 +30,8 @@ nb::object oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& messag
 
 nb::object oem::PyParser::PyRead(bool decode_incomplete)
 {
-    oem::MetaDataStruct metadata;
-    MessageDataStruct message_data;
+    static oem::MetaDataStruct metadata;
+    static MessageDataStruct message_data;
     oem::PyHeader header;
     std::vector<FieldContainer> message_fields;
 

@@ -13,3 +13,11 @@ bindings.Filter.decimation_period$:
 
     @decimation_period.setter
     def decimation_period(self, value: int | None) -> None: ...
+
+bindings.Response:
+    class Response(Message):
+        @property
+        def response_str(self) -> str:
+
+        @property
+        def response_id(self) -> int:
