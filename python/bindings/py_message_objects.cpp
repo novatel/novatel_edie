@@ -248,6 +248,8 @@ PyMessageData PyMessage::encode(ENCODE_FORMAT fmt) { return PyEncode(*this, this
 
 PyMessageData PyMessage::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
 
+PyMessageData PyMessage::to_abbrev_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ABBREV_ASCII); }
+
 PyMessageData PyMessage::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
 PyMessageData PyMessage::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
@@ -460,6 +462,7 @@ void init_message_objects(nb::module_& m)
     nb::class_<PyMessage, PyField>(m, "Message")
         .def("encode", &PyMessage::encode)
         .def("to_ascii", &PyMessage::to_ascii)
+        .def("to_abbrev_ascii", &PyMessage::to_ascii)
         .def("to_binary", &PyMessage::to_binary)
         .def("to_flattended_binary", &PyMessage::to_flattened_binary)
         .def("to_json", &PyMessage::to_json)
@@ -484,7 +487,8 @@ void init_message_objects(nb::module_& m)
         .def_ro("header", &PyMessage::header, "The header of the message.")
         .def_ro("name", &PyMessage::name, "The type of message it is.");
 
-    nb::class_<PyResponse, PyField>(m, "Response")
+    nb::class_<PyResponse, PyMessage>(m, "Response")
+        // Class typehinting signature defined in stubgen_pattern.txt
         .def(
             "to_dict",
             [](const PyResponse& self, bool include_header) {

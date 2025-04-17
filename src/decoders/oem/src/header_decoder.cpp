@@ -196,10 +196,12 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         ++pcTempBuf; // Move the input buffer past the sync char '<'
 
         // Abbreviated ascii responses have no headers
-        if (stMetaData_.bResponse)
+        if (strncmp(pcTempBuf, "OK", 2) == 0 || strncmp(pcTempBuf, "ERROR", 5) == 0)
         {
+            stMetaData_.bResponse = true;
             stMetaData_.messageName = "UNKNOWN";
             stMetaData_.uiHeaderLength = static_cast<uint32_t>(pcTempBuf - reinterpret_cast<const char*>(pucLogBuf_));
+            stInterHeader_.ucMessageType = static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE);
 
             return STATUS::SUCCESS;
         }

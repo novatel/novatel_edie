@@ -134,6 +134,7 @@ struct PyMessage : public PyField
 
     PyMessageData encode(ENCODE_FORMAT fmt);
     PyMessageData to_ascii();
+    PyMessageData to_abbrev_ascii();
     PyMessageData to_binary();
     PyMessageData to_flattened_binary();
     PyMessageData to_json();
@@ -147,13 +148,12 @@ nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>
                                    PyMessageDatabase::ConstPtr database);
 
 
-struct PyResponse : public PyField
+struct PyResponse : public PyMessage
 {
-    PyHeader header;
 
     explicit PyResponse(std::string name_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
                         PyHeader header_)
-        : PyField(std::move(name_), false, std::move(fields_), std::move(parent_db_)), header(std::move(header_)) {};
+        : PyMessage(std::move(name_), false, std::move(fields_), std::move(parent_db_), std::move(header_)) {};
 };
 
 } // namespace novatel::edie::oem
