@@ -109,7 +109,7 @@ jobs:
         sudo apt-get install -y clang-format
 
     - name: Check code formatting
-      run: find include src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -n {} + || (echo "Clang-format failed! See the README if you don't know how to fix this." && exit 1)
+      run: find include src examples benchmarks \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -n {} + || (echo "Clang-format failed! See the README if you don't know how to fix this." && exit 1)
 
   # =========================================================
   # Editor Config Job
