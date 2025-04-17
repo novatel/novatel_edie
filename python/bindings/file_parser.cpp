@@ -15,8 +15,8 @@ using namespace novatel::edie;
 
 nb::object oem::PyFileParser::PyRead()
 {
-    MetaDataStruct metadata;
-    MessageDataStruct message_data;
+    static MetaDataStruct metadata;
+    static MessageDataStruct message_data;
     PyHeader header;
     std::vector<FieldContainer> message_fields;
 

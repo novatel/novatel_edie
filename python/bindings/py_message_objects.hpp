@@ -1,11 +1,9 @@
 #pragma once
 
-#include "novatel_edie/decoders/oem/filter.hpp"
-
-
 #include "bindings_core.hpp"
-#include "py_database.hpp"
 #include "message_db_singleton.hpp"
+#include "novatel_edie/decoders/oem/filter.hpp"
+#include "py_database.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -147,5 +145,15 @@ nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyM
 
 nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata,
                                    PyMessageDatabase::ConstPtr database);
+
+
+struct PyResponse : public PyField
+{
+    PyHeader header;
+
+    explicit PyResponse(std::string name_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
+                        PyHeader header_)
+        : PyField(std::move(name_), false, std::move(fields_), std::move(parent_db_)), header(std::move(header_)) {};
+};
 
 } // namespace novatel::edie::oem
