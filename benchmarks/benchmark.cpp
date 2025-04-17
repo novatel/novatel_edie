@@ -140,7 +140,7 @@ template <size_t N> static void Frame(benchmark::State& state, const unsigned ch
         Framer clFramer;
         clFramer.Write(data, sizeof(data));
         MetaDataStruct stMetaData;
-        (void)clFramer.GetFrame(buffer.data(), buffer.size(), stMetaData);
+        (void)clFramer.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
     }
     
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
