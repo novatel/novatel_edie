@@ -9,6 +9,11 @@ on:
       - '**.md'
       - '.gitignore'
       - 'resources/**'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'resources/**'
 jobs:
   build-python:
     uses: ./.github/workflows/build_python.yml

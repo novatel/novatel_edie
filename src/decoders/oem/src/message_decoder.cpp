@@ -30,6 +30,7 @@
 #include <charconv>
 #include <cmath>
 
+#include <fast_float/fast_float.h>
 #include <nlohmann/json.hpp>
 
 using namespace novatel::edie::oem;
@@ -69,7 +70,7 @@ void MessageDecoder::InitOemFieldMaps()
                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         double value;
-        std::from_chars_result result = std::from_chars(*ppcToken_, *ppcToken_ + tokenLength_, value);
+        auto result = fast_float::from_chars(*ppcToken_, *ppcToken_ + tokenLength_, value);
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse double value"); }
         vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::llround(value * SEC_TO_MILLI_SEC)), std::move(pstMessageDataType_));
     };

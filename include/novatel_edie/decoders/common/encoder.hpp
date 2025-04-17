@@ -27,10 +27,13 @@
 #ifndef ENCODER_HPP
 #define ENCODER_HPP
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <cstdarg>
 #include <optional>
+
+#include <fmt/format.h>
 
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
@@ -113,21 +116,29 @@ template <typename T>
 {
     static_assert(std::is_floating_point_v<T>, "WriteFloatToBuffer requires float/double.");
 
-    int precision_arg = -1;
-    if (precision.has_value())
+    int precision_arg = precision.has_value() ? std::max(*precision, 0) : 6;
+    char fmt_char = format == std::chars_format::scientific ? 'e' : 'f';
+
+    try
     {
-        precision_arg = *precision;
-        if (precision_arg < 0) { precision_arg = 0; }
+        std::string format_str = fmt::format("{{:.{}{}}}", precision_arg, fmt_char);
+        auto result = fmt::format_to_n(*ppcBuffer_, uiBytesLeft_, fmt::runtime(format_str), value);
+        if (result.size >= uiBytesLeft_) { return false; }
+        *ppcBuffer_ += result.size;
+        uiBytesLeft_ -= static_cast<uint32_t>(result.size);
+        return true;
     }
-    else if (format == std::chars_format::fixed || format == std::chars_format::scientific) { precision_arg = 6; }
+    catch (...)
+    {
+        return false;
+    }
 
-    auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, value, format, precision_arg);
-
-    if (ec != std::errc{}) { return false; }
-
-    uiBytesLeft_ -= static_cast<uint32_t>(end - *ppcBuffer_);
-    *ppcBuffer_ = end;
-    return true;
+    // std::to_chars() is not available for macOS < v13.3 and GCC 10 on ARM
+    // auto [end, ec] = std::to_chars(*ppcBuffer_, *ppcBuffer_ + uiBytesLeft_, value, format, precision_arg);
+    // if (ec != std::errc{}) { return false; }
+    // uiBytesLeft_ -= static_cast<uint32_t>(end - *ppcBuffer_);
+    // *ppcBuffer_ = end;
+    // return true;
 }
 
 // -------------------------------------------------------------------------------------------------------

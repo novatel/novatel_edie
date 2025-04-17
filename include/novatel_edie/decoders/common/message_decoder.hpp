@@ -32,6 +32,7 @@
 #include <utility>
 #include <variant>
 
+#include <fast_float/fast_float.h>
 #include <simdjson.h>
 
 #include "novatel_edie/common/logger.hpp"
@@ -116,12 +117,17 @@ class MessageDecoderBase
                                 size_t tokenLength)
     {
         T value;
-        std::from_chars_result result;
 
-        if constexpr (std::is_integral_v<T>) { result = std::from_chars(token, token + tokenLength, value, R); }
-        else if constexpr (std::is_floating_point_v<T>) { result = std::from_chars(token, token + tokenLength, value); }
-
-        if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
+        if constexpr (std::is_integral_v<T>)
+        {
+            auto result = std::from_chars(token, token + tokenLength, value, R);
+            if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse an integer value"); }
+        }
+        else if constexpr (std::is_floating_point_v<T>)
+        {
+            auto result = fast_float::from_chars(token, token + tokenLength, value);
+            if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse a floating-point value"); }
+        }
 
         vIntermediateFormat_.emplace_back(value, std::move(pstMessageDataType_));
     }
