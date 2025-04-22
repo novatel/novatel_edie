@@ -60,7 +60,7 @@ bool Framer::IsAbbrevAsciiResponse() const
     constexpr uint32_t errorLen = 5;
     constexpr uint32_t okLen = 2;
 
-    if (uiMyAbbrevAsciiHeaderPosition + okLen < clMyCircularDataBuffer.GetLength())
+    if (uiMyAbbrevAsciiHeaderPosition + okLen < clMyCircularDataBuffer.size())
     {
         if (clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 0] == 'O' && //
             clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 1] == 'K')
@@ -69,7 +69,7 @@ bool Framer::IsAbbrevAsciiResponse() const
         }
     }
 
-    if (uiMyAbbrevAsciiHeaderPosition + errorLen < clMyCircularDataBuffer.GetLength())
+    if (uiMyAbbrevAsciiHeaderPosition + errorLen < clMyCircularDataBuffer.size())
     {
         if (clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 0] == 'E' && //
             clMyCircularDataBuffer[uiMyAbbrevAsciiHeaderPosition + 1] == 'R' && //
@@ -99,7 +99,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
         stMetaData_.bResponse = false;
 
         // Read data from circular buffer until we reach the end or we didn't find a complete frame in current data buffer
-        if (clMyCircularDataBuffer.GetLength() == uiMyByteCount)
+        if (clMyCircularDataBuffer.size() == uiMyByteCount)
         {
             if (eMyFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
             {
@@ -248,10 +248,11 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     return STATUS::BUFFER_FULL;
                 }
 
-                Oem4BinaryHeader stOem4BinaryHeader;
-                clMyCircularDataBuffer.Copy(reinterpret_cast<unsigned char*>(&stOem4BinaryHeader), OEM4_BINARY_HEADER_LENGTH);
-                uiMyExpectedPayloadLength = static_cast<uint32_t>(stOem4BinaryHeader.usLength);
-                uiMyExpectedMessageLength = OEM4_BINARY_HEADER_LENGTH + static_cast<uint32_t>(stOem4BinaryHeader.usLength) + OEM4_BINARY_CRC_LENGTH;
+                Oem4BinaryHeader header;
+                auto logical_begin = clMyCircularDataBuffer.begin();
+                std::copy(logical_begin, logical_begin + OEM4_BINARY_HEADER_LENGTH, reinterpret_cast<unsigned char*>(&header));
+                uiMyExpectedPayloadLength = static_cast<uint32_t>(header.usLength);
+                uiMyExpectedMessageLength = OEM4_BINARY_HEADER_LENGTH + static_cast<uint32_t>(header.usLength) + OEM4_BINARY_CRC_LENGTH;
 
                 if (uiMyExpectedPayloadLength > MAX_BINARY_MESSAGE_LENGTH || uiMyExpectedMessageLength > MAX_BINARY_MESSAGE_LENGTH)
                 {
@@ -289,10 +290,11 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     return STATUS::BUFFER_FULL;
                 }
 
-                Oem4BinaryShortHeader stOem4BinaryShortHeader;
-                clMyCircularDataBuffer.Copy(reinterpret_cast<unsigned char*>(&stOem4BinaryShortHeader), OEM4_SHORT_BINARY_HEADER_LENGTH);
-                uiMyExpectedPayloadLength = static_cast<uint32_t>(stOem4BinaryShortHeader.ucLength);
-                uiMyExpectedMessageLength = OEM4_SHORT_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH + stOem4BinaryShortHeader.ucLength;
+                Oem4BinaryShortHeader header;
+                auto logical_begin = clMyCircularDataBuffer.begin();
+                std::copy(logical_begin, logical_begin + OEM4_SHORT_BINARY_HEADER_LENGTH, reinterpret_cast<unsigned char*>(&header));
+                uiMyExpectedPayloadLength = static_cast<uint32_t>(header.ucLength);
+                uiMyExpectedMessageLength = OEM4_SHORT_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH + header.ucLength;
 
                 if (uiMyExpectedPayloadLength > MAX_SHORT_BINARY_MESSAGE_LENGTH || uiMyExpectedMessageLength > MAX_SHORT_BINARY_MESSAGE_LENGTH)
                 {
@@ -328,14 +330,14 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     if (bMyPayloadOnly)
                     {
                         stMetaData_.uiLength = uiMyExpectedPayloadLength;
-                        clMyCircularDataBuffer.Discard((uiMyExpectedMessageLength - uiMyExpectedPayloadLength) + OEM4_BINARY_CRC_LENGTH);
-                        clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                        clMyCircularDataBuffer.Discard(uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH);
+                        clMyCircularDataBuffer.erase_begin((uiMyExpectedMessageLength - uiMyExpectedPayloadLength) + OEM4_BINARY_CRC_LENGTH);
+                        std::copy(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength, pucFrameBuffer_);
+                        clMyCircularDataBuffer.erase_begin(uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH);
                     }
                     else
                     {
-                        clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                        clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                        std::copy(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength, pucFrameBuffer_);
+                        clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
                     }
 
                     uiMyByteCount = 0;
@@ -356,7 +358,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             if (ucDataByte == OEM4_ASCII_CRC_DELIMITER)
             {
                 // Need to be able to check for *12345678CRLF
-                if (uiMyByteCount + OEM4_ASCII_CRC_LENGTH + 2 > clMyCircularDataBuffer.GetLength())
+                if (uiMyByteCount + OEM4_ASCII_CRC_LENGTH + 2 > clMyCircularDataBuffer.size())
                 {
                     uiMyByteCount--; // Rewind so that we reprocess the '*' delimiter after getting more bytes
                     return STATUS::INCOMPLETE;
@@ -405,12 +407,12 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                         return STATUS::BUFFER_FULL;
                     }
 
-                    clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                    std::copy(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength, pucFrameBuffer_);
+                    clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 // End of buffer, can't look ahead but there should be more data
-                else if (uiMyByteCount + 2 >= clMyCircularDataBuffer.GetLength())
+                else if (uiMyByteCount + 2 >= clMyCircularDataBuffer.size())
                 {
                     uiMyByteCount--; // If the data lands on the header CRLF then it can be
                                      // missed unless it's tested again when there is more data
@@ -444,11 +446,11 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
 
         case NovAtelFrameState::WAITING_FOR_ABB_ASCII_BODY:
             // End of buffer (can't look ahead, assume incomplete message)
-            if (uiMyByteCount + 3 >= clMyCircularDataBuffer.GetLength())
+            if (uiMyByteCount + 3 >= clMyCircularDataBuffer.size())
             {
                 uiMyByteCount--; // If the data lands on the header CRLF then it can be missed
                                  // unless it's tested again when there is more data
-                stMetaData_.uiLength = clMyCircularDataBuffer.GetLength();
+                stMetaData_.uiLength = clMyCircularDataBuffer.size();
                 return STATUS::INCOMPLETE;
             }
 
@@ -492,8 +494,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     return STATUS::BUFFER_FULL;
                 }
 
-                clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                std::copy(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength, pucFrameBuffer_);
+                clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
 
                 uiMyByteCount = 0;
                 uiMyAbbrevAsciiHeaderPosition = 0;
@@ -531,8 +533,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                         return STATUS::BUFFER_FULL;
                     }
 
-                    clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                    std::copy(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength, pucFrameBuffer_);
+                    clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 else
@@ -583,8 +585,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                         return STATUS::BUFFER_FULL;
                     }
 
-                    clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                    std::copy(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength, pucFrameBuffer_);
+                    clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
                     uiMyByteCount = 0;
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
@@ -617,8 +619,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             if (uiMyJsonObjectOpenBraces == 0)
             {
                 stMetaData_.uiLength = uiMyByteCount;
-                clMyCircularDataBuffer.Copy(pucFrameBuffer_, stMetaData_.uiLength);
-                clMyCircularDataBuffer.Discard(stMetaData_.uiLength);
+                std::copy(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength, pucFrameBuffer_);
+                clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
                 uiMyByteCount = 0;
                 uiMyExpectedPayloadLength = 0;
                 eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
