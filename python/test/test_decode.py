@@ -41,16 +41,16 @@ def test_field_names_and_values(decoder: ne.Decoder):
     """Test that the field names are correct."""
     # Arrange
     data = b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n"
-    exp_fields = [
+    exp_fields = (
         'solution_status', 'position_type', 'latitude', 'longitude', 'height', 'undulation',
         'datum_id', 'latitude_std_dev', 'longitude_std_dev', 'height_std_dev', 'base_id',
         'diff_age','solution_age', 'num_svs', 'num_soln_svs', 'num_soln_L1_svs',
         'num_soln_multi_svs', 'measurement_source', 'ext_sol_stat', 'gal_and_bds_mask',
-        'gps_and_glo_mask']
-    exp_values = [
+        'gps_and_glo_mask')
+    exp_values = (
         ne.enums.SolStatus.SOL_COMPUTED, ne.enums.SolType.WAAS, 51.15043699323,
         -114.03067932462, 1096.9772, -17.0, ne.enums.Datum.WGS84, 0.6074000000953674,
-        0.579200029373169, 0.9563999772071838, '131', 7.0, 0.0, 42, 34, 34, 28, 0, 11, 31, 55]
+        0.579200029373169, 0.9563999772071838, '131', 7.0, 0.0, 42, 34, 34, 28, 0, 11, 31, 55)
     # Act
     msg = decoder.decode(data)
     fields = msg.get_fields()
