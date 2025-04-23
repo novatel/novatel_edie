@@ -2250,41 +2250,6 @@ TEST_F(CommandEncodeTest, COMMAND_ENCODE_BINARY_UALCONTROL)
 }
 
 // -------------------------------------------------------------------------------------------------------
-// Decode/Encode Benchmark Unit Tests
-// -------------------------------------------------------------------------------------------------------
-class BenchmarkTest : public ::testing::Test
-{
-  public:
-    static constexpr unsigned int uiMaxCount = 1000;
-    static MessageDatabase::Ptr pclMyJsonDb;
-    static std::unique_ptr<HeaderDecoder> pclMyHeaderDecoder;
-    static std::unique_ptr<MessageDecoder> pclMyMessageDecoder;
-    static std::unique_ptr<Encoder> pclMyEncoder;
-
-  protected:
-    // Per-test-suite setup
-    static void SetUpTestSuite()
-    {
-        try
-        {
-            pclMyJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
-            pclMyHeaderDecoder = std::make_unique<HeaderDecoder>(pclMyJsonDb);
-            pclMyMessageDecoder = std::make_unique<MessageDecoder>(pclMyJsonDb);
-            pclMyEncoder = std::make_unique<Encoder>(pclMyJsonDb);
-        }
-        catch (JsonDbReaderFailure& e)
-        {
-            std::cout << e.what() << '\n';
-        }
-    }
-};
-
-MessageDatabase::Ptr BenchmarkTest::pclMyJsonDb = nullptr;
-std::unique_ptr<HeaderDecoder> BenchmarkTest::pclMyHeaderDecoder = nullptr;
-std::unique_ptr<MessageDecoder> BenchmarkTest::pclMyMessageDecoder = nullptr;
-std::unique_ptr<Encoder> BenchmarkTest::pclMyEncoder = nullptr;
-
-// -------------------------------------------------------------------------------------------------------
 // Filter Unit Tests
 // -------------------------------------------------------------------------------------------------------
 class FilterTest : public ::testing::Test
