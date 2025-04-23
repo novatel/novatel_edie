@@ -42,7 +42,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    boost::circular_buffer<char> clMyCircularDataBuffer;
+    boost::circular_buffer<unsigned char> clMyCircularDataBuffer;
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -61,22 +61,27 @@ class FramerBase
                clMyCircularDataBuffer[uiPosition_ + 1] == '\n';
     }
 
+    void CopyFromBuffer(unsigned char* destination, size_t count)
+    {
+        boost::circular_buffer<unsigned char>::array_range one = clMyCircularDataBuffer.array_one();
+        boost::circular_buffer<unsigned char>::array_range two = clMyCircularDataBuffer.array_two();
+
+        size_t count1 = std::min(count, one.second);
+        if (count1 > 0) { memcpy(destination, one.first, count1); }
+
+        size_t count2 = std::min(count - count1, two.second);
+        if (count2 > 0) { memcpy(destination + count1, two.first, count2); }
+    }
+
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
     {
         if (uiUnknownBytes_ == 0) { return; }
 
-        const size_t current_size = clMyCircularDataBuffer.size();
-        const size_t bytes_to_handle = std::min(static_cast<size_t>(uiUnknownBytes_), current_size);
+        const size_t bytes_to_handle = std::min(static_cast<size_t>(uiUnknownBytes_), clMyCircularDataBuffer.size());
 
         if (bytes_to_handle == 0) { return; }
 
-        if (bMyReportUnknownBytes && pucBuffer_ != nullptr)
-        {
-            auto logical_begin = clMyCircularDataBuffer.begin();
-            auto logical_end_of_copy = logical_begin + bytes_to_handle;
-
-            std::copy(logical_begin, logical_end_of_copy, pucBuffer_);
-        }
+        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { CopyFromBuffer(pucBuffer_, bytes_to_handle); }
 
         clMyCircularDataBuffer.erase_begin(bytes_to_handle);
 
@@ -95,7 +100,6 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
     {
-        clMyCircularDataBuffer.set_capacity(32768);
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -164,7 +168,20 @@ class FramerBase
     {
         if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return 0; }
 
-        const size_t bytes_to_write = std::min(static_cast<size_t>(uiDataBytes_), clMyCircularDataBuffer.reserve());
+        auto data_bytes_to_add = static_cast<size_t>(uiDataBytes_);
+        size_t current_size = clMyCircularDataBuffer.size();
+        size_t current_capacity = clMyCircularDataBuffer.capacity();
+
+        size_t required_capacity = current_size + data_bytes_to_add;
+        if (required_capacity > current_capacity)
+        {
+            constexpr uint32_t uiExtraRoom = 512;
+            clMyCircularDataBuffer.set_capacity(required_capacity + uiExtraRoom);
+            current_capacity = clMyCircularDataBuffer.capacity();
+        }
+
+        size_t available_space = current_capacity - current_size;
+        size_t bytes_to_write = std::min(data_bytes_to_add, available_space);
 
         if (bytes_to_write > 0) { clMyCircularDataBuffer.insert(clMyCircularDataBuffer.end(), pucDataBuffer_, pucDataBuffer_ + bytes_to_write); }
 
