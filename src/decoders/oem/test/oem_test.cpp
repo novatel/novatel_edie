@@ -39,6 +39,8 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 #include "novatel_edie/decoders/oem/filter.hpp"
 #include "novatel_edie/decoders/oem/framer.hpp"
+#include "novatel_edie/decoders/common/framer_manager.hpp"
+#include "novatel_edie/decoders/common/framer_registration.hpp"
 #include "novatel_edie/decoders/oem/header_decoder.hpp"
 #include "resources/novatel_message_definitions.hpp"
 
@@ -912,6 +914,121 @@ TEST_F(FramerTest, UNKNOWN_BINARY_WITH_ASCII_SYNC)
 TEST_F(FramerTest, NULL_FRAME)
 {
     MetaDataStruct stMetaData;
+    ASSERT_EQ(STATUS::NULL_PROVIDED, pclMyFramer->GetFrame(nullptr, MAX_ASCII_MESSAGE_LENGTH, stMetaData));
+}
+
+
+// -------------------------------------------------------------------------------------------------------
+// Framer Manager Unit Tests
+// -------------------------------------------------------------------------------------------------------
+
+class FramerManagerTest : public ::testing::Test
+{
+  protected:
+    static std::unique_ptr<FramerManager> pclMyFramer;
+    static std::unique_ptr<std::istream> pclMyIFS;
+    static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
+
+    // Per-test-suite setup
+    static void SetUpTestSuite()
+    {
+        RegisterAllFramers();
+        FramerManager FM({"OEM"});
+        pclMyFramer = std::make_unique<FramerManager>(std::vector<std::string>{"OEM"});
+        //MetaDataBase* pclMyMetaData = nullptr;
+        pclMyFramer->SetReportUnknownBytes(true);
+        pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
+    }
+
+    // Per-test-suite teardown
+    static void TearDownTestSuite() { Logger::Shutdown(); }
+
+    // Per-test setup
+    void SetUp() override { FlushFramer(); }
+
+    // Per-test teardown
+    void TearDown() override { FlushFramer(); }
+
+  public:
+    template <HEADER_FORMAT F, STATUS S, typename ExpectedMetaDataType> 
+    void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
+    {
+        MetaDataStruct stExpectedMetaData;
+        stExpectedMetaData.eFormat = F;
+        stExpectedMetaData.uiLength = uiLength_;
+        
+        // Pointer to hold the metadata returned by GetFrame
+        MetaDataBase* stTestMetaData = nullptr;
+
+        ASSERT_EQ(S, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, stTestMetaData));
+        
+        // Dynamically cast the returned metadata to the expected type
+        auto* pExpectedMetaData = dynamic_cast<ExpectedMetaDataType*>(stTestMetaData);
+
+        ASSERT_NE(pExpectedMetaData, nullptr) << "ExpectedMetaDataType is not of type " << typeid(ExpectedMetaDataType).name();
+
+        ASSERT_EQ(static_cast<MetaDataStruct&>(*stTestMetaData), stExpectedMetaData);
+    }
+
+    static void WriteFileStreamToFramer(std::string sFilename_)
+    {
+        pclMyIFS = std::make_unique<std::ifstream>(std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_, std::ios::binary);
+
+        std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
+        uint32_t uiBytesWritten = 0;
+
+        while (!pclMyIFS->eof())
+        {
+            pclMyIFS->read(cData.data(), cData.size());
+            uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount());
+            ASSERT_NE(uiBytesWritten, 0);
+            ASSERT_EQ(uiBytesWritten, pclMyIFS->gcount());
+        }
+
+        pclMyIFS = nullptr;
+    }
+
+    static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_)
+    {
+        ASSERT_EQ(pclMyFramer->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
+    }
+
+    static void FlushFramer()
+    {
+        while (pclMyFramer->Flush(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH) > 0) {}
+    }
+};
+
+std::unique_ptr<FramerManager> FramerManagerTest::pclMyFramer = nullptr;
+std::unique_ptr<std::istream> FramerManagerTest::pclMyIFS = nullptr;
+std::unique_ptr<unsigned char[]> FramerManagerTest::pucMyTestFrameBuffer = nullptr;
+
+// TODO: we disable clang-format because of the long strings
+// clang-format off
+
+// -------------------------------------------------------------------------------------------------------
+// Logger Framer Unit Tests
+// -------------------------------------------------------------------------------------------------------
+TEST_F(FramerManagerTest, WRITE_BYTES)
+{
+    constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS, novatel::edie::MetaDataBase>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
+}
+
+// -------------------------------------------------------------------------------------------------------
+// Edge-case Framer Unit Tests
+// -------------------------------------------------------------------------------------------------------
+TEST_F(FramerManagerTest, UNKNOWN_BINARY_WITH_ASCII_SYNC)
+{
+    constexpr unsigned char aucData[] = {0x07, 0x23, 0x82}; // 0x23 is '#' This is used-to identify binary payload with'#'
+    WriteBytesToFramer(aucData, sizeof(aucData));
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN, novatel::edie::oem::MetaDataStruct>(1, MAX_BINARY_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, NULL_FRAME)
+{
+    MetaDataBase* stMetaData;
     ASSERT_EQ(STATUS::NULL_PROVIDED, pclMyFramer->GetFrame(nullptr, MAX_ASCII_MESSAGE_LENGTH, stMetaData));
 }
 

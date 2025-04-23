@@ -58,11 +58,9 @@ struct FramerEntry
 
     FramerEntry(std::string framerName_, std::unique_ptr<FramerBase> framerInstance_, std::unique_ptr<MetaDataBase> metadataInstance_)
         : framerName(framerName_), framerInstance(std::move(framerInstance_)), metadataInstance(std::move(metadataInstance_)), offset(0)
-    {
-    }
+    {}
 };
 
-// Forward Declarations of Framers
 // class novatel::edie::oem::Framer;
 class FramerManager
 {
@@ -70,6 +68,41 @@ class FramerManager
     using FramerFactory = std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>, MetaDataBase&)>;
 
     explicit FramerManager(const std::vector<std::string>& selectedFramers);
+    explicit FramerManager(std::initializer_list<std::string> selectedFramers) : FramerManager(std::vector<std::string>(selectedFramers)) {};
+
+
+    // Disable copy constructor and assignment operator
+    // They may be required in the future but are not needed for now
+    FramerManager(const FramerManager&) = delete;
+    FramerManager& operator=(const FramerManager&) = delete;
+
+    // Move constructor
+    FramerManager(FramerManager&& other) noexcept
+        : pclMyLogger(std::move(other.pclMyLogger)), pclMyCircularDataBuffer(std::move(other.pclMyCircularDataBuffer)),
+          bMyReportUnknownBytes(other.bMyReportUnknownBytes), stMyMetaData(std::move(other.stMyMetaData)),
+          framerRegistry(std::move(other.framerRegistry))
+    {}
+
+    // Move assignment operator
+    FramerManager& operator=(FramerManager&& other) noexcept
+    {
+        if (this != &other)
+        {
+            pclMyLogger = std::move(other.pclMyLogger);
+            pclMyCircularDataBuffer = std::move(other.pclMyCircularDataBuffer);
+            bMyReportUnknownBytes = other.bMyReportUnknownBytes;
+            stMyMetaData = std::move(other.stMyMetaData);
+            framerRegistry = std::move(other.framerRegistry); // Move the deque of FramerEntry
+        }
+        return *this;
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief A destructor for the FramerBase class.
+    //----------------------------------------------------------------------------
+    ~FramerManager() = default;
+
+
 
     static void FramerManager::RegisterFramer(const std::string& name,
                                               std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory,
@@ -91,16 +124,6 @@ class FramerManager
     }
 
     //----------------------------------------------------------------------------
-    //! \brief Reset the state of all framers in the framer registry.
-    //---------------------------------------------------------------------------
-    //void ResetAllFramerStates();
-
-    //----------------------------------------------------------------------------
-    //! \brief Reset the state of all metadata in the framer registry.
-    //---------------------------------------------------------------------------
-    //void ResetAllMetaDataStates();
-
-    //----------------------------------------------------------------------------
     //! \brief Configure the framer manager to return unknown bytes in the provided
     //! buffer.
     //
@@ -109,33 +132,11 @@ class FramerManager
     void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
     //----------------------------------------------------------------------------
-    //! \brief Get the FramerManager instance.
-    //! \return The FramerManager instance.
-    //----------------------------------------------------------------------------
-    // static FramerManager& GetInstance()
-    //{
-    //    static FramerManager instance; // Singleton
-    //    return instance;
-    //}
-
-    //----------------------------------------------------------------------------
     //! \brief Get the internal circular buffer.
     //
     //! \return Shared pointer to the internal circular buffer object.
     //---------------------------------------------------------------------------
     [[nodiscard]] std::shared_ptr<CircularBuffer> GetCircularBuffer() const { return pclMyCircularDataBuffer; }
-
-    //----------------------------------------------------------------------------
-    //! \brief A destructor for the FramerBase class.
-    //----------------------------------------------------------------------------
-    ~FramerManager() = default;
-
-    static FramerManager& GetInstance()
-    {
-        static FramerManager instance({}); // Default empty framer list
-        std::cerr << "[DEBUG] FramerManager::GetInstance() called - instance initialized.\n";
-        return instance;
-    }
 
     //----------------------------------------------------------------------------
     //! \brief Get the pointer to a FramerElement Structure for specified framer.
@@ -159,11 +160,6 @@ class FramerManager
     {
         return pclMyCircularDataBuffer->Append(pucDataBuffer_, uiDataBytes_);
     }
-
-    //----------------------------------------------------------------------------
-    //! \brief Reorder the framers in the framer registry.
-    //----------------------------------------------------------------------------
-    void SortFramers();
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -209,8 +205,6 @@ class FramerManager
     //---------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase*& stMetaData_);
 
-    //std::unordered_map<std::string, int> idMap;
-
     static std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)>,
                                                      std::function<std::unique_ptr<MetaDataBase>()>>>&
     GetFramerFactories();
@@ -218,13 +212,7 @@ class FramerManager
     std::string GetActiveFramerName() const { return framerRegistry.front().framerName; }
 
   private:
-    //! NOTE: disable copies and moves.
-    FramerManager(const FramerManager&) = delete;
-    FramerManager(const FramerManager&&) = delete;
-    FramerManager& operator=(const FramerManager&) = delete;
-    FramerManager& operator=(const FramerManager&&) = delete;
-
-    MetaDataBase stMyMetaData;
+    MetaDataBase stMyMetaData; // Used in cases where there is no valid MetaData object to use from a Framer such as dealing with UNKNOWN bytes
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
@@ -233,12 +221,7 @@ class FramerManager
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const;
 
-    //void ResetInactiveFramerStates(const int& activeFramer_);
-
-    //void ResetInactiveMetaDataStates(const int& activeFramer_);
-
     std::deque<FramerEntry> framerRegistry;
-    // static std::unordered_map<std::string, FramerEntry>& GetFramerFactories();
 
   protected:
     // TODO delete this

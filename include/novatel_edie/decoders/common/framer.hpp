@@ -98,6 +98,7 @@ protected:
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(Logger::RegisterLogger(strLoggerName_))
     {
+        pclMyCircularDataBuffer = std::make_shared<CircularBuffer>();
         pclMyCircularDataBuffer->Clear();
         pclMyLogger->debug("Framer initialized");
     }
