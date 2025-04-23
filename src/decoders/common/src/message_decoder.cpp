@@ -221,6 +221,7 @@ void MessageDecoderBase::InitFieldMaps()
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::CreateResponseMsgDefinitions()
 {
+    // TODO: It would be more logical for this to live in the database rather than the decoder.
     // Numerical response ID
     SimpleDataType stRespIdDataType;
     stRespIdDataType.description = "Response as numerical id";

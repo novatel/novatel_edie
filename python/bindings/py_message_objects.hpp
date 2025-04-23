@@ -161,6 +161,9 @@ nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>
 //============================================================================
 //! \class PyResponse
 //! \brief A python representation for a single decoded message response.
+//! 
+//! This class makes the assumption that `fields` is a vector of field with the 
+//! definitions generated in `void MessageDecoderBase::CreateResponseMsgDefinitions()`
 //============================================================================
 struct PyResponse : public PyEncodableField
 {
@@ -169,8 +172,10 @@ struct PyResponse : public PyEncodableField
                         bool complete_)
         : PyEncodableField(std::move(name_), false, std::move(fields_), std::move(parent_db_), std::move(header_)), complete(complete_) {};
 
+    // Retrieve response ID from first field of response
     int32_t GetResponseId() { return std::get<int>(fields[0].fieldValue); }
 
+    // Retrieve response string from second field of response
     std::string GetResponseString() const { return std::get<std::string>(fields[1].fieldValue); }
 
     nb::object GetEnumValue()
