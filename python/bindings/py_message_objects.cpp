@@ -1,5 +1,4 @@
-#include "novatel_edie/decoders/oem/common.hpp"
-#include "novatel_edie/decoders/oem/message_decoder.hpp"
+#include "py_message_objects.hpp"
 
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/list.h>
@@ -9,8 +8,9 @@
 #include "bindings_core.hpp"
 #include "exceptions.hpp"
 #include "message_db_singleton.hpp"
+#include "novatel_edie/decoders/oem/common.hpp"
+#include "novatel_edie/decoders/oem/message_decoder.hpp"
 #include "py_message_data.hpp"
-#include "py_message_objects.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -217,7 +217,7 @@ std::string PyField::repr() const
 
 #pragma region PyMessageMethods
 
-oem::PyMessageData PyEncode(PyMessage& py_message, const PyMessageDatabase* db, ENCODE_FORMAT format)
+oem::PyMessageData PyEncode(PyEncodableField& py_message, const PyMessageDatabase* db, ENCODE_FORMAT format)
 {
     STATUS status;
     MessageDataStruct message_data = MessageDataStruct();
@@ -244,17 +244,17 @@ oem::PyMessageData PyEncode(PyMessage& py_message, const PyMessageDatabase* db, 
     return PyMessageData(message_data);
 }
 
-PyMessageData PyMessage::encode(ENCODE_FORMAT fmt) { return PyEncode(*this, this->parent_db_.get(), fmt); }
+PyMessageData PyEncodableField::encode(ENCODE_FORMAT fmt) { return PyEncode(*this, this->parent_db_.get(), fmt); }
 
-PyMessageData PyMessage::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
+PyMessageData PyEncodableField::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
 
-PyMessageData PyMessage::to_abbrev_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ABBREV_ASCII); }
+PyMessageData PyEncodableField::to_abbrev_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ABBREV_ASCII); }
 
-PyMessageData PyMessage::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
+PyMessageData PyEncodableField::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
-PyMessageData PyMessage::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
+PyMessageData PyEncodableField::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
-PyMessageData PyMessage::to_json() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::JSON); }
+PyMessageData PyEncodableField::to_json() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::JSON); }
 
 #pragma endregion
 
@@ -295,7 +295,8 @@ nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldConta
 
         nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
-        new (response_cinst) PyResponse(message_name, message_fields, database, header);
+        bool is_complete = (metadata.eFormat != HEADER_FORMAT::ABB_ASCII);
+        new (response_cinst) PyResponse(message_name, message_fields, database, header, is_complete);
         nb::inst_mark_ready(response_pyinst);
 
         return response_pyinst;
@@ -487,15 +488,20 @@ void init_message_objects(nb::module_& m)
         .def_ro("header", &PyMessage::header, "The header of the message.")
         .def_ro("name", &PyMessage::name, "The type of message it is.");
 
-    nb::class_<PyResponse, PyMessage>(m, "Response")
-        // Class typehinting signature defined in stubgen_pattern.txt
+    nb::class_<PyResponse>(m, "Response")
+        .def("encode", &PyResponse::encode)
+        .def("to_ascii", &PyResponse::to_ascii)
+        .def("to_abbrev_ascii", &PyResponse::to_ascii)
+        .def("to_binary", &PyResponse::to_binary)
+        .def("to_flattended_binary", &PyResponse::to_flattened_binary)
+        .def("to_json", &PyResponse::to_json)
         .def(
             "to_dict",
             [](const PyResponse& self, bool include_header) {
                 nb::dict dict = self.to_dict();
                 if (include_header)
                 {
-                    if (self.header.usMessageId == 0) { dict["header"] = nb::none(); }
+                    if (!self.complete) { dict["header"] = nb::none(); }
                     else { dict["header"] = self.header.to_dict(); }
                 }
                 return dict;
@@ -511,12 +517,23 @@ void init_message_objects(nb::module_& m)
             Returns:
                 A dictionary representation of the response.
             )doc")
-        // TODO: FINISH REPR
-        .def("__repr__", [](const PyResponse& self) { return nb::str("Response()"); })
-        .def_prop_ro("header", [](const PyResponse& self) {
-            if (self.header.usMessageId == 0) { return nb::none(); }
-            return nb::cast(self.header);
-        });
+        .def("__repr__",
+             [](PyResponse& self) {
+                 nb::str repr = nb::str("Response(");
+                 repr += nb::str(self.GetResponseString().c_str());
+                 repr += nb::str(")");
+                 return repr;
+             })
+        .def_prop_ro("header",
+                     [](const PyResponse& self) {
+                         if (!self.complete) { return nb::none(); }
+                         return nb::cast(self.header);
+                     })
+        .def_ro("name", &PyMessage::name, "The type of message it is.")
+        .def_prop_ro("response_id", &PyResponse::GetResponseId)
+        .def_prop_ro("response_string", &PyResponse::GetResponseString)
+        // typehints in stubgen_pattern.txt
+        .def_prop_ro("response_enum", &PyResponse::GetEnumValue);
 }
 
 #pragma endregion

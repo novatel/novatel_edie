@@ -1919,19 +1919,19 @@ TEST_F(DecodeEncodeTest, BINARY_RESPONSE_ERROR)
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_RESPONSE)
 {
     unsigned char aucLog[] = "<OK\r\n";
-    ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
+    ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
 }
 
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_RESPONSE_MORE_DATA)
 {
     unsigned char aucLog[] = "<OK\r\nGARBAGE";
-    ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
+    ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
 }
 
 TEST_F(DecodeEncodeTest, ABBREV_ASCII_RESPONSE_ERROR)
 {
     unsigned char aucLog[] = "<ERROR:Invalid Message. Field = 1\r\n";
-    ASSERT_EQ(DecodeEncodeTest::HEADER_DECODER_ERROR, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
+    ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestDecodeEncode(ENCODE_FORMAT::ABBREV_ASCII, aucLog));
 }
 
 // -------------------------------------------------------------------------------------------------------

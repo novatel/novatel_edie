@@ -793,7 +793,7 @@ def test_abbrev_ascii_empty_array(helper):
     helper.test_framer(HEADER_FORMAT.ABB_ASCII, len(data) - 6)
 
 
-@pytest.mark.parametrize("response_str, context", [("OK", b"\r\n<OK\r\nfdfa")])
+@pytest.mark.parametrize("response_frame, context", [(b"<OK\r\n", b"\r\n<OK\r\nfdfa")])
 def test_parse_abbrev_ascii_resp(response_frame, context, helper):
     # Arrange
     permutations = [(context[:i], context[i:]) for i in range(len(context) + 1)]

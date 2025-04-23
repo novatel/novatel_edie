@@ -119,17 +119,17 @@ struct PyUnknownMessage
 };
 
 //============================================================================
-//! \class PyMessage
-//! \brief A python representation for a single fully decoded message.
+//! \class PyEncodableField
+//! \brief A field which can be encoded into a byte data representation.
 //!
-//! Extends PyMessageBase with additional methods for re-encoding.
+//! Contains shared functionality for messages and message responses.
 //============================================================================
-struct PyMessage : public PyField
+struct PyEncodableField : public PyField
 {
     PyHeader header;
 
-    explicit PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
-                       PyHeader header_)
+    explicit PyEncodableField(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
+                              PyHeader header_)
         : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_)), header(std::move(header_)) {};
 
     PyMessageData encode(ENCODE_FORMAT fmt);
@@ -140,6 +140,17 @@ struct PyMessage : public PyField
     PyMessageData to_json();
 };
 
+//============================================================================
+//! \class PyMessage
+//! \brief A python representation for a single fully decoded message.
+//============================================================================
+struct PyMessage : public PyEncodableField
+{
+    explicit PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
+                       PyHeader header_)
+        : PyEncodableField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_), std::move(header_)) {};
+};
+
 nb::object create_unknown_bytes(nb::bytes data);
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database);
@@ -147,13 +158,31 @@ nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyM
 nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata,
                                    PyMessageDatabase::ConstPtr database);
 
-
-struct PyResponse : public PyMessage
+//============================================================================
+//! \class PyResponse
+//! \brief A python representation for a single fully decoded message.
+//============================================================================
+struct PyResponse : public PyEncodableField
 {
+    bool complete;
+    explicit PyResponse(std::string name_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
+                        bool complete_)
+        : PyEncodableField(std::move(name_), false, std::move(fields_), std::move(parent_db_), std::move(header_)), complete(complete_) {};
 
-    explicit PyResponse(std::string name_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
-                        PyHeader header_)
-        : PyMessage(std::move(name_), false, std::move(fields_), std::move(parent_db_), std::move(header_)) {};
+    int32_t GetResponseId() { return std::get<int>(fields[0].fieldValue); }
+
+    std::string GetResponseString() const { return std::get<std::string>(fields[1].fieldValue); }
+
+    nb::object GetEnumValue()
+    {
+        std::unordered_map<std::string, nb::object> enum_map = parent_db_->GetEnumsByNameDict();
+        auto it = enum_map.find("Responses");
+        if (it == enum_map.end()) { return nb::none(); }
+        nb::object response_enum = it->second;
+        int32_t value = GetResponseId();
+        nb::object enum_val = response_enum(value);
+        return enum_val;
+    }
 };
 
 } // namespace novatel::edie::oem
