@@ -106,7 +106,7 @@ def test_parse_abbrev_ascii_resp(response_str, context, ignore_responses, parser
             if ignore_responses:
                 assert len(responses) == 0
             else:
-                assert responses[0].response_str == response_str
+                assert responses[0].response_string == response_str
         except AssertionError as e:
             raise AssertionError(
                 f"Failure at permutation {permutations[i]}: {e}") from e
