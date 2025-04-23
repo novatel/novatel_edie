@@ -103,6 +103,8 @@ struct PyField
         : name(std::move(name_)), has_ptype(has_ptype_), fields(std::move(message_)), parent_db_(std::move(parent_db_)) {};
     nb::dict& get_values() const;
     nb::dict& get_fields() const;
+    nb::list get_ordered_field_names() const;
+    nb::list get_ordered_values() const;
     nb::dict to_dict() const;
     nb::object getattr(nb::str field_name) const;
     nb::object getitem(nb::str field_name) const;

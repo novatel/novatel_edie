@@ -165,6 +165,21 @@ nb::dict& PyField::get_fields() const
     return cached_fields_;
 }
 
+nb::list PyField::get_ordered_field_names() const
+{
+    nb::list field_names = nb::list();
+    for (const auto& field : fields) { field_names.append(nb::cast(field.fieldDef->name)); }
+    return field_names;
+}
+
+nb::list PyField::get_ordered_values() const
+{
+    nb::list ordered_values = nb::list();
+    nb::dict& unordered_values = get_values();
+    for (const auto& field_name : get_ordered_field_names()) { ordered_values.append(unordered_values[field_name]); }
+    return ordered_values;
+}
+
 nb::dict PyField::to_dict() const
 {
     nb::dict dict;
@@ -464,30 +479,33 @@ void init_message_objects(nb::module_& m)
             )doc")
         .def("__getattr__", &PyField::getattr, "field_name"_a)
         .def("__repr__", &PyField::repr)
-        .def("__dir__", [](nb::object self) {
-            // get required Python builtin functions
-            nb::module_ builtins = nb::module_::import_("builtins");
-            nb::handle super = builtins.attr("super");
-            nb::handle type = builtins.attr("type");
+        .def("__dir__",
+             [](nb::object self) {
+                 // get required Python builtin functions
+                 nb::module_ builtins = nb::module_::import_("builtins");
+                 nb::handle super = builtins.attr("super");
+                 nb::handle type = builtins.attr("type");
 
-            // start from the 'Field' class instead of a specific subclass
-            nb::handle current_type = type(self);
-            std::string current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
-            while (current_type_name != "Field")
-            {
-                current_type = (current_type.attr("__bases__"))[0];
-                current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
-            }
+                 // start from the 'Field' class instead of a specific subclass
+                 nb::handle current_type = type(self);
+                 std::string current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
+                 while (current_type_name != "Field")
+                 {
+                     current_type = (current_type.attr("__bases__"))[0];
+                     current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
+                 }
 
-            // retrieve base list based on 'Field' superclass method
-            nb::object super_obj = super(current_type, self);
-            nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
-            // add dynamic fields to the list
-            PyField* body = nb::inst_ptr<PyField>(self);
-            for (const auto& [field_name, _] : body->get_fields()) { base_list.append(field_name); }
+                 // retrieve base list based on 'Field' superclass method
+                 nb::object super_obj = super(current_type, self);
+                 nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
+                 // add dynamic fields to the list
+                 PyField* body = nb::inst_ptr<PyField>(self);
+                 for (const auto& [field_name, _] : body->get_fields()) { base_list.append(field_name); }
 
-            return base_list;
-        });
+                 return base_list;
+             })
+        .def("get_fields", &PyField::get_ordered_field_names)
+        .def("get_values", &PyField::get_ordered_values);
 
     nb::class_<PyUnknownMessage>(m, "UnknownMessage")
         .def("__repr__",
