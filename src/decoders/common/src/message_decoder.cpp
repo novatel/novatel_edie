@@ -733,7 +733,8 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
         pvCurrentMsgFields = vMsgDef->GetMsgDefFromCrc(*pclMyLogger, stMetaData_.uiMessageCrc);
     }
 
-    if (stMetaData_.messageName == "RXCONFIG") { 
+    if (stMetaData_.messageName == "RXCONFIG")
+    {
         SPDLOG_LOGGER_INFO(pclMyLogger, "RXCONFIG payload decoding is unsupported by this version of EDIE. Support coming soon!");
         return STATUS::UNSUPPORTED;
     }
