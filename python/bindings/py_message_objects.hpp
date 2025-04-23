@@ -160,7 +160,7 @@ nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>
 
 //============================================================================
 //! \class PyResponse
-//! \brief A python representation for a single fully decoded message.
+//! \brief A python representation for a single decoded message response.
 //============================================================================
 struct PyResponse : public PyEncodableField
 {
