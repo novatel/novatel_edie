@@ -77,7 +77,7 @@ class ProprietaryFramerTest : public ::testing::Test
 
     static void WriteBytesToFramer(unsigned char* pucBytes_, uint32_t uiNumBytes_)
     {
-        ASSERT_EQ(pclMyFramer->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
+        ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_));
     }
 
     static void FlushFramer()
