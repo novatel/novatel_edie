@@ -112,6 +112,8 @@ class Helper:
 
         if not compare_message_data(test_message_data, expected_message_data):
             print("MessageData doesn't match ExpectedMessageData")
+            print(f"Test data: {test_message_data}")
+            print(f"Expected data: {expected_message_data}")
             return Result.MESSAGEDATA_COMPARISON_ERROR
 
         return Result.SUCCESS
