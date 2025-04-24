@@ -221,7 +221,16 @@ MessageDatabase::Ptr LoadJsonDbFile(const std::filesystem::path& filePath_)
 {
     try
     {
+        std::cout << "path" << filePath_ << std::endl;
         std::ifstream jsonFile(filePath_);
+        if (jsonFile)
+        {
+            char buffer[21] = {0};
+            jsonFile.read(buffer, 20);
+            std::cout << "First 20 characters of the file: " << buffer << std::endl;
+            jsonFile.seekg(0); // Reset the stream position to the beginning
+        }  
+
         auto json = json::parse(jsonFile);
 
         auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
