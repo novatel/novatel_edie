@@ -103,7 +103,7 @@ template <size_t N> static void Frame(benchmark::State& state, const unsigned ch
     
     for ([[maybe_unused]] auto _ : state) {
         Framer clFramer;
-        clFramer.Write(data, sizeof(data));
+        (void)clFramer.Write(data, sizeof(data));
         MetaDataStruct stMetaData;
         (void)clFramer.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
     }

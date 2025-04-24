@@ -62,7 +62,7 @@ class RxConfigTest : public ::testing::Test
   public:
     static void WriteBytesToHandler(unsigned char* pucBytes_, uint32_t uiNumBytes_)
     {
-        ASSERT_EQ(pclMyRxConfigHandler->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
+        ASSERT_TRUE(pclMyRxConfigHandler->Write(pucBytes_, uiNumBytes_));
     }
 
     static bool TestSameFormatCompare(ENCODE_FORMAT eFormat_, MessageDataStruct* pstExpectedRxConfigMessageData_,
