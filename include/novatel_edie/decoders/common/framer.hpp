@@ -63,14 +63,18 @@ class FramerBase
 
     void CopyFromBuffer(unsigned char* destination, size_t count)
     {
-        boost::circular_buffer<unsigned char>::array_range one = clMyCircularDataBuffer.array_one();
-        boost::circular_buffer<unsigned char>::array_range two = clMyCircularDataBuffer.array_two();
+        if (count == 0) { return; }
 
-        size_t count1 = std::min(count, one.second);
-        if (count1 > 0) { memcpy(destination, one.first, count1); }
+        auto ranges = clMyCircularDataBuffer.array_one();
+        size_t first_chunk = std::min(count, ranges.second);
+        memcpy(destination, ranges.first, first_chunk);
 
-        size_t count2 = std::min(count - count1, two.second);
-        if (count2 > 0) { memcpy(destination + count1, two.first, count2); }
+        if (count > first_chunk)
+        {
+            ranges = clMyCircularDataBuffer.array_two();
+            size_t second_chunk = std::min(count - first_chunk, ranges.second);
+            memcpy(destination + first_chunk, ranges.first, second_chunk);
+        }
     }
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
@@ -98,7 +102,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
     {
-        clMyCircularDataBuffer.set_capacity(32768);
+        clMyCircularDataBuffer.set_capacity(1 << 18);
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -165,20 +169,12 @@ class FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
     {
-        if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return true; } // TODO: return true or false?
+        if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return true; }
 
         if (uiDataBytes_ > GetBytesAvailableInBuffer()) { return false; }
 
-        try
-        {
-            clMyCircularDataBuffer.insert(clMyCircularDataBuffer.end(), pucDataBuffer_, pucDataBuffer_ + uiDataBytes_);
-            return true;
-        }
-        catch (const std::exception& e)
-        {
-            std::cerr << "Exception during direct circular buffer insert: " << e.what() << std::endl;
-            return false;
-        }
+        clMyCircularDataBuffer.insert(clMyCircularDataBuffer.end(), pucDataBuffer_, pucDataBuffer_ + uiDataBytes_);
+        return true;
     }
 
     //----------------------------------------------------------------------------
