@@ -96,10 +96,7 @@ class FramerTest : public ::testing::Test
         pclMyIFS = nullptr;
     }
 
-    static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_)
-    {
-        ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_));
-    }
+    static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_) { ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_)); }
 
     static void FlushFramer()
     {
