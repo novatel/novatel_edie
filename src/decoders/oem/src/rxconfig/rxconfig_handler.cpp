@@ -64,7 +64,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+bool RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
