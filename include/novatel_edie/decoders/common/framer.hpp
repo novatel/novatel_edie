@@ -79,8 +79,6 @@ class FramerBase
 
         const size_t bytes_to_handle = std::min(static_cast<size_t>(uiUnknownBytes_), clMyCircularDataBuffer.size());
 
-        if (bytes_to_handle == 0) { return; }
-
         if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { CopyFromBuffer(pucBuffer_, bytes_to_handle); }
 
         clMyCircularDataBuffer.erase_begin(bytes_to_handle);
@@ -100,6 +98,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
     {
+        clMyCircularDataBuffer.set_capacity(32768);
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -164,28 +163,22 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
+    [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
     {
-        if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return 0; }
+        if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return true; } // TODO: return true or false?
 
-        auto data_bytes_to_add = static_cast<size_t>(uiDataBytes_);
-        size_t current_size = clMyCircularDataBuffer.size();
-        size_t current_capacity = clMyCircularDataBuffer.capacity();
+        if (uiDataBytes_ > GetBytesAvailableInBuffer()) { return false; }
 
-        size_t required_capacity = current_size + data_bytes_to_add;
-        if (required_capacity > current_capacity)
+        try
         {
-            constexpr uint32_t uiExtraRoom = 512;
-            clMyCircularDataBuffer.set_capacity(required_capacity + uiExtraRoom);
-            current_capacity = clMyCircularDataBuffer.capacity();
+            clMyCircularDataBuffer.insert(clMyCircularDataBuffer.end(), pucDataBuffer_, pucDataBuffer_ + uiDataBytes_);
+            return true;
         }
-
-        size_t available_space = current_capacity - current_size;
-        size_t bytes_to_write = std::min(data_bytes_to_add, available_space);
-
-        if (bytes_to_write > 0) { clMyCircularDataBuffer.insert(clMyCircularDataBuffer.end(), pucDataBuffer_, pucDataBuffer_ + bytes_to_write); }
-
-        return static_cast<uint32_t>(bytes_to_write);
+        catch (const std::exception& e)
+        {
+            std::cerr << "Exception during direct circular buffer insert: " << e.what() << std::endl;
+            return false;
+        }
     }
 
     //----------------------------------------------------------------------------
@@ -196,7 +189,7 @@ class FramerBase
     //
     //! \return The number of bytes flushed from the internal circular buffer.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+    [[nodiscard]] uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
         const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(clMyCircularDataBuffer.size()), uiBufferSize_);
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);

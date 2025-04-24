@@ -70,6 +70,9 @@ jobs:
           ls -lh out/build/bin/*
           (cd out/build/bin/* && for f in *; do echo $f; objdump -p $f | grep -P 'RUNPATH|RPATH' || true; done)
 
+      #- name: Unit Tests
+      #  run: ctest --test-dir out/build --build-config ${{ env.BUILD_TYPE }} --output-on-failure
+
       - name: Regression Tests
         shell: bash
         run: |
