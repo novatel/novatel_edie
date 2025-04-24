@@ -30,14 +30,14 @@
 #include <gtest/gtest.h>
 
 #include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/common/test_utils/get_repo_path.hpp"
 
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
     LOGGER_MANAGER->InitLogger();
 
-    std::filesystem::path pathSourceFile = __FILE__;
-    std::filesystem::path pathRepoDir = pathSourceFile.parent_path().parent_path().parent_path().parent_path().parent_path();
+    std::filesystem::path pathRepoDir = GetRepoBasePath(argc, argv);
     std::filesystem::path pathDatabaseFile = pathRepoDir / "database" / "database.json";
     std::filesystem::path pathResourceFile = pathRepoDir / "src" / "decoders" / "oem" / "test" / "resources";
 

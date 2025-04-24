@@ -30,6 +30,7 @@
 #include <gtest/gtest.h>
 
 #include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/common/test_utils/get_repo_path.hpp"
 
 int main(int argc, char** argv)
 {
@@ -37,8 +38,8 @@ int main(int argc, char** argv)
     CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
     pclMyLoggerManager->InitLogger();
 
-    std::filesystem::path pathSourceFile = __FILE__;
-    std::filesystem::path pathRepoDir = pathSourceFile.parent_path().parent_path().parent_path().parent_path().parent_path();
+    std::filesystem::path pathRepoDir = GetRepoBasePath(argc, argv);
+
     std::filesystem::path pathDatabaseFile = pathRepoDir / "database" / "database.json";
 
     std::string strDatabaseVar = pathDatabaseFile.string();
