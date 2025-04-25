@@ -26,6 +26,8 @@
 
 #include "novatel_edie/decoders/oem/framer.hpp"
 
+#include <charconv>
+
 #include "novatel_edie/common/crc32.hpp"
 
 using namespace novatel::edie;
@@ -224,7 +226,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             break;
 
         case NovAtelFrameState::WAITING_FOR_ABB_ASCII_SYNC2:
-            if (ucDataByte != OEM4_ABBREV_ASCII_SEPARATOR && (isalpha(ucDataByte) != 0))
+            if (ucDataByte != OEM4_ABBREV_ASCII_SEPARATOR && isalpha(ucDataByte) != 0)
             {
                 eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_HEADER;
             }
@@ -448,7 +450,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             {
                 uiMyByteCount--; // If the data lands on the header CRLF then it can be missed
                                  // unless it's tested again when there is more data
-                stMetaData_.uiLength = clMyCircularDataBuffer.size();
+                stMetaData_.uiLength = static_cast<uint32_t>(clMyCircularDataBuffer.size());
                 return STATUS::INCOMPLETE;
             }
 
@@ -514,14 +516,16 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             {
                 uiMyByteCount--; // rewind back to delimiter before copying
                 char acCrc[OEM4_ASCII_CRC_LENGTH + 1];
-                for (int32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; i++) { acCrc[i] = clMyCircularDataBuffer[uiMyByteCount++]; }
-                uiMyByteCount += 2; // Add 2 for CRLF
+                for (int32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; i++) { acCrc[i] = clMyCircularDataBuffer[uiMyByteCount + i]; }
+                uiMyByteCount += OEM4_ASCII_CRC_LENGTH + 2; // Add 2 for CRLF
                 stMetaData_.uiLength = uiMyByteCount;
                 acCrc[OEM4_ASCII_CRC_LENGTH] = '\0';
                 uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;
-                if (sscanf(acCrc, "%x", &uiMessageCrc) > 0 && uiMyCalculatedCrc32 == uiMessageCrc)
+                auto result = std::from_chars(acCrc, acCrc + OEM4_ASCII_CRC_LENGTH, uiMessageCrc, 16);
+
+                if (result.ec == std::errc() && uiMyCalculatedCrc32 == uiMessageCrc)
                 {
                     uiMyByteCount = 0;
 
@@ -563,29 +567,27 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
         case NovAtelFrameState::WAITING_FOR_NMEA_CRC: {
             if (ucDataByte == '\n')
             {
-                uiMyExpectedPayloadLength = 0;
                 char acCrc[NMEA_CRC_LENGTH + 1];
-                for (int32_t iOffset = NMEA_CRC_LENGTH; iOffset > 0; iOffset--)
-                {
-                    acCrc[NMEA_CRC_LENGTH - iOffset] = clMyCircularDataBuffer[uiMyByteCount - iOffset - 2];
-                }
+                const size_t crcStartIndexInBuffer = uiMyByteCount - NMEA_CRC_LENGTH - 2;
+                for (int32_t i = 0; i < NMEA_CRC_LENGTH; ++i) { acCrc[i] = clMyCircularDataBuffer[crcStartIndexInBuffer + i]; }
                 acCrc[NMEA_CRC_LENGTH] = '\0';
+                uiMyExpectedPayloadLength = 0;
 
                 uint32_t uiMessageCrc;
-                if (sscanf(acCrc, "%x", &uiMessageCrc) > 0 && uiMyCalculatedCrc32 == uiMessageCrc)
+                auto result = std::from_chars(acCrc, acCrc + NMEA_CRC_LENGTH, uiMessageCrc, 16);
+
+                if (result.ec == std::errc() && uiMyCalculatedCrc32 == uiMessageCrc)
                 {
-                    stMetaData_.uiLength = uiMyByteCount;
+                    uiMyByteCount = 0;
 
                     if (uiFrameBufferSize_ < stMetaData_.uiLength)
                     {
-                        uiMyByteCount = 0;
                         ResetState();
                         return STATUS::BUFFER_FULL;
                     }
 
                     CopyFromBuffer(pucFrameBuffer_, stMetaData_.uiLength);
                     clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
-                    uiMyByteCount = 0;
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 else
