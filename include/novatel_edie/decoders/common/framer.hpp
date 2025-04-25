@@ -152,13 +152,6 @@ class FramerBase
     void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
     //----------------------------------------------------------------------------
-    //! \brief Get the number of bytes available in the internal circular buffer.
-    //
-    //! \return The number of bytes available in the internal circular buffer.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] uint32_t GetBytesAvailableInBuffer() const { return clMyCircularDataBuffer.reserve(); }
-
-    //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
     //
     //! \param[in] pucDataBuffer_ The data buffer containing the bytes to be
@@ -167,11 +160,11 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
+    [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_)
     {
         if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return true; }
 
-        if (uiDataBytes_ > GetBytesAvailableInBuffer()) { return false; }
+        if (uiDataBytes_ > clMyCircularDataBuffer.reserve()) { return false; }
 
         clMyCircularDataBuffer.insert(clMyCircularDataBuffer.end(), pucDataBuffer_, pucDataBuffer_ + uiDataBytes_);
         return true;
