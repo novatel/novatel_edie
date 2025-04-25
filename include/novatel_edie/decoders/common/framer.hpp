@@ -31,6 +31,11 @@
 
 #include "novatel_edie/common/circular_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/decoders/common/common.hpp"
+
+using namespace novatel::edie;
+
+namespace novatel::edie {
 
 //============================================================================
 //! \class FramerBase
@@ -41,7 +46,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    CircularBuffer clMyCircularDataBuffer;
+    std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -52,18 +57,30 @@ class FramerBase
     bool bMyPayloadOnly{false};
     bool bMyFrameJson{false};
 
-    virtual void ResetState() = 0;
-
+    //----------------------------------------------------------------------------
+    //! \brief Check if the provided position is a CRLF (carriage return and line feed).
+    //!
+    //! \param[in] uiPosition_ The position to check in the shared circular buffer.
+    //
+    //! \return true if the position is a CRLF, false otherwise.
+    //----------------------------------------------------------------------------
     [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
-        return uiPosition_ + 1 < clMyCircularDataBuffer.GetLength() && clMyCircularDataBuffer[uiPosition_] == '\r' &&
-               clMyCircularDataBuffer[uiPosition_ + 1] == '\n';
+        return uiPosition_ + 1 < pclMyCircularDataBuffer->GetLength() && (*pclMyCircularDataBuffer)[uiPosition_] == '\r' &&
+               (*pclMyCircularDataBuffer)[uiPosition_ + 1] == '\n';
     }
 
+  public:
+    //----------------------------------------------------------------------------
+    //! \brief Reset the state of the Framer.
+    //----------------------------------------------------------------------------
+    virtual void ResetState() = 0;
+
+  protected:
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
     {
-        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { clMyCircularDataBuffer.Copy(pucBuffer_, uiUnknownBytes_); }
-        clMyCircularDataBuffer.Discard(uiUnknownBytes_);
+        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyCircularDataBuffer->Copy(pucBuffer_, uiUnknownBytes_); }
+        pclMyCircularDataBuffer->Discard(uiUnknownBytes_);
 
         uiMyByteCount = 0;
         uiMyExpectedMessageLength = 0;
@@ -73,6 +90,8 @@ class FramerBase
     }
 
   public:
+    uint32_t GetMyByteCount() { return uiMyByteCount; };
+
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FramerBase class.
     //
@@ -80,7 +99,19 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
     {
-        clMyCircularDataBuffer.Clear();
+        pclMyCircularDataBuffer->Clear();
+        pclMyLogger->debug("Framer initialized");
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the FramerBase class.
+    //
+    //! \param[in] strLoggerName_ String to name the internal logger.
+    //----------------------------------------------------------------------------
+    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<CircularBuffer> circularBuffer_)
+        : pclMyLogger(Logger::RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(circularBuffer_)
+    {
+        pclMyCircularDataBuffer->Clear();
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -134,7 +165,7 @@ class FramerBase
     //
     //! \return The number of bytes available in the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] uint32_t GetBytesAvailableInBuffer() const { return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength(); }
+    [[nodiscard]] uint32_t GetBytesAvailableInBuffer() const { return pclMyCircularDataBuffer->GetCapacity() - pclMyCircularDataBuffer->GetLength(); }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -145,7 +176,10 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_) { return clMyCircularDataBuffer.Append(pucDataBuffer_, uiDataBytes_); }
+    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
+    {
+        return pclMyCircularDataBuffer->Append(pucDataBuffer_, uiDataBytes_);
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -157,10 +191,55 @@ class FramerBase
     //----------------------------------------------------------------------------
     uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
-        const uint32_t uiBytesToFlush = std::min(clMyCircularDataBuffer.GetLength(), uiBufferSize_);
+        const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }
+
+    ////----------------------------------------------------------------------------
+    ////! \brief Flush bytes from the internal circular buffer. IMPORTANT: THIS DOES NOT HANDLE UNKNOWN BYTES
+    ////
+    ////! \param[in] uiBufferSize_ The size of the provided buffer.
+    ////
+    ////! \return The number of bytes flushed from the internal circular buffer.
+    ////----------------------------------------------------------------------------
+    virtual uint32_t Flush(uint32_t uiBufferSize_)
+    {
+        const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
+        return uiBytesToFlush;
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief Find the next sync byte in the circular buffer.
+    //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
+    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
+    //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.
+    //---------------------------------------------------------------------------
+    virtual uint32_t FindSyncOffset(uint32_t uiFrameBufferSize_, STATUS& offsetStatus) = 0;
+
+    //----------------------------------------------------------------------------
+    //! \brief virtual function to be overridden with casting MetaDataBase to type-specific MetaDataStruct
+    //
+    //! \param [out] pucFrameBuffer_ The buffer which the Framer should copy the
+    //! framed PIMTP message to.
+    //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
+    //! \param [out] stMetaData_ A MetaDataBase to contain some information
+    //! about the message frame.
+    //! \param [out] bMetadataOnly_ Only populate metadata and do not copy the message.
+    //
+    //! \return An error code describing the result of framing.
+    //!   SUCCESS: A message frame was found.
+    //!   NULL_PROVIDED: pucFrameBuffer_ is a null pointer.
+    //!   UNKNOWN: The bytes returned are unknown.
+    //!   INCOMPLETE: The framer found what could be a message, but there
+    //! are no more bytes in the internal buffer.
+    //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
+    //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
+    //! to the size specified by uiFrameBufferSize_.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
+                                          bool bMetadataOnly_ = false) = 0;
 };
+} // namespace novatel::edie
 
 #endif // FRAMER_HPP

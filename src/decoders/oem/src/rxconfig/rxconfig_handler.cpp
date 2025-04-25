@@ -29,6 +29,9 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+// Define Static Framer
+std::unique_ptr<Framer> RxConfigHandler::pclMyFramer = nullptr;
+
 // -------------------------------------------------------------------------------------------------------
 RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
     : clMyHeaderDecoder(pclMessageDb_), clMyMessageDecoder(pclMessageDb_), clMyEncoder(pclMessageDb_),
@@ -38,6 +41,9 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
     pclMyLogger = pclLoggerManager->RegisterLogger("rxconfig_handler");
 
     pclMyLogger->debug("RxConfigHandler initializing...");
+
+    auto pclMyCircularBuffer = std::make_shared<CircularBuffer>();
+    pclMyFramer = std::make_unique<Framer>(pclMyCircularBuffer);
 
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 
@@ -64,7 +70,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+uint32_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return pclMyFramer->Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
@@ -78,7 +84,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     unsigned char* pucTempMessagePointer = pcMyFrameBuffer.get();
 
     // Get an RXCONFIG log.
-    STATUS eStatus = clMyFramer.GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
+    STATUS eStatus = pclMyFramer->GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
@@ -269,4 +275,4 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t RxConfigHandler::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_) { return clMyFramer.Flush(pucBuffer_, uiBufferSize_); }
+uint32_t RxConfigHandler::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_) { return pclMyFramer->Flush(pucBuffer_, uiBufferSize_); }

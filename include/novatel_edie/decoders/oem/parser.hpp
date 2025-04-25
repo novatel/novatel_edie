@@ -54,7 +54,7 @@ class Parser
 
     MessageDatabase::Ptr pclMyMessageDb;
     Filter::Ptr pclMyUserFilter;
-    Framer clMyFramer;
+    static std::unique_ptr<Framer> pclMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
@@ -229,7 +229,7 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return pclMyFramer->Write(pucData_, uiDataSize_); }
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.
