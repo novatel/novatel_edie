@@ -53,11 +53,13 @@ class FramerTest : public ::testing::Test
     static std::unique_ptr<Framer> pclMyFramer;
     static std::unique_ptr<std::istream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
+    static std::shared_ptr<CircularBuffer> pclMyCircularBuffer;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyFramer = std::make_unique<Framer>();
+        pclMyCircularBuffer = std::make_shared<CircularBuffer>();
+        pclMyFramer = std::make_unique<Framer>(pclMyCircularBuffer);
         pclMyFramer->SetReportUnknownBytes(true);
         pclMyFramer->SetPayloadOnly(false);
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
@@ -113,6 +115,7 @@ class FramerTest : public ::testing::Test
 std::unique_ptr<Framer> FramerTest::pclMyFramer = nullptr;
 std::unique_ptr<std::istream> FramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> FramerTest::pucMyTestFrameBuffer = nullptr;
+std::shared_ptr<CircularBuffer> FramerTest::pclMyCircularBuffer = nullptr;
 
 // TODO: we disable clang-format because of the long strings
 // clang-format off
@@ -241,8 +244,10 @@ TEST_F(FramerTest, ASCII_TRICK)
     constexpr unsigned char aucData[] = "#TEST;*ffffffff\r\n#;*\r\n#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
     uint32_t uiLogSize = sizeof(aucData) - 1;
     WriteBytesToFramer(aucData, uiLogSize);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(17, MAX_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(16, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
@@ -544,7 +549,8 @@ TEST_F(FramerTest, SHORT_ASCII_TRICK)
     constexpr unsigned char aucData[] = "%;*\r\n%%**\r\n%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
     uint32_t uiLogSize = sizeof(aucData) - 1;
     WriteBytesToFramer(aucData, uiLogSize);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);

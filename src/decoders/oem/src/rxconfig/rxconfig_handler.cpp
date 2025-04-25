@@ -29,6 +29,9 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+// Define Static Framer
+std::unique_ptr<Framer> RxConfigHandler::pclMyFramer = nullptr;
+
 // -------------------------------------------------------------------------------------------------------
 RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
     : clMyHeaderDecoder(pclMessageDb_), clMyMessageDecoder(pclMessageDb_), clMyEncoder(pclMessageDb_),
@@ -38,6 +41,9 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
     pclMyLogger = GetBaseLoggerManager()->RegisterLogger("rxconfig_handler");
 
     pclMyLogger->debug("RxConfigHandler initializing...");
+
+    auto pclMyCircularBuffer = std::make_shared<CircularBuffer>();
+    pclMyFramer = std::make_unique<Framer>(pclMyCircularBuffer);
 
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 
@@ -458,7 +464,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     unsigned char* pucTempEncodeBuffer = pcMyEncodeBuffer.get();
 
     // Get an RXCONFIG log.
-    STATUS eStatus = clMyFramer.GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
+    STATUS eStatus = pclMyFramer->GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 

@@ -31,6 +31,9 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
+// Define Static Framer
+std::unique_ptr<Framer> Parser::pclMyFramer = nullptr;
+
 // -------------------------------------------------------------------------------------------------------
 Parser::Parser(const std::filesystem::path& sDbPath_)
 {
@@ -74,15 +77,15 @@ void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 // -------------------------------------------------------------------------------------------------------
 void Parser::EnableFramerDecoderLogging(spdlog::level::level_enum eLevel_, const std::string& sFileName_)
 {
-    clMyFramer.SetLoggerLevel(eLevel_);
+    pclMyFramer->SetLoggerLevel(eLevel_);
     clMyHeaderDecoder.SetLoggerLevel(eLevel_);
     clMyMessageDecoder.SetLoggerLevel(eLevel_);
 
     CPPLoggerManager* pclMyLoggerManager = GetLoggerManager();
-    pclMyLoggerManager->AddConsoleLogging(clMyFramer.GetLogger());
+    pclMyLoggerManager->AddConsoleLogging(pclMyFramer->GetLogger());
     pclMyLoggerManager->AddConsoleLogging(clMyHeaderDecoder.GetLogger());
     pclMyLoggerManager->AddConsoleLogging(clMyMessageDecoder.GetLogger());
-    pclMyLoggerManager->AddRotatingFileLogger(clMyFramer.GetLogger(), eLevel_, sFileName_);
+    pclMyLoggerManager->AddRotatingFileLogger(pclMyFramer->GetLogger(), eLevel_, sFileName_);
     pclMyLoggerManager->AddRotatingFileLogger(clMyHeaderDecoder.GetLogger(), eLevel_, sFileName_);
     pclMyLoggerManager->AddRotatingFileLogger(clMyMessageDecoder.GetLogger(), eLevel_, sFileName_);
 }
@@ -98,7 +101,7 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
     while (true)
     {
         pucMyFrameBufferPointer = pcMyFrameBuffer.get(); //!< Reset the buffer.
-        auto eStatus = clMyFramer.GetFrame(pucMyFrameBufferPointer, uiParserInternalBufferSize, stMetaData_);
+        auto eStatus = pclMyFramer->GetFrame(pucMyFrameBufferPointer, uiParserInternalBufferSize, stMetaData_);
 
         // Datasets ending with an Abbreviated ASCII message will always return an incomplete framing status
         // as there is no delimiter marking the end of the log.
@@ -109,7 +112,7 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
         if (bDecodeIncompleteAbbreviated_ && eStatus == STATUS::INCOMPLETE &&
             (stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII || stMetaData_.eFormat == HEADER_FORMAT::SHORT_ABB_ASCII))
         {
-            uint32_t uiFlushSize = clMyFramer.Flush(pucMyFrameBufferPointer, uiParserInternalBufferSize);
+            uint32_t uiFlushSize = pclMyFramer->Flush(pucMyFrameBufferPointer, uiParserInternalBufferSize);
             if (uiFlushSize > 0)
             {
                 eStatus = STATUS::SUCCESS;
@@ -226,5 +229,5 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
 uint32_t Parser::Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
 {
     clMyRangeDecompressor.Reset();
-    return clMyFramer.Flush(pucBuffer_, uiBufferSize_);
+    return pclMyFramer->Flush(pucBuffer_, uiBufferSize_);
 }
