@@ -27,10 +27,7 @@
 #ifndef FRAMER_HPP
 #define FRAMER_HPP
 
-#include <memory>
-
-#include <boost/circular_buffer.hpp>
-
+#include "novatel_edie/common/fixed_ring_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
 
 //============================================================================
@@ -42,7 +39,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    boost::circular_buffer<unsigned char> clMyCircularDataBuffer;
+    FixedRingBuffer<unsigned char, 1 << 18> clMyBuffer{};
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -57,40 +54,21 @@ class FramerBase
 
     [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
-        return uiPosition_ + 1 < clMyCircularDataBuffer.size() && clMyCircularDataBuffer[uiPosition_] == '\r' &&
-               clMyCircularDataBuffer[uiPosition_ + 1] == '\n';
+        return uiPosition_ + 1 < clMyBuffer.size() && clMyBuffer[uiPosition_] == '\r' && clMyBuffer[uiPosition_ + 1] == '\n';
     }
 
-    void CopyFromBuffer(unsigned char* destination, size_t count)
+    void HandleUnknownBytes(unsigned char* pucBuffer_, size_t count_)
     {
-        if (count == 0) { return; }
+        count_ = std::min(count_, clMyBuffer.size());
 
-        auto ranges = clMyCircularDataBuffer.array_one();
-        size_t first_chunk = std::min(count, ranges.second);
-        memcpy(destination, ranges.first, first_chunk);
+        if (count_ == 0) { return; }
 
-        if (count > first_chunk)
-        {
-            ranges = clMyCircularDataBuffer.array_two();
-            size_t second_chunk = std::min(count - first_chunk, ranges.second);
-            memcpy(destination + first_chunk, ranges.first, second_chunk);
-        }
-    }
+        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { clMyBuffer.copy_out(pucBuffer_, count_); }
 
-    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
-    {
-        if (uiUnknownBytes_ == 0) { return; }
-
-        const size_t bytes_to_handle = std::min(static_cast<size_t>(uiUnknownBytes_), clMyCircularDataBuffer.size());
-
-        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { CopyFromBuffer(pucBuffer_, bytes_to_handle); }
-
-        clMyCircularDataBuffer.erase_begin(bytes_to_handle);
-
+        clMyBuffer.erase_begin(count_);
         uiMyByteCount = 0;
         uiMyExpectedMessageLength = 0;
         uiMyExpectedPayloadLength = 0;
-
         ResetState();
     }
 
@@ -102,7 +80,6 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
     {
-        clMyCircularDataBuffer.set_capacity(1 << 18);
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -160,15 +137,7 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_)
-    {
-        if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return true; }
-
-        if (uiDataBytes_ > clMyCircularDataBuffer.reserve()) { return false; }
-
-        clMyCircularDataBuffer.insert(clMyCircularDataBuffer.end(), pucDataBuffer_, pucDataBuffer_ + uiDataBytes_);
-        return true;
-    }
+    [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return clMyBuffer.Write(pucDataBuffer_, uiDataBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -180,7 +149,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
-        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(clMyCircularDataBuffer.size()), uiBufferSize_);
+        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(clMyBuffer.size()), uiBufferSize_);
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }

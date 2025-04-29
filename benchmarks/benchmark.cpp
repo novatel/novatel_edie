@@ -137,9 +137,7 @@ template <size_t N> static void Frame(benchmark::State& state, const unsigned ch
     std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> buffer;
     
     for ([[maybe_unused]] auto _ : state) {
-        Framer clFramer;
         (void)clFramer.Write(data, sizeof(data));
-        MetaDataStruct stMetaData;
         (void)clFramer.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
     }
     
@@ -151,9 +149,19 @@ static void FrameAscii(benchmark::State& state)
     Frame(state, bestposAscii);
 }
 
+static void FrameAbbAscii(benchmark::State& state)
+{
+    Frame(state, bestposAbbAscii);
+}
+
 static void FrameBinary(benchmark::State& state)
 {
     Frame(state, bestposBinary);
+}
+
+static void FrameJson(benchmark::State& state)
+{
+    Frame(state, bestsatsJson);
 }
 
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
