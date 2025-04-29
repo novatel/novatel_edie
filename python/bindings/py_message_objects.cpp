@@ -165,7 +165,7 @@ nb::dict& PyField::get_fields() const
     return cached_fields_;
 }
 
-nb::tuple PyField::get_ordered_field_names() const
+nb::tuple PyField::get_field_names() const
 {
     nb::list field_names = nb::list();
     for (const auto& field : fields) { field_names.append(nb::cast(field.fieldDef->name)); }
@@ -176,7 +176,7 @@ nb::tuple PyField::get_ordered_values() const
 {
     nb::list ordered_values = nb::list();
     nb::dict& unordered_values = get_values();
-    for (const auto& field_name : get_ordered_field_names()) { ordered_values.append(unordered_values[field_name]); }
+    for (const auto& field_name : get_field_names()) { ordered_values.append(unordered_values[field_name]); }
     return nb::tuple(ordered_values);
 }
 
@@ -504,7 +504,7 @@ void init_message_objects(nb::module_& m)
 
                  return base_list;
              })
-        .def("get_fields", &PyField::get_ordered_field_names)
+        .def("get_fields", &PyField::get_field_names)
         .def("get_values", &PyField::get_ordered_values);
 
     nb::class_<PyUnknownMessage>(m, "UnknownMessage")
