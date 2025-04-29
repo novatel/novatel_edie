@@ -27,9 +27,8 @@
 #ifndef FRAMER_HPP
 #define FRAMER_HPP
 
+#include <deque>
 #include <memory>
-
-#include <boost/circular_buffer.hpp>
 
 #include "novatel_edie/common/logger.hpp"
 
@@ -42,7 +41,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    boost::circular_buffer<unsigned char> clMyCircularDataBuffer;
+    std::deque<unsigned char> clMyCircularDataBuffer;
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -63,18 +62,11 @@ class FramerBase
 
     void CopyFromBuffer(unsigned char* destination, size_t count)
     {
-        if (count == 0) { return; }
+        if (count == 0 || clMyCircularDataBuffer.empty()) { return; }
 
-        auto ranges = clMyCircularDataBuffer.array_one();
-        size_t first_chunk = std::min(count, ranges.second);
-        memcpy(destination, ranges.first, first_chunk);
+        size_t bytesToCopy = std::min(count, clMyCircularDataBuffer.size());
 
-        if (count > first_chunk)
-        {
-            ranges = clMyCircularDataBuffer.array_two();
-            size_t second_chunk = std::min(count - first_chunk, ranges.second);
-            memcpy(destination + first_chunk, ranges.first, second_chunk);
-        }
+        for (size_t i = 0; i < bytesToCopy; ++i) { destination[i] = clMyCircularDataBuffer[i]; }
     }
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
@@ -85,7 +77,7 @@ class FramerBase
 
         if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { CopyFromBuffer(pucBuffer_, bytes_to_handle); }
 
-        clMyCircularDataBuffer.erase_begin(bytes_to_handle);
+        clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + bytes_to_handle);
 
         uiMyByteCount = 0;
         uiMyExpectedMessageLength = 0;
@@ -102,7 +94,6 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
     {
-        clMyCircularDataBuffer.set_capacity(1 << 18);
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -163,8 +154,6 @@ class FramerBase
     [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_)
     {
         if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return true; }
-
-        if (uiDataBytes_ > clMyCircularDataBuffer.reserve()) { return false; }
 
         clMyCircularDataBuffer.insert(clMyCircularDataBuffer.end(), pucDataBuffer_, pucDataBuffer_ + uiDataBytes_);
         return true;

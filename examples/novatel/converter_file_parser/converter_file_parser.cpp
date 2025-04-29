@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
             {
                 convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
-                pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
+                // pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(stMessageData.pucMessage));
                 uiCompleteMessages++;
             }
         }

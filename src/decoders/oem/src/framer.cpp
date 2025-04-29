@@ -330,14 +330,17 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     if (bMyPayloadOnly)
                     {
                         stMetaData_.uiLength = uiMyExpectedPayloadLength;
-                        clMyCircularDataBuffer.erase_begin((uiMyExpectedMessageLength - uiMyExpectedPayloadLength) + OEM4_BINARY_CRC_LENGTH);
+                        clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() +
+                                                                                         (uiMyExpectedMessageLength - uiMyExpectedPayloadLength) +
+                                                                                         OEM4_BINARY_CRC_LENGTH);
                         CopyFromBuffer(pucFrameBuffer_, stMetaData_.uiLength);
-                        clMyCircularDataBuffer.erase_begin(uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH);
+                        clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(),
+                                                     clMyCircularDataBuffer.begin() + uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH);
                     }
                     else
                     {
                         CopyFromBuffer(pucFrameBuffer_, stMetaData_.uiLength);
-                        clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
+                        clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength);
                     }
 
                     uiMyByteCount = 0;
@@ -408,7 +411,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     }
 
                     CopyFromBuffer(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
+                    clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 // End of buffer, can't look ahead but there should be more data
@@ -495,7 +498,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                 }
 
                 CopyFromBuffer(pucFrameBuffer_, stMetaData_.uiLength);
-                clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
+                clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength);
 
                 uiMyByteCount = 0;
                 uiMyAbbrevAsciiHeaderPosition = 0;
@@ -536,7 +539,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     }
 
                     CopyFromBuffer(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
+                    clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 else
@@ -587,7 +590,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
                     }
 
                     CopyFromBuffer(pucFrameBuffer_, stMetaData_.uiLength);
-                    clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
+                    clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength);
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 else
@@ -620,7 +623,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBufferSiz
             {
                 stMetaData_.uiLength = uiMyByteCount;
                 CopyFromBuffer(pucFrameBuffer_, stMetaData_.uiLength);
-                clMyCircularDataBuffer.erase_begin(stMetaData_.uiLength);
+                clMyCircularDataBuffer.erase(clMyCircularDataBuffer.begin(), clMyCircularDataBuffer.begin() + stMetaData_.uiLength);
                 uiMyByteCount = 0;
                 uiMyExpectedPayloadLength = 0;
                 eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
