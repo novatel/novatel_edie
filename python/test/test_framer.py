@@ -793,6 +793,27 @@ def test_abbrev_ascii_empty_array(helper):
     helper.test_framer(HEADER_FORMAT.ABB_ASCII, len(data) - 6)
 
 
+@pytest.mark.parametrize("response_frame, context", [(b"<OK\r\n", b"\r\n<OK\r\nfdfa")])
+def test_parse_abbrev_ascii_resp(response_frame, context, helper):
+    # Arrange
+    permutations = [(context[:i], context[i:]) for i in range(len(context) + 1)]
+
+    # Act
+    for part1, part2 in permutations:
+        helper.write_bytes_to_framer(part1)
+        data = list(helper.framer)
+        helper.write_bytes_to_framer(part2)
+        new_data = list(helper.framer)
+        data.extend(new_data)
+
+    # Assert
+    frames = [datum[0] for datum in data]
+    assert response_frame in frames
+
+    md = data[frames.index(response_frame)][1]
+    assert md.format == HEADER_FORMAT.ABB_ASCII
+    assert md.response is True
+
 # -------------------------------------------------------------------------------------------------------
 # JSON Framer Unit Tests
 # -------------------------------------------------------------------------------------------------------

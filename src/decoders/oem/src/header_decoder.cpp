@@ -194,6 +194,18 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
 
     case HEADER_FORMAT::ABB_ASCII:
         ++pcTempBuf; // Move the input buffer past the sync char '<'
+
+        // Abbreviated ascii responses have no headers
+        if (strncmp(pcTempBuf, "OK", 2) == 0 || strncmp(pcTempBuf, "ERROR", 5) == 0)
+        {
+            stMetaData_.bResponse = true;
+            stMetaData_.messageName = "UNKNOWN";
+            stMetaData_.uiHeaderLength = static_cast<uint32_t>(pcTempBuf - reinterpret_cast<const char*>(pucLogBuf_));
+            stInterHeader_.ucMessageType = static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE);
+
+            return STATUS::SUCCESS;
+        }
+
         // At this point, we do not know if the format is short or not, but both have a message
         // field
         if (!DecodeAsciiHeaderField<pcAbbrevAsciiRegDelimiter, ASCII_HEADER::MESSAGE_NAME>(stInterHeader_, &pcTempBuf)) { return STATUS::FAILURE; }

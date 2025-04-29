@@ -39,7 +39,7 @@ from .bindings import (
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,
     CPP_VERSION, CPP_PRETTY_VERSION, GIT_SHA, GIT_BRANCH, GIT_IS_DIRTY, BUILD_TIMESTAMP, 
     enable_internal_logging, disable_internal_logging,
-    UnknownBytes, Header, Field, UnknownMessage, Message, GpsTime,
+    UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime,
     MessageDatabase, get_default_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
     Framer, Filter, Decoder, Commander, Parser, FileParser,

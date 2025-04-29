@@ -221,6 +221,7 @@ void MessageDecoderBase::InitFieldMaps()
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::CreateResponseMsgDefinitions()
 {
+    // TODO: It would be more logical for this to live in the database rather than the decoder.
     // Numerical response ID
     SimpleDataType stRespIdDataType;
     stRespIdDataType.description = "Response as numerical id";
@@ -711,7 +712,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
     {
         if (stMetaData_.eFormat != HEADER_FORMAT::BINARY && stMetaData_.eFormat != HEADER_FORMAT::SHORT_BINARY &&
             stMetaData_.eFormat != HEADER_FORMAT::ASCII && stMetaData_.eFormat != HEADER_FORMAT::SHORT_ASCII &&
-            stMetaData_.eFormat != HEADER_FORMAT::SHORT_ABB_ASCII)
+            stMetaData_.eFormat != HEADER_FORMAT::ABB_ASCII && stMetaData_.eFormat != HEADER_FORMAT::SHORT_ABB_ASCII)
         {
             return STATUS::NO_DEFINITION;
         }

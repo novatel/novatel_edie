@@ -869,17 +869,17 @@ def test_binary_response_error(helper):
 # -------------------------------------------------------------------------------------------------------
 def test_abbrev_ascii_response(helper):
     log = b"<OK\r\n"
-    assert helper.TestDecodeEncode(ENCODE_FORMAT.ABBREV_ASCII, log) == Result.HEADER_DECODER_ERROR
+    assert helper.TestDecodeEncode(ENCODE_FORMAT.ABBREV_ASCII, log) == Result.SUCCESS
 
 
 def test_abbrev_ascii_response_more_data(helper):
     log = b"<OK\r\nGARBAGE"
-    assert helper.TestDecodeEncode(ENCODE_FORMAT.ABBREV_ASCII, log) == Result.HEADER_DECODER_ERROR
+    assert helper.TestDecodeEncode(ENCODE_FORMAT.ABBREV_ASCII, log) == Result.SUCCESS
 
 
 def test_abbrev_ascii_response_error(helper):
     log = b"<ERROR:Invalid Message. Field = 1\r\n"
-    assert helper.TestDecodeEncode(ENCODE_FORMAT.ABBREV_ASCII, log) == Result.HEADER_DECODER_ERROR
+    assert helper.TestDecodeEncode(ENCODE_FORMAT.ABBREV_ASCII, log) == Result.SUCCESS
 
 
 # -------------------------------------------------------------------------------------------------------
