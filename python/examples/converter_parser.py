@@ -32,7 +32,7 @@
 import logging
 import timeit
 
-from novatel_edie import Parser, pretty_version, MESSAGE_SIZE_MAX, Message, UnknownMessage, UnknownBytes
+from novatel_edie import Parser, CPP_PRETTY_VERSION, MAX_MESSAGE_LENGTH, Message, UnknownMessage, UnknownBytes
 from novatel_edie.messages import BESTPOS
 
 from common_setup import setup_example_logging, handle_args
@@ -42,7 +42,7 @@ def main():
     # Setup logging
     setup_example_logging(logging.INFO)
     logger = logging.getLogger(__name__)
-    logger.info(f"Decoder library information:\n{pretty_version}")
+    logger.info(f"Decoder library information:\n{CPP_PRETTY_VERSION}")
 
     # Handle CLI arguments
     input_file, encode_format = handle_args(logger)
@@ -54,7 +54,7 @@ def main():
     messages = 0
     start = timeit.default_timer()
     with open(input_file, "rb") as input_stream:
-        while read_data := input_stream.read(MESSAGE_SIZE_MAX):
+        while read_data := input_stream.read(MAX_MESSAGE_LENGTH):
             parser.write(read_data)
             for message in parser:
                 # Handle messages that can be fully decoded

@@ -118,8 +118,7 @@ void init_novatel_parser(nb::module_& m)
                 // This static cast is safe so long as the Parser's filter is set only via the Python interface
                 return std::static_pointer_cast<oem::PyFilter>(self.GetFilter());
             },
-            [](oem::PyParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); },
-            "The filter which controls which data is skipped over.")
+            [](oem::PyParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); }, "The filter which controls which data is skipped over.")
         .def(
             "write",
             [](oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); },
@@ -143,7 +142,7 @@ void init_novatel_parser(nb::module_& m)
                  buffer to decode a message.
             )doc")
         .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false,
-             nb::sig("def read(decode_incomplete_abbreviated=False) -> Message | UnknownMessage | UnknownBytes"),
+             nb::sig("def read(self, decode_incomplete_abbreviated: bool = False) -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read a message from data in the Parser's buffer.
 
@@ -165,13 +164,14 @@ void init_novatel_parser(nb::module_& m)
             )doc")
         .def(
             "__iter__", [](nb::handle_t<oem::PyParser> self) { return self; },
+            nb::sig("def __iter__(self) -> Iterator[Message|UnknownMessage|UnknownBytes]"),
             R"doc(
             Marks Parser as Iterable.
 
             Returns:
                 The Parser itself as an Iterator.
             )doc")
-        .def("__next__", &oem::PyParser::PyIterRead, nb::sig("def __next__() -> Message | UnknownMessage | UnknownBytes"),
+        .def("__next__", &oem::PyParser::PyIterRead, nb::sig("def __next__(self) -> Message | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read the next message from data in the Parser's buffer.
 
@@ -236,7 +236,8 @@ void init_novatel_parser(nb::module_& m)
             )doc");
 
     nb::class_<oem::ConversionIterator>(m, "ConversionIterator")
-        .def("__iter__", [](nb::handle_t<oem::ConversionIterator> self) { return self; },
+        .def(
+            "__iter__", [](nb::handle_t<oem::ConversionIterator> self) { return self; }, nb::sig("def __iter__(self) -> Iterator[MessageData]"),
             R"doc(
             Marks ConversionIterator as Iterable.
 

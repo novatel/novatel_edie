@@ -75,13 +75,14 @@ void init_novatel_framer(nb::module_& m)
             )doc")
         .def(
             "__iter__", [](nb::handle_t<oem::PyFramer> self) { return self; },
+            nb::sig("def __iter__(self) -> Iterator[tuple[bytes, MetaData]]"),
             R"doc(
             Marks Framer as Iterable.
 
             Returns:
                 The Framer itself as an Iterator.
             )doc")
-        .def("__next__", &oem::PyFramer::PyIterGetFrame, nb::sig("def __next__() -> tuple[bytes, MetaData]"),
+        .def("__next__", &oem::PyFramer::PyIterGetFrame, nb::sig("def __next__(self) -> tuple[bytes, MetaData]"),
              R"doc(
             Attempts to get the next frame from the Framer's buffer.
 

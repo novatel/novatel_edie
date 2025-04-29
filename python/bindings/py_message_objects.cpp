@@ -335,6 +335,43 @@ nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldConta
 
 void init_header_objects(nb::module_& m)
 {
+    nb::class_<oem::PyRecieverStatus>(m, "RecieverStatus", "Boolean values indicating information about the state of the reciever.")
+        .def_ro("raw_value", &oem::PyRecieverStatus::value)
+        .def_prop_ro("reciever_error", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000001) != 0; })
+        .def_prop_ro("temperature_warning", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000002) != 0; })
+        .def_prop_ro("voltage_warning", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000004) != 0; })
+        .def_prop_ro("antenna_powered", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000008) != 0; })
+        .def_prop_ro("lna_failure", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000010) != 0; })
+        .def_prop_ro("antenna_open_circuit", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000020) != 0; })
+        .def_prop_ro("antenna_short_circuit", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000040) != 0; })
+        .def_prop_ro("cpu_overload", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000080) != 0; })
+        .def_prop_ro("com_buffer_overrun", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000100) != 0; })
+        .def_prop_ro("spoofing_detected", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000200) != 0; })
+        // Reserved flag does not need a function
+        .def_prop_ro("link_overrun", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00000800) != 0; })
+        .def_prop_ro("input_overrun", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00001000) != 0; })
+        .def_prop_ro("aux_transmit_overrun", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00002000) != 0; })
+        .def_prop_ro("antenna_gain_out_of_range", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00004000) != 0; })
+        .def_prop_ro("jammer_detected", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00008000) != 0; })
+        .def_prop_ro("ins_reset", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00010000) != 0; })
+        .def_prop_ro("imu_communication_failure", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00020000) != 0; })
+        .def_prop_ro("gps_almanac_invalid", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00040000) != 0; })
+        .def_prop_ro("position_solution_invalid", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00080000) != 0; })
+        .def_prop_ro("position_fixed", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00100000) != 0; })
+        .def_prop_ro("clock_steering_disabled", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00200000) != 0; })
+        .def_prop_ro("clock_model_invalid", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00400000) != 0; })
+        .def_prop_ro("external_oscillator_locked", [](const oem::PyRecieverStatus& self) { return (self.value & 0x00800000) != 0; })
+        .def_prop_ro("software_resource_warning", [](const oem::PyRecieverStatus& self) { return (self.value & 0x01000000) != 0; })
+        .def_prop_ro("tracking_mode_hdr", [](const oem::PyRecieverStatus& self) { return (self.value & 0x08000000) != 0; })
+        .def_prop_ro("digital_filtering_enabled", [](const oem::PyRecieverStatus& self) { return (self.value & 0x10000000) != 0; })
+        .def_prop_ro("auxiliary_3_event", [](const oem::PyRecieverStatus& self) { return (self.value & 0x20000000) != 0; })
+        .def_prop_ro("auxiliary_2_event", [](const oem::PyRecieverStatus& self) { return (self.value & 0x40000000) != 0; })
+        .def_prop_ro("auxiliary_1_event", [](const oem::PyRecieverStatus& self) { return (self.value & 0x80000000) != 0; })
+        .def_prop_ro("version_bits", [](const oem::PyRecieverStatus& self) { return (self.value >> 25) & 0x06000000; })
+        .def("__repr__", [](const oem::PyRecieverStatus& self) {
+            return nb::str("RecieverStatus(") + nb::str(nb::module_::import_("builtins").attr("hex")(self.value)) + nb::str(")");
+        });
+
     nb::class_<oem::PyMessageTypeField>(m, "MessageType",
                                         "A message field which provides information about its source, format, and whether it is a response.")
         .def("__repr__",
@@ -351,15 +388,17 @@ void init_header_objects(nb::module_& m)
 
     nb::class_<oem::PyHeader>(m, "Header")
         .def_ro("message_id", &oem::PyHeader::usMessageId, "The Message ID number.")
-        .def_prop_ro("message_type", &oem::PyHeader::GetPyMessageType, "Information regarding the type of the message.")
+        .def_prop_ro("message_type", &oem::PyHeader::GetPyMessageType, nb::sig("def message_type(self) -> MessageType"),
+                     "Information regarding the type of the message.")
         .def_ro("port_address", &oem::PyHeader::uiPortAddress, "The port the message was sent from.")
         .def_ro("length", &oem::PyHeader::usLength, "The length of the message. Will be 0 if unknown.")
         .def_ro("sequence", &oem::PyHeader::usSequence, "Number of remaning related messages following this one. Will be 0 for most messages.")
         .def_ro("idle_time", &oem::PyHeader::ucIdleTime, "Time that the processor is idle. Divide by two to get the percentage.")
-        .def_ro("time_status", &oem::PyHeader::uiTimeStatus, "The quality of the GPS reference time.")
+        .def_prop_ro(
+            "time_status", [](const oem::PyHeader& self) { return TIME_STATUS(self.uiTimeStatus); }, "The quality of the GPS reference time.")
         .def_ro("week", &oem::PyHeader::usWeek, "GPS reference wekk number.")
         .def_ro("milliseconds", &oem::PyHeader::dMilliseconds, "Milliseconds from the beginning of the GPS reference week.")
-        .def_ro("receiver_status", &oem::PyHeader::uiReceiverStatus,
+        .def_prop_ro("receiver_status", &oem::PyHeader::GetRecieverStatus,
                 "32-bits representing the status of various hardware and software components of the receiver.")
         .def_ro("message_definition_crc", &oem::PyHeader::uiMessageDefinitionCrc, "A value for validating the message definition used for decoding.")
         .def_ro("receiver_sw_version", &oem::PyHeader::usReceiverSwVersion, "A value (0 - 65535) representing the receiver software build number.")
@@ -372,13 +411,26 @@ void init_header_objects(nb::module_& m)
                 A dictionary representation of the header.
             )doc")
         .def("__repr__", [](const nb::handle self) {
-            auto& header = nb::cast<oem::PyHeader&>(self);
-            return nb::str("Header(message_id={!r}, message_type={!r}, port_address={!r}, length={!r}, sequence={!r}, "
-                           "idle_time={!r}, time_status={!r}, week={!r}, milliseconds={!r}, receiver_status={!r}, "
-                           "message_definition_crc={!r}, receiver_sw_version={!r})")
-                .format(header.usMessageId, header.ucMessageType, header.uiPortAddress, header.usLength, header.usSequence, header.ucIdleTime,
-                        header.uiTimeStatus, header.usWeek, header.dMilliseconds, header.uiReceiverStatus, header.uiMessageDefinitionCrc,
-                        header.usReceiverSwVersion);
+            std::vector<nb::str> fields = {nb::str("message_id"),
+                                           nb::str("message_type"),
+                                           nb::str("port_address"),
+                                           nb::str("length"),
+                                           nb::str("sequence"),
+                                           nb::str("idle_time"),
+                                           nb::str("time_status"),
+                                           nb::str("week"),
+                                           nb::str("milliseconds"),
+                                           nb::str("receiver_status"),
+                                           nb::str("message_definition_crc"),
+                                           nb::str("receiver_sw_version")};
+            nb::str header_repr = nb::str("Header(");
+            for (size_t i = 0; i < fields.size(); ++i)
+            {
+                header_repr += fields[i] + nb::str("=") + nb::repr(self.attr(fields[i]));
+                if (i != fields.size() - 1) { header_repr += nb::str(", "); }
+            }
+            header_repr += nb::str(")");
+            return header_repr;
         });
 }
 
