@@ -100,11 +100,12 @@ static void Parse(benchmark::State& state)
 template <size_t N> static void Frame(benchmark::State& state, const unsigned char(&data)[N])
 {
     std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> buffer;
+    Framer clFramer;
+    clFramer.SetFrameJson(true);
+    MetaDataStruct stMetaData;
     
     for ([[maybe_unused]] auto _ : state) {
-        Framer clFramer;
         (void)clFramer.Write(data, sizeof(data));
-        MetaDataStruct stMetaData;
         (void)clFramer.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
     }
     
@@ -116,9 +117,19 @@ static void FrameAscii(benchmark::State& state)
     Frame(state, bestposAscii);
 }
 
+static void FrameAbbAscii(benchmark::State& state)
+{
+    Frame(state, bestposAbbAscii);
+}
+
 static void FrameBinary(benchmark::State& state)
 {
     Frame(state, bestposBinary);
+}
+
+static void FrameJson(benchmark::State& state)
+{
+    Frame(state, bestsatsJson);
 }
 
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
@@ -140,11 +151,6 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
     }
 
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
-}
-
-static void DecodeFlattenedBinaryLog(benchmark::State& state)
-{
-    DecodeLog(state, bestposBinary);
 }
 
 static void DecodeAsciiLog(benchmark::State& state)
@@ -229,9 +235,10 @@ static void DecompressRangeCmp4(benchmark::State& state) { DecompressRangeCmp(st
 static void DecompressRangeCmp5(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP5_MSG_ID, rangecmp5Log.data()); }
 
 BENCHMARK(Parse);
-BENCHMARK(FrameBinary);
 BENCHMARK(FrameAscii);
-BENCHMARK(DecodeFlattenedBinaryLog);
+BENCHMARK(FrameAbbAscii);
+BENCHMARK(FrameBinary);
+BENCHMARK(FrameJson);
 BENCHMARK(DecodeAsciiLog);
 BENCHMARK(DecodeAbbrevAsciiLog);
 BENCHMARK(DecodeBinaryLog);
