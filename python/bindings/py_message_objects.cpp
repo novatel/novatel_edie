@@ -278,7 +278,7 @@ nb::object oem::create_unknown_message_instance(nb::bytes data, PyHeader& header
     return message_pyinst;
 }
 
-nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldContainer>& message_fields, MetaDataStruct& metadata,
+nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldContainer>&& message_fields, MetaDataStruct& metadata,
                                         PyMessageDatabase::ConstPtr database)
 {
     nb::handle message_pytype;
@@ -309,7 +309,7 @@ nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldConta
     }
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
-    new (message_cinst) PyMessage(message_name, has_ptype, message_fields, database, header);
+    new (message_cinst) PyMessage(message_name, has_ptype, std::move(message_fields), database, header);
 
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;

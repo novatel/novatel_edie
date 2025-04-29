@@ -126,7 +126,6 @@ int main(int argc, char* argv[])
     LOGGER_MANAGER->AddRotatingFileLogger(clFilter.GetLogger());
 
     // Set up buffers
-    std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
     unsigned char acFrameBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodedMessageBuffer = acEncodeBuffer;
@@ -135,12 +134,6 @@ int main(int argc, char* argv[])
     auto eFramerStatus = STATUS::UNKNOWN;
     auto eDecoderStatus = STATUS::UNKNOWN;
     auto eEncoderStatus = STATUS::UNKNOWN;
-
-    IntermediateHeader stHeader;
-    std::vector<FieldContainer> stMessage;
-
-    MetaDataStruct stMetaData;
-    MessageDataStruct stMessageData;
 
     // Setup file streams
     std::ifstream ifs(pathInFilename, std::ios::binary);
@@ -151,14 +144,16 @@ int main(int argc, char* argv[])
 
     while (!ifs.eof())
     {
+        std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         ifs.read(cData.data(), cData.size());
-        clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount());
+        if (!clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount())) { pclLogger->warn("Framer write failed."); }
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
             unsigned char* pucFrameBuffer = acFrameBuffer;
+            MetaDataStruct stMetaData;
             eFramerStatus = clFramer.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaData);
 
             if (eFramerStatus == STATUS::SUCCESS)
@@ -173,6 +168,7 @@ int main(int argc, char* argv[])
                 pclLogger->info("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
 
                 // Decode the header. Get metadata here and populate the Intermediate header.
+                IntermediateHeader stHeader;
                 eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
 
                 if (eDecoderStatus == STATUS::SUCCESS)
@@ -183,10 +179,12 @@ int main(int argc, char* argv[])
                     pucFrameBuffer += stMetaData.uiHeaderLength;
                     uint32_t uiBodyLength = stMetaData.uiLength - stMetaData.uiHeaderLength;
                     // Decode the Log, pass the metadata and populate the intermediate log.
+                    std::vector<FieldContainer> stMessage;
                     eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
 
                     if (eDecoderStatus == STATUS::SUCCESS)
                     {
+                        MessageDataStruct stMessageData;
                         eEncoderStatus = clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData,
                                                           stMetaData.eFormat, eEncodeFormat);
 

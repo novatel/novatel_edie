@@ -66,7 +66,7 @@ enum class STATUS
     DECOMPRESSION_FAILURE   //!< The RANGECMP log could not be decompressed.
 };
 
-inline std::string StatusToString(const STATUS eStatus_)
+constexpr std::string_view StatusToString(const STATUS eStatus_)
 {
     switch (eStatus_)
     {
@@ -272,11 +272,11 @@ struct MetaDataBase
 } // namespace novatel::edie
 
 // This allows the STATUS enum to be formatted as a string when used with the fmt library.
-template <> struct fmt::formatter<novatel::edie::STATUS> : formatter<std::string>
+template <> struct fmt::formatter<novatel::edie::STATUS> : formatter<std::string_view>
 {
     template <typename FormatContext> auto format(novatel::edie::STATUS status, FormatContext& ctx) const
     {
-        return formatter<std::string>::format(novatel::edie::StatusToString(status), ctx);
+        return formatter<std::string_view>::format(novatel::edie::StatusToString(status), ctx);
     }
 };
 
@@ -325,8 +325,8 @@ unsigned char PackMsgType(uint32_t uiSiblingId_, uint32_t uiMsgFormat_, uint32_t
 //
 //! \return The enum in string form.
 //-----------------------------------------------------------------------
-std::string GetEnumString(const novatel::edie::EnumDefinition* stEnumDef_, uint32_t uiEnum_);
-std::string GetEnumString(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, uint32_t uiEnum_);
+std::string_view GetEnumString(const novatel::edie::EnumDefinition* stEnumDef_, uint32_t uiEnum_);
+std::string_view GetEnumString(const novatel::edie::EnumDefinition::ConstPtr& stEnumDef_, uint32_t uiEnum_);
 
 //-----------------------------------------------------------------------
 //! \brief Get the value of an enum string in integer form.

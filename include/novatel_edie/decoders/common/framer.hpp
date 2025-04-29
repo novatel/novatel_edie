@@ -29,8 +29,33 @@
 
 #include <memory>
 
-#include "novatel_edie/common/circular_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
+
+template <typename T, size_t N> class FixedRingBuffer
+{
+    static_assert(N > 0, "Buffer size must be greater than zero");
+
+    std::array<T, N> buffer_;
+    size_t head_ = 0;
+    size_t size_ = 0;
+
+  public:
+    void push_back(const T& value) { buffer_[(head_ + size_++) % N] = value; }
+
+    const T& operator[](size_t i) const { return buffer_[(head_ + i) % N]; }
+
+    void erase_begin(size_t count)
+    {
+        const size_t to_erase = std::min(count, size_);
+        head_ = (head_ + to_erase) % N;
+        size_ -= to_erase;
+    }
+
+    [[nodiscard]] size_t size() const { return size_; }
+    [[nodiscard]] size_t capacity() const { return N; }
+    [[nodiscard]] size_t reserve() const { return N - size_; }
+    [[nodiscard]] bool empty() const { return size_ == 0; }
+};
 
 //============================================================================
 //! \class FramerBase
@@ -41,7 +66,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    CircularBuffer clMyCircularDataBuffer;
+    FixedRingBuffer<unsigned char, 1 << 18> clMyBuffer;
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -50,20 +75,43 @@ class FramerBase
 
     bool bMyReportUnknownBytes{true};
     bool bMyPayloadOnly{false};
+    // Ensure we don't exceed the number of available bytes
     bool bMyFrameJson{false};
 
     virtual void ResetState() = 0;
 
     [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
-        return uiPosition_ + 1 < clMyCircularDataBuffer.GetLength() && clMyCircularDataBuffer[uiPosition_] == '\r' &&
-               clMyCircularDataBuffer[uiPosition_ + 1] == '\n';
+        return uiPosition_ + 1 < clMyBuffer.size() && clMyBuffer[uiPosition_] == '\r' && clMyBuffer[uiPosition_ + 1] == '\n';
+    }
+
+    void CopyFromBuffer(unsigned char* destination, size_t count)
+    {
+        if (count == 0) { return; }
+
+        // Ensure we don't exceed the number of available bytes
+        const size_t available = clMyBuffer.size();
+        size_t to_copy = std::min(count, available);
+
+        size_t bytes_copied = 0;
+
+        // First chunk (from head to the end of the buffer)
+        while (bytes_copied < to_copy && bytes_copied < clMyBuffer.size())
+        {
+            destination[bytes_copied] = clMyBuffer[bytes_copied];
+            ++bytes_copied;
+        }
     }
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
     {
-        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { clMyCircularDataBuffer.Copy(pucBuffer_, uiUnknownBytes_); }
-        clMyCircularDataBuffer.Discard(uiUnknownBytes_);
+        if (uiUnknownBytes_ == 0) { return; }
+
+        const size_t bytes_to_handle = std::min(static_cast<size_t>(uiUnknownBytes_), clMyBuffer.size());
+
+        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { CopyFromBuffer(pucBuffer_, bytes_to_handle); }
+
+        clMyBuffer.erase_begin(bytes_to_handle);
 
         uiMyByteCount = 0;
         uiMyExpectedMessageLength = 0;
@@ -80,7 +128,6 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
     {
-        clMyCircularDataBuffer.Clear();
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -130,13 +177,6 @@ class FramerBase
     void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
     //----------------------------------------------------------------------------
-    //! \brief Get the number of bytes available in the internal circular buffer.
-    //
-    //! \return The number of bytes available in the internal circular buffer.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] uint32_t GetBytesAvailableInBuffer() const { return clMyCircularDataBuffer.GetCapacity() - clMyCircularDataBuffer.GetLength(); }
-
-    //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
     //
     //! \param[in] pucDataBuffer_ The data buffer containing the bytes to be
@@ -145,7 +185,16 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_) { return clMyCircularDataBuffer.Append(pucDataBuffer_, uiDataBytes_); }
+    [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_)
+    {
+        if (pucDataBuffer_ == nullptr || uiDataBytes_ == 0) { return true; }
+
+        if (uiDataBytes_ > clMyBuffer.reserve()) { return false; }
+
+        for (size_t i = 0; i < uiDataBytes_; ++i) { clMyBuffer.push_back(pucDataBuffer_[i]); }
+
+        return true;
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -155,9 +204,9 @@ class FramerBase
     //
     //! \return The number of bytes flushed from the internal circular buffer.
     //----------------------------------------------------------------------------
-    uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
+    [[nodiscard]] uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
-        const uint32_t uiBytesToFlush = std::min(clMyCircularDataBuffer.GetLength(), uiBufferSize_);
+        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(clMyBuffer.size()), uiBufferSize_);
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }
