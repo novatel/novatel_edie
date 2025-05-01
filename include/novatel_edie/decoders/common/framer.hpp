@@ -76,6 +76,16 @@ class FramerBase
     //----------------------------------------------------------------------------
     virtual void ResetState() = 0;
 
+    //----------------------------------------------------------------------------
+    //! \brief Initialize the attributes of the Framer.
+    //----------------------------------------------------------------------------
+    virtual void InitAttributes()
+    {
+        uiMyExpectedMessageLength = 0;
+        uiMyExpectedPayloadLength = 0;
+        uiMyByteCount = 0;
+    };
+
   protected:
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t uiUnknownBytes_)
     {
@@ -99,6 +109,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
     {
+        if (pclMyCircularDataBuffer == nullptr) { pclMyCircularDataBuffer = std::make_shared<CircularBuffer>(); }
         pclMyCircularDataBuffer->Clear();
         pclMyLogger->debug("Framer initialized");
     }
@@ -221,7 +232,7 @@ class FramerBase
     //! \brief virtual function to be overridden with casting MetaDataBase to type-specific MetaDataStruct
     //
     //! \param [out] pucFrameBuffer_ The buffer which the Framer should copy the
-    //! framed PIMTP message to.
+    //! framed message to.
     //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
     //! \param [out] stMetaData_ A MetaDataBase to contain some information
     //! about the message frame.

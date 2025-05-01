@@ -69,7 +69,8 @@ class FramerManager
   public:
     using FramerFactory = std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>, MetaDataBase&)>;
 
-    explicit FramerManager(const std::vector<std::string>& selectedFramers);
+    explicit FramerManager(const std::vector<std::string>& selectedFramers = {});
+
 
     static void FramerManager::RegisterFramer(const std::string& name,
                                               std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory,
@@ -93,12 +94,12 @@ class FramerManager
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
     //---------------------------------------------------------------------------
-    //void ResetAllFramerStates();
+    void ResetAllFramerStates();
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all metadata in the framer registry.
     //---------------------------------------------------------------------------
-    //void ResetAllMetaDataStates();
+    // void ResetAllMetaDataStates();
 
     //----------------------------------------------------------------------------
     //! \brief Configure the framer manager to return unknown bytes in the provided
@@ -209,7 +210,7 @@ class FramerManager
     //---------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase*& stMetaData_);
 
-    //std::unordered_map<std::string, int> idMap;
+    // std::unordered_map<std::string, int> idMap;
 
     static std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)>,
                                                      std::function<std::unique_ptr<MetaDataBase>()>>>&
@@ -233,16 +234,12 @@ class FramerManager
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const;
 
-    //void ResetInactiveFramerStates(const int& activeFramer_);
+    // void ResetInactiveFramerStates(const int& activeFramer_);
 
-    //void ResetInactiveMetaDataStates(const int& activeFramer_);
+    // void ResetInactiveMetaDataStates(const int& activeFramer_);
 
     std::deque<FramerEntry> framerRegistry;
     // static std::unordered_map<std::string, FramerEntry>& GetFramerFactories();
-
-  protected:
-    // TODO delete this
-    void DisplayFramerStack();
 };
 
 } // namespace novatel::edie

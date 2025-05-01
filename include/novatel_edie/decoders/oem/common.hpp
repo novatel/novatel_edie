@@ -34,13 +34,6 @@
 namespace novatel::edie::oem {
 
 //-----------------------------------------------------------------------
-// NMEA message protocol constants
-//-----------------------------------------------------------------------
-constexpr char NMEA_SYNC = '$';
-constexpr uint16_t NMEA_SYNC_LENGTH = 1;
-constexpr uint16_t NMEA_CRC_LENGTH = 2;
-
-//-----------------------------------------------------------------------
 // OEM4 ASCII message protocol constants
 //-----------------------------------------------------------------------
 constexpr char OEM4_ASCII_SYNC = '#';

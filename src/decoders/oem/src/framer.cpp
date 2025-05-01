@@ -38,9 +38,6 @@ Framer::Framer() : FramerBase("novatel_framer") {}
 Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("novatel_framer", circularBuffer) {}
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }
-
-// -------------------------------------------------------------------------------------------------------
 bool Framer::IsAbbrevSeparatorCrlf(const uint32_t uiCircularBufferPosition_) const
 {
     return IsCrlf(uiCircularBufferPosition_ + 1) && (*pclMyCircularDataBuffer)[uiCircularBufferPosition_] == OEM4_ABBREV_ASCII_SEPARATOR;
@@ -496,9 +493,6 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                 }
                 ResetState();
                 return STATUS::UNKNOWN;
-                // TODO Double check to see if we should return UNKNOWN instead of resetting. This old paradigm assumes only 1 framer
-                // uiMyExpectedPayloadLength = 0;
-                // ResetState();
             }
             else { CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte); }
             break;
@@ -722,7 +716,6 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
             {
                 uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                 uiMyExpectedPayloadLength = 0;
-                // TODO WAH MessageLength?
                 if (!bMetadataOnly_)
                 {
                     stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;

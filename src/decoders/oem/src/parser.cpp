@@ -39,6 +39,7 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
 {
     auto pclMessageDb = LoadJsonDbFile(sDbPath_);
     LoadJsonDb(pclMessageDb);
+    pclMyFramer = std::make_unique<Framer>();
     pclMyLogger->debug("Parser initialized");
 }
 

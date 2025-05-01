@@ -142,7 +142,6 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
         case OEM4_ASCII_SYNC: return HEADER_FORMAT::ASCII;
         case OEM4_SHORT_ASCII_SYNC: return HEADER_FORMAT::SHORT_ASCII;
         case OEM4_ABBREV_ASCII_SYNC: return HEADER_FORMAT::ABB_ASCII;
-        case NMEA_SYNC: return HEADER_FORMAT::NMEA;
         case '{': return HEADER_FORMAT::JSON;
         case OEM4_BINARY_SYNC1:
             switch (pstBinaryHeader->ucSync3)
@@ -235,8 +234,6 @@ HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader& stInt
             return STATUS::FAILURE;
         }
         break;
-
-    case HEADER_FORMAT::NMEA: return STATUS::UNSUPPORTED;
 
     default: return STATUS::UNKNOWN;
     }
