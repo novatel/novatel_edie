@@ -49,7 +49,7 @@ class Framer : public FramerBase
     //! \param[in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
     //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
+    [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }
     [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiCircularBufferPosition_) const;
     [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const;
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
@@ -65,7 +65,6 @@ class Framer : public FramerBase
     //! \param [in] circularBuffer a shared pointer to the framer manager's circular buffer.
     //----------------------------------------------------------------------------
     Framer(std::shared_ptr<CircularBuffer> circularBuffer);
-
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
@@ -101,7 +100,6 @@ class Framer : public FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
                                   bool bMetadataOnly_ = false) override;
-
 };
 
 } // namespace novatel::edie::oem
