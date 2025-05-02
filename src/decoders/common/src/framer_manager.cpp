@@ -197,7 +197,8 @@ MetaDataBase* FramerManager::GetMetaData(const std::string framerName_)
 
 void FramerManager::ResetAllFramerStates()
 {
-    for (auto it = framerRegistry.begin(); it != framerRegistry.end(); ++it) {
+    for (auto it = framerRegistry.begin(); it != framerRegistry.end(); ++it)
+    {
         it->framerInstance->InitAttributes();
         it->framerInstance->ResetState();
     }
@@ -281,7 +282,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
         for (auto it = framerRegistry.begin(); it != framerRegistry.end(); ++it)
         {
             int offset = it->framerInstance->FindSyncOffset(uiFrameBufferSize_, eStatus);
-            if (eStatus != STATUS::SUCCESS) { continue; }
+            if (eStatus != STATUS::SUCCESS && eStatus != STATUS::INCOMPLETE) { continue; }
 
             if (offset == 0)
             {
@@ -296,9 +297,10 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
                 bestIt = it;
             }
         }
+        if (bestIt != framerRegistry.end() && eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
 
         // Sync found, but not at offset 0. Discard those bytes first
-        if (bestOffset != 0)
+        if (bestIt != framerRegistry.end() && bestOffset != 0)
         {
             HandleUnknownBytes(pucFrameBuffer_, bestOffset);
             stMyMetaData.uiLength = bestOffset;
@@ -316,9 +318,6 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             stMetaData_ = &stMyMetaData; // There is no valid MetaData object to use from a Framer so use the MetaDataBase from FramerManager
             return STATUS::UNKNOWN;
         }
-
-        if (bestIt != framerRegistry.end() && eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
-
         // Step 2: Try to frame using the chosen framer
         FramerBase* activeFramer = bestIt->framerInstance.get();
         stMetaData_ = bestIt->metadataInstance.get();
