@@ -61,6 +61,17 @@ class Framer : public FramerBase
     void ResetState() override { eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC; };
 
     //----------------------------------------------------------------------------
+    //! \brief Initialize the attributes of the Framer.
+    //----------------------------------------------------------------------------
+    void InitAttributes() override
+    {
+        uiMyAbbrevAsciiHeaderPosition = 0;
+        uiMyExpectedMessageLength = 0;
+        uiMyExpectedPayloadLength = 0;
+        uiMyByteCount = 0;
+    };
+
+    //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
     //! \param [in] circularBuffer a shared pointer to the framer manager's circular buffer.
     //----------------------------------------------------------------------------
