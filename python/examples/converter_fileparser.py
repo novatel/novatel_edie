@@ -35,7 +35,7 @@ import os
 import timeit
 
 from novatel_edie import Message, UnknownMessage, UnknownBytes, Filter, FileParser, CPP_PRETTY_VERSION
-from novatel_edie.messages import BESTPOS
+from novatel_edie.messages import BESTPOS, RANGE
 
 from common_setup import setup_example_logging, handle_args
 
@@ -62,6 +62,9 @@ def main():
     for message in file_parser:
         # Handle messages that can be fully decoded
         if isinstance(message, Message):
+
+
+
             # Encode the message into different formats
             encoded_msg = message.encode(encode_format)
             ascii_msg = message.to_ascii()
@@ -73,6 +76,9 @@ def main():
                 # Access specific fields
                 lat = message.latitude
                 lon = message.longitude
+            elif isinstance(message, RANGE):
+                pass
+
         # Handle messages that did not match any known definitions
         elif isinstance(message, UnknownMessage):
             unknown_id = message.header.message_id

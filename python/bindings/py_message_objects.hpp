@@ -101,34 +101,48 @@ struct PyField
 
     explicit PyField(std::string name_, bool has_ptype_, std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_)
         : name(std::move(name_)), has_ptype(has_ptype_), fields(std::move(message_)), parent_db_(std::move(parent_db_)) {};
+    
     //============================================================================
-    //! \brief Retrieves the values of the fields in the message.
+    //! \brief Creates a shallow dictionary representing the field.
+    //! 
+    //! Subfields are left as objects instead of being converted to dictionaries.
+    //! 
     //! \return A dictionary containing the field values.
     //============================================================================
-    nb::dict& get_values() const;
+    nb::dict& to_shallow_dict() const;
 
     //============================================================================
-    //! \brief Retrieves the fields in the message.
+    //! \brief Retrieves all subfield definitions indexed by name.
     //! \return A dictionary containing the fields.
     //============================================================================
-    nb::dict& get_fields() const;
+    nb::dict& get_field_defs() const;
 
     //============================================================================
-    //! \brief Retrieves the names of the fields in the message in order.
-    //! \return A tuple containing the field names.
+    //! \brief Retrieves the names of the subfields in order.
+    //! \return A list containing the field names.
     //============================================================================
-    nb::tuple get_field_names() const;
+    nb::list get_field_names() const;
 
     //============================================================================
-    //! \brief Retrieves the values of the fields in the order they appear.
-    //! \return A tuple containing the ordered field values.
+    //! \brief Retrieves the values of the subfields in the order they appear.
+    //! \return A list containing the ordered field values.
     //============================================================================
-    nb::tuple get_ordered_values() const;
+    nb::list get_values() const;
+
     //============================================================================
     //! \brief Converts the object to a dictionary representation.
+    //! 
+    //! Subfields are converted to dictionaries.
+    //! 
     //! \return A dictionary containing the object's data.
     //============================================================================
     nb::dict to_dict() const;
+
+    //============================================================================
+    //! \brief Converts the object to a list representation.
+    //! \return A list of simple values and nested lists containing the object's data.
+    //============================================================================
+    nb::list to_list() const;
 
     //============================================================================
     //! \brief Retrieves the value of a field by its name.
