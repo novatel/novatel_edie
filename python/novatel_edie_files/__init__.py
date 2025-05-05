@@ -42,7 +42,7 @@ from .bindings import (
     UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime,
     MessageDatabase, get_default_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
-    MessageDefinition, BaseFieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition,
+    MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition,
     Framer, Filter, Decoder, Commander, Parser, FileParser, 
     RangeDecompressor, RxConfigHandler,
     throw_exception_from_status,
