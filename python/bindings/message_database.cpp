@@ -80,7 +80,7 @@ void init_common_message_database(nb::module_& m)
         .def(nb::init())
         .def_rw("enums", &SimpleDataType::enums);
 
-    nb::class_<BaseField>(m, "BaseField", "Struct containing elements of basic fields in the UI DB")
+    nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")
         .def(nb::init())
         .def(nb::init<std::string, FIELD_TYPE, std::string, size_t, DATA_TYPE>(), "name"_a, "type"_a, "conversion"_a, "length"_a, "data_type"_a)
         .def_rw("name", &BaseField::name)
@@ -101,7 +101,7 @@ void init_common_message_database(nb::module_& m)
                 .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion);
         });
 
-    nb::class_<EnumField, BaseField>(m, "EnumField", "Struct containing elements of enum fields in the UI DB")
+    nb::class_<EnumField, BaseField>(m, "EnumFieldDefinition", "Struct containing elements of enum fields in the UI DB")
         .def(nb::init())
         .def(
             "__init__",
@@ -124,7 +124,7 @@ void init_common_message_database(nb::module_& m)
                 .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.enumId, field.length);
         });
 
-    nb::class_<ArrayField, BaseField>(m, "ArrayField", "Struct containing elements of array fields in the UI DB")
+    nb::class_<ArrayField, BaseField>(m, "ArrayFieldDefinition", "Struct containing elements of array fields in the UI DB")
         .def(nb::init())
         .def_rw("array_length", &ArrayField::arrayLength)
         .def("__repr__", [](const ArrayField& field) {
@@ -133,7 +133,7 @@ void init_common_message_database(nb::module_& m)
                 .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.arrayLength);
         });
 
-    nb::class_<FieldArrayField, BaseField>(m, "FieldArrayField", "Struct containing elements of field array fields in the UI DB")
+    nb::class_<FieldArrayField, BaseField>(m, "FieldArrayFieldDefinition", "Struct containing elements of field array fields in the UI DB")
         .def(nb::init())
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_rw("field_size", &FieldArrayField::fieldSize)

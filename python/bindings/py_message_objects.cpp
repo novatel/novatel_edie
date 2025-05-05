@@ -518,7 +518,7 @@ void init_message_objects(nb::module_& m)
 
         return base_list;
              })
-        .def("get_fields", &PyField::get_field_names)
+        .def("get_keys", &PyField::get_field_names)
         .def("get_values", &PyField::get_values)
         .def("to_dict", &PyField::to_dict,
              R"doc(
