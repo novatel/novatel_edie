@@ -435,7 +435,7 @@ void init_header_objects(nb::module_& m)
         .def_ro("week", &oem::PyHeader::usWeek, "GPS reference wekk number.")
         .def_ro("milliseconds", &oem::PyHeader::dMilliseconds, "Milliseconds from the beginning of the GPS reference week.")
         .def_prop_ro("receiver_status", &oem::PyHeader::GetRecieverStatus,
-                "32-bits representing the status of various hardware and software components of the receiver.")
+                     "32-bits representing the status of various hardware and software components of the receiver.")
         .def_ro("message_definition_crc", &oem::PyHeader::uiMessageDefinitionCrc, "A value for validating the message definition used for decoding.")
         .def_ro("receiver_sw_version", &oem::PyHeader::usReceiverSwVersion, "A value (0 - 65535) representing the receiver software build number.")
         .def(
@@ -495,31 +495,43 @@ void init_message_objects(nb::module_& m)
         .def("__repr__", &PyField::repr)
         .def("__dir__",
              [](nb::object self) {
-        // get required Python builtin functions
-        nb::module_ builtins = nb::module_::import_("builtins");
-        nb::handle super = builtins.attr("super");
-        nb::handle type = builtins.attr("type");
+                 // get required Python builtin functions
+                 nb::module_ builtins = nb::module_::import_("builtins");
+                 nb::handle super = builtins.attr("super");
+                 nb::handle type = builtins.attr("type");
 
-        // start from the 'Field' class instead of a specific subclass
-        nb::handle current_type = type(self);
-        std::string current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
-        while (current_type_name != "Field")
-        {
-            current_type = (current_type.attr("__bases__"))[0];
-            current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
-        }
+                 // start from the 'Field' class instead of a specific subclass
+                 nb::handle current_type = type(self);
+                 std::string current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
+                 while (current_type_name != "Field")
+                 {
+                     current_type = (current_type.attr("__bases__"))[0];
+                     current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
+                 }
 
-        // retrieve base list based on 'Field' superclass method
-        nb::object super_obj = super(current_type, self);
-        nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
-        // add dynamic fields to the list
-        PyField* body = nb::inst_ptr<PyField>(self);
-        for (const auto& [field_name, _] : body->get_field_defs()) { base_list.append(field_name); }
+                 // retrieve base list based on 'Field' superclass method
+                 nb::object super_obj = super(current_type, self);
+                 nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
+                 // add dynamic fields to the list
+                 PyField* body = nb::inst_ptr<PyField>(self);
+                 for (const auto& [field_name, _] : body->get_field_defs()) { base_list.append(field_name); }
 
-        return base_list;
+                 return base_list;
              })
-        .def("get_keys", &PyField::get_field_names)
-        .def("get_values", &PyField::get_values)
+        .def("get_field_names", &PyField::get_field_names,
+             R"doc(
+            Retrieves the name of every top-level field within the payload of this message.
+
+            Returns:
+                The name of every top-level field within the message payload.      
+            )doc")
+        .def("get_field_values", &PyField::get_values,
+            R"doc(
+            Retrieves the values of every top-level field within the payload of this message.
+
+            Returns:
+                The value of every top-level field within the message payload.
+            )doc")
         .def("to_dict", &PyField::to_dict,
              R"doc(
             Converts the field to a dictionary.
@@ -538,18 +550,18 @@ void init_message_objects(nb::module_& m)
     nb::class_<PyUnknownMessage>(m, "UnknownMessage")
         .def("__repr__",
              [](const PyUnknownMessage self) {
-        std::string byte_rep = nb::str(self.payload.attr("__repr__")()).c_str();
-        return "IncompleteMessage(payload=" + byte_rep + ")";
+                 std::string byte_rep = nb::str(self.payload.attr("__repr__")()).c_str();
+                 return "IncompleteMessage(payload=" + byte_rep + ")";
              })
         .def_ro("header", &PyUnknownMessage::header, "The header of the message.")
         .def_ro("payload", &PyUnknownMessage::payload, "The undecoded bytes that make up the message's payload.")
         .def(
             "to_dict",
             [](const PyUnknownMessage& self) {
-        nb::dict dict = nb::dict();
-        dict["header"] = self.header.to_dict();
-        dict["payload"] = self.payload;
-        return dict;
+                nb::dict dict = nb::dict();
+                dict["header"] = self.header.to_dict();
+                dict["payload"] = self.payload;
+                return dict;
             },
             R"doc(
             Converts the message to a dictionary.
@@ -568,9 +580,9 @@ void init_message_objects(nb::module_& m)
         .def(
             "to_dict",
             [](const PyMessage& self, bool include_header) {
-        nb::dict dict = self.to_dict();
-        if (include_header) { dict["header"] = self.header.to_dict(); }
-        return dict;
+                nb::dict dict = self.to_dict();
+                if (include_header) { dict["header"] = self.header.to_dict(); }
+                return dict;
             },
             "include_header"_a = true,
             R"doc(
