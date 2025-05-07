@@ -15,8 +15,8 @@ using namespace novatel::edie;
 
 nb::object oem::PyFileParser::PyRead()
 {
-    static MetaDataStruct metadata;
-    static MessageDataStruct message_data;
+    MetaDataStruct metadata;
+    MessageDataStruct message_data;
     PyHeader header;
     std::vector<FieldContainer> message_fields;
 
@@ -82,7 +82,8 @@ void init_novatel_file_parser(nb::module_& m)
                 if (!message_db) { message_db = MessageDbSingleton::get(); }
                 new (self) oem::PyFileParser(file_path, message_db);
             },
-            "file_path"_a, nb::arg("message_db") = nb::none(),
+            "file_path"_a,
+            nb::arg("message_db") = nb::none(),
             R"doc(
              Initializes a FileParser.
 
@@ -157,9 +158,8 @@ void init_novatel_file_parser(nb::module_& m)
                 StreamEmptyException: There is insufficient data in the remaining 
                     in the file to decode a message.
             )doc")
-        .def(
-            "iter_convert", [](oem::PyFileParser& self, ENCODE_FORMAT fmt) { return oem::FileConversionIterator(self, fmt); }, "fmt"_a,
-            R"doc(
+        .def("iter_convert", [](oem::PyFileParser& self, ENCODE_FORMAT fmt) { return oem::FileConversionIterator(self, fmt); }, "fmt"_a,
+             R"doc(
             Creates an iterator which parses and converts messages to a specified format.
 
             Args:
@@ -193,9 +193,8 @@ void init_novatel_file_parser(nb::module_& m)
             )doc");
 
     nb::class_<oem::FileConversionIterator>(m, "FileConversionIterator")
-        .def(
-            "__iter__", [](nb::handle_t<oem::FileConversionIterator> self) { return self; }, nb::sig("def __iter__(self) -> Iterator[MessageData]"),
-            R"doc(
+        .def("__iter__", [](nb::handle_t<oem::FileConversionIterator> self) { return self; },
+             R"doc(
             Marks FileConversionIterator as Iterable.
 
             Returns:
