@@ -76,8 +76,8 @@ def test_field_names_and_values(data, exp_fields, exp_values, decoder: ne.Decode
     """Test that the field names are correct."""
     # Act
     msg = decoder.decode(data)
-    fields = msg.get_keys()
-    values = msg.get_values()
+    fields = msg.get_field_names()
+    values = msg.get_field_values()
     # Assert
     assert fields == exp_fields, f"Expected fields: {exp_fields}, but got: {fields}"
     assert values == exp_values, f"Expected values: {exp_values}, but got: {values}"
