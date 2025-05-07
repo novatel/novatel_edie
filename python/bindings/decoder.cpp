@@ -128,7 +128,7 @@ void init_novatel_decoder(nb::module_& m)
             },
             "message"_a, nb::sig("def decode(self, raw_message: bytes) -> Message"),
             R"doc(
-            Decode the a message from its raw representation.
+            Decode the message from its raw byte representation.
 
             Args:
                 raw_message: A frame of raw bytes containing the message information to decode.
