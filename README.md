@@ -11,6 +11,8 @@ EDIE is maintained and published by [NovAtel](https://www.novatel.com).
 
 Documentation on NovAtel's data (commands, logs, messages, and responses) can be found [here](https://docs.novatel.com/OEM7/Content/Commands/CommandsLogs.htm).
 
+Information on the `novatel_edie` [Python package can be found here](./python/readme.md). The rest of this document pertains only to the C++ SDK.
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
