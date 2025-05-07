@@ -31,14 +31,12 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-// Define Static Framer
-std::unique_ptr<Framer> Parser::pclMyFramer = nullptr;
-
 // -------------------------------------------------------------------------------------------------------
 Parser::Parser(const std::filesystem::path& sDbPath_)
 {
     auto pclMessageDb = LoadJsonDbFile(sDbPath_);
     LoadJsonDb(pclMessageDb);
+    pclMyLogger->info("Parser initialized with JSON DB: {}", sDbPath_.generic_string());
     pclMyFramer = std::make_unique<Framer>();
     pclMyLogger->debug("Parser initialized");
 }
@@ -47,6 +45,7 @@ Parser::Parser(const std::filesystem::path& sDbPath_)
 Parser::Parser(MessageDatabase::Ptr pclMessageDb_)
 {
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
+    pclMyFramer = std::make_unique<Framer>();
     pclMyLogger->debug("Parser initialized");
 }
 
