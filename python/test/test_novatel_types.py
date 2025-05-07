@@ -78,8 +78,8 @@ def helper(min_json_db):
     return Helper(min_json_db)
 
 
-def test_get_default_database():
-    db = ne.get_default_database()
+def test_get_builtin_database():
+    db = ne.get_builtin_database()
     assert isinstance(db, ne.MessageDatabase)
 
 

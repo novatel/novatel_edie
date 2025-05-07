@@ -113,7 +113,7 @@ class FramerBase
     void SetFrameJson(const bool bFrameJson_) { bMyFrameJson = bFrameJson_; }
 
     //----------------------------------------------------------------------------
-    //! \brief Should the Framer return only the message body of messages and
+    //! \brief Should the Framer return only the message payload of messages and
     //! discard the header?
     //
     //! \param[in] bPayloadOnly_ true if the Framer should discard message

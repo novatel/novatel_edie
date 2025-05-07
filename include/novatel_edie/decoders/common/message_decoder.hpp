@@ -202,15 +202,15 @@ class MessageDecoderBase
     MessageDatabase::ConstPtr MessageDb() const { return std::const_pointer_cast<const MessageDatabase>(pclMyMsgDb); }
 
     //----------------------------------------------------------------------------
-    //! \brief Decode a message body from the provided frame.
+    //! \brief Decode a message payload from the provided frame.
     //
-    //! \param[in] pucMessage_ A pointer to a message body.
+    //! \param[in] pucMessage_ A pointer to a message payload.
     //! \param[out] stInterMessage_ The IntermediateLog to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
     //
     //! \remark Note, that pucMessage_ must not point to the message header,
-    //! rather the message body. This can be done by advancing the pointer
+    //! rather the message payload. This can be done by advancing the pointer
     //! of a message frame by stMetaData.uiHeaderLength.
     //! \return An error code describing the result of decoding.
     //!   SUCCESS: The operation was successful.

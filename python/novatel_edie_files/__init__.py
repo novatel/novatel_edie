@@ -40,7 +40,7 @@ from .bindings import (
     CPP_VERSION, CPP_PRETTY_VERSION, GIT_SHA, GIT_BRANCH, GIT_IS_DIRTY, BUILD_TIMESTAMP, 
     enable_internal_logging, disable_internal_logging,
     UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime,
-    MessageDatabase, get_default_database,
+    MessageDatabase, get_builtin_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
     Framer, Filter, Decoder, Commander, Parser, FileParser, 

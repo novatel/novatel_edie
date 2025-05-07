@@ -107,7 +107,7 @@ void init_novatel_file_parser(nb::module_& m)
             },
             [](oem::PyFileParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); },
             "The filter which controls which data is skipped over.")
-        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read(self) ->  Message | UnknownMessage | UnknownBytes"),
+        .def("read", &oem::PyFileParser::PyRead, nb::sig("def read(self) ->  Message | Response | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read a message from remaining data in the file.
 
@@ -123,14 +123,14 @@ void init_novatel_file_parser(nb::module_& m)
             )doc")
         .def(
             "__iter__", [](nb::handle_t<oem::PyFileParser> self) { return self; },
-            nb::sig("def __iter__(self) -> Iterator[Message|UnknownMessage|UnknownBytes]"),
+            nb::sig("def __iter__(self) -> Iterator[Message|Response|UnknownMessage|UnknownBytes]"),
             R"doc(
             Marks FileParser as Iterable.
 
             Returns:
                 The FileParser itself as an Iterator.
             )doc")
-        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __next__(self) -> Message | UnknownMessage | UnknownBytes"),
+        .def("__next__", &oem::PyFileParser::PyIterRead, nb::sig("def __next__(self) -> Message | Response | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read the next message from remaining data in the file.
 

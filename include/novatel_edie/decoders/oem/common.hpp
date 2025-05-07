@@ -177,7 +177,7 @@ struct Oem4BinaryShortHeader
     uint8_t ucSync1{0};      //!< First sync byte of Header.
     uint8_t ucSync2{0};      //!< Second sync byte of Header.
     uint8_t ucSync3{0};      //!< Third sync byte of Header.
-    uint8_t ucLength{0};     //!< Message body length.
+    uint8_t ucLength{0};     //!< Message payload length.
     uint16_t usMessageId{0}; //!< Message ID of the log.
     uint16_t usWeekNo{0};    //!< GPS Week number.
     uint32_t uiWeekMSec{0};  //!< GPS Week seconds.
@@ -189,7 +189,7 @@ struct Oem4BinaryShortHeader
         ucSync1 = OEM4_BINARY_SYNC1;
         ucSync2 = OEM4_BINARY_SYNC2;
         ucSync3 = OEM4_SHORT_BINARY_SYNC3;
-        ucLength = 0; // Will be filled in following the body encoding
+        ucLength = 0; // Will be filled in following the payload encoding
         usMessageId = stInterHeader_.usMessageId;
         usWeekNo = stInterHeader_.usWeek;
         uiWeekMSec = static_cast<uint32_t>(stInterHeader_.dMilliseconds);

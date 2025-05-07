@@ -32,7 +32,7 @@ def compare_message_data(test_message_data, expected_message_data):
     if test_message_data.header != expected_message_data[1]:
         print("MessageData.message_header contents do not match")
         result = False
-    if test_message_data.body != expected_message_data[2]:
+    if test_message_data.payload != expected_message_data[2]:
         print("MessageData.message_body contents do not match")
         result = False
     return result
