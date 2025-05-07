@@ -20,9 +20,6 @@ void SendMeasurementSourceWarning()
 
 void init_novatel_common(nb::module_& m)
 {
-    m.attr("NMEA_SYNC") = oem::NMEA_SYNC;
-    m.attr("NMEA_SYNC_LENGTH") = oem::NMEA_SYNC_LENGTH;
-    m.attr("NMEA_CRC_LENGTH") = oem::NMEA_CRC_LENGTH;
     m.attr("OEM4_ASCII_SYNC") = oem::OEM4_ASCII_SYNC;
     m.attr("OEM4_ASCII_FIELD_SEPARATOR") = oem::OEM4_ASCII_FIELD_SEPARATOR;
     m.attr("OEM4_ASCII_HEADER_TERMINATOR") = oem::OEM4_ASCII_HEADER_TERMINATOR;
