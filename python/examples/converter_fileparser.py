@@ -62,9 +62,6 @@ def main():
     for message in file_parser:
         # Handle messages that can be fully decoded
         if isinstance(message, Message):
-
-
-
             # Encode the message into different formats
             encoded_msg = message.encode(encode_format)
             ascii_msg = message.to_ascii()
@@ -77,7 +74,7 @@ def main():
                 lat = message.latitude
                 lon = message.longitude
             elif isinstance(message, RANGE):
-                pass
+                observations = message.obs
 
         # Handle messages that did not match any known definitions
         elif isinstance(message, UnknownMessage):
