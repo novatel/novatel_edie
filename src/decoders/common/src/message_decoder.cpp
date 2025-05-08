@@ -357,9 +357,25 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
-            const uint32_t uiArraySize = *reinterpret_cast<const std::uint32_t*>(*ppucLogBuf_);
-            *ppucLogBuf_ += sizeof(int32_t);
             auto* subFieldDefinitions = dynamic_cast<FieldArrayField*>(field.get());
+            std::string_view arrayLengthRef = subFieldDefinitions->arrayLengthRef;
+            uint32_t uiArraySize = 0;
+
+            if (arrayLengthRef.empty())
+            {
+                uiArraySize = *reinterpret_cast<const std::uint32_t*>(*ppucLogBuf_);
+                *ppucLogBuf_ += sizeof(int32_t);
+            }
+            else
+            {
+                // Traverse the decoded fields to find the field with a matching name.
+                for (const auto& it : vIntermediateFormat_)
+                {
+                    if (it.fieldDef->name == arrayLengthRef) { uiArraySize = std::get<uint8_t>(it.fieldValue); }
+                }
+                // TODO: Throw exception if no matching key is found
+            }
+
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
             pvFieldArrayContainer.reserve(uiArraySize);
@@ -367,7 +383,6 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             for (uint32_t i = 0; i < uiArraySize; ++i)
             {
                 // Realign to type byte boundary if needed
-                usTypeAlignment = std::min(static_cast<uint16_t>(4), field->dataType.length);
                 usAlignmentOffset = static_cast<uint64_t>(*ppucLogBuf_ - pucTempStart) % usTypeAlignment;
                 if (usAlignmentOffset != 0) { *ppucLogBuf_ += usTypeAlignment - usAlignmentOffset; }
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);

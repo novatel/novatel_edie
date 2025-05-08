@@ -301,6 +301,7 @@ struct ArrayField : BaseField
 struct FieldArrayField : BaseField
 {
     uint32_t arrayLength{0}, fieldSize{0};
+    std::string arrayLengthRef; // TODO: use something other than string
     std::vector<std::shared_ptr<BaseField>> fields;
 
     using Ptr = std::shared_ptr<FieldArrayField>;
@@ -382,7 +383,6 @@ class MessageDatabase
     //! \brief Append a list of message definitions to the database.
     //
     //! \param[in] vMessageDefinitions_ A vector of message definitions
-    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
     void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
     {
@@ -401,7 +401,6 @@ class MessageDatabase
     //! \brief Append a list of enum definitions to the database.
     //
     //! \param[in] vEnumDefinitions_ A vector of enum definitions
-    //! \param[in] bGenerateMappings_ Boolean for generating mappings
     //----------------------------------------------------------------------------
     void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
     {
