@@ -123,6 +123,7 @@ void from_json(const json& j_, FieldArrayField& fd_)
 
     fd_.arrayLength = j_.at("arrayLength").is_null() ? 0 : static_cast<uint32_t>(j_.at("arrayLength"));
     fd_.fieldSize = fd_.arrayLength * ParseFields(j_.at("fields"), fd_.fields);
+    if (j_.find("arrayLengthRef") != j_.end()) { fd_.arrayLengthRef = j_.at("arrayLengthRef").is_null() ? "" : j_.at("arrayLengthRef"); }
 }
 
 //-----------------------------------------------------------------------
