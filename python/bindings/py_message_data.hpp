@@ -40,5 +40,5 @@ inline void define_pymessagedata(nb::module_& m)
         .def("__repr__", &novatel::edie::oem::PyMessageData::GetRepr)
         .def_prop_ro("message", &novatel::edie::oem::PyMessageData::message)
         .def_prop_ro("header", &novatel::edie::oem::PyMessageData::header)
-        .def_prop_ro("body", &novatel::edie::oem::PyMessageData::body);
+        .def_prop_ro("payload", &novatel::edie::oem::PyMessageData::body);
 }

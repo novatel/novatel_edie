@@ -1,9 +1,9 @@
 #include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
 
 #include "bindings_core.hpp"
+#include "exceptions.hpp"
 #include "message_db_singleton.hpp"
 #include "py_message_data.hpp"
-#include "exceptions.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -12,7 +12,12 @@ using namespace novatel::edie;
 void init_novatel_rxconfig_handler(nb::module_& m)
 {
     nb::class_<oem::RxConfigHandler>(m, "RxConfigHandler")
-        .def("__init__", [](oem::RxConfigHandler* t) { new (t) oem::RxConfigHandler(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def("__init__",
+             [](oem::RxConfigHandler* t) {
+                 new (t) oem::RxConfigHandler(MessageDbSingleton::get());
+                 t->GetLogger()->warn(
+                     "The RXConfigHandler interface is currently unstable! It may undergo breaking changes between minor version increments.");
+             }) // NOLINT(*.NewDeleteLeaks)
         .def(nb::init<const PyMessageDatabase::Ptr&>(), "message_db"_a)
         .def("load_db", &oem::RxConfigHandler::LoadJsonDb, "message_db"_a)
         .def("write", [](oem::RxConfigHandler& self,
@@ -26,8 +31,8 @@ void init_novatel_rxconfig_handler(nb::module_& m)
                 oem::MetaDataStruct embedded_meta_data;
                 STATUS status = self.Convert(rx_config_message_data, rx_config_meta_data, embedded_message_data, embedded_meta_data, encode_format);
                 throw_exception_from_status(status);
-                return nb::make_tuple(oem::PyMessageData(rx_config_message_data), rx_config_meta_data,
-                                      oem::PyMessageData(embedded_message_data), embedded_meta_data);
+                return nb::make_tuple(oem::PyMessageData(rx_config_message_data), rx_config_meta_data, oem::PyMessageData(embedded_message_data),
+                                      embedded_meta_data);
             },
             "encode_format"_a)
         .def(

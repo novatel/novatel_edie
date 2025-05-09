@@ -3,8 +3,8 @@
 #include <cstring>
 
 #include "bindings_core.hpp"
-#include "message_db_singleton.hpp"
 #include "exceptions.hpp"
+#include "message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -13,7 +13,12 @@ using namespace novatel::edie;
 void init_novatel_range_decompressor(nb::module_& m)
 {
     nb::class_<oem::RangeDecompressor>(m, "RangeDecompressor")
-        .def("__init__", [](oem::RangeDecompressor* t) { new (t) oem::RangeDecompressor(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
+        .def("__init__",
+             [](oem::RangeDecompressor* t) {
+                 new (t) oem::RangeDecompressor(MessageDbSingleton::get());
+                 t->GetLogger()->warn(
+                     "The RangeDecompressor interface is currently unstable! It may undergo breaking changes between minor version increments.");
+             }) // NOLINT(*.NewDeleteLeaks)
         .def(nb::init<PyMessageDatabase::Ptr&>(), "message_db"_a)
         .def("reset", &oem::RangeDecompressor::Reset)
         .def(

@@ -37,7 +37,7 @@ def json_db_path():
 
 @pytest.fixture(scope="session")
 def json_db():
-    return ne.get_default_database()
+    return ne.get_builtin_database()
 
 
 @pytest.fixture(scope="session")

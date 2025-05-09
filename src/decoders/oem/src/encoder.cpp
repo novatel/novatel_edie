@@ -511,7 +511,7 @@ Encoder::EncodeBody(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const s
     default: return STATUS::UNSUPPORTED;
     }
 
-    // Record the length of the encoded message body.
+    // Record the length of the encoded message payload.
     stMessageData_.pucMessageBody = *ppucBuffer_;
     stMessageData_.uiMessageBodyLength = pucTempBuffer - stMessageData_.pucMessageBody;
     return STATUS::SUCCESS;

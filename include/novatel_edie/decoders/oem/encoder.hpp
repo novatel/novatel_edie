@@ -143,7 +143,7 @@ class Encoder : public EncoderBase<Encoder>
                                       bool bIsEmbeddedHeader_ = false) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Encode an OEM message body from the provided intermediate message.
+    //! \brief Encode an OEM message payload from the provided intermediate message.
     //
     //! \param[out] ppucBuffer_ A pointer to the buffer to return the encoded
     //! message to.

@@ -245,8 +245,8 @@ def compare_message_data(test_md: ne.MessageData, expected_md: ExpectedMessageDa
     if test_md.header != expected_md[1]:
         print("MessageData.header contents do not match")
         result = False
-    if test_md.body != expected_md[2]:
-        print("MessageData.body contents do not match")
+    if test_md.payload != expected_md[2]:
+        print("MessageData.payload contents do not match")
         result = False
     return result
 

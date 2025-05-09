@@ -29,39 +29,29 @@
 # encoding from Abbreviated ASCII to ASCII/BINARY.
 ########################################################################
 
-import argparse
-import atexit
-from pathlib import Path
+import logging
 
 import novatel_edie as ne
-from novatel_edie import Logging, LogLevel
+from novatel_edie import CPP_PRETTY_VERSION
+
+from common_setup import setup_example_logging
 
 
 def main():
-    logger = Logging().register_logger("CommandEncoder")
-    logger.set_level(LogLevel.DEBUG)
-    Logging.add_console_logging(logger)
-    Logging.add_rotating_file_logger(logger)
-    atexit.register(Logging.shutdown)
+    # Setup logging
+    setup_example_logging(logging.WARNING)
+    logger = logging.getLogger(__name__)
+    logger.info(f"Decoder library information:\n{CPP_PRETTY_VERSION}")
 
-    parser = argparse.ArgumentParser(description="Encode a command from Abbreviated ASCII to ASCII/BINARY.")
-    parser.add_argument("output_format", choices=["ASCII", "BINARY"], help="Output format")
-    parser.add_argument("command", help="Abbreviated ASCII command")
-    parser.add_argument("-V", "--version", action="store_true")
-    args = parser.parse_args()
-    encode_format = ne.string_to_encode_format(args.output_format)
+    # Set value to encode
+    encode_format = ne.ENCODE_FORMAT.ASCII
+    command = b"CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\""
 
-    if args.version:
-        logger.info(ne.pretty_version)
-        exit(0)
-
-    logger.info(f'Converting "{args.command}" to {encode_format}')
+    # Encode the command
+    logger.info(f'Converting "{command}" to {encode_format}')
     commander = ne.Commander()
-    status, encoded_command = commander.encode(args.command.encode(), encode_format)
-    status.raise_on_error()
-    out_file = Path(f"COMMAND.{encode_format}")
-    out_file.write_bytes(encoded_command)
-
+    encoded_command = commander.encode(command, encode_format)
+    print(encoded_command)
 
 if __name__ == "__main__":
     main()

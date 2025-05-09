@@ -32,8 +32,9 @@
 import logging
 from binascii import hexlify
 
-from novatel_edie import HEADER_FORMAT, ENCODE_FORMAT, CPP_PRETTY_VERSION, Framer, Decoder, Filter, Message, MAX_MESSAGE_LENGTH
-from novatel_edie.messages import RANGE
+import novatel_edie as ne
+from novatel_edie import HEADER_FORMAT, ENCODE_FORMAT, CPP_PRETTY_VERSION, MAX_MESSAGE_LENGTH
+import novatel_edie.messages as ne_msgs
 
 from common_setup import setup_example_logging, handle_args
 
@@ -58,12 +59,12 @@ def main():
     input_file, encode_format = handle_args(logger)
 
     # Set up the EDIE components
-    framer = Framer()
+    framer = ne.Framer()
     framer.report_unknown_bytes = True
     framer.payload_only= False
     framer.frame_json = False
-    decoder = Decoder()
-    my_filter = Filter()
+    decoder = ne.Decoder()
+    my_filter = ne.Filter()
 
     with open(input_file, "rb") as input_stream:
         while read_data := input_stream.read(MAX_MESSAGE_LENGTH):
@@ -81,18 +82,18 @@ def main():
                     continue
 
                 # Decode the log body.
-                body = frame[meta.header_length:]
-                message = decoder.decode_message(body, header, meta)
+                payload = frame[meta.header_length:]
+                message = decoder.decode_payload(payload, header, meta)
 
                 # Get info from the log.
-                if isinstance(message, RANGE):
+                if isinstance(message, ne_msgs.RANGE):
                     obs = message.obs
                     for ob in obs:
                         value = ob.psr
                         pass
 
                 # Re-encode the log
-                if isinstance(message, Message):
+                if isinstance(message, ne.Message):
                     encoded_message = message.to_ascii()
 
 if __name__ == "__main__":

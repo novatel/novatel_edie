@@ -32,8 +32,8 @@
 import logging
 import timeit
 
-from novatel_edie import Parser, CPP_PRETTY_VERSION, MAX_MESSAGE_LENGTH, Message, UnknownMessage, UnknownBytes
-from novatel_edie.messages import BESTPOS
+import novatel_edie as ne
+import novatel_edie.messages as ne_msgs
 
 from common_setup import setup_example_logging, handle_args
 
@@ -42,23 +42,23 @@ def main():
     # Setup logging
     setup_example_logging(logging.INFO)
     logger = logging.getLogger(__name__)
-    logger.info(f"Decoder library information:\n{CPP_PRETTY_VERSION}")
+    logger.info(f"Decoder library information:\n{ne.CPP_PRETTY_VERSION}")
 
     # Handle CLI arguments
     input_file, encode_format = handle_args(logger)
 
     # Create a Parser
-    parser = Parser()
+    parser = ne.Parser()
 
     # Iterate through the messages
     messages = 0
     start = timeit.default_timer()
     with open(input_file, "rb") as input_stream:
-        while read_data := input_stream.read(MAX_MESSAGE_LENGTH):
+        while read_data := input_stream.read(ne.MAX_MESSAGE_LENGTH):
             parser.write(read_data)
             for message in parser:
                 # Handle messages that can be fully decoded
-                if isinstance(message, Message):
+                if isinstance(message, ne.Message):
                     # Encode the message into different formats
                     encoded_msg = message.encode(encode_format)
                     ascii_msg = message.to_ascii()
@@ -66,16 +66,16 @@ def main():
                     dict_msg = message.to_dict()
                     messages += 1
                     # Handle BESTPOS messages
-                    if isinstance(message, BESTPOS):
+                    if isinstance(message, ne_msgs.BESTPOS):
                         # Access specific fields
                         lat = message.latitude
                         lon = message.longitude
                 # Handle messages that did not match any known definitions
-                elif isinstance(message, UnknownMessage):
+                elif isinstance(message, ne.UnknownMessage):
                     unknown_id = message.header.message_id
                     payload = message.payload
                 # Handle bytes that could not be parsed into a message
-                elif isinstance(message, UnknownBytes):
+                elif isinstance(message, ne.UnknownBytes):
                     data = message.data
 
     elapsed_seconds = timeit.default_timer() - start

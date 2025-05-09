@@ -142,7 +142,7 @@ void init_novatel_parser(nb::module_& m)
                  buffer to decode a message.
             )doc")
         .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false,
-             nb::sig("def read(self, decode_incomplete_abbreviated: bool = False) -> Message | UnknownMessage | UnknownBytes"),
+             nb::sig("def read(self, decode_incomplete_abbreviated: bool = False) -> Message | Response | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read a message from data in the Parser's buffer.
 
@@ -164,14 +164,14 @@ void init_novatel_parser(nb::module_& m)
             )doc")
         .def(
             "__iter__", [](nb::handle_t<oem::PyParser> self) { return self; },
-            nb::sig("def __iter__(self) -> Iterator[Message|UnknownMessage|UnknownBytes]"),
+            nb::sig("def __iter__(self) -> Iterator[Message|Response|UnknownMessage|UnknownBytes]"),
             R"doc(
             Marks Parser as Iterable.
 
             Returns:
                 The Parser itself as an Iterator.
             )doc")
-        .def("__next__", &oem::PyParser::PyIterRead, nb::sig("def __next__(self) -> Message | UnknownMessage | UnknownBytes"),
+        .def("__next__", &oem::PyParser::PyIterRead, nb::sig("def __next__(self) -> Message | Response | UnknownMessage | UnknownBytes"),
              R"doc(
             Attempts to read the next message from data in the Parser's buffer.
 
