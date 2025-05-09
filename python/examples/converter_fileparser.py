@@ -56,7 +56,9 @@ def main():
 
     # Iterate through the messages
     messages = 0
+    msgs = []
     start = timeit.default_timer()
+    observation_list = []
     for message in file_parser:
         # Handle messages that can be fully decoded
         if isinstance(message, ne.Message):
@@ -72,8 +74,10 @@ def main():
                 lat = message.latitude
                 lon = message.longitude
             elif isinstance(message, ne_msgs.RANGE):
-                observations = message.obs
-
+                pass
+                msgs.append(message.obs)
+                if len(msgs) >= 10000:
+                    break
         # Handle messages that did not match any known definitions
         elif isinstance(message, ne.UnknownMessage):
             unknown_id = message.header.message_id
@@ -81,9 +85,11 @@ def main():
         # Handle bytes that could not be parsed into a message
         elif isinstance(message, ne.UnknownBytes):
             data = message.data
+    pass
 
     elapsed_seconds = timeit.default_timer() - start
     logger.info(f"Converted {messages} logs in {elapsed_seconds:.3f}s from {input_file}")
+
 
 
 if __name__ == "__main__":
