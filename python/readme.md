@@ -332,6 +332,13 @@ message_data
 └── payload
 ```
 
+```
+message_data = message.encode(encode_format)
+message = message_data.message
+header = message_data.header
+payload = message_data.payload
+```
+
 ## Memory Management
 
 It is important to recognize that the  [custom data types](#data-types) used by `novatel_edie` 
