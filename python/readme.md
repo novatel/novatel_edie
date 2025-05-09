@@ -251,7 +251,7 @@ for msg in parser:
 
 Messages can also be transformed into other representations, such as a dictionary via the `to_dict()` method.
 
-If you wish to handle a specific message, for example `BESTPOS`, it is highly recommended that you identify them by checking their type:
+If you wish to handle a specific message, for example `BESTPOS`, it is highly recommended that you identify it by checking its type:
 
 ```
 # RIGHT 
@@ -266,7 +266,7 @@ def handle_message(msg: Message):
 ```
 
 This is because using `isinstance` to identify the type will provide additional information to your IDE,
-allowing features such as autocomplete and syntax highlighting.
+allowing more powerful autocomplete and accurate syntax highlighting.
 
 ### Response
 
