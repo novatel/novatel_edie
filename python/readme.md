@@ -251,7 +251,7 @@ for msg in parser:
 
 Messages can also be transformed into other representations, such as a dictionary via the `to_dict()` method.
 
-If you wish to handle a specific message, for example `BESTPOS`, it is highly recommended that you identify it by checking its type:
+If you wish to handle a specific message, it is highly recommended that you identify it by checking its type:
 
 ```
 # RIGHT 
