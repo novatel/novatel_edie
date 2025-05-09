@@ -192,6 +192,7 @@ bestpos_filter = ne.Filter()
 bestpos_filter.add_message_name('BESTPOS')      # Filter BESTPOS messages
 bestpos_filter.exclude_message_names = False    # Set filter to be inclusive
 parser = ne.Parser()
+parser.filter = bestpos_filter
 for bestpos_msg in parser:
     ...
 ```
@@ -272,7 +273,7 @@ for resp in parser:
         encode_format_resp = resp.encode(encode_format)
 ```
 
-Likewise they can be converted to a dictionary representation via `to_dict`.
+Likewise they can be converted to a dictionary representation via `to_dict()`.
 
 ### Header
 
@@ -290,7 +291,7 @@ header
 └── ...
 ```
 
-`Header`s can be converted to a dictionary representation via `to_dict`.
+`Header`s can be converted to a dictionary representation via `to_dict()`.
 
 ### UnknownMessage
 
@@ -307,7 +308,7 @@ unknown_message
 └── payload
 ```
 
-Like a `Message` and `UnknownMessage` can be converted to a dictionary with `to_dict`
+Like a `Message` and `UnknownMessage` can be converted to a dictionary with `to_dict()`
 however it cannot be re-encoded as its decoding is incomplete.
 
 ### UnknownBytes
@@ -348,7 +349,7 @@ The following are a few strategies to avoid this:
 
 1. **Calculate metrics of interest during parsing**: When it is possible, this approach avoids the issue of storing data all together.
 2. **Convert messages to a more efficient data format**: Storing the values of messages in a simpler format such as a list of lists can cut down on per message memory usage. This will still run into memory limitations for large enough data sets.
-3. **Send messages to a database**: Storing messages in a database once again avoids the problem of memory usage entirely. The `to_dict` is helpful here as many databases have python libraries which support uploading data in dictionary format.
+3. **Send messages to a database**: Storing messages in a database once again avoids the problem of memory usage entirely. The `to_dict()` is helpful here as many databases have python libraries which support uploading data in dictionary format.
 4. **Process in batches of fixed size**: Alternating between parsing and processing can allow for reasonable memory usage, while keeping code modular. This method can still run into memory usage issues if the batch size is too large.
 
 ## Message Databases
