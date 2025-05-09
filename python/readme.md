@@ -333,10 +333,13 @@ message_data
 ```
 
 ```
-message_data = message.encode(encode_format)
-message = message_data.message
-header = message_data.header
-payload = message_data.payload
+>> message_data = message.to_ascii()
+>> print(message_data.message)
+#BESTPOSA,USB1,0,58.5,FINESTEERING,2209,502061.000,02000020,cdba,16809;SOL_COMPUTED,PPP,51.15043706870,-114.03067882331,1097.3462,-17.0001,WGS84,0.0154,0.0139,0.0288,"TSTR",11.000,0.000,43,39,39,38,00,00,7f,37*52483ac5
+>> print(message_data.header)
+#BESTPOSA,USB1,0,58.5,FINESTEERING,2209,502061.000,02000020,cdba,16809;
+>> print(message_data.body)
+SOL_COMPUTED,PPP,51.15043706870,-114.03067882331,1097.3462,-17.0001,WGS84,0.0154,0.0139,0.0288,"TSTR",11.000,0.000,43,39,39,38,00,00,7f,37*52483ac5
 ```
 
 ## Memory Management
