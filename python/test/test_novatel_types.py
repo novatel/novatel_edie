@@ -58,11 +58,11 @@ class Helper:
         self.msg_def_fields = []
 
     def create_base_field(self, name, field_type, conversion, length, data_type):
-        field = ne.BaseField(name, field_type, conversion, length, data_type)
+        field = ne.FieldDefinition(name, field_type, conversion, length, data_type)
         self.msg_def_fields.append(field)
 
     def create_enum_field(self, name, value, description):
-        enum_field = ne.EnumField(name, [ne.EnumDataType(name, value, description)])
+        enum_field = ne.EnumFieldDefinition(name, [ne.EnumDataType(name, value, description)])
         self.msg_def_fields.append(enum_field)
 
     def test_decode_ascii(self, msg_def_fields, data):

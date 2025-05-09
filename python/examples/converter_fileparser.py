@@ -35,7 +35,7 @@ import os
 import timeit
 
 from novatel_edie import Message, UnknownMessage, UnknownBytes, Filter, FileParser, CPP_PRETTY_VERSION
-from novatel_edie.messages import BESTPOS
+from novatel_edie.messages import BESTPOS, RANGE
 
 from common_setup import setup_example_logging, handle_args
 
@@ -73,6 +73,9 @@ def main():
                 # Access specific fields
                 lat = message.latitude
                 lon = message.longitude
+            elif isinstance(message, RANGE):
+                observations = message.obs
+
         # Handle messages that did not match any known definitions
         elif isinstance(message, UnknownMessage):
             unknown_id = message.header.message_id

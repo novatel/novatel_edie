@@ -41,11 +41,12 @@ from .bindings import (
     enable_internal_logging, disable_internal_logging,
     UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime,
     MessageDatabase, get_default_database,
-    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
-    Framer, Filter, Decoder, Commander, Parser, FileParser,
+    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
+    MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
+    Framer, Filter, Decoder, Commander, Parser, FileParser, 
     RangeDecompressor, RxConfigHandler,
     throw_exception_from_status,
-    EnumField, EnumDataType,
+    EnumDataType,
     messages, enums, _internal
 )
 

@@ -101,13 +101,80 @@ struct PyField
 
     explicit PyField(std::string name_, bool has_ptype_, std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_)
         : name(std::move(name_)), has_ptype(has_ptype_), fields(std::move(message_)), parent_db_(std::move(parent_db_)) {};
-    nb::dict& get_values() const;
-    nb::dict& get_fields() const;
+    
+    //============================================================================
+    //! \brief Creates a shallow dictionary representing the field.
+    //! 
+    //! Subfields are left as objects instead of being converted to dictionaries.
+    //! 
+    //! \return A dictionary containing the field values.
+    //============================================================================
+    nb::dict& to_shallow_dict() const;
+
+    //============================================================================
+    //! \brief Retrieves all subfield definitions indexed by name.
+    //! \return A dictionary containing the fields.
+    //============================================================================
+    nb::dict& get_field_defs() const;
+
+    //============================================================================
+    //! \brief Retrieves the names of the subfields in order.
+    //! \return A list containing the field names.
+    //============================================================================
+    nb::list get_field_names() const;
+
+    //============================================================================
+    //! \brief Retrieves the values of the subfields in the order they appear.
+    //! \return A list containing the ordered field values.
+    //============================================================================
+    nb::list get_values() const;
+
+    //============================================================================
+    //! \brief Converts the object to a dictionary representation.
+    //! 
+    //! Subfields are converted to dictionaries.
+    //! 
+    //! \return A dictionary containing the object's data.
+    //============================================================================
     nb::dict to_dict() const;
+
+    //============================================================================
+    //! \brief Converts the object to a list representation.
+    //! \return A list of simple values and nested lists containing the object's data.
+    //============================================================================
+    nb::list to_list() const;
+
+    //============================================================================
+    //! \brief Retrieves the value of a field by its name.
+    //! \param field_name The name of the field to retrieve.
+    //! \return The value of the specified field as an nb::object.
+    //============================================================================
     nb::object getattr(nb::str field_name) const;
+
+    //============================================================================
+    //! \brief Retrieves the value of a field by its name using the subscript operator.
+    //! \param field_name The name of the field to retrieve.
+    //! \return The value of the specified field as an nb::object.
+    //============================================================================
     nb::object getitem(nb::str field_name) const;
+
+    //============================================================================
+    //! \brief Checks if a field with the given name exists in the object.
+    //! \param field_name The name of the field to check.
+    //! \return True if the field exists, otherwise false.
+    //============================================================================
     bool contains(nb::str field_name) const;
+
+    //============================================================================
+    //! \brief Retrieves the number of fields in the object.
+    //! \return The number of fields as a size_t.
+    //============================================================================
     size_t len() const;
+
+    //============================================================================
+    //! \brief Generates a string representation of the object.
+    //! \return A string representing the object.
+    //============================================================================
     std::string repr() const;
 
     std::vector<FieldContainer> fields;

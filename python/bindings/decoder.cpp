@@ -126,9 +126,9 @@ void init_novatel_decoder(nb::module_& m)
                 default: throw_exception_from_status(status);
                 }
             },
-            "message"_a, nb::sig("def decode_payload(self, raw_message: bytes) -> Message"),
+            "message"_a, nb::sig("def decode(self, raw_message: bytes) -> Message"),
             R"doc(
-            Decode the payload of a message given the associated header.
+            Decode the message from its raw byte representation.
 
             Args:
                 raw_message: A frame of raw bytes containing the message information to decode.

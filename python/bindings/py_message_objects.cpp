@@ -144,7 +144,7 @@ nb::object convert_field(const FieldContainer& field, const PyMessageDatabase::C
     }
 }
 
-nb::dict& PyField::get_values() const
+nb::dict& PyField::to_shallow_dict() const
 {
     if (cached_values_.size() == 0)
     {
@@ -156,7 +156,7 @@ nb::dict& PyField::get_values() const
     return cached_values_;
 }
 
-nb::dict& PyField::get_fields() const
+nb::dict& PyField::get_field_defs() const
 {
     if (cached_fields_.size() == 0)
     {
@@ -165,10 +165,46 @@ nb::dict& PyField::get_fields() const
     return cached_fields_;
 }
 
+nb::list PyField::get_field_names() const
+{
+    nb::list field_names = nb::list();
+    for (const auto& field : fields) { field_names.append(nb::cast(field.fieldDef->name)); }
+    return field_names;
+}
+
+nb::list PyField::get_values() const
+{
+    nb::list values = nb::list();
+    nb::dict& unordered_values = to_shallow_dict();
+    for (const auto& field_name : get_field_names()) { values.append(unordered_values[field_name]); }
+    return values;
+}
+
+nb::list PyField::to_list() const
+{
+    nb::list list = nb::list();
+    for (const auto& [field_name, value] : to_shallow_dict())
+    {
+        if (nb::isinstance<PyField>(value)) { list.append(nb::cast<PyField>(value).to_list()); }
+        else if (nb::isinstance<std::vector<nb::object>>(value))
+        {
+            nb::list sublist;
+            for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value))
+            {
+                if (nb::isinstance<PyField>(sub_item)) { sublist.append(nb::cast<PyField>(sub_item).to_list()); }
+                else { sublist.append(sub_item); }
+            }
+            list.append(sublist);
+        }
+        else { list.append(value); }
+    }
+    return list;
+}
+
 nb::dict PyField::to_dict() const
 {
     nb::dict dict;
-    for (const auto& [field_name, value] : get_values())
+    for (const auto& [field_name, value] : to_shallow_dict())
     {
         if (nb::isinstance<PyField>(value)) { dict[field_name] = nb::cast<PyField>(value).to_dict(); }
         else if (nb::isinstance<std::vector<nb::object>>(value))
@@ -189,12 +225,12 @@ nb::dict PyField::to_dict() const
 nb::object PyField::getattr(nb::str field_name) const
 {
     if (!contains(field_name)) { throw nb::attribute_error(field_name.c_str()); }
-    return get_values()[std::move(field_name)];
+    return to_shallow_dict()[std::move(field_name)];
 }
 
-nb::object PyField::getitem(nb::str field_name) const { return get_values()[std::move(field_name)]; }
+nb::object PyField::getitem(nb::str field_name) const { return to_shallow_dict()[std::move(field_name)]; }
 
-bool PyField::contains(nb::str field_name) const { return get_values().contains(std::move(field_name)); }
+bool PyField::contains(nb::str field_name) const { return to_shallow_dict().contains(std::move(field_name)); }
 
 size_t PyField::len() const { return fields.size(); }
 
@@ -203,7 +239,7 @@ std::string PyField::repr() const
     std::stringstream repr;
     repr << name << "(";
     bool first = true;
-    for (const auto& [field_name, value] : get_values())
+    for (const auto& [field_name, value] : to_shallow_dict())
     {
         if (!first) { repr << ", "; }
         first = false;
@@ -399,7 +435,7 @@ void init_header_objects(nb::module_& m)
         .def_ro("week", &oem::PyHeader::usWeek, "GPS reference wekk number.")
         .def_ro("milliseconds", &oem::PyHeader::dMilliseconds, "Milliseconds from the beginning of the GPS reference week.")
         .def_prop_ro("receiver_status", &oem::PyHeader::GetRecieverStatus,
-                "32-bits representing the status of various hardware and software components of the receiver.")
+                     "32-bits representing the status of various hardware and software components of the receiver.")
         .def_ro("message_definition_crc", &oem::PyHeader::uiMessageDefinitionCrc, "A value for validating the message definition used for decoding.")
         .def_ro("receiver_sw_version", &oem::PyHeader::usReceiverSwVersion, "A value (0 - 65535) representing the receiver software build number.")
         .def(
@@ -455,6 +491,47 @@ void init_message_objects(nb::module_& m)
         .def_ro("data", &PyUnknownBytes::data, "The raw bytes determined to be undecodable.");
 
     nb::class_<PyField>(m, "Field")
+        .def("__getattr__", &PyField::getattr, "field_name"_a)
+        .def("__repr__", &PyField::repr)
+        .def("__dir__",
+             [](nb::object self) {
+                 // get required Python builtin functions
+                 nb::module_ builtins = nb::module_::import_("builtins");
+                 nb::handle super = builtins.attr("super");
+                 nb::handle type = builtins.attr("type");
+
+                 // start from the 'Field' class instead of a specific subclass
+                 nb::handle current_type = type(self);
+                 std::string current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
+                 while (current_type_name != "Field")
+                 {
+                     current_type = (current_type.attr("__bases__"))[0];
+                     current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
+                 }
+
+                 // retrieve base list based on 'Field' superclass method
+                 nb::object super_obj = super(current_type, self);
+                 nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
+                 // add dynamic fields to the list
+                 PyField* body = nb::inst_ptr<PyField>(self);
+                 for (const auto& [field_name, _] : body->get_field_defs()) { base_list.append(field_name); }
+
+                 return base_list;
+             })
+        .def("get_field_names", &PyField::get_field_names,
+             R"doc(
+            Retrieves the name of every top-level field within the payload of this message.
+
+            Returns:
+                The name of every top-level field within the message payload.      
+            )doc")
+        .def("get_field_values", &PyField::get_values,
+            R"doc(
+            Retrieves the values of every top-level field within the payload of this message.
+
+            Returns:
+                The value of every top-level field within the message payload.
+            )doc")
         .def("to_dict", &PyField::to_dict,
              R"doc(
             Converts the field to a dictionary.
@@ -462,32 +539,13 @@ void init_message_objects(nb::module_& m)
             Returns:
                 A dictionary representation of the field.
             )doc")
-        .def("__getattr__", &PyField::getattr, "field_name"_a)
-        .def("__repr__", &PyField::repr)
-        .def("__dir__", [](nb::object self) {
-            // get required Python builtin functions
-            nb::module_ builtins = nb::module_::import_("builtins");
-            nb::handle super = builtins.attr("super");
-            nb::handle type = builtins.attr("type");
+        .def("to_list", &PyField::to_list,
+             R"doc(
+            Converts the field to a list.
 
-            // start from the 'Field' class instead of a specific subclass
-            nb::handle current_type = type(self);
-            std::string current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
-            while (current_type_name != "Field")
-            {
-                current_type = (current_type.attr("__bases__"))[0];
-                current_type_name = nb::cast<std::string>(current_type.attr("__name__"));
-            }
-
-            // retrieve base list based on 'Field' superclass method
-            nb::object super_obj = super(current_type, self);
-            nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
-            // add dynamic fields to the list
-            PyField* body = nb::inst_ptr<PyField>(self);
-            for (const auto& [field_name, _] : body->get_fields()) { base_list.append(field_name); }
-
-            return base_list;
-        });
+            Returns:
+                A list representation of the field.    
+            )doc");
 
     nb::class_<PyUnknownMessage>(m, "UnknownMessage")
         .def("__repr__",
