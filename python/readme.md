@@ -251,6 +251,23 @@ for msg in parser:
 
 Messages can also be transformed into other representations, such as a dictionary via the `to_dict()` method.
 
+If you wish to handle a specific message, for example `BESTPOS`, it is highly recommended that you identify them by checking their type:
+
+```
+# RIGHT 
+def handle_message(msg: Message):
+    if isinstance(msg, BESTPOS):
+        ...
+
+# WRONG
+def handle_message(msg: Message):
+    if msg.name == "BESTPOS":
+        ...
+```
+
+This is because using `isinstance` to identify the type will provide additional information to your IDE,
+allowing features such as autocomplete and syntax highlighting.
+
 ### Response
 
 [Responses](https://docs.novatel.com/OEM7/Content/Responses/OEM7_FW_Reponses.htm?tocpath=Commands%20%2526%20Logs%7C_____4) are similar to messages but specifically reflect information outputted by a receiver in response to an event.
@@ -322,7 +339,7 @@ unknown_bytes
 
 ### MessageData
 
-A `MessageData` object is a container for byte data reflecting a message/response in a particular format.
+A `MessageData` object is a container for for the raw bytes of a message/response in a particular format.
 It provides the advantage of being able to select either the header or payload of the message independently.
 
 ```tree
