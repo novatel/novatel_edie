@@ -1,0 +1,108 @@
+name: Benchmark Comparison
+
+on:
+  workflow_call:
+
+jobs:
+  benchmark-comparison:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+          fetch-depth: 0  # Needed to checkout main later
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build g++ jq bc
+
+      - name: Install Conan
+        id: conan
+        uses: turtlebrowser/get-conan@main
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Build current branch
+        run: |
+          cmake -S . -B build-current -DCMAKE_BUILD_TYPE=Release -G Ninja -DBUILD_BENCHMARKS=ON
+          cmake --build build-current --parallel --config Release
+
+      - name: Run current branch benchmarks
+        id: current_bench
+        run: |
+          ./build-current/bin/linux-x86_64-gnu-Release/benchmark --benchmark_format=json > current_benchmark.json
+          echo "current_json=$(jq -c '.' current_benchmark.json)" >> $GITHUB_OUTPUT
+
+      - name: Checkout main branch
+        run: git checkout main
+
+      - name: Build main branch
+        run: |
+          cmake -S . -B build-main -DCMAKE_BUILD_TYPE=Release -G Ninja -DBUILD_BENCHMARKS=ON
+          cmake --build build-main --parallel --config Release
+
+      - name: Run main branch benchmarks
+        id: main_bench
+        run: |
+          ./build-main/bin/linux-x86_64-gnu-Release/benchmark --benchmark_format=json > main_benchmark.json
+          echo "main_json=$(jq -c '.' main_benchmark.json)" >> $GITHUB_OUTPUT
+
+      - name: Compare benchmarks
+        run: |
+          current_benchmarks=$(echo '${{ steps.current_bench.outputs.current_json }}' | jq '.benchmarks')
+          main_benchmarks=$(echo '${{ steps.main_bench.outputs.main_json }}' | jq '.benchmarks')
+
+          declare -A current_results
+          declare -A main_results
+
+          while IFS= read -r line; do
+            name=$(jq -r '.name' <<< "$line")
+            time=$(jq -r '.real_time' <<< "$line")
+            current_results["$name"]=$time
+          done <<< $(echo "$current_benchmarks" | jq -c '.[]')
+
+          while IFS= read -r line; do
+            name=$(jq -r '.name' <<< "$line")
+            time=$(jq -r '.real_time' <<< "$line")
+            main_results["$name"]=$time
+          done <<< $(echo "$main_benchmarks" | jq -c '.[]')
+
+          failed=false
+          echo "## Benchmark Comparison Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Benchmark | Main (ns) | Current (ns) | Difference |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|----------|-------------|------------|" >> $GITHUB_STEP_SUMMARY
+
+          for benchmark in "${!main_results[@]}"; do
+            if [[ -n "${current_results[$benchmark]}" ]]; then
+              main_time=${main_results[$benchmark]}
+              current_time=${current_results[$benchmark]}
+              difference=$(echo "scale=2; (($current_time - $main_time) / $main_time) * 100" | bc)
+              
+              if (( $(echo "$difference > 20" | bc -l) )); then
+                echo "| ❌ $benchmark | $main_time | $current_time | +$difference% |" >> $GITHUB_STEP_SUMMARY
+                echo "::error::Benchmark '$benchmark' is $difference% slower than main!"
+                failed=true
+              else
+                echo "| ✅ $benchmark | $main_time | $current_time | +$difference% |" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "| ⚠️ $benchmark (missing) | $main_time | - | - |" >> $GITHUB_STEP_SUMMARY
+              echo "::warning::Benchmark '$benchmark' from main not found in current branch"
+            fi
+          done
+
+          for benchmark in "${!current_results[@]}"; do
+            if [[ -z "${main_results[$benchmark]}" ]]; then
+              echo "| 🆕 $benchmark (new) | - | ${current_results[$benchmark]} | - |" >> $GITHUB_STEP_SUMMARY
+              echo "::notice::New benchmark '$benchmark' found in current branch"
+            fi
+          done
+
+          if [[ "$failed" == true ]]; then
+            echo "::error::Some benchmarks are significantly slower than main!"
+            exit 1
+          fi
