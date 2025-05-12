@@ -82,12 +82,19 @@ endif()
 install(TARGETS python_bindings
     LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
     COMPONENT python)
-install(DIRECTORY novatel_edie_files/
+# Install default novatel_edie files
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie_files/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
+# Allow a project containing novatel_edie as a submodule to overwrite any python files with its own 
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/python/novatel_edie_files/
+        DESTINATION ${PYTHON_INSTALL_DIR}
+        COMPONENT python)
+# Install built-in database file
 install(FILES ${CMAKE_SOURCE_DIR}/database/database.json
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
+# Install the generated stubs
 install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
