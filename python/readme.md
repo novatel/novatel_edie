@@ -201,8 +201,6 @@ for bestpos_msg in parser:
 Using a filter can make parsing go much faster as it allows expensive decoding steps 
 to be skipped for filtered messages.
 
-
-
 ## Low-Level Parsing
 
 Look to the [convert_components.py](./examples/converter_components.py) example file for 
