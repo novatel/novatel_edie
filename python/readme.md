@@ -113,7 +113,7 @@ for msg in parser:
     elif isinstance(msg, ne.UnknownMessage):
         print(f"No definition was found for message with id: {msg.header.id}")
     elif isinstance(msg, ne.Message):
-        if isinstance(msg, ne_msgs.BESTPOS):
+        if isinstance(msg, ne_msgs.BESTPOS):    # use this instead of 'msg.name==...' for better type-hints
             print(f"Estimated position: (lat={msg.latitude}, long={msg.longitude})")
         else:
             print(f"Message with type: {msg.name}")
@@ -194,7 +194,8 @@ bestpos_filter.message_names_excluded = False    # Set filter to be inclusive
 parser = ne.Parser()
 parser.filter = bestpos_filter
 for bestpos_msg in parser:
-    ...
+    if isinstance(msg, ne_msgs.BESTPOS):    # still worth doing to enable type-hinting in IDE
+        ...
 ```
 
 Using a filter can make parsing go much faster as it allows expensive decoding steps 
