@@ -267,6 +267,13 @@ struct MetaDataBase
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
     std::string messageName;
+
+    bool operator==(const MetaDataBase& other_) const
+    {
+        return bResponse == other_.bResponse && usWeek == other_.usWeek && IsEqual(dMilliseconds, other_.dMilliseconds) &&
+               uiLength == other_.uiLength && uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId &&
+               uiMessageCrc == other_.uiMessageCrc && messageName == other_.messageName;
+    }
 };
 
 } // namespace novatel::edie
