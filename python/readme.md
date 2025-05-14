@@ -190,7 +190,7 @@ Which messages are parsed can be manipulated by attaching a `Filter` to either p
 ```python
 bestpos_filter = ne.Filter()
 bestpos_filter.add_message_name('BESTPOS')      # Filter BESTPOS messages
-bestpos_filter.exclude_message_names = False    # Set filter to be inclusive
+bestpos_filter.message_names_excluded = False    # Set filter to be inclusive
 parser = ne.Parser()
 parser.filter = bestpos_filter
 for bestpos_msg in parser:
@@ -199,6 +199,8 @@ for bestpos_msg in parser:
 
 Using a filter can make parsing go much faster as it allows expensive decoding steps 
 to be skipped for filtered messages.
+
+
 
 ## Low-Level Parsing
 
