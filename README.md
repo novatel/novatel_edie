@@ -142,21 +142,21 @@ Examples are provided in the [examples](examples) folder.
 
 ### File Parser Format Conversion
 
-[This example](.\examples\novatel\converter_file_parser\converter_file_parser.cpp) shows how to convert a file 
+[This example](./examples/novatel/converter_file_parser/converter_file_parser.cpp) shows how to convert a file 
 from one format to another using the FileParser class.
 
 Run the resulting executable with the following command: `converter_file_parser.exe <path_to_json_db> <input_file> <output_format>`
 
 ### Parser Format Conversion
 
-[This example](.\examples\novatel\converter_parser\converter_parser.cpp) shows how to write bytes to the internal
+[This example](./examples/novatel/converter_parser/converter_parser.cpp) shows how to write bytes to the internal
 buffer of a Parser and have it convert those bytes to a specified format.
 
 Run the resulting executable with the following command: `converter_parser.exe <path_to_json_db> <input_file> <output_format>`
 
 ### Piecewise Conversion
 
-[This example](.\examples\novatel\converter_components\converter_components.cpp) shows how to use the individual components of the decoder stack
+[This example](./examples/novatel/converter_components/converter_components.cpp) shows how to use the individual components of the decoder stack
 in order to convert a file from one format to another.
 It demonstrates how to use the JsonReader, Framer, Filter HeaderDecoder, MessageDecoder, Encoder classes to achieve 
 fine-grained control over the conversion process.
@@ -165,20 +165,20 @@ Run the resulting executable with the following command: `converter_components.e
 
 ### Adding Message Definitions
 
-[This example](.\examples\novatel\json_parser\json_parser.cpp) shows how to dynamically add message definitions to the JsonReader class.
+[This example](./examples/novatel/json_parser/json_parser.cpp) shows how to dynamically add message definitions to the JsonReader class.
 
 Run the resulting executable with the following command: `converter_parser.exe <path_to_json_db> <input_file> <output_format> <msg_def_json_string>`
 
 ### Decompressing Range Logs
 
-[This example](.\examples\novatel\range_decompressor\range_decompressor.cpp) shows how to decompress range logs.
+[This example](./examples/novatel/range_decompressor/range_decompressor.cpp) shows how to decompress range logs.
 For example go from [RANGECMP4](https://docs.novatel.com/OEM7/Content/Logs/RANGECMP4.htm) to [RANGE](https://docs.novatel.com/OEM7/Content/Logs/RANGE.htm).
 
 Run the resulting executable with the following command: `range_decompressor.exe <path_to_json_db> <input_file> <output_format>`
 
 ### Command Encoding
 
-[This example](.\examples\novatel\command_encoding\command_encoding.cpp) shows how to
+[This example](./examples/novatel/command_encoding/command_encoding.cpp) shows how to
 use the Commander class to encode a command from 
 [Abbreviated ASCII](https://docs.novatel.com/OEM7/Content/Messages/Abbreviated_ASCII.htm) to an
 [ASCII](https://docs.novatel.com/OEM7/Content/Messages/ASCII.htm) or
@@ -189,7 +189,7 @@ Run the resulting executable with the following command: `command_encoding.exe <
 
 ### Converting RXConfig Logs
 
-[This example](.\examples\novatel\rxconfig_handler\rxconfig_handler.cpp) shows how to use the RxConfigHandler class 
+[This example](./examples/novatel/rxconfig_handler/rxconfig_handler.cpp) shows how to use the RxConfigHandler class 
 to convert [RXConfig](https://docs.novatel.com/OEM7/Content/Logs/RXCONFIG.htm?Highlight=RXConfig) logs to another format.
 Converting RXConfig logs requires special treatment due to their outlying message protocol.
 
