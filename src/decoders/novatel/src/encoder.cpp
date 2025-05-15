@@ -179,9 +179,12 @@ bool Encoder::EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_)
 {
+    static uint32_t uiBoolValue;
     switch (fc_.fieldDef->dataType.name)
     {
-    case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, reinterpret_cast<const int32_t*>(&std::get<bool>(fc_.fieldValue)));
+    case DATA_TYPE::BOOL: 
+        uiBoolValue = std::get<bool>(fc_.fieldValue);
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &uiBoolValue);
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
     case DATA_TYPE::UCHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint8_t>(fc_.fieldValue));
     case DATA_TYPE::CHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<int8_t>(fc_.fieldValue));
