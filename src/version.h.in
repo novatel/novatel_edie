@@ -1,6 +1,6 @@
 #include <string>
 
-#define RELEASE_VERSION "3.3.7"
+#define RELEASE_VERSION "3.3.8"
 #define GIT_SHA "@GIT_SHA@"
 #define GIT_BRANCH "@GIT_BRANCH@"
 #define GIT_IS_DIRTY @GIT_IS_DIRTY@
