@@ -53,7 +53,7 @@ class RxConfigHandler
     static constexpr std::string_view szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
     static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
 
-    static std::unique_ptr<Framer> pclMyFramer;
+    std::shared_ptr<Framer> pclMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;

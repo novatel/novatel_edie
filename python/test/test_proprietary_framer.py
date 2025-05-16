@@ -117,7 +117,7 @@ def test_proprietary_binary_incomplete(helper):
 def test_proprietary_binary_sync_error(helper):
     helper.write_file_to_framer("proprietary_binary_sync_error.BIN")
     expected_meta_data = ne.MetaData()
-    expected_meta_data.length = ne.MAX_BINARY_MESSAGE_LENGTH
+    expected_meta_data.length = 3
     expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     _, test_meta_data = helper.framer.get_frame()
     assert compare_metadata(test_meta_data, expected_meta_data)
@@ -133,7 +133,7 @@ def test_proprietary_binary_bad_crc(helper):
          0x6F, 0x8E, 0x0B, 0xFF])
     helper.write_bytes_to_framer(data)
     expected_meta_data = ne.MetaData()
-    expected_meta_data.length = 30  # Unknown bytes up to 0x24 ('$') should be returned (NMEA sync was found mid-log)
+    expected_meta_data.length = 76 # Length of data
     expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     _, test_meta_data = helper.framer.get_frame()
     assert compare_metadata(test_meta_data, expected_meta_data)

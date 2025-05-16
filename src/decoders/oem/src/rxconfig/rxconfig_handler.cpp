@@ -29,9 +29,6 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-// Define Static Framer
-std::unique_ptr<Framer> RxConfigHandler::pclMyFramer = nullptr;
-
 // -------------------------------------------------------------------------------------------------------
 RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
     : clMyHeaderDecoder(pclMessageDb_), clMyMessageDecoder(pclMessageDb_), clMyEncoder(pclMessageDb_),
@@ -42,8 +39,19 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
 
     pclMyLogger->debug("RxConfigHandler initializing...");
 
-    auto pclMyCircularBuffer = std::make_shared<CircularBuffer>();
-    pclMyFramer = std::make_unique<Framer>(pclMyCircularBuffer);
+    pclMyFramer = std::make_shared<Framer>();
+    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
+
+    pclMyLogger->debug("RxConfigHandler initialized");
+}
+
+RxConfigHandler::RxConfigHandler(std::shared_ptr<Framer> framer, const MessageDatabase::Ptr& pclMessageDb_)
+    : clMyHeaderDecoder(pclMessageDb_), clMyMessageDecoder(pclMessageDb_), clMyEncoder(pclMessageDb_),
+      pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)),
+      pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)), pclMyFramer(framer)
+{
+    pclMyLogger = pclLoggerManager->RegisterLogger("rxconfig_handler");
+    pclMyLogger->debug("RxConfigHandler initializing...");
 
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 

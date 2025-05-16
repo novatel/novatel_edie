@@ -27,10 +27,11 @@
 # \brief Unit tests for OEM Framer, Decoder,
 # Encoder and Filter.
 ################################################################################
+import logging
 
 import novatel_edie as ne
 import pytest
-from novatel_edie import STATUS, ENCODE_FORMAT
+from novatel_edie import STATUS, ENCODE_FORMAT, _internal, enable_internal_logging, disable_internal_logging
 
 
 @pytest.fixture(scope="function")
