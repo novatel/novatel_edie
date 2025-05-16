@@ -101,6 +101,7 @@ std::unique_ptr<Framer> ProprietaryFramerTest::pclMyFramer = nullptr;
 std::unique_ptr<std::istream> ProprietaryFramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> ProprietaryFramerTest::pucMyTestFrameBuffer = nullptr;
 std::shared_ptr<CircularBuffer> ProprietaryFramerTest::pclMyCircularBuffer = nullptr;
+// clang-format off
 
 // -------------------------------------------------------------------------------------------------------
 // Proprietary Binary Framer Unit Tests

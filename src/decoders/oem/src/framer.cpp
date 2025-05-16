@@ -35,7 +35,8 @@ using namespace novatel::edie::oem;
 Framer::Framer() : FramerBase("novatel_framer") {}
 
 // -------------------------------------------------------------------------------------------------------
-Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("novatel_framer", circularBuffer) {
+Framer::Framer(std::shared_ptr<CircularBuffer> circularBuffer) : FramerBase("novatel_framer", circularBuffer)
+{
     pclMyLogger->info("Framer initialized");
 }
 

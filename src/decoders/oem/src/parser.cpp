@@ -53,8 +53,7 @@ Parser::Parser(MessageDatabase::Ptr pclMessageDb_) : pclMyFramer(std::make_share
 {
     try
     {
-        if (pclMessageDb_ != nullptr) { 
-            LoadJsonDb(pclMessageDb_); }
+        if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
         pclMyLogger->debug("Parser initialized");
     }
     catch (const std::exception& e)
