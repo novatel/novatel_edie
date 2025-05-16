@@ -31,12 +31,11 @@
 #include <iostream>
 
 #include <novatel_edie/common/logger.hpp>
+#include <novatel_edie/decoders/common/framer_manager.hpp>
+#include <novatel_edie/decoders/common/framer_registration.hpp>
 #include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/filter.hpp>
-//#include <novatel_edie/decoders/oem/framer.hpp>
-#include <novatel_edie/decoders/common/framer_manager.hpp>
-#include <novatel_edie/decoders/common/framer_registration.hpp>
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
 #include <novatel_edie/version.h>
@@ -143,7 +142,7 @@ int main(int argc, char* argv[])
     std::vector<FieldContainer> stMessage;
 
     MetaDataBase* stMetaDataPtr;
-    //MetaDataStruct stMetaData;
+    // MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
     // Setup file streams
@@ -153,7 +152,7 @@ int main(int argc, char* argv[])
 
     tStart = std::chrono::high_resolution_clock::now();
 
-    //int activeFramer = 0;
+    // int activeFramer = 0;
 
     uint32_t counter = 0;
 
@@ -166,11 +165,10 @@ int main(int argc, char* argv[])
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
-            if (counter == 118)
-                int i = 0;
+            if (counter == 118) int i = 0;
             std::cout << "Counter: " << counter++ << std::endl;
             unsigned char* pucFrameBuffer = acFrameBuffer;
-            
+
             eFramerStatus = clFramer.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaDataPtr);
 
             if (eFramerStatus == STATUS::SUCCESS)
@@ -186,7 +184,7 @@ int main(int argc, char* argv[])
                     }
 
                     pucFrameBuffer[stMetaData.uiLength] = '\0';
-                    //pclLogger->info("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
+                    // pclLogger->info("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
 
                     // Decode the header. Get metadata here and populate the Intermediate header.
                     eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
@@ -210,7 +208,8 @@ int main(int argc, char* argv[])
                             {
                                 convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
-                                //pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength, reinterpret_cast<char*>(pucEncodedMessageBuffer));
+                                // pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength,
+                                // reinterpret_cast<char*>(pucEncodedMessageBuffer));
                             }
                             else
                             {

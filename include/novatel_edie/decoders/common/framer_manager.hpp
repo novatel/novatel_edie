@@ -71,10 +71,8 @@ class FramerManager
 
     explicit FramerManager(const std::vector<std::string>& selectedFramers = {});
 
-
-    static void FramerManager::RegisterFramer(const std::string& name,
-                                              std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory,
-                                              std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor);
+    static void RegisterFramer(const std::string& name, std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory,
+                               std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
     //
@@ -97,27 +95,12 @@ class FramerManager
     void ResetAllFramerStates();
 
     //----------------------------------------------------------------------------
-    //! \brief Reset the state of all metadata in the framer registry.
-    //---------------------------------------------------------------------------
-    // void ResetAllMetaDataStates();
-
-    //----------------------------------------------------------------------------
     //! \brief Configure the framer manager to return unknown bytes in the provided
     //! buffer.
     //
     //! \param[in] bReportUnknownBytes_ Set to true to return unknown bytes.
     //----------------------------------------------------------------------------
     void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
-
-    //----------------------------------------------------------------------------
-    //! \brief Get the FramerManager instance.
-    //! \return The FramerManager instance.
-    //----------------------------------------------------------------------------
-    // static FramerManager& GetInstance()
-    //{
-    //    static FramerManager instance; // Singleton
-    //    return instance;
-    //}
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal circular buffer.
@@ -130,13 +113,6 @@ class FramerManager
     //! \brief A destructor for the FramerBase class.
     //----------------------------------------------------------------------------
     ~FramerManager() = default;
-
-    static FramerManager& GetInstance()
-    {
-        static FramerManager instance({}); // Default empty framer list
-        std::cerr << "[DEBUG] FramerManager::GetInstance() called - instance initialized.\n";
-        return instance;
-    }
 
     //----------------------------------------------------------------------------
     //! \brief Get the pointer to a FramerElement Structure for specified framer.
@@ -234,12 +210,7 @@ class FramerManager
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const;
 
-    // void ResetInactiveFramerStates(const int& activeFramer_);
-
-    // void ResetInactiveMetaDataStates(const int& activeFramer_);
-
     std::deque<FramerEntry> framerRegistry;
-    // static std::unordered_map<std::string, FramerEntry>& GetFramerFactories();
 };
 
 } // namespace novatel::edie
