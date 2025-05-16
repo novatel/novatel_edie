@@ -122,8 +122,9 @@ class FramerBase
     FramerBase(const std::string& strLoggerName_, const std::shared_ptr<CircularBuffer> circularBuffer_)
         : pclMyLogger(Logger::RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(circularBuffer_)
     {
+        pclMyLogger->debug("FramerBase initializing...");
         pclMyCircularDataBuffer->Clear();
-        pclMyLogger->debug("Framer initialized");
+        pclMyLogger->debug("FramerBase initialized");
     }
 
     //----------------------------------------------------------------------------

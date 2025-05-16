@@ -53,7 +53,7 @@ class RxConfigHandler
     static constexpr auto szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
     static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
 
-    static std::unique_ptr<Framer> pclMyFramer;
+    std::shared_ptr<Framer> pclMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
@@ -83,6 +83,13 @@ class RxConfigHandler
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_ = nullptr);
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the RxConfigHandler class.
+    //
+    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
+    //----------------------------------------------------------------------------
+    RxConfigHandler(std::shared_ptr<Framer> pclFramer, const MessageDatabase::Ptr& pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.

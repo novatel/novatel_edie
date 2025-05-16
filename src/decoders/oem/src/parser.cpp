@@ -32,21 +32,36 @@ using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // -------------------------------------------------------------------------------------------------------
-Parser::Parser(const std::filesystem::path& sDbPath_)
+Parser::Parser(const std::filesystem::path& sDbPath_) : pclMyFramer(std::make_shared<Framer>()), clMyRxConfigHandler(pclMyFramer)
 {
-    auto pclMessageDb = LoadJsonDbFile(sDbPath_);
-    LoadJsonDb(pclMessageDb);
-    pclMyLogger->info("Parser initialized with JSON DB: {}", sDbPath_.generic_string());
-    pclMyFramer = std::make_unique<Framer>();
-    pclMyLogger->debug("Parser initialized");
+    try
+    {
+        auto pclMessageDb = LoadJsonDbFile(sDbPath_);
+        LoadJsonDb(pclMessageDb);
+        pclMyLogger->info("Parser initialized with JSON DB: {}", sDbPath_.generic_string());
+        pclMyLogger->debug("Parser initialized");
+    }
+    catch (const std::exception& e)
+    {
+        pclMyLogger->error("Failed to initialize Parser: {}", e.what());
+        throw;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------
-Parser::Parser(MessageDatabase::Ptr pclMessageDb_)
+Parser::Parser(MessageDatabase::Ptr pclMessageDb_) : pclMyFramer(std::make_shared<Framer>()), clMyRxConfigHandler(pclMyFramer, pclMessageDb_)
 {
-    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
-    pclMyFramer = std::make_unique<Framer>();
-    pclMyLogger->debug("Parser initialized");
+    try
+    {
+        if (pclMessageDb_ != nullptr) { 
+            LoadJsonDb(pclMessageDb_); }
+        pclMyLogger->debug("Parser initialized");
+    }
+    catch (const std::exception& e)
+    {
+        pclMyLogger->error("Failed to initialize Parser: {}", e.what());
+        throw;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------

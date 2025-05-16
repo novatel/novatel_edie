@@ -37,7 +37,7 @@
 class CircularBuffer
 {
   private:
-    std::unique_ptr<unsigned char[]> pucMyBuffer; //!< Data buffer (circular buffer)
+    std::shared_ptr<unsigned char[]> pucMyBuffer; //!< Data buffer (circular buffer)
     uint32_t uiMyCapacity{0};                     //!< Capacity of data buffer (bytes)
     uint32_t uiMyLength{0};                       //!< Amount of data currently in buffer (bytes)
     unsigned char* pucMyHead{nullptr};            //!< Logical beginning of buffer

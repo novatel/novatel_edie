@@ -54,7 +54,7 @@ class Parser
 
     MessageDatabase::Ptr pclMyMessageDb;
     Filter::Ptr pclMyUserFilter;
-    std::unique_ptr<oem::Framer> pclMyFramer;
+    std::shared_ptr<oem::Framer> pclMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
