@@ -64,21 +64,15 @@ class ProprietaryFramerTest : public ::testing::Test
         pclMyIFS = std::make_unique<std::ifstream>(std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_, std::ios::binary);
 
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
-        uint32_t uiBytesWritten = 0;
 
         while (!pclMyIFS->eof())
         {
             pclMyIFS->read(cData.data(), cData.size());
-            uiBytesWritten = pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount());
-            ASSERT_NE(uiBytesWritten, 0);
-            ASSERT_EQ(uiBytesWritten, pclMyIFS->gcount());
+            ASSERT_TRUE(pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount()));
         }
     }
 
-    static void WriteBytesToFramer(unsigned char* pucBytes_, uint32_t uiNumBytes_)
-    {
-        ASSERT_EQ(pclMyFramer->Write(pucBytes_, uiNumBytes_), uiNumBytes_);
-    }
+    static void WriteBytesToFramer(unsigned char* pucBytes_, uint32_t uiNumBytes_) { ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_)); }
 
     static void FlushFramer()
     {

@@ -267,11 +267,11 @@ bool Filter::FilterMessage(const MetaDataStruct& stMetaData_) const
 {
     if (vMyMessageNameFilters.empty()) { return true; }
 
-    std::string szMessageName = stMetaData_.messageName;
+    std::string_view szMessageName = stMetaData_.messageName;
     HEADER_FORMAT eFormat = stMetaData_.eFormat;
     MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
 
-    const auto isMessageNameFilterMatch = [&szMessageName, eSource](const std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>& elem_) {
+    const auto isMessageNameFilterMatch = [&szMessageName, eSource](const std::tuple<std::string_view, HEADER_FORMAT, MEASUREMENT_SOURCE>& elem_) {
         return szMessageName == std::get<0>(elem_) && HEADER_FORMAT::ALL == std::get<1>(elem_) && eSource == std::get<2>(elem_);
     };
 

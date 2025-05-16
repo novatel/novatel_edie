@@ -14,3 +14,5 @@ jobs:
     uses: ./.github/workflows/build_python.yml
   build-cpp:
     uses: ./.github/workflows/build_cpp.yml
+  benchmark-comparison:
+    uses: ./.github/workflows/benchmark.yml

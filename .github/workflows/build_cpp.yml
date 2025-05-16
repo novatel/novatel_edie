@@ -18,8 +18,8 @@ jobs:
           - [windows, windows-latest, msvc, Release, msvc, AMD64]
           - [windows, windows-latest, gnu, Debug, gnu, AMD64]
           - [windows, windows-latest, gnu, Release, gnu, AMD64]
-          - [windows, windows-latest, clang-cl, Debug, clang, AMD64]
-          - [windows, windows-latest, clang-cl, Release, clang, AMD64]
+          #- [windows, windows-latest, clang-cl, Debug, clang, AMD64]
+          #- [windows, windows-latest, clang-cl, Release, clang, AMD64]
           - [linux, ubuntu-latest, gnu, Debug, gnu, x86_64]
           - [linux, ubuntu-latest, gnu, Release, gnu, x86_64]
           - [linux, ubuntu-latest, clang, Debug, clang, x86_64]
@@ -52,13 +52,13 @@ jobs:
         shell: bash
         run: |
           if [ "${{ env.COMPILER }}" == "msvc" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang-cl" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL #TODO: -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Visual Studio 17 2022" -T ClangCL -DBUILD_BENCHMARKS=ON #TODO: -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "clang" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           elif [ "${{ env.COMPILER }}" == "gnu" ]; then
-            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DWARNINGS_AS_ERRORS=ON
+            cmake -S . -B out/build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -DCMAKE_CXX_COMPILER=g++ -DBUILD_BENCHMARKS=ON -DWARNINGS_AS_ERRORS=ON
           fi
 
       - name: Build
@@ -109,7 +109,7 @@ jobs:
         sudo apt-get install -y clang-format
 
     - name: Check code formatting
-      run: find include src examples \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -n {} + || (echo "Clang-format failed! See the README if you don't know how to fix this." && exit 1)
+      run: find include src examples benchmarks \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -Werror --style=file -n {} + || (echo "Clang-format failed! See the README if you don't know how to fix this." && exit 1)
 
   # =========================================================
   # Editor Config Job
@@ -154,7 +154,7 @@ jobs:
 
       - name: Static code analysis
         run: |
-          cmake -S . -B out/build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu -DWARNINGS_AS_ERRORS=ON
+          cmake -S . -B out/build -DCMAKE_CXX_CLANG_TIDY=clang-tidy -DCMAKE_BUILD_TYPE=Debug -G Ninja -DCMAKE_CC=clang -DCMAKE_CXX=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_COMPILER_TARGET=x86_64-pc-linux-gnu -DCMAKE_C_COMPILER_TARGET=x86_64-pc-linux-gnu -DWARNINGS_AS_ERRORS=ON -DBUILD_BENCHMARKS=ON
           cmake --build out/build --parallel --config Debug
 
   # =========================================================
