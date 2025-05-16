@@ -35,7 +35,7 @@
 #include "novatel_edie/decoders/oem/common.hpp"
 
 namespace novatel::edie::oem {
-
+// TODO: Make filter a common base class.
 //============================================================================
 //! \class Filter
 //! \brief Filter notifies the caller if a message should be accepted or
