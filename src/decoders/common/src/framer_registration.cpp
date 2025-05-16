@@ -28,9 +28,9 @@
 #define FRAMER_REGISTRATION_HPP
 
 // Include all Framer headers
+#include "novatel_edie/decoders/common/framer_manager.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "novatel_edie/decoders/oem/framer.hpp"
-#include "novatel_edie/decoders/common/framer_manager.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -47,6 +47,8 @@ inline void RegisterAllFramers()
             []() -> std::unique_ptr<MetaDataBase> { return std::make_unique<MetaDataStruct>(); });
         return true;
     })();
+
+    (void)registerOEMFramer; // Explicitly cast to void to suppress unused variable warning.
 }
 
 #endif // FRAMER_REGISTRATION_HPP
