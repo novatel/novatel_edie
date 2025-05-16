@@ -132,38 +132,6 @@ static void FrameJson(benchmark::State& state)
     Frame(state, bestsatsJson);
 }
 
-template <size_t N> static void Frame(benchmark::State& state, const unsigned char(&data)[N])
-{
-    std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> buffer;
-    
-    for ([[maybe_unused]] auto _ : state) {
-        (void)clFramer.Write(data, sizeof(data));
-        (void)clFramer.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
-    }
-    
-    state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
-}
-
-static void FrameAscii(benchmark::State& state)
-{
-    Frame(state, bestposAscii);
-}
-
-static void FrameAbbAscii(benchmark::State& state)
-{
-    Frame(state, bestposAbbAscii);
-}
-
-static void FrameBinary(benchmark::State& state)
-{
-    Frame(state, bestposBinary);
-}
-
-static void FrameJson(benchmark::State& state)
-{
-    Frame(state, bestsatsJson);
-}
-
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
