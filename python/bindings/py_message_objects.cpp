@@ -288,7 +288,7 @@ PyMessageData PyEncodableField::to_abbrev_ascii() { return PyEncode(*this, this-
 
 PyMessageData PyEncodableField::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
 
-PyMessageData PyEncodableField::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
+PyMessageData PyEncodableField::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::FLATTENED_BINARY); }
 
 PyMessageData PyEncodableField::to_json() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::JSON); }
 
@@ -575,7 +575,7 @@ void init_message_objects(nb::module_& m)
         .def("to_ascii", &PyMessage::to_ascii)
         .def("to_abbrev_ascii", &PyMessage::to_abbrev_ascii)
         .def("to_binary", &PyMessage::to_binary)
-        .def("to_flattended_binary", &PyMessage::to_flattened_binary)
+        .def("to_flattened_binary", &PyMessage::to_flattened_binary)
         .def("to_json", &PyMessage::to_json)
         .def(
             "to_dict",
