@@ -63,7 +63,7 @@ class Helper:
         return (self.test_resources / filename).read_bytes()
 
     def write_bytes_to_framer(self, data):
-        assert self.framer.write(data) == len(data)
+        assert self.framer.write(data)
 
     def write_file_to_framer(self, filename):
         data = self.get_file_contents(filename)

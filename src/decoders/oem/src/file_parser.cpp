@@ -65,8 +65,7 @@ bool FileParser::ReadStream()
 {
     std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData{};
     pclMyInputStream->read(cData.data(), cData.size());
-    return pclMyInputStream->gcount() > 0 &&
-           clMyParser.Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyInputStream->gcount()) == pclMyInputStream->gcount();
+    return pclMyInputStream->gcount() > 0 && clMyParser.Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyInputStream->gcount());
 }
 
 // -------------------------------------------------------------------------------------------------------
