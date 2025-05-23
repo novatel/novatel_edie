@@ -1,6 +1,7 @@
 #include "novatel_edie/decoders/common/common.hpp"
 
 #include "bindings_core.hpp"
+#include "message_db_singleton.hpp"
 #include "novatel_edie/version.h"
 
 namespace nb = nanobind;
@@ -73,6 +74,48 @@ void init_common_common(nb::module_& m)
         .def_rw("frequency_channel", &SatelliteId::sFrequencyChannel, "The frequency channel if it is a GLONASS satilite, otherwise left as zero.")
         .def("__repr__", [](SatelliteId id) {
             return nb::str("SatelliteId(prn_or_slot={!r}, frequency_channel={!r})").format(id.usPrnOrSlot, id.sFrequencyChannel);
+        });
+
+    nb::class_<MetaDataBase>(m, "MetaDataBase", R"doc(
+            Metadata for a specific message.
+        
+            Used as a storehouse for information during piece-wise decoding.)doc")
+        .def(nb::init())
+        .def_rw("format", &MetaDataBase::eFormat)
+        .def_rw("response", &MetaDataBase::bResponse)
+        .def_rw("week", &MetaDataBase::usWeek)
+        .def_rw("milliseconds", &MetaDataBase::dMilliseconds)
+        .def_rw("binary_msg_length", &MetaDataBase::uiBinaryMsgLength,
+                "Message length according to the binary header. If ASCII, this field is not used.")
+        .def_rw("length", &MetaDataBase::uiLength, "Length of the entire log, including the header and CRC.")
+        .def_rw("header_length", &MetaDataBase::uiHeaderLength, "The length of the message header. Used for NovAtel logs.")
+        .def_rw("message_id", &MetaDataBase::usMessageId)
+        .def_rw("message_crc", &MetaDataBase::uiMessageCrc)
+        .def_prop_rw(
+            "message_name", [](const MetaDataBase& self) { return self.messageName; },
+            [](MetaDataBase& self, const std::string& message_name) {
+                if (message_name.length() > MAX_ASCII_MESSAGE_LENGTH) { throw std::runtime_error("Message name is too long"); }
+                self.messageName = message_name;
+            })
+        .def_prop_ro("message_description",
+                     [](const MetaDataBase& self) {
+                         auto msg_def = MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
+                         return msg_def ? nb::cast(msg_def->description) : nb::none();
+                     })
+        .def_prop_ro("message_fields",
+                     [](const MetaDataBase& self) {
+                         auto msg_def = MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
+                         if (!msg_def) { return nb::none(); }
+                         auto fields_it = msg_def->fields.find(self.uiMessageCrc);
+                         return fields_it == msg_def->fields.end() ? nb::none() : nb::cast(fields_it->second);
+                     })
+        .def("__repr__", [](const nb::handle self) {
+            auto& metadata = nb::cast<MetaDataBase&>(self);
+            return nb::str("MetaData(message_name={!r}, format={!r}, measurement_source={!r}, time_status={!r}, response={!r}, "
+                           "week={!r}, milliseconds={!r}, binary_msg_length={!r}, length={!r}, header_length={!r}, message_id={!r}, "
+                           "message_crc={!r})")
+                .format(metadata.messageName, metadata.eFormat, metadata.bResponse, metadata.usWeek, metadata.dMilliseconds,
+                        metadata.uiBinaryMsgLength, metadata.uiLength, metadata.uiHeaderLength, metadata.usMessageId, metadata.uiMessageCrc);
         });
 
     m.attr("MAX_MESSAGE_LENGTH") = MESSAGE_SIZE_MAX;

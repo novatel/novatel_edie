@@ -188,11 +188,17 @@ class FramerManager
     //---------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase*& stMetaData_);
 
-    // std::unordered_map<std::string, int> idMap;
+    //----------------------------------------------------------------------------
+    //! \brief Return the list of framer factory function pointers
+    //
+    //! \return A map of the framer name, framer factory function pointer, and metadata constructor function pointer.
+    //---------------------------------------------------------------------------
+    static auto GetFramerFactories()
+        -> std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)>,
+                                                     std::function<std::unique_ptr<MetaDataBase>()>>>&;
 
-    static std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)>,
-                                                     std::function<std::unique_ptr<MetaDataBase>()>>>&
-    GetFramerFactories();
+  protected:
+    bool bMyReportUnknownBytes{true};
 
   private:
     //! NOTE: disable copies and moves.
@@ -205,8 +211,6 @@ class FramerManager
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
-
-    bool bMyReportUnknownBytes{true};
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const;
 

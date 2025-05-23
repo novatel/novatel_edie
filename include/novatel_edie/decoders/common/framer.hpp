@@ -119,6 +119,7 @@ class FramerBase
     //! \brief A constructor for the FramerBase class.
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
+    //! \param[in] circularBuffer_ pointer to an already created sharable circular_buffer.
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_, const std::shared_ptr<CircularBuffer> circularBuffer_)
         : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(circularBuffer_)
@@ -210,7 +211,7 @@ class FramerBase
     }
 
     ////----------------------------------------------------------------------------
-    ////! \brief Flush bytes from the internal circular buffer. IMPORTANT: THIS DOES NOT HANDLE UNKNOWN BYTES
+    ////! \brief Flush bytes from the internal circular buffer. 
     ////
     ////! \param[in] uiBufferSize_ The size of the provided buffer.
     ////
