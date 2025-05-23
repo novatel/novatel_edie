@@ -40,7 +40,7 @@ from .bindings import (
     enable_internal_logging, disable_internal_logging, calculate_crc,
     UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime, SatelliteId,
     MessageDatabase, get_builtin_database,
-    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
+    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaDataBase, MetaData, MessageData,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
     register_all_framers, FramerManager, Framer, Filter, Decoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,

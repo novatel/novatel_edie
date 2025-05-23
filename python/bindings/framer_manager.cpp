@@ -1,10 +1,11 @@
 #include "novatel_edie/decoders/common/framer_manager.hpp"
 
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+
 #include "bindings_core.hpp"
 #include "exceptions.hpp"
 #include "framer_manager.hpp"
-#include <nanobind/stl/string.h>
-#include <nanobind/stl/vector.h>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -12,30 +13,37 @@ using namespace novatel::edie;
 
 nb::tuple PyFramerManager::PyGetFrame(uint32_t buffer_size)
 {
+    std::cerr << "[DEBUG] PyFramerManager::PyGetFrame entered\n";
     std::vector<char> buffer(buffer_size);
     static MetaDataBase* metadata; // maintain metadata until frame is returned
     MetaDataBase metadata_copy;
+    std::cerr << "[DEBUG] PyFramerManager Before GetFrame\n";
     STATUS status = GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
+    std::cerr << "[DEBUG] PyFramerManager Status: " << status << "\n ";
     switch (status)
     {
     case STATUS::UNKNOWN: // fall-through
     case STATUS::SUCCESS:
+        std::cerr << "[DEBUG] Before copy metadata      address: " << metadata << "\n ";
+        std::cerr << "[DEBUG] Before copy metadata_copy address: " << &metadata_copy << "\n ";
         metadata_copy = MetaDataBase(*metadata);
         metadata = new MetaDataBase();
+        std::cerr << "[DEBUG] After copy metadata       address: " << metadata << "\n ";
+        std::cerr << "[DEBUG] After copy metadata_copy  address: " << &metadata_copy << "\n ";
         return nb::make_tuple(nb::bytes(buffer.data(), metadata_copy.uiLength), metadata_copy);
     default: throw_exception_from_status(status);
     }
 }
 
-std::unique_ptr<PyFramerManager> PyFramerManager::MakeFramerManagerFromList(nb::list py_selected_framers)
-{
-    std::vector<std::string> framers;
-    auto d = Logger::RegisterLogger("Dingus");
-    d->set_level(spdlog::level::debug);
-    d->debug("PyFramerManager::MakeFramerManagerFromList");
-    for (nb::handle h : py_selected_framers) { framers.emplace_back(nb::cast<std::string>(h)); }
-    return std::make_unique<PyFramerManager>(framers);
-}
+// std::unique_ptr<PyFramerManager> PyFramerManager::MakeFramerManagerFromList(nb::list py_selected_framers)
+//{
+//     std::vector<std::string> framers;
+//     auto d = Logger::RegisterLogger("Dingus");
+//     d->set_level(spdlog::level::debug);
+//     d->debug("PyFramerManager::MakeFramerManagerFromList");
+//     for (nb::handle h : py_selected_framers) { framers.emplace_back(nb::cast<std::string>(h)); }
+//     return std::make_unique<PyFramerManager>(framers);
+// }
 
 void init_common_framer_manager(nb::module_& m)
 {
@@ -64,6 +72,8 @@ void init_common_framer_manager(nb::module_& m)
         .def(
             "set_report_unknown_bytes",
             [](FramerManager& self, const bool report_unknown_bytes) { self.SetReportUnknownBytes(report_unknown_bytes); }, "report_unknown_bytes"_a)
+        .def_prop_rw("report_unknown_bytes", &PyFramerManager::GetReportUnknownBytes, &PyFramerManager::SetReportUnknownBytes,
+                     "Whether to frame and return undecodable data.")
         .def_prop_ro("circular_buffer", [](FramerManager& self) { return self.GetCircularBuffer(); })
         .def(
             "framer_element", [](FramerManager& self, std::string framer_name) { return self.GetFramerElement(framer_name); }, "framer_id"_a,
@@ -71,12 +81,15 @@ void init_common_framer_manager(nb::module_& m)
         .def("active_framer_name", [](FramerManager& self) { return self.GetActiveFramerName(); })
         .def(
             "write",
-            [](FramerManager& self, nb::bytes data) {
-                const auto* buffer = reinterpret_cast<const uint8_t*>(data.data());
-                size_t size = data.size();
-                return self.Write(buffer, static_cast<uint32_t>(size));
+            [](PyFramerManager& framer_manager, const nb::bytes& data) {
+                return framer_manager.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size());
             },
-            "data"_a)
+            R"doc(
+            Writes data to the Framer's buffer.
+
+            Args:
+                data: The data to write to the buffer.
+            )doc")
         .def("flush",
              [](FramerManager& self) {
                  char buffer[MESSAGE_SIZE_MAX];

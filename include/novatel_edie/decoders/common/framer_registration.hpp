@@ -36,7 +36,15 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-// Explicitly register framers
+// TODO Ideally each framer would register itself with the FramerManager, but the Linker doesn't include that code unless it's explicitly imported and
+// used in whatever binary is being built. I've tried using "#pragma comment(linker", and a few other methods in MSVC attempt to force the Linker to
+// include this code, but none were successful. It would improve the usability of the FramerManger if someone could figure out how to register the
+// Framers without the user being required to import this file and call RegisterAllFramers()
+
+//----------------------------------------------------------------------------
+//! \brief Hold static function pointers for both framer and metadata factories.
+//! This will contain a set of factories for each supported framer.
+//----------------------------------------------------------------------------
 inline void RegisterAllFramers()
 {
     static const bool registerOEMFramer = ([]() {
