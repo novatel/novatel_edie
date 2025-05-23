@@ -42,7 +42,7 @@ from .bindings import (
     MessageDatabase, get_builtin_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
-    Framer, Filter, Decoder, Commander, Parser, FileParser,
+    register_all_framers, FramerManager, Framer, Filter, Decoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
     throw_exception_from_status,
     EnumDataType,

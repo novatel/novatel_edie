@@ -28,10 +28,10 @@
 #define FRAMER_REGISTRATION_HPP
 
 // Include all Framer headers
-#include "novatel_edie/decoders/common/framer.hpp"
-#include "novatel_edie/decoders/oem/framer.hpp"
 #include "novatel_edie/common/circular_buffer.hpp"
+#include "novatel_edie/decoders/common/framer.hpp"
 #include "novatel_edie/decoders/common/framer_manager.hpp"
+#include "novatel_edie/decoders/oem/framer.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -43,9 +43,15 @@ inline void RegisterAllFramers()
         FramerManager::RegisterFramer(
             "OEM",
             [](std::shared_ptr<CircularBuffer> buffer) -> std::unique_ptr<novatel::edie::FramerBase> {
-                return std::make_unique<novatel::edie::oem::Framer>(buffer);
+                auto framer = std::make_unique<novatel::edie::oem::Framer>(buffer);
+                if (!framer) { throw std::runtime_error("Failed to create OEM Framer"); }
+                return framer;
             },
-            []() -> std::unique_ptr<MetaDataBase> { return std::make_unique<MetaDataStruct>(); });
+            []() -> std::unique_ptr<MetaDataBase> {
+                auto metaData = std::make_unique<MetaDataStruct>();
+                if (!metaData) { throw std::runtime_error("Failed to create MetaDataStruct"); }
+                return metaData;
+            });
         return true;
     })();
 }
