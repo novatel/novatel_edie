@@ -41,7 +41,7 @@ from .bindings import (
     UnknownBytes, Header, Field, UnknownMessage, Message, GpsTime,
     MessageDatabase, get_default_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData, MessageDefinition, BaseField,
-    Framer, Filter, Decoder, Commander, Parser, FileParser,
+    register_all_framers, FramerManager, Framer, Filter, Decoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
     throw_exception_from_status,
     EnumField, EnumDataType,

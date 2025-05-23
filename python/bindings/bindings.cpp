@@ -7,6 +7,8 @@
 namespace nb = nanobind;
 
 void init_common_common(nb::module_&);
+void init_register_all_framers(nb::module_&);
+void init_common_framer_manager(nb::module_&);
 void init_common_logger(nb::module_&, nb::module_&);
 void init_common_message_database(nb::module_&);
 void init_message_db_singleton(nb::module_&);
@@ -34,6 +36,8 @@ NB_MODULE(bindings, m)
     nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
 
     init_common_common(m);
+    init_register_all_framers(m);
+    init_common_framer_manager(m);
     init_common_logger(m, internal_mod);
     init_common_message_database(m);
     init_message_db_singleton(m);

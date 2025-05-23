@@ -39,24 +39,52 @@ static int forceInit = []() {
 } // namespace
 
 FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
-    : pclMyLogger(Logger::RegisterLogger("FramerManager")), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>())
+    : pclMyLogger(pclLoggerManager->RegisterLogger("FramerManager")), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>())
 {
+    // std::cerr << "[C++] FramerManager constructor entered\n";
+    //// Safe and controlled setup with logging
+    // pclMyLogger = pclLoggerManager->RegisterLogger("FramerManager");
+    // std::cerr << "[C++] Logger registered: " << (pclMyLogger ? "yes" : "no") << "\n";
+    // if (pclMyLogger)
+    //{
+    //     pclMyLogger->set_level(spdlog::level::debug);
+    //     pclMyLogger->debug("Logger initialized");
+    // }
+    // else { std::cerr << "[ERROR] Failed to register FramerManager logger\n"; }
+
+    // pclMyCircularDataBuffer = std::make_shared<CircularBuffer>();
+    // if (pclMyCircularDataBuffer)
+    //{
+    //     pclMyCircularDataBuffer->Clear();
+    //     pclMyLogger->debug("CircularBuffer allocated and cleared");
+    // }
+    // else
+    //{
+    //     pclMyLogger->error("Failed to allocate CircularBuffer");
+    //     throw std::runtime_error("CircularBuffer allocation failed");
+    // }
     pclMyCircularDataBuffer->Clear();
-    // idMap["UNKNOWN"] = 0;
-    pclMyLogger->debug("Framer Manager initialized");
+    std::cerr << "[C++] FramerManager constructor entered\n";
+
+    auto& factoryMap = GetFramerFactories();
+
+    // Check if framerFactories is valid before insertion
+    std::cerr << "[DEBUG] framerFactories address: " << &factoryMap << "\n";
 
     for (const auto& name : selectedFramers)
     {
-        // std::cout << name;
-
+        std::cerr << "[C++] selectedFramer name: " << name << "\n ";
         auto it = GetFramerFactories().find(name);
         if (it != GetFramerFactories().end())
         {
+            std::cerr << "[C++] pclMyCircularDataBuffer&: " << &pclMyCircularDataBuffer << "\n ";
             auto& constructors = it->second;
 
             auto metadataInstance = constructors.second();
+            std::cerr << "[C++] metaDataInstance&: " << &metadataInstance << "\n ";
 
             auto framerInstance = constructors.first(pclMyCircularDataBuffer);
+            std::cerr << "[C++] framerInstance&: " << &framerInstance << "\n ";
 
             framerRegistry.emplace_back(name, std::move(framerInstance), std::move(metadataInstance));
         }
@@ -64,8 +92,9 @@ FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
     }
 }
 
-void FramerManager::RegisterFramer(const std::string& name, std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory,
-                                   std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor)
+void FramerManager::RegisterFramer(const std::string& framerName_,
+                                   std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory_,
+                                   std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_)
 {
     auto& factoryMap = GetFramerFactories();
 
@@ -74,9 +103,9 @@ void FramerManager::RegisterFramer(const std::string& name, std::function<std::u
 
     try
     {
-        std::cerr << "[DEBUG] Attempting to insert into framerFactories: " << name << "\n";
-        factoryMap[name] = {std::move(framerFactory), std::move(metadataConstructor)};
-        std::cerr << "[DEBUG] Successfully inserted framer: " << name << "\n";
+        std::cerr << "[DEBUG] Attempting to insert into framerFactories: " << framerName_ << "\n";
+        factoryMap[framerName_] = {std::move(framerFactory_), std::move(metadataConstructor_)};
+        std::cerr << "[DEBUG] Successfully inserted framer: " << framerName_ << "\n";
     }
     catch (const std::exception& e)
     {

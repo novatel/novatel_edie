@@ -71,8 +71,8 @@ class FramerManager
 
     explicit FramerManager(const std::vector<std::string>& selectedFramers = {});
 
-    static void RegisterFramer(const std::string& name, std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory,
-                               std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor);
+    static void RegisterFramer(const std::string& framerName_, std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory_,
+                               std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
     //
@@ -124,6 +124,13 @@ class FramerManager
     FramerEntry* GetFramerElement(const std::string framerName_);
 
     //----------------------------------------------------------------------------
+    //! \brief Get the name of the active framer.
+    //
+    //! \return The name of the currently active FramerElement.
+    //---------------------------------------------------------------------------
+    std::string GetActiveFramerName() const { return framerRegistry.front().framerName; }
+
+    //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
     //
     //! \param[in] pucDataBuffer_ The data buffer containing the bytes to be
@@ -136,11 +143,6 @@ class FramerManager
     {
         return pclMyCircularDataBuffer->Append(pucDataBuffer_, uiDataBytes_);
     }
-
-    //----------------------------------------------------------------------------
-    //! \brief Reorder the framers in the framer registry.
-    //----------------------------------------------------------------------------
-    void SortFramers();
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -191,8 +193,6 @@ class FramerManager
     static std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)>,
                                                      std::function<std::unique_ptr<MetaDataBase>()>>>&
     GetFramerFactories();
-
-    std::string GetActiveFramerName() const { return framerRegistry.front().framerName; }
 
   private:
     //! NOTE: disable copies and moves.
