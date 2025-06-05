@@ -31,13 +31,13 @@
 import argparse
 import logging
 import platform
-import time
 import serial
+import time
 from threading import Event
 
 import novatel_edie as ne
 import novatel_edie.messages as ne_msgs
-import serial.threaded
+
 from common_setup import setup_example_logging
 
 class CallbackProtocol(serial.threaded.Protocol):
