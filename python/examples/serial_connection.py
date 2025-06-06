@@ -106,11 +106,15 @@ class SerialParser:
             f'No data received within {timeout} seconds.')
 
     def _get_protocol(self):
-        """Creates a protocol that writes data to the EDIE parser."""
+        """Creates a protocol that writes data to this SerialParser's parser.
+
+        Returns:
+            A protocol class that writes data to the EDIE parser.
+        """
         class EdieProtocol(serial.threaded.Protocol):
             """A protocol that writes data to the EDIE parser."""
             def data_received(protocol_self, data):
-                """Called when data is received from the serial port.
+                """Writes data to the SerialParser's parser and notifies it.
 
                 Args:
                     data: The data received from the serial port.
