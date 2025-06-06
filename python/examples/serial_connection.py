@@ -45,7 +45,7 @@ class SerialParser:
     """A simple wrapper around the EDIE Parser to handle serial data.
 
     Wrappers like this one can help integrate the EDIE Parser with
-    different data sources, such as serial ports, files, or network streams.
+    different data sources, such as serial or network streams.
 
     An example of how to use this class is provided in the main function below.
 
