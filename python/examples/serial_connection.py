@@ -32,6 +32,7 @@ import argparse
 import logging
 import platform
 import serial
+import serial.threaded
 import time
 from threading import Event
 
@@ -39,24 +40,6 @@ import novatel_edie as ne
 import novatel_edie.messages as ne_msgs
 
 from common_setup import setup_example_logging
-
-class CallbackProtocol(serial.threaded.Protocol):
-    """A protocol for handling incoming data from a serial port."""
-    def __init__(self, callback):
-        """Initializes the CallbackProtocol with a callback to send data to.
-
-        Args:
-            callback: A callable that will be called with the data received.
-        """
-        self._callback = callback
-
-    def data_received(self, data):
-        """Send data to the callback when it is received.
-
-        Args:
-            data: The data received from the serial port.
-        """
-        self._callback(data)
 
 class SerialParser:
     """A simple wrapper around the EDIE Parser to handle serial data.
@@ -83,7 +66,7 @@ class SerialParser:
         self._serial_connection = serial_connection
         self._serial_reader = serial.threaded.ReaderThread(
             self._serial_connection,
-            lambda: CallbackProtocol(self._write_to_parser),
+            self._get_protocol(),
         )
 
     def start(self):
@@ -122,17 +105,21 @@ class SerialParser:
         raise ne.BufferEmptyException(
             f'No data received within {timeout} seconds.')
 
-    def _write_to_parser(self, data):
-        """Writes data to the EDIE parser.
+    def _get_protocol(self):
+        """Creates a protocol that writes data to the EDIE parser."""
+        class EdieProtocol(serial.threaded.Protocol):
+            """A protocol that writes data to the EDIE parser."""
+            def data_received(protocol_self, data):
+                """Called when data is received from the serial port.
 
-        Notifies any waiting reader that data is available.
+                Args:
+                    data: The data received from the serial port.
+                """
+                self._parser.write(data)
+                self._data_recieved.set()
+                self._data_recieved.clear()
 
-        Args:
-            data: The data received from the serial port.
-        """
-        self._parser.write(data)
-        self._data_recieved.set()
-        self._data_recieved.clear()
+        return EdieProtocol
 
 
 def normalize_serial_port(port: str) -> str:
