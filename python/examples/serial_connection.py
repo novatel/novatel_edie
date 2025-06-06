@@ -189,7 +189,7 @@ def main():
 
             # Check if program should stop
             if end_time and time.time() >= end_time:
-                print(f'Duration limit reached ({duration:.1f} seconds).')
+                logging.info(f'Duration limit reached ({duration:.1f} seconds).')
                 break
     except KeyboardInterrupt:
         # Stop the serial parser and close the connection
