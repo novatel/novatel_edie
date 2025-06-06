@@ -201,6 +201,15 @@ for bestpos_msg in parser:
 Using a filter can make parsing go much faster as it allows expensive decoding steps 
 to be skipped for filtered messages.
 
+### Parsing live connections
+
+Parsing data from a live connection such as serial or UDP port is a common usecase.
+This can be achieved by writing to a `Parser` in one thread and reading from it in another.
+
+An example class which handles this for a serial port connection
+is provided in [serial_connection.py](./examples/serial_connection.py).
+
+
 ## Low-Level Parsing
 
 Look to the [convert_components.py](./examples/converter_components.py) example file for 
