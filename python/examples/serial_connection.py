@@ -134,6 +134,7 @@ def normalize_serial_port(port: str) -> str:
 
 
 def parse_args():
+    """Parses command line arguments for the serial connection example."""
     parser = argparse.ArgumentParser(description='Parse OEM logs from a serial port using the EDIE Parser.')
     parser.add_argument('--port', required=True, help='Serial port (e.g., /dev/ttyUSB0 or COM10)')
     parser.add_argument('--baudrate', type=int, default=9600, help='Baud rate of the serial connection')
@@ -145,6 +146,7 @@ def parse_args():
 
 def main():
     """Uses a custom SerialParser class to read parsed messages from a serial port."""
+    # Setup logging and parse command line arguments
     setup_example_logging(logging.INFO)
     logger = logging.getLogger(__name__)
     args = parse_args()
