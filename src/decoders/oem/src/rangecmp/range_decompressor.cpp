@@ -339,7 +339,10 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
                                                          0.17396, 0.20378, 0.23870, 0.27961, 0.32753, 0.38366, 0.44940, 0.44940};
 
     stRangeData_.usPrn = stCtStatus_.CalculatePrn(uiPrn_);
-    if (stRangeData_.usPrn == 0 && stCtStatus_.GetSystem() != SYSTEM::GLONASS) { throw std::runtime_error("PRN outside of limits"); } // TODO: GLONASS
+    if (stRangeData_.usPrn == 0 && stCtStatus_.GetSystem() != SYSTEM::GLONASS)
+    {
+        pclMyLogger->critical("PopulateNextRangeData(): PRN outside of limits", stRangeData_.usPrn);
+    } // TODO: GLONASS
 
     const double dSignalWavelength = stCtStatus_.GetSignalWavelength(cGlonassFrequencyNumber_);
 
