@@ -165,16 +165,14 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
 
                 if (eStatus == STATUS::SUCCESS || eStatus == STATUS::NO_DEFINITION) { return eStatus; }
-                else
+
+                pclMyLogger->info("MessageDecoder returned status {}", eStatus);
+                if (bMyReturnUnknownBytes)
                 {
-                    pclMyLogger->info("MessageDecoder returned status {}", eStatus);
-                    if (bMyReturnUnknownBytes)
-                    {
-                        stMessageData_.pucMessageHeader = pucMyFrameBufferPointer;
-                        stMessageData_.uiMessageHeaderLength = stMetaData_.uiLength;
-                        stMessageData_.pucMessageBody = nullptr;
-                        return eStatus;
-                    }
+                    stMessageData_.pucMessageHeader = pucMyFrameBufferPointer;
+                    stMessageData_.uiMessageHeaderLength = stMetaData_.uiLength;
+                    stMessageData_.pucMessageBody = nullptr;
+                    return eStatus;
                 }
             }
             else
