@@ -119,19 +119,16 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
             }
         }
 
+        stMessageData_.pucMessage = pucMyFrameBufferPointer;
+        stMessageData_.uiMessageLength = stMetaData_.uiLength;
         if (eStatus == STATUS::UNKNOWN)
         {
+            stMessageData_.pucMessageHeader = nullptr;
+            stMessageData_.pucMessageBody = nullptr;
             stMessageData_.uiMessageHeaderLength = 0;
             stMessageData_.uiMessageBodyLength = 0;
 
-            if (bMyReturnUnknownBytes)
-            {
-                stMessageData_.pucMessage = pucMyFrameBufferPointer;
-                stMessageData_.uiMessageLength = stMetaData_.uiLength;
-                stMessageData_.pucMessageHeader = nullptr;
-                stMessageData_.pucMessageBody = nullptr;
-                return STATUS::UNKNOWN;
-            }
+            if (bMyReturnUnknownBytes) { return STATUS::UNKNOWN; }
         }
         else if (eStatus == STATUS::SUCCESS)
         {
@@ -169,10 +166,9 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 pclMyLogger->info("MessageDecoder returned status {}", eStatus);
                 if (bMyReturnUnknownBytes)
                 {
-                    stMessageData_.pucMessageHeader = pucMyFrameBufferPointer;
-                    stMessageData_.uiMessageHeaderLength = stMetaData_.uiLength;
                     stMessageData_.pucMessageBody = nullptr;
-                    return eStatus;
+                    stMessageData_.uiMessageBodyLength = 0;
+                    return STATUS::UNKNOWN;
                 }
             }
             else
@@ -180,10 +176,12 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 pclMyLogger->info("HeaderDecoder returned status {}", eStatus);
                 if (bMyReturnUnknownBytes)
                 {
-                    stMessageData_.pucMessageHeader = pucMyFrameBufferPointer;
-                    stMessageData_.uiMessageHeaderLength = stMetaData_.uiLength;
+                    stMessageData_.pucMessageHeader = nullptr;
                     stMessageData_.pucMessageBody = nullptr;
-                    return eStatus;
+                    stMessageData_.uiMessageHeaderLength = 0;
+                    stMessageData_.uiMessageBodyLength = 0;
+
+                    return STATUS::UNKNOWN;
                 }
             }
         }
