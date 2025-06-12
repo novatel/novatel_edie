@@ -258,6 +258,8 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         break;
 
     case HEADER_FORMAT::SHORT_BINARY: {
+        // Reset the IntermediateHeader ucMessageType because can incorrectly set eMeasurementSource and bResponse if it isn't
+        stInterHeader_.ucMessageType = 0;
         const auto* pstBinaryShortHeader = reinterpret_cast<const Oem4BinaryShortHeader*>(pucLogBuf_);
         stInterHeader_.usLength = pstBinaryShortHeader->ucLength;
         stInterHeader_.usMessageId = pstBinaryShortHeader->usMessageId;

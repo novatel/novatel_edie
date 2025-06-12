@@ -119,19 +119,16 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
             }
         }
 
+        stMessageData_.pucMessage = pucMyFrameBufferPointer;
+        stMessageData_.uiMessageLength = stMetaData_.uiLength;
         if (eStatus == STATUS::UNKNOWN)
         {
+            stMessageData_.pucMessageHeader = nullptr;
+            stMessageData_.pucMessageBody = nullptr;
             stMessageData_.uiMessageHeaderLength = 0;
             stMessageData_.uiMessageBodyLength = 0;
 
-            if (bMyReturnUnknownBytes)
-            {
-                stMessageData_.pucMessage = pucMyFrameBufferPointer;
-                stMessageData_.uiMessageLength = stMetaData_.uiLength;
-                stMessageData_.pucMessageHeader = nullptr;
-                stMessageData_.pucMessageBody = nullptr;
-                return STATUS::UNKNOWN;
-            }
+            if (bMyReturnUnknownBytes) { return STATUS::UNKNOWN; }
         }
         else if (eStatus == STATUS::SUCCESS)
         {
@@ -165,9 +162,28 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
 
                 if (eStatus == STATUS::SUCCESS || eStatus == STATUS::NO_DEFINITION) { return eStatus; }
+
                 pclMyLogger->info("MessageDecoder returned status {}", eStatus);
+                if (bMyReturnUnknownBytes)
+                {
+                    stMessageData_.pucMessageBody = nullptr;
+                    stMessageData_.uiMessageBodyLength = 0;
+                    return STATUS::UNKNOWN;
+                }
             }
-            else { pclMyLogger->info("HeaderDecoder returned status {}", eStatus); }
+            else
+            {
+                pclMyLogger->info("HeaderDecoder returned status {}", eStatus);
+                if (bMyReturnUnknownBytes)
+                {
+                    stMessageData_.pucMessageHeader = nullptr;
+                    stMessageData_.pucMessageBody = nullptr;
+                    stMessageData_.uiMessageHeaderLength = 0;
+                    stMessageData_.uiMessageBodyLength = 0;
+
+                    return STATUS::UNKNOWN;
+                }
+            }
         }
         else if (eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
         else { pclMyLogger->info("Framer returned status {}", eStatus); }
