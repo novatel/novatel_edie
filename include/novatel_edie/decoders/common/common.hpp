@@ -354,16 +354,11 @@ int32_t GetResponseId(const novatel::edie::EnumDefinition::ConstPtr& stRespDef_,
 //! \brief Strip abbreviated ASCII formatting from the front of the
 //! log buffer.
 //
-//! \param[in] ullTokenLength_ The length of the message contained in
-//! ppcMessageBuffer_
 //! \param[in] ppcMessageBuffer_ A pointer to the buffer containing the
 //! message to have abbreviated ASCII formatting stripped.
-//
-//! \return A boolean describing if the formatting found was abbreviated
-//! ASCII or not. Regardless of this return, the function will attempt
-//! to strip any abbreviated ASCII bytes.
+//! Message is assumed to be null terminated.
 //-----------------------------------------------------------------------
-bool ConsumeAbbrevFormatting(uint64_t ullTokenLength_, const char** ppcMessageBuffer_);
+void ConsumeAbbrevFormatting(const char** ppcMessageBuffer_);
 
 //-----------------------------------------------------------------------
 //! \struct SatelliteId
