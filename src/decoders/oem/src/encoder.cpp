@@ -193,8 +193,9 @@ bool Encoder::FieldToBinary(const FieldContainer& fc_, unsigned char** ppcOutBuf
     switch (fc_.fieldDef->dataType.name)
     {
     case DATA_TYPE::BOOL: {
-        auto i4ByteBoolRep = static_cast<int32_t>(std::get<bool>(fc_.fieldValue));
-        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &i4ByteBoolRep);
+        // Ensure consitent 4-byte representation of bool e.g. 0x00000001 for true 0x00000000 for false
+        int32_t i4ByteBool = static_cast<int32_t>(std::get<bool>(fc_.fieldValue));
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &i4ByteBool);
     }
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
     case DATA_TYPE::UCHAR: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, &std::get<uint8_t>(fc_.fieldValue));
