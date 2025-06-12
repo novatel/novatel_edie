@@ -407,14 +407,10 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
     {
         if (*ppcLogBuf_ >= pcBufEnd) { return STATUS::MALFORMED_INPUT; } // We encountered the end of the buffer unexpectedly
 
+        if constexpr (Abbreviated) { ConsumeAbbrevFormatting(ppcLogBuf_); }
+
         size_t tokenLength = strcspn(*ppcLogBuf_, tokenDelimiters.data());
-
-        if constexpr (Abbreviated)
-        {
-            if (ConsumeAbbrevFormatting(tokenLength, ppcLogBuf_)) { tokenLength = strcspn(*ppcLogBuf_, tokenDelimiters.data()); }
-
-            if (tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
-        }
+        if (tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
 
         bool bEarlyEndOfMessage = (*(*ppcLogBuf_ + tokenLength) == delimiters[1]);
 

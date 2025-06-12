@@ -114,32 +114,17 @@ int32_t GetResponseId(const std::shared_ptr<const EnumDefinition>& stRespDef_, s
 }
 
 //-----------------------------------------------------------------------
-bool ConsumeAbbrevFormatting(const uint64_t ullTokenLength_, const char** ppcMessageBuffer_)
+void ConsumeAbbrevFormatting(const char** ppcMessageBuffer_)
 {
-    bool bIsAbbrev = false;
-
-    if ((ullTokenLength_ == 0 || ullTokenLength_ == 1) &&
-        (static_cast<int8_t>(**ppcMessageBuffer_) == '\r' || static_cast<int8_t>(**ppcMessageBuffer_) == '\n' ||
-         static_cast<int8_t>(**ppcMessageBuffer_) == '<'))
+    while (true)
     {
-        // Skip over '\r\n<     '
-        while (true)
+        switch (**ppcMessageBuffer_)
         {
-            switch (**ppcMessageBuffer_)
-            {
-            case '\r': [[fallthrough]];
-            case '\n': *ppcMessageBuffer_ += sizeof(int8_t); break;
-            case '<':
-                *ppcMessageBuffer_ += sizeof(int8_t);
-                bIsAbbrev = true;
-                break;
-            case ' ':
-                if (bIsAbbrev) { *ppcMessageBuffer_ += sizeof(int8_t); }
-                break;
-            default: return bIsAbbrev;
-            }
+        case '<': [[fallthrough]];
+        case ' ': [[fallthrough]];
+        case '\r': [[fallthrough]];
+        case '\n': *ppcMessageBuffer_ += sizeof(int8_t); break;
+        default: return;
         }
     }
-
-    return bIsAbbrev;
 }
