@@ -431,7 +431,15 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         switch (field->type)
         {
         case FIELD_TYPE::SIMPLE:
-            DecodeAsciiField(field, ppcLogBuf_, tokenLength, vIntermediateFormat_);
+            try
+            {
+                DecodeAsciiField(field, ppcLogBuf_, tokenLength, vIntermediateFormat_);
+            }
+            catch (const std::runtime_error&)
+            {
+                SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAsciiField(): Exception when decoding field. Malformed Input\n");
+                return STATUS::MALFORMED_INPUT;
+            }
             *ppcLogBuf_ += tokenLength + 1;
             break;
         case FIELD_TYPE::ENUM: {
@@ -494,12 +502,16 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             else
             {
                 auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + strlen(*ppcLogBuf_), uiArraySize);
-                if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse array size"); }
+                if (result.ec != std::errc())
+                {
+                    SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::VARIABLE_LENGTH_ARRAY: Array length not valid number. Malformed Input\n");
+                    return STATUS::MALFORMED_INPUT;
+                }
 
                 if (uiArraySize > dynamic_cast<const ArrayField*>(field.get())->arrayLength)
                 {
-                    SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii(): Array size too large. Malformed Input\n");
-                    throw std::runtime_error("DecodeAscii(): Array size too large. Malformed Input\n");
+                    SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::VARIABLE_LENGTH_ARRAY: Array larger than JSON length. Malformed Input\n");
+                    return STATUS::MALFORMED_INPUT;
                 }
 
                 *ppcLogBuf_ += tokenLength + 1;
@@ -526,8 +538,8 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                     uint32_t uiValueRead = 0;
                     if (sscanf(pcPosition, "%02x", &uiValueRead) != 1)
                     {
-                        SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii(): Error decoding %Z Array");
-                        throw std::runtime_error("DecodeAscii(): Error decoding %Z Array");
+                        SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::String: Error decoding %Z Array");
+                        return STATUS::MALFORMED_INPUT;
                     }
                     pcPosition += 2;
                     pvFieldContainer.emplace_back(static_cast<uint8_t>(uiValueRead), field);
@@ -553,8 +565,8 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
 
                     if (sscanf(pcPosition, "%02x", &uiValueRead) != 1)
                     {
-                        SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii(): Error decoding %s array");
-                        throw std::runtime_error("DecodeAscii(): Error decoding %s array");
+                        SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::String: Error decoding %s array");
+                        return STATUS::MALFORMED_INPUT;
                     }
 
                     pcPosition += 2; // Consume the hex output that is always 2 chars
@@ -583,7 +595,11 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         case FIELD_TYPE::FIELD_ARRAY: {
             uint32_t uiArraySize;
             auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + strlen(*ppcLogBuf_), uiArraySize);
-            if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse array size"); }
+            if (result.ec != std::errc())
+            {
+                SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::FIELD_ARRAY: Field Array length not valid number. Malformed Input\n");
+                return STATUS::MALFORMED_INPUT;
+            }
 
             *ppcLogBuf_ = result.ptr;
 
@@ -592,8 +608,8 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
 
             if (uiArraySize > subFieldDefinitions->arrayLength)
             {
-                SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii(): Array size too large. Malformed Input\n");
-                throw std::runtime_error("DecodeAscii(): Array size too large. Malformed Input\n");
+                SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::FIELD_ARRAY: Array size too large. Malformed Input\n");
+                return STATUS::MALFORMED_INPUT;
             }
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
