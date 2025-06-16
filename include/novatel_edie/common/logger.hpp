@@ -229,7 +229,9 @@ class CPPLoggerManager : public LoggerManager
 };
 
 // Internal access point for logging management
-extern std::unique_ptr<LoggerManager> pclLoggerManager;
+extern void SetLoggerManager(LoggerManager* manager);
+
+extern LoggerManager* GetBaseLoggerManager();
 
 //----------------------------------------------------------------------------
 //! \brief Gets a LoggerManager to alter logging configuration.

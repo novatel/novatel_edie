@@ -7,10 +7,10 @@ using namespace nb::literals;
 class PyLoggerTester
 {
   private:
-    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("logger_tester")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("logger_tester")};
 
   public:
-    void SwitchLogger(std::string name) { pclMyLogger = pclLoggerManager->RegisterLogger(name); }
+    void SwitchLogger(std::string name) { pclMyLogger = GetBaseLoggerManager()->RegisterLogger(name); }
     void LogDebug(std::string message) { SPDLOG_LOGGER_DEBUG(pclMyLogger, message); }
     void LogInfo(std::string message) { SPDLOG_LOGGER_INFO(pclMyLogger, message); }
     void LogWarn(std::string message) { SPDLOG_LOGGER_WARN(pclMyLogger, message); }

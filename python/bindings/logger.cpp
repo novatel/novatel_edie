@@ -10,8 +10,8 @@ namespace spd = spdlog;
 void init_common_logger(nb::module_& m, nb::module_& internal_m)
 {
     // Set the global LoggerManager to be a PyLoggerManager
-    pclLoggerManager.reset(new PyLoggerManager());
-    auto manager = static_cast<PyLoggerManager*>(pclLoggerManager.get());
+    SetLoggerManager(new PyLoggerManager());
+    auto manager = static_cast<PyLoggerManager*>(GetBaseLoggerManager());
 
     // Add public functions for configuring internal logging
     m.def(

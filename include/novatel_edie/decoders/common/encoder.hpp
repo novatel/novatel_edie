@@ -271,7 +271,7 @@ template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t
 template <typename Derived> class EncoderBase
 {
   protected:
-    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("encoder")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("encoder")};
     MessageDatabase::ConstPtr pclMyMsgDbStrongRef{nullptr};
     const MessageDatabase* pclMyMsgDb{nullptr};
 

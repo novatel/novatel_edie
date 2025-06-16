@@ -84,7 +84,7 @@ if(BUILD_TESTS)
     add_subdirectory(src/decoders/oem/test)
 endif()
 
-if(BUILD_BENCHMARKS OR BUILD_EXAMPLES OR BUILD_TESTS)
+if(BUILD_BENCHMARKS OR BUILD_EXAMPLES OR BUILD_TESTS)  
     # Copy shared libs to the build output directory for tests and examples
     copy_cpp_runtime_dlls("${OUTPUT_DIR}")
     copy_third_party_shared_libs("${OUTPUT_DIR}")

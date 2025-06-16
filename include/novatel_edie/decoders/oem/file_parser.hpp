@@ -44,7 +44,7 @@ namespace novatel::edie::oem {
 class FileParser
 {
   private:
-    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("novatel_file_parser")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("novatel_file_parser")};
     Parser clMyParser;
     std::shared_ptr<std::istream> pclMyInputStream{nullptr};
 
