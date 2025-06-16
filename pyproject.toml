@@ -62,7 +62,7 @@ manylinux-x86_64-image = "manylinux_2_28"
 MACOSX_DEPLOYMENT_TARGET = "13.0"
 
 [tool.bumpversion]
-current_version = "2.0.3a1"
+current_version = "2.0.3"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
