@@ -1,19 +1,16 @@
 #include "novatel_edie/common/logger.hpp"
 
-std::unique_ptr<LoggerManager> pclLoggerManager = std::make_unique<CPPLoggerManager>();
-
 LoggerManager::~LoggerManager() = default;
 
-CPPLoggerManager* GetLoggerManager() { return dynamic_cast<CPPLoggerManager*>(pclLoggerManager.get()); }
-
-LoggerManager* GetBaseLoggerManager()
+static LoggerManager* GetSetUniquePointer(LoggerManager* pclLoggerManager_)
 {
-    if (pclLoggerManager == nullptr) { throw std::runtime_error("GetBaseLoggerManager(): LoggerManager is not initialized"); }
+    static std::unique_ptr<LoggerManager> pclLoggerManager = std::make_unique<CPPLoggerManager>();
+    if (pclLoggerManager_ != nullptr) { pclLoggerManager.reset(pclLoggerManager_); }
     return pclLoggerManager.get();
 }
 
-void SetLoggerManager(LoggerManager* manager)
-{
-    if (manager == nullptr) { throw std::runtime_error("SetLoggerManager(): Cannot set a null LoggerManager"); }
-    pclLoggerManager.reset(manager);
-}
+LoggerManager* GetBaseLoggerManager() { return GetSetUniquePointer(nullptr); }
+
+CPPLoggerManager* GetLoggerManager() { return dynamic_cast<CPPLoggerManager*>(GetBaseLoggerManager()); }
+
+void SetLoggerManager(LoggerManager* manager) { GetSetUniquePointer(manager); }
