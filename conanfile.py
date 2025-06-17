@@ -38,6 +38,7 @@ class NovatelEdieConan(ConanFile):
             del self.options.fPIC
 
     def configure(self):
+        print(f"Configuring conan with the following options: {self.options}")
         if self.options.shared:
             self.options.rm_safe("fPIC")
             self.options["spdlog"].shared = True

@@ -7,13 +7,20 @@ endif()
 cmake_dependent_option(USE_CONAN "Use Conan to automatically manage dependencies" ON
     "NOT DEFINED VCPKG_TOOLCHAIN AND NOT CONAN_ALREADY_ACTIVE" OFF)
 
+# Set the default profile for Conan if not already set  
+
+set(CONAN_BUILD_SHARED "False")  
+if(BUILD_SHARED_LIBS)  
+   set(CONAN_BUILD_SHARED "True")  
+endif()
+
 if(USE_CONAN)
     if(CMAKE_VERSION VERSION_LESS 3.24)
         message(FATAL_ERROR "Automatic Conan integration requires CMake 3.24 or later.")
     endif()
     include("${CMAKE_CURRENT_LIST_DIR}/SetDefaultProfile.cmake")
     # Set build cppstd for patchelf
-    set(CONAN_INSTALL_ARGS --build missing --settings:build compiler.cppstd=17 CACHE INTERNAL "")
+    set(CONAN_INSTALL_ARGS --build missing -o shared=${CONAN_BUILD_SHARED} --settings:build compiler.cppstd=17 CACHE INTERNAL "")
     list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/conan_provider.cmake)
 endif()
 
