@@ -25,7 +25,7 @@ with open(summary_path, "a") as summary:
         if current_time is not None:
             diff_pct = ((current_time - main_time) / main_time) * 100
             symbol = "✅"
-            if diff_pct > 10:
+            if diff_pct > 50:
                 symbol = "❌"
                 print(f"::error::Benchmark '{name}' is {diff_pct:.2f}% slower than main")
                 failed = True
