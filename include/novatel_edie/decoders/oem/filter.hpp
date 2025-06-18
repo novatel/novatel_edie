@@ -234,7 +234,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = 0);
+    void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = NULL_SIBLING_ID);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message IDs.
@@ -272,7 +272,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = 0);
+    void IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = NULL_SIBLING_ID);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message names.
