@@ -280,6 +280,9 @@ template <> struct fmt::formatter<novatel::edie::STATUS> : formatter<std::string
     }
 };
 
+// Default value to for sibling ID of a message.
+constexpr unsigned int NULL_SIBLING_ID = 0;
+
 //-----------------------------------------------------------------------
 //! \brief Construct a full message ID from its parts.
 //

@@ -129,7 +129,7 @@ enum class CONSTELLATION
 //-----------------------------------------------------------------------
 struct MetaDataStruct : public MetaDataBase
 {
-    uint8_t ucSiblingId{0};
+    uint8_t ucSiblingId{NULL_SIBLING_ID};
     TIME_STATUS eTimeStatus{TIME_STATUS::UNKNOWN};
     CONSTELLATION constellation{CONSTELLATION::UNKNOWN};
 

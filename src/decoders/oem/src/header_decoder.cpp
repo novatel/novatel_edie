@@ -94,7 +94,7 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, c
     {
     case ASCII_HEADER::MESSAGE_NAME: {
         uint16_t usLogId = 0;
-        uint32_t ucSiblingId = 0;
+        uint32_t ucSiblingId = NULL_SIBLING_ID;
         uint32_t uiMsgFormat = 0;
         uint32_t uiResponse = 0;
         UnpackMsgId(pclMyMsgDb->MsgNameToMsgId(std::string(*ppcLogBuf_, ullTokenLength)), usLogId, ucSiblingId, uiMsgFormat, uiResponse);

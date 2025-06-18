@@ -57,7 +57,7 @@ void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_)
 //-----------------------------------------------------------------------
 uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
 {
-    uint32_t uiSiblingId = 0;
+    uint32_t uiSiblingId = NULL_SIBLING_ID;
     uint32_t uiMsgFormat;
     uint32_t uiResponse;
 
@@ -110,7 +110,7 @@ uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
 std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
 {
     uint16_t usLogId = 0;
-    uint32_t uiSiblingId = 0;
+    uint32_t uiSiblingId = NULL_SIBLING_ID;
     uint32_t uiMessageFormat = 0;
     uint32_t uiResponse = 0;
 
