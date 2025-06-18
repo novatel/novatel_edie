@@ -57,14 +57,14 @@ void MessageDatabase::RemoveEnumeration(std::string_view strEnumeration_)
 //-----------------------------------------------------------------------
 uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
 {
-    uint32_t ucSiblingId = 0;
+    uint32_t uiSiblingId = 0;
     uint32_t uiMsgFormat;
     uint32_t uiResponse;
 
     // Ingest the sibling information, i.e. the _1 from LOGNAMEA_1
     if (sMsgName_.find_last_of('_') != std::string::npos && sMsgName_.find_last_of('_') == sMsgName_.size() - 2)
     {
-        ucSiblingId = static_cast<uint32_t>(ToDigit(sMsgName_.back()));
+        uiSiblingId = static_cast<uint32_t>(ToDigit(sMsgName_.back()));
         sMsgName_.resize(sMsgName_.size() - 2);
     }
 
@@ -75,7 +75,7 @@ uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
         uiResponse = static_cast<uint32_t>(false);
         uiMsgFormat = static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV);
 
-        return CreateMsgId(pclMessageDef->logID, ucSiblingId, uiMsgFormat, uiResponse);
+        return CreateMsgId(pclMessageDef->logID, uiSiblingId, uiMsgFormat, uiResponse);
     }
 
     switch (sMsgName_.back())
@@ -103,18 +103,18 @@ uint32_t MessageDatabase::MsgNameToMsgId(std::string sMsgName_) const
 
     pclMessageDef = GetMsgDef(sMsgName_);
 
-    return pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, ucSiblingId, uiMsgFormat, uiResponse) : 0;
+    return pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, uiSiblingId, uiMsgFormat, uiResponse) : 0;
 }
 
 // -------------------------------------------------------------------------------------------------------
 std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
 {
     uint16_t usLogId = 0;
-    uint32_t ucSiblingId = 0;
+    uint32_t uiSiblingId = 0;
     uint32_t uiMessageFormat = 0;
     uint32_t uiResponse = 0;
 
-    UnpackMsgId(uiMessageId_, usLogId, ucSiblingId, uiMessageFormat, uiResponse);
+    UnpackMsgId(uiMessageId_, usLogId, uiSiblingId, uiMessageFormat, uiResponse);
 
     MessageDefinition::ConstPtr pstMessageDefinition = GetMsgDef(usLogId);
     std::string strMessageName = pstMessageDefinition != nullptr ? pstMessageDefinition->name : "UNKNOWN";
@@ -124,7 +124,7 @@ std::string MessageDatabase::MsgIdToMsgName(const uint32_t uiMessageId_) const
     else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::BINARY)) { strMessageFormatSuffix = 'B'; }
     else if (uiMessageFormat == static_cast<uint32_t>(MESSAGE_FORMAT::ASCII)) { strMessageFormatSuffix = 'A'; }
 
-    if (ucSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(ucSiblingId)); }
+    if (uiSiblingId != 0U) { strMessageFormatSuffix.append("_").append(std::to_string(uiSiblingId)); }
 
     return strMessageName.append(strMessageFormatSuffix);
 }
