@@ -485,7 +485,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 {
     using namespace rangecmp4;
 
-    auto eSource = static_cast<const MEASUREMENT_SOURCE>(stMetaData_.ucSiblingId);
+    const auto eSource = static_cast<MEASUREMENT_SOURCE>(stMetaData_.ucSiblingId);
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
     if (std::abs(dSecondOffset) < std::numeric_limits<double>::epsilon())
