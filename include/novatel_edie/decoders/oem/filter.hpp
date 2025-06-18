@@ -233,6 +233,7 @@ class Filter
     //! \param[in] uiId_  The message ID.
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
+
     //----------------------------------------------------------------------------
     void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = NULL_SIBLING_ID);
 

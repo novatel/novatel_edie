@@ -70,7 +70,7 @@ void init_novatel_filter(nb::module_& m)
                         Otherwise only they will be included.
         )doc")
         .def("add_message_id", nb::overload_cast<uint32_t, HEADER_FORMAT, uint8_t>(&oem::PyFilter::IncludeMessageId), "id"_a,
-             "format"_a = HEADER_FORMAT::ALL, "source"_a = 0,
+             "format"_a = HEADER_FORMAT::ALL, "source"_a = NULL_SIBLING_ID,
              R"doc(
                 Adds a new message ID to the set to filter on.
                 
@@ -105,7 +105,7 @@ void init_novatel_filter(nb::module_& m)
                         Otherwise only they will be included.
         )doc")
         .def("add_message_name", nb::overload_cast<std::string_view, HEADER_FORMAT, uint8_t>(&oem::PyFilter::IncludeMessageName), "name"_a,
-             "format"_a = HEADER_FORMAT::ALL, "source"_a = 0,
+             "format"_a = HEADER_FORMAT::ALL, "source"_a = NULL_SIBLING_ID,
              R"doc(
                 Adds a new message name to the set to filter on.
                 
