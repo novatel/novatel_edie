@@ -70,9 +70,9 @@ struct PyMessageTypeField
         static bool bWarningSent = false;
         if (!bWarningSent)
         {
-            std::shared_ptr<spdlog::logger> logger = pclLoggerManager->RegisterLogger("deprecation_warning");
-            logger->warn("The 'source' field is deprecated and will be removed in a future release. Use 'sibling_id' instead and convert the integer "
-                         "value to a MEASUREMENT_SOURCE if needed.");
+            pclLoggerManager->RegisterLogger("deprecation_warning")
+                ->warn("The 'source' field is deprecated and will be removed in a future release. Use 'sibling_id' instead and convert the integer "
+                       "value to a MEASUREMENT_SOURCE if needed.");
             bWarningSent = true;
         }
 
