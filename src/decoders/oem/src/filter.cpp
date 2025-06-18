@@ -131,22 +131,22 @@ void Filter::ClearTimeStatuses()
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+void Filter::IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, uint8_t ucSource_)
 {
-    auto tMessageId = std::make_tuple(uiId_, eFormat_, eSource_);
+    auto tMessageId = std::make_tuple(uiId_, eFormat_, ucSource_);
     PushUnique(vMyMessageIdFilters, tMessageId);
     PushUnique(vMyFilterFunctions, &Filter::FilterMessageId);
 }
 
-void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vIds_)
+void Filter::IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, uint8_t>>& vIds_)
 {
     for (const auto& id : vIds_) { PushUnique(vMyMessageIdFilters, id); }
     PushUnique(vMyFilterFunctions, &Filter::FilterMessageId);
 }
 
-void Filter::RemoveMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+void Filter::RemoveMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, uint8_t ucSource_)
 {
-    auto tMessageId = std::make_tuple(uiId_, eFormat_, eSource_);
+    auto tMessageId = std::make_tuple(uiId_, eFormat_, ucSource_);
     Remove(vMyMessageIdFilters, tMessageId);
     if (vMyMessageIdFilters.empty()) { Remove(vMyFilterFunctions, &Filter::FilterMessageId); }
 }
@@ -159,22 +159,22 @@ void Filter::ClearMessageIds()
 }
 
 // -------------------------------------------------------------------------------------------------------
-void Filter::IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+void Filter::IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, uint8_t ucSource_)
 {
-    auto tMessageName = std::make_tuple(std::string(szMsgName_), eFormat_, eSource_);
+    auto tMessageName = std::make_tuple(std::string(szMsgName_), eFormat_, ucSource_);
     PushUnique(vMyMessageNameFilters, tMessageName);
     PushUnique(vMyFilterFunctions, &Filter::FilterMessage);
 }
 
-void Filter::IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vNames_)
+void Filter::IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>>& vNames_)
 {
     for (const auto& name : vNames_) { PushUnique(vMyMessageNameFilters, name); }
     PushUnique(vMyFilterFunctions, &Filter::FilterMessage);
 }
 
-void Filter::RemoveMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_)
+void Filter::RemoveMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, uint8_t ucSource_)
 {
-    auto tMessageName = std::make_tuple(std::string(szMsgName_), eFormat_, eSource_);
+    auto tMessageName = std::make_tuple(std::string(szMsgName_), eFormat_, ucSource_);
     Remove(vMyMessageNameFilters, tMessageName);
     if (vMyMessageNameFilters.empty()) { Remove(vMyFilterFunctions, &Filter::FilterMessage); }
 }
@@ -250,16 +250,16 @@ bool Filter::FilterMessageId(const MetaDataStruct& stMetaData_) const
 
     auto uiMessageId = static_cast<uint32_t>(stMetaData_.usMessageId);
     HEADER_FORMAT eFormat = stMetaData_.eFormat;
-    MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
+    uint8_t ucSource = stMetaData_.ucSiblingId;
 
-    const auto isMessageIdFilterMatch = [&uiMessageId, eSource](const std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>& elem) {
-        return uiMessageId == std::get<0>(elem) && HEADER_FORMAT::ALL == std::get<1>(elem) && eSource == std::get<2>(elem);
+    const auto isMessageIdFilterMatch = [&uiMessageId, ucSource](const std::tuple<uint32_t, HEADER_FORMAT, uint8_t>& elem) {
+        return uiMessageId == std::get<0>(elem) && HEADER_FORMAT::ALL == std::get<1>(elem) && ucSource == std::get<2>(elem);
     };
 
     return bMyInvertMessageIdFilter ==
            (vMyMessageIdFilters.end() == std::find_if(vMyMessageIdFilters.begin(), vMyMessageIdFilters.end(), isMessageIdFilterMatch) &&
             vMyMessageIdFilters.end() ==
-                std::find(vMyMessageIdFilters.begin(), vMyMessageIdFilters.end(), std::make_tuple(uiMessageId, eFormat, eSource)));
+                std::find(vMyMessageIdFilters.begin(), vMyMessageIdFilters.end(), std::make_tuple(uiMessageId, eFormat, ucSource)));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -269,9 +269,9 @@ bool Filter::FilterMessage(const MetaDataStruct& stMetaData_) const
 
     std::string_view szMessageName = stMetaData_.messageName;
     HEADER_FORMAT eFormat = stMetaData_.eFormat;
-    MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
+    uint8_t eSource = stMetaData_.ucSiblingId;
 
-    const auto isMessageNameFilterMatch = [&szMessageName, eSource](const std::tuple<std::string_view, HEADER_FORMAT, MEASUREMENT_SOURCE>& elem_) {
+    const auto isMessageNameFilterMatch = [&szMessageName, eSource](const std::tuple<std::string_view, HEADER_FORMAT, uint8_t>& elem_) {
         return szMessageName == std::get<0>(elem_) && HEADER_FORMAT::ALL == std::get<1>(elem_) && eSource == std::get<2>(elem_);
     };
 

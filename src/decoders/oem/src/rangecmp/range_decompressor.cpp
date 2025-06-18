@@ -42,8 +42,8 @@ RangeDecompressor::RangeDecompressor(MessageDatabase::Ptr pclJsonDb_)
 
     for (const auto id : {RANGECMP_MSG_ID, RANGECMP2_MSG_ID, RANGECMP3_MSG_ID, RANGECMP4_MSG_ID, RANGECMP5_MSG_ID})
     {
-        clMyRangeCmpFilter.IncludeMessageId(id, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::PRIMARY);
-        clMyRangeCmpFilter.IncludeMessageId(id, HEADER_FORMAT::ALL, MEASUREMENT_SOURCE::SECONDARY);
+        clMyRangeCmpFilter.IncludeMessageId(id, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
+        clMyRangeCmpFilter.IncludeMessageId(id, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
     }
 
     pclMyLogger->debug("RangeDecompressor initialized");
@@ -310,7 +310,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     stRangeData_.fAdrStdDev = stdDevAdrScaling[stBlock_.ucPhrStdDev];
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTime, stCtStatus_.MakeKey(uiPrn_, stMetaData_.eMeasurementSource));
+    stRangeData_.fLockTime =
+        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTime, stCtStatus_.MakeKey(uiPrn_, static_cast<MEASUREMENT_SOURCE>(stMetaData_.ucSiblingId)));
     stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
@@ -354,7 +355,8 @@ void RangeDecompressor::PopulateNextRangeData(RangeData& stRangeData_, const ran
     stRangeData_.fAdrStdDev = stdDevPhrScaling[stBlock_.ucPhrStdDev];
     stRangeData_.fDopplerFrequency = stBlock_.bValidDoppler ? -stBlock_.dDoppler / dSignalWavelength : std::numeric_limits<float>::quiet_NaN();
     stRangeData_.fCNo = stBlock_.fCNo;
-    stRangeData_.fLockTime = GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTime, stCtStatus_.MakeKey(uiPrn_, stMetaData_.eMeasurementSource));
+    stRangeData_.fLockTime =
+        GetRangeCmp4LockTime(stMetaData_, stBlock_.ucLockTime, stCtStatus_.MakeKey(uiPrn_, static_cast<MEASUREMENT_SOURCE>(stMetaData_.ucSiblingId)));
     stRangeData_.uiChannelTrackingStatus = stCtStatus_.GetAsWord();
 }
 
@@ -469,7 +471,8 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
             stRangeData.fAdrStdDev = stdDevAdrScaling[ucAdrBitfield];
             stRangeData.fDopplerFrequency = (iDopplerBase + iDopplerBitfield / SIG_DOPPLER_DIFF_SCALE_FACTOR) / SignalScaling(eSystem, eSignalType);
             stRangeData.fCNo = SIG_CNO_SCALE_OFFSET + GetBitfield<uint64_t, SIG_CNO_MASK>(stSigBlock.ullCombinedField2);
-            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits, stCtStatus.MakeKey(usPrn, stMetaData_.eMeasurementSource));
+            stRangeData.fLockTime = GetRangeCmp2LockTime(stMetaData_, uiLockTimeBits,
+                                                         stCtStatus.MakeKey(usPrn, static_cast<MEASUREMENT_SOURCE>(stMetaData_.ucSiblingId)));
             stRangeData.uiChannelTrackingStatus = stCtStatus.GetAsWord();
 
             uiRangeDataBytesDecompressed += sizeof(SignalBlock);
@@ -482,7 +485,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 {
     using namespace rangecmp4;
 
-    const MEASUREMENT_SOURCE eSource = stMetaData_.eMeasurementSource;
+    auto eSource = static_cast<const MEASUREMENT_SOURCE>(stMetaData_.ucSiblingId);
     double dSecondOffset = static_cast<double>(static_cast<uint32_t>(stMetaData_.dMilliseconds) % SEC_TO_MILLI_SEC) / SEC_TO_MILLI_SEC;
     // Clear any dead reference blocks on the whole second. We should be storing new ones.
     if (std::abs(dSecondOffset) < std::numeric_limits<double>::epsilon())

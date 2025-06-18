@@ -129,17 +129,17 @@ enum class CONSTELLATION
 //-----------------------------------------------------------------------
 struct MetaDataStruct : public MetaDataBase
 {
-    MEASUREMENT_SOURCE eMeasurementSource{MEASUREMENT_SOURCE::PRIMARY};
+    uint8_t ucSiblingId{0};
     TIME_STATUS eTimeStatus{TIME_STATUS::UNKNOWN};
     CONSTELLATION constellation{CONSTELLATION::UNKNOWN};
 
     // NOTE: C++20 automatically generates a generic operator== for this struct.
     bool operator==(const MetaDataStruct& other_) const
     {
-        return eFormat == other_.eFormat && eMeasurementSource == other_.eMeasurementSource && eTimeStatus == other_.eTimeStatus &&
-               bResponse == other_.bResponse && usWeek == other_.usWeek && IsEqual(dMilliseconds, other_.dMilliseconds) &&
-               uiLength == other_.uiLength && uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId &&
-               uiMessageCrc == other_.uiMessageCrc && messageName == other_.messageName;
+        return eFormat == other_.eFormat && ucSiblingId == other_.ucSiblingId && eTimeStatus == other_.eTimeStatus && bResponse == other_.bResponse &&
+               usWeek == other_.usWeek && IsEqual(dMilliseconds, other_.dMilliseconds) && uiLength == other_.uiLength &&
+               uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId && uiMessageCrc == other_.uiMessageCrc &&
+               messageName == other_.messageName;
     }
 };
 

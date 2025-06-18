@@ -54,10 +54,10 @@ class Filter
     std::vector<TIME_STATUS> vMyTimeStatusFilters;
     bool bMyInvertTimeStatusFilter{};
 
-    std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageIdFilters;
+    std::vector<std::tuple<uint32_t, HEADER_FORMAT, uint8_t>> vMyMessageIdFilters;
     bool bMyInvertMessageIdFilter{};
 
-    std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>> vMyMessageNameFilters;
+    std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>> vMyMessageNameFilters;
     bool bMyInvertMessageNameFilter{};
 
     uint32_t uiMyLowerWeek{};
@@ -234,7 +234,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
+    void IncludeMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = 0);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message IDs.
@@ -242,7 +242,7 @@ class Filter
     //! \param[in] vIds_  Vector of tuples containing: message ID, message format,
     //! and antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vIds_);
+    void IncludeMessageId(std::vector<std::tuple<uint32_t, HEADER_FORMAT, uint8_t>>& vIds_);
 
     //----------------------------------------------------------------------------
     //! \brief Remove a specific message ID from the filter.
@@ -251,7 +251,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void RemoveMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_);
+    void RemoveMessageId(uint32_t uiId_, HEADER_FORMAT eFormat_, uint8_t ucSource_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the message ID filter.
@@ -272,8 +272,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL,
-                            MEASUREMENT_SOURCE eSource_ = MEASUREMENT_SOURCE::PRIMARY);
+    void IncludeMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_ = HEADER_FORMAT::ALL, uint8_t ucSource_ = 0);
 
     //----------------------------------------------------------------------------
     //! \brief Include messages that match multiple message names.
@@ -281,7 +280,7 @@ class Filter
     //! \param[in] vNames_  Vector of tuples containing: message name,
     //! message format, and antenna source.
     //----------------------------------------------------------------------------
-    void IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>& vNames_);
+    void IncludeMessageName(std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>>& vNames_);
 
     //----------------------------------------------------------------------------
     //! \brief Remove a specific message name from the filter.
@@ -290,7 +289,7 @@ class Filter
     //! \param[in] eFormat_  The message format.
     //! \param[in] eSource_  The antenna source.
     //----------------------------------------------------------------------------
-    void RemoveMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, MEASUREMENT_SOURCE eSource_);
+    void RemoveMessageName(std::string_view szMsgName_, HEADER_FORMAT eFormat_, uint8_t ucSource_);
 
     //----------------------------------------------------------------------------
     //! \brief Invert the message name filter.
