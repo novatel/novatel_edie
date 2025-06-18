@@ -68,7 +68,7 @@ void init_novatel_common(nb::module_& m)
             Used as a storehouse for information during piece-wise decoding.)doc")
         .def(nb::init())
         .def_rw("format", &oem::MetaDataStruct::eFormat)
-        .def_rw("measurement_source", &oem::MetaDataStruct::eMeasurementSource)
+        .def_rw("measurement_source", &oem::MetaDataStruct::ucSiblingId)
         .def_rw("time_status", &oem::MetaDataStruct::eTimeStatus)
         .def_rw("response", &oem::MetaDataStruct::bResponse)
         .def_rw("week", &oem::MetaDataStruct::usWeek)
@@ -103,7 +103,7 @@ void init_novatel_common(nb::module_& m)
             return nb::str("MetaData(message_name={!r}, format={!r}, measurement_source={!r}, time_status={!r}, response={!r}, "
                            "week={!r}, milliseconds={!r}, binary_msg_length={!r}, length={!r}, header_length={!r}, message_id={!r}, "
                            "message_crc={!r})")
-                .format(metadata.messageName, metadata.eFormat, metadata.eMeasurementSource, metadata.eTimeStatus, metadata.bResponse,
+                .format(metadata.messageName, metadata.eFormat, metadata.ucSiblingId, metadata.eTimeStatus, metadata.bResponse,
                         metadata.usWeek, metadata.dMilliseconds, metadata.uiBinaryMsgLength, metadata.uiLength, metadata.uiHeaderLength,
                         metadata.usMessageId, metadata.uiMessageCrc);
         });

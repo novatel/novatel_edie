@@ -69,8 +69,8 @@ void init_novatel_filter(nb::module_& m)
 
                         Otherwise only they will be included.
         )doc")
-        .def("add_message_id", nb::overload_cast<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>(&oem::PyFilter::IncludeMessageId), "id"_a,
-             "format"_a = HEADER_FORMAT::ALL, "source"_a = MEASUREMENT_SOURCE::PRIMARY,
+        .def("add_message_id", nb::overload_cast<uint32_t, HEADER_FORMAT, uint8_t>(&oem::PyFilter::IncludeMessageId), "id"_a,
+             "format"_a = HEADER_FORMAT::ALL, "source"_a = 0,
              R"doc(
                 Adds a new message ID to the set to filter on.
                 
@@ -79,8 +79,8 @@ void init_novatel_filter(nb::module_& m)
                     format: The message format it applies to. Defaults to all.
                     source: The antenna source it applies to. Defaults to primary.
         )doc")
-        .def("extend_message_ids",
-             nb::overload_cast<std::vector<std::tuple<uint32_t, HEADER_FORMAT, MEASUREMENT_SOURCE>>&>(&oem::PyFilter::IncludeMessageId), "ids"_a,
+        .def("extend_message_ids", nb::overload_cast<std::vector<std::tuple<uint32_t, HEADER_FORMAT, uint8_t>>&>(&oem::PyFilter::IncludeMessageId),
+             "ids"_a,
              R"doc(
                 Extends the set of message ids to filter on.
                 
@@ -104,8 +104,8 @@ void init_novatel_filter(nb::module_& m)
 
                         Otherwise only they will be included.
         )doc")
-        .def("add_message_name", nb::overload_cast<std::string_view, HEADER_FORMAT, MEASUREMENT_SOURCE>(&oem::PyFilter::IncludeMessageName), "name"_a,
-             "format"_a = HEADER_FORMAT::ALL, "source"_a = MEASUREMENT_SOURCE::PRIMARY,
+        .def("add_message_name", nb::overload_cast<std::string_view, HEADER_FORMAT, uint8_t>(&oem::PyFilter::IncludeMessageName), "name"_a,
+             "format"_a = HEADER_FORMAT::ALL, "source"_a = 0,
              R"doc(
                 Adds a new message name to the set to filter on.
                 
@@ -115,7 +115,7 @@ void init_novatel_filter(nb::module_& m)
                     source: The antenna source it applies to. Defaults to primary.
         )doc")
         .def("extend_message_names",
-             nb::overload_cast<std::vector<std::tuple<std::string, HEADER_FORMAT, MEASUREMENT_SOURCE>>&>(&oem::PyFilter::IncludeMessageName),
+             nb::overload_cast<std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>>&>(&oem::PyFilter::IncludeMessageName),
              "names"_a,
              R"doc(
                 Extends the set of message name to filter on.

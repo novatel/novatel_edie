@@ -412,14 +412,15 @@ void init_header_objects(nb::module_& m)
                                         "A message field which provides information about its source, format, and whether it is a response.")
         .def("__repr__",
              [](nb::handle_t<PyMessageTypeField> self) {
-                 std::string source = nb::cast<nb::str>(self.attr("source").attr("__repr__")()).c_str();
+                 std::string sibling_id = nb::cast<nb::str>(self.attr("sibling_id").attr("__repr__")()).c_str();
                  std::string format = nb::cast<nb::str>(self.attr("format").attr("__repr__")()).c_str();
                  std::string response = nb::cast<nb::str>(self.attr("is_response").attr("__repr__")()).c_str();
 
-                 return "MessageType(source=" + source + ", format=" + format + ", response=" + response + ")";
+                 return "MessageType(sibling_id=" + sibling_id + ", format=" + format + ", response=" + response + ")";
              })
         .def_prop_ro("is_response", &oem::PyMessageTypeField::IsResponse, "Whether the message is a response.")
         .def_prop_ro("format", &oem::PyMessageTypeField::GetFormat, "The original format of the message.")
+        .def_prop_ro("sibling_id", &oem::PyMessageTypeField::GetSiblingId, "Where the message originates from.")
         .def_prop_ro("source", &oem::PyMessageTypeField::GetMeasurementSource, "Where the message originates from.");
 
     nb::class_<oem::PyHeader>(m, "Header")

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <memory>
+
 #include "bindings_core.hpp"
 #include "message_db_singleton.hpp"
 #include "novatel_edie/decoders/oem/filter.hpp"
 #include "py_database.hpp"
+#include "py_logger.hpp"
 #include "py_message_data.hpp"
 
 namespace nb = nanobind;
@@ -38,7 +41,6 @@ struct PyUnknownBytes
     explicit PyUnknownBytes(nb::bytes data_) : data(std::move(data_)) {}
 };
 
-
 //============================================================================
 //! \class PyRecieverStatus
 //! \brief The field in a message header which gives type information.
@@ -49,7 +51,6 @@ struct PyRecieverStatus
 
     PyRecieverStatus(uint32_t value_) : value(value_) {}
 };
-
 
 //============================================================================
 //! \class PyMessageTypeField
@@ -63,7 +64,20 @@ struct PyMessageTypeField
 
     bool IsResponse() { return (value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0; }
     MESSAGE_FORMAT GetFormat() { return static_cast<MESSAGE_FORMAT>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MSGFORMAT)) >> 5); }
-    MEASUREMENT_SOURCE GetMeasurementSource() { return static_cast<MEASUREMENT_SOURCE>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MEASSRC))); }
+    uint8_t GetSiblingId() { return value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MEASSRC); }
+    MEASUREMENT_SOURCE GetMeasurementSource()
+    {
+        static bool bWarningSent = false;
+        if (!bWarningSent)
+        {
+            std::shared_ptr<spdlog::logger> logger = pclLoggerManager->RegisterLogger("deprecation_warning");
+            logger->warn("The 'source' field is deprecated and will be removed in a future release. Use 'sibling_id' instead and convert the integer "
+                         "value to a MEASUREMENT_SOURCE if needed.");
+            bWarningSent = true;
+        }
+
+        return static_cast<MEASUREMENT_SOURCE>((value & static_cast<uint8_t>(MESSAGE_TYPE_MASK::MEASSRC)));
+    }
 };
 
 //============================================================================
@@ -75,14 +89,8 @@ struct PyHeader : public IntermediateHeader
     HEADER_FORMAT format;
     uint32_t raw_length;
 
-    PyMessageTypeField GetPyMessageType()
-    {
-        return PyMessageTypeField(ucMessageType);
-    }
-    PyRecieverStatus GetRecieverStatus()
-    {
-        return PyRecieverStatus(uiReceiverStatus);
-    }
+    PyMessageTypeField GetPyMessageType() { return PyMessageTypeField(ucMessageType); }
+    PyRecieverStatus GetRecieverStatus() { return PyRecieverStatus(uiReceiverStatus); }
 
     nb::dict to_dict() const;
 };
@@ -101,12 +109,12 @@ struct PyField
 
     explicit PyField(std::string name_, bool has_ptype_, std::vector<FieldContainer> message_, PyMessageDatabase::ConstPtr parent_db_)
         : name(std::move(name_)), has_ptype(has_ptype_), fields(std::move(message_)), parent_db_(std::move(parent_db_)) {};
-    
+
     //============================================================================
     //! \brief Creates a shallow dictionary representing the field.
-    //! 
+    //!
     //! Subfields are left as objects instead of being converted to dictionaries.
-    //! 
+    //!
     //! \return A dictionary containing the field values.
     //============================================================================
     nb::dict& to_shallow_dict() const;
@@ -131,9 +139,9 @@ struct PyField
 
     //============================================================================
     //! \brief Converts the object to a dictionary representation.
-    //! 
+    //!
     //! Subfields are converted to dictionaries.
-    //! 
+    //!
     //! \return A dictionary containing the object's data.
     //============================================================================
     nb::dict to_dict() const;
@@ -246,8 +254,8 @@ nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>
 //============================================================================
 //! \class PyResponse
 //! \brief A python representation for a single decoded message response.
-//! 
-//! This class makes the assumption that `fields` is a vector of field with the 
+//!
+//! This class makes the assumption that `fields` is a vector of field with the
 //! definitions generated in `void MessageDecoderBase::CreateResponseMsgDefinitions()`
 //============================================================================
 struct PyResponse : public PyEncodableField
