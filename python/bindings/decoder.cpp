@@ -85,7 +85,7 @@ void init_novatel_decoder(nb::module_& m)
                     default_metadata.eFormat = header.format;
                     default_metadata.usMessageId = header.usMessageId;
                     default_metadata.messageName = decoder.database->MsgIdToMsgName(CreateMsgId(
-                        header.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY), static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
+                        header.usMessageId, NULL_SIBLING_ID, static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
                     default_metadata.bResponse = ((header.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0);
                     metadata = &default_metadata;
                 }

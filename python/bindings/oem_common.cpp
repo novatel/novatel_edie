@@ -6,6 +6,17 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
+void SendMeasurementSourceWarning()
+{
+    static bool bWarned = false;
+    if (!bWarned)
+    {
+        pclLoggerManager->RegisterLogger("deprecation_warning")
+            ->warn("The 'measurement_source' property is deprecated and will be removed in a future release. Use 'sibling_id' instead.");
+        bWarned = true;
+    }
+}
+
 void init_novatel_common(nb::module_& m)
 {
     m.attr("NMEA_SYNC") = oem::NMEA_SYNC;
@@ -68,7 +79,17 @@ void init_novatel_common(nb::module_& m)
             Used as a storehouse for information during piece-wise decoding.)doc")
         .def(nb::init())
         .def_rw("format", &oem::MetaDataStruct::eFormat)
-        .def_rw("measurement_source", &oem::MetaDataStruct::eMeasurementSource)
+        .def_rw("sibling_id", &oem::MetaDataStruct::ucSiblingId)
+        .def_prop_rw(
+            "measurement_source",
+            [](const oem::MetaDataStruct& self) {
+                SendMeasurementSourceWarning();
+                return static_cast<MEASUREMENT_SOURCE>(self.ucSiblingId);
+            },
+            [](oem::MetaDataStruct& self, MEASUREMENT_SOURCE source_) {
+                SendMeasurementSourceWarning();
+                self.ucSiblingId = static_cast<uint8_t>(source_);
+            })
         .def_rw("time_status", &oem::MetaDataStruct::eTimeStatus)
         .def_rw("response", &oem::MetaDataStruct::bResponse)
         .def_rw("week", &oem::MetaDataStruct::usWeek)
@@ -80,8 +101,7 @@ void init_novatel_common(nb::module_& m)
         .def_rw("message_id", &oem::MetaDataStruct::usMessageId)
         .def_rw("message_crc", &oem::MetaDataStruct::uiMessageCrc)
         .def_prop_rw(
-            "message_name",
-            [](const oem::MetaDataStruct& self) { return self.messageName; },
+            "message_name", [](const oem::MetaDataStruct& self) { return self.messageName; },
             [](oem::MetaDataStruct& self, const std::string& message_name) {
                 if (message_name.length() > oem::OEM4_ASCII_MESSAGE_NAME_MAX) { throw std::runtime_error("Message name is too long"); }
                 self.messageName = message_name;
@@ -103,9 +123,9 @@ void init_novatel_common(nb::module_& m)
             return nb::str("MetaData(message_name={!r}, format={!r}, measurement_source={!r}, time_status={!r}, response={!r}, "
                            "week={!r}, milliseconds={!r}, binary_msg_length={!r}, length={!r}, header_length={!r}, message_id={!r}, "
                            "message_crc={!r})")
-                .format(metadata.messageName, metadata.eFormat, metadata.eMeasurementSource, metadata.eTimeStatus, metadata.bResponse,
-                        metadata.usWeek, metadata.dMilliseconds, metadata.uiBinaryMsgLength, metadata.uiLength, metadata.uiHeaderLength,
-                        metadata.usMessageId, metadata.uiMessageCrc);
+                .format(metadata.messageName, metadata.eFormat, metadata.ucSiblingId, metadata.eTimeStatus, metadata.bResponse, metadata.usWeek,
+                        metadata.dMilliseconds, metadata.uiBinaryMsgLength, metadata.uiLength, metadata.uiHeaderLength, metadata.usMessageId,
+                        metadata.uiMessageCrc);
         });
 
     nb::class_<oem::Oem4BinaryHeader>(m, "Oem4BinaryHeader", "Not currently part of public API.")

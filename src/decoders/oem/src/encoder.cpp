@@ -34,9 +34,9 @@ using namespace novatel::edie::oem;
 // -------------------------------------------------------------------------------------------------------
 void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHeader_)
 {
-    const uint32_t uiSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
+    const uint32_t ucSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
 
-    if (uiSiblingId != 0U)
+    if (ucSiblingId != 0U)
     {
         // Reserve space for the suffix: "_" + up to 3 digits (max for uint8_t)
         constexpr size_t maxSuffixSize = 4; // "_" + up to 3 digits
@@ -47,7 +47,7 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
 
         // Convert the sibling ID to a string and append it
         std::array<char, maxSuffixSize> buffer; // Enough space for a uint8_t (up to 3 digits) + null terminator
-        auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), uiSiblingId, 10);
+        auto [ptr, ec] = std::to_chars(buffer.data(), buffer.data() + buffer.size(), ucSiblingId, 10);
         if (ec == std::errc()) { sMsgName_.append(buffer.data(), ptr); }
     }
 }

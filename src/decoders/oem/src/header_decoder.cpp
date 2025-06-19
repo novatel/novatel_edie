@@ -94,12 +94,12 @@ bool HeaderDecoder::DecodeAsciiHeaderField(IntermediateHeader& stInterHeader_, c
     {
     case ASCII_HEADER::MESSAGE_NAME: {
         uint16_t usLogId = 0;
-        uint32_t uiSiblingId = 0;
+        uint32_t ucSiblingId = NULL_SIBLING_ID;
         uint32_t uiMsgFormat = 0;
         uint32_t uiResponse = 0;
-        UnpackMsgId(pclMyMsgDb->MsgNameToMsgId(std::string(*ppcLogBuf_, ullTokenLength)), usLogId, uiSiblingId, uiMsgFormat, uiResponse);
+        UnpackMsgId(pclMyMsgDb->MsgNameToMsgId(std::string(*ppcLogBuf_, ullTokenLength)), usLogId, ucSiblingId, uiMsgFormat, uiResponse);
         stInterHeader_.usMessageId = usLogId;
-        stInterHeader_.ucMessageType = PackMsgType(uiSiblingId, uiMsgFormat, uiResponse);
+        stInterHeader_.ucMessageType = PackMsgType(ucSiblingId, uiMsgFormat, uiResponse);
         break;
     }
     case ASCII_HEADER::PORT:
@@ -383,7 +383,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         break;
 
     case HEADER_FORMAT::SHORT_BINARY: {
-        // Reset the IntermediateHeader ucMessageType because can incorrectly set eMeasurementSource and bResponse if it isn't
+        // Reset the IntermediateHeader ucMessageType because can incorrectly set ucSiblingId and bResponse if it isn't
         stInterHeader_.ucMessageType = 0;
         const auto* pstBinaryShortHeader = reinterpret_cast<const Oem4BinaryShortHeader*>(pucLogBuf_);
         stInterHeader_.usLength = pstBinaryShortHeader->ucLength;
@@ -410,8 +410,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     default: return STATUS::UNKNOWN;
     }
 
-    stMetaData_.eMeasurementSource =
-        static_cast<MEASUREMENT_SOURCE>(stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC));
+    stMetaData_.ucSiblingId = stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::MEASSRC);
     stMetaData_.eTimeStatus = static_cast<TIME_STATUS>(stInterHeader_.uiTimeStatus);
     stMetaData_.bResponse =
         static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE) == (stInterHeader_.ucMessageType & static_cast<uint32_t>(MESSAGE_TYPE_MASK::RESPONSE));
@@ -423,8 +422,8 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     stMetaData_.uiBinaryMsgLength = static_cast<uint32_t>(stInterHeader_.usLength);
 
     // Reconstruct a message name that won't have a suffix of any kind.
-    stMetaData_.messageName = pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, static_cast<uint32_t>(MEASUREMENT_SOURCE::PRIMARY),
-                                                                     static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
+    stMetaData_.messageName =
+        pclMyMsgDb->MsgIdToMsgName(CreateMsgId(stInterHeader_.usMessageId, 0, static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
 
     return STATUS::SUCCESS;
 }
