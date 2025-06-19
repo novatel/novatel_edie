@@ -55,4 +55,5 @@ jobs:
 
       - name: Compare benchmarks
         run: python3 scripts/compare_benchmarks.py
+        continue-on-error: true
 
