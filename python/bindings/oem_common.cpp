@@ -11,7 +11,8 @@ void SendMeasurementSourceWarning()
     static bool bWarned = false;
     if (!bWarned)
     {
-        pclLoggerManager->RegisterLogger("deprecation_warning")
+        GetBaseLoggerManager()
+            ->RegisterLogger("deprecation_warning")
             ->warn("The 'measurement_source' property is deprecated and will be removed in a future release. Use 'sibling_id' instead.");
         bWarned = true;
     }
