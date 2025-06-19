@@ -145,11 +145,13 @@ void Encoder::InitFieldMaps()
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
         if (fc_.fieldDef->dataType.length == 4)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::scientific, fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::scientific,
+                                      fc_.fieldDef->precision);
         }
         if (fc_.fieldDef->dataType.length == 8)
         {
-            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::scientific, fc_.fieldDef->precision);
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::scientific,
+                                      fc_.fieldDef->precision);
         }
         return false;
     };
