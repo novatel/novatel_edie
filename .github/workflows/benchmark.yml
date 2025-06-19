@@ -6,6 +6,7 @@ on:
 jobs:
   benchmark-comparison:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - name: Checkout main branch
@@ -55,5 +56,4 @@ jobs:
 
       - name: Compare benchmarks
         run: python3 scripts/compare_benchmarks.py
-        continue-on-error: true
 
