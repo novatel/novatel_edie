@@ -118,8 +118,11 @@ class MessageDecoderBase
         T value;
         std::from_chars_result result;
 
-        if constexpr (std::is_integral_v<T>) { result = std::from_chars(token, token + tokenLength, value, R); }
-        else if constexpr (std::is_floating_point_v<T>) { result = std::from_chars(token, token + tokenLength, value); }
+        uint32_t offset = 0;
+        while ((token[offset] == ' ') && (offset < tokenLength - 1)) { ++offset; }
+
+        if constexpr (std::is_integral_v<T>) { result = std::from_chars(token + offset, token + tokenLength, value, R); }
+        else if constexpr (std::is_floating_point_v<T>) { result = std::from_chars(token + offset, token + tokenLength, value); }
 
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
 
