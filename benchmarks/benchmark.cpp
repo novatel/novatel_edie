@@ -237,7 +237,7 @@ static void DecompressRangeCmp5(benchmark::State& state) { DecompressRangeCmp(st
 BENCHMARK(Parse);
 BENCHMARK(FrameAscii);
 BENCHMARK(FrameAbbAscii);
-BENCHMARK(FrameBinary);
+BENCHMARK(FrameBinary)->MinTime(2.0);
 BENCHMARK(FrameJson)->MinTime(2.0);
 BENCHMARK(DecodeAsciiLog);
 BENCHMARK(DecodeAbbrevAsciiLog);
