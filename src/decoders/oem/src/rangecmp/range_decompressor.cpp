@@ -35,7 +35,7 @@ using namespace novatel::edie::oem;
 RangeDecompressor::RangeDecompressor(MessageDatabase::Ptr pclJsonDb_)
     : clMyHeaderDecoder(pclJsonDb_), clMyMessageDecoder(pclJsonDb_), clMyEncoder(pclJsonDb_)
 {
-    pclMyLogger = pclLoggerManager->RegisterLogger("range_decompressor");
+    pclMyLogger = GetBaseLoggerManager()->RegisterLogger("range_decompressor");
     pclMyLogger->debug("RangeDecompressor initializing...");
 
     if (pclJsonDb_ != nullptr) { LoadJsonDb(pclJsonDb_); }
