@@ -118,6 +118,8 @@ class MessageDecoderBase
         T value;
         std::from_chars_result result;
 
+        // As of 6/26/2025 spaces may appear within ascii fields of OUTPUTDATUM and SETALIGNMENTVEL as they use conversion strings with width values.
+        // EDIE supports decoding of this data but will never pad fields with spaces during encoding.
         uint32_t offset = 0;
         while ((token[offset] == ' ') && (offset < tokenLength - 1)) { ++offset; }
 
