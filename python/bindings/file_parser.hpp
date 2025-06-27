@@ -17,6 +17,7 @@ namespace novatel::edie::oem {
 class PyFileParser : public FileParser
 {
   private:
+    PyMessageDatabase::Ptr pclPyMessageDb;
     void SetStreamByPath(const std::filesystem::path& filepath_)
     {
         auto ifs = std::make_shared<std::ifstream>(filepath_, std::ios::binary);
@@ -27,7 +28,8 @@ class PyFileParser : public FileParser
   public:
     PyFileParser(const std::filesystem::path& filepath_) : PyFileParser(filepath_, MessageDbSingleton::get()) {};
 
-    PyFileParser(const std::filesystem::path& filepath_, const PyMessageDatabase::Ptr& message_db_pointer) : FileParser(message_db_pointer)
+    PyFileParser(const std::filesystem::path& filepath_, const PyMessageDatabase::Ptr& message_db_pointer)
+        : FileParser(message_db_pointer->GetCoreDatabase()), pclPyMessageDb(message_db_pointer)
     {
         SetStreamByPath(filepath_);
     }

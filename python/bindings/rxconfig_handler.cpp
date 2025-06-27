@@ -12,13 +12,16 @@ using namespace novatel::edie;
 void init_novatel_rxconfig_handler(nb::module_& m)
 {
     nb::class_<oem::RxConfigHandler>(m, "RxConfigHandler")
-        .def("__init__",
-             [](oem::RxConfigHandler* t) {
-                 new (t) oem::RxConfigHandler(MessageDbSingleton::get());
-                 t->GetLogger()->warn(
-                     "The RXConfigHandler interface is currently unstable! It may undergo breaking changes between minor version increments.");
-             }) // NOLINT(*.NewDeleteLeaks)
-        .def(nb::init<const PyMessageDatabase::Ptr&>(), "message_db"_a)
+        .def(
+            "__init__",
+            [](oem::RxConfigHandler* t, PyMessageDatabase::Ptr message_db) {
+                if (!message_db) { message_db = MessageDbSingleton::get(); };
+                new (t) oem::RxConfigHandler(message_db->GetCoreDatabase());
+                t->GetLogger()->warn(
+                    "The RXConfigHandler interface is currently unstable! It may undergo breaking changes between minor version increments.");
+            },
+            nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
+        // TODO: Fix any bindings that take a regular message database pointer!
         .def("load_db", &oem::RxConfigHandler::LoadJsonDb, "message_db"_a)
         .def("write", [](oem::RxConfigHandler& self,
                          const nb::bytes& data) { return self.Write(reinterpret_cast<uint8_t*>(const_cast<char*>(data.c_str())), data.size()); })

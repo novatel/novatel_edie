@@ -37,7 +37,11 @@ class DecoderTester : public oem::MessageDecoder
 void init_decoder_tester(nb::module_ &m)
 {
     nb::class_<DecoderTester>(m, "DecoderTester")
-        .def(nb::init<const PyMessageDatabase::Ptr&>(), "json_db"_a)
+        .def("__init__",
+             [](DecoderTester* t, PyMessageDatabase::Ptr message_db) {
+                 if (!message_db) { message_db = MessageDbSingleton::get(); };
+                 new (t) DecoderTester(message_db->GetCoreDatabase());
+             }) // NOLINT(*.NewDeleteLeaks)
         .def(
             "decode_ascii",
             [](DecoderTester& decoder, const std::vector<BaseField::Ptr>& msg_def_fields, const nb::bytes& message_body) {
