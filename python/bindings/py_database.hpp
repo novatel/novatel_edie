@@ -57,11 +57,7 @@ class PyMessageDatabaseCore : public MessageDatabase
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};
 
-    std::shared_ptr<oem::Encoder> encoder;
-
   public:
-    std::shared_ptr<const oem::Encoder> get_encoder() const { return encoder; }
-
     using Ptr = std::shared_ptr<PyMessageDatabaseCore>;
     using ConstPtr = std::shared_ptr<const PyMessageDatabaseCore>;
 };
@@ -74,42 +70,42 @@ class PyMessageDatabase
     explicit PyMessageDatabase(const MessageDatabase& message_db) noexcept;
     explicit PyMessageDatabase(const MessageDatabase&& message_db) noexcept;
 
-    std::shared_ptr<const oem::Encoder> get_encoder() const { return message_db->get_encoder(); }
+    [[nodiscard]] std::string MsgIdToMsgName(uint32_t uiMessageId_) const { return pclMessageDb->MsgIdToMsgName(uiMessageId_); };
 
-    [[nodiscard]] std::string MsgIdToMsgName(uint32_t uiMessageId_) const { message_db->MsgIdToMsgName(uiMessageId_); };
+    void PyAppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_) { pclMessageDb->AppendMessages(vMessageDefinitions_); }
 
-    void PyAppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_) { message_db->AppendMessages(vMessageDefinitions_); }
+    void PyAppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_) { pclMessageDb->AppendEnumerations(vEnumDefinitions_); }
 
-    void PyAppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_) { message_db->AppendEnumerations(vEnumDefinitions_); }
+    void PyRemoveMessage(const uint32_t iMsgId_) { pclMessageDb->RemoveMessage(iMsgId_); }
 
-    void PyRemoveMessage(const uint32_t iMsgId_) { message_db->RemoveMessage(iMsgId_); }
-
-    void PyRemoveEnumeration(std::string_view strEnumeration_) { message_db->RemoveEnumeration(strEnumeration_); }
+    void PyRemoveEnumeration(std::string_view strEnumeration_) { pclMessageDb->RemoveEnumeration(strEnumeration_); }
 
     // MessageDatabase wrappers
-    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view strMsgName_) const { return message_db->GetMsgDef(strMsgName_); }
-    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t iMsgId_) const { return message_db->GetMsgDef(iMsgId_); }
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view strMsgName_) const { return pclMessageDb->GetMsgDef(strMsgName_); }
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t iMsgId_) const { return pclMessageDb->GetMsgDef(iMsgId_); }
 
-    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(std::string& strEnumId_) const { return message_db->GetEnumDefId(strEnumId_); }
-    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(std::string& strEnumName_) const { return message_db->GetEnumDefName(strEnumName_); }
+    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(std::string& strEnumId_) const { return pclMessageDb->GetEnumDefId(strEnumId_); }
+    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(std::string& strEnumName_) const { return pclMessageDb->GetEnumDefName(strEnumName_); }
 
-    void Merge(const MessageDatabase& other_) { message_db->Merge(other_); }
+    void Merge(const MessageDatabase& other_) { pclMessageDb->Merge(other_); }
 
     // PyMessageDatabaseCore wrappers
-    [[nodiscard]] const std::unordered_map<std::string, PyMessageType*>& GetMessagesByNameDict() const { return message_db->GetMessagesByNameDict(); }
-    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetFieldsByNameDict() const { return message_db->GetFieldsByNameDict(); }
+    [[nodiscard]] const std::unordered_map<std::string, PyMessageType*>& GetMessagesByNameDict() const { return pclMessageDb->GetMessagesByNameDict(); }
+    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetFieldsByNameDict() const { return pclMessageDb->GetFieldsByNameDict(); }
 
-    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return message_db->GetEnumsByIdDict(); }
-    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return message_db->GetEnumsByNameDict(); }
+    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return pclMessageDb->GetEnumsByIdDict(); }
+    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return pclMessageDb->GetEnumsByNameDict(); }
 
   private:
-    PyMessageDatabaseCore::Ptr message_db; // This is the base MessageDatabase that this class wraps
+    PyMessageDatabaseCore::Ptr pclMessageDb; // This is the base MessageDatabase that this class wraps
+    std::shared_ptr<oem::Encoder> pclEncoder;
 
   public:
     using Ptr = std::shared_ptr<PyMessageDatabase>;
     using ConstPtr = std::shared_ptr<const PyMessageDatabase>;
 
-    PyMessageDatabaseCore::Ptr GetCoreDatabase() const { return message_db; }
+    PyMessageDatabaseCore::Ptr GetCoreDatabase() const { return pclMessageDb; }
+    std::shared_ptr<const oem::Encoder> GetEncoder() const { return pclEncoder; }
 };
 
 } // namespace novatel::edie

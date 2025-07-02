@@ -257,7 +257,7 @@ oem::PyMessageData PyEncode(PyEncodableField& py_message, const PyMessageDatabas
 {
     STATUS status;
     MessageDataStruct message_data = MessageDataStruct();
-    std::shared_ptr<const Encoder> encoder = db->get_encoder();
+    std::shared_ptr<const Encoder> encoder = db->GetEncoder();
 
     if (format == ENCODE_FORMAT::JSON)
     {

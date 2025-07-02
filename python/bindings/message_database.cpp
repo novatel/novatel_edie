@@ -192,7 +192,6 @@ PyMessageDatabaseCore::PyMessageDatabaseCore()
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabaseCore::PyMessageDatabaseCore(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
@@ -201,36 +200,37 @@ PyMessageDatabaseCore::PyMessageDatabaseCore(std::vector<MessageDefinition::Cons
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::Encoder>(this);
 }
 
 PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::Encoder>(this);
 }
 
-PyMessageDatabase::PyMessageDatabase() : message_db(std::make_shared<PyMessageDatabaseCore>()) {}
+PyMessageDatabase::PyMessageDatabase() : pclMessageDb(std::make_shared<PyMessageDatabaseCore>()) { pclEncoder = std::make_shared<oem::Encoder>(this->pclMessageDb); }
 
 PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
                                      std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
-    : message_db(std::make_shared<PyMessageDatabaseCore>(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_)))
+    : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_)))
 {
+    pclEncoder = std::make_shared<oem::Encoder>(this->pclMessageDb);
 }
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : message_db(std::make_shared<PyMessageDatabaseCore>(message_db)) {}
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(message_db)) {
+    pclEncoder = std::make_shared<oem::Encoder>(this->pclMessageDb);
+}
 
 PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept
-    : message_db(std::make_shared<PyMessageDatabaseCore>(std::move(message_db)))
+    : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(std::move(message_db)))
 {
+    pclEncoder = std::make_shared<oem::Encoder>(this->pclMessageDb);
 }
 
 void PyMessageDatabaseCore::GenerateMessageMappings()
