@@ -97,15 +97,15 @@ class PyMessageDatabase
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return pclMessageDb->GetEnumsByNameDict(); }
 
   private:
-    PyMessageDatabaseCore::Ptr pclMessageDb; // This is the base MessageDatabase that this class wraps
-    std::shared_ptr<oem::Encoder> pclEncoder;
+    PyMessageDatabaseCore::Ptr pclMessageDb; // This is the MessageDatabase that this class wraps
+    std::unique_ptr<oem::Encoder> pclEncoder;
 
   public:
     using Ptr = std::shared_ptr<PyMessageDatabase>;
     using ConstPtr = std::shared_ptr<const PyMessageDatabase>;
 
     PyMessageDatabaseCore::Ptr GetCoreDatabase() const { return pclMessageDb; }
-    std::shared_ptr<const oem::Encoder> GetEncoder() const { return pclEncoder; }
+    const oem::Encoder* GetEncoder() const { return pclEncoder.get(); }
 };
 
 } // namespace novatel::edie
