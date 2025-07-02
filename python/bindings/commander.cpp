@@ -18,7 +18,6 @@ void init_novatel_commander(nb::module_& m)
                 new (t) oem::Commander(message_db->GetCoreDatabase());
             },
             nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
-        .def("load_db", &oem::Commander::LoadJsonDb, "message_db"_a)
         .def(
             "encode",
             [](oem::Commander& commander, const nb::bytes& command, const ENCODE_FORMAT format) {
