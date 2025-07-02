@@ -1,5 +1,7 @@
 #include "py_message_objects.hpp"
 
+#include <variant>
+
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/list.h>
 #include <nanobind/stl/string.h>
@@ -249,43 +251,41 @@ std::string PyField::repr() const
 
 #pragma region PyMessageMethods
 
-oem::PyMessageData PyEncode(PyEncodableField& py_message, const Encoder* encoder, ENCODE_FORMAT format)
+oem::PyMessageData PyEncodableField::PyEncode(ENCODE_FORMAT format)
 {
     STATUS status;
     MessageDataStruct message_data = MessageDataStruct();
+    RxConfigHandler* pclRxConfigHandler = this->parent_db_->GetRxConfigHandler();
 
-    if (format == ENCODE_FORMAT::JSON)
+    // Allocate more space for JSON messages.
+    // A TRACKSTAT message can use about 47k bytes when encoded as JSON.
+    // FIXME: this is still not safe and there is no effective buffer overflow checking implemented in Encoder.
+    uint8_t buffer[MESSAGE_SIZE_MAX * 3];
+    auto buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
+    uint32_t buf_size = MESSAGE_SIZE_MAX;
+    if (pclRxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
     {
-        // Allocate more space for JSON messages.
-        // A TRACKSTAT message can use about 47k bytes when encoded as JSON.
-        // FIXME: this is still not safe and there is no effective buffer overflow checking implemented in Encoder.
-        uint8_t buffer[MESSAGE_SIZE_MAX * 3];
-        auto* buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
-        uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
-        status = encoder->Encode(&buf_ptr, buf_size, py_message.header, py_message.fields, message_data, py_message.header.format, format);
+        status = this->parent_db_->GetRxConfigHandler()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
     }
     else
     {
-        uint8_t buffer[MESSAGE_SIZE_MAX];
-        auto buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
-        uint32_t buf_size = MESSAGE_SIZE_MAX;
-        status = encoder->Encode(&buf_ptr, buf_size, py_message.header, py_message.fields, message_data, py_message.header.format, format);
+        status = this->parent_db_->GetEncoder()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, this->header.format, format);
     }
     throw_exception_from_status(status);
     return PyMessageData(message_data);
 }
 
-PyMessageData PyEncodableField::encode(ENCODE_FORMAT fmt) { return PyEncode(*this, this->parent_db_->GetEncoder(), fmt); }
+PyMessageData PyEncodableField::encode(ENCODE_FORMAT fmt) { return PyEncode(fmt); }
 
-PyMessageData PyEncodableField::to_ascii() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::ASCII); }
+PyMessageData PyEncodableField::to_ascii() { return PyEncode(ENCODE_FORMAT::ASCII); }
 
-PyMessageData PyEncodableField::to_abbrev_ascii() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::ABBREV_ASCII); }
+PyMessageData PyEncodableField::to_abbrev_ascii() { return PyEncode(ENCODE_FORMAT::ABBREV_ASCII); }
 
-PyMessageData PyEncodableField::to_binary() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::BINARY); }
+PyMessageData PyEncodableField::to_binary() { return PyEncode(ENCODE_FORMAT::BINARY); }
 
-PyMessageData PyEncodableField::to_flattened_binary() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::FLATTENED_BINARY); }
+PyMessageData PyEncodableField::to_flattened_binary() { return PyEncode(ENCODE_FORMAT::FLATTENED_BINARY); }
 
-PyMessageData PyEncodableField::to_json() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::JSON); }
+PyMessageData PyEncodableField::to_json() { return PyEncode(ENCODE_FORMAT::JSON); }
 
 #pragma endregion
 
