@@ -50,7 +50,7 @@ void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
     pclMyMsgDb = pclMessageDb_;
     clMyHeaderDecoder.LoadJsonDb(pclMessageDb_);
     clMyMessageDecoder.LoadJsonDb(pclMessageDb_);
-    clMyEncoder.LoadSharedJsonDb(pclMessageDb_);
+    clMyEncoder.LoadJsonDb(pclMessageDb_);
 
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
