@@ -67,7 +67,7 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
 
-    static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
+        static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
 
   public:
     //! NOTE: The following constructors prevent this class from ever being
