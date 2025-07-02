@@ -67,8 +67,6 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
 
-        static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
-
   public:
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
@@ -83,6 +81,8 @@ class RxConfigHandler
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_ = nullptr);
+
+    static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
 
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.

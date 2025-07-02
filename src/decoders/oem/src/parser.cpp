@@ -169,7 +169,7 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                         clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, ENCODE_FORMAT::ASCII);
                     stMessage_.push_back(
                         FieldContainer(std::string(reinterpret_cast<const char*>(stMessageData_.pucMessage), stMessageData_.uiMessageLength),
-                                       std::move(pclMyMessageDb->pclRXConfigField)));
+                                       pclMyMessageDb->pclRXConfigField));
                 }
                 else { eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_); }
 
