@@ -342,6 +342,14 @@ class MessageDatabase
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
 
   public:
+    BaseField::ConstPtr pclRXConfigField = std::make_shared<BaseField>(
+       "RXConfigField",
+       FIELD_TYPE::STRING,
+       "%s", 
+       sizeof(uint32_t), 
+       DATA_TYPE::UCHAR
+    );
+
     //----------------------------------------------------------------------------
     //! \brief A constructor for the MessageDatabase class.
     //----------------------------------------------------------------------------

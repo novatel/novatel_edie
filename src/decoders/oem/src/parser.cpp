@@ -159,7 +159,19 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 pucMyFrameBufferPointer += stMetaData_.uiHeaderLength;
                 stMessageData_.pucMessageBody = pucMyFrameBufferPointer;
                 stMessageData_.uiMessageBodyLength = stMetaData_.uiLength - stMetaData_.uiHeaderLength;
-                eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
+                if (clMyRxConfigFilter.DoFiltering(stMetaData_))
+                {
+
+                    MessageDataStruct stEmbeddedMessageData;
+                    MetaDataStruct stEmbeddedMetaData;
+                    clMyRxConfigHandler.Write(stMessageData_.pucMessage, stMetaData_.uiLength);
+                    eStatus =
+                        clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, ENCODE_FORMAT::ASCII);
+                    stMessage_.push_back(
+                        FieldContainer(std::string(reinterpret_cast<const char*>(stMessageData_.pucMessage), stMessageData_.uiMessageLength),
+                                       std::move(pclMyMessageDb->pclRXConfigField)));
+                }
+                else { eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_); }
 
                 if (eStatus == STATUS::SUCCESS || eStatus == STATUS::NO_DEFINITION) { return eStatus; }
 
