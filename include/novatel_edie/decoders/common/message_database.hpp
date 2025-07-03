@@ -344,9 +344,9 @@ class MessageDatabase
   public:
     BaseField::ConstPtr pclRXConfigField = std::make_shared<BaseField>(
        "RXConfigField",
-       FIELD_TYPE::STRING,
-       "%s", 
-       sizeof(uint32_t), 
+       FIELD_TYPE::VARIABLE_LENGTH_ARRAY,
+       "%P", 
+       sizeof(uint8_t), 
        DATA_TYPE::UCHAR
     );
 
