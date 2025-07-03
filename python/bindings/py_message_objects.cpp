@@ -1,6 +1,7 @@
 #include "py_message_objects.hpp"
 
 #include <variant>
+
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/list.h>
 #include <nanobind/stl/string.h>
@@ -268,24 +269,11 @@ oem::PyMessageData PyEncodableField::PyEncode(ENCODE_FORMAT format)
     uint32_t buf_size = MESSAGE_SIZE_MAX;
     if (pclRxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
     {
-        uint8_t embeddedBuffer[MESSAGE_SIZE_MAX * 3];
-        MessageDataStruct stEmbeddedMessageData;
-
-        stEmbeddedMessageData.pucMessage = embeddedBuffer;
-        
-        MetaDataStruct stMetaData;
-        MetaDataStruct stEmbeddedMetaData;
-
-        message_data.pucMessage = buf_ptr;
-        std::string sData = std::get<std::string>(this->fields[0].fieldValue);
-        pclRxConfigHandler->Flush();
-        pclRxConfigHandler->Write(reinterpret_cast<const unsigned char*>(sData.c_str()), sData.size());
-        status = pclRxConfigHandler->Convert(message_data, stMetaData, stEmbeddedMessageData, stEmbeddedMetaData, format);
+        status = this->parent_db_->GetRxConfigHandler()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
     }
     else
     {
-        status =
-            this->parent_db_->GetEncoder()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, this->header.format, format);
+        status = this->parent_db_->GetEncoder()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, this->header.format, format);
     }
     throw_exception_from_status(status);
     return PyMessageData(message_data);

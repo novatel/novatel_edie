@@ -161,15 +161,7 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 stMessageData_.uiMessageBodyLength = stMetaData_.uiLength - stMetaData_.uiHeaderLength;
                 if (clMyRxConfigFilter.DoFiltering(stMetaData_))
                 {
-
-                    MessageDataStruct stEmbeddedMessageData;
-                    MetaDataStruct stEmbeddedMetaData;
-                    clMyRxConfigHandler.Write(stMessageData_.pucMessage, stMetaData_.uiLength);
-                    eStatus =
-                        clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, ENCODE_FORMAT::ASCII);
-                    stMessage_.push_back(
-                        FieldContainer(std::string(reinterpret_cast<const char*>(stMessageData_.pucMessage), stMessageData_.uiMessageLength),
-                                       pclMyMessageDb->pclRXConfigField));
+                    eStatus = clMyRxConfigHandler.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
                 }
                 else { eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_); }
 
@@ -218,17 +210,14 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
         if (clMyRxConfigFilter.DoFiltering(stMetaData_))
         {
             // Use some dummy stuff for the embedded message. The parser won't handle that now.
-            MessageDataStruct stEmbeddedMessageData;
-            MetaDataStruct stEmbeddedMetaData;
-            clMyRxConfigHandler.Write(stMessageData_.pucMessage, stMetaData_.uiLength);
-            eStatus = clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
-            if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}", eStatus); }
-            return eStatus;
+            eStatus = clMyRxConfigHandler.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_, eMyEncodeFormat);
+        }
+        else {
+            eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
+                                         stMetaData_.eFormat, eMyEncodeFormat);
         }
 
-        // Encode regular messages
-        eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_, stMetaData_.eFormat,
-                                     eMyEncodeFormat);
+
         if (eStatus == STATUS::SUCCESS) { return STATUS::SUCCESS; }
 
         pclMyLogger->info("Encoder returned status {}", eStatus);
