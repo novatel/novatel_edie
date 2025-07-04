@@ -67,7 +67,8 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 bool RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
-STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataStruct& stRxConfigMetaData_)
+STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_,
+                               MetaDataStruct& stRxConfigMetaData_) const
 {
     if (!IsRxConfigTypeMsg(stRxConfigMetaData_.usMessageId)) { return STATUS::UNSUPPORTED; }
 
@@ -77,7 +78,8 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     std::vector<FieldContainer> stEmbeddedMessage;
     uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
 
-    BaseField::ConstPtr pclFieldDef = pclMyMsgDb->pclRXConfigField;
+    MessageDefinition::ConstPtr pclMsgDef = pclMyMsgDb->GetMsgDef(stRxConfigMetaData_.usMessageId);
+    BaseField::ConstPtr pclFieldDef = pclMsgDef->fields.at(pclMsgDef->latestMessageCrc).at(0);
     stInterMessage_.emplace_back(std::vector<FieldContainer>(), pclFieldDef);
     auto& stEmbeddedMessageData = std::get<std::vector<FieldContainer>>(stInterMessage_.back().fieldValue);
 

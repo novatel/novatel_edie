@@ -145,7 +145,7 @@ class RxConfigHandler
     //! \return An error code describing the result of decoding.
     // TODO: Fill this in
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataStruct& stMetaData_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encode an RXConfig message from the provided intermediate structures.
