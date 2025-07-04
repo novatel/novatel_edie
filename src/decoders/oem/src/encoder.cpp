@@ -143,13 +143,20 @@ void Encoder::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("e")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::scientific, fc_.fieldDef->precision);
+        if (fc_.fieldDef->dataType.length == 4)
+        {
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<float>(fc_.fieldValue), std::chars_format::scientific,
+                                      fc_.fieldDef->precision);
+        }
+        if (fc_.fieldDef->dataType.length == 8)
+        {
+            return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::scientific,
+                                      fc_.fieldDef->precision);
+        }
+        return false;
     };
 
-    asciiFieldMap[CalculateBlockCrc32("le")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
-                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<double>(fc_.fieldValue), std::chars_format::scientific, fc_.fieldDef->precision);
-    };
+    asciiFieldMap[CalculateBlockCrc32("le")] = asciiFieldMap[CalculateBlockCrc32("e")];
 
     asciiFieldMap[CalculateBlockCrc32("k")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
