@@ -70,7 +70,8 @@ struct PyMessageTypeField
         static bool bWarningSent = false;
         if (!bWarningSent)
         {
-            pclLoggerManager->RegisterLogger("deprecation_warning")
+            GetBaseLoggerManager()
+                ->RegisterLogger("deprecation_warning")
                 ->warn("The 'source' field is deprecated and will be removed in a future release. Use 'sibling_id' instead and convert the integer "
                        "value to a MEASUREMENT_SOURCE if needed.");
             bWarningSent = true;

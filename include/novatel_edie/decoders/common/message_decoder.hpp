@@ -71,7 +71,7 @@ class MessageDecoderBase
   private:
     static constexpr std::string_view svErrorPrefix = "ERROR:";
 
-    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("message_decoder")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("message_decoder")};
 
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 

@@ -78,7 +78,7 @@ class FramerBase
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
     //----------------------------------------------------------------------------
-    FramerBase(const std::string& strLoggerName_) : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_))
+    FramerBase(const std::string& strLoggerName_) : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_))
     {
         pclMyLogger->debug("Framer initialized");
     }

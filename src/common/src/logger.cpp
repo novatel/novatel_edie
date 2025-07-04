@@ -2,6 +2,15 @@
 
 LoggerManager::~LoggerManager() = default;
 
-std::unique_ptr<LoggerManager> pclLoggerManager = std::make_unique<CPPLoggerManager>();
+static LoggerManager* GetSetUniquePointer(LoggerManager* pclLoggerManager_)
+{
+    static std::unique_ptr<LoggerManager> pclLoggerManager = std::make_unique<CPPLoggerManager>();
+    if (pclLoggerManager_ != nullptr) { pclLoggerManager.reset(pclLoggerManager_); }
+    return pclLoggerManager.get();
+}
 
-CPPLoggerManager* GetLoggerManager() { return dynamic_cast<CPPLoggerManager*>(pclLoggerManager.get()); }
+LoggerManager* GetBaseLoggerManager() { return GetSetUniquePointer(nullptr); }
+
+CPPLoggerManager* GetLoggerManager() { return dynamic_cast<CPPLoggerManager*>(GetBaseLoggerManager()); }
+
+void SetLoggerManager(LoggerManager* manager) { GetSetUniquePointer(manager); }

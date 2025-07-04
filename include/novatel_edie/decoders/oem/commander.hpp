@@ -43,7 +43,7 @@ namespace novatel::edie::oem {
 class Commander
 {
   private:
-    std::shared_ptr<spdlog::logger> pclMyLogger{pclLoggerManager->RegisterLogger("novatel_commander")};
+    std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("novatel_commander")};
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
