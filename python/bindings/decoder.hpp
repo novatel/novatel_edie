@@ -19,7 +19,7 @@ class PyDecoder
     HeaderDecoder header_decoder;
     MessageDecoder message_decoder;
 
-    PyDecoder(PyMessageDatabase::Ptr pclMessageDb_) : database(pclMessageDb_), header_decoder(pclMessageDb_), message_decoder(pclMessageDb_) {}
+    PyDecoder(PyMessageDatabase::Ptr pclMessageDb_) : database(pclMessageDb_), header_decoder(pclMessageDb_->GetCoreDatabase()), message_decoder(pclMessageDb_->GetCoreDatabase()) {}
 
     nb::object DecodeMessage(const nb::bytes raw_body, oem::PyHeader& header, oem::MetaDataStruct& metadata) const;
 };

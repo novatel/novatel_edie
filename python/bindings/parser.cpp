@@ -36,8 +36,7 @@ nb::object oem::PyParser::PyRead(bool decode_incomplete)
     std::vector<FieldContainer> message_fields;
 
     STATUS status = ReadIntermediate(message_data, header, message_fields, metadata, decode_incomplete);
-    return HandlePythonReadStatus(status, message_data, header, std::move(message_fields), metadata,
-                                  std::static_pointer_cast<const PyMessageDatabase>(MessageDb()));
+    return HandlePythonReadStatus(status, message_data, header, std::move(message_fields), metadata, pclPyMessageDb);
 }
 
 nb::object oem::PyParser::PyIterRead()
