@@ -177,6 +177,10 @@ class RxConfigHandler
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                 const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
 
+    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
+                                MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
+
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Framer.
     //

@@ -101,7 +101,7 @@ TEST_F(RxConfigTest, LOGGER)
 // -------------------------------------------------------------------------------------------------------
 // Round-trip unit tests.
 // -------------------------------------------------------------------------------------------------------
-TEST_F(RxConfigTest, DISABLED_RXCONFIG_ROUNDTRIP_ASCII)
+TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ASCII)
 {
     unsigned char aucLog[] = "#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,"
                              "COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*"
