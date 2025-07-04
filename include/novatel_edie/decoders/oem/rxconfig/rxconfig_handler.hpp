@@ -67,8 +67,6 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
 
-    static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
-
   public:
     //! NOTE: The following constructors prevent this class from ever being
     //! constructed from a copy, move or assignment.
@@ -83,6 +81,8 @@ class RxConfigHandler
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_ = nullptr);
+
+    static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
 
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
@@ -133,6 +133,53 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStruct& stRxConfigMetaData_,
                                  MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eEncodeFormat_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Decode the payload of an RXCONFIG message.
+    //
+    //! \param[in] pucMessage_ A pointer to a message payload.
+    //! \param[out] stInterMessage_ The intermediate data structure to be populated.
+    //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
+    //! the frame and be fully populated to help describe the decoded log.
+    //
+    //! \return An error code describing the result of decoding.
+    // TODO: Fill this in
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_, MetaDataStruct& stMetaData_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Encode an RXConfig message from the provided intermediate structures.
+    //
+    //! \param[out] ppucBuffer_ A pointer to the buffer to return the encoded
+    //! message to.
+    //! \param[in] uiBufferSize_ The length of ppcBuffer_.
+    //! \param[in] stHeader_ A reference to the decoded header intermediate.
+    //! This must be populated by the HeaderDecoder.
+    //! \param[in] stMessage_ A reference to the decoded message intermediate.
+    //! This must be populated by the MessageDecoder.
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
+    //! populated by the encoder.
+    //! \param[in] eFormat_ The format to encode the message to.
+    //
+    //! \return An error code describing the result of encoding.
+    //!   SUCCESS: The operation was successful.
+    //!   NULL_PROVIDED: ppucBuffer_ either points to a null pointer or is
+    //! a null pointer itself.
+    //!   NO_DATABASE: No database was ever loaded into this component.
+    //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
+    //! but the buffer is already full or could not write the bytes without
+    //! over-running.
+    //!   FAILURE: stMessageData_.pucMessageHeader was not correctly set inside
+    //! this function. This should not happen.
+    //!   UNSUPPORTED: eFormat_ contains a format that is not supported for
+    //! encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
+
+    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
+                                MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Framer.
