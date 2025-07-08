@@ -14,8 +14,8 @@ using namespace nb::literals;
 using namespace novatel::edie;
 
 nb::object oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, oem::PyHeader& header_,
-                                  std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
-                                   PyMessageDatabase::ConstPtr database_)
+                                       std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
+                                       PyMessageDatabase::ConstPtr database_)
 {
     header_.format = metadata_.eFormat;
     switch (status_)
@@ -119,27 +119,22 @@ void init_novatel_parser(nb::module_& m)
                 return std::static_pointer_cast<oem::PyFilter>(self.GetFilter());
             },
             [](oem::PyParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); }, "The filter which controls which data is skipped over.")
+        .def_prop_ro("availible_space", &oem::PyParser::GetAvailableSpace,
+                     "The number of bytes available in the Parser's internal buffer for writing new data.")
         .def(
             "write",
-            [](oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); },
+            [](oem::PyParser& self, const nb::bytes& data) {
+                if (!self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size())) { throw_exception_from_status(STATUS::BUFFER_FULL); }
+                return nb::int_(data.size());
+            },
             R"doc(
-             Attempts to read a message from data in the Parser's buffer.
+             Writes data to the Parser's internal buffer allowing it to later be parsed.
 
              Args:
-                 decode_incomplete_abbreviated: If True, the Parser will try to
-                    interpret a possibly incomplete abbreviated ASCII message as if
-                    it were complete. This is necessary when there is no data
-                    following the message to indicate that its end.
-
-             Returns:
-                 A decoded `Message`,
-                 an `UnknownMessage` whose header was identified but whose payload
-                 could not be decoded due to no available message definition,
-                 or a series of `UnknownBytes` determined to be undecodable.
+                 data: A set of bytes to append to the Parser's internal buffer.
 
              Raises:
-                 BufferEmptyException: There is insufficient data in the Parser's
-                 buffer to decode a message.
+                 BufferFullException: The Parser's internal buffer would be overrun by the data provided.
             )doc")
         .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false,
              nb::sig("def read(self, decode_incomplete_abbreviated: bool = False) -> Message | Response | UnknownMessage | UnknownBytes"),
