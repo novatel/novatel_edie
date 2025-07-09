@@ -110,6 +110,34 @@ class MessageDecoderBase
     void DecodeJsonField(BaseField::ConstPtr&& pstMessageDataType_, simdjson::dom::element clJsonField_,
                          std::vector<FieldContainer>& vIntermediateFormat_) const;
 
+    //----------------------------------------------------------------------------
+    //! \brief Align the binary buffer pointer to the expected type boundary.
+    //
+    //! \param[in] field_ A shared pointer to the field definition describing
+    //! the expected data type and length.
+    //! \param[in] pucStart_ The starting pointer of the binary buffer. Used to
+    //! calculate the current offset relative to the beginning of the payload.
+    //! \param[in, out] ppucBuf_ A pointer to the buffer pointer to be advanced
+    //! to meet the alignment requirement.
+    //
+    //! \remark This default implementation assumes NovAtel binary log alignment,
+    //! where fields are generally aligned to 4-byte boundaries, unless the
+    //! field's type length is smaller. The alignment applied is the minimum of
+    //! 4 and the field's length.
+    //
+    //! For binary formats that use packed structures and do not align fields
+    //! this function should be overridden in a derived decoder class to skip 
+    //! alignment.
+    //
+    //! \return None. The buffer pointer is updated in place.
+    //----------------------------------------------------------------------------
+    virtual void AlignBufferPointer(const BaseField::Ptr& field, const unsigned char* start, const unsigned char** ptr) const
+    {
+        uint8_t alignment = std::min(static_cast<uint16_t>(4), field->dataType.length);
+        uint64_t offset = static_cast<uintptr_t>(*ptr - start) % alignment;
+        if (offset != 0) { *ptr += alignment - offset; }
+    }
+
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
     static void ParseAndEmplace(std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_, const char* token,
