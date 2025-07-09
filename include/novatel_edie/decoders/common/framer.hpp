@@ -159,7 +159,7 @@ class FramerBase
     //!
     //! \return The number of bytes available in the internal circular buffer.
     //------------------------------------------------------------------------------
-    [[nodiscard]] uint32_t GetAvailableSpace() const { return clMyBuffer.available_space(); }
+    [[nodiscard]] size_t GetAvailableSpace() const { return clMyBuffer.available_space(); }
 };
 
 #endif // FRAMER_HPP

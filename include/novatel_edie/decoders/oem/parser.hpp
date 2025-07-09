@@ -236,7 +236,7 @@ class Parser
     //!
     //! \return The number of bytes available in the Parser's internal buffer for writing new data.
     //---------------------------------------------------------------------------
-    [[nodiscard]] uint32_t GetAvailableSpace() const { return clMyFramer.GetAvailableSpace(); }
+    [[nodiscard]] size_t GetAvailableSpace() const { return clMyFramer.GetAvailableSpace(); }
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.
