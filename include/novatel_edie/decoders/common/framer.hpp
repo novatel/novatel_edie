@@ -156,7 +156,7 @@ class FramerBase
 
     //----------------------------------------------------------------------------
     //! \brief Get the number of bytes currently available in the internal buffer.
-    //! 
+    //!
     //! \return The number of bytes available in the internal circular buffer.
     //------------------------------------------------------------------------------
     [[nodiscard]] uint32_t GetAvailableSpace() const { return clMyBuffer.available_space(); }
