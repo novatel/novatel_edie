@@ -298,10 +298,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
 
     for (const auto& field : vMsgDefFields_)
     {
-        // Realign to type byte boundary if needed
-        uint8_t usTypeAlignment = std::min(static_cast<uint16_t>(4), field->dataType.length);
-        uint64_t usAlignmentOffset = static_cast<uint64_t>(*ppucLogBuf_ - pucTempStart) % usTypeAlignment;
-        if (usAlignmentOffset != 0) { *ppucLogBuf_ += usTypeAlignment - usAlignmentOffset; }
+        AlignBufferPointer(field, pucTempStart, ppucLogBuf_);
 
         switch (field->type)
         {
@@ -383,8 +380,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             for (uint32_t i = 0; i < uiArraySize; ++i)
             {
                 // Realign to type byte boundary if needed
-                usAlignmentOffset = static_cast<uint64_t>(*ppucLogBuf_ - pucTempStart) % usTypeAlignment;
-                if (usAlignmentOffset != 0) { *ppucLogBuf_ += usTypeAlignment - usAlignmentOffset; }
+                AlignBufferPointer(field, pucTempStart, ppucLogBuf_);
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().fieldValue);
                 pvFieldContainer.reserve(dynamic_cast<const FieldArrayField*>(field.get())->fields.size());
