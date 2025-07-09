@@ -208,7 +208,7 @@ static void EncodeAbbrevAsciiLog(benchmark::State& state) { EncodeLog<ENCODE_FOR
 static void EncodeBinaryLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::BINARY>(state); }
 static void EncodeJsonLog(benchmark::State& state) { EncodeLog<ENCODE_FORMAT::JSON>(state); }
 
-static void DecompressRangeCmp(benchmark::State& state, uint32_t id, const char* compressedData)
+static void DecompressRangeCmpGeneral(benchmark::State& state, uint32_t id, const char* compressedData)
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
     RangeDecompressor rangeDecompressor(clJsonDb);
@@ -229,10 +229,10 @@ static void DecompressRangeCmp(benchmark::State& state, uint32_t id, const char*
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
 }
 
-static void DecompressRangeCmp(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP_MSG_ID, rangecmpLog.data()); }
-static void DecompressRangeCmp2(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP2_MSG_ID, rangecmp2Log.data()); }
-static void DecompressRangeCmp4(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP4_MSG_ID, rangecmp4Log.data()); }
-static void DecompressRangeCmp5(benchmark::State& state) { DecompressRangeCmp(state, RANGECMP5_MSG_ID, rangecmp5Log.data()); }
+static void DecompressRangeCmp(benchmark::State& state) { DecompressRangeCmpGeneral(state, RANGECMP_MSG_ID, rangecmpLog.data()); }
+static void DecompressRangeCmp2(benchmark::State& state) { DecompressRangeCmpGeneral(state, RANGECMP2_MSG_ID, rangecmp2Log.data()); }
+static void DecompressRangeCmp4(benchmark::State& state) { DecompressRangeCmpGeneral(state, RANGECMP4_MSG_ID, rangecmp4Log.data()); }
+static void DecompressRangeCmp5(benchmark::State& state) { DecompressRangeCmpGeneral(state, RANGECMP5_MSG_ID, rangecmp5Log.data()); }
 
 BENCHMARK(Parse);
 BENCHMARK(FrameAscii)->MinTime(2.0);
