@@ -34,6 +34,7 @@ import platform
 import serial
 import serial.threaded
 import time
+import queue
 from threading import Event
 
 import novatel_edie as ne
@@ -61,8 +62,9 @@ class SerialParser:
             serial_connection: A serial connection to read data from.
             message_db: Optional message database for parsing messages.
         """
+        self._buffer = queue.Queue()
         self._parser = ne.Parser(message_db)
-        self._data_recieved = Event()
+        self._data_received = Event()
         self._serial_connection = serial_connection
         self._serial_reader = serial.threaded.ReaderThread(
             self._serial_connection,
@@ -99,9 +101,12 @@ class SerialParser:
         end_time = start_time + timeout
         while time.time() < end_time:
             try:
+                while (not self._buffer.empty() and self._parser.available_space >= ne.MAX_MESSAGE_LENGTH):
+                    data_chunk = self._buffer.get_nowait()
+                    self._parser.write(data_chunk)
                 return self._parser.read()
             except ne.BufferEmptyException:
-                self._data_recieved.wait(end_time - time.time())
+                self._data_received.wait(end_time - time.time())
         raise ne.BufferEmptyException(
             f'No data received within {timeout} seconds.')
 
@@ -119,9 +124,12 @@ class SerialParser:
                 Args:
                     data: The data received from the serial port.
                 """
-                self._parser.write(data)
-                self._data_recieved.set()
-                self._data_recieved.clear()
+                bytes_written = 0
+                while bytes_written < len(data):
+                    self._buffer.put(data[bytes_written:bytes_written + ne.MAX_MESSAGE_LENGTH])
+                    bytes_written += ne.MAX_MESSAGE_LENGTH
+                self._data_received.set()
+                self._data_received.clear()
 
         return EdieProtocol
 

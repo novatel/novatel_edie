@@ -54,7 +54,7 @@ def main():
     messages = 0
     start = timeit.default_timer()
     with open(input_file, "rb") as input_stream:
-        while read_data := input_stream.read(ne.MAX_MESSAGE_LENGTH):
+        while read_data := input_stream.read(parser.available_space):
             parser.write(read_data)
             for message in parser:
                 # Handle messages that can be fully decoded

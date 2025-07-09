@@ -67,7 +67,7 @@ def main():
     my_filter = ne.Filter()
 
     with open(input_file, "rb") as input_stream:
-        while read_data := input_stream.read(MAX_MESSAGE_LENGTH):
+        while read_data := input_stream.read(framer.available_space):
             framer.write(read_data)
             for frame, meta in framer:
                 if meta.format == HEADER_FORMAT.UNKNOWN:

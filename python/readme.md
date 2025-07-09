@@ -92,6 +92,13 @@ parser = ne.Parser()
 parser.write(b'message_data')
 ```
 
+Writing too much data at once can lead to a failure, you may use the `availible_space` attribute to avoid this:
+
+```python
+parser = ne.Parser()
+parser.write(msg[:parser.available_space])
+```
+
 A `FileParser` accesses its data from a filepath provided at instantiation:
 
 ```python

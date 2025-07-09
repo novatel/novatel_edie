@@ -119,8 +119,8 @@ void init_novatel_parser(nb::module_& m)
                 return std::static_pointer_cast<oem::PyFilter>(self.GetFilter());
             },
             [](oem::PyParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); }, "The filter which controls which data is skipped over.")
-        .def_prop_ro("availible_space", &oem::PyParser::GetAvailableSpace,
-                     "The number of bytes available in the Parser's internal buffer for writing new data.")
+        .def_prop_ro("available_space", &oem::PyParser::GetAvailableSpace,
+                     "The number of bytes in the Parser's internal buffer available for writing new data.")
         .def(
             "write",
             [](oem::PyParser& self, const nb::bytes& data) {
@@ -134,7 +134,7 @@ void init_novatel_parser(nb::module_& m)
                  data: A set of bytes to append to the Parser's internal buffer.
 
              Returns:
-                    The number of bytes written to the Parser's internal buffer.
+                    **depreciated** The number of bytes written to the Parser's internal buffer.
 
              Raises:
                  BufferFullException: The Parser's internal buffer would be overrun by the data provided.
