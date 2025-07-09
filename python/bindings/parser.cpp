@@ -133,6 +133,9 @@ void init_novatel_parser(nb::module_& m)
              Args:
                  data: A set of bytes to append to the Parser's internal buffer.
 
+             Returns:
+                    The number of bytes written to the Parser's internal buffer.
+
              Raises:
                  BufferFullException: The Parser's internal buffer would be overrun by the data provided.
             )doc")
