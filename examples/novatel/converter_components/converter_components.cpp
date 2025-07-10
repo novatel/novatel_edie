@@ -146,7 +146,8 @@ int main(int argc, char* argv[])
     {
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         ifs.read(cData.data(), cData.size());
-        if (clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount()) != ifs.gcount())
+        size_t ullBytesRead = ifs.gcount();
+        if (clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ullBytesRead) != ullBytesRead)
         {
             pclLogger->warn("Framer write failed.");
         }

@@ -120,7 +120,8 @@ int main(int argc, char* argv[])
     {
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         ifs.read(cData.data(), cData.size());
-        if (clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount()) != ifs.gcount()) { pclLogger->warn("Parser write failed!"); }
+        size_t ullBytesRead = ifs.gcount();
+        if (clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ullBytesRead) != ullBytesRead) { pclLogger->warn("Parser write failed!"); }
 
         MetaDataStruct stMetaData;
         MessageDataStruct stMessageData;

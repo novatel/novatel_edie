@@ -68,11 +68,15 @@ class ProprietaryFramerTest : public ::testing::Test
         while (!pclMyIFS->eof())
         {
             pclMyIFS->read(cData.data(), cData.size());
-            ASSERT_TRUE(pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount()) == pclMyIFS->gcount());
+            size_t ullBytesRead = pclMyIFS->gcount();
+            ASSERT_TRUE(pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), ullBytesRead) == ullBytesRead);
         }
     }
 
-    static void WriteBytesToFramer(unsigned char* pucBytes_, uint32_t uiNumBytes_) { ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_) == uiNumBytes_); }
+    static void WriteBytesToFramer(unsigned char* pucBytes_, uint32_t uiNumBytes_)
+    {
+        ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_) == uiNumBytes_);
+    }
 
     static void FlushFramer()
     {

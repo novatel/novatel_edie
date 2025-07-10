@@ -129,7 +129,9 @@ int main(int argc, char* argv[])
     {
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         ifs.read(cData.data(), cData.size());
-        if (clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount()) != ifs.gcount()) {  
+        size_t ullBytesRead = ifs.gcount();
+        if (clParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ullBytesRead) != ullBytesRead)
+        {  
            throw std::runtime_error("Failed to write data to the parser. This should not be possible because data is always written in small chunks.");  
         }
         MetaDataStruct stMetaData;
