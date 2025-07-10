@@ -67,7 +67,7 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
 
-    BaseField::ConstPtr RxConfigHandler::GetRxConfigFieldDefinition(MetaDataStruct& stMetadata_) const;
+    BaseField::ConstPtr GetRxConfigFieldDefinition(MetaDataStruct& stMetadata_) const;
 
   public:
     //! NOTE: The following constructors prevent this class from ever being
