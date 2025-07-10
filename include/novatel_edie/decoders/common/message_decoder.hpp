@@ -56,9 +56,8 @@ struct FieldContainer
     FieldValueVariant fieldValue;
     BaseField::ConstPtr fieldDef;
 
-    // TODO: Why does this constructor require a fieldDef Rvalue reference?
     template <class T>
-    FieldContainer(T tFieldValue_, BaseField::ConstPtr pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_)
+    FieldContainer(T tFieldValue_, BaseField::ConstPtr&& pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(pstFieldDef_)
     {
     }
 };
