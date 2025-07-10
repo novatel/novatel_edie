@@ -123,21 +123,18 @@ void init_novatel_parser(nb::module_& m)
                      "The number of bytes in the Parser's internal buffer available for writing new data.")
         .def(
             "write",
-            [](oem::PyParser& self, const nb::bytes& data) {
-                if (!self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size())) { throw_exception_from_status(STATUS::BUFFER_FULL); }
-                return nb::int_(data.size());
-            },
+            [](oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); },
             R"doc(
              Writes data to the Parser's internal buffer allowing it to later be parsed.
+
+             Use 'available_space' attribute to check how many bytes can be safely written.
 
              Args:
                  data: A set of bytes to append to the Parser's internal buffer.
 
              Returns:
-                    **depreciated** The number of bytes written to the Parser's internal buffer.
-
-             Raises:
-                 BufferFullException: The Parser's internal buffer would be overrun by the data provided.
+                    The number of bytes written to the Parser's internal buffer. 
+                    Can be less than the length of `data` if the buffer is full.
             )doc")
         .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false,
              nb::sig("def read(self, decode_incomplete_abbreviated: bool = False) -> Message | Response | UnknownMessage | UnknownBytes"),

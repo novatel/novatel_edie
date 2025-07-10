@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
                 break;
             }
 
-            if (!clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount())) { pclLogger->warn("Framer write failed."); }
+            if (clFramer.Write(reinterpret_cast<unsigned char*>(cData.data()), ifs.gcount()) != ifs.gcount()) { pclLogger->warn("Framer write failed."); }
         }
     }
 

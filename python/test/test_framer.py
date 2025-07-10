@@ -63,7 +63,7 @@ class Helper:
         return (self.test_resources / filename).read_bytes()
 
     def write_bytes_to_framer(self, data):
-        assert self.framer.write(data)
+        assert self.framer.write(data) == len(data)
 
     def write_file_to_framer(self, filename):
         data = self.get_file_contents(filename)
@@ -833,3 +833,24 @@ def test_unknown_binary_with_ascii_sync(helper):
     data = b"\x07#\x82"  # '#' is used-to identify binary payload
     helper.write_bytes_to_framer(data)
     helper.test_framer(HEADER_FORMAT.UNKNOWN, 1)
+
+def test_write_max_num_bytes(helper: Helper):
+    """Tests that data with length matching available space can be written."""
+    # Arrange
+    data = b'a' * helper.framer.available_space
+    # Act
+    bytes_written = helper.framer.write(data)
+    # Assert
+    assert bytes_written == len(data)
+
+def test_write_exceeding_max_num_bytes(helper: Helper):
+    """Tests that data exceeding available space is not fully written.
+
+    Whether data is partially written is not defined in the spec.
+    """
+    # Arrange
+    data = b'a' * (helper.framer.available_space + 1)
+    # Act
+    bytes_written = helper.framer.write(data)
+    # Assert
+    assert bytes_written <= helper.framer.available_space

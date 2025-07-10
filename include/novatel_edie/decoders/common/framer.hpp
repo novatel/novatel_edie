@@ -137,7 +137,7 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return clMyBuffer.Write(pucDataBuffer_, uiDataBytes_); }
+    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return clMyBuffer.Write(pucDataBuffer_, uiDataBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.

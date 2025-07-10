@@ -113,7 +113,7 @@ class RxConfigHandler
     //
     //! \return The number of bytes successfully written to the RxConfigHandler.
     //----------------------------------------------------------------------------
-    bool Write(const unsigned char* pucData_, uint32_t uiDataSize_);
+    size_t Write(const unsigned char* pucData_, uint32_t uiDataSize_);
 
     //----------------------------------------------------------------------------
     //! \brief Read and convert an RXCONFIG message from the handler.

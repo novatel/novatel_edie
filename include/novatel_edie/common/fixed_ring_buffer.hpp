@@ -88,10 +88,10 @@ template <typename T, size_t N> class FixedRingBuffer
     //! \param[in] data_ptr Pointer to the source data buffer.
     //! \param[in] count The number of *elements* (of type T) to write.
     //! \return True if all elements were written (enough space), false otherwise.
-    [[nodiscard]] bool Write(const T* data_ptr, size_t count) noexcept
+    [[nodiscard]] size_t Write(const T* data_ptr, size_t count) noexcept
     {
-        if (data_ptr == nullptr || count > available_space()) { return false; }
-        if (count == 0) { return true; }
+        if (data_ptr == nullptr || count > available_space()) { return 0; }
+        if (count == 0) { return 0; }
 
         const size_t write_start_idx = (head + sz) & Mask;
         const size_t first_chunk_elements = std::min(count, N - write_start_idx);
@@ -108,7 +108,7 @@ template <typename T, size_t N> class FixedRingBuffer
         }
 
         sz += count;
-        return true;
+        return count;
     }
 
     //! \brief Returns the number of elements currently in the buffer.

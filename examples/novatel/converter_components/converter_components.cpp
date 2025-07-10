@@ -146,7 +146,10 @@ int main(int argc, char* argv[])
     {
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
         ifs.read(cData.data(), cData.size());
-        if (!clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount())) { pclLogger->warn("Framer write failed."); }
+        if (clFramer.Write(reinterpret_cast<const unsigned char*>(cData.data()), ifs.gcount()) != ifs.gcount())
+        {
+            pclLogger->warn("Framer write failed.");
+        }
         // Clearing INCOMPLETE status when internal buffer needs more bytes.
         eFramerStatus = STATUS::INCOMPLETE_MORE_DATA;
 

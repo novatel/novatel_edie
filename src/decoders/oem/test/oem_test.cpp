@@ -90,13 +90,13 @@ class FramerTest : public ::testing::Test
         while (!pclMyIFS->eof())
         {
             pclMyIFS->read(cData.data(), cData.size());
-            ASSERT_TRUE(pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount()));
+            ASSERT_TRUE(pclMyFramer->Write(reinterpret_cast<unsigned char*>(cData.data()), pclMyIFS->gcount()) == pclMyIFS->gcount());
         }
 
         pclMyIFS = nullptr;
     }
 
-    static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_) { ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_)); }
+    static void WriteBytesToFramer(const unsigned char* pucBytes_, uint32_t uiNumBytes_) { ASSERT_TRUE(pclMyFramer->Write(pucBytes_, uiNumBytes_) == uiNumBytes_); }
 
     static void FlushFramer()
     {
@@ -2904,7 +2904,10 @@ TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
     std::vector<char> buffer(chunkSize);
     while (clInputFileStream.read(buffer.data(), chunkSize) || clInputFileStream.gcount() > 0) {
         auto n = static_cast<uint32_t>(clInputFileStream.gcount());
-        pclParser->Write(reinterpret_cast<const uint8_t*>(buffer.data()), n);
+        if (pclParser->Write(reinterpret_cast<const uint8_t*>(buffer.data()), n) != n) {
+            std::cerr << "Failed to write data to parser." << std::endl;
+            break;
+        };
         while (true)
         {
             STATUS eStatus = pclParser->Read(stMessageData, stMetaData);
