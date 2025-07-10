@@ -210,13 +210,14 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
         if (clMyRxConfigFilter.DoFiltering(stMetaData_))
         {
             // Use some dummy stuff for the embedded message. The parser won't handle that now.
-            eStatus = clMyRxConfigHandler.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_, eMyEncodeFormat);
+            eStatus = clMyRxConfigHandler.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
+                                                 eMyEncodeFormat);
         }
-        else {
+        else
+        {
             eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
                                          stMetaData_.eFormat, eMyEncodeFormat);
         }
-
 
         if (eStatus == STATUS::SUCCESS) { return STATUS::SUCCESS; }
 
