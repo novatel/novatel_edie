@@ -55,7 +55,10 @@ def main():
     start = timeit.default_timer()
     with open(input_file, "rb") as input_stream:
         while read_data := input_stream.read(parser.available_space):
-            parser.write(read_data)
+            written_bytes = parser.write(read_data)
+            if written_bytes != len(read_data):
+                raise ne.FailureException(
+                    f'Wrote {written_bytes} bytes, expected {len(read_data)} bytes.')
             for message in parser:
                 # Handle messages that can be fully decoded
                 if isinstance(message, ne.Message):

@@ -68,7 +68,10 @@ def main():
 
     with open(input_file, "rb") as input_stream:
         while read_data := input_stream.read(framer.available_space):
-            framer.write(read_data)
+            written_bytes = framer.write(read_data)
+            if written_bytes != len(read_data):
+                raise ne.FailureException(
+                    f'Wrote {written_bytes} bytes, expected {len(read_data)} bytes.')
             for frame, meta in framer:
                 if meta.format == HEADER_FORMAT.UNKNOWN:
                     continue
