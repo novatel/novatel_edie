@@ -2909,7 +2909,7 @@ TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
     while (clInputFileStream.read(buffer.data(), chunkSize) || clInputFileStream.gcount() > 0) {
         auto n = static_cast<uint32_t>(clInputFileStream.gcount());
         if (pclParser->Write(reinterpret_cast<const uint8_t*>(buffer.data()), n) != n) {
-            std::cerr << "Failed to write data to parser." << std::endl;
+            std::cerr << "Failed to write data to parser.";
             break;
         };
         while (true)
