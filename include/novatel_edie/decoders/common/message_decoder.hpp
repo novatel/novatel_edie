@@ -126,7 +126,7 @@ class MessageDecoderBase
     //! 4 and the field's length.
     //
     //! For binary formats that use packed structures and do not align fields
-    //! this function should be overridden in a derived decoder class to skip 
+    //! this function should be overridden in a derived decoder class to skip
     //! alignment.
     //
     //! \return None. The buffer pointer is updated in place.
