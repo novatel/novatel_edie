@@ -69,7 +69,7 @@ bool RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_)
 // -------------------------------------------------------------------------------------------------------
 BaseField::ConstPtr RxConfigHandler::GetRxConfigFieldDefinition(MetaDataStruct& stMetadata_) const
 {
-    BaseField::ConstPtr pclMsgDef = pclMyMsgDb->GetMsgDef(stMetadata_.usMessageId)->fields.at(stMetadata_.uiMessageCrc).at(0);
+    return pclMyMsgDb->GetMsgDef(stMetadata_.usMessageId)->fields.at(stMetadata_.uiMessageCrc).at(0);
 }
 
 // -------------------------------------------------------------------------------------------------------
