@@ -63,7 +63,7 @@ void init_novatel_exceptions(nb::module_& m)
         .value("NO_DEFINITION", STATUS::NO_DEFINITION, "No definition could be found in the database for the provided message.")
         .value("NO_DEFINITION_EMBEDDED", STATUS::NO_DEFINITION_EMBEDDED,
                "No definition could be found in the database for the embedded message in the RXCONFIG log.")
-        .value("BUFFER_FULL", STATUS::BUFFER_FULL, "The provided destination buffer is not big enough to contain the frame.")
+        .value("BUFFER_FULL", STATUS::BUFFER_FULL, "The destination buffer is not big enough to contain the provided data.")
         .value("BUFFER_EMPTY", STATUS::BUFFER_EMPTY, "The internal circular buffer does not contain any unread bytes")
         .value("STREAM_EMPTY", STATUS::STREAM_EMPTY, "The input stream is empty.")
         .value("UNSUPPORTED", STATUS::UNSUPPORTED, "An attempted operation is unsupported by this component.")

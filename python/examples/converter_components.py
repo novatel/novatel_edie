@@ -67,8 +67,11 @@ def main():
     my_filter = ne.Filter()
 
     with open(input_file, "rb") as input_stream:
-        while read_data := input_stream.read(MAX_MESSAGE_LENGTH):
-            framer.write(read_data)
+        while read_data := input_stream.read(framer.available_space):
+            written_bytes = framer.write(read_data)
+            if written_bytes != len(read_data):
+                raise ne.FailureException(
+                    f'Wrote {written_bytes} bytes, expected {len(read_data)} bytes.')
             for frame, meta in framer:
                 if meta.format == HEADER_FORMAT.UNKNOWN:
                     continue

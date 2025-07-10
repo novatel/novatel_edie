@@ -110,3 +110,26 @@ def test_parse_abbrev_ascii_resp(response_str, context, ignore_responses, parser
         except AssertionError as e:
             raise AssertionError(
                 f"Failure at permutation {permutations[i]}: {e}") from e
+
+
+def test_write_max_num_bytes(parser: ne.Parser):
+    """Tests that data with length matching available space can be written."""
+    # Arrange
+    data = b'a' * parser.available_space
+    # Act
+    bytes_written = parser.write(data)
+    # Assert
+    assert bytes_written == len(data)
+
+
+def test_write_exceeding_max_num_bytes(parser: ne.Parser):
+    """Tests that data exceeding available space is not fully written.
+
+    Whether data is partially written is not defined in the spec.
+    """
+    # Arrange
+    data = b'a' * (parser.available_space + 1)
+    # Act
+    bytes_written = parser.write(data)
+    # Assert
+    assert bytes_written <= parser.available_space
