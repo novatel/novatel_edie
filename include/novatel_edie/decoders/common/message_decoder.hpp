@@ -214,6 +214,8 @@ class MessageDecoderBase
     //----------------------------------------------------------------------------
     MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
+    virtual ~MessageDecoderBase() = default;
+
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
     //
