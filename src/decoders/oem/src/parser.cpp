@@ -53,7 +53,7 @@ void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
     {
         clMyHeaderDecoder.LoadJsonDb(pclMessageDb_);
         clMyMessageDecoder.LoadJsonDb(pclMessageDb_);
-        clMyEncoder.LoadSharedJsonDb(pclMessageDb_);
+        clMyEncoder.LoadJsonDb(pclMessageDb_);
         clMyRangeDecompressor.LoadJsonDb(pclMessageDb_);
         clMyRxConfigHandler.LoadJsonDb(pclMessageDb_);
 

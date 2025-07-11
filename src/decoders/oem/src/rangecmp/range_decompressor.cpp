@@ -55,7 +55,7 @@ void RangeDecompressor::LoadJsonDb(MessageDatabase::Ptr pclJsonDb_)
     pclMyMsgDB = pclJsonDb_;
     clMyHeaderDecoder.LoadJsonDb(pclJsonDb_);
     clMyMessageDecoder.LoadJsonDb(pclJsonDb_);
-    clMyEncoder.LoadSharedJsonDb(pclJsonDb_);
+    clMyEncoder.LoadJsonDb(pclJsonDb_);
 }
 
 //------------------------------------------------------------------------------
