@@ -15,7 +15,13 @@ using namespace novatel::edie;
 nb::object oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, oem::PyHeader& header, oem::MetaDataStruct& metadata) const
 {
     std::vector<FieldContainer> fields;
-    STATUS status = message_decoder.Decode(reinterpret_cast<const uint8_t*>(raw_body.c_str()), fields, metadata);
+    STATUS status;
+
+    if (rx_config_handler.IsRxConfigTypeMsg(header.usMessageId))
+    {
+        status = rx_config_handler.Decode(reinterpret_cast<const uint8_t*>(raw_body.c_str()), fields, metadata);
+    }
+    else { status = message_decoder.Decode(reinterpret_cast<const uint8_t*>(raw_body.c_str()), fields, metadata); }
 
     switch (status)
     {
@@ -84,8 +90,8 @@ void init_novatel_decoder(nb::module_& m)
                     default_metadata.uiMessageCrc = header.uiMessageDefinitionCrc;
                     default_metadata.eFormat = header.format;
                     default_metadata.usMessageId = header.usMessageId;
-                    default_metadata.messageName = decoder.database->MsgIdToMsgName(CreateMsgId(
-                        header.usMessageId, NULL_SIBLING_ID, static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
+                    default_metadata.messageName = decoder.database->MsgIdToMsgName(
+                        CreateMsgId(header.usMessageId, NULL_SIBLING_ID, static_cast<uint32_t>(MESSAGE_FORMAT::ABBREV), 0U));
                     default_metadata.bResponse = ((header.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0);
                     metadata = &default_metadata;
                 }
@@ -116,7 +122,11 @@ void init_novatel_decoder(nb::module_& m)
                 header.format = metadata.eFormat;
                 if (status != STATUS::SUCCESS) { throw_exception_from_status(status); }
                 const unsigned char* body_pointer = message_pointer + metadata.uiHeaderLength;
-                status = decoder.message_decoder.Decode(body_pointer, fields, metadata);
+                if (decoder.rx_config_handler.IsRxConfigTypeMsg(header.usMessageId))
+                {
+                    status = decoder.rx_config_handler.Decode(body_pointer, fields, metadata);
+                }
+                else { status = decoder.message_decoder.Decode(body_pointer, fields, metadata); }
                 switch (status)
                 {
                 case STATUS::SUCCESS: return create_message_instance(header, std::move(fields), metadata, decoder.database);

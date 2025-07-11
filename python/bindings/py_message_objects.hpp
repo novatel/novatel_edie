@@ -220,6 +220,10 @@ struct PyUnknownMessage
 //============================================================================
 struct PyEncodableField : public PyField
 {
+  protected:
+    oem::PyMessageData PyEncode(ENCODE_FORMAT eFormat);
+
+  public:
     PyHeader header;
 
     explicit PyEncodableField(std::string name_, bool has_ptype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr parent_db_,
