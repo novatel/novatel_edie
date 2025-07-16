@@ -237,7 +237,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t 
     // adjust header pointer for prefix
     stEmbeddedMessageData_.pucMessageHeader -= (szAbbrevAsciiEmbeddedHeaderPrefix.length() - 1);
     // adjust header length for prefix and additoinal ending space
-    stEmbeddedMessageData_.uiMessageHeaderLength += (szAbbrevAsciiEmbeddedHeaderPrefix.length());
+    stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>((szAbbrevAsciiEmbeddedHeaderPrefix.length()));
 
     // -- Encode Embedded Body --
     eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedMessage_, stEmbeddedMessageData_, stEmbeddedMetaData_.eFormat,
