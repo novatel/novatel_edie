@@ -79,12 +79,11 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     if (!IsRxConfigTypeMsg(stRxConfigMetaData_.usMessageId)) { return STATUS::UNSUPPORTED; }
 
     const unsigned char* pucTempMessagePointer = pucMessage_;
-    IntermediateHeader stEmbeddedHeader;
     MetaDataStruct stEmbeddedMetaData_;
     std::vector<FieldContainer> stEmbeddedMessage;
     uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
 
-    stInterMessage_.emplace_back(std::vector<FieldContainer>(), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
+    stInterMessage_.emplace_back(std::vector<FieldContainer>(), GetRxConfigFieldDefinition(stRxConfigMetaData_));
     auto& stEmbeddedMessageData = std::get<std::vector<FieldContainer>>(stInterMessage_.back().fieldValue);
 
     // Determine how many bytes to copy from raw message data to the embedded message data.
@@ -94,7 +93,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     case HEADER_FORMAT::ABB_ASCII: {
         // Fix embedded header indentation
         ConsumeAbbrevFormatting(reinterpret_cast<const char**>(&pucTempMessagePointer));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC), GetRxConfigFieldDefinition(stRxConfigMetaData_));
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - (pucTempMessagePointer - pucMessage_);
         break;
     }
@@ -119,7 +118,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     for (uint32_t i = 0; i < uiCopyableEmbeddedMsgBytes; ++i)
     {
         stEmbeddedMessageData.emplace_back(*(reinterpret_cast<const uint8_t*>(pucTempMessagePointer)),
-                                           std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
+                                           GetRxConfigFieldDefinition(stRxConfigMetaData_));
         pucTempMessagePointer++;
     }
 
@@ -133,18 +132,18 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
         std::to_chars(pucCRC, pucCRC + OEM4_ASCII_CRC_LENGTH, uiCRC, 16);
         for (uint32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; ++i)
         {
-            stEmbeddedMessageData.emplace_back(*(reinterpret_cast<uint8_t*>(pucCRC) + i), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
+            stEmbeddedMessageData.emplace_back(*(reinterpret_cast<uint8_t*>(pucCRC) + i), GetRxConfigFieldDefinition(stRxConfigMetaData_));
         }
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'), GetRxConfigFieldDefinition(stRxConfigMetaData_));
         break;
     }
     case HEADER_FORMAT::BINARY: {
         uint32_t uiCRC = *reinterpret_cast<const uint32_t*>(pucTempMessagePointer) ^ 0xFFFFFFFF;
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 8), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC), std::move(GetRxConfigFieldDefinition(stRxConfigMetaData_)));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 8), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC), GetRxConfigFieldDefinition(stRxConfigMetaData_));
         break;
     }
     default: break;
