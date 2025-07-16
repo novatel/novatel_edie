@@ -162,8 +162,7 @@ STATUS RxConfigHandler::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSiz
 }
 
 STATUS RxConfigHandler::EncodeJSON(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                   const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                   MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
+                                   MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
                                    IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const
 {
     STATUS eStatus;
@@ -198,9 +197,9 @@ STATUS RxConfigHandler::EncodeJSON(unsigned char** ppucBuffer_, uint32_t uiBuffe
 }
 
 STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                          const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                          MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
-                                          IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const
+                                          MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                          MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
+                                          std::vector<FieldContainer>& stEmbeddedMessage_) const
 {
     STATUS eStatus;
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
@@ -255,8 +254,7 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t 
 }
 
 STATUS RxConfigHandler::EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                    const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                    MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
+                                    MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
                                     IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const
 {
     STATUS eStatus;
@@ -310,9 +308,9 @@ STATUS RxConfigHandler::EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBuff
 }
 
 STATUS RxConfigHandler::EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                     const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                     MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
-                                     IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const
+                                     MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                     MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
+                                     std::vector<FieldContainer>& stEmbeddedMessage_) const
 {
     STATUS eStatus;
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
@@ -386,20 +384,20 @@ STATUS RxConfigHandler::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSiz
     switch (eFormat_)
     {
     case ENCODE_FORMAT::BINARY: {
-        return EncodeBinary(ppucBuffer_, uiBufferSize_, stHeader_, stMessage_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
+        return EncodeBinary(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
                             stEmbeddedHeader, stEmbeddedMessage);
     }
     case ENCODE_FORMAT::ASCII: {
-        return EncodeAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessage_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
+        return EncodeAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
                            stEmbeddedHeader, stEmbeddedMessage);
     }
 
     case ENCODE_FORMAT::ABBREV_ASCII: {
-        return EncodeAbbrevAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessage_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
+        return EncodeAbbrevAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
                                  stEmbeddedHeader, stEmbeddedMessage);
     }
     case ENCODE_FORMAT::JSON: {
-        return EncodeJSON(ppucBuffer_, uiBufferSize_, stHeader_, stMessage_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
+        return EncodeJSON(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
                           stEmbeddedHeader, stEmbeddedMessage);
     }
     default: return STATUS::UNSUPPORTED;

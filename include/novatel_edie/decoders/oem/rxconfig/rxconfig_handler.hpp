@@ -70,26 +70,23 @@ class RxConfigHandler
     BaseField::ConstPtr GetRxConfigFieldDefinition(MetaDataStruct& stMetadata_) const;
 
     [[nodiscard]] STATUS EncodeJSON(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
-                                IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const;
-
-    [[nodiscard]] STATUS EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                        const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                        MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
-                                        IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const;
-
-    [[nodiscard]] STATUS EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                    const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                    MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
+                                    MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
                                     IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const;
 
+    [[nodiscard]] STATUS EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                     MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                     MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
+                                     std::vector<FieldContainer>& stEmbeddedMessage_) const;
+
+    [[nodiscard]] STATUS EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                      MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                      MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
+                                      std::vector<FieldContainer>& stEmbeddedMessage_) const;
+
     [[nodiscard]] STATUS EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                           const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                                           MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
-                                           IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const;
-
-
+                                           MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                           MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
+                                           std::vector<FieldContainer>& stEmbeddedMessage_) const;
 
   public:
     //! NOTE: The following constructors prevent this class from ever being
