@@ -44,6 +44,17 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
     pclMyLogger->debug("RxConfigHandler initialized");
 }
 
+bool RxConfigHandler::ValidateMsgDef(const MessageDefinition* pclMsgDef_) const
+{
+    if (pclMsgDef_ == nullptr) { return false; }
+    BaseField::ConstPtr pclFieldDef = GetFieldDefFromMsgDef(pclMsgDef_); // Ensure that the message definition has fields
+    if (pclFieldDef->conversion != "%R") { return false; }
+    if (pclFieldDef->type != FIELD_TYPE::VARIABLE_LENGTH_ARRAY) { return false; }
+    if (pclFieldDef->dataType.name != DATA_TYPE::UCHAR) { return false; }
+    if (pclFieldDef->dataType.name != DATA_TYPE::UCHAR) { return false; }
+    return true;
+}
+
 // -------------------------------------------------------------------------------------------------------
 void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
 {
@@ -51,6 +62,12 @@ void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
     clMyHeaderDecoder.LoadJsonDb(pclMessageDb_);
     clMyMessageDecoder.LoadJsonDb(pclMessageDb_);
     clMyEncoder.LoadJsonDb(pclMessageDb_);
+
+    pclRxConfigMessageDefinition = pclMyMsgDb->GetMsgDef(US_RX_CONFIG_MSG_ID);
+    pclRxConfigUserMessageDefinition = pclMyMsgDb->GetMsgDef(US_RX_CONFIG_USER_MSG_ID);
+
+    if (!ValidateMsgDef(pclRxConfigMessageDefinition.get())) { throw std::invalid_argument("Invalid or no RXCONFIG message definition"); }
+    if (!ValidateMsgDef(pclRxConfigUserMessageDefinition.get())) { throw std::invalid_argument("Invalid or no RXCONFIGUSER message definition"); }
 
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
@@ -67,23 +84,29 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 bool RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
-BaseField::ConstPtr RxConfigHandler::GetRxConfigFieldDefinition(MetaDataStruct& stMetadata_) const
+BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition* pclMsgDef_) const
 {
-    return pclMyMsgDb->GetMsgDef(stMetadata_.usMessageId)->fields.at(stMetadata_.uiMessageCrc).at(0);
+    const MessageDefinition* pclMsgDef = pclMsgDef_;
+    return pclMsgDef_->fields.at(pclMsgDef_->latestMessageCrc).at(0);
 }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_,
                                MetaDataStruct& stRxConfigMetaData_) const
 {
-    if (!IsRxConfigTypeMsg(stRxConfigMetaData_.usMessageId)) { return STATUS::UNSUPPORTED; }
+    const MessageDefinition* pclMsgDef;
+
+    if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_MSG_ID) { pclMsgDef = pclRxConfigMessageDefinition.get(); }
+    if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_MSG_ID) { pclMsgDef = pclRxConfigMessageDefinition.get(); }
+    else if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_USER_MSG_ID) { pclMsgDef = pclRxConfigUserMessageDefinition.get(); }
+    else { return STATUS::UNSUPPORTED; }
 
     const unsigned char* pucTempMessagePointer = pucMessage_;
     MetaDataStruct stEmbeddedMetaData_;
     std::vector<FieldContainer> stEmbeddedMessage;
     uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
 
-    stInterMessage_.emplace_back(std::vector<FieldContainer>(), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+    stInterMessage_.emplace_back(std::vector<FieldContainer>(), GetFieldDefFromMsgDef(pclMsgDef));
     auto& stEmbeddedMessageData = std::get<std::vector<FieldContainer>>(stInterMessage_.back().fieldValue);
 
     // Determine how many bytes to copy from raw message data to the embedded message data.
@@ -93,7 +116,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     case HEADER_FORMAT::ABB_ASCII: {
         // Fix embedded header indentation
         ConsumeAbbrevFormatting(reinterpret_cast<const char**>(&pucTempMessagePointer));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC), GetFieldDefFromMsgDef(pclMsgDef));
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - (pucTempMessagePointer - pucMessage_);
         break;
     }
@@ -117,8 +140,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     stEmbeddedMessageData.reserve(uiCopyableEmbeddedMsgBytes);
     for (uint32_t i = 0; i < uiCopyableEmbeddedMsgBytes; ++i)
     {
-        stEmbeddedMessageData.emplace_back(*(reinterpret_cast<const uint8_t*>(pucTempMessagePointer)),
-                                           GetRxConfigFieldDefinition(stRxConfigMetaData_));
+        stEmbeddedMessageData.emplace_back(*(reinterpret_cast<const uint8_t*>(pucTempMessagePointer)), GetFieldDefFromMsgDef(pclMsgDef));
         pucTempMessagePointer++;
     }
 
@@ -132,18 +154,18 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
         std::to_chars(pucCRC, pucCRC + OEM4_ASCII_CRC_LENGTH, uiCRC, 16);
         for (uint32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; ++i)
         {
-            stEmbeddedMessageData.emplace_back(*(reinterpret_cast<uint8_t*>(pucCRC) + i), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+            stEmbeddedMessageData.emplace_back(*(reinterpret_cast<uint8_t*>(pucCRC) + i), GetFieldDefFromMsgDef(pclMsgDef));
         }
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'), GetRxConfigFieldDefinition(stRxConfigMetaData_));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'), GetFieldDefFromMsgDef(pclMsgDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'), GetFieldDefFromMsgDef(pclMsgDef));
         break;
     }
     case HEADER_FORMAT::BINARY: {
         uint32_t uiCRC = *reinterpret_cast<const uint32_t*>(pucTempMessagePointer) ^ 0xFFFFFFFF;
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24), GetRxConfigFieldDefinition(stRxConfigMetaData_));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16), GetRxConfigFieldDefinition(stRxConfigMetaData_));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 8), GetRxConfigFieldDefinition(stRxConfigMetaData_));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC), GetRxConfigFieldDefinition(stRxConfigMetaData_));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24), GetFieldDefFromMsgDef(pclMsgDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16), GetFieldDefFromMsgDef(pclMsgDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 8), GetFieldDefFromMsgDef(pclMsgDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC), GetFieldDefFromMsgDef(pclMsgDef));
         break;
     }
     default: break;

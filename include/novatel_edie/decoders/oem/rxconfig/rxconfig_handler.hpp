@@ -67,15 +67,18 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
 
-    BaseField::ConstPtr GetRxConfigFieldDefinition(MetaDataStruct& stMetadata_) const;
+    MessageDefinition::ConstPtr pclRxConfigMessageDefinition{nullptr};
+    MessageDefinition::ConstPtr pclRxConfigUserMessageDefinition{nullptr};
 
+    bool ValidateMsgDef(const MessageDefinition* pclMsgDef_) const;
+    BaseField::ConstPtr GetFieldDefFromMsgDef(const MessageDefinition* pclMsgDef_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encode an RXConfig message from the provided intermediate structures.
     //
     // This function has additional output parameters than the public version and
     // exists primarily for compatiblity with the original conversion based class interface.
-    // 
+    //
     //! \param[out] ppucBuffer_ A pointer to the buffer to return the encoded
     //! message to.
     //! \param[in] uiBufferSize_ The length of ppcBuffer_.
@@ -105,8 +108,8 @@ class RxConfigHandler
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                            const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
-                            MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
+                                MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into Binary format.
@@ -216,9 +219,9 @@ class RxConfigHandler
 
     //----------------------------------------------------------------------------
     //! \brief Returns whether a message ID corresponds to an RXCONFIG message.
-    //! 
+    //!
     //! \param[in] usMessageId_ The message ID to check.
-    //! 
+    //!
     //! \return True if the message ID corresponds to an RXCONFIG message, false otherwise.
     //------------------------------------------------------------------------------
     static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
