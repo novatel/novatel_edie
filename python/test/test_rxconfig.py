@@ -86,24 +86,42 @@ def test_rxconfig_roundtrip_binary(rx_config_handler):
 # -------------------------------------------------------------------------------------------------------
 def test_rxconfig_convert_ascii_to_json(rx_config_handler):
     log = b"#RXCONFIGA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;#ADJUST1PPSA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;OFF*4c2dbb6d*1600a42a\r\n"
-    json_log = b"""{"header": {"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"header": {"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"mode": "OFF"}}}"""
-    expected_rx_config_message_data = (json_log, json_log[11:][:229], json_log[249:][:267])
-    expected_embedded_message_data = (json_log[249:][:267], json_log[260:][:231], json_log[500:][:15])
+    json_rx_config_header = b'{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002}'
+    json_embedded_header = b'{"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002}'
+    json_embedded_body = b'{"mode": "OFF"}'
+    json_rx_config_body = b'{"header": ' + json_embedded_header + b',"body": ' + json_embedded_body + b'}'
+    json_log = b'{"header": ' + json_rx_config_header + b',"body": ' + json_rx_config_body + b'}'
+
+    expected_rx_config_message_data = (json_log, json_rx_config_header, json_rx_config_body)
+    expected_embedded_message_data = (json_rx_config_body, json_embedded_header, json_embedded_body)
     write_bytes_to_handler(rx_config_handler, log)
     assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)
 
 def test_rxconfig_convert_abbrev_to_json(rx_config_handler):
     log = b"<RXCONFIG COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002\r\n<     SBASECUTOFF COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002 \r\n<     -5.0\r\n[PISSCOM1]"
-    json_log = b"""{"header": {"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"header": {"message": "SBASECUTOFF","id": 1000,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"elevation_cutoff_angle": -5.0}}}"""
-    expected_rx_config_message_data = (json_log[0:][:536], json_log[11:][:229], json_log[249:][:286])
-    expected_embedded_message_data = (json_log[249:][:286], json_log[260:][:233], json_log[502:][:32])
+
+    json_embedded_header = b'{"message": "SBASECUTOFF","id": 1000,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002}'
+    json_embedded_body = b'{"elevation_cutoff_angle": -5.0}'
+    json_rx_config_header = b'{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002}'
+    json_rx_config_body = b'{"header": ' + json_embedded_header + b',"body": ' + json_embedded_body + b'}'
+    json_log = b'{"header": ' + json_rx_config_header + b',"body": ' + json_rx_config_body + b'}'
+
+    expected_rx_config_message_data = (json_log, json_rx_config_header, json_rx_config_body)
+    expected_embedded_message_data = (json_rx_config_body, json_embedded_header, json_embedded_body)
     write_bytes_to_handler(rx_config_handler, log)
     assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)
 
 def test_rxconfig_convert_binary_to_json(rx_config_handler):
     log = bytes([0xAA, 0x44, 0x12, 0x1C, 0x80, 0x00, 0x00, 0x40, 0x3C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0xAA, 0x44, 0x12, 0x1C, 0xDE, 0x04, 0x00, 0x40, 0x1C, 0x00, 0x00, 0x00, 0x9C, 0xB4, 0xBB, 0x08, 0x47, 0x74, 0x6A, 0x18, 0x20, 0x00, 0x00, 0x02, 0x02, 0xF7, 0x6A, 0x42, 0x02, 0x00, 0x00, 0x00, 0x00, 0x08, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF4, 0xD7, 0x46, 0x65, 0x5D, 0x3D, 0xED, 0xF6])
-    json_log = b"""{"header": {"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"header": {"message": "SERIALCONFIG","id": 1246,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"port": "COM2","baud_rate": 460800,"parity": "N","data_bits": 8,"stop_bits": 1,"hand_shaking": "N","breaks": "ON"}}}"""
-    expected_rx_config_message_data = (json_log[0:][:642], json_log[11:][:240], json_log[260:][:381])
-    expected_embedded_message_data = (json_log[260:][:381], json_log[271:][:245], json_log[525:][:115])
+
+    json_rx_config_header = b'{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002}'
+    json_embedded_header = b'{"message": "SERIALCONFIG","id": 1246,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002}'
+    json_embedded_body = b'{"port": "COM2","baud_rate": 460800,"parity": "N","data_bits": 8,"stop_bits": 1,"hand_shaking": "N","breaks": "ON"}'
+    json_rx_config_body = b'{"header": ' + json_embedded_header + b',"body": ' + json_embedded_body + b'}'
+    json_log = b'{"header": ' + json_rx_config_header + b',"body": ' + json_rx_config_body + b'}'
+
+
+    expected_rx_config_message_data = (json_log, json_rx_config_header, json_rx_config_body)
+    expected_embedded_message_data = (json_rx_config_body, json_embedded_header, json_embedded_body)
     write_bytes_to_handler(rx_config_handler, log)
     assert TestSameFormatCompare(rx_config_handler, ENCODE_FORMAT.JSON, expected_rx_config_message_data, expected_embedded_message_data)
