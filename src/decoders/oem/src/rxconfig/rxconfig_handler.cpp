@@ -384,21 +384,21 @@ STATUS RxConfigHandler::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSiz
     switch (eFormat_)
     {
     case ENCODE_FORMAT::BINARY: {
-        return EncodeBinary(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
-                            stEmbeddedHeader, stEmbeddedMessage);
+        return EncodeBinary(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_, stEmbeddedHeader,
+                            stEmbeddedMessage);
     }
     case ENCODE_FORMAT::ASCII: {
-        return EncodeAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
-                           stEmbeddedHeader, stEmbeddedMessage);
+        return EncodeAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_, stEmbeddedHeader,
+                           stEmbeddedMessage);
     }
 
     case ENCODE_FORMAT::ABBREV_ASCII: {
-        return EncodeAbbrevAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
-                                 stEmbeddedHeader, stEmbeddedMessage);
+        return EncodeAbbrevAscii(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_, stEmbeddedHeader,
+                                 stEmbeddedMessage);
     }
     case ENCODE_FORMAT::JSON: {
-        return EncodeJSON(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_,
-                          stEmbeddedHeader, stEmbeddedMessage);
+        return EncodeJSON(ppucBuffer_, uiBufferSize_, stHeader_, stMessageData_, stEmbeddedMessageData_, stEmbeddedMetaData_, stEmbeddedHeader,
+                          stEmbeddedMessage);
     }
     default: return STATUS::UNSUPPORTED;
     }
