@@ -101,7 +101,7 @@ TEST_F(RxConfigTest, LOGGER)
 // -------------------------------------------------------------------------------------------------------
 // Round-trip unit tests.
 // -------------------------------------------------------------------------------------------------------
-TEST_F(RxConfigTest, DISABLED_RXCONFIG_ROUNDTRIP_ASCII)
+TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_ASCII)
 {
     unsigned char aucLog[] = "#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,"
                              "COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*"
@@ -188,21 +188,21 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_ASCII_TO_JSON)
     unsigned char aucLog[] = "#RXCONFIGA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;#ADJUST1PPSA,COM2,235,77.0,"
                              "UNKNOWN,0,0.727,02000020,f702,17002;OFF*4c2dbb6d*1600a42a\r\n";
     unsigned char aucJsonLog[] =
-        R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"mode": "OFF"}}})";
+        R"({"header": {"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"header": {"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"mode": "OFF"}}})";
     MessageDataStruct stExpectedRxConfigMessageData;
     stExpectedRxConfigMessageData.pucMessage = &aucJsonLog[0];
-    stExpectedRxConfigMessageData.uiMessageLength = 531;
-    stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[10];
+    stExpectedRxConfigMessageData.uiMessageLength = 517;
+    stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[11];
     stExpectedRxConfigMessageData.uiMessageHeaderLength = 229;
-    stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[247];
-    stExpectedRxConfigMessageData.uiMessageBodyLength = 283;
+    stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[249];
+    stExpectedRxConfigMessageData.uiMessageBodyLength = 267;
 
     MessageDataStruct stExpectedEmbeddedMessageData;
-    stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[247];
-    stExpectedEmbeddedMessageData.uiMessageLength = 283;
-    stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[266];
+    stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[249];
+    stExpectedEmbeddedMessageData.uiMessageLength = 267;
+    stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[260];
     stExpectedEmbeddedMessageData.uiMessageHeaderLength = 231;
-    stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[514];
+    stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[500];
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
@@ -214,21 +214,21 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_ABBREV_TO_JSON)
     unsigned char aucLog[] = "<RXCONFIG COM2 187 78.5 UNKNOWN 0 0.839 02000020 f702 17002\r\n<     SBASECUTOFF COM2 187 "
                              "78.5 UNKNOWN 0 0.839 02000020 f702 17002 \r\n<     -5.0\r\n[PISSCOM1]";
     unsigned char aucJsonLog[] =
-        R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SBASECUTOFF","id": 1000,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"elevation_cutoff_angle": -5.0}}})";
+        R"({"header": {"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"header": {"message": "SBASECUTOFF","id": 1000,"port": "COM2","sequence_num": 187,"percent_idle_time": 78.5,"time_status": "UNKNOWN","week": 0,"seconds": 0.839,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"elevation_cutoff_angle": -5.0}}})";
     MessageDataStruct stExpectedRxConfigMessageData;
     stExpectedRxConfigMessageData.pucMessage = &aucJsonLog[0];
-    stExpectedRxConfigMessageData.uiMessageLength = 550;
-    stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[10];
+    stExpectedRxConfigMessageData.uiMessageLength = 536;
+    stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[11];
     stExpectedRxConfigMessageData.uiMessageHeaderLength = 229;
-    stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[247];
-    stExpectedRxConfigMessageData.uiMessageBodyLength = 302;
+    stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[249];
+    stExpectedRxConfigMessageData.uiMessageBodyLength = 286;
 
     MessageDataStruct stExpectedEmbeddedMessageData;
-    stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[247];
-    stExpectedEmbeddedMessageData.uiMessageLength = 302;
-    stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[266];
+    stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[249];
+    stExpectedEmbeddedMessageData.uiMessageLength = 286;
+    stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[260];
     stExpectedEmbeddedMessageData.uiMessageHeaderLength = 233;
-    stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[516];
+    stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[502];
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 32;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
@@ -243,21 +243,21 @@ TEST_F(RxConfigTest, RXCONFIG_CONVERT_BINARY_TO_JSON)
                               0x00, 0x00, 0x00, 0x00, 0x08, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
                               0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF4, 0xD7, 0x46, 0x65, 0x5D, 0x3D, 0xED, 0xF6};
     unsigned char aucJsonLog[] =
-        R"({"header":{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body":{"embedded_header":{"message": "SERIALCONFIG","id": 1246,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"embedded_body":{"port": "COM2","baud_rate": 460800,"parity": "N","data_bits": 8,"stop_bits": 1,"hand_shaking": "N","breaks": "ON"}}})";
+        R"({"header": {"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"header": {"message": "SERIALCONFIG","id": 1246,"port": "COM2","sequence_num": 0,"percent_idle_time": 78.0,"time_status": "FINESTEERING","week": 2235,"seconds": 409629.767,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"port": "COM2","baud_rate": 460800,"parity": "N","data_bits": 8,"stop_bits": 1,"hand_shaking": "N","breaks": "ON"}}})";
     MessageDataStruct stExpectedRxConfigMessageData;
     stExpectedRxConfigMessageData.pucMessage = &aucJsonLog[0];
-    stExpectedRxConfigMessageData.uiMessageLength = 656;
-    stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[10];
+    stExpectedRxConfigMessageData.uiMessageLength = 642;
+    stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[11];
     stExpectedRxConfigMessageData.uiMessageHeaderLength = 240;
-    stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[258];
-    stExpectedRxConfigMessageData.uiMessageBodyLength = 397;
+    stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[260];
+    stExpectedRxConfigMessageData.uiMessageBodyLength = 381;
 
     MessageDataStruct stExpectedEmbeddedMessageData;
-    stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[258];
-    stExpectedEmbeddedMessageData.uiMessageLength = 397;
-    stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[277];
+    stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[260];
+    stExpectedEmbeddedMessageData.uiMessageLength = 381;
+    stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[271];
     stExpectedEmbeddedMessageData.uiMessageHeaderLength = 245;
-    stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[539];
+    stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[525];
     stExpectedEmbeddedMessageData.uiMessageBodyLength = 115;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));

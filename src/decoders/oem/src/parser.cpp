@@ -65,8 +65,6 @@ void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
         clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
         clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
         clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
-        clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
-        clMyRxConfigFilter.IncludeMessageId(US_RX_CONFIG_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
 
         pclMyMessageDb = pclMessageDb_;
     }
@@ -159,7 +157,11 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 pucMyFrameBufferPointer += stMetaData_.uiHeaderLength;
                 stMessageData_.pucMessageBody = pucMyFrameBufferPointer;
                 stMessageData_.uiMessageBodyLength = stMetaData_.uiLength - stMetaData_.uiHeaderLength;
-                eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
+                if (RxConfigHandler::IsRxConfigTypeMsg(stHeader_.usMessageId))
+                {
+                    eStatus = clMyRxConfigHandler.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
+                }
+                else { eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_); }
 
                 if (eStatus == STATUS::SUCCESS || eStatus == STATUS::NO_DEFINITION) { return eStatus; }
 
@@ -203,20 +205,17 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
         // Encode RxConfig messages
-        if (clMyRxConfigFilter.DoFiltering(stMetaData_))
+        if (RxConfigHandler::IsRxConfigTypeMsg((stHeader.usMessageId)))
         {
-            // Use some dummy stuff for the embedded message. The parser won't handle that now.
-            MessageDataStruct stEmbeddedMessageData;
-            MetaDataStruct stEmbeddedMetaData;
-            clMyRxConfigHandler.Write(stMessageData_.pucMessage, stMetaData_.uiLength);
-            eStatus = clMyRxConfigHandler.Convert(stMessageData_, stMetaData_, stEmbeddedMessageData, stEmbeddedMetaData, eMyEncodeFormat);
-            if (eStatus != STATUS::SUCCESS) { pclMyLogger->info("RxConfigHandler returned status {}", eStatus); }
-            return eStatus;
+            eStatus = clMyRxConfigHandler.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
+                                                 eMyEncodeFormat);
+        }
+        else
+        {
+            eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
+                                         stMetaData_.eFormat, eMyEncodeFormat);
         }
 
-        // Encode regular messages
-        eStatus = clMyEncoder.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_, stMetaData_.eFormat,
-                                     eMyEncodeFormat);
         if (eStatus == STATUS::SUCCESS) { return STATUS::SUCCESS; }
 
         pclMyLogger->info("Encoder returned status {}", eStatus);

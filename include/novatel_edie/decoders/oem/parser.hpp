@@ -65,7 +65,6 @@ class Parser
 
     // Filters for specific components
     Filter clMyRangeCmpFilter;
-    Filter clMyRxConfigFilter;
 
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{std::make_unique<unsigned char[]>(uiParserInternalBufferSize)};
     unsigned char* pucMyEncodeBufferPointer{nullptr};
