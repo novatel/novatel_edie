@@ -411,7 +411,7 @@ STATUS RxConfigHandler::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSiz
     std::vector<FieldContainer> stEmbeddedMessage;
 
     // Convert embedded data to a dynamically allocated character array
-    auto& vEmbeddedData = std::get<std::vector<FieldContainer>>(stMessage_[0].fieldValue);
+    const auto& vEmbeddedData = std::get<std::vector<FieldContainer>>(stMessage_[0].fieldValue);
     std::unique_ptr<unsigned char[]> pucEmbeddedDataBuffer = std::make_unique<unsigned char[]>(vEmbeddedData.size());
     unsigned char* pucEmbeddedDataPointer = pucEmbeddedDataBuffer.get();
     for (const auto& stField : vEmbeddedData) { *pucEmbeddedDataPointer++ = std::get<uint8_t>(stField.fieldValue); }
