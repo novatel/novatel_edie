@@ -44,7 +44,7 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
     pclMyLogger->debug("RxConfigHandler initialized");
 }
 
-void RxConfigHandler::ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_) const
+void RxConfigHandler::ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
 {
     if (pclMsgDef_ == nullptr) { return; }
     std::vector<BaseField::Ptr> vFieldDefs = pclMsgDef_->fields.at(pclMsgDef_->latestMessageCrc);
@@ -91,7 +91,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 bool RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
-BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_) const
+BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
 {
     return pclMsgDef_->fields.at(pclMsgDef_->latestMessageCrc).at(0);
 }

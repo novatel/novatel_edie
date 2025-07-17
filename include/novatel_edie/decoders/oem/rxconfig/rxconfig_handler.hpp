@@ -77,7 +77,7 @@ class RxConfigHandler
     //!
     //! \throws std::invalid_argument if the message definition is invalid.
     //------------------------------------------------------------------------------
-    void ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_) const;
+    static void ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_);
 
     //----------------------------------------------------------------------------
     //! \brief Retrieve the only field definition from a valid RXConfig message definition.
@@ -86,7 +86,7 @@ class RxConfigHandler
     //!
     //! \returns A shared pointer to the field definition.
     //------------------------------------------------------------------------------
-    BaseField::ConstPtr GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_) const;
+    static BaseField::ConstPtr GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_);
 
     //----------------------------------------------------------------------------
     //! \brief Encode an RXConfig message from the provided intermediate structures.
