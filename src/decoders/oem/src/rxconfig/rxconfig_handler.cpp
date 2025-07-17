@@ -44,15 +44,16 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
     pclMyLogger->debug("RxConfigHandler initialized");
 }
 
-bool RxConfigHandler::ValidateMsgDef(const MessageDefinition* pclMsgDef_) const
+void RxConfigHandler::ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_) const
 {
-    if (pclMsgDef_ == nullptr) { return false; }
-    BaseField::ConstPtr pclFieldDef = GetFieldDefFromMsgDef(pclMsgDef_); // Ensure that the message definition has fields
-    if (pclFieldDef->conversion != "%R") { return false; }
-    if (pclFieldDef->type != FIELD_TYPE::VARIABLE_LENGTH_ARRAY) { return false; }
-    if (pclFieldDef->dataType.name != DATA_TYPE::UCHAR) { return false; }
-    if (pclFieldDef->dataType.name != DATA_TYPE::UCHAR) { return false; }
-    return true;
+    if (pclMsgDef_ == nullptr) { return; }
+    std::vector<BaseField::Ptr> vFieldDefs = pclMsgDef_->fields.at(pclMsgDef_->latestMessageCrc);
+    std::string sMsgName = pclMsgDef_->name;
+    if (vFieldDefs.size() != 1) { throw std::invalid_argument(sMsgName + " definition has too many fields."); }
+    BaseField::ConstPtr pclFieldDef = vFieldDefs[0];
+    if (pclFieldDef->conversion != "%R") { throw std::invalid_argument(sMsgName + " definition has non \"%R\" conversion string."); }
+    if (pclFieldDef->type != FIELD_TYPE::VARIABLE_LENGTH_ARRAY) { throw std::invalid_argument(sMsgName + " definition must have a VARIABLE_LENGTH_ARRAY field type."); }
+    if (pclFieldDef->dataType.name != DATA_TYPE::UCHAR) { throw std::invalid_argument(sMsgName + " definition must have a UCHAR data type."); }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -63,11 +64,14 @@ void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
     clMyMessageDecoder.LoadJsonDb(pclMessageDb_);
     clMyEncoder.LoadJsonDb(pclMessageDb_);
 
-    pclRxConfigMessageDefinition = pclMyMsgDb->GetMsgDef(US_RX_CONFIG_MSG_ID);
-    pclRxConfigUserMessageDefinition = pclMyMsgDb->GetMsgDef(US_RX_CONFIG_USER_MSG_ID);
+    MessageDefinition::ConstPtr pclRxConfigMessageDefinition = pclMyMsgDb->GetMsgDef(US_RX_CONFIG_MSG_ID);
+    MessageDefinition::ConstPtr pclRxConfigUserMessageDefinition = pclMyMsgDb->GetMsgDef(US_RX_CONFIG_USER_MSG_ID);
 
-    if (!ValidateMsgDef(pclRxConfigMessageDefinition.get())) { throw std::invalid_argument("Invalid or no RXCONFIG message definition"); }
-    if (!ValidateMsgDef(pclRxConfigUserMessageDefinition.get())) { throw std::invalid_argument("Invalid or no RXCONFIGUSER message definition"); }
+    ValidateMsgDef(pclRxConfigMessageDefinition);
+    ValidateMsgDef(pclRxConfigUserMessageDefinition);
+
+    pclRxConfigFieldDef = GetFieldDefFromMsgDef(pclRxConfigMessageDefinition);
+    pclRxConfigUserFieldDef = GetFieldDefFromMsgDef(pclRxConfigUserMessageDefinition);
 
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
@@ -84,7 +88,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 bool RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
-BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition* pclMsgDef_) const
+BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_) const
 {
     return pclMsgDef_->fields.at(pclMsgDef_->latestMessageCrc).at(0);
 }
@@ -96,14 +100,18 @@ template <typename T> std::shared_ptr<T> CopyAndMove(std::shared_ptr<T> pclPtr_)
 STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_,
                                MetaDataStruct& stRxConfigMetaData_) const
 {
-    const MessageDefinition* pclMsgDef;
-
-    if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_MSG_ID) { pclMsgDef = pclRxConfigMessageDefinition.get(); }
-    if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_MSG_ID) { pclMsgDef = pclRxConfigMessageDefinition.get(); }
-    else if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_USER_MSG_ID) { pclMsgDef = pclRxConfigUserMessageDefinition.get(); }
+    BaseField::ConstPtr pclFieldDef;
+    if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_MSG_ID)
+    {
+        if (!pclRxConfigFieldDef) { return STATUS::NO_DEFINITION; }
+        pclFieldDef = pclRxConfigFieldDef;
+    }
+    else if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_USER_MSG_ID)
+    {
+        if (!pclRxConfigUserFieldDef) { return STATUS::NO_DEFINITION; }
+        pclFieldDef = pclRxConfigUserFieldDef;
+    }
     else { return STATUS::UNSUPPORTED; }
-
-    BaseField::ConstPtr pclFieldDef = GetFieldDefFromMsgDef(pclMsgDef);
 
     const unsigned char* pucTempMessagePointer = pucMessage_;
     MetaDataStruct stEmbeddedMetaData_;

@@ -67,11 +67,26 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
 
-    MessageDefinition::ConstPtr pclRxConfigMessageDefinition{nullptr};
-    MessageDefinition::ConstPtr pclRxConfigUserMessageDefinition{nullptr};
+    BaseField::ConstPtr pclRxConfigFieldDef{nullptr};
+    BaseField::ConstPtr pclRxConfigUserFieldDef{nullptr};
 
-    bool ValidateMsgDef(const MessageDefinition* pclMsgDef_) const;
-    BaseField::ConstPtr GetFieldDefFromMsgDef(const MessageDefinition* pclMsgDef_) const;
+    //----------------------------------------------------------------------------
+    //! \brief Validate that a message definition contains valid fields to be decoded as RXConfig
+    //!
+    //! \param pclMsgDef_ The message definition to validate.
+    //! 
+    //! \throws std::invalid_argument if the message definition is invalid.
+    //------------------------------------------------------------------------------
+    void ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Retrieve the only field definition from a valid RXConfig message definition.
+    //!
+    //! \param pclMsgDef_ The message definition retrieve the field definition from.
+    //! 
+    //! \returns A shared pointer to the field definition.
+    //------------------------------------------------------------------------------
+    BaseField::ConstPtr GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encode an RXConfig message from the provided intermediate structures.
@@ -284,8 +299,10 @@ class RxConfigHandler
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
     //
-    //! \return An error code describing the result of decoding.
-    // TODO: Fill this in
+    //! \return A STATUS code describing the result of decoding.
+    //!    SUCCESS: The operation was successful.
+    //!    NO_DEFINITION: The message ID was not found in the database.
+    //!    UNSUPPORTED: The message ID is not for an RXCONFIG type message.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_,
                                 MetaDataStruct& stRxConfigMetaData_) const;
