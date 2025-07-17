@@ -92,7 +92,6 @@ template <typename T, size_t N> class FixedRingBuffer
     {
         if (data_ptr == nullptr) { return 0; }
         count = std::min(count, available_space());
-        if (count == 0) { return 0; }
 
         const size_t write_start_idx = (head + sz) & Mask;
         const size_t first_chunk_elements = std::min(count, N - write_start_idx);
