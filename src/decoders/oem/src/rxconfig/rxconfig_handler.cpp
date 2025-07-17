@@ -46,7 +46,6 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
 
 void RxConfigHandler::ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
 {
-    if (pclMsgDef_ == nullptr) { return; }
     std::vector<BaseField::Ptr> vFieldDefs = pclMsgDef_->fields.at(pclMsgDef_->latestMessageCrc);
     std::string sMsgName = pclMsgDef_->name;
     if (vFieldDefs.size() != 1) { throw std::invalid_argument(sMsgName + " definition has too many fields."); }
@@ -70,11 +69,17 @@ void RxConfigHandler::LoadJsonDb(const MessageDatabase::Ptr& pclMessageDb_)
     MessageDefinition::ConstPtr pclRxConfigMessageDefinition = pclMyMsgDb->GetMsgDef(US_RX_CONFIG_MSG_ID);
     MessageDefinition::ConstPtr pclRxConfigUserMessageDefinition = pclMyMsgDb->GetMsgDef(US_RX_CONFIG_USER_MSG_ID);
 
-    ValidateMsgDef(pclRxConfigMessageDefinition);
-    ValidateMsgDef(pclRxConfigUserMessageDefinition);
+    if (pclRxConfigMessageDefinition != nullptr)
+    {
+        ValidateMsgDef(pclRxConfigMessageDefinition);
+        pclRxConfigFieldDef = GetFieldDefFromMsgDef(pclRxConfigMessageDefinition);
+    }
 
-    pclRxConfigFieldDef = GetFieldDefFromMsgDef(pclRxConfigMessageDefinition);
-    pclRxConfigUserFieldDef = GetFieldDefFromMsgDef(pclRxConfigUserMessageDefinition);
+    if (pclRxConfigUserMessageDefinition != nullptr)
+    {
+        ValidateMsgDef(pclRxConfigUserMessageDefinition);
+        pclRxConfigUserFieldDef = GetFieldDefFromMsgDef(pclRxConfigUserMessageDefinition);
+    }
 
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
