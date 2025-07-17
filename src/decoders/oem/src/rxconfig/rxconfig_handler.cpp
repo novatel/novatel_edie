@@ -463,6 +463,6 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     eStatus = Encode(&pucTempEncodeBuffer, uiInternalBufferSize, stRxConfigHeader, stEmbeddedMessage, stRxConfigMessageData_, stEmbeddedMessageData_,
                      stEmbeddedMetaData_, eEncodeFormat_);
-
-    return STATUS::SUCCESS;
+    
+    return eStatus;
 }
