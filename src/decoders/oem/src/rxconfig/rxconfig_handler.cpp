@@ -86,7 +86,6 @@ bool RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_)
 // -------------------------------------------------------------------------------------------------------
 BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition* pclMsgDef_) const
 {
-    const MessageDefinition* pclMsgDef = pclMsgDef_;
     return pclMsgDef_->fields.at(pclMsgDef_->latestMessageCrc).at(0);
 }
 
