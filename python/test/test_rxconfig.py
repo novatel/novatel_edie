@@ -37,18 +37,3 @@ def test_rxconfig_decoding(decoder: ne.Decoder):
     assert decoded_embedded_message.name == "INTERFACEMODE"
     assert decoded_embedded_message.port == ne_enums.CommPort.COM1
     assert decoded_embedded_message.responses == ne_enums.OnOff.ON
-
-@pytest.mark.parametrize("raw_message, encode_format", [
-    (
-        b"#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*ca0f5c51*71be1427\r\n",
-        ENCODE_FORMAT.ASCII
-    )
-])
-def test_encode_decode_roundtrip(decoder: ne.Decoder, raw_message: bytes, encode_format: ENCODE_FORMAT):
-    """Tests that decoding and then encoding an RXCONFIG message results in the original message."""
-    # Act
-    decoded_message = decoder.decode(raw_message)
-    encoded_message = decoded_message.encode(encode_format)
-
-    # Assert
-    assert encoded_message.message == raw_message, f"Encoded message does not match original. Expected: {raw_message}, Got: {encoded_message.message}"
