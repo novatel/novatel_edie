@@ -91,11 +91,7 @@ BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefiniti
 }
 
 // -------------------------------------------------------------------------------------------------------
-template<typename T>
-std::shared_ptr<T> CopyAndMove(std::shared_ptr<T> pclPtr_)
-{
-    return pclPtr_;
-}
+template <typename T> std::shared_ptr<T> CopyAndMove(std::shared_ptr<T> pclPtr_) { return pclPtr_; }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_,
@@ -463,6 +459,6 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
 
     eStatus = Encode(&pucTempEncodeBuffer, uiInternalBufferSize, stRxConfigHeader, stEmbeddedMessage, stRxConfigMessageData_, stEmbeddedMessageData_,
                      stEmbeddedMetaData_, eEncodeFormat_);
-    
+
     return eStatus;
 }
