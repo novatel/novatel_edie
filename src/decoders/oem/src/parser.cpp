@@ -157,7 +157,7 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 pucMyFrameBufferPointer += stMetaData_.uiHeaderLength;
                 stMessageData_.pucMessageBody = pucMyFrameBufferPointer;
                 stMessageData_.uiMessageBodyLength = stMetaData_.uiLength - stMetaData_.uiHeaderLength;
-                if (clMyRxConfigHandler.IsRxConfigTypeMsg(stHeader_.usMessageId))
+                if (RxConfigHandler::IsRxConfigTypeMsg(stHeader_.usMessageId))
                 {
                     eStatus = clMyRxConfigHandler.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
                 }
@@ -205,7 +205,7 @@ Parser::Read(MessageDataStruct& stMessageData_, MetaDataStruct& stMetaData_, boo
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
         // Encode RxConfig messages
-        if (clMyRxConfigHandler.IsRxConfigTypeMsg(stHeader.usMessageId))
+        if (RxConfigHandler::IsRxConfigTypeMsg((stHeader.usMessageId)))
         {
             eStatus = clMyRxConfigHandler.Encode(&pucMyEncodeBufferPointer, uiParserInternalBufferSize, stHeader, stMessage, stMessageData_,
                                                  eMyEncodeFormat);
