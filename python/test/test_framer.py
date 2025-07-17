@@ -850,7 +850,8 @@ def test_write_exceeding_max_num_bytes(helper: Helper):
     """
     # Arrange
     data = b'a' * (helper.framer.available_space + 1)
+    available_space = helper.framer.available_space
     # Act
     bytes_written = helper.framer.write(data)
     # Assert
-    assert bytes_written <= helper.framer.available_space
+    assert bytes_written == available_space

@@ -129,7 +129,8 @@ def test_write_exceeding_max_num_bytes(parser: ne.Parser):
     """
     # Arrange
     data = b'a' * (parser.available_space + 1)
+    available_space = parser.available_space
     # Act
     bytes_written = parser.write(data)
     # Assert
-    assert bytes_written <= parser.available_space
+    assert bytes_written == available_space
