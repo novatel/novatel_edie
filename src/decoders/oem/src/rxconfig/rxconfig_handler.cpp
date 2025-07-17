@@ -52,7 +52,10 @@ void RxConfigHandler::ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDe
     if (vFieldDefs.size() != 1) { throw std::invalid_argument(sMsgName + " definition has too many fields."); }
     BaseField::ConstPtr pclFieldDef = vFieldDefs[0];
     if (pclFieldDef->conversion != "%R") { throw std::invalid_argument(sMsgName + " definition has non \"%R\" conversion string."); }
-    if (pclFieldDef->type != FIELD_TYPE::VARIABLE_LENGTH_ARRAY) { throw std::invalid_argument(sMsgName + " definition must have a VARIABLE_LENGTH_ARRAY field type."); }
+    if (pclFieldDef->type != FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+    {
+        throw std::invalid_argument(sMsgName + " definition must have a VARIABLE_LENGTH_ARRAY field type.");
+    }
     if (pclFieldDef->dataType.name != DATA_TYPE::UCHAR) { throw std::invalid_argument(sMsgName + " definition must have a UCHAR data type."); }
 }
 
@@ -94,6 +97,7 @@ BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefiniti
 }
 
 // -------------------------------------------------------------------------------------------------------
+// Converts shared pointer into an r-value and increments reference count without invalidating original.
 template <typename T> std::shared_ptr<T> CopyAndMove(std::shared_ptr<T> pclPtr_) { return pclPtr_; }
 
 // -------------------------------------------------------------------------------------------------------
