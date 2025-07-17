@@ -91,6 +91,13 @@ BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefiniti
 }
 
 // -------------------------------------------------------------------------------------------------------
+template<typename T>
+std::shared_ptr<T> CopyAndMove(std::shared_ptr<T> pclPtr_)
+{
+    return pclPtr_;
+}
+
+// -------------------------------------------------------------------------------------------------------
 STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_,
                                MetaDataStruct& stRxConfigMetaData_) const
 {
@@ -101,12 +108,14 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     else if (stRxConfigMetaData_.usMessageId == US_RX_CONFIG_USER_MSG_ID) { pclMsgDef = pclRxConfigUserMessageDefinition.get(); }
     else { return STATUS::UNSUPPORTED; }
 
+    BaseField::ConstPtr pclFieldDef = GetFieldDefFromMsgDef(pclMsgDef);
+
     const unsigned char* pucTempMessagePointer = pucMessage_;
     MetaDataStruct stEmbeddedMetaData_;
     std::vector<FieldContainer> stEmbeddedMessage;
     uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
 
-    stInterMessage_.emplace_back(std::vector<FieldContainer>(), GetFieldDefFromMsgDef(pclMsgDef));
+    stInterMessage_.emplace_back(std::vector<FieldContainer>(), CopyAndMove(pclFieldDef));
     auto& stEmbeddedMessageData = std::get<std::vector<FieldContainer>>(stInterMessage_.back().fieldValue);
 
     // Determine how many bytes to copy from raw message data to the embedded message data.
@@ -116,7 +125,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     case HEADER_FORMAT::ABB_ASCII: {
         // Fix embedded header indentation
         ConsumeAbbrevFormatting(reinterpret_cast<const char**>(&pucTempMessagePointer));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC), GetFieldDefFromMsgDef(pclMsgDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC), CopyAndMove(pclFieldDef));
         uiCopyableEmbeddedMsgBytes = uiTotalPayloadSize - (pucTempMessagePointer - pucMessage_);
         break;
     }
@@ -140,7 +149,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     stEmbeddedMessageData.reserve(uiCopyableEmbeddedMsgBytes);
     for (uint32_t i = 0; i < uiCopyableEmbeddedMsgBytes; ++i)
     {
-        stEmbeddedMessageData.emplace_back(*(reinterpret_cast<const uint8_t*>(pucTempMessagePointer)), GetFieldDefFromMsgDef(pclMsgDef));
+        stEmbeddedMessageData.emplace_back(*(reinterpret_cast<const uint8_t*>(pucTempMessagePointer)), CopyAndMove(pclFieldDef));
         pucTempMessagePointer++;
     }
 
@@ -154,18 +163,18 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
         std::to_chars(pucCRC, pucCRC + OEM4_ASCII_CRC_LENGTH, uiCRC, 16);
         for (uint32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; ++i)
         {
-            stEmbeddedMessageData.emplace_back(*(reinterpret_cast<uint8_t*>(pucCRC) + i), GetFieldDefFromMsgDef(pclMsgDef));
+            stEmbeddedMessageData.emplace_back(*(reinterpret_cast<uint8_t*>(pucCRC) + i), CopyAndMove(pclFieldDef));
         }
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'), GetFieldDefFromMsgDef(pclMsgDef));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'), GetFieldDefFromMsgDef(pclMsgDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'), CopyAndMove(pclFieldDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'), CopyAndMove(pclFieldDef));
         break;
     }
     case HEADER_FORMAT::BINARY: {
         uint32_t uiCRC = *reinterpret_cast<const uint32_t*>(pucTempMessagePointer) ^ 0xFFFFFFFF;
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24), GetFieldDefFromMsgDef(pclMsgDef));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16), GetFieldDefFromMsgDef(pclMsgDef));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 8), GetFieldDefFromMsgDef(pclMsgDef));
-        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC), GetFieldDefFromMsgDef(pclMsgDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24), CopyAndMove(pclFieldDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16), CopyAndMove(pclFieldDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 8), CopyAndMove(pclFieldDef));
+        stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC), CopyAndMove(pclFieldDef));
         break;
     }
     default: break;
