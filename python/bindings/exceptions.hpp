@@ -73,7 +73,7 @@ class NoDefinitionEmbeddedException : public std::exception
 class BufferFullException : public std::exception
 {
   public:
-    const char* what() const noexcept override { return "The provided destination buffer is not big enough to contain the frame."; }
+    const char* what() const noexcept override { return "The destination buffer is not big enough to contain the provided data."; }
 };
 
 class BufferEmptyException : public std::exception

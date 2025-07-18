@@ -89,7 +89,16 @@ Data is written to a `Parser` as `bytes` via its `write()` method:
 
 ```python
 parser = ne.Parser()
-parser.write(b'message_data')
+bytes_written = parser.write(b'message_data')
+```
+
+The `bytes_written` return value indicates how many bytes were successfully written to the `Parser`.
+This number will be less than the size of the input if the `Parser` lacks space to store them.
+To guarentee that all bytes will be successfully, use the `Parser.available_space` property:
+
+```python
+parser = ne.Parser()
+bytes_written = parser.write(msg[:parser.available_space])
 ```
 
 A `FileParser` accesses its data from a filepath provided at instantiation:

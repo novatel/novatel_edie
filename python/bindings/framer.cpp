@@ -53,6 +53,8 @@ void init_novatel_framer(nb::module_& m)
                      "Whether to frame and return only the payload of detected messages.")
         .def_prop_rw("report_unknown_bytes", &oem::PyFramer::GetReportUnknownBytes, &oem::PyFramer::SetReportUnknownBytes,
                      "Whether to frame and return undecodable data.")
+        .def_prop_ro("available_space", &oem::PyFramer::GetAvailableSpace,
+                     "The number of bytes in the Framer's internal buffer available for writing new data.")
         .def("get_frame", &oem::PyFramer::PyGetFrame, "buffer_size"_a = MESSAGE_SIZE_MAX,
              nb::sig("def get_frame(buffer_size = MAX_MESSAGE_LENGTH) -> tuple[bytes, MetaData]"),
              R"doc(
@@ -97,8 +99,14 @@ void init_novatel_framer(nb::module_& m)
             R"doc(
             Writes data to the Framer's buffer.
 
+            Use 'available_space' attribute to check how many bytes can be safely written.  
+
             Args:
                 data: The data to write to the buffer.
+
+            Returns:
+                The number of bytes written to the Framer's buffer. 
+                Can be less than the length of `data` if the buffer is full.
             )doc")
         .def(
             "flush",

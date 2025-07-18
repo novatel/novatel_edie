@@ -229,7 +229,14 @@ class Parser
     //
     //! \return The number of bytes successfully written to the Parser.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+    [[nodiscard]] size_t Write(const unsigned char* pucData_, size_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the number of bytes available in the Parser's internal buffer.
+    //!
+    //! \return The number of bytes available in the Parser's internal buffer for writing new data.
+    //---------------------------------------------------------------------------
+    [[nodiscard]] size_t GetAvailableSpace() const { return clMyFramer.GetAvailableSpace(); }
 
     //----------------------------------------------------------------------------
     //! \brief Read a log from the Parser.
