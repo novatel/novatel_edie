@@ -188,44 +188,58 @@ void init_common_message_database(nb::module_& m)
         .def("get_enum_type_by_id", [](PyMessageDatabase& self, std::string id) { return self.GetEnumsByIdDict().at(id); }, "id"_a);
 }
 
-
-PyMessageDatabase::PyMessageDatabase()
+PyMessageDatabaseCore::PyMessageDatabaseCore()
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::Encoder>(this);
 }
 
-PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
-                                     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
+PyMessageDatabaseCore::PyMessageDatabaseCore(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
+                                             std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
     : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::Encoder>(this);
 }
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
+PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::Encoder>(this);
 }
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
+PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
-    encoder = std::make_shared<oem::Encoder>(this);
 }
 
-void PyMessageDatabase::GenerateMessageMappings()
+PyMessageDatabase::PyMessageDatabase() : pclMessageDb(std::make_shared<PyMessageDatabaseCore>()) { pclEncoder = std::make_unique<oem::Encoder>(this->pclMessageDb); }
+
+PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
+                                     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
+    : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_)))
+{
+    pclEncoder = std::make_unique<oem::Encoder>(this->pclMessageDb);
+}
+
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(message_db)) {
+    pclEncoder = std::make_unique<oem::Encoder>(this->pclMessageDb);
+}
+
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept
+    : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(message_db))
+{
+    pclEncoder = std::make_unique<oem::Encoder>(this->pclMessageDb);
+}
+
+void PyMessageDatabaseCore::GenerateMessageMappings()
 {
     MessageDatabase::GenerateMessageMappings();
     UpdatePythonMessageTypes();
 }
 
-void PyMessageDatabase::GenerateEnumMappings()
+void PyMessageDatabaseCore::GenerateEnumMappings()
 {
     MessageDatabase::GenerateEnumMappings();
     UpdatePythonEnums();
@@ -241,7 +255,7 @@ void cleanString(std::string& str)
     if (isdigit(str[0])) { str = "_" + str; }
 }
 
-inline void PyMessageDatabase::UpdatePythonEnums()
+inline void PyMessageDatabaseCore::UpdatePythonEnums()
 {
     nb::object IntEnum = nb::module_::import_("enum").attr("IntEnum");
     enums_by_id.clear();
@@ -264,8 +278,8 @@ inline void PyMessageDatabase::UpdatePythonEnums()
     }
 }
 
-void PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_constructor,
-                                     nb::handle type_tuple, nb::handle type_dict)
+void PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_constructor,
+                                         nb::handle type_tuple, nb::handle type_dict)
 {
     // rescursively add field types for each field array element within the provided vector
     for (const auto& field : fields)
@@ -281,7 +295,7 @@ void PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fie
     }
 }
 
-void PyMessageDatabase::UpdatePythonMessageTypes()
+void PyMessageDatabaseCore::UpdatePythonMessageTypes()
 {
     // clear existing definitions
     messages_by_name.clear();

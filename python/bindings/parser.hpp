@@ -16,9 +16,12 @@ nb::object HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_dat
 
 class PyParser : public Parser
 {
+  private:
+    PyMessageDatabase::Ptr pclPyMessageDb;
+
   public:
     // inherit constructors
-    using Parser::Parser;
+    PyParser(PyMessageDatabase::Ptr& pclMessageDb_) : Parser(pclMessageDb_->GetCoreDatabase()), pclPyMessageDb(pclMessageDb_) {}
 
     nb::object PyRead(bool decode_incomplete);
     nb::object PyIterRead();
