@@ -56,10 +56,11 @@ struct FieldContainer
     FieldValueVariant fieldValue;
     BaseField::ConstPtr fieldDef;
 
-    template <class T>
-    FieldContainer(T tFieldValue_, BaseField::ConstPtr&& pstFieldDef_) : fieldValue(tFieldValue_), fieldDef(std::move(pstFieldDef_))
-    {
-    }
+    FieldContainer(const FieldValueVariant& value, BaseField::ConstPtr def) : fieldValue(value), fieldDef(std::move(def)) {}
+
+    FieldContainer(FieldValueVariant&& value, BaseField::ConstPtr def) : fieldValue(std::move(value)), fieldDef(std::move(def)) {}
+
+    template <typename T> FieldContainer(T&& value, BaseField::ConstPtr def) : fieldValue(std::forward<T>(value)), fieldDef(std::move(def)) {}
 };
 
 //============================================================================
