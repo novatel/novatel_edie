@@ -204,7 +204,12 @@ class StubGenerator:
 
             # Create hints for any subfields
             if field['type'] == 'FIELD_ARRAY':
+                body_hint += f'    @property\n'
+                body_hint += f'    def {field["name"]}_count(self) -> int: ...\n\n'
+
                 subfield_hints.append(self._convert_field_array_def(field, name))
+
+
 
         # Combine all hints
         hints = subfield_hints + [body_hint]
