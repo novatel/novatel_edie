@@ -89,4 +89,6 @@ void init_common_common(nb::module_& m)
     m.attr("GIT_IS_DIRTY") = GIT_IS_DIRTY;
     m.attr("BUILD_TIMESTAMP") = BUILD_TIMESTAMP;
     m.attr("CPP_PRETTY_VERSION") = caPrettyPrint;
+
+    m.def("calculate_crc", [](nb::bytes bytes) { return CalculateBlockCrc32(reinterpret_cast<const unsigned char*>(bytes.c_str()), bytes.size()); });
 }
