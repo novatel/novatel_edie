@@ -102,7 +102,7 @@ def compare_with_floating_point(item1, item2) -> bool:
     ),
     pytest.param(
         b'#RANGECMP2A,USB1,0,66.5,FINESTEERING,2378,227093.000,03000020,1fe3,32768;5,ffffffffff*58bf791d',
-        ['range_data_count', 'range_data'],
+        ['range_data_length', 'range_data'],
         [
             5,
             [0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -111,7 +111,7 @@ def compare_with_floating_point(item1, item2) -> bool:
     ),
     pytest.param(
         b'#RANGEA,USB1,0,66.0,FINESTEERING,2378,230219.000,03000020,5103,32768;1,27,0,24627698.557,0.246,-129419430.405069,0.014,3666.953,42.6,344.455,0810dc04*1d271f23',
-        ['obs_count', 'obs'],
+        ['obs_length', 'obs'],
         [
             1,
             [[27, 0, 24627698.557, 0.246, -129419430.405069, 0.014, 3666.953, 42.6, 344.455, 135322628]]

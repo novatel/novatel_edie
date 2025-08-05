@@ -200,7 +200,7 @@ class StubGenerator:
         for field in fields:
             if field['type'] in ('FIELD_ARRAY', 'VARIABLE_LENGTH_ARRAY'):
                 body_hint += f'    @property\n'
-                body_hint += f'    def {field["name"]}_count(self) -> int: ...\n\n'
+                body_hint += f'    def {field["name"]}_length(self) -> int: ...\n\n'
 
             python_type = self._get_field_pytype(field, name)
             body_hint +=  '    @property\n'

@@ -153,7 +153,7 @@ nb::dict& PyField::to_shallow_dict() const
             if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue) && (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY || field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY))
             {
                 std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
-                cached_values_[nb::cast(field.fieldDef->name + "_count")] = field_array.size();
+                cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
             }
             cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_, this->name, this->has_ptype);
         }
