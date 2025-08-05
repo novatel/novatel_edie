@@ -38,7 +38,7 @@ from .bindings import (
     BufferFullException, BufferEmptyException, StreamEmptyException, UnsupportedException,
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,
     CPP_VERSION, CPP_PRETTY_VERSION, GIT_SHA, GIT_BRANCH, GIT_IS_DIRTY, BUILD_TIMESTAMP, 
-    enable_internal_logging, disable_internal_logging,
+    enable_internal_logging, disable_internal_logging, calculate_crc,
     UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime,
     MessageDatabase, get_builtin_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
