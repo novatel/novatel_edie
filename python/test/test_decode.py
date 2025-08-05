@@ -37,6 +37,13 @@ def decoder():
     return ne.Decoder()
 
 def nest_values(message: ne.Field):
+    """Convert the values of field into a nested list structure.
+
+    Args:
+        message: A message or field to retrieve values from.
+    Returns:
+        list: A nested list of simple values.
+    """
     values = message.get_field_values()
     for i, value in enumerate(values):
         if isinstance(value, ne.Field):
@@ -52,7 +59,15 @@ def nest_values(message: ne.Field):
     return values
 
 def compare_with_floating_point(item1, item2) -> bool:
-    """Compare two lists for equality, including nested lists."""
+    """Compare items for equality, allowing for floating point tolerance within lists.
+
+    Args:
+        item1: The first item to compare.
+        item2: The second item to compare.
+
+    Returns:
+        bool: True if items are equal or within floating point tolerance, False otherwise.
+    """
     if isinstance(item1, list) and isinstance(item2, list):
         if len(item1) != len(item2):
             return False
