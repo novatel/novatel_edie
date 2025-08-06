@@ -75,9 +75,7 @@ class Encoder : public EncoderBase<Encoder>
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    Encoder(MessageDatabase* pclMessageDb_ = nullptr);
-
-    Encoder(MessageDatabase::ConstPtr pclMessageDb_);
+    Encoder(MessageDatabase::ConstPtr pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
     //! \brief Encode an OEM message from the provided intermediate structures.

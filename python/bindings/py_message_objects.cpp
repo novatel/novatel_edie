@@ -249,11 +249,10 @@ std::string PyField::repr() const
 
 #pragma region PyMessageMethods
 
-oem::PyMessageData PyEncode(PyEncodableField& py_message, const PyMessageDatabase* db, ENCODE_FORMAT format)
+oem::PyMessageData PyEncode(PyEncodableField& py_message, const Encoder* encoder, ENCODE_FORMAT format)
 {
     STATUS status;
     MessageDataStruct message_data = MessageDataStruct();
-    std::shared_ptr<const Encoder> encoder = db->get_encoder();
 
     if (format == ENCODE_FORMAT::JSON)
     {
@@ -276,17 +275,17 @@ oem::PyMessageData PyEncode(PyEncodableField& py_message, const PyMessageDatabas
     return PyMessageData(message_data);
 }
 
-PyMessageData PyEncodableField::encode(ENCODE_FORMAT fmt) { return PyEncode(*this, this->parent_db_.get(), fmt); }
+PyMessageData PyEncodableField::encode(ENCODE_FORMAT fmt) { return PyEncode(*this, this->parent_db_->GetEncoder(), fmt); }
 
-PyMessageData PyEncodableField::to_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ASCII); }
+PyMessageData PyEncodableField::to_ascii() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::ASCII); }
 
-PyMessageData PyEncodableField::to_abbrev_ascii() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::ABBREV_ASCII); }
+PyMessageData PyEncodableField::to_abbrev_ascii() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::ABBREV_ASCII); }
 
-PyMessageData PyEncodableField::to_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::BINARY); }
+PyMessageData PyEncodableField::to_binary() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::BINARY); }
 
-PyMessageData PyEncodableField::to_flattened_binary() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::FLATTENED_BINARY); }
+PyMessageData PyEncodableField::to_flattened_binary() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::FLATTENED_BINARY); }
 
-PyMessageData PyEncodableField::to_json() { return PyEncode(*this, this->parent_db_.get(), ENCODE_FORMAT::JSON); }
+PyMessageData PyEncodableField::to_json() { return PyEncode(*this, this->parent_db_->GetEncoder(), ENCODE_FORMAT::JSON); }
 
 #pragma endregion
 
