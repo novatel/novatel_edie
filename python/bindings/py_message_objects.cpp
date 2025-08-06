@@ -150,25 +150,21 @@ nb::dict& PyField::to_shallow_dict() const
     {
         for (const auto& field : fields)
         {
+            if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue) && (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY || field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY))
+            {
+                std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
+                cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
+            }
             cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_, this->name, this->has_ptype);
         }
     }
     return cached_values_;
 }
 
-nb::dict& PyField::get_field_defs() const
-{
-    if (cached_fields_.size() == 0)
-    {
-        for (const auto& field : fields) { cached_fields_[nb::cast(field.fieldDef->name)] = field.fieldDef; }
-    }
-    return cached_fields_;
-}
-
 nb::list PyField::get_field_names() const
 {
     nb::list field_names = nb::list();
-    for (const auto& field : fields) { field_names.append(nb::cast(field.fieldDef->name)); }
+    for (const auto& [name, value] : to_shallow_dict()) { field_names.append(name); }
     return field_names;
 }
 
@@ -515,7 +511,7 @@ void init_message_objects(nb::module_& m)
                  nb::list base_list = nb::cast<nb::list>(super_obj.attr("__dir__")());
                  // add dynamic fields to the list
                  PyField* body = nb::inst_ptr<PyField>(self);
-                 for (const auto& [field_name, _] : body->get_field_defs()) { base_list.append(field_name); }
+                 for (const auto& field_name : body->get_field_names()) { base_list.append(field_name); }
 
                  return base_list;
              })
@@ -527,7 +523,7 @@ void init_message_objects(nb::module_& m)
                 The name of every top-level field within the message payload.      
             )doc")
         .def("get_field_values", &PyField::get_values,
-            R"doc(
+             R"doc(
             Retrieves the values of every top-level field within the payload of this message.
 
             Returns:

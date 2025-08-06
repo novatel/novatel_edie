@@ -198,6 +198,10 @@ class StubGenerator:
         if not fields:
             body_hint += '    pass\n\n'
         for field in fields:
+            if field['type'] in ('FIELD_ARRAY', 'VARIABLE_LENGTH_ARRAY'):
+                body_hint += f'    @property\n'
+                body_hint += f'    def {field["name"]}_length(self) -> int: ...\n\n'
+
             python_type = self._get_field_pytype(field, name)
             body_hint +=  '    @property\n'
             body_hint += f'    def {field["name"]}(self) -> {python_type}: ...\n\n'
@@ -205,6 +209,8 @@ class StubGenerator:
             # Create hints for any subfields
             if field['type'] == 'FIELD_ARRAY':
                 subfield_hints.append(self._convert_field_array_def(field, name))
+
+
 
         # Combine all hints
         hints = subfield_hints + [body_hint]
