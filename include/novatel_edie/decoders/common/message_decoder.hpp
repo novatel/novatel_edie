@@ -56,11 +56,33 @@ struct FieldContainer
     FieldValueVariant fieldValue;
     BaseField::ConstPtr fieldDef;
 
-    FieldContainer(const FieldValueVariant& value, BaseField::ConstPtr def) : fieldValue(value), fieldDef(std::move(def)) {}
+    FieldContainer(const FieldValueVariant& value, BaseField::ConstPtr def) : fieldValue(value), fieldDef(std::move(def))
+    {
+#ifndef NDEBUG
+        Validate();
+#endif
+    }
 
-    FieldContainer(FieldValueVariant&& value, BaseField::ConstPtr def) : fieldValue(std::move(value)), fieldDef(std::move(def)) {}
+    FieldContainer(FieldValueVariant&& value, BaseField::ConstPtr def) : fieldValue(std::move(value)), fieldDef(std::move(def))
+    {
+#ifndef NDEBUG
+        Validate();
+#endif
+    }
 
-    template <typename T> FieldContainer(T&& value, BaseField::ConstPtr def) : fieldValue(std::forward<T>(value)), fieldDef(std::move(def)) {}
+    template <typename T> FieldContainer(T&& value, BaseField::ConstPtr def) : fieldValue(std::forward<T>(value)), fieldDef(std::move(def))
+    {
+#ifndef NDEBUG
+        Validate();
+#endif
+    }
+
+#ifndef NDEBUG
+  private:
+    void Validate() const;
+
+    void ValidateSimpleField() const;
+#endif
 };
 
 //============================================================================
@@ -147,8 +169,8 @@ class MessageDecoderBase
         T value;
         std::from_chars_result result;
 
-        // As of 6/26/2025 spaces may appear within ascii fields of OUTPUTDATUM and SETALIGNMENTVEL as they use conversion strings with width values.
-        // EDIE supports decoding of this data but will never pad fields with spaces during encoding.
+        // As of 6/26/2025 spaces may appear within ascii fields of OUTPUTDATUM and SETALIGNMENTVEL as they use conversion strings with width
+        // values. EDIE supports decoding of this data but will never pad fields with spaces during encoding.
         uint32_t offset = 0;
         while ((token[offset] == ' ') && (offset < tokenLength - 1)) { ++offset; }
 

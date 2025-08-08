@@ -31,6 +31,64 @@
 using namespace novatel::edie;
 
 // -------------------------------------------------------------------------------------------------------
+#ifndef NDEBUG
+void FieldContainer::Validate() const
+{
+    switch (fieldDef->type)
+    {
+    case FIELD_TYPE::SIMPLE: {
+        ValidateSimpleField();
+        break;
+    }
+    case FIELD_TYPE::ENUM: {
+        if (!std::holds_alternative<int32_t>(fieldValue))
+        {
+            throw std::invalid_argument("FieldContainer with ENUM FIELD_TYPE cannot hold a int32_t value.");
+        }
+        break;
+    }
+    }
+}
+
+void FieldContainer::ValidateSimpleField() const
+{
+
+    switch (fieldDef->dataType.name)
+    {
+    case DATA_TYPE::BOOL:
+    {
+        if (!std::holds_alternative<bool>(fieldValue))
+        {
+            throw std::invalid_argument("FieldContainer with SIMPLE FIELD_TYPE and BOOL DATA_TYPE must hold a bool value.");
+        }
+        break;
+    }
+    case DATA_TYPE::CHAR: {
+        if (!std::holds_alternative<int8_t>(fieldValue))
+        {
+            throw std::invalid_argument("FieldContainer with SIMPLE FIELD_TYPE and CHAR DATA_TYPE must hold an int8_t value.");
+        }
+        break;
+    }
+    case DATA_TYPE::UCHAR: break;
+    case DATA_TYPE::SHORT: break;
+    case DATA_TYPE::USHORT: break;
+    case DATA_TYPE::INT: break;
+    case DATA_TYPE::UINT: break;
+    case DATA_TYPE::LONG: break;
+    case DATA_TYPE::ULONG: break;
+    case DATA_TYPE::LONGLONG: break;
+    case DATA_TYPE::ULONGLONG: break;
+    case DATA_TYPE::FLOAT: break;
+    case DATA_TYPE::DOUBLE: break;
+    case DATA_TYPE::HEXBYTE: break;
+    case DATA_TYPE::SATELLITEID: break;
+    case DATA_TYPE::UNKNOWN: break;
+    }
+}
+#endif
+
+// -------------------------------------------------------------------------------------------------------
 MessageDecoderBase::MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_)
 {
     InitFieldMaps();

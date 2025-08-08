@@ -1158,6 +1158,20 @@ TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_LOGLIST)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
+TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSCOM_CLEAN)
+{
+    unsigned char aucLog[] = "#PASSCOM3A,COM1,0,58.0,FINESTEERING,2171,404283.962,02010000,4c23,16248;11,1843000570\\x0d*51c2a4b6\r\n";
+    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 72);
+    ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
+}
+
+TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSCOM_DIRTY)
+{
+    unsigned char aucLog[] = "#PASSCOM3A,COM1,0,45.5,FINESTEERING,2171,404283.635,02010000,4c23,16248;12,38400,8,N,1\\x0d*c4052078\r\n";
+    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 72);
+    ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
+}
+
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSTHROUGH)
 {
     unsigned char aucLog[] = "#PASSTHROUGHA,USB1,0,53.0,FINESTEERING,2209,509529.759,12000020,5fa3,16809;USB1,52,\\xaaD\\x12\\x1c\\xb2\\x00\\x00\\xde\\x14\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xde\\x00\\x00\\x00\\x06\\x00\\x00\\x00Sendhxdt\\x00\\x00\\x00\\x00\\x19W\\x10Z*72b6022f";
@@ -1197,20 +1211,6 @@ TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_RAWGPSSUBFRAME)
 {
     unsigned char aucLog[] = "#RAWGPSSUBFRAMEA,COM1,0,54.0,SATTIME,2167,254754.000,02000000,0457,16248;4,32,5,8b01dc52ee35516daa63199cfd4c00a10cb7227993c059e0b9c4d63e0054,4*80b22f2e\r\n";
     MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 73);
-    ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
-}
-
-TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSCOM_CLEAN)
-{
-    unsigned char aucLog[] = "#PASSCOM3A,COM1,0,58.0,FINESTEERING,2171,404283.962,02010000,4c23,16248;11,1843000570\\x0d*51c2a4b6\r\n";
-    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 72);
-    ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
-}
-
-TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSCOM_DIRTY)
-{
-    unsigned char aucLog[] = "#PASSCOM3A,COM1,0,45.5,FINESTEERING,2171,404283.635,02010000,4c23,16248;12,38400,8,N,1\\x0d*c4052078\r\n";
-    MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 72);
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }
 
