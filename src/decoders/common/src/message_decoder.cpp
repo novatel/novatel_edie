@@ -60,6 +60,8 @@ static constexpr std::string_view GetTypeName(const FieldValueVariant& fieldValu
         return "double";
     else if (std::holds_alternative<std::vector<FieldContainer>>(fieldValue))
         return "std::vector<FieldContainer>";
+    else if (std::holds_alternative<std::string>(fieldValue))
+        return "std::string";
     else
         return "unknown";
 }
@@ -87,41 +89,38 @@ bool FieldContainer::Validate() const
         if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
         break;
     }
-    case FIELD_TYPE::BITFIELD: {
-        // Empty case for BITFIELD
-        break;
-    }
+
     case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
     case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
         if (!std::holds_alternative<std::vector<FieldContainer>>(fieldValue) && !ValidateSimpleField()) { return false; }
         break;
     }
     case FIELD_TYPE::STRING: {
-        // Empty case for STRING
+        if (!std::holds_alternative<std::string>(fieldValue)) { return false; }
         break;
     }
     case FIELD_TYPE::FIELD_ARRAY: {
-        // Empty case for FIELD_ARRAY
+        if (!std::holds_alternative<std::vector<FieldContainer>>(fieldValue)) { return false; }
         break;
     }
     case FIELD_TYPE::RESPONSE_ID: {
-        // Empty case for RESPONSE_ID
+        if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
         break;
     }
     case FIELD_TYPE::RESPONSE_STR: {
-        // Empty case for RESPONSE_STR
+        if (!std::holds_alternative<std::string>(fieldValue)) { return false; }
         break;
     }
     case FIELD_TYPE::RXCONFIG_HEADER: {
-        // Empty case for RXCONFIG_HEADER
+        break;
+    }
+    case FIELD_TYPE::BITFIELD: {
         break;
     }
     case FIELD_TYPE::RXCONFIG_BODY: {
-        // Empty case for RXCONFIG_BODY
         break;
     }
     case FIELD_TYPE::UNKNOWN: {
-        // Empty case for UNKNOWN
         break;
     }
     }
