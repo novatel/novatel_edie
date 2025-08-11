@@ -117,17 +117,15 @@ void Encoder::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("P")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                  [[maybe_unused]] const MessageDatabase& pclMsgDb_) {
-        try  
-        {  
-           const int8_t uiValue = std::get<int8_t>(fc_.fieldValue);  
-           if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }  
-           if (uiValue > 31 && uiValue < 127) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(uiValue)); }  
-           return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x") && WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, uiValue, 2);  
-        }  
-        catch (const std::bad_variant_access&)  
-        {  
-          throw std::runtime_error("Passthrough '%P' fields must have a signed char data type.");
-        }
+        // Allow signed integers to be used but interpret them as if they were unsigned
+        // If all logs with %P version strings are updated to use an unsigned DATA_TYPE this can be removed
+        uint8_t uiValue;
+        if (std::holds_alternative<int8_t>(fc_.fieldValue)) { uiValue = static_cast<uint8_t>(std::get<int8_t>(fc_.fieldValue)); }
+        else { uiValue = std::get<uint8_t>(fc_.fieldValue); }
+
+        if (uiValue == '\\') { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\\\"); }
+        if (uiValue > 31 && uiValue < 127) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(uiValue)); }
+        return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x") && WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, uiValue, 2);
     };
 
     asciiFieldMap[CalculateBlockCrc32("f")] = [](const FieldContainer& fc_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,

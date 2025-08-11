@@ -1174,7 +1174,7 @@ TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSCOM_DIRTY)
 
 TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_PASSTHROUGH)
 {
-    unsigned char aucLog[] = "#PASSTHROUGHA,USB1,0,53.0,FINESTEERING,2209,509529.759,12000020,5fa3,16809;USB1,52,\\xaaD\\x12\\x1c\\xb2\\x00\\x00\\xde\\x14\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xde\\x00\\x00\\x00\\x06\\x00\\x00\\x00Sendhxdt\\x00\\x00\\x00\\x00\\x19W\\x10Z*72b6022f";
+    unsigned char aucLog[] = "#PASSTHROUGHA,USB1,0,53.0,FINESTEERING,2209,509529.759,12000020,5fa3,16809;USB1,52,\\xaaD\\x12\\x1c\\xb2\\x00\\x00\\xde\\x14\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xde\\x00\\x00\\x00\\x06\\x00\\x00\\x00Sendhxdt\\x00\\x00\\x00\\x00\\x19W\\x10Z*72b6022f\r\n";
     MessageDataStruct stExpectedMessageData(aucLog, sizeof(aucLog) - 1, 75);
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, TestSameFormatCompare(ENCODE_FORMAT::ASCII, &stExpectedMessageData));
 }

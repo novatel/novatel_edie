@@ -256,8 +256,8 @@ struct BaseField
     uint32_t conversionHash{0ULL};
     std::optional<int32_t> width;
     std::optional<int32_t> precision;
-    bool isString{false};
-    bool isCsv{false};
+    bool isString{false}; // Has a FIELD_TYPE of STRING or conversion string of either %s or %S
+    bool isCsv{false};    // Ascii encoding of this field is comma-separated, true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
 
     BaseField() = default;
