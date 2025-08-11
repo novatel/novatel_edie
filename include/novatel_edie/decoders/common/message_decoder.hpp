@@ -59,29 +59,31 @@ struct FieldContainer
     FieldContainer(const FieldValueVariant& value, BaseField::ConstPtr def) : fieldValue(value), fieldDef(std::move(def))
     {
 #ifndef NDEBUG
-        Validate();
+        if (!Validate()) { ThrowValidationFailure(); }
 #endif
     }
 
     FieldContainer(FieldValueVariant&& value, BaseField::ConstPtr def) : fieldValue(std::move(value)), fieldDef(std::move(def))
     {
 #ifndef NDEBUG
-        Validate();
+        if (!Validate()) { ThrowValidationFailure(); }
 #endif
     }
 
     template <typename T> FieldContainer(T&& value, BaseField::ConstPtr def) : fieldValue(std::forward<T>(value)), fieldDef(std::move(def))
     {
 #ifndef NDEBUG
-        Validate();
+        if (!Validate()) { ThrowValidationFailure(); }
 #endif
     }
 
 #ifndef NDEBUG
   private:
-    void Validate() const;
+    bool Validate() const;
 
-    void ValidateSimpleField() const;
+    bool ValidateSimpleField() const;
+
+    void ThrowValidationFailure() const;
 #endif
 };
 

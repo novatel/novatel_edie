@@ -124,7 +124,7 @@ void Encoder::InitFieldMaps()
            if (uiValue > 31 && uiValue < 127) { return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<char>(uiValue)); }  
            return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\\x") && WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, uiValue, 2);  
         }  
-        catch (const std::bad_variant_access& e)  
+        catch (const std::bad_variant_access&)  
         {  
           throw std::runtime_error("Passthrough '%P' fields must have a signed char data type.");
         }

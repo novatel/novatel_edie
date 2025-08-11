@@ -31,60 +31,168 @@
 using namespace novatel::edie;
 
 // -------------------------------------------------------------------------------------------------------
+static constexpr std::string_view GetTypeName(const FieldValueVariant& fieldValue)
+{
+    if (std::holds_alternative<bool>(fieldValue))
+        return "bool";
+    else if (std::holds_alternative<int8_t>(fieldValue))
+        return "int8_t";
+    else if (std::holds_alternative<uint8_t>(fieldValue))
+        return "uint8_t";
+    else if (std::holds_alternative<int16_t>(fieldValue))
+        return "int16_t";
+    else if (std::holds_alternative<uint16_t>(fieldValue))
+        return "uint16_t";
+    else if (std::holds_alternative<int32_t>(fieldValue))
+        return "int32_t";
+    else if (std::holds_alternative<uint32_t>(fieldValue))
+        return "uint32_t";
+    else if (std::holds_alternative<int64_t>(fieldValue))
+        return "int64_t";
+    else if (std::holds_alternative<uint64_t>(fieldValue))
+        return "uint64_t";
+    else if (std::holds_alternative<float>(fieldValue))
+        return "float";
+    else if (std::holds_alternative<double>(fieldValue))
+        return "double";
+    else if (std::holds_alternative<std::vector<FieldContainer>>(fieldValue))
+        return "std::vector<FieldContainer>";
+    else
+        return "unknown";
+}
+
+void FieldContainer::ThrowValidationFailure() const
+{
+
+    const std::string errorMsg = std::string("FieldContainer validation failed!") +
+                                 "\n\tDefinition FIELD_TYPE: " + std::string(FieldTypeToString(fieldDef->type)) +
+                                 "\n\tDefinition DATA_TYPE: " + std::string(DataTypeToString(fieldDef->dataType.name)) +
+                                 "\n\tActual Type: " + std::string(GetTypeName(fieldValue)) + "\n";
+    throw std::invalid_argument(errorMsg);
+}
+
+// -------------------------------------------------------------------------------------------------------
 #ifndef NDEBUG
-void FieldContainer::Validate() const
+bool FieldContainer::Validate() const
 {
     switch (fieldDef->type)
     {
     case FIELD_TYPE::SIMPLE: {
-        ValidateSimpleField();
+        if (!ValidateSimpleField()) { return false; }
         break;
     }
     case FIELD_TYPE::ENUM: {
-        if (!std::holds_alternative<int32_t>(fieldValue))
-        {
-            throw std::invalid_argument("FieldContainer with ENUM FIELD_TYPE cannot hold a int32_t value.");
-        }
+        if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case FIELD_TYPE::BITFIELD: {
+        // Empty case for BITFIELD
+        break;
+    }
+    case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
+    case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
+        if (!std::holds_alternative<std::vector<FieldContainer>>(fieldValue) && !ValidateSimpleField()) { return false; }
+        break;
+    }
+    case FIELD_TYPE::STRING: {
+        // Empty case for STRING
+        break;
+    }
+    case FIELD_TYPE::FIELD_ARRAY: {
+        // Empty case for FIELD_ARRAY
+        break;
+    }
+    case FIELD_TYPE::RESPONSE_ID: {
+        // Empty case for RESPONSE_ID
+        break;
+    }
+    case FIELD_TYPE::RESPONSE_STR: {
+        // Empty case for RESPONSE_STR
+        break;
+    }
+    case FIELD_TYPE::RXCONFIG_HEADER: {
+        // Empty case for RXCONFIG_HEADER
+        break;
+    }
+    case FIELD_TYPE::RXCONFIG_BODY: {
+        // Empty case for RXCONFIG_BODY
+        break;
+    }
+    case FIELD_TYPE::UNKNOWN: {
+        // Empty case for UNKNOWN
         break;
     }
     }
+    return true;
 }
 
-void FieldContainer::ValidateSimpleField() const
+bool FieldContainer::ValidateSimpleField() const
 {
-
     switch (fieldDef->dataType.name)
     {
-    case DATA_TYPE::BOOL:
-    {
-        if (!std::holds_alternative<bool>(fieldValue))
-        {
-            throw std::invalid_argument("FieldContainer with SIMPLE FIELD_TYPE and BOOL DATA_TYPE must hold a bool value.");
-        }
+    case DATA_TYPE::BOOL: {
+        if (!std::holds_alternative<bool>(fieldValue)) { return false; }
         break;
     }
     case DATA_TYPE::CHAR: {
-        if (!std::holds_alternative<int8_t>(fieldValue))
-        {
-            throw std::invalid_argument("FieldContainer with SIMPLE FIELD_TYPE and CHAR DATA_TYPE must hold an int8_t value.");
-        }
+        if (!std::holds_alternative<int8_t>(fieldValue)) { return false; }
         break;
     }
-    case DATA_TYPE::UCHAR: break;
-    case DATA_TYPE::SHORT: break;
-    case DATA_TYPE::USHORT: break;
-    case DATA_TYPE::INT: break;
-    case DATA_TYPE::UINT: break;
-    case DATA_TYPE::LONG: break;
-    case DATA_TYPE::ULONG: break;
-    case DATA_TYPE::LONGLONG: break;
-    case DATA_TYPE::ULONGLONG: break;
-    case DATA_TYPE::FLOAT: break;
-    case DATA_TYPE::DOUBLE: break;
-    case DATA_TYPE::HEXBYTE: break;
-    case DATA_TYPE::SATELLITEID: break;
-    case DATA_TYPE::UNKNOWN: break;
+    case DATA_TYPE::UCHAR: {
+        if (!std::holds_alternative<uint8_t>(fieldValue)) { return false; }
+        break;
     }
+    case DATA_TYPE::SHORT: {
+        if (!std::holds_alternative<int16_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::USHORT: {
+        if (!std::holds_alternative<uint16_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::INT: {
+        if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::UINT: {
+        if (!std::holds_alternative<uint32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::LONG: {
+        if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::ULONG: {
+        if (!std::holds_alternative<uint32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::LONGLONG: {
+        if (!std::holds_alternative<int64_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::ULONGLONG: {
+        if (!std::holds_alternative<uint64_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::FLOAT: {
+        if (!std::holds_alternative<float>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::DOUBLE: {
+        if (!std::holds_alternative<double>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::HEXBYTE: {
+        if (!std::holds_alternative<uint8_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::SATELLITEID: {
+        if (!std::holds_alternative<uint32_t>(fieldValue)) { return false; }
+        break;
+    }
+    default: return false;
+    }
+    return true;
 }
 #endif
 
