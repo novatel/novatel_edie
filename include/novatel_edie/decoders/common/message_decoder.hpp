@@ -79,10 +79,25 @@ struct FieldContainer
 
 #ifndef NDEBUG
   private:
+    //----------------------------------------------------------------------------
+    //! \brief Check that the FieldContainer value is compatible with its definition.
+    //!
+    //! Only exists within DEBUG builds.
+    //!
+    //! \returns true if the value is compatible with the definition, false otherwise.
+    //----------------------------------------------------------------------------
     bool Validate() const;
 
+    //----------------------------------------------------------------------------
+    //! \brief Validates that the FieldContainer value's type matches its DATA_TYPE.
+    //!
+    //! \returns true if the value's type matches the DATA_TYPE, false otherwise.
+    //----------------------------------------------------------------------------
     bool ValidateSimpleField() const;
 
+    //----------------------------------------------------------------------------
+    //! \brief Throws an exception with info on the FieldContainer's value and definition.
+    //----------------------------------------------------------------------------
     void ThrowValidationFailure() const;
 #endif
 };

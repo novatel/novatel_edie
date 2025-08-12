@@ -36,34 +36,46 @@ using namespace novatel::edie;
 #ifndef NDEBUG
 static constexpr std::string_view GetTypeName(const FieldValueVariant& fieldValue)
 {
-    if (std::holds_alternative<bool>(fieldValue))
-        return "bool";
-    else if (std::holds_alternative<int8_t>(fieldValue))
-        return "int8_t";
-    else if (std::holds_alternative<uint8_t>(fieldValue))
-        return "uint8_t";
-    else if (std::holds_alternative<int16_t>(fieldValue))
-        return "int16_t";
-    else if (std::holds_alternative<uint16_t>(fieldValue))
-        return "uint16_t";
-    else if (std::holds_alternative<int32_t>(fieldValue))
-        return "int32_t";
-    else if (std::holds_alternative<uint32_t>(fieldValue))
-        return "uint32_t";
-    else if (std::holds_alternative<int64_t>(fieldValue))
-        return "int64_t";
-    else if (std::holds_alternative<uint64_t>(fieldValue))
-        return "uint64_t";
-    else if (std::holds_alternative<float>(fieldValue))
-        return "float";
-    else if (std::holds_alternative<double>(fieldValue))
-        return "double";
-    else if (std::holds_alternative<std::vector<FieldContainer>>(fieldValue))
-        return "std::vector<FieldContainer>";
-    else if (std::holds_alternative<std::string>(fieldValue))
-        return "std::string";
-    else
-        return "unknown";
+    if (std::holds_alternative<bool>(fieldValue)) {  
+       return "bool";  
+    }  
+    if (std::holds_alternative<int8_t>(fieldValue)) {  
+       return "int8_t";  
+    }  
+    if (std::holds_alternative<uint8_t>(fieldValue)) {  
+       return "uint8_t";  
+    }  
+    if (std::holds_alternative<int16_t>(fieldValue)) {  
+       return "int16_t";  
+    }  
+    if (std::holds_alternative<uint16_t>(fieldValue)) {  
+       return "uint16_t";  
+    }  
+    if (std::holds_alternative<int32_t>(fieldValue)) {  
+       return "int32_t";  
+    }  
+    if (std::holds_alternative<uint32_t>(fieldValue)) {  
+       return "uint32_t";  
+    }  
+    if (std::holds_alternative<int64_t>(fieldValue)) {  
+       return "int64_t";  
+    }  
+    if (std::holds_alternative<uint64_t>(fieldValue)) {  
+       return "uint64_t";  
+    }  
+    if (std::holds_alternative<float>(fieldValue)) {  
+       return "float";  
+    }  
+    if (std::holds_alternative<double>(fieldValue)) {  
+       return "double";  
+    }  
+    if (std::holds_alternative<std::vector<FieldContainer>>(fieldValue)) {  
+       return "std::vector<FieldContainer>";  
+    }  
+    if (std::holds_alternative<std::string>(fieldValue)) {  
+       return "std::string";  
+    }  
+    return "unknown";
 }
 
 void FieldContainer::ThrowValidationFailure() const
@@ -89,7 +101,6 @@ bool FieldContainer::Validate() const
         if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
         break;
     }
-
     case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
     case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
         if (!std::holds_alternative<std::vector<FieldContainer>>(fieldValue) && !ValidateSimpleField()) { return false; }
