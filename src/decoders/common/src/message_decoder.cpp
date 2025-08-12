@@ -36,45 +36,19 @@ using namespace novatel::edie;
 #ifndef NDEBUG
 static constexpr std::string_view GetTypeName(const FieldValueVariant& fieldValue)
 {
-    if (std::holds_alternative<bool>(fieldValue)) {  
-       return "bool";  
-    }  
-    if (std::holds_alternative<int8_t>(fieldValue)) {  
-       return "int8_t";  
-    }  
-    if (std::holds_alternative<uint8_t>(fieldValue)) {  
-       return "uint8_t";  
-    }  
-    if (std::holds_alternative<int16_t>(fieldValue)) {  
-       return "int16_t";  
-    }  
-    if (std::holds_alternative<uint16_t>(fieldValue)) {  
-       return "uint16_t";  
-    }  
-    if (std::holds_alternative<int32_t>(fieldValue)) {  
-       return "int32_t";  
-    }  
-    if (std::holds_alternative<uint32_t>(fieldValue)) {  
-       return "uint32_t";  
-    }  
-    if (std::holds_alternative<int64_t>(fieldValue)) {  
-       return "int64_t";  
-    }  
-    if (std::holds_alternative<uint64_t>(fieldValue)) {  
-       return "uint64_t";  
-    }  
-    if (std::holds_alternative<float>(fieldValue)) {  
-       return "float";  
-    }  
-    if (std::holds_alternative<double>(fieldValue)) {  
-       return "double";  
-    }  
-    if (std::holds_alternative<std::vector<FieldContainer>>(fieldValue)) {  
-       return "std::vector<FieldContainer>";  
-    }  
-    if (std::holds_alternative<std::string>(fieldValue)) {  
-       return "std::string";  
-    }  
+    if (std::holds_alternative<bool>(fieldValue)) { return "bool"; }
+    if (std::holds_alternative<int8_t>(fieldValue)) { return "int8_t"; }
+    if (std::holds_alternative<uint8_t>(fieldValue)) { return "uint8_t"; }
+    if (std::holds_alternative<int16_t>(fieldValue)) { return "int16_t"; }
+    if (std::holds_alternative<uint16_t>(fieldValue)) { return "uint16_t"; }
+    if (std::holds_alternative<int32_t>(fieldValue)) { return "int32_t"; }
+    if (std::holds_alternative<uint32_t>(fieldValue)) { return "uint32_t"; }
+    if (std::holds_alternative<int64_t>(fieldValue)) { return "int64_t"; }
+    if (std::holds_alternative<uint64_t>(fieldValue)) { return "uint64_t"; }
+    if (std::holds_alternative<float>(fieldValue)) { return "float"; }
+    if (std::holds_alternative<double>(fieldValue)) { return "double"; }
+    if (std::holds_alternative<std::vector<FieldContainer>>(fieldValue)) { return "std::vector<FieldContainer>"; }
+    if (std::holds_alternative<std::string>(fieldValue)) { return "std::string"; }
     return "unknown";
 }
 
@@ -596,7 +570,7 @@ static STATUS DecodeZConversionStringAsciiArray(std::vector<FieldContainer>& pvF
     return STATUS::SUCCESS;
 }
 
-// Decode an ASCII array field that is not comma separated, e.g. a hex value that can be converted to a signed or unsinged 8 bit integer.
+// Decode an ASCII array field that is not comma separated, e.g. a raw ASCII value or hex representation
 template <typename CharType>
 static STATUS DecodeNonCommaSeperatedAsciiArrayField(std::vector<FieldContainer>& pvFieldContainer_, const char** ppcLogBuf_,
                                                      const BaseField::Ptr& field_)
@@ -655,6 +629,7 @@ static STATUS DecodeStringAsciiArray(std::vector<FieldContainer>& pvFieldContain
     return STATUS::SUCCESS;
 }
 
+// Decode an ASCII array made up of non-comma separated values, e.g. a raw ASCII values or hex representations
 static STATUS DecodeNonCommaSeperatedAsciiArray(std::vector<FieldContainer>& pvFieldContainer_, const char** ppcLogBuf_, const BaseField::Ptr& field_,
                                                 uint32_t uiArraySize_)
 {
