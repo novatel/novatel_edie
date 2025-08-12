@@ -596,6 +596,7 @@ static STATUS DecodeZConversionStringAsciiArray(std::vector<FieldContainer>& pvF
     return STATUS::SUCCESS;
 }
 
+// Decode an ASCII array field that is not comma separated, e.g. a hex value that can be converted to a signed or unsinged 8 bit integer.
 template <typename CharType>
 static STATUS DecodeNonCommaSeperatedAsciiArrayField(std::vector<FieldContainer>& pvFieldContainer_, const char** ppcLogBuf_,
                                                      const BaseField::Ptr& field_)
