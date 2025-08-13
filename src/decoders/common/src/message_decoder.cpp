@@ -630,18 +630,13 @@ static STATUS DecodeStringAsciiArray(std::vector<FieldContainer>& pvFieldContain
 }
 
 // Decode an ASCII array made up of non-comma separated values, e.g. a raw ASCII values or hex representations
+template <typename CharType>
 static STATUS DecodeNonCommaSeperatedAsciiArray(std::vector<FieldContainer>& pvFieldContainer_, const char** ppcLogBuf_, const BaseField::Ptr& field_,
                                                 uint32_t uiArraySize_)
 {
-
     for (uint32_t i = 0; i < uiArraySize_; ++i)
     {
-        STATUS eStatus;
-        if (field_->dataType.name == DATA_TYPE::CHAR)
-        {
-            eStatus = DecodeNonCommaSeperatedAsciiArrayField<int8_t>(pvFieldContainer_, ppcLogBuf_, field_);
-        }
-        else { eStatus = DecodeNonCommaSeperatedAsciiArrayField<uint8_t>(pvFieldContainer_, ppcLogBuf_, field_); }
+        STATUS eStatus = DecodeNonCommaSeperatedAsciiArrayField<CharType>(pvFieldContainer_, ppcLogBuf_, field_);
         if (eStatus != STATUS::SUCCESS) { return eStatus; }
     }
     return STATUS::SUCCESS;
@@ -777,7 +772,12 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             }
             else if (!field->isCsv)
             {
-                eStatus = DecodeNonCommaSeperatedAsciiArray(pvFieldContainer, ppcLogBuf_, field, uiArraySize);
+                if (field->dataType.name == DATA_TYPE::CHAR) {
+                    eStatus = DecodeNonCommaSeperatedAsciiArray<int32_t>(pvFieldContainer, ppcLogBuf_, field, uiArraySize);
+                }
+                else {
+                    eStatus = DecodeNonCommaSeperatedAsciiArray<uint32_t>(pvFieldContainer, ppcLogBuf_, field, uiArraySize);
+                }
                 *ppcLogBuf_ += 1;
             }
             else
