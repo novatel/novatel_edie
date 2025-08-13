@@ -772,12 +772,11 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             }
             else if (!field->isCsv)
             {
-                if (field->dataType.name == DATA_TYPE::CHAR) {
+                if (field->dataType.name == DATA_TYPE::CHAR)
+                {
                     eStatus = DecodeNonCommaSeparatedAsciiArray<int32_t>(pvFieldContainer, ppcLogBuf_, field, uiArraySize);
                 }
-                else {
-                    eStatus = DecodeNonCommaSeparatedAsciiArray<uint32_t>(pvFieldContainer, ppcLogBuf_, field, uiArraySize);
-                }
+                else { eStatus = DecodeNonCommaSeparatedAsciiArray<uint32_t>(pvFieldContainer, ppcLogBuf_, field, uiArraySize); }
                 *ppcLogBuf_ += 1;
             }
             else
