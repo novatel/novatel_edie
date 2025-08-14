@@ -61,6 +61,10 @@ class PyFilter : public Filter
     std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>> PyGetMessageNames() { return vMyMessageNameFilters; }
     bool PyMessageNameFilterInverted() { return bMyInvertMessageNameFilter; }
 
+    // -------------------------------------------------------------------------------------------------------
+    bool PyResponsesIncluded() const { return bMyIncludeResponses; }
+    bool PyNonResponsesIncluded() const { return bMyIncludeNonResponses; }
+
   public:
     using Ptr = std::shared_ptr<PyFilter>;
     using ConstPtr = std::shared_ptr<const PyFilter>;
