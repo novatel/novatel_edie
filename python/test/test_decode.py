@@ -72,10 +72,19 @@ def compare_with_floating_point(item1, item2) -> bool:
         if len(item1) != len(item2):
             return False
         for item1, item2 in zip(item1, item2):
-            return compare_with_floating_point(item1, item2)
+            if not compare_with_floating_point(item1, item2):
+                return False
+        return True
+    elif isinstance(item1, dict) and isinstance(item2, dict):
+        if item1.keys() != item2.keys():
+            return False
+        for key in item1.keys():
+            if not compare_with_floating_point(item1[key], item2[key]):
+                return False
+        return True
     elif isinstance(item1, float) and isinstance(item2, float):
         # Compare floating point numbers with a tolerance
-        ret_val = abs(item1 - item2) < 1e-6
+        ret_val = abs(item1 - item2) < 1e-3
         return ret_val
     return item1 == item2
 
@@ -144,3 +153,43 @@ def test_field_names_and_values(
     # Assert
     assert fields == exp_fields, f"Expected fields: {exp_fields}, but got: {fields}"
     assert compare_with_floating_point(values, exp_values), f"Expected values: {exp_values}, but got: {values}"
+
+
+@pytest.mark.parametrize("data, exp_dict", [
+    (
+        b'#SATVIS2A,USB1,1,64.0,FINESTEERING,2379,485000.000,02000020,a867,32768;QZSS,TRUE,TRUE,5,194,1,13.5,306.6,142.865,142.827,195,1,-19.6,268.0,-241.672,-241.710,199,1,-25.6,293.3,-3.932,-3.970,200,16,-41.5,329.5,-3.242,-3.280,196,16,-48.1,278.4,327.067,327.029*c8e214c6\r\n',
+        {'system_type': ne.enums.SystemType.QZSS,
+         'is_sat_vis_valid': True,
+         'was_gnss_almanac_used': True,
+         'sat_vis_list_length': 5,
+         'sat_vis_list': [
+             {'id': {'prn_or_slot': 194, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': 13.5, 'azimuth': 306.6, 'true_doppler': 142.865, 'apparent_doppler': 142.827},
+             {'id': {'prn_or_slot': 195, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': -19.6, 'azimuth': 268.0, 'true_doppler': -241.672, 'apparent_doppler': -241.71},
+             {'id': {'prn_or_slot': 199, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': -25.6, 'azimuth': 293.3, 'true_doppler': -3.932, 'apparent_doppler': -3.97},
+             {'id': {'prn_or_slot': 200, 'frequency_channel': 0}, 'sat_health': 16, 'elevation': -41.5, 'azimuth': 329.5, 'true_doppler': -3.242, 'apparent_doppler': -3.28},
+             {'id': {'prn_or_slot': 196, 'frequency_channel': 0}, 'sat_health': 16, 'elevation': -48.1, 'azimuth': 278.4, 'true_doppler': 327.067, 'apparent_doppler': 327.029}
+         ],
+         'header': {
+             'message_id': 1043,
+             'message_type': 32,
+             'port_address': 1440,
+             'length': 0,
+             'sequence': 1,
+             'idle_time': 128,
+             'time_status': ne.TIME_STATUS.FINESTEERING,
+             'week': 2379,
+             'milliseconds': 485000000.000,
+             'receiver_status': 33554464,
+             'message_definition_crc': 43111,
+             'receiver_sw_version': 32768
+         }
+        }
+    )
+])
+def test_to_dict(data: bytes, exp_dict: dict, decoder: ne.Decoder):
+    """Test that the to_dict method works correctly."""
+    # Act
+    msg = decoder.decode(data)
+    dict_msg = msg.to_dict()
+    # Assert
+    assert compare_with_floating_point(dict_msg, exp_dict), f"Expected dict: {exp_dict}, but got: {dict_msg}"

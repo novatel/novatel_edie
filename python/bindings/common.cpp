@@ -69,6 +69,13 @@ void init_common_common(nb::module_& m)
 
     nb::class_<SatelliteId>(m, "SatelliteId")
         .def(nb::init())
+        .def("to_dict",
+             [](SatelliteId& self) {
+                 nb::dict dict;
+                 dict["prn_or_slot"] = self.usPrnOrSlot;
+                 dict["frequency_channel"] = self.sFrequencyChannel;
+                 return dict;
+             })
         .def_rw("prn_or_slot", &SatelliteId::usPrnOrSlot, "The satellite PRN for GPS or the slot for GLONASS.")
         .def_rw("frequency_channel", &SatelliteId::sFrequencyChannel, "The frequency channel if it is a GLONASS satilite, otherwise left as zero.")
         .def("__repr__", [](SatelliteId id) {

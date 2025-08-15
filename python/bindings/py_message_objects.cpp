@@ -152,7 +152,8 @@ nb::dict& PyField::to_shallow_dict() const
     {
         for (const auto& field : fields)
         {
-            if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue) && (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY || field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY))
+            if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue) &&
+                (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY || field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY))
             {
                 std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
                 cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
@@ -215,6 +216,7 @@ nb::dict PyField::to_dict() const
             }
             dict[field_name] = list;
         }
+        else if (nb::isinstance<SatelliteId>(value)) { dict[field_name] = value.attr("to_dict")(); }
         else { dict[field_name] = value; }
     }
     return dict;
