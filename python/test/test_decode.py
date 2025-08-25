@@ -163,11 +163,11 @@ def test_field_names_and_values(
          'was_gnss_almanac_used': True,
          'sat_vis_list_length': 5,
          'sat_vis_list': [
-             {'id': {'prn_or_slot': 194, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': 13.5, 'azimuth': 306.6, 'true_doppler': 142.865, 'apparent_doppler': 142.827},
-             {'id': {'prn_or_slot': 195, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': -19.6, 'azimuth': 268.0, 'true_doppler': -241.672, 'apparent_doppler': -241.71},
-             {'id': {'prn_or_slot': 199, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': -25.6, 'azimuth': 293.3, 'true_doppler': -3.932, 'apparent_doppler': -3.97},
-             {'id': {'prn_or_slot': 200, 'frequency_channel': 0}, 'sat_health': 16, 'elevation': -41.5, 'azimuth': 329.5, 'true_doppler': -3.242, 'apparent_doppler': -3.28},
-             {'id': {'prn_or_slot': 196, 'frequency_channel': 0}, 'sat_health': 16, 'elevation': -48.1, 'azimuth': 278.4, 'true_doppler': 327.067, 'apparent_doppler': 327.029}
+             {'id': {'prn': 194, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': 13.5, 'azimuth': 306.6, 'true_doppler': 142.865, 'apparent_doppler': 142.827},
+             {'id': {'prn': 195, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': -19.6, 'azimuth': 268.0, 'true_doppler': -241.672, 'apparent_doppler': -241.71},
+             {'id': {'prn': 199, 'frequency_channel': 0}, 'sat_health': 1, 'elevation': -25.6, 'azimuth': 293.3, 'true_doppler': -3.932, 'apparent_doppler': -3.97},
+             {'id': {'prn': 200, 'frequency_channel': 0}, 'sat_health': 16, 'elevation': -41.5, 'azimuth': 329.5, 'true_doppler': -3.242, 'apparent_doppler': -3.28},
+             {'id': {'prn': 196, 'frequency_channel': 0}, 'sat_health': 16, 'elevation': -48.1, 'azimuth': 278.4, 'true_doppler': 327.067, 'apparent_doppler': 327.029}
          ],
          'header': {
              'message_id': 1043,
