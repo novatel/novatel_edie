@@ -72,14 +72,15 @@ void init_common_common(nb::module_& m)
         .def("to_dict",
              [](SatelliteId& self) {
                  nb::dict dict;
-                 dict["prn_or_slot"] = self.usPrnOrSlot;
+                 dict["prn"] = self.usPrnOrSlot;
                  dict["frequency_channel"] = self.sFrequencyChannel;
                  return dict;
              })
-        .def_rw("prn_or_slot", &SatelliteId::usPrnOrSlot, "The satellite PRN for GPS or the slot for GLONASS.")
+        .def_rw("prn", &SatelliteId::usPrnOrSlot, "The satellite PRN for GPS or the slot for GLONASS.")
+        .def_rw("prn_or_slot", &SatelliteId::usPrnOrSlot, "DEPRECATED: Use 'prn' field instead.")
         .def_rw("frequency_channel", &SatelliteId::sFrequencyChannel, "The frequency channel if it is a GLONASS satilite, otherwise left as zero.")
         .def("__repr__", [](SatelliteId id) {
-            return nb::str("SatelliteId(prn_or_slot={!r}, frequency_channel={!r})").format(id.usPrnOrSlot, id.sFrequencyChannel);
+            return nb::str("SatelliteId(prn={!r}, frequency_channel={!r})").format(id.usPrnOrSlot, id.sFrequencyChannel);
         });
 
     m.attr("MAX_MESSAGE_LENGTH") = MESSAGE_SIZE_MAX;
