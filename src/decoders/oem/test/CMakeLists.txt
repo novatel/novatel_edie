@@ -7,4 +7,4 @@ target_link_libraries(${TARGET_NAME} PUBLIC
     oem_decoder
     GTest::gtest GTest::gtest_main
 )
-add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME} ${CMAKE_SOURCE_DIR})
+add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
