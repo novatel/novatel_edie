@@ -27,6 +27,6 @@ class TestPackageConan(ConanFile):
             bin_path = os.path.join(self.cpp.build.bindir, "CommandEncoding")
             database_json = self.dependencies["novatel_edie"].runenv_info.vars(self).get("EDIE_DATABASE_FILE")
             format = "ASCII"
-            command = "RTKTIMEOUT 30"
+            command = "\"RTKTIMEOUT 30\""
             self.run(f"{bin_path} {database_json} {format} {command}", env="conanrun")
             print(load(self, os.path.join(self.build_folder, "COMMAND.ASCII")).strip())
