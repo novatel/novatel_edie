@@ -2,6 +2,7 @@
 
 #include "bindings_core.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"
+#include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
 
 namespace nb = nanobind;
 
@@ -99,6 +100,7 @@ class PyMessageDatabase
   private:
     PyMessageDatabaseCore::Ptr pclMessageDb; // This is the MessageDatabase that this class wraps
     std::unique_ptr<oem::Encoder> pclEncoder;
+    std::unique_ptr<oem::RxConfigHandler> pclRxConfigHandler;
 
   public:
     using Ptr = std::shared_ptr<PyMessageDatabase>;
@@ -106,6 +108,7 @@ class PyMessageDatabase
 
     PyMessageDatabaseCore::Ptr GetCoreDatabase() const { return pclMessageDb; }
     const oem::Encoder* GetEncoder() const { return pclEncoder.get(); }
+    oem::RxConfigHandler* GetRxConfigHandler() const { return pclRxConfigHandler.get(); }
 };
 
 } // namespace novatel::edie

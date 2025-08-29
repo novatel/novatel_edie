@@ -67,7 +67,155 @@ class RxConfigHandler
     std::unique_ptr<unsigned char[]> pcMyFrameBuffer{nullptr};
     std::unique_ptr<unsigned char[]> pcMyEncodeBuffer{nullptr};
 
-    static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
+    BaseField::ConstPtr pclRxConfigFieldDef{nullptr};
+    BaseField::ConstPtr pclRxConfigUserFieldDef{nullptr};
+
+    //----------------------------------------------------------------------------
+    //! \brief Validate that a message definition contains valid fields to be decoded as RXConfig
+    //!
+    //! \param pclMsgDef_ The message definition to validate.
+    //!
+    //! \throws std::invalid_argument if the message definition is invalid.
+    //------------------------------------------------------------------------------
+    static void ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Retrieve the only field definition from a valid RXConfig message definition.
+    //!
+    //! \param pclMsgDef_ The message definition retrieve the field definition from.
+    //!
+    //! \returns A shared pointer to the field definition.
+    //------------------------------------------------------------------------------
+    static BaseField::ConstPtr GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Encode an RXConfig message from the provided intermediate structures.
+    //
+    // This function has additional output parameters than the public version and
+    // exists primarily for compatiblity with the original conversion based class interface.
+    //
+    //! \param[out] ppucBuffer_ A pointer to the buffer to return the encoded
+    //! message to.
+    //! \param[in] uiBufferSize_ The length of ppcBuffer_.
+    //! \param[in] stHeader_ A reference to the decoded header intermediate.
+    //! This must be populated by the HeaderDecoder.
+    //! \param[in] stMessage_ A reference to the decoded message intermediate.
+    //! This must be populated by the MessageDecoder.
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
+    //! populated with the message data of the RXCONFIG message.
+    //! \param[out] stEmbeddedMessageData_ A reference to a MessageDataStruct to be
+    //! populated with the message data of the embedded message.
+    //! \parm[out ] stEmbeddedMetaData_ A reference to a MetaDataStruct to be
+    //! populated with the MetaData of the embedded message.
+    //! \param[in] eFormat_ The format to encode the message to.
+    //
+    //! \return An error code describing the result of encoding.
+    //!   SUCCESS: The operation was successful.
+    //!   NULL_PROVIDED: ppucBuffer_ either points to a null pointer or is
+    //! a null pointer itself.
+    //!   NO_DATABASE: No database was ever loaded into this component.
+    //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
+    //! but the buffer is already full or could not write the bytes without
+    //! over-running.
+    //!   FAILURE: stMessageData_.pucMessageHeader was not correctly set inside
+    //! this function. This should not happen.
+    //!   UNSUPPORTED: eFormat_ contains a format that is not supported for
+    //! encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_,
+                                MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Encodes an RXCONFIG message into Binary format.
+    //!
+    //! \param[out] ppucBuffer_ A pointer to the buffer where the encoded JSON message will be written.
+    //! \param[in] uiBufferSize_ The size of the buffer provided.
+    //! \param[in] stHeader_ A reference to the intermediate header structure containing header information.
+    //! \param[in] stMessageData_ A reference to the structure containing the main message data.
+    //! \param[in] stEmbeddedMessageData_ A reference to the structure containing the embedded message data.
+    //! \param[in] stEmbeddedMetaData_ A reference to the metadata structure for the embedded message.
+    //! \param[in] stEmbeddedHeader_ A reference to the intermediate header for the embedded message.
+    //! \param[in] stEmbeddedMessage_ A vector of field containers representing the embedded message fields.
+    //!
+    //! \return A STATUS code indicating the result of the encoding operation.
+    //! Possible values include:
+    //! - SUCCESS: The operation was successful.
+    //! - BUFFER_FULL: The provided buffer was not large enough to hold the encoded message.
+    //! - FAILURE: An error occurred during encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                      MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                      MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
+                                      std::vector<FieldContainer>& stEmbeddedMessage_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Encodes an RXCONFIG message into ASCII format.
+    //!
+    //! \param[out] ppucBuffer_ A pointer to the buffer where the encoded JSON message will be written.
+    //! \param[in] uiBufferSize_ The size of the buffer provided.
+    //! \param[in] stHeader_ A reference to the intermediate header structure containing header information.
+    //! \param[in] stMessageData_ A reference to the structure containing the main message data.
+    //! \param[in] stEmbeddedMessageData_ A reference to the structure containing the embedded message data.
+    //! \param[in] stEmbeddedMetaData_ A reference to the metadata structure for the embedded message.
+    //! \param[in] stEmbeddedHeader_ A reference to the intermediate header for the embedded message.
+    //! \param[in] stEmbeddedMessage_ A vector of field containers representing the embedded message fields.
+    //!
+    //! \return A STATUS code indicating the result of the encoding operation.
+    //! Possible values include:
+    //! - SUCCESS: The operation was successful.
+    //! - BUFFER_FULL: The provided buffer was not large enough to hold the encoded message.
+    //! - FAILURE: An error occurred during encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                     MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                     MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
+                                     std::vector<FieldContainer>& stEmbeddedMessage_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Encodes an RXCONFIG message into Abbreviated Ascii format.
+    //!
+    //! \param[out] ppucBuffer_ A pointer to the buffer where the encoded JSON message will be written.
+    //! \param[in] uiBufferSize_ The size of the buffer provided.
+    //! \param[in] stHeader_ A reference to the intermediate header structure containing header information.
+    //! \param[in] stMessageData_ A reference to the structure containing the main message data.
+    //! \param[in] stEmbeddedMessageData_ A reference to the structure containing the embedded message data.
+    //! \param[in] stEmbeddedMetaData_ A reference to the metadata structure for the embedded message.
+    //! \param[in] stEmbeddedHeader_ A reference to the intermediate header for the embedded message.
+    //! \param[in] stEmbeddedMessage_ A vector of field containers representing the embedded message fields.
+    //!
+    //! \return A STATUS code indicating the result of the encoding operation.
+    //! Possible values include:
+    //! - SUCCESS: The operation was successful.
+    //! - BUFFER_FULL: The provided buffer was not large enough to hold the encoded message.
+    //! - FAILURE: An error occurred during encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                           MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                           MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
+                                           std::vector<FieldContainer>& stEmbeddedMessage_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Encodes an RXCONFIG message into JSON format.
+    //!
+    //! \param[out] ppucBuffer_ A pointer to the buffer where the encoded JSON message will be written.
+    //! \param[in] uiBufferSize_ The size of the buffer provided.
+    //! \param[in] stHeader_ A reference to the intermediate header structure containing header information.
+    //! \param[in] stMessageData_ A reference to the structure containing the main message data.
+    //! \param[in] stEmbeddedMessageData_ A reference to the structure containing the embedded message data.
+    //! \param[in] stEmbeddedMetaData_ A reference to the metadata structure for the embedded message.
+    //! \param[in] stEmbeddedHeader_ A reference to the intermediate header for the embedded message.
+    //! \param[in] stEmbeddedMessage_ A vector of field containers representing the embedded message fields.
+    //!
+    //! \return A STATUS code indicating the result of the encoding operation.
+    //! Possible values include:
+    //! - SUCCESS: The operation was successful.
+    //! - BUFFER_FULL: The provided buffer was not large enough to hold the encoded message.
+    //! - FAILURE: An error occurred during encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS EncodeJSON(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                    MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
+                                    IntermediateHeader& stEmbeddedHeader_, std::vector<FieldContainer>& stEmbeddedMessage_) const;
 
   public:
     //! NOTE: The following constructors prevent this class from ever being
@@ -83,6 +231,15 @@ class RxConfigHandler
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
     RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_ = nullptr);
+
+    //----------------------------------------------------------------------------
+    //! \brief Returns whether a message ID corresponds to an RXCONFIG message.
+    //!
+    //! \param[in] usMessageId_ The message ID to check.
+    //!
+    //! \return True if the message ID corresponds to an RXCONFIG message, false otherwise.
+    //------------------------------------------------------------------------------
+    static bool IsRxConfigTypeMsg(uint16_t usMessageId_);
 
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
@@ -133,6 +290,52 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStruct& stRxConfigMetaData_,
                                  MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eEncodeFormat_);
+
+    //----------------------------------------------------------------------------
+    //! \brief Decode the payload of an RXCONFIG message.
+    //
+    //! \param[in] pucMessage_ A pointer to a message payload.
+    //! \param[out] stInterMessage_ The intermediate data structure to be populated.
+    //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
+    //! the frame and be fully populated to help describe the decoded log.
+    //
+    //! \return A STATUS code describing the result of decoding.
+    //!    SUCCESS: The operation was successful.
+    //!    NO_DEFINITION: The message ID was not found in the database.
+    //!    UNSUPPORTED: The message ID is not for an RXCONFIG type message.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, std::vector<FieldContainer>& stInterMessage_,
+                                MetaDataStruct& stRxConfigMetaData_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Encode an RXConfig message from the provided intermediate structures.
+    //
+    //! \param[out] ppucBuffer_ A pointer to the buffer to return the encoded
+    //! message to.
+    //! \param[in] uiBufferSize_ The length of ppcBuffer_.
+    //! \param[in] stHeader_ A reference to the decoded header intermediate.
+    //! This must be populated by the HeaderDecoder.
+    //! \param[in] stMessage_ A reference to the decoded message intermediate.
+    //! This must be populated by the MessageDecoder.
+    //! \param[out] stMessageData_ A reference to a MessageDataStruct to be
+    //! populated by the encoder.
+    //! \param[in] eFormat_ The format to encode the message to.
+    //
+    //! \return An error code describing the result of encoding.
+    //!   SUCCESS: The operation was successful.
+    //!   NULL_PROVIDED: ppucBuffer_ either points to a null pointer or is
+    //! a null pointer itself.
+    //!   NO_DATABASE: No database was ever loaded into this component.
+    //!   BUFFER_FULL: An attempt was made to write bytes to the provided buffer,
+    //! but the buffer is already full or could not write the bytes without
+    //! over-running.
+    //!   FAILURE: stMessageData_.pucMessageHeader was not correctly set inside
+    //! this function. This should not happen.
+    //!   UNSUPPORTED: eFormat_ contains a format that is not supported for
+    //! encoding.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                                const std::vector<FieldContainer>& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Framer.
