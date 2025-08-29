@@ -11,6 +11,10 @@ void init_novatel_filter(nb::module_& m)
 {
     nb::class_<oem::PyFilter>(m, "Filter")
         .def(nb::init(), "Initializes a filter with the default configuration which all messages.")
+        .def_prop_rw("include_responses", &oem::PyFilter::PyResponsesIncluded, &oem::PyFilter::IncludeResponses, nb::arg("value").none(),
+                     "Whether to include response messages.") // signature in stubgen_pattern.txt
+        .def_prop_rw("include_non_responses", &oem::PyFilter::PyNonResponsesIncluded, &oem::PyFilter::IncludeNonResponses, nb::arg("value").none(),
+                     "Whether to include non-response (regular) messages.") // signature in stubgen_pattern.txt
         .def_prop_rw("lower_time_bound", &oem::PyFilter::PyGetIncludeLowerTimeBound, &oem::PyFilter::PySetIncludeLowerTimeBound,
                      nb::arg("value").none(),
                      "The earliest time that messages can have without being filtered-out.") // signature in stubgen_pattern.txt

@@ -74,6 +74,9 @@ class Filter
 
     bool bMyIncludeNmea{};
 
+    bool bMyIncludeResponses{};
+    bool bMyIncludeNonResponses{};
+
     //----------------------------------------------------------------------------
     //! \brief Push an element into a vector unless its already included
     //!
@@ -312,6 +315,20 @@ class Filter
     //! \param[in] bIncludeNmea_  True to keep/include NMEA logs.
     //----------------------------------------------------------------------------
     void IncludeNmeaMessages(bool bIncludeNmea_) { bMyIncludeNmea = bIncludeNmea_; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Set whether to include response messages.
+    //!
+    //! \param[in] bIncludeResponses_  True to include responses, false to exclude them.
+    //----------------------------------------------------------------------------
+    void IncludeResponses(bool bIncludeResponses_) { bMyIncludeResponses = bIncludeResponses_; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Set whether to include non-response (regular) messages.
+    //!
+    //! \param[in] bIncludeNonResponses_  True to include responses, false to exclude them.
+    //----------------------------------------------------------------------------
+    void IncludeNonResponses(bool bIncludeNonResponses_) { bMyIncludeNonResponses = bIncludeNonResponses_; }
 
     //----------------------------------------------------------------------------
     //! \brief Clear all current filter settings.

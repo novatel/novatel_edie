@@ -7,7 +7,7 @@ bindings.Filter.(lower|upper)_time_bound:
         \doc
 
     @lower_time_bound.setter
-    def \1_time_bound(self, value: GpsTime | None) -> None: ...
+    def \1_time_bound(self, value: GpsTime | None): ...
 
 bindings.Filter.decimation_period$:
     @property
@@ -15,7 +15,23 @@ bindings.Filter.decimation_period$:
         \doc
 
     @decimation_period.setter
-    def decimation_period(self, value: int | None) -> None: ...
+    def decimation_period(self, value: int | None): ...
+
+bindings.Filter.include_responses$:
+    @property
+    def include_responses(self) -> bool:
+        \doc
+
+    @include_responses.setter
+    def include_responses(self, include: bool): ...
+
+bindings.Filter.include_non_responses$:
+    @property
+    def include_non_responses(self) -> bool:
+        \doc
+
+    @include_non_responses.setter
+    def include_non_responses(self, include: bool): ...
 
 bindings.Response.response_enum:
     from typing import TYPE_CHECKING
