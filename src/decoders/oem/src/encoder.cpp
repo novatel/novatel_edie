@@ -53,8 +53,6 @@ void AppendSiblingId(std::string& sMsgName_, const IntermediateHeader& stInterHe
 }
 
 // -------------------------------------------------------------------------------------------------------
-Encoder::Encoder(MessageDatabase* pclMessageDb_) : EncoderBase(pclMessageDb_) {}
-
 Encoder::Encoder(MessageDatabase::ConstPtr pclMessageDb_) : EncoderBase(pclMessageDb_) {}
 
 // -------------------------------------------------------------------------------------------------------

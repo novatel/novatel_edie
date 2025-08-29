@@ -13,13 +13,15 @@ using namespace novatel::edie;
 void init_novatel_range_decompressor(nb::module_& m)
 {
     nb::class_<oem::RangeDecompressor>(m, "RangeDecompressor")
-        .def("__init__",
-             [](oem::RangeDecompressor* t) {
-                 new (t) oem::RangeDecompressor(MessageDbSingleton::get());
-                 t->GetLogger()->warn(
-                     "The RangeDecompressor interface is currently unstable! It may undergo breaking changes between minor version increments.");
-             }) // NOLINT(*.NewDeleteLeaks)
-        .def(nb::init<PyMessageDatabase::Ptr&>(), "message_db"_a)
+        .def(
+            "__init__",
+            [](oem::RangeDecompressor* t, PyMessageDatabase::Ptr message_db) {
+                if (!message_db) { message_db = MessageDbSingleton::get(); };
+                new (t) oem::RangeDecompressor(message_db->GetCoreDatabase());
+                t->GetLogger()->warn(
+                    "The RangeDecompressor interface is currently unstable! It may undergo breaking changes between minor version increments.");
+            },
+            nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
         .def("reset", &oem::RangeDecompressor::Reset)
         .def(
             "decompress",

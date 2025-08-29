@@ -1,8 +1,8 @@
 #include "novatel_edie/decoders/oem/commander.hpp"
 
 #include "bindings_core.hpp"
-#include "message_db_singleton.hpp"
 #include "exceptions.hpp"
+#include "message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -11,9 +11,13 @@ using namespace novatel::edie;
 void init_novatel_commander(nb::module_& m)
 {
     nb::class_<oem::Commander>(m, "Commander")
-        .def("__init__", [](oem::Commander* t) { new (t) oem::Commander(MessageDbSingleton::get()); }) // NOLINT(*.NewDeleteLeaks)
-        .def(nb::init<PyMessageDatabase::Ptr&>(), "message_db"_a)
-        .def("load_db", &oem::Commander::LoadJsonDb, "message_db"_a)
+        .def(
+            "__init__",
+            [](oem::Commander* t, PyMessageDatabase::Ptr message_db) {
+                if (!message_db) { message_db = MessageDbSingleton::get(); };
+                new (t) oem::Commander(message_db->GetCoreDatabase());
+            },
+            nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
         .def(
             "encode",
             [](oem::Commander& commander, const nb::bytes& command, const ENCODE_FORMAT format) {

@@ -272,8 +272,7 @@ template <typename Derived> class EncoderBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("encoder")};
-    MessageDatabase::ConstPtr pclMyMsgDbStrongRef{nullptr};
-    const MessageDatabase* pclMyMsgDb{nullptr};
+    MessageDatabase::ConstPtr pclMyMsgDb{nullptr};
 
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
@@ -762,16 +761,10 @@ template <typename Derived> class EncoderBase
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    EncoderBase(const MessageDatabase* pclMessageDb_ = nullptr)
+    EncoderBase(MessageDatabase::ConstPtr pclMessageDb_ = nullptr)
     {
         static_cast<Derived*>(this)->InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
-    }
-
-    EncoderBase(MessageDatabase::ConstPtr pclMessageDb_)
-    {
-        static_cast<Derived*>(this)->InitFieldMaps();
-        if (pclMessageDb_ != nullptr) { LoadSharedJsonDb(pclMessageDb_); }
     }
 
     //----------------------------------------------------------------------------
@@ -784,16 +777,10 @@ template <typename Derived> class EncoderBase
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(const MessageDatabase* pclMessageDb_)
+    void LoadJsonDb(MessageDatabase::ConstPtr pclMessageDb_)
     {
         pclMyMsgDb = pclMessageDb_;
         static_cast<Derived*>(this)->InitEnumDefinitions();
-    }
-
-    void LoadSharedJsonDb(MessageDatabase::ConstPtr pclMessageDb_)
-    {
-        pclMyMsgDbStrongRef = pclMessageDb_;
-        LoadJsonDb(pclMessageDb_.get());
     }
 
     //----------------------------------------------------------------------------
