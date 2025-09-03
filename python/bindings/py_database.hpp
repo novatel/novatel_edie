@@ -3,6 +3,8 @@
 #include "bindings_core.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"
 #include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
+#include "exceptions.hpp"
+
 
 namespace nb = nanobind;
 
@@ -68,8 +70,8 @@ class PyMessageDatabase
   public:
     PyMessageDatabase();
     PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_);
-    explicit PyMessageDatabase(const MessageDatabase& message_db) noexcept;
-    explicit PyMessageDatabase(const MessageDatabase&& message_db) noexcept;
+    explicit PyMessageDatabase(const MessageDatabase& message_db);
+    explicit PyMessageDatabase(const MessageDatabase&& message_db);
 
     [[nodiscard]] std::string MsgIdToMsgName(uint32_t uiMessageId_) const { return pclMessageDb->MsgIdToMsgName(uiMessageId_); };
 
@@ -101,6 +103,11 @@ class PyMessageDatabase
     PyMessageDatabaseCore::Ptr pclMessageDb; // This is the MessageDatabase that this class wraps
     std::unique_ptr<oem::Encoder> pclEncoder;
     std::unique_ptr<oem::RxConfigHandler> pclRxConfigHandler;
+
+    void ThrowRXConfigConstructionError() const
+    {
+        throw FailureException("RXConfig definition in database cannot be handled.");
+    }
 
   public:
     using Ptr = std::shared_ptr<PyMessageDatabase>;
