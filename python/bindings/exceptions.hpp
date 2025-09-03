@@ -11,101 +11,118 @@ namespace novatel::edie {
 
 class EdieException : public std::exception
 {
+  private:
+    std::string message;
+
   public:
-    const char* what() const noexcept override { return "A novatel_edie exception"; }
+    explicit EdieException(const std::string& message_ = "novatel_edie has encountered an error.") : message(message_) {}
+
+    const char* what() const noexcept override { return message.c_str(); }
 };
 
-
-class FailureException : public std::exception
+class FailureException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "An unexpected failure occurred."; }
+    FailureException(const std::string& message_ = "An unexpected failure occurred.") : EdieException(message_) {}
 };
 
-class UnknownException : public std::exception
+class UnknownException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "Could not identify bytes as a protocol."; }
+    UnknownException(const std::string& message_ = "Could not identify bytes as a protocol.") : EdieException(message_) {}
 };
 
-class IncompleteException : public std::exception
+class IncompleteException : public EdieException
 {
   public:
-    const char* what() const noexcept override
+    IncompleteException(const std::string& message_ = "It is possible that a valid frame exists in the frame buffer, but more information is needed.")
+        : EdieException(message_)
     {
-        return "It is possible that a valid frame exists in the frame buffer, but more information is needed.";
     }
 };
 
-class IncompleteMoreDataException : public std::exception
+class IncompleteMoreDataException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "The current frame buffer is incomplete but more data is expected."; }
-};
-
-class NullProvidedException : public std::exception
-{
-  public:
-    const char* what() const noexcept override { return "A null pointer was provided."; }
-};
-
-class NoDatabaseException : public std::exception
-{
-  public:
-    const char* what() const noexcept override { return "No database has been provided to the component."; }
-};
-
-class NoDefinitionException : public std::exception
-{
-  public:
-    const char* what() const noexcept override { return "No definition could be found in the database for the provided message."; }
-};
-
-class NoDefinitionEmbeddedException : public std::exception
-{
-  public:
-    const char* what() const noexcept override
+    IncompleteMoreDataException(const std::string& message_ = "The current frame buffer is incomplete but more data is expected.")
+        : EdieException(message_)
     {
-        return "No definition could be found in the database for the embedded message in the RXCONFIG log.";
     }
 };
 
-class BufferFullException : public std::exception
+class NullProvidedException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "The destination buffer is not big enough to contain the provided data."; }
+    NullProvidedException(const std::string& message_ = "A null pointer was provided.") : EdieException(message_) {}
 };
 
-class BufferEmptyException : public std::exception
+class NoDatabaseException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "The internal circular buffer does not contain any unread bytes."; }
+    NoDatabaseException(const std::string& message_ = "No database has been provided to the component.") : EdieException(message_) {}
 };
 
-class StreamEmptyException : public std::exception
+class NoDefinitionException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "The input stream is empty."; }
+    NoDefinitionException(const std::string& message_ = "No definition could be found in the database for the provided message.")
+        : EdieException(message_)
+    {
+    }
 };
 
-class UnsupportedException : public std::exception
+class NoDefinitionEmbeddedException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "An attempted operation is unsupported by this component."; }
+    NoDefinitionEmbeddedException(
+        const std::string& message_ = "No definition could be found in the database for the embedded message in the RXCONFIG log.")
+        : EdieException(message_)
+    {
+    }
 };
 
-class MalformedInputException : public std::exception
+class BufferFullException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "The input is recognizable, but has unexpected formatting."; }
+    BufferFullException(const std::string& message_ = "The destination buffer is not big enough to contain the provided data.")
+        : EdieException(message_)
+    {
+    }
 };
 
-class DecompressionFailureException : public std::exception
+class BufferEmptyException : public EdieException
 {
   public:
-    const char* what() const noexcept override { return "The RANGECMP log could not be decompressed."; }
+    BufferEmptyException(const std::string& message_ = "The internal circular buffer does not contain any unread bytes.") : EdieException(message_) {}
+};
+
+class StreamEmptyException : public EdieException
+{
+  public:
+    StreamEmptyException(const std::string& message_ = "The input stream is empty.") : EdieException(message_) {}
+};
+
+class UnsupportedException : public EdieException
+{
+  public:
+    UnsupportedException(const std::string& message_ = "An attempted operation is unsupported by this component.") : EdieException(message_) {}
+};
+
+class MalformedInputException : public EdieException
+{
+  public:
+    MalformedInputException(const std::string& message_ = "The input is recognizable, but has unexpected formatting.") : EdieException(message_) {}
+};
+
+class DecompressionFailureException : public EdieException
+{
+  public:
+    DecompressionFailureException(const std::string& message_ = "The RANGECMP log could not be decompressed.") : EdieException(message_) {}
 };
 
 void throw_exception_from_status(STATUS status);
+
+void throw_detailed_exception_from_status(STATUS status, const std::string& message);
+
 
 } // namespace novatel::edie
