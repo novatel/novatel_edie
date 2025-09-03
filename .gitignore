@@ -17,7 +17,14 @@ edie.*.log
 edie.log
 dist/
 venv/
+.venv/
 *.egg-info
 __pycache__/
 .pytest_cache/
 wheelhouse/
+*.vcxproj
+*.vcxproj.filters
+CMakeFiles/
+**/CMakeFiles/**
+*.cmake
+*.sln

@@ -217,7 +217,14 @@ PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase&& message_db)
 PyMessageDatabase::PyMessageDatabase() : pclMessageDb(std::make_shared<PyMessageDatabaseCore>())
 {
     pclEncoder = std::make_unique<oem::Encoder>(this->pclMessageDb);
-    pclRxConfigHandler = std::make_unique<oem::RxConfigHandler>(this->pclMessageDb);
+    try
+    {
+        pclRxConfigHandler = std::make_unique<oem::RxConfigHandler>(this->pclMessageDb);
+    }
+    catch (const std::invalid_argument&)
+    {
+        ThrowRXConfigConstructionError();
+    }
 }
 
 PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
@@ -225,19 +232,40 @@ PyMessageDatabase::PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vM
     : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_)))
 {
     pclEncoder = std::make_unique<oem::Encoder>(this->pclMessageDb);
-    pclRxConfigHandler = std::make_unique<oem::RxConfigHandler>(this->pclMessageDb);
+    try
+    {
+        pclRxConfigHandler = std::make_unique<oem::RxConfigHandler>(this->pclMessageDb);
+    }
+    catch (const std::invalid_argument&)
+    {
+        ThrowRXConfigConstructionError();
+    }
 }
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) noexcept : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(message_db))
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase& message_db) : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(message_db))
 {
     pclEncoder = std::make_unique<oem::Encoder>(this->pclMessageDb);
-    pclRxConfigHandler = std::make_unique<oem::RxConfigHandler>(this->pclMessageDb);
+    try
+    {
+        pclRxConfigHandler = std::make_unique<oem::RxConfigHandler>(this->pclMessageDb);
+    }
+    catch (const std::invalid_argument&)
+    {
+        ThrowRXConfigConstructionError();
+    }
 }
 
-PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) noexcept : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(message_db))
+PyMessageDatabase::PyMessageDatabase(const MessageDatabase&& message_db) : pclMessageDb(std::make_shared<PyMessageDatabaseCore>(message_db))
 {
     pclEncoder = std::make_unique<oem::Encoder>(this->pclMessageDb);
-    pclRxConfigHandler = std::make_unique<oem::RxConfigHandler>(this->pclMessageDb);
+    try
+    {
+        pclRxConfigHandler = std::make_unique<oem::RxConfigHandler>(this->pclMessageDb);
+    }
+    catch (const std::invalid_argument&)
+    {
+        ThrowRXConfigConstructionError();
+    }
 }
 
 void PyMessageDatabaseCore::GenerateMessageMappings()
