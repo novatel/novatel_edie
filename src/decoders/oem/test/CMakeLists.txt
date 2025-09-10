@@ -8,3 +8,4 @@ target_link_libraries(${TARGET_NAME} PUBLIC
     GTest::gtest GTest::gtest_main
 )
 add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
+install(TARGETS ${TARGET_NAME} DESTINATION tests/novatel)
