@@ -85,6 +85,30 @@ constexpr size_t DataTypeSize(const DATA_TYPE eType_)
     }
 }
 
+constexpr std::string_view DataTypeToString(const DATA_TYPE eDataType_)
+{
+    switch (eDataType_)
+    {
+    case DATA_TYPE::BOOL: return "BOOL";
+    case DATA_TYPE::CHAR: return "CHAR";
+    case DATA_TYPE::UCHAR: return "UCHAR";
+    case DATA_TYPE::SHORT: return "SHORT";
+    case DATA_TYPE::USHORT: return "USHORT";
+    case DATA_TYPE::INT: return "INT";
+    case DATA_TYPE::UINT: return "UINT";
+    case DATA_TYPE::LONG: return "LONG";
+    case DATA_TYPE::ULONG: return "ULONG";
+    case DATA_TYPE::LONGLONG: return "LONGLONG";
+    case DATA_TYPE::ULONGLONG: return "ULONGLONG";
+    case DATA_TYPE::FLOAT: return "FLOAT";
+    case DATA_TYPE::DOUBLE: return "DOUBLE";
+    case DATA_TYPE::HEXBYTE: return "HEXBYTE";
+    case DATA_TYPE::SATELLITEID: return "SATELLITEID";
+    case DATA_TYPE::UNKNOWN: return "UNKNOWN";
+    default: return "UNKNOWN";
+    }
+}
+
 // TODO: this table is misleading, as one DATA_TYPE may correspond to many different conversion strings
 //!< returns conversion string associated with a datatype
 inline std::string DataTypeConversion(const DATA_TYPE eType_)
@@ -149,6 +173,26 @@ static const std::unordered_map<std::string, FIELD_TYPE> FieldTypeEnumLookup = {
                                                                                 {"FIELD_ARRAY", FIELD_TYPE::FIELD_ARRAY},
                                                                                 {"UNKNOWN", FIELD_TYPE::UNKNOWN}};
 
+constexpr std::string_view FieldTypeToString(const FIELD_TYPE eFieldType_)
+{
+    switch (eFieldType_)
+    {
+    case FIELD_TYPE::SIMPLE: return "SIMPLE";
+    case FIELD_TYPE::ENUM: return "ENUM";
+    case FIELD_TYPE::BITFIELD: return "BITFIELD";
+    case FIELD_TYPE::FIXED_LENGTH_ARRAY: return "FIXED_LENGTH_ARRAY";
+    case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: return "VARIABLE_LENGTH_ARRAY";
+    case FIELD_TYPE::STRING: return "STRING";
+    case FIELD_TYPE::FIELD_ARRAY: return "FIELD_ARRAY";
+    case FIELD_TYPE::RESPONSE_ID: return "RESPONSE_ID";
+    case FIELD_TYPE::RESPONSE_STR: return "RESPONSE_STR";
+    case FIELD_TYPE::RXCONFIG_HEADER: return "RXCONFIG_HEADER";
+    case FIELD_TYPE::RXCONFIG_BODY: return "RXCONFIG_BODY";
+    case FIELD_TYPE::UNKNOWN: return "UNKNOWN";
+    default: return "UNKNOWN";
+    }
+}
+
 //-----------------------------------------------------------------------
 //! \struct EnumDataType
 //! \brief Enum Data Type representing contents of UI DB.
@@ -212,8 +256,9 @@ struct BaseField
     uint32_t conversionHash{0ULL};
     std::optional<int32_t> width;
     std::optional<int32_t> precision;
-    bool isString{false};
-    bool isCsv{false};
+    bool isString{false}; // Has a FIELD_TYPE of STRING or conversion string of either %s or %S
+    bool isCsv{false};    // Ascii encoding of this field is comma-separated,
+                          // true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
 
     BaseField() = default;

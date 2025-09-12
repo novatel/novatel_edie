@@ -26,9 +26,161 @@
 
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 
+#include <cassert>
+
 #include <simdjson.h>
 
 using namespace novatel::edie;
+
+// -------------------------------------------------------------------------------------------------------
+#ifndef NDEBUG
+static constexpr std::string_view GetTypeName(const FieldValueVariant& fieldValue)
+{
+    if (std::holds_alternative<bool>(fieldValue)) { return "bool"; }
+    if (std::holds_alternative<int8_t>(fieldValue)) { return "int8_t"; }
+    if (std::holds_alternative<uint8_t>(fieldValue)) { return "uint8_t"; }
+    if (std::holds_alternative<int16_t>(fieldValue)) { return "int16_t"; }
+    if (std::holds_alternative<uint16_t>(fieldValue)) { return "uint16_t"; }
+    if (std::holds_alternative<int32_t>(fieldValue)) { return "int32_t"; }
+    if (std::holds_alternative<uint32_t>(fieldValue)) { return "uint32_t"; }
+    if (std::holds_alternative<int64_t>(fieldValue)) { return "int64_t"; }
+    if (std::holds_alternative<uint64_t>(fieldValue)) { return "uint64_t"; }
+    if (std::holds_alternative<float>(fieldValue)) { return "float"; }
+    if (std::holds_alternative<double>(fieldValue)) { return "double"; }
+    if (std::holds_alternative<std::vector<FieldContainer>>(fieldValue)) { return "std::vector<FieldContainer>"; }
+    if (std::holds_alternative<std::string>(fieldValue)) { return "std::string"; }
+    return "unknown";
+}
+
+void FieldContainer::ThrowValidationFailure() const
+{
+
+    const std::string errorMsg = std::string("FieldContainer validation failed!") +
+                                 "\n\tDefinition FIELD_TYPE: " + std::string(FieldTypeToString(fieldDef->type)) +
+                                 "\n\tDefinition DATA_TYPE: " + std::string(DataTypeToString(fieldDef->dataType.name)) +
+                                 "\n\tActual Type: " + std::string(GetTypeName(fieldValue)) + "\n";
+    throw std::invalid_argument(errorMsg);
+}
+
+// -------------------------------------------------------------------------------------------------------
+bool FieldContainer::Validate() const
+{
+    switch (fieldDef->type)
+    {
+    case FIELD_TYPE::SIMPLE: {
+        if (!ValidateSimpleField()) { return false; }
+        break;
+    }
+    case FIELD_TYPE::ENUM: {
+        if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
+    case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
+        if (!std::holds_alternative<std::vector<FieldContainer>>(fieldValue) && !ValidateSimpleField()) { return false; }
+        break;
+    }
+    case FIELD_TYPE::STRING: {
+        if (!std::holds_alternative<std::string>(fieldValue)) { return false; }
+        break;
+    }
+    case FIELD_TYPE::FIELD_ARRAY: {
+        if (!std::holds_alternative<std::vector<FieldContainer>>(fieldValue)) { return false; }
+        break;
+    }
+    case FIELD_TYPE::RESPONSE_ID: {
+        if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case FIELD_TYPE::RESPONSE_STR: {
+        if (!std::holds_alternative<std::string>(fieldValue)) { return false; }
+        break;
+    }
+    case FIELD_TYPE::RXCONFIG_HEADER: {
+        break;
+    }
+    case FIELD_TYPE::BITFIELD: {
+        break;
+    }
+    case FIELD_TYPE::RXCONFIG_BODY: {
+        break;
+    }
+    case FIELD_TYPE::UNKNOWN: {
+        break;
+    }
+    }
+    return true;
+}
+
+bool FieldContainer::ValidateSimpleField() const
+{
+    switch (fieldDef->dataType.name)
+    {
+    case DATA_TYPE::BOOL: {
+        if (!std::holds_alternative<bool>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::CHAR: {
+        if (!std::holds_alternative<int8_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::UCHAR: {
+        if (!std::holds_alternative<uint8_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::SHORT: {
+        if (!std::holds_alternative<int16_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::USHORT: {
+        if (!std::holds_alternative<uint16_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::INT: {
+        if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::UINT: {
+        if (!std::holds_alternative<uint32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::LONG: {
+        if (!std::holds_alternative<int32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::ULONG: {
+        if (!std::holds_alternative<uint32_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::LONGLONG: {
+        if (!std::holds_alternative<int64_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::ULONGLONG: {
+        if (!std::holds_alternative<uint64_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::FLOAT: {
+        if (!std::holds_alternative<float>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::DOUBLE: {
+        if (!std::holds_alternative<double>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::HEXBYTE: {
+        if (!std::holds_alternative<uint8_t>(fieldValue)) { return false; }
+        break;
+    }
+    case DATA_TYPE::SATELLITEID: {
+        if (!std::holds_alternative<uint32_t>(fieldValue)) { return false; }
+        break;
+    }
+    default: return false;
+    }
+    return true;
+}
+#endif
 
 // -------------------------------------------------------------------------------------------------------
 MessageDecoderBase::MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_)
@@ -403,6 +555,95 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
 }
 
 // -------------------------------------------------------------------------------------------------------
+// Decode an ASCII array formatted with the %Z conversion string
+static STATUS DecodeZConversionStringAsciiArray(std::vector<FieldContainer>& pvFieldContainer_, const char** ppcLogBuf_, const BaseField::Ptr& field_,
+                                                uint32_t uiArraySize_)
+{
+    assert(field_->conversionHash == CalculateBlockCrc32("Z"));
+    assert(field_->dataType.name == DATA_TYPE::UCHAR || field_->dataType.name == DATA_TYPE::HEXBYTE);
+    for (uint32_t i = 0; i < uiArraySize_; ++i)
+    {
+        uint32_t uiValueRead = 0;
+        if (sscanf(*ppcLogBuf_, "%02x", &uiValueRead) != 1) { return STATUS::MALFORMED_INPUT; }
+        *ppcLogBuf_ += 2;
+        pvFieldContainer_.emplace_back(static_cast<uint8_t>(uiValueRead), field_);
+    }
+
+    return STATUS::SUCCESS;
+}
+
+// Decode an ASCII array field that is not comma separated, e.g. a raw ASCII value or hex representation
+template <typename CharType>
+static STATUS DecodeNonCommaSeparatedAsciiArrayField(std::vector<FieldContainer>& pvFieldContainer_, const char** ppcLogBuf_,
+                                                     const BaseField::Ptr& field_)
+{
+    // Escaped '\' character
+    if (strncmp("\\\\", *ppcLogBuf_, 2) == 0)
+    {
+        *ppcLogBuf_ += 1;
+        pvFieldContainer_.emplace_back(static_cast<uint8_t>(**ppcLogBuf_), field_);
+        *ppcLogBuf_ += 1; // Consume 1 char
+    }
+    // Non-ascii char in hex e.g. \x0C
+    else if (strncmp("\\x", *ppcLogBuf_, 2) == 0)
+    {
+        *ppcLogBuf_ += 2; // Consume the '\x' that signifies hex without a char representation
+        uint32_t uiValueRead = 0;
+        if (sscanf(*ppcLogBuf_, "%02x", &uiValueRead) != 1) { return STATUS::MALFORMED_INPUT; }
+
+        pvFieldContainer_.emplace_back(static_cast<CharType>(uiValueRead), field_);
+        *ppcLogBuf_ += 2;
+    }
+    // Ascii character
+    else
+    {
+        pvFieldContainer_.emplace_back(static_cast<CharType>(**ppcLogBuf_), field_);
+        *ppcLogBuf_ += 1; // Consume 1 char
+    }
+    return STATUS::SUCCESS;
+}
+
+// Decode an ASCII array which is formatted like a string with opening and closing quotes, e.g. "string value"
+static STATUS DecodeStringAsciiArray(std::vector<FieldContainer>& pvFieldContainer_, const char** ppcLogBuf_, const BaseField::Ptr& field_,
+                                     uint32_t uiArraySize_)
+{
+    assert(field_->isString);
+
+    // Look for opening double-quote
+    if (**ppcLogBuf_ != '\"') { return STATUS::MALFORMED_INPUT; }
+    *ppcLogBuf_ += 1;
+
+    for (uint32_t i = 0; i < uiArraySize_; ++i)
+    {
+        if (**ppcLogBuf_ == '\"')
+        {
+            for (uint32_t j = i; j < uiArraySize_; j++) { pvFieldContainer_.emplace_back(static_cast<uint8_t>(0), field_); }
+            break;
+        }
+        STATUS eStatus = DecodeNonCommaSeparatedAsciiArrayField<uint8_t>(pvFieldContainer_, ppcLogBuf_, field_);
+        if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    }
+
+    // Look for closing double-quote
+    if (**ppcLogBuf_ != '\"') { return STATUS::MALFORMED_INPUT; }
+    *ppcLogBuf_ += 1;
+
+    return STATUS::SUCCESS;
+}
+
+// Decode an ASCII array made up of non-comma separated values, e.g. a raw ASCII values or hex representations
+template <typename CharType>
+static STATUS DecodeNonCommaSeparatedAsciiArray(std::vector<FieldContainer>& pvFieldContainer_, const char** ppcLogBuf_, const BaseField::Ptr& field_,
+                                                uint32_t uiArraySize_)
+{
+    for (uint32_t i = 0; i < uiArraySize_; ++i)
+    {
+        STATUS eStatus = DecodeNonCommaSeparatedAsciiArrayField<CharType>(pvFieldContainer_, ppcLogBuf_, field_);
+        if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    }
+    return STATUS::SUCCESS;
+}
+
 template <bool Abbreviated>
 STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, const char** ppcLogBuf_,
                                        std::vector<FieldContainer>& vIntermediateFormat_) const
@@ -520,74 +761,41 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
             pvFieldContainer.reserve(uiArraySize);
 
-            const char* pcPosition = *ppcLogBuf_;
-            if (field->isString)
+            STATUS eStatus = STATUS::SUCCESS;
+            if (field->conversionHash == CalculateBlockCrc32("Z"))
             {
-                // Ensure we grabbed the whole string, it might contain delimiters
-                tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data());
-                tokenLength += 2; // Add the back in the quotes so we process them
-                pcPosition++;     // Start of string, skip first double-quote
+                eStatus = DecodeZConversionStringAsciiArray(pvFieldContainer, ppcLogBuf_, field, uiArraySize);
+                *ppcLogBuf_ += 1;
             }
-
-            for (uint32_t i = 0; i < uiArraySize; ++i)
+            else if (field->isString)
             {
-                if (field->conversionHash == CalculateBlockCrc32("Z"))
+                eStatus = DecodeStringAsciiArray(pvFieldContainer, ppcLogBuf_, field, uiArraySize);
+                *ppcLogBuf_ += 1;
+            }
+            else if (!field->isCsv)
+            {
+                if (field->dataType.name == DATA_TYPE::CHAR)
                 {
-                    uint32_t uiValueRead = 0;
-                    if (sscanf(pcPosition, "%02x", &uiValueRead) != 1)
-                    {
-                        SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::String: Error decoding %Z Array");
-                        return STATUS::MALFORMED_INPUT;
-                    }
-                    pcPosition += 2;
-                    pvFieldContainer.emplace_back(static_cast<uint8_t>(uiValueRead), field);
+                    eStatus = DecodeNonCommaSeparatedAsciiArray<int8_t>(pvFieldContainer, ppcLogBuf_, field, uiArraySize);
                 }
-                // End of string, remove trailing double-quote
-                else if (field->isString && *pcPosition == '"')
+                else { eStatus = DecodeNonCommaSeparatedAsciiArray<uint8_t>(pvFieldContainer, ppcLogBuf_, field, uiArraySize); }
+                *ppcLogBuf_ += 1;
+            }
+            else
+            {
+                for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
-                    for (uint32_t j = 0; j < uiArraySize - i; j++) { pvFieldContainer.emplace_back(static_cast<uint8_t>(0), field); }
-                    break;
-                }
-                // Escaped '\' character
-                else if (strncmp("\\\\", pcPosition, 2) == 0)
-                {
-                    pcPosition++; // Consume the escape char
-                    pvFieldContainer.emplace_back(static_cast<uint8_t>(*pcPosition), field);
-                    pcPosition++; // Consume 1 char
-                }
-                // Non-ascii char in hex e.g. \x0C
-                else if (strncmp("\\x", pcPosition, 2) == 0)
-                {
-                    pcPosition += 2; // Consume the '\x' that signifies hex without a char representation
-                    uint32_t uiValueRead = 0;
-
-                    if (sscanf(pcPosition, "%02x", &uiValueRead) != 1)
-                    {
-                        SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::String: Error decoding %s array");
-                        return STATUS::MALFORMED_INPUT;
-                    }
-
-                    pcPosition += 2; // Consume the hex output that is always 2 chars
-                    pvFieldContainer.emplace_back(static_cast<uint8_t>(uiValueRead), field);
-                }
-                else
-                {
-                    // Ascii character
-                    if (!field->isCsv)
-                    {
-                        pvFieldContainer.emplace_back(static_cast<uint8_t>(*pcPosition), field);
-                        pcPosition++; // Consume 1 char
-                    }
-                    // Simple type
-                    else
-                    {
-                        tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data());
-                        DecodeAsciiField(field, ppcLogBuf_, tokenLength, pvFieldContainer);
-                        *ppcLogBuf_ += tokenLength + 1;
-                    }
+                    tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data());
+                    DecodeAsciiField(field, ppcLogBuf_, tokenLength, pvFieldContainer);
+                    *ppcLogBuf_ += tokenLength + 1;
                 }
             }
-            if (!field->isCsv) { *ppcLogBuf_ += tokenLength + 1; }
+            if (eStatus != STATUS::SUCCESS)
+            {
+                SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::ARRAY: Malformed Input\n");
+                return eStatus;
+            }
+
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
