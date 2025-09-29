@@ -72,14 +72,12 @@ bool FieldContainer::Validate() const
         break;
     }
     case FIELD_TYPE::ENUM:
-    if (!std::visit(
-            [](auto&& val) {
-                using T = std::decay_t<decltype(val)>;
-                return std::is_same_v<T, int32_t> || std::is_same_v<T, int16_t>;
-            },
-            fieldValue))
-        return false;
-        break;
+    if (!std::visit([](auto&& val) -> bool {
+        using T = std::decay_t<decltype(val)>;
+        return std::is_same_v<T, int32_t> || std::is_same_v<T, int16_t>;
+    }, fieldValue)) return false;
+         break;
+
     case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
     case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
         if (!std::holds_alternative<std::vector<FieldContainer>>(fieldValue) && !ValidateSimpleField()) { return false; }
