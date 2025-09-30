@@ -32,7 +32,7 @@
 
 using namespace novatel::edie;
 
-// -------------------------------------------------------------------------------------------------------
+
 #ifndef NDEBUG
 static constexpr std::string_view GetTypeName(const FieldValueVariant& fieldValue)
 {
