@@ -71,11 +71,9 @@ bool FieldContainer::Validate() const
         if (!ValidateSimpleField()) { return false; }
         break;
     }
-    case FIELD_TYPE::ENUM: {
-    if (!(std::holds_alternative<int32_t>(fieldValue) || std::holds_alternative<int16_t>(fieldValue))) {
-        return false;
-       }
-       break;
+     case FIELD_TYPE::ENUM: {
+        if (!(std::holds_alternative<int32_t>(fieldValue) || std::holds_alternative<int16_t>(fieldValue))) { return false; }
+        break;
     }
     case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
     case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
