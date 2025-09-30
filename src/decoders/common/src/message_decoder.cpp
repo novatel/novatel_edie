@@ -19,8 +19,7 @@
 // |  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING    |
 // |  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER        |
 // |  DEALINGS IN THE SOFTWARE.                                                  |
-// | 
-                                                                            |
+// |                                                                             |
 // ===============================================================================
 // ! \file message_decoder.cpp
 // ===============================================================================
@@ -33,7 +32,7 @@
 
 using namespace novatel::edie;
 
-// -------------------------------------------------------------------------------------------------------
+
 #ifndef NDEBUG
 static constexpr std::string_view GetTypeName(const FieldValueVariant& fieldValue)
 {
