@@ -41,12 +41,26 @@ namespace novatel::edie::oem {
 class HeaderDecoder
 {
   private:
+    //! \brief Type alias for message counts key.
+    //! \details Tuple containing: format (ASCII, binary, etc.), message ID (uint16_t), sibling ID (uint8_t).
+    using MessageCountsKey = std::tuple<HEADER_FORMAT, uint16_t, uint8_t>;
+
+    struct MessageCountsKeyHash {
+        std::size_t operator()(const MessageCountsKey& key) const {
+            auto h1 = std::hash<int>{}(static_cast<int>(std::get<0>(key)));
+            auto h2 = std::hash<uint16_t>{}(std::get<1>(key));
+            auto h3 = std::hash<uint8_t>{}(std::get<2>(key));
+            return h1 ^ (h2 << 1) ^ (h3 << 2);
+        }
+    };
+
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("novatel_header_decoder")};
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
     MessageDefinition stMyResponseDefinition;
+    mutable std::unordered_map<MessageCountsKey, uint64_t, MessageCountsKeyHash> mapMyMessageCounts{};
 
     // Decode novatel headers
     template <const char pcDelimiter[], ASCII_HEADER eField>
