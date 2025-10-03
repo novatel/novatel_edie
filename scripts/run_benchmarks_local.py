@@ -7,7 +7,6 @@ import argparse
 import os
 import subprocess
 import shutil
-import shutil
 
 
 def run_command(cmd, cwd="..", check=True):

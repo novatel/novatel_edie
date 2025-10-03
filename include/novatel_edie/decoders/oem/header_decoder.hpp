@@ -45,8 +45,10 @@ class HeaderDecoder
     //! \details Tuple containing: format (ASCII, binary, etc.), message ID (uint16_t), sibling ID (uint8_t).
     using MessageCountsKey = std::tuple<HEADER_FORMAT, uint16_t, uint8_t>;
 
-    struct MessageCountsKeyHash {
-        std::size_t operator()(const MessageCountsKey& key) const {
+    struct MessageCountsKeyHash
+    {
+        std::size_t operator()(const MessageCountsKey& key) const
+        {
             auto h1 = std::hash<int>{}(static_cast<int>(std::get<0>(key)));
             auto h2 = std::hash<uint16_t>{}(std::get<1>(key));
             auto h3 = std::hash<uint8_t>{}(std::get<2>(key));
