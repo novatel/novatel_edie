@@ -173,6 +173,43 @@ static void DecodeJsonLog(benchmark::State& state)
     DecodeLog(state, bestsatsJson);
 }
 
+template <size_t N> static void DecodeHeader(benchmark::State& state, const unsigned char (&data)[N])
+{
+    MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
+    const HeaderDecoder headerDecoder(clJsonDb);
+
+    for ([[maybe_unused]] auto _ : state)
+    {
+        const unsigned char* dataPtr = data;
+        MetaDataStruct metaData;
+        IntermediateHeader header;
+
+        (void)headerDecoder.Decode(dataPtr, header, metaData);
+    }
+
+    state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
+}
+
+static void DecodeAsciiHeader(benchmark::State& state)
+{
+    DecodeHeader(state, bestposAscii);
+}
+
+static void DecodeAbbrevAsciiHeader(benchmark::State& state)
+{
+    DecodeHeader(state, bestposAbbAscii);
+}
+
+static void DecodeBinaryHeader(benchmark::State& state)
+{
+    DecodeHeader(state, bestposBinary);
+}
+
+static void DecodeJsonHeader(benchmark::State& state)
+{ 
+    DecodeHeader(state, bestsatsJson);
+}
+
 template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
 {
     MessageDatabase::Ptr clJsonDb = LoadJsonDbFile(std::getenv("TEST_DATABASE_PATH"));
@@ -243,6 +280,10 @@ BENCHMARK(DecodeAsciiLog);
 BENCHMARK(DecodeAbbrevAsciiLog);
 BENCHMARK(DecodeBinaryLog);
 BENCHMARK(DecodeJsonLog);
+BENCHMARK(DecodeAsciiHeader);
+BENCHMARK(DecodeAbbrevAsciiHeader);
+BENCHMARK(DecodeBinaryHeader);
+BENCHMARK(DecodeJsonHeader);
 BENCHMARK(EncodeFlattenedBinaryLog);
 BENCHMARK(EncodeAsciiLog);
 BENCHMARK(EncodeAbbrevAsciiLog);
