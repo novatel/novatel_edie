@@ -92,8 +92,8 @@ class CPPLoggerManager : public LoggerManager
             if (!rootLogger)
             {
                 rootLogger = spdlog::stdout_color_mt("root");
-                rootLogger->set_level(spdlog::level::off);
-                rootLogger->flush_on(spdlog::level::off);
+                rootLogger->set_level(spdlog::level::warn);
+                rootLogger->flush_on(spdlog::level::warn);
             }
             set_default_logger(rootLogger);
             rootLogger->info("Logger initialized.");
