@@ -1,22 +1,36 @@
 """
 Script to build and run benchmarks on local machine in current and reference states.
 Saves results to JSON files for comparison via compare_benchmarks.py.
+
+NOTE: Currently only works on Windows builds due to hardcoded benchmark executable path.
+TODO: Add platform detection and appropriate path construction for Linux.
 """
 
 import argparse
 import os
 import subprocess
 import shutil
+from typing import List
 
 
-def run_command(cmd, cwd="..", check=True):
-    """Run a shell command and return the result."""
+def run_command(cmd: List[str] | str, cwd: str = "..", check: bool = True,
+                show_output: bool = False) -> subprocess.CompletedProcess:
+    """Run a shell command and return the result.
+    
+    Args:
+        cmd: Command to run (list of args or string).
+        cwd: Directory in which to run the command.
+        check: Raise a CalledProcessError if the command fails.
+
+    Returns:
+        CompletedProcess instance with command results returned by subprocess.run().
+    """
     print(f"Running: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
     
     try:
         result = subprocess.run(cmd, shell=isinstance(cmd, str), cwd=cwd, 
-                              capture_output=True, text=True, check=check)
-        if result.stdout:
+                                capture_output=True, text=True, check=check)
+        if show_output and result.stdout:
             print(f"Output: {result.stdout.strip()}")
         return result
     except subprocess.CalledProcessError as e:
@@ -25,8 +39,13 @@ def run_command(cmd, cwd="..", check=True):
         print(f"Stderr: {e.stderr}")
         raise
 
-def build_project(build_dir, cmake_args=None):
-    """Build the project in the specified directory."""
+def build_benchmarks(build_dir: str, cmake_args: List[str] | None = None):
+    """Build the project in the specified directory.
+
+    Args:
+        build_dir: Directory in which the project is built.
+        cmake_args: List of additional CMake arguments.
+    """
     cmake_args = cmake_args or []
     
     # Configure
@@ -43,8 +62,13 @@ def build_project(build_dir, cmake_args=None):
     build_cmd = ["cmake", "--build", build_dir, "--config", "Release", "--parallel"]
     run_command(build_cmd)
 
-def run_benchmark(build_dir, output_file):
-    """Run the benchmark and save results to JSON file."""
+def run_benchmarks(build_dir: str, output_file: str):
+    """Run the benchmark and save results to JSON file.
+
+    Args:
+        build_dir: Directory in which the benchmarks are built.
+        output_file: Path to save the JSON benchmark results.
+    """
     benchmark_exe = os.path.join("..", build_dir, "bin", "windows-AMD64-msvc-Release", "benchmark.exe")
     print(f"Running benchmark executable: {benchmark_exe}")
     
@@ -67,7 +91,7 @@ def run_benchmark(build_dir, output_file):
     print(f"Benchmark results saved to {output_file}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare benchmarks between current state and another commit")
+    parser = argparse.ArgumentParser(description="Compare benchmarks between current state and another commit/branch")
     parser.add_argument("--reference", "-r", default="main", 
                        help="Reference commit/branch to compare against (default: main)")
     parser.add_argument("--build-dir", default="build-benchmark",
@@ -82,9 +106,12 @@ def main():
     # Get current git info
     current_state = ""
     try:
-        current_state = run_command(["git", "symbolic-ref", "HEAD"]).stdout.strip()
+        # Try to get current branch name. If in detached HEAD, run_command will raise
+        # a CalledProcessError
+        current_state = run_command(["git", "symbolic-ref", "--short", "HEAD"]).stdout.strip()
         print(f"Current branch: {current_state}")
     except subprocess.CalledProcessError:
+        # In detached HEAD state, get current commit hash
         current_state = run_command(["git", "rev-parse", "HEAD"]).stdout.strip()
         print(f"In detached HEAD state at commit: {current_state}")
 
@@ -96,10 +123,10 @@ def main():
     
     try:
         print("\n=== Building current state ===")
-        build_project(current_build_dir, args.cmake_args)
+        build_benchmarks(current_build_dir, args.cmake_args)
         
         print("\n=== Running current benchmarks ===")
-        run_benchmark(current_build_dir, "current_benchmark.json")
+        run_benchmarks(current_build_dir, "current_benchmark.json")
         
         # Stash any uncommitted changes
         stash_result = run_command(["git", "stash", "push", "-m", "benchmark_comparison_temp"], check=False)
@@ -112,10 +139,10 @@ def main():
         
         # Build and run reference
         print(f"\n=== Building reference state ({args.reference}) ===")
-        build_project(reference_build_dir, args.cmake_args)
+        build_benchmarks(reference_build_dir, args.cmake_args)
         
         print(f"\n=== Running reference benchmarks ===")
-        run_benchmark(reference_build_dir, "main_benchmark.json") # TODO maybe have configurable name in compare_benchmarks.py,
+        run_benchmarks(reference_build_dir, "main_benchmark.json") # TODO maybe have configurable name in compare_benchmarks.py,
                                                                   # as this is not necessarily 'main'
         
         print("\nBenchmark runs completed. Run compare_benchmarks.py to compare results.")
