@@ -14,7 +14,7 @@ main = {b["name"]: b["real_time"] for b in main_data["benchmarks"]}
 summary_path = os.environ.get("GITHUB_STEP_SUMMARY", "benchmark_summary.md")
 failed = False
 
-with open(summary_path, "a") as summary:
+with open(summary_path, "a", encoding="utf-8") as summary:
     print("## Benchmark Comparison Results", file=summary)
     print("| Benchmark | Main (ns) | Current (ns) | Difference |", file=summary)
     print("|-----------|-----------|--------------|------------|", file=summary)
