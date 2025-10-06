@@ -92,8 +92,8 @@ class CPPLoggerManager : public LoggerManager
             if (!rootLogger)
             {
                 rootLogger = spdlog::stdout_color_mt("root");
-                rootLogger->set_level(spdlog::level::info);
-                rootLogger->flush_on(spdlog::level::debug);
+                rootLogger->set_level(spdlog::level::off);
+                rootLogger->flush_on(spdlog::level::off);
             }
             set_default_logger(rootLogger);
             rootLogger->info("Logger initialized.");
@@ -186,6 +186,8 @@ class CPPLoggerManager : public LoggerManager
                 InitRootLogger();
                 rootLogger->info("Initialized with file: {}", configPath_.string());
             }
+            rootLogger->set_level(spdlog::level::info);
+            rootLogger->flush_on(spdlog::level::debug);
         }
         catch (const std::exception& ex)
         {
