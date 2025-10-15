@@ -400,54 +400,65 @@ The following are a few strategies to avoid this:
 
 ## Message Databases
 
-In order to decode or encode a message `novatel_edie` requires a database 
-with that message's definition.
+### Overview
 
-For convenience `novatel_edie` comes with a built-in message database
-(stored within the `messages.json` file), 
-whose messages and enum values can be accessed via the 
-`novatel_edie.messages` and `novatel_edie.enums` submodules respectively.
+To decode or encode a message `novatel_edie` needs the definition for it. [This database of novatel OEM message definitions](./../database/database.json) is included within the package and is used as the default source for decoding information.
+
+
+This built-in database is where the message and enum types from `novatel_edie.messages` and `novatel_edie.enums` are sourced from:
 
 ```python
 from novatel_edie.messages import BESTPOS
 from novatel_edie.enums import SolStatus
 ```
 
+### Changing the built-in database
 
-If this builtin message database is inconsistent with message data you want to 
-parse, you can install a different database from a `.json` file by 
-providing it as an argument to the novatel edie command line tool:
+If the default built-in database lacks a definition you need, you can install a different one from a custom database file via the novatel edie command line tool:
 
-```
-novatel_edie install-custom <path-to-your-json-database-file>
-```
+`novatel_edie install-custom <path-to-your-json-database-file>`
 
-In cases where multiple or fully dynamic databases are required, 
-`MessageDatabase` objects can be constructed specified as the source 
-for decoding/encoding processes.
+### Other databases
+
+It is possible to load an additional database files dynamically 
+but it comes with two significant limitations:
+
+1. `Message` objects decoded using different message databases do not share a type, even if the contents of their definitions are identical. Practically this means that `isinstance(msg, MESSAGE_TYPE)` can only be true if `MESSAGE_TYPE` comes directly from the same database that was used to decode `msg`. 
+2. Static type information (e.g. auto-complete) will not be availible for messages decoded from dynamically loaded databases.
+
+With these limitations in mind, it is recommended to only load databases dynamically if there is no other option.
 
 ```python
 # Load a fully dynamic database
 custom_db = MessageDatabase('path/to/my/database')
 
 # Access values of the database
-bestpos_type = custom_db.get_message_type('BESTPOS')
+custom_bestpos_type = custom_db.get_message_type('BESTPOS')
 sol_status_enum = db.get_enum_type_by_name('SolStatus')
 
 # Parse based on different databases
-default_db_parser = Parser()
-custom_db_parser = Parser(message_db=custom_db)
+default_db_parser = FileParser("file_name")
+custom_db_parser = FileParser("file_name", message_db=custom_db)
+
+for msg in default_db_parser:
+    if isinstance(msgs.BESTPOS):        # Correct
+        print(msg)
+    if isinstance(custom_bestpos_type): # DOES NOT WORK!
+        print(msg)
+
+for msg in custom_db_parser:
+    if isinstance(custom_bestpos_type): # Correct
+        print(msg)
+    if isinstance(msgs.BESTPOS):        # DOES NOT WORK!
+        print(msg)
 ```
 
-The built-in message database can also be dynamically accessed in the same way:
+The built-in message database can also be accessed in a similar way:
 
 ```python
 builtin_db = get_builtin_database()
 bestpos_type = builtin_db.get_message_type('BESTPOS')
 ```
-
-In general it is recommend to use the default or custom installed database
-whenever possible to take advantage of additional static type information (e.g. autocomplete).
 
 ## Logging
 
