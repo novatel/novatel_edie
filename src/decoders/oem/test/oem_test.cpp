@@ -26,6 +26,8 @@
 
 #include <chrono>
 #include <climits>
+// TODO: C++ 14 tech-debt - codecvt is deprecated in C++ 17 and removed in C++ 20 without direct replacement
+// https://stackoverflow.com/questions/42946335/deprecated-header-codecvt-replacement
 #include <codecvt>
 #include <filesystem>
 #include <iostream>
