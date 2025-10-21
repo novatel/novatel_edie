@@ -8,4 +8,10 @@ target_link_libraries(${TARGET_NAME} PUBLIC
     GTest::gtest GTest::gtest_main
 )
 add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
+
+# TODO: Re-enable this once deprecated wstring_convert function is removed
+if(NOT MSVC)
+    target_compile_options(oem_test PRIVATE -Wno-deprecated-declarations)
+endif()
+
 install(TARGETS ${TARGET_NAME} DESTINATION tests/novatel)

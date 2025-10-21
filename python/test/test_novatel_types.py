@@ -127,9 +127,10 @@ def test_ascii_uchar_byte_invalid(helper):
 
 
 def test_ascii_char_valid(helper):
-    helper.create_base_field("CHAR_1", FIELD_TYPE.SIMPLE, "%c", 1, DATA_TYPE.CHAR)
-    helper.create_base_field("CHAR_2", FIELD_TYPE.SIMPLE, "%c", 1, DATA_TYPE.CHAR)
-    helper.create_base_field("CHAR_3", FIELD_TYPE.SIMPLE, "%c", 1, DATA_TYPE.CHAR)
+    # %c is used with UINT_32 datatype in all supported messages
+    helper.create_base_field("CHAR_1", FIELD_TYPE.SIMPLE, "%c", 1, DATA_TYPE.UINT)
+    helper.create_base_field("CHAR_2", FIELD_TYPE.SIMPLE, "%c", 1, DATA_TYPE.UINT)
+    helper.create_base_field("CHAR_3", FIELD_TYPE.SIMPLE, "%c", 1, DATA_TYPE.UINT)
 
     input = b"#,A,;"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
@@ -285,10 +286,11 @@ def test_ascii_uint_valid(helper):
 
 
 def test_ascii_gpstime_msec_valid(helper):
-    helper.create_base_field("Sec1", FIELD_TYPE.SIMPLE, "%T", 4, DATA_TYPE.DOUBLE)
-    helper.create_base_field("Sec2", FIELD_TYPE.SIMPLE, "%T", 4, DATA_TYPE.DOUBLE)
-    helper.create_base_field("Sec3", FIELD_TYPE.SIMPLE, "%T", 4, DATA_TYPE.DOUBLE)
-    helper.create_base_field("Sec4", FIELD_TYPE.SIMPLE, "%T", 4, DATA_TYPE.DOUBLE)
+    # %T uses an integer representation for a real value
+    helper.create_base_field("Sec1", FIELD_TYPE.SIMPLE, "%T", 4, DATA_TYPE.UINT)
+    helper.create_base_field("Sec2", FIELD_TYPE.SIMPLE, "%T", 4, DATA_TYPE.UINT)
+    helper.create_base_field("Sec3", FIELD_TYPE.SIMPLE, "%T", 4, DATA_TYPE.UINT)
+    helper.create_base_field("Sec4", FIELD_TYPE.SIMPLE, "%T", 4, DATA_TYPE.UINT)
 
     input = b"-1.000,0.000,604800.000,4294967295.000"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
@@ -335,14 +337,14 @@ def test_ascii_scientific_notation_double_valid(helper):
 
 
 def test_ascii_ulong_valid(helper):
-    helper.create_base_field("rx_chars1", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars2", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars3", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars4", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars5", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars6", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars7", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONG)
-    helper.create_base_field("rx_chars8", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONG)
+    helper.create_base_field("rx_chars1", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
+    helper.create_base_field("rx_chars2", FIELD_TYPE.SIMPLE, "%UB", 1, DATA_TYPE.UCHAR)
+    helper.create_base_field("rx_chars3", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.USHORT)
+    helper.create_base_field("rx_chars4", FIELD_TYPE.SIMPLE, "%u", 2, DATA_TYPE.USHORT)
+    helper.create_base_field("rx_chars5", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.UINT)
+    helper.create_base_field("rx_chars6", FIELD_TYPE.SIMPLE, "%lu", 4, DATA_TYPE.UINT)
+    helper.create_base_field("rx_chars7", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONGLONG)
+    helper.create_base_field("rx_chars8", FIELD_TYPE.SIMPLE, "%llu", 8, DATA_TYPE.ULONGLONG)
 
     input = b"0,255,0,65535,0,4294967295,0,18446744073709551615"
     status, intermediate_format = helper.test_decode_ascii(helper.msg_def_fields, input)
