@@ -20,36 +20,78 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
 endif()
 
 add_compile_definitions(VERSION_INFO=${SKBUILD_PROJECT_VERSION})
+if(DEFINED SKBUILD_PROJECT_NAME)
+    set(PYTHON_INSTALL_DIR ${SKBUILD_PROJECT_NAME})
+elseif(NOT DEFINED PYTHON_INSTALL_DIR)
+    set(PYTHON_INSTALL_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/novatel_edie)
+endif()
 
-nanobind_add_module(python_bindings
-    STABLE_ABI NB_STATIC LTO
-    NB_DOMAIN novatel_edie
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/bindings.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/commander.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/common.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/exceptions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/file_parser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/filter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/framer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/decoder.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/message_db_singleton.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/logger.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/message_database.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/oem_common.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/init_modules.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/parser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/range_decompressor.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/rxconfig_handler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/py_message_objects.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/internal/decoder_tester.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/bindings/internal/logger_tester.cpp
+# Low level equivalent of add module
+set(NANOBIND_LIB_NAME "nanobind" CACHE STRING "Name of the nanobind shared library")
+nanobind_build_library(${NANOBIND_LIB_NAME})
+set_target_properties(${NANOBIND_LIB_NAME} PROPERTIES FOLDER python_bindings)
+
+
+add_library(python_common SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_database.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/exceptions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_database.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_db_singleton.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/field_objects.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/unknown_bytes.cpp
+)
+target_include_directories(python_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(python_common PUBLIC ${NANOBIND_LIB_NAME})
+target_link_libraries(python_common PUBLIC decoders_common)
+nanobind_opt_size(python_common)
+nanobind_lto(python_common)
+nanobind_disable_stack_protector(python_common)
+nanobind_compile_options(python_common)
+nanobind_musl_static_libcpp(python_common)
+set_target_properties(python_common PROPERTIES
+    FOLDER "python_bindings"
 )
 
-set_target_properties(python_bindings PROPERTIES OUTPUT_NAME bindings)
-target_include_directories(python_bindings PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/bindings)
-target_link_libraries(python_bindings PRIVATE oem_decoder)
 
-target_compile_definitions(python_bindings PRIVATE
+add_library(oem_bindings MODULE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/implementations/message_database.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/bindings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/commander.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/common.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/file_parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/filter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/framer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/decoder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/message_db_singleton.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/oem_common.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/init_modules.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/range_decompressor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/rxconfig_handler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/py_message_objects.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/internal/decoder_tester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/internal/logger_tester.cpp
+)
+target_link_libraries(oem_bindings PRIVATE decoders_common)
+target_link_libraries(oem_bindings PRIVATE ${NANOBIND_LIB_NAME})
+target_link_libraries(oem_bindings PRIVATE python_common)
+target_link_libraries(oem_bindings PRIVATE oem_decoder)
+nanobind_opt_size(oem_bindings)
+nanobind_lto(oem_bindings)
+nanobind_set_visibility(oem_bindings)
+nanobind_strip(oem_bindings)
+nanobind_disable_stack_protector(oem_bindings)
+nanobind_extension(oem_bindings)
+nanobind_compile_options(oem_bindings)
+nanobind_link_options(oem_bindings)
+nanobind_musl_static_libcpp(oem_bindings)
+
+
+set_target_properties(oem_bindings PROPERTIES OUTPUT_NAME bindings FOLDER python_bindings)
+target_include_directories(oem_bindings PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_compile_definitions(oem_bindings PRIVATE
     VERSION_INFO=${SKBUILD_PROJECT_VERSION}
     # https://github.com/boostorg/system/issues/32#issuecomment-462912013
     HAVE_SNPRINTF
@@ -60,9 +102,11 @@ nanobind_add_stub(
     PATTERN_FILE  ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
     MODULE bindings
     OUTPUT stubs/bindings.pyi
-    PYTHON_PATH $<TARGET_FILE_DIR:python_bindings>
-    DEPENDS bindings
+    PYTHON_PATH $<TARGET_FILE_DIR:oem_bindings>
+    DEPENDS oem_bindings
 )
+
+set_target_properties(bindings_stub PROPERTIES FOLDER python_bindings)
 
 add_custom_target(
     dynamic_stubs ALL
@@ -73,21 +117,20 @@ add_custom_target(
         ${CMAKE_SOURCE_DIR}/database/database.json
 )
 
-if(DEFINED SKBUILD_PROJECT_NAME)
-    set(PYTHON_INSTALL_DIR ${SKBUILD_PROJECT_NAME})
-elseif(NOT DEFINED PYTHON_INSTALL_DIR)
-    set(PYTHON_INSTALL_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/novatel_edie)
-endif()
+set_target_properties(dynamic_stubs PROPERTIES FOLDER python_bindings)
 
-install(TARGETS python_bindings
+install(TARGETS common decoders_common ${NANOBIND_LIB_NAME} python_common
+    RUNTIME DESTINATION ${PYTHON_INSTALL_DIR}
     LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
     COMPONENT python)
-# Install default novatel_edie files
+install(TARGETS oem_decoder oem_bindings
+    RUNTIME DESTINATION ${PYTHON_INSTALL_DIR}
+    LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
+    COMPONENT python)
+
+
+# Install novatel_edie files
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie_files/
-        DESTINATION ${PYTHON_INSTALL_DIR}
-        COMPONENT python)
-# Allow a project containing novatel_edie as a submodule to overwrite any python files with its own 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/python/novatel_edie_files/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
 # Install built-in database file
