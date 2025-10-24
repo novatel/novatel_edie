@@ -36,7 +36,7 @@ build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 cmake.minimum-version = "3.24"
-cmake.targets = ["python_bindings", "bindings_stub", "dynamic_stubs"]
+cmake.targets = ["nanobind",  "python_common", "oem_bindings", "bindings_stub", "dynamic_stubs"]
 install.components = ["python"]
 wheel.license-files = ["LICENSE"]
 build-dir = "out/build/{wheel_tag}"
@@ -44,8 +44,8 @@ build-dir = "out/build/{wheel_tag}"
 wheel.py-api = "cp312"
 
 [tool.scikit-build.cmake.define]
+BUILD_SHARED_LIBS = true
 BUILD_PYTHON = true
-BUILD_SHARED_LIBS = false
 
 [tool.cibuildwheel]
 build = "*"
