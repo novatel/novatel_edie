@@ -58,6 +58,10 @@ build-verbosity = 1
 archs = "auto64"
 manylinux-x86_64-image = "manylinux_2_28"
 
+[tool.cibuildwheel.linux]
+# Shared library installation already handled by CMake
+repair-wheel-command = ""
+
 [tool.cibuildwheel.macos.environment]
 # Needed for full C++17 support
 MACOSX_DEPLOYMENT_TARGET = "13.0"
