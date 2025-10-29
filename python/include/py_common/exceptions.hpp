@@ -1,11 +1,9 @@
 #pragma once
 
-#include <exception>
 
 #include "novatel_edie/decoders/common/common.hpp"
 #include "py_common/bindings_core.hpp"
 
-namespace nb = nanobind;
 
 namespace novatel::edie::py_common {
 
