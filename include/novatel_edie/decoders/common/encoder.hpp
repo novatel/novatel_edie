@@ -323,7 +323,8 @@ template <typename Derived> class EncoderBase
                     // For a flattened version of the log, fill in the remaining fields with 0x00.
                     if constexpr (Flatten)
                     {
-                        const uint32_t maxSize = dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
+                        const uint32_t maxSize =
+                            dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
                         const auto diff = static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart);
                         if (diff < maxSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', maxSize - diff)) { return false; }
                     }
