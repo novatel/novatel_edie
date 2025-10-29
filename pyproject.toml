@@ -36,15 +36,16 @@ build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 cmake.minimum-version = "3.24"
-cmake.targets = ["nanobind",  "python_common", "oem_bindings", "bindings_stub", "dynamic_stubs"]
+cmake.targets = ["common", "decoders_common", "oem_decoder", "oem_bindings", "python_common", "oem_bindings"]
 install.components = ["python"]
 wheel.license-files = ["LICENSE"]
 build-dir = "out/build/{wheel_tag}"
 # Build stable ABI wheels for CPython 3.12+
 wheel.py-api = "cp312"
+wheel.packages = []
+logging.level = "DEBUG"
 
 [tool.scikit-build.cmake.define]
-BUILD_SHARED_LIBS = true
 BUILD_PYTHON = true
 
 [tool.cibuildwheel]
