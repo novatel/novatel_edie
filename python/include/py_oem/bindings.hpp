@@ -6,13 +6,9 @@
 namespace nb = nanobind;
 
 namespace novatel::edie::py_oem {
-void init_common_common(nb::module_& m);
-void init_common_message_database(nb::module_&);
-void init_message_db_singleton(nb::module_&);
 void init_header_objects(nb::module_&);
 void init_message_objects(nb::module_&);
 void init_novatel_common(nb::module_&);
-void init_novatel_exceptions(nb::module_&);
 void init_novatel_parser(nb::module_&);
 void init_novatel_file_parser(nb::module_&);
 void init_novatel_framer(nb::module_&);

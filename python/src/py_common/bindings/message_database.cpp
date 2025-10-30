@@ -6,13 +6,13 @@
 #include "novatel_edie/decoders/common/message_database.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/field_objects.hpp"
-#include "py_oem/bindings.hpp"
+#include "py_common/init_bindings_functions.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-void py_oem::init_common_message_database(nb::module_& m)
+void py_common::init_common_message_database(nb::module_& m)
 {
     nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "The concrete data types of base-level message fields.", nb::is_arithmetic())
         .value("BOOL", DATA_TYPE::BOOL)

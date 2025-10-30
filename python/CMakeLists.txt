@@ -40,16 +40,18 @@ endif()
 
 add_library(python_common SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/exceptions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/common.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/internal/logger_tester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/init.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_database.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/internal/logger_tester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_db_singleton.cpp
+
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_db_singleton.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/field_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/unknown_bytes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_database.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/message_db_singleton.cpp
 )
 target_include_directories(python_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(python_common PUBLIC ${NANOBIND_LIB_NAME})
@@ -68,9 +70,9 @@ set_target_properties(python_common PROPERTIES
 
 add_library(oem_bindings MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/implementations/message_database.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/init.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/commander.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/common.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/file_parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/filter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/framer.cpp
@@ -108,16 +110,20 @@ target_compile_definitions(oem_bindings PRIVATE
     HAVE_SNPRINTF
 )
 
-nanobind_add_stub(
-    bindings_stub
-    PATTERN_FILE  ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
-    MODULE bindings
-    OUTPUT stubs/bindings.pyi
-    PYTHON_PATH $<TARGET_FILE_DIR:oem_bindings>
-    DEPENDS oem_bindings
-)
 
-set_target_properties(bindings_stub PROPERTIES FOLDER python_bindings)
+add_custom_target(
+    nanobind_stubs ALL
+    COMMAND 
+    ${Python_EXECUTABLE} -m nanobind.stubgen 
+    --import $<TARGET_FILE_DIR:python_common> 
+    --pattern-file ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt 
+    -m python_common    # Must appear before dependent modules in stub generation
+    -m bindings 
+    --output-dir ${CMAKE_CURRENT_BINARY_DIR}/stubs
+    COMMENT "Generating nanobind stubs"
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
+)
 
 add_custom_target(
     dynamic_stubs ALL
@@ -128,7 +134,7 @@ add_custom_target(
         ${CMAKE_SOURCE_DIR}/database/database.json
 )
 
-set_target_properties(dynamic_stubs PROPERTIES FOLDER python_bindings)
+set_target_properties(nanobind_stubs dynamic_stubs PROPERTIES FOLDER python_bindings)
 
 message(STATUS "PYTHON_INSTALL_DIR: ${PYTHON_INSTALL_DIR}")
 

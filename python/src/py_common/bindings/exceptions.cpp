@@ -2,7 +2,7 @@
 
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
-#include "py_oem/bindings.hpp"
+#include "py_common/init_bindings_functions.hpp"
 #include "py_common/bindings_core.hpp"
 
 namespace nb = nanobind;
@@ -10,7 +10,7 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-void py_oem::init_novatel_exceptions(nb::module_& m)
+void py_common::init_exceptions(nb::module_& m)
 {
     nb::handle base = nb::exception<EdieException>(m, "NovatelEdieException");              // NOLINT
     nb::exception<FailureException>(m, "FailureException", base);                           // NOLINT

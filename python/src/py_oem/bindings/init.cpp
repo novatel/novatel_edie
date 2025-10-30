@@ -16,13 +16,9 @@ NB_MODULE(bindings, m)
     nb::module_ messages_mod = m.def_submodule("messages", "NovAtel OEM message types.");
     nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
 
-    init_common_common(m);
-    init_common_message_database(m);
-    init_message_db_singleton(m);
     init_header_objects(m);
     init_message_objects(m);
     init_novatel_common(m);
-    init_novatel_exceptions(m);
     init_novatel_parser(m);
     init_novatel_file_parser(m);
     init_novatel_framer(m);

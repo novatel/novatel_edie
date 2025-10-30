@@ -1,4 +1,4 @@
-#include "py_oem/bindings.hpp"
+#include "py_common/init_bindings_functions.hpp"
 
 #include "novatel_edie/decoders/common/common.hpp"
 
@@ -9,7 +9,7 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-void py_oem::init_common_common(nb::module_& m)
+void py_common::init_common(nb::module_& m)
 {
     nb::enum_<ENCODE_FORMAT>(m, "ENCODE_FORMAT", nb::is_arithmetic(), "Formats which a novatel message can be encoded to.")
         .value("FLATTENED_BINARY", ENCODE_FORMAT::FLATTENED_BINARY,
