@@ -319,13 +319,12 @@ template <typename Derived> class EncoderBase
                             return false;
                         }
                     }
-                    // SWAP:5940 - RXCOOMANDS conversion is failing due to this commented out code
-                    //  // TODO: what was this for? It breaks RXCOMMANDSB.GPS.
-                    //  For a flattened version of the log, fill in the remaining fields with 0x00.
+                    //SWAP:5940 - RXCOOMANDS conversion is failing due to this commented out code
+                    // Allignement with EDIE v3.3
+                    // For a flattened version of the log, fill in the remaining fields with 0x00.
                     if constexpr (Flatten && !IsWaasFlatten)
                     {
-                        const uint32_t maxSize =
-                            dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->arrayLength * field.fieldDef->dataType.length;
+                        const uint32_t maxSize = dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->fieldSize;
                         const auto diff = static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart);
                         if (diff < maxSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, '\0', maxSize - diff)) { return false; }
                     }
