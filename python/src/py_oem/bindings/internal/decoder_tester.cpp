@@ -7,8 +7,8 @@
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/field_objects.hpp"
+#include "py_common/message_db_singleton.hpp"
 #include "py_oem/bindings.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/py_message_objects.hpp"
 
 namespace nb = nanobind;
@@ -51,8 +51,9 @@ void py_oem::init_decoder_tester(nb::module_& m)
                 std::string_view body_str(message_body.c_str(), message_body.size());
                 const char* data_ptr = body_str.data();
                 STATUS status = decoder.TestDecodeAscii(msg_def_fields, &data_ptr, fields);
-                return nb::make_tuple(status, py_common::PyField("", false, std::move(fields),
-                                                                 std::dynamic_pointer_cast<const py_common::PyMessageDatabaseCore>(decoder.MessageDb())));
+                return nb::make_tuple(status,
+                                      py_common::PyField("", false, std::move(fields),
+                                                         std::dynamic_pointer_cast<const py_common::PyMessageDatabaseCore>(decoder.MessageDb())));
             },
             "msg_def_fields"_a, "message_body"_a)
         .def(
@@ -61,8 +62,9 @@ void py_oem::init_decoder_tester(nb::module_& m)
                 std::vector<FieldContainer> fields;
                 const char* data_ptr = message_body.c_str();
                 STATUS status = decoder.TestDecodeBinary(msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr), fields, message_length);
-                return nb::make_tuple(status, py_common::PyField("", false, std::move(fields),
-                                                                 std::dynamic_pointer_cast<const py_common::PyMessageDatabaseCore>(decoder.MessageDb())));
+                return nb::make_tuple(status,
+                                      py_common::PyField("", false, std::move(fields),
+                                                         std::dynamic_pointer_cast<const py_common::PyMessageDatabaseCore>(decoder.MessageDb())));
             },
             "msg_def_fields"_a, "message_body"_a, "message_length"_a);
 }

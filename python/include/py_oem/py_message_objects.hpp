@@ -6,9 +6,9 @@
 #include "py_common/bindings_core.hpp"
 #include "py_common/field_objects.hpp"
 #include "py_common/message_database.hpp"
+#include "py_common/message_db_singleton.hpp"
 #include "py_common/py_logger.hpp"
 #include "py_common/py_message_data.hpp"
-#include "py_oem/message_db_singleton.hpp"
 
 namespace nb = nanobind;
 
@@ -114,15 +114,14 @@ struct PyEncodableField : public py_common::PyField
   protected:
     py_common::PyMessageData PyEncode(ENCODE_FORMAT eFormat);
 
-
   public:
     PyHeader header;
     PyMessageDatabase::ConstPtr parent_db_;
 
-
-    explicit PyEncodableField(std::string name_, bool has_ptype_, std::vector<FieldContainer>&& fields_,
-                              PyMessageDatabase::ConstPtr parent_db_, PyHeader header_)
-        : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_->GetCoreDatabase())), header(std::move(header_)), parent_db_(std::move(parent_db_)) {};
+    explicit PyEncodableField(std::string name_, bool has_ptype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr parent_db_,
+                              PyHeader header_)
+        : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_->GetCoreDatabase())), header(std::move(header_)),
+          parent_db_(std::move(parent_db_)) {};
 
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
     py_common::PyMessageData to_ascii();
@@ -130,7 +129,6 @@ struct PyEncodableField : public py_common::PyField
     py_common::PyMessageData to_binary();
     py_common::PyMessageData to_flattened_binary();
     py_common::PyMessageData to_json();
-
 };
 
 //============================================================================

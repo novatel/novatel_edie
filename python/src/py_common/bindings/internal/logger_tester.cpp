@@ -1,7 +1,7 @@
 #include "novatel_edie/common/logger.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/py_logger.hpp"
-#include "py_oem/bindings.hpp"
+#include "py_common/init_bindings_functions.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -20,7 +20,7 @@ class PyLoggerTester
     void LogCritical(std::string message) { SPDLOG_LOGGER_CRITICAL(pclMyLogger, message); }
 };
 
-void novatel::edie::py_oem::init_logger_tester(nb::module_& m)
+void novatel::edie::py_common::init_logger_tester(nb::module_& m)
 {
     nb::class_<PyLoggerTester>(m, "LoggerTester")
         .def(nb::init<>())

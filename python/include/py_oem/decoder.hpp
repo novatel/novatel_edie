@@ -5,7 +5,7 @@
 #include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_oem/message_database.hpp"
-#include "py_oem/message_db_singleton.hpp"
+#include "py_common/message_db_singleton.hpp"
 #include "py_oem/py_message_objects.hpp"
 
 namespace nb = nanobind;

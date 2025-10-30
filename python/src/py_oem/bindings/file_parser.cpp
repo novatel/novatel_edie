@@ -1,12 +1,12 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 
 #include "py_common/bindings_core.hpp"
+#include "py_common/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/pystream.hpp"
 #include "py_oem/bindings.hpp"
 #include "py_oem/file_parser.hpp"
 #include "py_oem/filter.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/parser.hpp"
 #include "py_oem/py_message_objects.hpp"
 
@@ -196,7 +196,8 @@ void py_oem::init_novatel_file_parser(nb::module_& m)
 
     nb::class_<py_oem::FileConversionIterator>(m, "FileConversionIterator")
         .def(
-            "__iter__", [](nb::handle_t<py_oem::FileConversionIterator> self) { return self; }, nb::sig("def __iter__(self) -> Iterator[MessageData]"),
+            "__iter__", [](nb::handle_t<py_oem::FileConversionIterator> self) { return self; },
+            nb::sig("def __iter__(self) -> Iterator[MessageData]"),
             R"doc(
             Marks FileConversionIterator as Iterable.
 

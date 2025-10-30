@@ -2,10 +2,10 @@
 
 #include "novatel_edie/decoders/oem/parser.hpp"
 #include "py_common/bindings_core.hpp"
-#include "py_common/py_message_data.hpp"
 #include "py_common/message_database.hpp"
+#include "py_common/message_db_singleton.hpp"
+#include "py_common/py_message_data.hpp"
 #include "py_oem/message_database.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/py_message_objects.hpp"
 
 namespace nb = nanobind;
@@ -23,7 +23,10 @@ class PyParser : public oem::Parser
 
   public:
     // inherit constructors
-    PyParser(py_common::PyMessageDatabaseCore::Ptr& pclMessageDb_) : Parser(pclMessageDb_), pclPyMessageDb(std::make_shared<PyMessageDatabase>(pclMessageDb_)) {}
+    PyParser(py_common::PyMessageDatabaseCore::Ptr& pclMessageDb_)
+        : Parser(pclMessageDb_), pclPyMessageDb(std::make_shared<PyMessageDatabase>(pclMessageDb_))
+    {
+    }
 
     nb::object PyRead(bool decode_incomplete);
     nb::object PyIterRead();
@@ -41,4 +44,4 @@ class ConversionIterator
     nb::object PyIterConvert();
 };
 
-}; // namespace novatel::edie::oem
+}; // namespace novatel::edie::py_oem

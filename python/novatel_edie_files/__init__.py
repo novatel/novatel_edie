@@ -24,6 +24,8 @@ SOFTWARE.
 
 import importlib_resources
 
+from .python_common import _internal,  enable_internal_logging, disable_internal_logging
+
 from .bindings import (
     HEADER_FORMAT, ENCODE_FORMAT, STATUS, FIELD_TYPE, DATA_TYPE, TIME_STATUS, MEASUREMENT_SOURCE,
     MAX_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH,
@@ -38,7 +40,7 @@ from .bindings import (
     BufferFullException, BufferEmptyException, StreamEmptyException, UnsupportedException,
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,
     CPP_VERSION, CPP_PRETTY_VERSION, GIT_SHA, GIT_BRANCH, GIT_IS_DIRTY, BUILD_TIMESTAMP,
-    enable_internal_logging, disable_internal_logging, calculate_crc,
+    calculate_crc,
     UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime, SatelliteId,
     MessageDatabase, get_builtin_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
@@ -47,7 +49,7 @@ from .bindings import (
     RangeDecompressor, RxConfigHandler,
     throw_exception_from_status,
     EnumDataType,
-    messages, enums, _internal
+    messages, enums, _internal as _novatel_internal
 )
 
 def default_json_db_path():

@@ -1,4 +1,4 @@
-#include "py_oem/bindings.hpp"
+#include "py_common/init_bindings_functions.hpp"
 
 #include "novatel_edie/common/logger.hpp"
 
@@ -10,7 +10,7 @@ using namespace nb::literals;
 namespace spd = spdlog;
 using namespace novatel::edie;
 
-void py_oem::init_common_logger(nb::module_& m, nb::module_& internal_m)
+void py_common::init_common_logger(nb::module_& m, nb::module_& internal_m)
 {
     // Set the global LoggerManager to be a PyLoggerManager
     SetLoggerManager(new PyLoggerManager());

@@ -6,8 +6,8 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
+#include "py_common/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/py_message_objects.hpp"
 
 namespace nb = nanobind;
@@ -51,4 +51,4 @@ class FileConversionIterator
 
     nb::object PyIterConvert();
 };
-} // namespace novatel::edie::oem
+} // namespace novatel::edie::py_oem

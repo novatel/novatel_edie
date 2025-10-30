@@ -2,13 +2,13 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
+#include "py_common/message_db_singleton.hpp"
 #include "py_common/py_logger.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/unknown_bytes.hpp"
 #include "py_oem/bindings.hpp"
-#include "py_oem/message_database.hpp"
 #include "py_oem/filter.hpp"
-#include "py_oem/message_db_singleton.hpp"
+#include "py_oem/message_database.hpp"
 #include "py_oem/parser.hpp"
 #include "py_oem/py_message_objects.hpp"
 
@@ -18,8 +18,8 @@ using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
 nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_,
-                                       std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
-                                       py_oem::PyMessageDatabase::ConstPtr database_)
+                                          std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
+                                          py_oem::PyMessageDatabase::ConstPtr database_)
 {
     header_.format = metadata_.eFormat;
     switch (status_)
@@ -121,7 +121,8 @@ void py_oem::init_novatel_parser(nb::module_& m)
                 // This static cast is safe so long as the Parser's filter is set only via the Python interface
                 return std::static_pointer_cast<oem::PyFilter>(self.GetFilter());
             },
-            [](py_oem::PyParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); }, "The filter which controls which data is skipped over.")
+            [](py_oem::PyParser& self, oem::PyFilter::Ptr filter) { self.SetFilter(filter); },
+            "The filter which controls which data is skipped over.")
         .def_prop_ro("available_space", &py_oem::PyParser::GetAvailableSpace,
                      "The number of bytes in the Parser's internal buffer available for writing new data.")
         .def(
