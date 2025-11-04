@@ -269,7 +269,7 @@ class Logger
                                       const std::string& sFileName = "default.log", size_t maxFileSize = 5 * 1024 * 1024, size_t maxFiles = 3,
                                       bool rotateOnOpen = true)
     {
-        GetLoggerManager()->AddRotatingFileLogger(lgr, level, sFileName, maxFiles, maxFileSize, rotateOnOpen);
+        GetLoggerManager()->AddRotatingFileLogger(lgr, level, sFileName, maxFileSize, maxFiles, rotateOnOpen);
     }
 };
 
