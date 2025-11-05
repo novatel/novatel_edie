@@ -14,8 +14,8 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-nb::object py_common::convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db, std::string parent,
-                                    bool has_ptype)
+PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db,
+                                                    std::string parent, bool has_ptype)
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
@@ -116,7 +116,7 @@ nb::object py_common::convert_field(const FieldContainer& field, const py_common
     }
 }
 
-nb::dict& PyField::to_shallow_dict() const
+PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
 {
     if (cached_values_.size() == 0)
     {
@@ -134,14 +134,14 @@ nb::dict& PyField::to_shallow_dict() const
     return cached_values_;
 }
 
-nb::list PyField::get_field_names() const
+PYCOMMON_EXPORT nb::list PyField::get_field_names() const
 {
     nb::list field_names = nb::list();
     for (const auto& [name, value] : to_shallow_dict()) { field_names.append(name); }
     return field_names;
 }
 
-nb::list PyField::get_values() const
+PYCOMMON_EXPORT nb::list PyField::get_values() const
 {
     nb::list values = nb::list();
     nb::dict& unordered_values = to_shallow_dict();
@@ -149,7 +149,7 @@ nb::list PyField::get_values() const
     return values;
 }
 
-nb::list PyField::to_list() const
+PYCOMMON_EXPORT nb::list PyField::to_list() const
 {
     nb::list list = nb::list();
     for (const auto& [field_name, value] : to_shallow_dict())
@@ -170,7 +170,7 @@ nb::list PyField::to_list() const
     return list;
 }
 
-nb::dict PyField::to_dict() const
+PYCOMMON_EXPORT nb::dict PyField::to_dict() const
 {
     nb::dict dict;
     for (const auto& [field_name, value] : to_shallow_dict())
@@ -192,19 +192,19 @@ nb::dict PyField::to_dict() const
     return dict;
 }
 
-nb::object PyField::getattr(nb::str field_name) const
+PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
 {
     if (!contains(field_name)) { throw nb::attribute_error(field_name.c_str()); }
     return to_shallow_dict()[std::move(field_name)];
 }
 
-nb::object PyField::getitem(nb::str field_name) const { return to_shallow_dict()[std::move(field_name)]; }
+PYCOMMON_EXPORT nb::object PyField::getitem(nb::str field_name) const { return to_shallow_dict()[std::move(field_name)]; }
 
-bool PyField::contains(nb::str field_name) const { return to_shallow_dict().contains(std::move(field_name)); }
+PYCOMMON_EXPORT bool PyField::contains(nb::str field_name) const { return to_shallow_dict().contains(std::move(field_name)); }
 
-size_t PyField::len() const { return fields.size(); }
+PYCOMMON_EXPORT size_t PyField::len() const { return fields.size(); }
 
-std::string PyField::repr() const
+PYCOMMON_EXPORT std::string PyField::repr() const
 {
     std::stringstream repr;
     repr << name << "(";

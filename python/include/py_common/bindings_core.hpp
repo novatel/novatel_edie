@@ -9,3 +9,9 @@
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/tuple.h>
 #include <nanobind/stl/vector.h>
+
+#if defined(__GNUC__) || defined(__clang__)
+#define PYCOMMON_EXPORT __attribute__((visibility("default")))
+#else
+#define PYCOMMON_EXPORT
+#endif

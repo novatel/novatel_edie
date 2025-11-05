@@ -9,7 +9,7 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-nb::object py_common::create_unknown_bytes(nb::bytes data)
+PYCOMMON_EXPORT nb::object py_common::create_unknown_bytes(nb::bytes data)
 {
     nb::handle data_pytype = nb::type<py_common::PyUnknownBytes>();
     nb::object data_pyinst = nb::inst_alloc(data_pytype);

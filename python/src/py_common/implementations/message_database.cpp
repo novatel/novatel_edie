@@ -12,39 +12,39 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-py_common::PyMessageDatabaseCore::PyMessageDatabaseCore()
+PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore()
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
 
-py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
-                                                        std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
+PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
+                                                                        std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
     : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
 
-py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
+PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
 
-py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
+PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
 {
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
 
-void py_common::PyMessageDatabaseCore::GenerateMessageMappings()
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::GenerateMessageMappings()
 {
     MessageDatabase::GenerateMessageMappings();
     UpdatePythonMessageTypes();
 }
 
-void py_common::PyMessageDatabaseCore::GenerateEnumMappings()
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::GenerateEnumMappings()
 {
     MessageDatabase::GenerateEnumMappings();
     UpdatePythonEnums();
@@ -60,7 +60,7 @@ void cleanString(std::string& str)
     if (isdigit(str[0])) { str = "_" + str; }
 }
 
-inline void py_common::PyMessageDatabaseCore::UpdatePythonEnums()
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::UpdatePythonEnums()
 {
     nb::object IntEnum = nb::module_::import_("enum").attr("IntEnum");
     enums_by_id.clear();
@@ -83,8 +83,8 @@ inline void py_common::PyMessageDatabaseCore::UpdatePythonEnums()
     }
 }
 
-void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name,
-                                                    nb::handle type_constructor, nb::handle type_tuple, nb::handle type_dict)
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name,
+                                                                    nb::handle type_constructor, nb::handle type_tuple, nb::handle type_dict)
 {
     // rescursively add field types for each field array element within the provided vector
     for (const auto& field : fields)
@@ -100,7 +100,7 @@ void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<
     }
 }
 
-void py_common::PyMessageDatabaseCore::UpdatePythonMessageTypes()
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::UpdatePythonMessageTypes()
 {
     // clear existing definitions
     messages_by_name.clear();
@@ -125,13 +125,13 @@ void py_common::PyMessageDatabaseCore::UpdatePythonMessageTypes()
     }
 }
 
-std::unordered_map<std::string, std::function<nb::handle()>>& py_common::GetBasePythonTypes()
+PYCOMMON_EXPORT std::unordered_map<std::string, std::function<nb::handle()>>& py_common::GetBasePythonTypes()
 {
     static std::unordered_map<std::string, std::function<nb::handle()>> nameToTypeGetter;
     return nameToTypeGetter;
 }
 
-nb::handle py_common::GetBasePythonType(const std::string& message_style)
+PYCOMMON_EXPORT nb::handle py_common::GetBasePythonType(const std::string& message_style)
 {
     std::unordered_map<std::string, std::function<nb::handle()>>& typeGetters = GetBasePythonTypes();
     std::function<nb::handle()> typeGetter = typeGetters.at(message_style);
