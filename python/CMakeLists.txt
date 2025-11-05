@@ -136,6 +136,8 @@ add_custom_target(
 
 set_target_properties(nanobind_stubs dynamic_stubs PROPERTIES FOLDER python_bindings)
 
+set_target_properties(python_common decoders_common oem_decoder oem_bindings common PROPERTIES INSTALL_RPATH "$ORIGIN")
+
 message(STATUS "PYTHON_INSTALL_DIR: ${PYTHON_INSTALL_DIR}")
 
 install(TARGETS python_common
