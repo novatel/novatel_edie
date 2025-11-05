@@ -33,12 +33,3 @@ struct PyMessageData
 };
 
 } // namespace novatel::edie::py_common
-
-inline void define_pymessagedata(nb::module_& m)
-{
-    nb::class_<novatel::edie::py_common::PyMessageData>(m, "MessageData")
-        .def("__repr__", &novatel::edie::py_common::PyMessageData::GetRepr)
-        .def_prop_ro("message", &novatel::edie::py_common::PyMessageData::message)
-        .def_prop_ro("header", &novatel::edie::py_common::PyMessageData::header)
-        .def_prop_ro("payload", &novatel::edie::py_common::PyMessageData::body);
-}

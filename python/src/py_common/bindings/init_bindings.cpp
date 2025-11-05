@@ -1,4 +1,4 @@
-#include "py_common/init_bindings_functions.hpp"
+#include "py_common/init_bindings.hpp"
 
 #include <memory>
 
@@ -17,6 +17,8 @@ NB_MODULE(python_common, m)
     init_common_logger(m, internal_mod);
     init_logger_tester(internal_mod);
     init_exceptions(m);
+    init_field_objects(m);
+    init_raw_data_classes(m);
     init_common_message_database(m);
     init_message_db_singleton(m);
 }

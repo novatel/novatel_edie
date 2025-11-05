@@ -41,6 +41,7 @@ from .python_common import (
     MAX_ABB_ASCII_RESPONSE_LENGTH, MAX_NMEA_MESSAGE_LENGTH,
     CPP_VERSION, CPP_PRETTY_VERSION, GIT_SHA, GIT_BRANCH, GIT_IS_DIRTY, BUILD_TIMESTAMP,
     calculate_crc, SatelliteId,
+    UnknownBytes, Field, MessageData,
 )
 
 from .bindings import (
@@ -50,8 +51,8 @@ from .bindings import (
     OEM4_BINARY_CRC_LENGTH, OEM4_ASCII_CRC_LENGTH,
     OEM4_BINARY_SYNC_LENGTH, OEM4_SHORT_ASCII_SYNC_LENGTH, OEM4_ASCII_SYNC_LENGTH, OEM4_SHORT_BINARY_SYNC_LENGTH,
     OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3,
-    UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime,
-    Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
+    Header, UnknownMessage, Message, Response, GpsTime,
+    Oem4BinaryHeader, Oem4BinaryShortHeader,  MetaData,
     Framer, Filter, Decoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
     messages, enums, _internal as _novatel_internal

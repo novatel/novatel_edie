@@ -3,7 +3,7 @@
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/message_database.hpp"
-#include "py_common/init_bindings_functions.hpp"
+#include "py_common/init_bindings.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;

@@ -35,8 +35,6 @@ nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::Py
 
 void py_oem::init_novatel_decoder(nb::module_& m)
 {
-    define_pymessagedata(m);
-
     nb::class_<py_oem::PyDecoder>(m, "Decoder")
         .def(
             "__init__",

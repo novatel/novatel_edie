@@ -9,6 +9,7 @@
 #include "py_common/message_db_singleton.hpp"
 #include "py_common/py_logger.hpp"
 #include "py_common/py_message_data.hpp"
+#include "py_oem/message_database.hpp"
 
 namespace nb = nanobind;
 
@@ -97,7 +98,7 @@ struct PyUnknownMessage
     PyHeader header;
 
     nb::bytes payload;
-    explicit PyUnknownMessage(PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
+    explicit PyUnknownMessage(py_oem::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
         : header(std::move(header_)), payload(std::move(bytes_))
     {
     }

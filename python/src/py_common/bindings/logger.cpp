@@ -1,4 +1,4 @@
-#include "py_common/init_bindings_functions.hpp"
+#include "py_common/init_bindings.hpp"
 
 #include "novatel_edie/common/logger.hpp"
 

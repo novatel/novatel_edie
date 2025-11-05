@@ -2,7 +2,7 @@
 
 #include "novatel_edie/decoders/common/message_database.hpp"
 
-#include "py_oem/message_database.hpp"
+#include "py_common/message_database.hpp"
 
 namespace novatel::edie::py_common {
 

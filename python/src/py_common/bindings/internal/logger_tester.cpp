@@ -1,7 +1,7 @@
 #include "novatel_edie/common/logger.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/py_logger.hpp"
-#include "py_common/init_bindings_functions.hpp"
+#include "py_common/init_bindings.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
