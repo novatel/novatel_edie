@@ -4,11 +4,12 @@
 #include "py_common/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/pystream.hpp"
-#include "py_oem/bindings.hpp"
 #include "py_oem/file_parser.hpp"
 #include "py_oem/filter.hpp"
+#include "py_oem/init_bindings.hpp"
 #include "py_oem/parser.hpp"
 #include "py_oem/py_message_objects.hpp"
+
 
 namespace nb = nanobind;
 using namespace nb::literals;

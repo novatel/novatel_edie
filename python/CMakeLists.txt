@@ -56,8 +56,6 @@ add_library(python_common SHARED
 target_include_directories(python_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(python_common PUBLIC ${NANOBIND_LIB_NAME})
 target_link_libraries(python_common PUBLIC decoders_common)
-# nanobind_opt_size(python_common)
-# nanobind_lto(python_common)
 nanobind_disable_stack_protector(python_common)
 nanobind_compile_options(python_common)
 nanobind_musl_static_libcpp(python_common)
@@ -68,7 +66,7 @@ set_target_properties(python_common PROPERTIES
 )
 
 
-add_library(oem_bindings MODULE
+add_library(python_oem MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/implementations/message_database.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/init_bindings.cpp
@@ -85,26 +83,26 @@ add_library(oem_bindings MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/py_message_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/internal/decoder_tester.cpp
 )
-target_link_libraries(oem_bindings PRIVATE decoders_common)
-target_link_libraries(oem_bindings PRIVATE ${NANOBIND_LIB_NAME})
-target_link_libraries(oem_bindings PRIVATE python_common)
-target_link_libraries(oem_bindings PRIVATE oem_decoder)
-# nanobind_opt_size(oem_bindings)
-# nanobind_lto(oem_bindings)
-nanobind_set_visibility(oem_bindings)
-nanobind_strip(oem_bindings)
-nanobind_disable_stack_protector(oem_bindings)
-nanobind_extension(oem_bindings)
-nanobind_compile_options(oem_bindings)
-nanobind_link_options(oem_bindings)
-nanobind_musl_static_libcpp(oem_bindings)
+target_link_libraries(python_oem PRIVATE decoders_common)
+target_link_libraries(python_oem PRIVATE ${NANOBIND_LIB_NAME})
+target_link_libraries(python_oem PRIVATE python_common)
+target_link_libraries(python_oem PRIVATE oem_decoder)
+nanobind_opt_size(python_oem)
+nanobind_lto(python_oem)
+nanobind_set_visibility(python_oem)
+nanobind_strip(python_oem)
+nanobind_disable_stack_protector(python_oem)
+nanobind_extension(python_oem)
+nanobind_compile_options(python_oem)
+nanobind_link_options(python_oem)
+nanobind_musl_static_libcpp(python_oem)
 
 
-set_target_properties(oem_bindings PROPERTIES OUTPUT_NAME bindings FOLDER python_bindings)
-target_include_directories(oem_bindings PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set_target_properties(python_oem PROPERTIES FOLDER python_bindings)
+target_include_directories(python_oem PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
-target_compile_definitions(oem_bindings PRIVATE
+target_compile_definitions(python_oem PRIVATE
     VERSION_INFO=${SKBUILD_PROJECT_VERSION}
     # https://github.com/boostorg/system/issues/32#issuecomment-462912013
     HAVE_SNPRINTF
@@ -118,7 +116,7 @@ add_custom_target(
     --import $<TARGET_FILE_DIR:python_common>
     --pattern-file ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
     -m python_common    # Must appear before dependent modules in stub generation
-    -m bindings
+    -m python_oem
     --output-dir ${CMAKE_CURRENT_BINARY_DIR}/stubs
     COMMENT "Generating nanobind stubs"
     DEPENDS
@@ -136,7 +134,7 @@ add_custom_target(
 
 set_target_properties(nanobind_stubs dynamic_stubs PROPERTIES FOLDER python_bindings)
 
-set_target_properties(python_common decoders_common oem_decoder oem_bindings common PROPERTIES INSTALL_RPATH "$ORIGIN")
+set_target_properties(python_common decoders_common oem_decoder python_oem common PROPERTIES INSTALL_RPATH "$ORIGIN")
 
 message(STATUS "PYTHON_INSTALL_DIR: ${PYTHON_INSTALL_DIR}")
 
@@ -148,7 +146,7 @@ install(TARGETS common decoders_common  ${NANOBIND_LIB_NAME}
     RUNTIME DESTINATION ${PYTHON_INSTALL_DIR} COMPONENT python
     LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
     COMPONENT python)
-install(TARGETS oem_decoder oem_bindings
+install(TARGETS oem_decoder python_oem
     RUNTIME DESTINATION ${PYTHON_INSTALL_DIR} COMPONENT python
     LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
     COMPONENT python)

@@ -44,7 +44,7 @@ from .python_common import (
     UnknownBytes, Field, MessageData,
 )
 
-from .bindings import (
+from .python_oem import (
     HEADER_FORMAT,
     NMEA_SYNC_LENGTH, NMEA_CRC_LENGTH,
     OEM4_BINARY_HEADER_LENGTH, OEM4_SHORT_BINARY_HEADER_LENGTH,

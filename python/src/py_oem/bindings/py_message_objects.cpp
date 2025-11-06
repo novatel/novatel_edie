@@ -15,7 +15,7 @@
 #include "py_common/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/unknown_bytes.hpp"
-#include "py_oem/bindings.hpp"
+#include "py_oem/init_bindings.hpp"
 #include "py_oem/message_database.hpp"
 
 namespace nb = nanobind;

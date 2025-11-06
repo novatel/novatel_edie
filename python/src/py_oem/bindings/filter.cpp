@@ -2,7 +2,7 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_oem/filter.hpp"
-#include "py_oem/bindings.hpp"
+#include "py_oem/init_bindings.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -120,8 +120,7 @@ void py_oem::init_novatel_filter(nb::module_& m)
                     source: The antenna source it applies to. Defaults to primary.
         )doc")
         .def("extend_message_names",
-             nb::overload_cast<std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>>&>(&oem::PyFilter::IncludeMessageName),
-             "names"_a,
+             nb::overload_cast<std::vector<std::tuple<std::string, HEADER_FORMAT, uint8_t>>&>(&oem::PyFilter::IncludeMessageName), "names"_a,
              R"doc(
                 Extends the set of message name to filter on.
 

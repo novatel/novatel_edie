@@ -4,8 +4,9 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_oem/bindings.hpp"
 #include "py_common/message_db_singleton.hpp"
+#include "py_oem/init_bindings.hpp"
+
 
 namespace nb = nanobind;
 using namespace nb::literals;

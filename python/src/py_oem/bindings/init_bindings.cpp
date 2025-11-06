@@ -1,4 +1,4 @@
-#include "py_oem/bindings.hpp"
+#include "py_oem/init_bindings.hpp"
 
 #include <memory>
 
@@ -9,8 +9,7 @@
 namespace nb = nanobind;
 using namespace novatel::edie::py_oem;
 
-
-NB_MODULE(bindings, m)
+NB_MODULE(python_oem, m)
 {
     nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
     nb::module_ messages_mod = m.def_submodule("messages", "NovAtel OEM message types.");
