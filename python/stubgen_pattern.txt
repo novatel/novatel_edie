@@ -1,5 +1,6 @@
-python_common.__prefix__:
+python_oem.__prefix__:
     from typing import Iterator
+    import novatel_edie.python_common as python_common
 
 python_oem.Filter.(lower|upper)_time_bound:
     @property

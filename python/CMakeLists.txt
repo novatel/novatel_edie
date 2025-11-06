@@ -124,6 +124,13 @@ add_custom_target(
 )
 
 add_custom_target(
+    cleanup_stubs ALL
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cleanup_stubs.py ${CMAKE_CURRENT_BINARY_DIR}/stubs
+    DEPENDS nanobind_stubs ${CMAKE_CURRENT_BINARY_DIR}/stubs/python_common.pyi ${CMAKE_CURRENT_BINARY_DIR}/stubs/python_oem.pyi
+)
+
+
+add_custom_target(
     dynamic_stubs ALL
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie_files/stubgen.py ${CMAKE_SOURCE_DIR}/database/database.json ${CMAKE_CURRENT_BINARY_DIR}/stubs
     COMMENT "Generating dynamic stubs"
