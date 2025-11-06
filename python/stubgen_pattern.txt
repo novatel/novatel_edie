@@ -1,7 +1,7 @@
-bindings.__prefix__:
+python_common.__prefix__:
     from typing import Iterator
 
-bindings.Filter.(lower|upper)_time_bound:
+python_oem.Filter.(lower|upper)_time_bound:
     @property
     def \1_time_bound(self) -> GpsTime | None:
         \doc
@@ -9,7 +9,7 @@ bindings.Filter.(lower|upper)_time_bound:
     @lower_time_bound.setter
     def \1_time_bound(self, value: GpsTime | None): ...
 
-bindings.Filter.decimation_period$:
+python_oem.Filter.decimation_period$:
     @property
     def decimation_period(self) -> int | None:
         \doc
@@ -17,7 +17,7 @@ bindings.Filter.decimation_period$:
     @decimation_period.setter
     def decimation_period(self, value: int | None): ...
 
-bindings.Filter.include_responses$:
+python_oem.Filter.include_responses$:
     @property
     def include_responses(self) -> bool:
         \doc
@@ -25,7 +25,7 @@ bindings.Filter.include_responses$:
     @include_responses.setter
     def include_responses(self, include: bool): ...
 
-bindings.Filter.include_non_responses$:
+python_oem.Filter.include_non_responses$:
     @property
     def include_non_responses(self) -> bool:
         \doc
@@ -33,7 +33,7 @@ bindings.Filter.include_non_responses$:
     @include_non_responses.setter
     def include_non_responses(self, include: bool): ...
 
-bindings.Response.response_enum:
+py_oem.Response.response_enum:
     from typing import TYPE_CHECKING
     if TYPE_CHECKING:
         from novatel_edie.enums import Responses
