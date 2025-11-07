@@ -51,16 +51,16 @@ TEST_F(JsonDbReaderTest, JsonDbReaderFailure)
 
 TEST_F(JsonDbReaderTest, AppendEnumerations)
 {
-    const std::string strId = "008451a05e1e7aa32c75119df950d405265e0904";
+    const std::string strId = "2630f62f9ca0a9e4bcccef50ffbaba8f920c4439";
 
     auto clJson = std::make_shared<MessageDatabase>();
     clJson->AppendEnumerations(LoadJsonDbFile(std::filesystem::path(std::getenv("TEST_DATABASE_PATH")))->EnumDefinitions());
 
     EnumDefinition::ConstPtr pstEnumDef = clJson->GetEnumDefId(strId);
     ASSERT_NE(pstEnumDef, nullptr);
-    ASSERT_EQ(pstEnumDef->name, "Datum");
+    ASSERT_EQ(pstEnumDef->name, "Adjust1PPSMode");
 
-    clJson->RemoveEnumeration("Datum");
+    clJson->RemoveEnumeration("Adjust1PPSMode");
     ASSERT_EQ(clJson->GetEnumDefId(strId), nullptr);
 }
 

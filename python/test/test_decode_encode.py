@@ -294,7 +294,7 @@ def test_ascii_log_roundtrip_gloephem(helper):
     assert message.time_offset == 10782
     assert message.nt == 573
     assert message.GLOEPHEMERIS_reserved == 0
-    assert message.GLOEPHEMERIS_reserved_9 == 0
+    assert message.GLOEPHEMERIS_reserved_1 == 0
     assert message.issue == 95
     assert message.broadcast_health == 0
     assert message.pos_x == -2.3917966796875000e+07
@@ -567,7 +567,7 @@ def test_flat_binary_log_decode_gloephema(helper):
     assert message.time_offset == 10782
     assert message.nt == 573
     assert message.GLOEPHEMERIS_reserved == 0
-    assert message.GLOEPHEMERIS_reserved_9 == 0
+    assert message.GLOEPHEMERIS_reserved_1 == 0
     assert message.issue == 95
     assert message.broadcast_health == 0
     assert message.pos_x == -2.3917966796875000e+07
