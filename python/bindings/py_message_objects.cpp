@@ -293,12 +293,13 @@ PyMessageData PyEncodableField::to_json() { return PyEncode(ENCODE_FORMAT::JSON)
 
 #pragma region Message Constructor Functions
 
-nb::object oem::create_unknown_bytes(nb::bytes data)
+nb::object oem::create_unknown_bytes(nb::bytes data, const MetaDataStruct& metadata)
 {
     nb::handle data_pytype = nb::type<PyUnknownBytes>();
     nb::object data_pyinst = nb::inst_alloc(data_pytype);
     PyUnknownBytes* data_cinst = nb::inst_ptr<PyUnknownBytes>(data_pyinst);
-    new (data_cinst) PyUnknownBytes(data);
+    UNKNOWN_VARIETY variety = metadata.eFormat == HEADER_FORMAT::NMEA ? UNKNOWN_VARIETY::NMEA : UNKNOWN_VARIETY::UNKNOWN;
+    new (data_cinst) PyUnknownBytes(data, variety);
     nb::inst_mark_ready(data_pyinst);
     return data_pyinst;
 }
@@ -480,13 +481,19 @@ void init_message_objects(nb::module_& m)
         .def_rw("milliseconds", &PyGpsTime::milliseconds, "Milliseconds from the beginning of the GPS reference week.")
         .def_rw("status", &PyGpsTime::time_status, "The quality of the GPS reference time.");
 
+    nb::enum_<UNKNOWN_VARIETY>(m, "UNKNOWN_VARIETY", "Indicates the reason why a set of bytes could not be decoded.")
+        .value("UNKNOWN", UNKNOWN_VARIETY::UNKNOWN, "The bytes could not be decoded for an unknown reason.")
+        .value("NMEA", UNKNOWN_VARIETY::NMEA, "The bytes correspond to an NMEA message.")
+        .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
+
     nb::class_<PyUnknownBytes>(m, "UnknownBytes", "A set of bytes which was determined to be undecodable by EDIE.")
         .def("__repr__",
              [](const PyUnknownBytes self) {
                  std::string byte_rep = nb::str(self.data.attr("__repr__")()).c_str();
                  return "UnknownBytes(" + byte_rep + ")";
              })
-        .def_ro("data", &PyUnknownBytes::data, "The raw bytes determined to be undecodable.");
+        .def_ro("data", &PyUnknownBytes::data, "The raw bytes determined to be undecodable.")
+        .def_ro("variety", &PyUnknownBytes::variety, "The reason why the bytes could not be decoded.");
 
     nb::class_<PyField>(m, "Field")
         .def("__getattr__", &PyField::getattr, "field_name"_a)
@@ -521,7 +528,7 @@ void init_message_objects(nb::module_& m)
             Retrieves the name of every top-level field within the payload of this message.
 
             Returns:
-                The name of every top-level field within the message payload.      
+                The name of every top-level field within the message payload.
             )doc")
         .def("get_field_values", &PyField::get_values,
              R"doc(
@@ -542,7 +549,7 @@ void init_message_objects(nb::module_& m)
             Converts the field to a list.
 
             Returns:
-                A list representation of the field.    
+                A list representation of the field.
             )doc");
 
     nb::class_<PyUnknownMessage>(m, "UnknownMessage")
@@ -585,9 +592,9 @@ void init_message_objects(nb::module_& m)
             "include_header"_a = true,
             R"doc(
             Converts the message to a dictionary.
-            
+
             Args:
-                include_header: Whether to include the header of the message in the 
+                include_header: Whether to include the header of the message in the
                     new representation.
 
             Returns:
@@ -617,9 +624,9 @@ void init_message_objects(nb::module_& m)
             "include_header"_a = true,
             R"doc(
             Converts the response to a dictionary.
-            
+
             Args:
-                include_header: Whether to include the header of the response in the 
+                include_header: Whether to include the header of the response in the
                     new representation.
 
             Returns:

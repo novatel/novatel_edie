@@ -47,7 +47,7 @@ from .bindings import (
     RangeDecompressor, RxConfigHandler,
     throw_exception_from_status,
     EnumDataType,
-    messages, enums, _internal
+    messages, enums, _internal, UNKNOWN_VARIETY,
 )
 
 def default_json_db_path():

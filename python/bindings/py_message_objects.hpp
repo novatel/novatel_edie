@@ -34,11 +34,19 @@ struct PyGpsTime
 //! \class UnknownBytes
 //! \brief A series of bytes determined to be undecodable.
 //============================================================================
+
+enum class UNKNOWN_VARIETY
+{
+    UNKNOWN,
+    NMEA
+};
+
 struct PyUnknownBytes
 {
     nb::bytes data;
+    UNKNOWN_VARIETY variety;
 
-    explicit PyUnknownBytes(nb::bytes data_) : data(std::move(data_)) {}
+    explicit PyUnknownBytes(nb::bytes data_, UNKNOWN_VARIETY variety_) : data(std::move(data_)), variety(variety_) {}
 };
 
 //============================================================================
@@ -249,7 +257,7 @@ struct PyMessage : public PyEncodableField
         : PyEncodableField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_), std::move(header_)) {};
 };
 
-nb::object create_unknown_bytes(nb::bytes data);
+nb::object create_unknown_bytes(nb::bytes data, const MetaDataStruct& metadata);
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database);
 
