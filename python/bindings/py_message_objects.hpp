@@ -31,22 +31,25 @@ struct PyGpsTime
 };
 
 //============================================================================
-//! \class UnknownBytes
-//! \brief A series of bytes determined to be undecodable.
+//! \class UNKNOWN_REASON
+//! \brief Describes the reason that a series of bytes is unknown.
 //============================================================================
-
-enum class UNKNOWN_VARIETY
+enum class UNKNOWN_REASON
 {
     UNKNOWN,
     NMEA
 };
 
+//============================================================================
+//! \class PyUnknownBytes
+//! \brief A series of bytes determined to be undecodable.
+//============================================================================
 struct PyUnknownBytes
 {
     nb::bytes data;
-    UNKNOWN_VARIETY variety;
+    UNKNOWN_REASON reason;
 
-    explicit PyUnknownBytes(nb::bytes data_, UNKNOWN_VARIETY variety_) : data(std::move(data_)), variety(variety_) {}
+    explicit PyUnknownBytes(nb::bytes data_, UNKNOWN_REASON variety_) : data(std::move(data_)), reason(variety_) {}
 };
 
 //============================================================================

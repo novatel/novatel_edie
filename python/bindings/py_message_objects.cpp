@@ -298,7 +298,7 @@ nb::object oem::create_unknown_bytes(nb::bytes data, const MetaDataStruct& metad
     nb::handle data_pytype = nb::type<PyUnknownBytes>();
     nb::object data_pyinst = nb::inst_alloc(data_pytype);
     PyUnknownBytes* data_cinst = nb::inst_ptr<PyUnknownBytes>(data_pyinst);
-    UNKNOWN_VARIETY variety = metadata.eFormat == HEADER_FORMAT::NMEA ? UNKNOWN_VARIETY::NMEA : UNKNOWN_VARIETY::UNKNOWN;
+    UNKNOWN_REASON variety = metadata.eFormat == HEADER_FORMAT::NMEA ? UNKNOWN_REASON::NMEA : UNKNOWN_REASON::UNKNOWN;
     new (data_cinst) PyUnknownBytes(data, variety);
     nb::inst_mark_ready(data_pyinst);
     return data_pyinst;
@@ -481,9 +481,9 @@ void init_message_objects(nb::module_& m)
         .def_rw("milliseconds", &PyGpsTime::milliseconds, "Milliseconds from the beginning of the GPS reference week.")
         .def_rw("status", &PyGpsTime::time_status, "The quality of the GPS reference time.");
 
-    nb::enum_<UNKNOWN_VARIETY>(m, "UNKNOWN_VARIETY", "Indicates the reason why a set of bytes could not be decoded.")
-        .value("UNKNOWN", UNKNOWN_VARIETY::UNKNOWN, "The bytes could not be decoded for an unknown reason.")
-        .value("NMEA", UNKNOWN_VARIETY::NMEA, "The bytes correspond to an NMEA message.")
+    nb::enum_<UNKNOWN_REASON>(m, "UNKNOWN_REASON", "Indicates the reason why a set of bytes could not be decoded.")
+        .value("UNKNOWN", UNKNOWN_REASON::UNKNOWN, "The bytes are of an unknown format.")
+        .value("NMEA", UNKNOWN_REASON::NMEA, "The bytes correspond to an NMEA message.")
         .def("__str__", [](nb::handle self) { return getattr(self, "__name__"); });
 
     nb::class_<PyUnknownBytes>(m, "UnknownBytes", "A set of bytes which was determined to be undecodable by EDIE.")
@@ -493,7 +493,7 @@ void init_message_objects(nb::module_& m)
                  return "UnknownBytes(" + byte_rep + ")";
              })
         .def_ro("data", &PyUnknownBytes::data, "The raw bytes determined to be undecodable.")
-        .def_ro("variety", &PyUnknownBytes::variety, "The reason why the bytes could not be decoded.");
+        .def_ro("reason", &PyUnknownBytes::reason, "The reason why the bytes could not be decoded.");
 
     nb::class_<PyField>(m, "Field")
         .def("__getattr__", &PyField::getattr, "field_name"_a)

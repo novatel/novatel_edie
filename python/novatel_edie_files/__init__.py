@@ -39,7 +39,7 @@ from .bindings import (
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,
     CPP_VERSION, CPP_PRETTY_VERSION, GIT_SHA, GIT_BRANCH, GIT_IS_DIRTY, BUILD_TIMESTAMP,
     enable_internal_logging, disable_internal_logging, calculate_crc,
-    UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime, SatelliteId,
+    UNKNOWN_REASON, UnknownBytes, Header, Field, UnknownMessage, Message, Response, GpsTime, SatelliteId,
     MessageDatabase, get_builtin_database,
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData, MessageData,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
@@ -47,7 +47,7 @@ from .bindings import (
     RangeDecompressor, RxConfigHandler,
     throw_exception_from_status,
     EnumDataType,
-    messages, enums, _internal, UNKNOWN_VARIETY,
+    messages, enums, _internal
 )
 
 def default_json_db_path():
