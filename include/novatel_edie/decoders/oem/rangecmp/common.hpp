@@ -524,6 +524,7 @@ enum class SIGNAL_TYPE
     QZSS_L2CM = 3,
     QZSS_L5Q = 4,
     QZSS_L1C = 8,
+    QZSS_L6D = 10,
     QZSS_L6P = 11,
     // LBAND
     LBAND = 1,
