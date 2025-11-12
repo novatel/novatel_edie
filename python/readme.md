@@ -349,12 +349,17 @@ however it cannot be re-encoded as its decoding is incomplete.
 
 ### UnknownBytes
 
-`UnknownBytes` are created when the parser determines that a sequence of bytes is undecodable. The type is merely a container for raw byte data.
+`UnknownBytes` objects represent byte sequences that cannot be decoded into messages. They contain the raw byte data and a reason explaining why decoding failed.
 
 ```tree
 unknown_bytes
+├── reason
 └── data
 ```
+
+The `reason` field indicates why the bytes couldn't be decoded as an `UNKNOWN_REASON` enum value:
+- `UNKNOWN_REASON.UNKNOWN`: The bytes don't match any known protocol.
+- `UNKNOWN_REASON.NMEA`: The bytes are part of an NMEA message, which lack decoding support. This value may be deprecated in the future if NMEA support is added.
 
 ### MessageData
 
