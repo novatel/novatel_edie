@@ -619,6 +619,7 @@ constexpr double SignalScaling(SYSTEM system, SIGNAL_TYPE signal)
         case SIGNAL_TYPE::QZSS_L1CA: return 1.0;
         case SIGNAL_TYPE::QZSS_L2CM: return 154.0 / 120.0;
         case SIGNAL_TYPE::QZSS_L5Q: return 154.0 / 115.0;
+        case SIGNAL_TYPE::QZSS_L6D: [[fallthrough]];
         case SIGNAL_TYPE::QZSS_L6P: return 154.0 / 125.0;
         default: return 0.0;
         }
