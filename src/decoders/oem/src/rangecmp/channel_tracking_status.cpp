@@ -220,6 +220,7 @@ ChannelTrackingStatus::CTS_SIGNAL ChannelTrackingStatus::RangeCmp2SignalTypeToSi
         case SIGNAL_TYPE::QZSS_L2CM: return CTS_SIGNAL::QZSS_L2CM;
         case SIGNAL_TYPE::QZSS_L5Q: return CTS_SIGNAL::QZSS_L5Q;
         case SIGNAL_TYPE::QZSS_L1C: return CTS_SIGNAL::QZSS_L1CP;
+        case SIGNAL_TYPE::QZSS_L6D: return CTS_SIGNAL::QZSS_L6D;
         case SIGNAL_TYPE::QZSS_L6P: return CTS_SIGNAL::QZSS_L6P;
         default: return CTS_SIGNAL::UNKNOWN;
         }
