@@ -54,8 +54,8 @@ void init_common_framer_manager(nb::module_& m)
         //            "Initializes FramerManager with a list of selected framer names.")
         .def("register_framer",
              [](FramerManager& self, const std::string& framer_name, nb::callable py_framer_factory, nb::callable py_metadata_constructor) {
-                 auto framer_factory = [=](std::shared_ptr<CircularBuffer> cb) -> std::unique_ptr<FramerBase> {
-                     nb::object factory = py_framer_factory(cb);
+                 auto framer_factory = [=](std::shared_ptr<UCharFixedRingBuffer> rb) -> std::unique_ptr<FramerBase> {
+                     nb::object factory = py_framer_factory(rb);
                      return std::move(nb::cast<std::unique_ptr<FramerBase>&>(factory));
                  };
 
@@ -74,7 +74,7 @@ void init_common_framer_manager(nb::module_& m)
             [](FramerManager& self, const bool report_unknown_bytes) { self.SetReportUnknownBytes(report_unknown_bytes); }, "report_unknown_bytes"_a)
         .def_prop_rw("report_unknown_bytes", &PyFramerManager::GetReportUnknownBytes, &PyFramerManager::SetReportUnknownBytes,
                      "Whether to frame and return undecodable data.")
-        .def_prop_ro("circular_buffer", [](FramerManager& self) { return self.GetCircularBuffer(); })
+        .def_prop_ro("circular_buffer", [](FramerManager& self) { return self.GetFixedRingBuffer(); })
         .def(
             "framer_element", [](FramerManager& self, std::string framer_name) { return self.GetFramerElement(framer_name); }, "framer_id"_a,
             nb::rv_policy::reference)

@@ -44,7 +44,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    FixedRingBuffer<unsigned char, 1 << 18> clMyBuffer{};
+    std::shared_ptr<UCharFixedRingBuffer> pclMyBuffer{std::make_shared<UCharFixedRingBuffer>()};
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -64,7 +64,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
-        return uiPosition_ + 1 < clMyBuffer.size() && clMyBuffer[uiPosition_] == '\r' && clMyBuffer[uiPosition_ + 1] == '\n';
+        return uiPosition_ + 1 < pclMyBuffer->size() && (*pclMyBuffer)[uiPosition_] == '\r' && (*pclMyBuffer)[uiPosition_ + 1] == '\n';
     }
 
   public:
@@ -85,13 +85,13 @@ class FramerBase
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, size_t count_)
     {
-        count_ = std::min(count_, clMyBuffer.size());
+        count_ = std::min(count_, pclMyBuffer->size());
 
         if (count_ == 0) { return; }
 
-        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { clMyBuffer.copy_out(pucBuffer_, count_); }
+        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyBuffer->copy_out(pucBuffer_, count_); }
 
-        clMyBuffer.erase_begin(count_);
+        pclMyBuffer->erase_begin(count_);
         uiMyByteCount = 0;
         uiMyExpectedMessageLength = 0;
         uiMyExpectedPayloadLength = 0;
@@ -109,8 +109,7 @@ class FramerBase
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_))
     {
         pclMyLogger->debug("FramerBase initializing...");
-        if (pclMyCircularDataBuffer == nullptr) { pclMyCircularDataBuffer = std::make_shared<CircularBuffer>(); }
-        pclMyCircularDataBuffer->Clear();
+        if (pclMyBuffer == nullptr) { pclMyBuffer = std::make_shared<UCharFixedRingBuffer>(); }
         pclMyLogger->debug("Framer initialized");
     }
 
@@ -118,13 +117,11 @@ class FramerBase
     //! \brief A constructor for the FramerBase class.
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
-    //! \param[in] circularBuffer_ pointer to an already created sharable circular_buffer.
+    //! \param[in] ringBuffer_ pointer to an already created sharable ring_buffer.
     //----------------------------------------------------------------------------
-    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<CircularBuffer> circularBuffer_)
-        : pclMyLogger(pclLoggerManager->RegisterLogger(strLoggerName_)), pclMyCircularDataBuffer(circularBuffer_)
+    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<UCharFixedRingBuffer> ringBuffer_)
+        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(ringBuffer_)
     {
-        pclMyLogger->debug("FramerBase initializing...");
-        pclMyCircularDataBuffer->Clear();
         pclMyLogger->debug("FramerBase initialized");
     }
 
@@ -178,7 +175,7 @@ class FramerBase
     //
     //! \return The number of bytes available in the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] uint32_t GetBytesAvailableInBuffer() const { return pclMyCircularDataBuffer->GetCapacity() - pclMyCircularDataBuffer->GetLength(); }
+    [[nodiscard]] size_t GetBytesAvailableInBuffer() const { return pclMyBuffer->capacity() - pclMyBuffer->size(); }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -189,7 +186,7 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return clMyBuffer.Write(pucDataBuffer_, uiDataBytes_); }
+    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return pclMyBuffer->Write(pucDataBuffer_, uiDataBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -201,7 +198,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
-        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(clMyBuffer.size()), uiBufferSize_);
+        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(pclMyBuffer->size()), uiBufferSize_);
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }
@@ -211,7 +208,7 @@ class FramerBase
     //!
     //! \return The number of bytes available in the internal circular buffer.
     //------------------------------------------------------------------------------
-    [[nodiscard]] size_t GetAvailableSpace() const { return clMyBuffer.available_space(); }
+    [[nodiscard]] size_t GetAvailableSpace() const { return pclMyBuffer->available_space(); }
 
     ////----------------------------------------------------------------------------
     ////! \brief Flush bytes from the internal circular buffer. 
@@ -222,12 +219,12 @@ class FramerBase
     ////----------------------------------------------------------------------------
     virtual uint32_t Flush(uint32_t uiBufferSize_)
     {
-        const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
+        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(pclMyBuffer->size()), uiBufferSize_);
         return uiBytesToFlush;
     }
 
     //----------------------------------------------------------------------------
-    //! \brief Find the next sync byte in the circular buffer.
+    //! \brief Find the next sync byte in the ring buffer.
     //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
     //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
     //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.

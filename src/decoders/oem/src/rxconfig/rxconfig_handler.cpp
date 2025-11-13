@@ -50,7 +50,7 @@ RxConfigHandler::RxConfigHandler(std::shared_ptr<Framer> framer, const MessageDa
       pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)),
       pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)), pclMyFramer(framer)
 {
-    pclMyLogger = pclLoggerManager->RegisterLogger("rxconfig_handler");
+    pclMyLogger = GetBaseLoggerManager()->RegisterLogger("rxconfig_handler");
     pclMyLogger->debug("RxConfigHandler initializing...");
 
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
@@ -107,7 +107,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-size_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
+size_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return pclMyFramer->Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)

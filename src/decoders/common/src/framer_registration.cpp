@@ -41,7 +41,7 @@ inline void RegisterAllFramers()
     static const bool registerOEMFramer = ([]() {
         FramerManager::RegisterFramer(
             "OEM",
-            [](std::shared_ptr<CircularBuffer> buffer) -> std::unique_ptr<FramerBase> {
+            [](std::shared_ptr<UCharFixedRingBuffer> buffer) -> std::unique_ptr<FramerBase> {
                 return std::make_unique<novatel::edie::oem::Framer>(buffer);
             },
             []() -> std::unique_ptr<MetaDataBase> { return std::make_unique<MetaDataStruct>(); });

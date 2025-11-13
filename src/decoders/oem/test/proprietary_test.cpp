@@ -39,7 +39,7 @@ class ProprietaryFramerTest : public ::testing::Test
     static std::unique_ptr<Framer> pclMyFramer;
     static std::unique_ptr<std::istream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
-    static std::shared_ptr<CircularBuffer> pclMyCircularBuffer;
+    static std::shared_ptr<UCharFixedRingBuffer> pclMyFixedRingBuffer;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
@@ -98,7 +98,7 @@ class ProprietaryFramerTest : public ::testing::Test
 std::unique_ptr<Framer> ProprietaryFramerTest::pclMyFramer = nullptr;
 std::unique_ptr<std::istream> ProprietaryFramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> ProprietaryFramerTest::pucMyTestFrameBuffer = nullptr;
-std::shared_ptr<CircularBuffer> ProprietaryFramerTest::pclMyCircularBuffer = nullptr;
+std::shared_ptr<UCharFixedRingBuffer> ProprietaryFramerTest::pclMyFixedRingBuffer = nullptr;
 // clang-format off
 
 // -------------------------------------------------------------------------------------------------------

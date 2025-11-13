@@ -34,7 +34,7 @@ using namespace novatel::edie::oem;
 // -------------------------------------------------------------------------------------------------------
 FileParser::FileParser(const std::filesystem::path& sDbPath_) : clMyParser(Parser(sDbPath_))
 {
-    pclMyLogger = pclLoggerManager->RegisterLogger("novatel_file_parser");
+    pclMyLogger = GetBaseLoggerManager()->RegisterLogger("novatel_file_parser");
     pclMyLogger->debug("FileParser initialized");
 }
 

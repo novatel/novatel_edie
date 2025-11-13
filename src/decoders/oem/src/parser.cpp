@@ -38,8 +38,7 @@ Parser::Parser(const std::filesystem::path& sDbPath_) : pclMyFramer(std::make_sh
     {
         auto pclMessageDb = LoadJsonDbFile(sDbPath_);
         LoadJsonDb(pclMessageDb);
-        pclMyLogger->info("Parser initialized with JSON DB: {}", sDbPath_.generic_string());
-        pclMyLogger->debug("Parser initialized");
+        pclMyLogger->debug("Parser initialized with JSON DB: {}", sDbPath_.generic_string());
     }
     catch (const std::exception& e)
     {

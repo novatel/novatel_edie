@@ -55,13 +55,13 @@ class FramerTest : public ::testing::Test
     static std::unique_ptr<Framer> pclMyFramer;
     static std::unique_ptr<std::istream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
-    static std::shared_ptr<CircularBuffer> pclMyCircularBuffer;
+    static std::shared_ptr<UCharFixedRingBuffer> pclMyFixedRingBuffer;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyCircularBuffer = std::make_shared<CircularBuffer>();
-        pclMyFramer = std::make_unique<Framer>(pclMyCircularBuffer);
+        pclMyFixedRingBuffer = std::make_shared<UCharFixedRingBuffer>();
+        pclMyFramer = std::make_unique<Framer>(pclMyFixedRingBuffer);
         pclMyFramer->SetReportUnknownBytes(true);
         pclMyFramer->SetPayloadOnly(false);
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
@@ -117,7 +117,7 @@ class FramerTest : public ::testing::Test
 std::unique_ptr<Framer> FramerTest::pclMyFramer = nullptr;
 std::unique_ptr<std::istream> FramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> FramerTest::pucMyTestFrameBuffer = nullptr;
-std::shared_ptr<CircularBuffer> FramerTest::pclMyCircularBuffer = nullptr;
+std::shared_ptr<UCharFixedRingBuffer> FramerTest::pclMyFixedRingBuffer = nullptr;
 
 // TODO: we disable clang-format because of the long strings
 // clang-format off

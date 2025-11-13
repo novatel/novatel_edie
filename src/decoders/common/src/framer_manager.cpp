@@ -39,31 +39,8 @@ static int forceInit = []() {
 } // namespace
 
 FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
-    : pclMyLogger(pclLoggerManager->RegisterLogger("FramerManager")), pclMyCircularDataBuffer(std::make_shared<CircularBuffer>())
+    : pclMyLogger(GetBaseLoggerManager()->RegisterLogger("FramerManager")), pclMyFixedRingBuffer(std::make_shared<UCharFixedRingBuffer>())
 {
-    // std::cerr << "[C++] FramerManager constructor entered\n";
-    //// Safe and controlled setup with logging
-    // pclMyLogger = pclLoggerManager->RegisterLogger("FramerManager");
-    // std::cerr << "[C++] Logger registered: " << (pclMyLogger ? "yes" : "no") << "\n";
-    // if (pclMyLogger)
-    //{
-    //     pclMyLogger->set_level(spdlog::level::debug);
-    //     pclMyLogger->debug("Logger initialized");
-    // }
-    // else { std::cerr << "[ERROR] Failed to register FramerManager logger\n"; }
-
-    // pclMyCircularDataBuffer = std::make_shared<CircularBuffer>();
-    // if (pclMyCircularDataBuffer)
-    //{
-    //     pclMyCircularDataBuffer->Clear();
-    //     pclMyLogger->debug("CircularBuffer allocated and cleared");
-    // }
-    // else
-    //{
-    //     pclMyLogger->error("Failed to allocate CircularBuffer");
-    //     throw std::runtime_error("CircularBuffer allocation failed");
-    // }
-    pclMyCircularDataBuffer->Clear();
     std::cerr << "[C++] FramerManager constructor entered\n";
 
     auto& factoryMap = GetFramerFactories();
@@ -77,13 +54,13 @@ FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
         auto it = GetFramerFactories().find(name);
         if (it != GetFramerFactories().end())
         {
-            std::cerr << "[C++] pclMyCircularDataBuffer&: " << &pclMyCircularDataBuffer << "\n ";
+            std::cerr << "[C++] pclMyFixedRingBuffer&: " << &pclMyFixedRingBuffer << "\n ";
             auto& constructors = it->second;
 
             auto metadataInstance = constructors.second();
             std::cerr << "[C++] metaDataInstance&: " << &metadataInstance << "\n ";
 
-            auto framerInstance = constructors.first(pclMyCircularDataBuffer);
+            auto framerInstance = constructors.first(pclMyFixedRingBuffer);
             std::cerr << "[C++] framerInstance&: " << &framerInstance << "\n ";
 
             framerRegistry.emplace_back(name, std::move(framerInstance), std::move(metadataInstance));
@@ -93,7 +70,7 @@ FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
 }
 
 void FramerManager::RegisterFramer(const std::string& framerName_,
-                                   std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory_,
+                                   std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)> framerFactory_,
                                    std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_)
 {
     auto& factoryMap = GetFramerFactories();
@@ -113,11 +90,11 @@ void FramerManager::RegisterFramer(const std::string& framerName_,
     }
 }
 
-std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)>,
+std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
                                           std::function<std::unique_ptr<MetaDataBase>()>>>&
 FramerManager::GetFramerFactories()
 {
-    static std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)>,
+    static std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
                                                      std::function<std::unique_ptr<MetaDataBase>()>>>
         factories;
     return factories;
@@ -152,14 +129,14 @@ FramerEntry* FramerManager::GetFramerElement(const std::string framerName_)
 
 STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase*& stMetaData_)
 {
-    STATUS eStatus;
+    STATUS eStatus = STATUS::UNKNOWN;
     auto bestIt = framerRegistry.end();
     int bestOffset = std::numeric_limits<int>::max();
     ResetAllFramerStates();
 
     while (true)
     {
-        if (pclMyCircularDataBuffer->GetLength() == 0) { return STATUS::BUFFER_EMPTY; }
+        if (pclMyFixedRingBuffer->size() == 0) { return STATUS::BUFFER_EMPTY; }
 
         // Step 1: Scan for first sync (offset == 0) or lowest valid offset
         for (auto it = framerRegistry.begin(); it != framerRegistry.end(); ++it)
@@ -195,8 +172,8 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
         // No valid sync found at all. Discard the entire buffer.
         if (bestIt == framerRegistry.end())
         {
-            HandleUnknownBytes(pucFrameBuffer_, pclMyCircularDataBuffer->GetLength());
-            stMyMetaData.uiLength = pclMyCircularDataBuffer->GetLength();
+            HandleUnknownBytes(pucFrameBuffer_, pclMyFixedRingBuffer->size());
+            stMyMetaData.uiLength = static_cast<uint32_t>(pclMyFixedRingBuffer->size());
             stMyMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
             stMetaData_ = &stMyMetaData; // There is no valid MetaData object to use from a Framer so use the MetaDataBase from FramerManager
             return STATUS::UNKNOWN;
@@ -214,8 +191,8 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
             if (stMetaData_->uiLength > uiFrameBufferSize_) { return STATUS::BUFFER_FULL; }
 
-            pclMyCircularDataBuffer->Copy(pucFrameBuffer_, stMetaData_->uiLength);
-            pclMyCircularDataBuffer->Discard(stMetaData_->uiLength);
+            pclMyFixedRingBuffer->copy_out(pucFrameBuffer_, stMetaData_->uiLength);
+            pclMyFixedRingBuffer->erase_begin(stMetaData_->uiLength);
             return STATUS::SUCCESS;
         }
         else if (eStatus == STATUS::UNKNOWN)
@@ -226,6 +203,11 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
             // If the framer failed, discard the bytes and retry
             HandleUnknownBytes(pucFrameBuffer_, bestIt->framerInstance->GetMyByteCount());
+
+            /* PROBLEM: The "Unknown" bytes are discarded here, but it could be the case that a different framer
+                has a valid frame that begins within those "Unknown" bytes. Potential solution could be to only
+                discard bytes until the start of the NEXT valid sync bytes (among all framers) */
+
             // stMyMetaData.uiLength = stMetaData_->uiLength;
             // stMyMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
             //  stMetaData_ has been set from the current framer so return that back
@@ -243,8 +225,8 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     return STATUS::UNKNOWN;
 }
 
-void FramerManager::HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const
+void FramerManager::HandleUnknownBytes(unsigned char* pucBuffer_, size_t uiUnknownBytes_) const
 {
-    if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyCircularDataBuffer->Copy(pucBuffer_, uiUnknownBytes_); }
-    pclMyCircularDataBuffer->Discard(uiUnknownBytes_);
+    if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyFixedRingBuffer->copy_out(pucBuffer_, uiUnknownBytes_); }
+    pclMyFixedRingBuffer->erase_begin(uiUnknownBytes_);
 }

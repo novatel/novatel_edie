@@ -35,7 +35,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "novatel_edie/common/circular_buffer.hpp"
+#include "novatel_edie/common/fixed_ring_buffer.hpp"
 #include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
@@ -67,11 +67,11 @@ struct FramerEntry
 class FramerManager
 {
   public:
-    using FramerFactory = std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>, MetaDataBase&)>;
+    using FramerFactory = std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>, MetaDataBase&)>;
 
     explicit FramerManager(const std::vector<std::string>& selectedFramers = {});
 
-    static void RegisterFramer(const std::string& framerName_, std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)> framerFactory_,
+    static void RegisterFramer(const std::string& framerName_, std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)> framerFactory_,
                                std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
@@ -103,11 +103,11 @@ class FramerManager
     void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
     //----------------------------------------------------------------------------
-    //! \brief Get the internal circular buffer.
+    //! \brief Get the internal fixed ring buffer.
     //
-    //! \return Shared pointer to the internal circular buffer object.
+    //! \return Shared pointer to the internal fixed ring buffer object.
     //---------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<CircularBuffer> GetCircularBuffer() const { return pclMyCircularDataBuffer; }
+    [[nodiscard]] std::shared_ptr<UCharFixedRingBuffer> GetFixedRingBuffer() const { return pclMyFixedRingBuffer; }
 
     //----------------------------------------------------------------------------
     //! \brief A destructor for the FramerBase class.
@@ -139,9 +139,9 @@ class FramerManager
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    uint32_t Write(const unsigned char* pucDataBuffer_, uint32_t uiDataBytes_)
+    size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_)
     {
-        return pclMyCircularDataBuffer->Append(pucDataBuffer_, uiDataBytes_);
+        return pclMyFixedRingBuffer->Write(pucDataBuffer_, uiDataBytes_);
     }
 
     //----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ class FramerManager
     //----------------------------------------------------------------------------
     uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
-        const uint32_t uiBytesToFlush = std::min(pclMyCircularDataBuffer->GetLength(), uiBufferSize_);
+        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(pclMyFixedRingBuffer->size()), uiBufferSize_);
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }
@@ -194,7 +194,7 @@ class FramerManager
     //! \return A map of the framer name, framer factory function pointer, and metadata constructor function pointer.
     //---------------------------------------------------------------------------
     static auto GetFramerFactories()
-        -> std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<CircularBuffer>)>,
+        -> std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
                                                      std::function<std::unique_ptr<MetaDataBase>()>>>&;
 
   protected:
@@ -210,9 +210,9 @@ class FramerManager
     MetaDataBase stMyMetaData;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    std::shared_ptr<CircularBuffer> pclMyCircularDataBuffer;
+    std::shared_ptr<UCharFixedRingBuffer> pclMyFixedRingBuffer;
 
-    void HandleUnknownBytes(unsigned char* pucBuffer_, const uint32_t& uiUnknownBytes_) const;
+    void HandleUnknownBytes(unsigned char* pucBuffer_, size_t uiUnknownBytes_) const;
 
     std::deque<FramerEntry> framerRegistry;
 };
