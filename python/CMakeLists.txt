@@ -109,26 +109,41 @@ target_compile_definitions(python_oem PRIVATE
 )
 
 
-add_custom_target(
-    nanobind_stubs ALL
-    COMMAND
-    ${Python_EXECUTABLE} -m nanobind.stubgen
-    --import $<TARGET_FILE_DIR:python_common>
-    --pattern-file ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
-    -m python_common    # Must appear before dependent modules in stub generation
-    -m python_oem
-    --output-dir ${CMAKE_CURRENT_BINARY_DIR}/stubs
-    COMMENT "Generating nanobind stubs"
-    DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
-        python_oem
-        python_common
-)
+# add_custom_target(
+#     nanobind_stubs ALL
+#     COMMAND
+#     ${Python_EXECUTABLE} -m nanobind.stubgen
+#     --import $<TARGET_FILE_DIR:python_common>
+#     --pattern-file ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
+#     -m python_common    # Must appear before dependent modules in stub generation
+#     -m python_oem
+#     --output-dir ${CMAKE_CURRENT_BINARY_DIR}/stubs
+#     COMMENT "Generating nanobind stubs"
+#     DEPENDS
+#         ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
+#         python_oem
+#         python_common
+# )
 
 add_custom_target(
-    cleanup_stubs ALL
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cleanup_stubs.py ${CMAKE_CURRENT_BINARY_DIR}/stubs
-    DEPENDS nanobind_stubs
+    common_stubs ALL
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_binding_stubs.py
+    --import $<TARGET_FILE_DIR:python_common>
+    -m python_common
+    -o ${CMAKE_CURRENT_BINARY_DIR}/stubs/python_common.pyi
+    DEPENDS python_common
+)
+
+
+add_custom_target(
+    oem_stubs ALL
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_binding_stubs.py
+    --import $<TARGET_FILE_DIR:python_common>
+    --pattern-file ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
+    -d python_common
+    -m python_oem
+    -o ${CMAKE_CURRENT_BINARY_DIR}/stubs/python_oem.pyi
+    DEPENDS python_oem common_stubs
 )
 
 
@@ -141,7 +156,7 @@ add_custom_target(
         ${CMAKE_SOURCE_DIR}/database/database.json
 )
 
-set_target_properties(nanobind_stubs dynamic_stubs PROPERTIES FOLDER python_bindings)
+set_target_properties(common_stubs oem_stubs dynamic_stubs PROPERTIES FOLDER python_bindings)
 
 set_target_properties(python_common decoders_common oem_decoder python_oem common PROPERTIES INSTALL_RPATH "$ORIGIN")
 
