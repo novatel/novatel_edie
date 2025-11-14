@@ -121,12 +121,14 @@ add_custom_target(
     COMMENT "Generating nanobind stubs"
     DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
+        python_oem
+        python_common
 )
 
 add_custom_target(
     cleanup_stubs ALL
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/cleanup_stubs.py ${CMAKE_CURRENT_BINARY_DIR}/stubs
-    DEPENDS nanobind_stubs ${CMAKE_CURRENT_BINARY_DIR}/stubs/python_common.pyi ${CMAKE_CURRENT_BINARY_DIR}/stubs/python_oem.pyi
+    DEPENDS nanobind_stubs
 )
 
 

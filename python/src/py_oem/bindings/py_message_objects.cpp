@@ -74,7 +74,7 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
     // FIXME: this is still not safe and there is no effective buffer overflow checking implemented in Encoder.
     uint8_t buffer[MESSAGE_SIZE_MAX * 3];
     auto buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
-    uint32_t buf_size = MESSAGE_SIZE_MAX;
+    uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
     if (pclRxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
     {
         status = this->parent_db_->GetRxConfigHandler()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
