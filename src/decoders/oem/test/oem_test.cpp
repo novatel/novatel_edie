@@ -89,6 +89,7 @@ class FramerTest : public ::testing::Test
 
     static void WriteFileStreamToFramer(std::string sFilename_)
     {
+        // TODO: Why no exception when file does not exist?
         pclMyIFS = std::make_unique<std::ifstream>(std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_, std::ios::binary);
 
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData;
@@ -690,6 +691,119 @@ TEST_F(FramerTest, SHORT_BINARY_TRICK)
 }
 
 // -------------------------------------------------------------------------------------------------------
+// NMEA Framer Unit Tests
+// -------------------------------------------------------------------------------------------------------
+TEST_F(FramerTest, NMEA_COMPLETE)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerTest, NMEA_INCOMPLETE)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc4";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerTest, NMEA_SYNC_ERROR)
+{
+    WriteFileStreamToFramer("nmea_sync_error.txt");
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_NMEA_MESSAGE_LENGTH, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerTest, NMEA_BAD_CRC)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*11\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerTest, NMEA_RUN_ON_CRC)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29ff\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerTest, NMEA_INADEQUATE_BUFFER)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::SUCCESS>(sizeof(aucData) - 1, sizeof(aucData) - 1);
+}
+
+TEST_F(FramerTest, NMEA_BYTE_BY_BYTE)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    uint32_t uiLogSize = sizeof(aucData) - 1;
+    uint32_t uiRemainingBytes = uiLogSize;
+
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::NMEA;
+    MetaDataStruct stTestMetaData;
+
+    while (true)
+    {
+        WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
+        uiRemainingBytes--;
+        stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
+
+        if (uiRemainingBytes == 0)
+        {
+            break;
+        }
+
+        ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_NMEA_MESSAGE_LENGTH, stTestMetaData));
+        ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    }
+
+    stExpectedMetaData.uiLength = uiLogSize;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_NMEA_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+}
+
+TEST_F(FramerTest, NMEA_SEGMENTED)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    uint32_t uiBytesWritten = 0;
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], NMEA_SYNC_LENGTH);
+    uiBytesWritten += NMEA_SYNC_LENGTH;
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], 76);
+    uiBytesWritten += 76;
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], 1);
+    uiBytesWritten += 1;
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], NMEA_CRC_LENGTH);
+    uiBytesWritten += NMEA_CRC_LENGTH;
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], 2);
+    uiBytesWritten += 2;
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    ASSERT_EQ(sizeof(aucData) - 1, uiBytesWritten);
+}
+
+TEST_F(FramerTest, NMEA_TRICK)
+{
+    constexpr unsigned char aucData[] = "$*ff\r\n$$**\r\n$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(6, MAX_NMEA_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_NMEA_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_NMEA_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::SUCCESS>(82, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+// -------------------------------------------------------------------------------------------------------
 // Abbreviated ASCII Framer Unit Tests
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerTest, ABBREV_ASCII_COMPLETE)
@@ -893,7 +1007,7 @@ std::unique_ptr<std::istream> FramerManagerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> FramerManagerTest::pucMyTestFrameBuffer = nullptr;
 
 // -------------------------------------------------------------------------------------------------------
-// Logger Framer Unit Tests
+// Logger Framer Manager Unit Tests
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerManagerTest, LOGGER)
 {
@@ -906,7 +1020,7 @@ TEST_F(FramerManagerTest, LOGGER)
 }
 
 //// -------------------------------------------------------------------------------------------------------
-//// ASCII Framer Unit Tests
+//// ASCII Framer Manager Unit Tests
 //// -------------------------------------------------------------------------------------------------------
 TEST_F(FramerManagerTest, ASCII_COMPLETE)
 {
@@ -1080,7 +1194,7 @@ TEST_F(FramerManagerTest, ABBREV_ASCII_SEGMENTED)
 }
 
 // -------------------------------------------------------------------------------------------------------
-// Binary Framer Unit Tests
+// Binary Framer Manager Unit Tests
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerManagerTest, BINARY_COMPLETE)
 {
@@ -1217,7 +1331,7 @@ TEST_F(FramerManagerTest, BINARY_TRICK)
 }
 
 // -------------------------------------------------------------------------------------------------------
-// Short ASCII Framer Unit Tests
+// Short ASCII Framer Manager Unit Tests
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerManagerTest, SHORT_ASCII_COMPLETE)
 {
@@ -1337,7 +1451,7 @@ TEST_F(FramerManagerTest, SHORT_ASCII_TRICK)
 }
 
 // -------------------------------------------------------------------------------------------------------
-// Short Binary Framer Unit Tests
+// Short Binary Framer Manager Unit Tests
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerManagerTest, SHORT_BINARY_COMPLETE)
 {
@@ -1474,7 +1588,120 @@ TEST_F(FramerManagerTest, SHORT_BINARY_TRICK)
 }
 
 // -------------------------------------------------------------------------------------------------------
-// Abbreviated ASCII Framer Unit Tests
+// NMEA Framer Manager Unit Tests
+// -------------------------------------------------------------------------------------------------------
+TEST_F(FramerManagerTest, NMEA_COMPLETE)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::SUCCESS>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, NMEA_INCOMPLETE)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc4";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::INCOMPLETE>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, NMEA_SYNC_ERROR)
+{
+    WriteFileStreamToFramer("nmea_sync_error.txt");
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_NMEA_MESSAGE_LENGTH, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, NMEA_BAD_CRC)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*11\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, NMEA_RUN_ON_CRC)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29ff\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, NMEA_INADEQUATE_BUFFER)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::BUFFER_FULL>(sizeof(aucData) - 1, sizeof(aucData) - 2);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::SUCCESS>(sizeof(aucData) - 1, sizeof(aucData) - 1);
+}
+
+TEST_F(FramerManagerTest, NMEA_BYTE_BY_BYTE)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    uint32_t uiLogSize = sizeof(aucData) - 1;
+    uint32_t uiRemainingBytes = uiLogSize;
+
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::NMEA;
+    MetaDataStruct stTestMetaData;
+
+    while (true)
+    {
+        WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
+        uiRemainingBytes--;
+        stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
+
+        if (uiRemainingBytes == 0)
+        {
+            break;
+        }
+
+        ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_NMEA_MESSAGE_LENGTH, stTestMetaData));
+        ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    }
+
+    stExpectedMetaData.uiLength = uiLogSize;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_NMEA_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+}
+
+TEST_F(FramerManagerTest, NMEA_SEGMENTED)
+{
+    constexpr unsigned char aucData[] = "$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    uint32_t uiBytesWritten = 0;
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], NMEA_SYNC_LENGTH);
+    uiBytesWritten += NMEA_SYNC_LENGTH;
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], 76);
+    uiBytesWritten += 76;
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], 1);
+    uiBytesWritten += 1;
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], NMEA_CRC_LENGTH);
+    uiBytesWritten += NMEA_CRC_LENGTH;
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::INCOMPLETE>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(&aucData[uiBytesWritten], 2);
+    uiBytesWritten += 2;
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::SUCCESS>(uiBytesWritten, MAX_NMEA_MESSAGE_LENGTH);
+
+    ASSERT_EQ(sizeof(aucData) - 1, uiBytesWritten);
+}
+
+TEST_F(FramerManagerTest, NMEA_TRICK)
+{
+    constexpr unsigned char aucData[] = "$*ff\r\n$$**\r\n$GPALM,30,01,01,2029,00,4310,7b,145f,fd44,a10ce4,1c5b11,0b399f,2bc421,f80,ffe*29\r\n";
+    WriteBytesToFramer(aucData, sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(6, MAX_NMEA_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_NMEA_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_NMEA_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::NMEA, STATUS::SUCCESS>(82, MAX_NMEA_MESSAGE_LENGTH);
+}
+
+// -------------------------------------------------------------------------------------------------------
+// Abbreviated ASCII Framer Manager Unit Tests
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerManagerTest, ABBREV_ASCII_COMPLETE)
 {
@@ -1569,7 +1796,7 @@ TEST_F(FramerManagerTest, ABBREV_ASCII_EMPTY_ARRAY)
 }
 
 // -------------------------------------------------------------------------------------------------------
-// Edge-case Framer Unit Tests
+// Edge-case Framer Manager Unit Tests
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerManagerTest, UNKNOWN_BINARY_WITH_ASCII_SYNC)
 {
