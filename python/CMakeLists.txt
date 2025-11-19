@@ -73,9 +73,7 @@ add_custom_target(
         ${CMAKE_SOURCE_DIR}/database/database.json
 )
 
-if(DEFINED SKBUILD_PROJECT_NAME)
-    set(PYTHON_INSTALL_DIR ${SKBUILD_PROJECT_NAME})
-elseif(NOT DEFINED PYTHON_INSTALL_DIR)
+if(NOT DEFINED PYTHON_INSTALL_DIR)
     set(PYTHON_INSTALL_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/novatel_edie)
 endif()
 
@@ -86,7 +84,7 @@ install(TARGETS python_bindings
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie_files/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)
-# Allow a project containing novatel_edie as a submodule to overwrite any python files with its own 
+# Allow a project containing novatel_edie as a submodule to overwrite any python files with its own
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/python/novatel_edie_files/
         DESTINATION ${PYTHON_INSTALL_DIR}
         COMPONENT python)

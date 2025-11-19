@@ -46,6 +46,10 @@ wheel.py-api = "cp312"
 [tool.scikit-build.cmake.define]
 BUILD_PYTHON = true
 BUILD_SHARED_LIBS = false
+BUILD_BENCHMARK = false
+BUILD_EXAMPLES = false
+BUILD_TESTS = false
+PYTHON_INSTALL_DIR = "novatel_edie"
 
 [tool.cibuildwheel]
 build = "*"
