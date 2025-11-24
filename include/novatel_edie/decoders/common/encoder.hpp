@@ -57,13 +57,13 @@ template <typename T> inline std::chars_format FloatingPointFormat(const FieldCo
 {
     static_assert(std::is_floating_point_v<T>, "FloatingPointConversionString must be called with a floating point type");
 
-    if (!fc_.fieldDef->width.has_value()) { return std::chars_format::fixed; }
+    if (!fc_.fieldDef->width.has_value()) { return std::chars_format::scientific; }
 
     const auto width = fc_.fieldDef->width.value();
     const auto absVal = std::abs(std::get<T>(fc_.fieldValue));
 
-    return absVal >= std::numeric_limits<T>::epsilon() && (absVal > powLookup[width] || absVal < npowLookup[width]) ? std::chars_format::scientific
-                                                                                                                    : std::chars_format::fixed;
+    return absVal >= std::numeric_limits<T>::min() && (absVal > powLookup[width] || absVal < npowLookup[width]) ? std::chars_format::scientific
+                                                                                                                : std::chars_format::fixed;
 }
 
 // -------------------------------------------------------------------------------------------------------
