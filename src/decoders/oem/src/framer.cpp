@@ -126,6 +126,7 @@ uint32_t Framer::FindSyncOffset(const uint32_t uiFrameBufferSize_, STATUS& eOffs
             case OEM4_BINARY_SYNC1: eCurrentFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC2; break;
             case OEM4_ASCII_SYNC: eOffsetStatus_ = STATUS::SUCCESS; return uiByteOffset - OEM4_ASCII_SYNC_LENGTH;
             case OEM4_SHORT_ASCII_SYNC: eOffsetStatus_ = STATUS::SUCCESS; return uiByteOffset - OEM4_SHORT_ASCII_SYNC_LENGTH;
+            case NMEA_SYNC: eOffsetStatus_ = STATUS::SUCCESS; return uiByteOffset - NMEA_SYNC_LENGTH;
             case OEM4_ABBREV_ASCII_SYNC: eOffsetStatus_ = STATUS ::SUCCESS; return uiByteOffset - 1;
             default: break;
             }
@@ -233,6 +234,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
             case OEM4_SHORT_ASCII_SYNC:
                 stMetaData_.eFormat = HEADER_FORMAT::SHORT_ASCII;
                 eMyFrameState = NovAtelFrameState::WAITING_FOR_ASCII_HEADER_AND_BODY;
+                break;
+            case NMEA_SYNC:
+                stMetaData_.eFormat = HEADER_FORMAT::NMEA;
+                eMyFrameState = NovAtelFrameState::WAITING_FOR_NMEA_BODY;
                 break;
             case OEM4_ABBREV_ASCII_SYNC:
                 stMetaData_.eFormat = HEADER_FORMAT::ABB_ASCII;
@@ -773,8 +778,12 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                     uiMyByteCount = NMEA_SYNC_LENGTH;
                     ResetState();
                 }
+            }
+            else if (uiMyByteCount >= MAX_NMEA_MESSAGE_LENGTH)
+            {
+                uiMyByteCount = NMEA_SYNC_LENGTH;
+                uiMyExpectedPayloadLength = 0;
                 ResetState();
-                return STATUS::UNKNOWN;
             }
             break;
         }

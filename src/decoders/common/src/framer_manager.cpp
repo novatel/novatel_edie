@@ -157,7 +157,6 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
                 bestIt = it;
             }
         }
-        if ((bestIt != framerRegistry.end() && eStatus == STATUS::INCOMPLETE) || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
 
         // Sync found, but not at offset 0. Discard those bytes first
         if (bestIt != framerRegistry.end() && bestOffset != 0)
@@ -213,7 +212,8 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             //  stMetaData_ has been set from the current framer so return that back
             return eStatus;
         }
-        else if (eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
+        else if (eStatus == STATUS::INCOMPLETE) { return STATUS::INCOMPLETE; }
+        else if (eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
         else if (eStatus == STATUS::BUFFER_FULL) { return STATUS::BUFFER_FULL; }
         // else
         // Framer failed — discard 1 byte and retry

@@ -144,9 +144,13 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BAD_CRC)
                          0xE3, 0xF5, 0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87,
                          0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xFF};
     WriteBytesToFramer(aucData, sizeof(aucData));
-    // First GetFrame loop will fail CRC check -> 3 unknown bytes, then no new sync bytes will be found past that point, 
-    // resulting in entire buffer of unknown bytes
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(76, MAX_BINARY_MESSAGE_LENGTH);
+    
+    MetaDataStruct stExpectedMetaData;
+    MetaDataStruct stTestMetaData;
+    stExpectedMetaData.uiLength = 30; // Unknown bytes up to 0x24 ('$') should be returned (NMEA sync was found mid-log)
+    stExpectedMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
+    ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
 }
 
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_RUN_ON_CRC)
