@@ -109,7 +109,7 @@ MetaDataBase* FramerManager::GetMetaData(const std::string framerName_)
     return nullptr;
 }
 
-void FramerManager::ResetAllFramerStates()
+void FramerManager::ResetAllFramerStates() const
 {
     for (auto it = framerRegistry.begin(); it != framerRegistry.end(); ++it)
     {
@@ -132,7 +132,6 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
     STATUS eStatus = STATUS::UNKNOWN;
     auto bestIt = framerRegistry.end();
     int bestOffset = std::numeric_limits<int>::max();
-    ResetAllFramerStates();
 
     while (true)
     {
@@ -229,4 +228,5 @@ void FramerManager::HandleUnknownBytes(unsigned char* pucBuffer_, size_t uiUnkno
 {
     if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyFixedRingBuffer->copy_out(pucBuffer_, uiUnknownBytes_); }
     pclMyFixedRingBuffer->erase_begin(uiUnknownBytes_);
+    ResetAllFramerStates();
 }

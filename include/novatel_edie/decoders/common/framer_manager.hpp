@@ -92,7 +92,7 @@ class FramerManager
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
     //---------------------------------------------------------------------------
-    void ResetAllFramerStates();
+    void ResetAllFramerStates() const;
 
     //----------------------------------------------------------------------------
     //! \brief Configure the framer manager to return unknown bytes in the provided
