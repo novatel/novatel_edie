@@ -31,10 +31,7 @@ class PyMessageDatabaseCore : public MessageDatabase
 
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
-
-  private:
-    void GenerateMessageMappings() override;
-    void GenerateEnumMappings() override;
+    
     //-----------------------------------------------------------------------
     //! \brief Creates Python Enums for each enum definition in the database.
     //!
@@ -51,6 +48,11 @@ class PyMessageDatabaseCore : public MessageDatabase
     //! These classes are stored by name in the messages_by_name map.
     //-----------------------------------------------------------------------
     void UpdatePythonMessageTypes();
+
+  private:
+    void GenerateMessageMappings() override;
+    void GenerateEnumMappings() override;
+
     void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_cons, nb::handle type_tuple,
                       nb::handle type_dict);
 
@@ -75,9 +77,9 @@ class PyMessageDatabase
 
     [[nodiscard]] std::string MsgIdToMsgName(uint32_t uiMessageId_) const { return pclMessageDb->MsgIdToMsgName(uiMessageId_); };
 
-    void PyAppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_) { pclMessageDb->AppendMessages(vMessageDefinitions_); }
+    void PyAppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_) { pclMessageDb->AppendMessages(vMessageDefinitions_); pclMessageDb->UpdatePythonMessageTypes(); }
 
-    void PyAppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_) { pclMessageDb->AppendEnumerations(vEnumDefinitions_); }
+    void PyAppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_) { pclMessageDb->AppendEnumerations(vEnumDefinitions_); pclMessageDb->UpdatePythonEnums(); }
 
     void PyRemoveMessage(const uint32_t iMsgId_) { pclMessageDb->RemoveMessage(iMsgId_); }
 
