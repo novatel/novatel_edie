@@ -336,11 +336,11 @@ nb::object oem::create_message_instance(PyHeader& header, std::vector<FieldConta
     }
     try
     {
-        PyMessageType* message_type_struct = database->GetMessagesByNameDict().at(message_name);
-        if (message_type_struct->crc == metadata.uiMessageCrc)
+        PyMessageType message_type_struct = database->GetMessagesByNameDict().at(message_name);
+        if (message_type_struct.crc == metadata.uiMessageCrc)
         {
             // If the CRCs match, use the specific message type
-            message_pytype = message_type_struct->python_type;
+            message_pytype = message_type_struct.python_type;
         }
         else
         {

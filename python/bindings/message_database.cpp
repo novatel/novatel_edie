@@ -180,9 +180,9 @@ void init_common_message_database(nb::module_& m)
         .def("get_msg_def", nb::overload_cast<std::string_view>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
         .def("get_msg_def", nb::overload_cast<int32_t>(&PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
         .def("get_enum_def", &PyMessageDatabase::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def", &PyMessageDatabase::GetEnumDefName, "enum_name"_a)
+        .def("get_enum_def_by_name", &PyMessageDatabase::GetEnumDefName, "enum_name"_a)
         .def(
-            "get_msg_type", [](PyMessageDatabase& self, std::string name) { return self.GetMessagesByNameDict().at(name)->python_type; }, "name"_a)
+            "get_msg_type", [](PyMessageDatabase& self, std::string name) { return self.GetMessagesByNameDict().at(name).python_type; }, "name"_a)
         .def(
             "get_enum_type_by_name", [](PyMessageDatabase& self, std::string name) { return self.GetEnumsByNameDict().at(name); }, "name"_a)
         .def("get_enum_type_by_id", [](PyMessageDatabase& self, std::string id) { return self.GetEnumsByIdDict().at(id); }, "id"_a);
@@ -292,11 +292,19 @@ void cleanString(std::string& str)
 
 inline void PyMessageDatabaseCore::UpdatePythonEnums()
 {
-    nb::object IntEnum = nb::module_::import_("enum").attr("IntEnum");
     enums_by_id.clear();
     enums_by_name.clear();
-    for (const auto& enum_def : EnumDefinitions())
+    AppendEnumTypes(EnumDefinitions());
+}
+
+void PyMessageDatabaseCore::AppendEnumTypes(const std::vector<EnumDefinition::ConstPtr>& enum_defs)
+{
+    nb::object IntEnum = nb::module_::import_("enum").attr("IntEnum");
+    for (const auto& enum_def : enum_defs)
     {
+        // remove existing enum type if it exists to ensure clean overwrite
+        RemoveEnumType(enum_def->name);
+
         nb::dict values;
         const char* enum_name = enum_def->name.c_str();
         for (const auto& enumerator : enum_def->enumerators)
@@ -313,8 +321,20 @@ inline void PyMessageDatabaseCore::UpdatePythonEnums()
     }
 }
 
-void PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_constructor,
-                                         nb::handle type_tuple, nb::handle type_dict)
+void PyMessageDatabaseCore::RemoveEnumType(const std::string& enum_name)
+{
+    // get the enum definition to retrieve the name
+    EnumDefinition::ConstPtr enum_def = GetEnumDefName(enum_name);
+    if (enum_def)
+    {
+        // remove from both maps
+        enums_by_id.erase(enum_def->_id);
+        enums_by_name.erase(enum_def->name);
+    }
+}
+
+void PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message,
+                                         nb::handle type_constructor, nb::handle type_tuple, nb::handle type_dict)
 {
     // rescursively add field types for each field array element within the provided vector
     for (const auto& field : fields)
@@ -325,7 +345,8 @@ void PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<BaseField>>
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
             nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
             fields_by_name[field_name] = field_type;
-            AddFieldType(field_array_field->fields, field_name, type_constructor, type_tuple, type_dict);
+            fields_by_message[parent_message].push_back(field_name);
+            AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor, type_tuple, type_dict);
         }
     }
 }
@@ -335,6 +356,12 @@ void PyMessageDatabaseCore::UpdatePythonMessageTypes()
     // clear existing definitions
     messages_by_name.clear();
 
+    // add message and message body types for each message definition
+    AppendMessageTypes(MessageDefinitions());
+}
+
+void PyMessageDatabaseCore::AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs)
+{
     // get type constructor
     nb::object type_constructor = nb::module_::import_("builtins").attr("type");
     // specify the python superclasses for the new message and message body types
@@ -344,12 +371,40 @@ void PyMessageDatabaseCore::UpdatePythonMessageTypes()
     nb::dict type_dict = nb::dict();
 
     // add message and message body types for each message definition
-    for (const auto& message_def : MessageDefinitions())
+    for (const auto& message_def : message_defs)
     {
+        // remove existing message type if it exists to ensure clean overwrite
+        RemoveMessageType(message_def->logID);
+
         uint32_t crc = message_def->latestMessageCrc;
         nb::object msg_type_def = type_constructor(message_def->name, message_type_tuple, type_dict);
-        messages_by_name[message_def->name] = new PyMessageType(msg_type_def, crc);
+        messages_by_name[message_def->name] = PyMessageType(msg_type_def, crc);
         // add additional MessageBody types for each field array element within the message definition
-        AddFieldType(message_def->fields.at(crc), message_def->name, type_constructor, field_type_tuple, type_dict);
+        AddFieldType(message_def->fields.at(crc), message_def->name, message_def->name, type_constructor, field_type_tuple, type_dict);
+    }
+}
+
+void PyMessageDatabaseCore::RemoveMessageType(uint32_t message_id)
+{
+    // get the message definition to retrieve the name
+    MessageDefinition::ConstPtr message_def = GetMsgDef(message_id);
+    if (!message_def) { return; }
+
+    const std::string& message_name = message_def->name;
+
+    // remove the message type
+    messages_by_name.erase(message_name);
+
+    // remove all field types associated with this message from fields_by_name
+    auto fields_it = fields_by_message.find(message_name);
+    if (fields_it != fields_by_message.end())
+    {
+        for (const std::string& field_name : fields_it->second)
+        {
+            // remove from fields_by_name
+            fields_by_name.erase(field_name);
+        }
+        // remove from fields_by_message
+        fields_by_message.erase(fields_it);
     }
 }
