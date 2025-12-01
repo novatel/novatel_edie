@@ -31,8 +31,6 @@
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 
-using namespace novatel::edie;
-
 namespace novatel::edie {
 
 //============================================================================
@@ -211,7 +209,7 @@ class FramerBase
     [[nodiscard]] size_t GetAvailableSpace() const { return pclMyBuffer->available_space(); }
 
     ////----------------------------------------------------------------------------
-    ////! \brief Flush bytes from the internal circular buffer. 
+    ////! \brief Flush bytes from the internal circular buffer.
     ////
     ////! \param[in] uiBufferSize_ The size of the provided buffer.
     ////
@@ -222,14 +220,6 @@ class FramerBase
         const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(pclMyBuffer->size()), uiBufferSize_);
         return uiBytesToFlush;
     }
-
-    //----------------------------------------------------------------------------
-    //! \brief Find the next sync byte in the ring buffer.
-    //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
-    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
-    //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.
-    //---------------------------------------------------------------------------
-    virtual uint32_t FindSyncOffset(uint32_t uiFrameBufferSize_, STATUS& offsetStatus) = 0;
 
     //----------------------------------------------------------------------------
     //! \brief virtual function to be overridden with casting MetaDataBase to type-specific MetaDataStruct

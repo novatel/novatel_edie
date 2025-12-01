@@ -35,8 +35,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "novatel_edie/common/fixed_ring_buffer.hpp"
 #include "novatel_edie/common/crc32.hpp"
+#include "novatel_edie/common/fixed_ring_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/framer.hpp"
@@ -71,7 +71,8 @@ class FramerManager
 
     explicit FramerManager(const std::vector<std::string>& selectedFramers = {});
 
-    static void RegisterFramer(const std::string& framerName_, std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)> framerFactory_,
+    static void RegisterFramer(const std::string& framerName_,
+                               std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)> framerFactory_,
                                std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_);
     //---------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
@@ -139,10 +140,7 @@ class FramerManager
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_)
-    {
-        return pclMyFixedRingBuffer->Write(pucDataBuffer_, uiDataBytes_);
-    }
+    size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return pclMyFixedRingBuffer->Write(pucDataBuffer_, uiDataBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -172,11 +170,6 @@ class FramerManager
     //! \param[in] eLevel_ Shared pointer to the internal logger object.
     //----------------------------------------------------------------------------
     void SetLoggerLevel(const spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-    //----------------------------------------------------------------------------
-    //! \brief Shutdown the internal logger.
-    //----------------------------------------------------------------------------
-    void ShutdownLogger() { ShutdownLogger(); }
 
     //----------------------------------------------------------------------------
     //! \brief Attempt to discover a frame from the internal circular buffer if one exists

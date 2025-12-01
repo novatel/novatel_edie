@@ -59,11 +59,21 @@ add_subdirectory(src/decoders/oem)
 # Add an aggregate target for all components
 add_library(novatel_edie INTERFACE)
 add_library(novatel_edie::novatel_edie ALIAS novatel_edie)
-target_link_libraries(novatel_edie INTERFACE
-    common
-    decoders_common
-    oem_decoder
-)
+
+if(MSVC)
+    target_link_options(novatel_edie INTERFACE /WHOLEARCHIVE:$<TARGET_FILE:oem_decoder>)
+    target_link_libraries(novatel_edie INTERFACE
+        oem_decoder
+        common
+        decoders_common
+    )
+else()
+    target_link_libraries(novatel_edie INTERFACE
+        -Wl,--whole-archive oem_decoder -Wl,--no-whole-archive
+        common
+        decoders_common
+    )
+endif()
 
 if(BUILD_PYTHON)
     add_subdirectory(python)

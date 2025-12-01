@@ -46,9 +46,9 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
 }
 
 RxConfigHandler::RxConfigHandler(std::shared_ptr<Framer> framer, const MessageDatabase::Ptr& pclMessageDb_)
-    : clMyHeaderDecoder(pclMessageDb_), clMyMessageDecoder(pclMessageDb_), clMyEncoder(pclMessageDb_),
+    : pclMyFramer(std::move(framer)), clMyHeaderDecoder(pclMessageDb_), clMyMessageDecoder(pclMessageDb_), clMyEncoder(pclMessageDb_),
       pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)),
-      pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)), pclMyFramer(framer)
+      pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize))
 {
     pclMyLogger = GetBaseLoggerManager()->RegisterLogger("rxconfig_handler");
     pclMyLogger->debug("RxConfigHandler initializing...");

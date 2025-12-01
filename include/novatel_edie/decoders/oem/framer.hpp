@@ -84,14 +84,6 @@ class Framer : public FramerBase
     Framer();
 
     //----------------------------------------------------------------------------
-    //! \brief Find the next sync byte in the circular buffer.
-    //! \param[in] pucFrameBuffer_ The buffer to search for the next sync byte.
-    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
-    //! \return The offset of the next sync byte. | -1 if no sync byte is found within the buffer.
-    //---------------------------------------------------------------------------
-    uint32_t FindSyncOffset(uint32_t uiFrameBufferSize_, STATUS& offsetStatus) override;
-
-    //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
     //
     //! \param[out] pucFrameBuffer_ The buffer which the Framer should copy the

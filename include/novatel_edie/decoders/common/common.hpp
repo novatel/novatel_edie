@@ -271,9 +271,8 @@ struct MetaDataBase
     bool operator==(const MetaDataBase& other_) const
     {
         return bResponse == other_.bResponse && eFormat == other_.eFormat && usWeek == other_.usWeek &&
-               IsEqual(dMilliseconds, other_.dMilliseconds) && uiLength == other_.uiLength &&
-               uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId &&
-               uiMessageCrc == other_.uiMessageCrc && messageName == other_.messageName;
+               IsEqual(dMilliseconds, other_.dMilliseconds) && uiLength == other_.uiLength && uiHeaderLength == other_.uiHeaderLength &&
+               usMessageId == other_.usMessageId && uiMessageCrc == other_.uiMessageCrc && messageName == other_.messageName;
     }
 };
 

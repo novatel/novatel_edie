@@ -27,41 +27,29 @@
 #ifndef FRAMER_REGISTRATION_HPP
 #define FRAMER_REGISTRATION_HPP
 
-// Include all Framer headers
 #include "novatel_edie/common/fixed_ring_buffer.hpp"
 #include "novatel_edie/decoders/common/framer.hpp"
 #include "novatel_edie/decoders/common/framer_manager.hpp"
-#include "novatel_edie/decoders/oem/framer.hpp"
 
 using namespace novatel::edie;
-using namespace novatel::edie::oem;
 
-// TODO Ideally each framer would register itself with the FramerManager, but the Linker doesn't include that code unless it's explicitly imported and
-// used in whatever binary is being built. I've tried using "#pragma comment(linker", and a few other methods in MSVC attempt to force the Linker to
-// include this code, but none were successful. It would improve the usability of the FramerManger if someone could figure out how to register the
-// Framers without the user being required to import this file and call RegisterAllFramers()
-
-//----------------------------------------------------------------------------
-//! \brief Hold static function pointers for both framer and metadata factories.
-//! This will contain a set of factories for each supported framer.
-//----------------------------------------------------------------------------
-inline void RegisterAllFramers()
-{
-    static const bool registerOEMFramer = ([]() {
-        FramerManager::RegisterFramer(
-            "OEM",
-            [](std::shared_ptr<UCharFixedRingBuffer> buffer) -> std::unique_ptr<novatel::edie::FramerBase> {
-                auto framer = std::make_unique<novatel::edie::oem::Framer>(buffer);
-                if (!framer) { throw std::runtime_error("Failed to create OEM Framer"); }
-                return framer;
-            },
-            []() -> std::unique_ptr<MetaDataBase> {
-                auto metaData = std::make_unique<MetaDataStruct>();
-                if (!metaData) { throw std::runtime_error("Failed to create MetaDataStruct"); }
-                return metaData;
-            });
-        return true;
-    })();
-}
+// Macro to register a framer with the FramerManager's factory
+#define REGISTER_FRAMER(FramerName, FramerClass, MetaDataClass)                                                                                      \
+    namespace {                                                                                                                                      \
+    struct FramerName##_Registrar                                                                                                                    \
+    {                                                                                                                                                \
+        FramerName##_Registrar();                                                                                                                    \
+    };                                                                                                                                               \
+    static FramerName##_Registrar s_##FramerName##_registrar;                                                                                        \
+    FramerName##_Registrar::FramerName##_Registrar()                                                                                                 \
+    {                                                                                                                                                \
+        novatel::edie::FramerManager::RegisterFramer(                                                                                                \
+            #FramerName,                                                                                                                             \
+            [](std::shared_ptr<novatel::edie::UCharFixedRingBuffer> buffer) -> std::unique_ptr<novatel::edie::FramerBase> {                          \
+                return std::make_unique<FramerClass>(buffer);                                                                                        \
+            },                                                                                                                                       \
+            []() -> std::unique_ptr<novatel::edie::MetaDataBase> { return std::make_unique<MetaDataClass>(); });                                     \
+    }                                                                                                                                                \
+    }
 
 #endif // FRAMER_REGISTRATION_HPP

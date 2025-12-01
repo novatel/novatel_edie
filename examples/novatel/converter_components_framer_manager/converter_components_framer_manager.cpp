@@ -32,7 +32,6 @@
 
 #include <novatel_edie/common/logger.hpp>
 #include <novatel_edie/decoders/common/framer_manager.hpp>
-#include <novatel_edie/decoders/common/framer_registration.hpp>
 #include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/filter.hpp>
@@ -97,16 +96,12 @@ int main(int argc, char* argv[])
     pclLogger->info("Done in {}ms",
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
-    RegisterAllFramers();
-
     // Set up the EDIE components
     FramerManager clFramer({"OEM"});
     clFramer.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clFramer.GetLogger());
     Logger::AddRotatingFileLogger(clFramer.GetLogger());
     clFramer.SetReportUnknownBytes(true);
-    /*clFramer.SetPayloadOnly(false);
-    clFramer.SetFrameJson(false);*/
 
     HeaderDecoder clHeaderDecoder(clJsonDb);
     clHeaderDecoder.SetLoggerLevel(spdlog::level::debug);
@@ -143,7 +138,6 @@ int main(int argc, char* argv[])
     std::vector<FieldContainer> stMessage;
 
     MetaDataBase* stMetaDataPtr;
-    // MetaDataStruct stMetaData;
     MessageDataStruct stMessageData;
 
     // Setup file streams
@@ -152,10 +146,6 @@ int main(int argc, char* argv[])
     std::ofstream unknownOfs(pathInFilename.string() + "." + sEncodeFormat + ".UNKNOWN", std::ios::binary);
 
     tStart = std::chrono::high_resolution_clock::now();
-
-    // int activeFramer = 0;
-
-    uint32_t counter = 0;
 
     while (!ifs.eof())
     {
@@ -166,8 +156,6 @@ int main(int argc, char* argv[])
 
         while (eFramerStatus != STATUS::BUFFER_EMPTY && eFramerStatus != STATUS::INCOMPLETE)
         {
-            if (counter == 118) int i = 0;
-            std::cout << "Counter: " << counter++ << std::endl;
             unsigned char* pucFrameBuffer = acFrameBuffer;
 
             eFramerStatus = clFramer.GetFrame(pucFrameBuffer, sizeof(acFrameBuffer), stMetaDataPtr);
@@ -176,7 +164,10 @@ int main(int argc, char* argv[])
             {
                 if (clFramer.GetActiveFramerName() == "OEM")
                 {
-                    MetaDataStruct& stMetaData = static_cast<MetaDataStruct&>(*stMetaDataPtr);
+                    // Tell clang-tidy not to warn about the downcast here
+                    // TODO: measure performance impact of enabling RTTI on MetaDataBase and using dynamic_cast
+                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
+                    auto& stMetaData = static_cast<MetaDataStruct&>(*stMetaDataPtr);
 
                     if (stMetaData.bResponse)
                     {
@@ -185,7 +176,6 @@ int main(int argc, char* argv[])
                     }
 
                     pucFrameBuffer[stMetaData.uiLength] = '\0';
-                    // pclLogger->info("Framed: {}", reinterpret_cast<char*>(pucFrameBuffer));
 
                     // Decode the header. Get metadata here and populate the Intermediate header.
                     eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
@@ -209,8 +199,6 @@ int main(int argc, char* argv[])
                             {
                                 convertedOfs.write(reinterpret_cast<char*>(stMessageData.pucMessage), stMessageData.uiMessageLength);
                                 stMessageData.pucMessage[stMessageData.uiMessageLength] = '\0';
-                                // pclLogger->info("Encoded: ({}) {}", stMessageData.uiMessageLength,
-                                // reinterpret_cast<char*>(pucEncodedMessageBuffer));
                             }
                             else
                             {

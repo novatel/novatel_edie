@@ -29,9 +29,13 @@
 #include <charconv>
 
 #include "novatel_edie/common/crc32.hpp"
+#include "novatel_edie/decoders/common/framer_registration.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
+
+// Register the OEM framer with the framer factory
+REGISTER_FRAMER(OEM, oem::Framer, MetaDataStruct)
 
 // -------------------------------------------------------------------------------------------------------
 Framer::Framer() : FramerBase("novatel_framer") {}
@@ -90,79 +94,6 @@ bool Framer::IsAbbrevAsciiResponse() const
 }
 
 // -------------------------------------------------------------------------------------------------------
-uint32_t Framer::FindSyncOffset(const uint32_t uiFrameBufferSize_, STATUS& eOffsetStatus_)
-{
-    auto eCurrentFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
-    uint32_t uiByteOffset = 0;
-
-    while (eCurrentFrameState != NovAtelFrameState::COMPLETE_MESSAGE)
-    {
-        // Read data from circular buffer until end is reached
-        if (pclMyBuffer->size() == uiByteOffset)
-        {
-            if (eCurrentFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
-            {
-                eOffsetStatus_ = STATUS::INCOMPLETE;
-                return 0;
-            }
-
-            if (uiByteOffset == 0)
-            {
-                eOffsetStatus_ = STATUS::BUFFER_EMPTY;
-                return 0;
-            }
-
-            eOffsetStatus_ = STATUS::UNKNOWN;
-            return 0;
-        }
-
-        const unsigned char ucDataByte = (*pclMyBuffer)[uiByteOffset++];
-
-        switch (eCurrentFrameState)
-        {
-        case NovAtelFrameState::WAITING_FOR_SYNC:
-            switch (ucDataByte)
-            {
-            case OEM4_BINARY_SYNC1: eCurrentFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC2; break;
-            case OEM4_ASCII_SYNC: eOffsetStatus_ = STATUS::SUCCESS; return uiByteOffset - OEM4_ASCII_SYNC_LENGTH;
-            case OEM4_SHORT_ASCII_SYNC: eOffsetStatus_ = STATUS::SUCCESS; return uiByteOffset - OEM4_SHORT_ASCII_SYNC_LENGTH;
-            case NMEA_SYNC: eOffsetStatus_ = STATUS::SUCCESS; return uiByteOffset - NMEA_SYNC_LENGTH;
-            case OEM4_ABBREV_ASCII_SYNC: eOffsetStatus_ = STATUS ::SUCCESS; return uiByteOffset - 1;
-            default: break;
-            }
-            break;
-        case NovAtelFrameState::WAITING_FOR_BINARY_SYNC2:
-            switch (ucDataByte)
-            {
-            case OEM4_PROPRIETARY_BINARY_SYNC2: [[fallthrough]];
-            case OEM4_BINARY_SYNC2: eCurrentFrameState = NovAtelFrameState::WAITING_FOR_BINARY_SYNC3; break;
-            default:
-                uiByteOffset--;
-                eCurrentFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
-                break;
-            }
-            break;
-
-        case NovAtelFrameState::WAITING_FOR_BINARY_SYNC3:
-            switch (ucDataByte)
-            {
-            case OEM4_BINARY_SYNC3: [[fallthrough]];
-            case OEM4_SHORT_BINARY_SYNC3:
-                uiByteOffset = uiByteOffset - 3;
-                eOffsetStatus_ = STATUS::SUCCESS;
-                return uiByteOffset;
-            default:
-                uiByteOffset--;
-                eCurrentFrameState = NovAtelFrameState::WAITING_FOR_SYNC;
-                break;
-            }
-            break;
-        default: eOffsetStatus_ = STATUS::UNKNOWN; return 0;
-        }
-    }
-}
-
-// -------------------------------------------------------------------------------------------------------
 STATUS
 Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_, bool bMetadataOnly_)
 {
@@ -198,7 +129,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
 
             if (uiMyByteCount == 0) { return STATUS::BUFFER_EMPTY; }
 
-            HandleUnknownBytes(pucFrameBuffer_, uiMyByteCount);
+            if (!bMetadataOnly_) { HandleUnknownBytes(pucFrameBuffer_, uiMyByteCount); }
             return STATUS::UNKNOWN;
         }
 
@@ -259,15 +190,16 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
             if (eMyFrameState != NovAtelFrameState::WAITING_FOR_SYNC && uiMyByteCount > 1)
             {
                 stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
+                // TODO: why -1 here?
                 stMetaData_.uiLength = uiMyByteCount - 1;
-                HandleUnknownBytes(pucFrameBuffer_, uiMyByteCount - 1);
+                if (!bMetadataOnly_) { HandleUnknownBytes(pucFrameBuffer_, uiMyByteCount - 1); }
                 return STATUS::UNKNOWN;
             }
             if (uiMyByteCount > uiFrameBufferSize_)
             {
                 stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
                 stMetaData_.uiLength = uiMyByteCount - 1;
-                HandleUnknownBytes(pucFrameBuffer_, uiFrameBufferSize_);
+                if (!bMetadataOnly_) { HandleUnknownBytes(pucFrameBuffer_, uiFrameBufferSize_); }
                 return STATUS::UNKNOWN;
             }
             break;
@@ -549,7 +481,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                     return STATUS::INCOMPLETE;
                 }
                 // New line with abbrev data
-                else if ((*pclMyBuffer)[uiMyByteCount + 1] == OEM4_ABBREV_ASCII_SYNC && (*pclMyBuffer)[uiMyByteCount + 2] == OEM4_ABBREV_ASCII_SEPARATOR)
+                else if ((*pclMyBuffer)[uiMyByteCount + 1] == OEM4_ABBREV_ASCII_SYNC &&
+                         (*pclMyBuffer)[uiMyByteCount + 2] == OEM4_ABBREV_ASCII_SEPARATOR)
                 {
                     uiMyByteCount++; // Add 1 to consume LF
                     eMyFrameState = NovAtelFrameState::WAITING_FOR_ABB_ASCII_BODY;

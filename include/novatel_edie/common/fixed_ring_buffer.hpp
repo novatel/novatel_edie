@@ -133,10 +133,9 @@ template <typename T, size_t N> class FixedRingBuffer
     size_t sz = 0;
 };
 
-namespace novatel::edie
-{
-    //! \brief FixedRingBuffer specialization for unsigned char with 256KB capacity.
-    using UCharFixedRingBuffer = FixedRingBuffer<unsigned char, (1 << 18)>;
+namespace novatel::edie {
+//! \brief FixedRingBuffer specialization for unsigned char with 256KB capacity.
+using UCharFixedRingBuffer = FixedRingBuffer<unsigned char, (1 << 18)>;
 } // namespace novatel::edie
 
 #endif // FIXED_RING_BUFFER_HPP

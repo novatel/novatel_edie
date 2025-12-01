@@ -30,42 +30,23 @@
 
 using namespace novatel::edie;
 
-namespace {
-static int forceInit = []() {
-    std::cerr << "[DEBUG] Ensuring FramerManager initialized before registration.\n";
-    FramerManager::GetFramerFactories(); // Force static initialization
-    return 0;
-}();
-} // namespace
-
 FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
     : pclMyLogger(GetBaseLoggerManager()->RegisterLogger("FramerManager")), pclMyFixedRingBuffer(std::make_shared<UCharFixedRingBuffer>())
 {
-    std::cerr << "[C++] FramerManager constructor entered\n";
-
     auto& factoryMap = GetFramerFactories();
-
-    // Check if framerFactories is valid before insertion
-    std::cerr << "[DEBUG] framerFactories address: " << &factoryMap << "\n";
 
     for (const auto& name : selectedFramers)
     {
-        std::cerr << "[C++] selectedFramer name: " << name << "\n ";
-        auto it = GetFramerFactories().find(name);
-        if (it != GetFramerFactories().end())
+        auto it = factoryMap.find(name);
+        if (it != factoryMap.end())
         {
-            std::cerr << "[C++] pclMyFixedRingBuffer&: " << &pclMyFixedRingBuffer << "\n ";
             auto& constructors = it->second;
-
             auto metadataInstance = constructors.second();
-            std::cerr << "[C++] metaDataInstance&: " << &metadataInstance << "\n ";
-
             auto framerInstance = constructors.first(pclMyFixedRingBuffer);
-            std::cerr << "[C++] framerInstance&: " << &framerInstance << "\n ";
-
             framerRegistry.emplace_back(name, std::move(framerInstance), std::move(metadataInstance));
+            pclMyLogger->info("Registered framer '{}'", name);
         }
-        else { std::cerr << "Warning: Framer '" << name << "' not registered.\n"; }
+        else { pclMyLogger->warn("Framer '{}' not found in registered framer factories.", name); }
     }
 }
 
@@ -74,20 +55,7 @@ void FramerManager::RegisterFramer(const std::string& framerName_,
                                    std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_)
 {
     auto& factoryMap = GetFramerFactories();
-
-    // Check if framerFactories is valid before insertion
-    std::cerr << "[DEBUG] framerFactories address: " << &factoryMap << "\n";
-
-    try
-    {
-        std::cerr << "[DEBUG] Attempting to insert into framerFactories: " << framerName_ << "\n";
-        factoryMap[framerName_] = {std::move(framerFactory_), std::move(metadataConstructor_)};
-        std::cerr << "[DEBUG] Successfully inserted framer: " << framerName_ << "\n";
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << "[ERROR] Exception inserting into framerFactories: " << e.what() << "\n";
-    }
+    factoryMap[framerName_] = {std::move(framerFactory_), std::move(metadataConstructor_)};
 }
 
 std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
@@ -102,64 +70,71 @@ FramerManager::GetFramerFactories()
 
 MetaDataBase* FramerManager::GetMetaData(const std::string framerName_)
 {
-    for (FramerEntry& element : framerRegistry)
+    for (auto& framer : framerRegistry)
     {
-        if (element.framerName == framerName_) { return element.metadataInstance.get(); }
+        if (framer.framerName == framerName_) { return framer.metadataInstance.get(); }
     }
     return nullptr;
 }
 
 void FramerManager::ResetAllFramerStates() const
 {
-    for (auto it = framerRegistry.begin(); it != framerRegistry.end(); ++it)
+    for (const auto& framer : framerRegistry)
     {
-        it->framerInstance->InitAttributes();
-        it->framerInstance->ResetState();
+        framer.framerInstance->InitAttributes();
+        framer.framerInstance->ResetState();
     }
 }
 
 FramerEntry* FramerManager::GetFramerElement(const std::string framerName_)
 {
-    for (FramerEntry& element : framerRegistry)
+    for (auto& framer : framerRegistry)
     {
-        if (element.framerName == framerName_) { return &element; }
+        if (framer.framerName == framerName_) { return &framer; }
     }
     return nullptr;
 }
 
 STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase*& stMetaData_)
 {
-    STATUS eStatus = STATUS::UNKNOWN;
-    auto bestIt = framerRegistry.end();
-    int bestOffset = std::numeric_limits<int>::max();
-
     while (true)
     {
-        if (pclMyFixedRingBuffer->size() == 0) { return STATUS::BUFFER_EMPTY; }
+        if (pclMyFixedRingBuffer->empty()) { return STATUS::BUFFER_EMPTY; }
 
-        // Step 1: Scan for first sync (offset == 0) or lowest valid offset
-        for (auto it = framerRegistry.begin(); it != framerRegistry.end(); ++it)
+        STATUS eStatus = STATUS::UNKNOWN;
+        STATUS bestStatus = STATUS::UNKNOWN;
+        MetaDataBase* currentMetaData;
+        auto bestOffset = static_cast<uint32_t>(pclMyFixedRingBuffer->size());
+        auto framerIt = framerRegistry.begin();
+        auto bestFramerIt = framerRegistry.end();
+
+        // Scan for first frame offset among all registered framers
+        for (; framerIt != framerRegistry.end(); framerIt++)
         {
-            int offset = it->framerInstance->FindSyncOffset(uiFrameBufferSize_, eStatus);
-            if (eStatus != STATUS::SUCCESS && eStatus != STATUS::INCOMPLETE) { continue; }
+            currentMetaData = framerIt->metadataInstance.get();
+            eStatus = framerIt->framerInstance->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, *currentMetaData, /*bMetadataOnly=*/true);
 
-            if (offset == 0)
+            // If any framer returns a known status, keep it as the best candidate. If multiple framers
+            // return known statuses but no framer returns SUCCESS, one of the known statuses will be returned.
+            if (eStatus != STATUS::UNKNOWN)
             {
-                bestIt = it;
-                bestOffset = offset;
-                break;
+                bestFramerIt = framerIt;
+                bestStatus = eStatus;
+                stMetaData_ = currentMetaData;
+                // If a framer sees a valid, complete frame, then use it immediately
+                if (eStatus == STATUS::SUCCESS) { break; }
             }
-
-            if (offset < bestOffset)
-            {
-                bestOffset = offset;
-                bestIt = it;
-            }
+            // Track the smallest offset among framers with UNKNOWN statuses to possibly discard unknown bytes later
+            else if (currentMetaData->uiLength < bestOffset) { bestOffset = currentMetaData->uiLength; }
         }
 
-        // Sync found, but not at offset 0. Discard those bytes first
-        if (bestIt != framerRegistry.end() && bestOffset != 0)
+        assert((bestStatus == STATUS::UNKNOWN && bestFramerIt == framerRegistry.end()) ||
+               (bestStatus != STATUS::UNKNOWN && bestFramerIt != framerRegistry.end()));
+
+        // No frame found at all
+        if (bestFramerIt == framerRegistry.end())
         {
+            assert(bestOffset > 0 && bestOffset <= static_cast<uint32_t>(pclMyFixedRingBuffer->size()));
             HandleUnknownBytes(pucFrameBuffer_, bestOffset);
             stMyMetaData.uiLength = bestOffset;
             stMyMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
@@ -167,53 +142,21 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             return STATUS::UNKNOWN;
         }
 
-        // No valid sync found at all. Discard the entire buffer.
-        if (bestIt == framerRegistry.end())
-        {
-            HandleUnknownBytes(pucFrameBuffer_, pclMyFixedRingBuffer->size());
-            stMyMetaData.uiLength = static_cast<uint32_t>(pclMyFixedRingBuffer->size());
-            stMyMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
-            stMetaData_ = &stMyMetaData; // There is no valid MetaData object to use from a Framer so use the MetaDataBase from FramerManager
-            return STATUS::UNKNOWN;
-        }
-        // Step 2: Try to frame using the chosen framer
-        FramerBase* activeFramer = bestIt->framerInstance.get();
-        stMetaData_ = bestIt->metadataInstance.get();
-
-        eStatus = activeFramer->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, *stMetaData_, /*bMetadataOnly=*/true);
-
-        if (eStatus == STATUS::SUCCESS)
+        if (bestStatus == STATUS::SUCCESS)
         {
             // Move this framer to the front
-            if (bestIt != framerRegistry.begin()) { std::rotate(framerRegistry.begin(), bestIt, bestIt + 1); }
+            if (framerIt != framerRegistry.begin()) { std::rotate(framerRegistry.begin(), framerIt, framerIt + 1); }
 
             if (stMetaData_->uiLength > uiFrameBufferSize_) { return STATUS::BUFFER_FULL; }
 
             pclMyFixedRingBuffer->copy_out(pucFrameBuffer_, stMetaData_->uiLength);
             pclMyFixedRingBuffer->erase_begin(stMetaData_->uiLength);
+            ResetAllFramerStates();
             return STATUS::SUCCESS;
         }
-        else if (eStatus == STATUS::UNKNOWN)
-        {
-            // Framer is currently handling the unknown bytes. Unsure if this is correct or if FM should be handling the unknown bytes.
-            // For now I'm going to keep in the individual framer, but it may be better to move this to the FramerManager for control
-            // over the unknown bytes if needed. e.g. it might be that we need to try a different framer if the first one fails.
 
-            // If the framer failed, discard the bytes and retry
-            HandleUnknownBytes(pucFrameBuffer_, bestIt->framerInstance->GetMyByteCount());
+        if (bestStatus != STATUS::UNKNOWN) { return bestStatus; }
 
-            /* PROBLEM: The "Unknown" bytes are discarded here, but it could be the case that a different framer
-                has a valid frame that begins within those "Unknown" bytes. Potential solution could be to only
-                discard bytes until the start of the NEXT valid sync bytes (among all framers) */
-
-            // stMyMetaData.uiLength = stMetaData_->uiLength;
-            // stMyMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
-            //  stMetaData_ has been set from the current framer so return that back
-            return eStatus;
-        }
-        else if (eStatus == STATUS::INCOMPLETE) { return STATUS::INCOMPLETE; }
-        else if (eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
-        else if (eStatus == STATUS::BUFFER_FULL) { return STATUS::BUFFER_FULL; }
         // else
         // Framer failed — discard 1 byte and retry
         HandleUnknownBytes(pucFrameBuffer_, 1);
