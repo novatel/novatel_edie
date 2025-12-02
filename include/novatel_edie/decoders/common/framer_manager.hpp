@@ -158,6 +158,13 @@ class FramerManager
     }
 
     //----------------------------------------------------------------------------
+    //! \brief Get the number of bytes currently available in the internal buffer.
+    //!
+    //! \return The number of bytes available in the internal circular buffer.
+    //------------------------------------------------------------------------------
+    [[nodiscard]] size_t GetAvailableSpace() const { return pclMyFixedRingBuffer->available_space(); }
+
+    //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
     //
     //! \return Shared pointer to the internal logger object.

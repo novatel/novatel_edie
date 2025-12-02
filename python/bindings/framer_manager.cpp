@@ -13,45 +13,44 @@ using namespace novatel::edie;
 
 nb::tuple PyFramerManager::PyGetFrame(uint32_t buffer_size)
 {
-    std::cerr << "[DEBUG] PyFramerManager::PyGetFrame entered\n";
     std::vector<char> buffer(buffer_size);
     static MetaDataBase* metadata; // maintain metadata until frame is returned
     MetaDataBase metadata_copy;
-    std::cerr << "[DEBUG] PyFramerManager Before GetFrame\n";
     STATUS status = GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
-    std::cerr << "[DEBUG] PyFramerManager Status: " << status << "\n ";
     switch (status)
     {
     case STATUS::UNKNOWN: // fall-through
     case STATUS::SUCCESS:
-        std::cerr << "[DEBUG] Before copy metadata      address: " << metadata << "\n ";
-        std::cerr << "[DEBUG] Before copy metadata_copy address: " << &metadata_copy << "\n ";
         metadata_copy = MetaDataBase(*metadata);
         metadata = new MetaDataBase();
-        std::cerr << "[DEBUG] After copy metadata       address: " << metadata << "\n ";
-        std::cerr << "[DEBUG] After copy metadata_copy  address: " << &metadata_copy << "\n ";
         return nb::make_tuple(nb::bytes(buffer.data(), metadata_copy.uiLength), metadata_copy);
     default: throw_exception_from_status(status);
     }
 }
 
-// std::unique_ptr<PyFramerManager> PyFramerManager::MakeFramerManagerFromList(nb::list py_selected_framers)
-//{
-//     std::vector<std::string> framers;
-//     auto d = Logger::RegisterLogger("Dingus");
-//     d->set_level(spdlog::level::debug);
-//     d->debug("PyFramerManager::MakeFramerManagerFromList");
-//     for (nb::handle h : py_selected_framers) { framers.emplace_back(nb::cast<std::string>(h)); }
-//     return std::make_unique<PyFramerManager>(framers);
-// }
+nb::tuple PyFramerManager::PyIterGetFrame()
+{
+    try
+    {
+        return PyGetFrame(MESSAGE_SIZE_MAX);
+    }
+    catch (IncompleteException)
+    {
+    }
+    catch (IncompleteMoreDataException)
+    {
+    }
+    catch (BufferEmptyException)
+    {
+    }
+    throw nb::stop_iteration("No more frames detected in buffer");
+}
 
 void init_common_framer_manager(nb::module_& m)
 {
     nb::class_<PyFramerManager>(m, "FramerManager")
         // Constructor that accepts a list of strings (framers)
         .def(nb::init<const std::vector<std::string>>(), "selected_framers"_a, "Constructs a FramerManager with a list of selected framers by name")
-        //.def("from_list", &PyFramerManager::MakeFramerManagerFromList, "selected_framers"_a = nb::list(),
-        //            "Initializes FramerManager with a list of selected framer names.")
         .def("register_framer",
              [](FramerManager& self, const std::string& framer_name, nb::callable py_framer_factory, nb::callable py_metadata_constructor) {
                  auto framer_factory = [=](std::shared_ptr<UCharFixedRingBuffer> rb) -> std::unique_ptr<FramerBase> {
@@ -74,6 +73,8 @@ void init_common_framer_manager(nb::module_& m)
             [](FramerManager& self, const bool report_unknown_bytes) { self.SetReportUnknownBytes(report_unknown_bytes); }, "report_unknown_bytes"_a)
         .def_prop_rw("report_unknown_bytes", &PyFramerManager::GetReportUnknownBytes, &PyFramerManager::SetReportUnknownBytes,
                      "Whether to frame and return undecodable data.")
+        .def_prop_ro("available_space", &PyFramerManager::GetAvailableSpace,
+                     "The number of bytes in the Framer Manager's internal buffer available for writing new data.")
         .def_prop_ro("circular_buffer", [](FramerManager& self) { return self.GetFixedRingBuffer(); })
         .def(
             "framer_element", [](FramerManager& self, std::string framer_name) { return self.GetFramerElement(framer_name); }, "framer_id"_a,
@@ -100,7 +101,6 @@ void init_common_framer_manager(nb::module_& m)
         .def_prop_ro(
             "logger", [](FramerManager& self) { return self.GetLogger(); }, nb::rv_policy::reference)
         .def("set_logger_level", [](FramerManager& self, spdlog::level::level_enum eLevel) { self.SetLoggerLevel(eLevel); })
-        .def("shutdown_logger", [](FramerManager& self) { self.ShutdownLogger(); })
         .def("get_frame", &PyFramerManager::PyGetFrame, "buffer_size"_a = MESSAGE_SIZE_MAX,
              nb::sig("def get_frame(buffer_size = MAX_MESSAGE_LENGTH) -> tuple[bytes, MetaData]"),
              R"doc(
@@ -118,5 +118,24 @@ void init_common_framer_manager(nb::module_& m)
                     buffer size.
                 IncompleteException: The framer found the start of a message, but 
                     there are no more bytes in the internal buffer.
+            )doc")
+        .def(
+            "__iter__", [](nb::handle_t<PyFramerManager> self) { return self; },
+            nb::sig("def __iter__(self) -> Iterator[tuple[bytes, MetaData]]"),
+            R"doc(
+            Marks Framer Manager as Iterable.
+
+            Returns:
+                The Framer Manager itself as an Iterator.
+            )doc")
+        .def("__next__", &PyFramerManager::PyIterGetFrame, nb::sig("def __next__(self) -> tuple[bytes, MetaData]"),
+             R"doc(
+            Attempts to get the next frame from the Framer Manager's buffer.
+
+            Returns:
+                The framed data and its metadata.
+
+            Raises:
+                StopIteration: There is insufficient data in the Framer Manager's buffer to get a complete frame.
             )doc");
 }

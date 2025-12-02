@@ -11,8 +11,8 @@ class PyFramerManager : public FramerManager
 
     bool GetReportUnknownBytes() { return bMyReportUnknownBytes; }
 
-//    std::unique_ptr<PyFramerManager> MakeFramerManagerFromList(nb::list py_selected_framers);
-
     nb::tuple PyGetFrame(uint32_t buffer_size);
+
+    nb::tuple PyIterGetFrame();
 };
 } // namespace novatel::edie

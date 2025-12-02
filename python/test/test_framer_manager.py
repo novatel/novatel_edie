@@ -3,12 +3,6 @@ import pytest
 from novatel_edie import HEADER_FORMAT, STATUS
 
 
-@pytest.fixture(scope='module', autouse=True)
-def register_framers():
-    ne.register_all_framers()
-    print("Framers registered")
-
-
 class Helper:
     def __init__(self, test_resources_path):
         self.test_resources = test_resources_path

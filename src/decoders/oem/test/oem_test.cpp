@@ -1100,10 +1100,14 @@ class FramerManagerTest : public ::testing::Test
         ASSERT_EQ(S, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, stTestMetaData));
         if (bCompareMetaData)
         {
-            ASSERT_NE(stTestMetaData, nullptr);
-            if (stTestMetaData) {
-                ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
-            }
+            compareMetaData(stExpectedMetaData, stTestMetaData);
+        }
+    }
+
+    static void compareMetaData(MetaDataBase & stExpectedMetaData, MetaDataBase* stTestMetaData) {
+        ASSERT_NE(stTestMetaData, nullptr);
+        if (stTestMetaData) {
+            ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
         }
     }
 

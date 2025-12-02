@@ -26,12 +26,7 @@ class PyFileParser : public FileParser
     }
 
   public:
-    ~PyFileParser() = default;
-    
-    PyFileParser(const std::filesystem::path& filepath_) : FileParser(MessageDbSingleton::get()) 
-    {
-        SetStreamByPath(filepath_);
-    };
+    PyFileParser(const std::filesystem::path& filepath_) : PyFileParser(filepath_, MessageDbSingleton::get()) {};
 
     PyFileParser(const std::filesystem::path& filepath_, const PyMessageDatabase::Ptr& message_db_pointer)
         : FileParser(message_db_pointer->GetCoreDatabase()), pclPyMessageDb(message_db_pointer)
