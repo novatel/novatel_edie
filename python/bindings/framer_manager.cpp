@@ -1,4 +1,5 @@
 #include "novatel_edie/decoders/common/framer_manager.hpp"
+#include "novatel_edie/decoders/oem/framer.hpp"
 
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
@@ -15,15 +16,25 @@ nb::tuple PyFramerManager::PyGetFrame(uint32_t buffer_size)
 {
     std::vector<char> buffer(buffer_size);
     static MetaDataBase* metadata; // maintain metadata until frame is returned
-    MetaDataBase metadata_copy;
     STATUS status = GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
     switch (status)
     {
     case STATUS::UNKNOWN: // fall-through
     case STATUS::SUCCESS:
-        metadata_copy = MetaDataBase(*metadata);
-        metadata = new MetaDataBase();
-        return nb::make_tuple(nb::bytes(buffer.data(), metadata_copy.uiLength), metadata_copy);
+    {
+        nb::bytes frame_bytes(buffer.data(), metadata->uiLength);
+
+        // Check which framer produced this frame
+        if (GetActiveFramerName() == "OEM") {
+            // Cast to OEM metadata and return it
+            auto* oem_meta = static_cast<oem::MetaDataStruct*>(metadata);
+            if (oem_meta) {
+                return nb::make_tuple(frame_bytes, *oem_meta);
+            }
+        }
+        
+        return nb::make_tuple(frame_bytes, *metadata);
+    }
     default: throw_exception_from_status(status);
     }
 }
