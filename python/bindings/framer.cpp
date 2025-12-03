@@ -11,7 +11,7 @@ using namespace novatel::edie;
 nb::tuple oem::PyFramer::PyGetFrame(uint32_t buffer_size)
 {
     std::vector<char> buffer(buffer_size);
-    static oem::MetaDataStruct metadata; // maintain metadata until frame is returned
+    thread_local oem::MetaDataStruct metadata; // maintain metadata until frame is returned
     oem::MetaDataStruct metadata_copy;
     STATUS status = GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
     switch (status)

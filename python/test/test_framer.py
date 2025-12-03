@@ -854,3 +854,64 @@ def test_write_exceeding_max_num_bytes(helper: Helper):
     bytes_written = helper.framer.write(data)
     # Assert
     assert bytes_written <= helper.framer.available_space
+
+
+# -------------------------------------------------------------------------------------------------------
+# Multithreaded Framer Unit Tests
+# -------------------------------------------------------------------------------------------------------
+def test_threaded_split_logs():
+    """Test that each thread maintains its own framer state correctly.
+
+    This test verifies that metadata persists correctly across calls within
+    a single thread when processing incomplete frames, and that threads don't
+    interfere with each other's metadata.
+    """
+    import threading
+    import queue
+    import time
+
+    data = (b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,",
+            b"-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n")
+
+    errors = queue.Queue()
+
+    def worker(thread_id, iterations=50):
+        try:
+            framer = ne.Framer()
+            data_part = 0
+
+            for _ in range(iterations):
+                bytes_written = framer.write(data[data_part])
+                assert bytes_written == len(data[data_part]), f"Thread {thread_id} failed to write all bytes."
+
+                try:
+                    _, meta = framer.get_frame()
+                    if data_part != 1:
+                        errors.put(f"Thread {thread_id} got a complete frame unexpectedly.")
+                        return
+                    if meta.format != HEADER_FORMAT.ASCII:
+                        errors.put(f"Thread {thread_id} got header format {meta.format}.")
+                        return
+                except ne.IncompleteException:
+                    if data_part != 0:
+                        errors.put(f"Thread {thread_id} expected more data but got incomplete.")
+                        return
+                data_part = (data_part + 1) % 2
+                time.sleep(0.01)
+        except Exception as e:
+            errors.put(f"Thread {thread_id} encountered an exception: {e}")
+            return
+
+    num_threads = 16
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(num_threads)]
+
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join(timeout=1)
+        assert not t.is_alive(), "Thread did not finish in time."
+
+    if not errors.empty():
+        pytest.fail(f"Threading test failed with {errors.qsize()} errors: \n\t" +
+                    "\n\t".join(errors.get() for _ in range(errors.qsize())))
