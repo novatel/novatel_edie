@@ -662,3 +662,49 @@ def test_abbrev_ascii_empty_array(helper):
     data = b"<RANGE COM1 0 95.5 UNKNOWN 0 170.000 025c0020 5103 16807\r\n<     0 \r\n<         \r\n[COM1]"
     helper.write_bytes_to_framer_manager(data)
     helper.test_framer_manager(HEADER_FORMAT.ABB_ASCII, len(data) - 6)
+
+
+# -------------------------------------------------------------------------------------------------------
+# Framer Manager Interface Unit Tests
+# -------------------------------------------------------------------------------------------------------
+@pytest.fixture(scope="function")
+def oem_framer_manager():
+    return ne.FramerManager(["OEM"])
+
+
+def test_oem_framer_manager_active_framer_name(oem_framer_manager):
+    data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
+    oem_framer_manager.write(data)
+    oem_framer_manager.get_frame()
+    assert oem_framer_manager.active_framer_name == "OEM"
+
+
+def test_oem_framer_manager_available_space(oem_framer_manager):
+    data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
+    starting_available_space = oem_framer_manager.available_space
+    assert starting_available_space > 0
+    oem_framer_manager.write(data)
+    assert oem_framer_manager.available_space == starting_available_space - len(data)
+
+
+def test_oem_framer_manager_flush(oem_framer_manager):
+    data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
+    starting_available_space = oem_framer_manager.available_space
+    oem_framer_manager.write(data)
+    flushed = oem_framer_manager.flush()
+    assert flushed == data
+    assert oem_framer_manager.available_space == starting_available_space
+
+
+def test_oem_framer_manager_iteration(oem_framer_manager):
+    data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
+    starting_available_space = oem_framer_manager.available_space
+    for _ in range(20):
+        oem_framer_manager.write(data)
+
+    for frame, meta in oem_framer_manager:
+        assert frame == data # Exclude CRLF
+        assert meta.format == HEADER_FORMAT.ASCII
+        assert meta.length == len(data) # Exclude CRLF
+    
+    assert oem_framer_manager.available_space == starting_available_space

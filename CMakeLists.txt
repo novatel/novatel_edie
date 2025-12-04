@@ -60,6 +60,7 @@ add_subdirectory(src/decoders/oem)
 add_library(novatel_edie INTERFACE)
 add_library(novatel_edie::novatel_edie ALIAS novatel_edie)
 
+# Use whole-archive linking with oem_decoder to ensure framer auto-registration is included
 if(MSVC)
     target_link_options(novatel_edie INTERFACE /WHOLEARCHIVE:$<TARGET_FILE:oem_decoder>)
     target_link_libraries(novatel_edie INTERFACE

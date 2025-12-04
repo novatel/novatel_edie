@@ -60,37 +60,19 @@ nb::tuple PyFramerManager::PyIterGetFrame()
 void init_common_framer_manager(nb::module_& m)
 {
     nb::class_<PyFramerManager>(m, "FramerManager")
-        // Constructor that accepts a list of strings (framers)
+        // Constructor that accepts a list of strings (framer names)
         .def(nb::init<const std::vector<std::string>>(), "selected_framers"_a, "Constructs a FramerManager with a list of selected framers by name")
-        .def("register_framer",
-             [](FramerManager& self, const std::string& framer_name, nb::callable py_framer_factory, nb::callable py_metadata_constructor) {
-                 auto framer_factory = [=](std::shared_ptr<UCharFixedRingBuffer> rb) -> std::unique_ptr<FramerBase> {
-                     nb::object factory = py_framer_factory(rb);
-                     return std::move(nb::cast<std::unique_ptr<FramerBase>&>(factory));
-                 };
-
-                 auto metadata_constructor = [=]() -> std::unique_ptr<MetaDataBase> {
-                     nb::object constructor = py_metadata_constructor();
-                     return std::move(nb::cast<std::unique_ptr<MetaDataBase>&>(constructor));
-                 };
-                 self.GetLogger()->debug("Registering framer: {}", framer_name);
-                 self.RegisterFramer(framer_name, framer_factory, metadata_constructor);
-             })
-        .def("metadata", [](novatel::edie::FramerManager& self, std::string sFramerName) { return self.GetMetaData(sFramerName); })
-        .def("list_available_framers", [](FramerManager& self) { self.ListAvailableFramers(); })
-        .def("reset_all_framer_states", [](FramerManager& self) { self.ResetAllFramerStates(); })
-        .def(
-            "set_report_unknown_bytes",
-            [](FramerManager& self, const bool report_unknown_bytes) { self.SetReportUnknownBytes(report_unknown_bytes); }, "report_unknown_bytes"_a)
-        .def_prop_rw("report_unknown_bytes", &PyFramerManager::GetReportUnknownBytes, &PyFramerManager::SetReportUnknownBytes,
+        .def("reset_all_framer_states", [](PyFramerManager& self) { self.ResetAllFramerStates(); })
+        .def_prop_rw("report_unknown_bytes",
+                     &PyFramerManager::GetReportUnknownBytes,
+                     &PyFramerManager::SetReportUnknownBytes,
                      "Whether to frame and return undecodable data.")
-        .def_prop_ro("available_space", &PyFramerManager::GetAvailableSpace,
+        .def_prop_ro("available_space",
+                     &PyFramerManager::GetAvailableSpace,
                      "The number of bytes in the Framer Manager's internal buffer available for writing new data.")
-        .def_prop_ro("circular_buffer", [](FramerManager& self) { return self.GetFixedRingBuffer(); })
-        .def(
-            "framer_element", [](FramerManager& self, std::string framer_name) { return self.GetFramerElement(framer_name); }, "framer_id"_a,
-            nb::rv_policy::reference)
-        .def("active_framer_name", [](FramerManager& self) { return self.GetActiveFramerName(); })
+        .def_prop_ro("active_framer_name", 
+                     &PyFramerManager::GetActiveFramerName,
+                     "The name of the framer that successfully framed the last message")
         .def(
             "write",
             [](PyFramerManager& framer_manager, const nb::bytes& data) {
@@ -103,15 +85,12 @@ void init_common_framer_manager(nb::module_& m)
                 data: The data to write to the buffer.
             )doc")
         .def("flush",
-             [](FramerManager& self) {
+             [](PyFramerManager& self) {
                  char buffer[MESSAGE_SIZE_MAX];
                  uint32_t buf_size = MESSAGE_SIZE_MAX;
                  uint32_t flushed = self.Flush(reinterpret_cast<uint8_t*>(buffer), buf_size);
                  return nb::bytes(buffer, flushed);
              })
-        .def_prop_ro(
-            "logger", [](FramerManager& self) { return self.GetLogger(); }, nb::rv_policy::reference)
-        .def("set_logger_level", [](FramerManager& self, spdlog::level::level_enum eLevel) { self.SetLoggerLevel(eLevel); })
         .def("get_frame", &PyFramerManager::PyGetFrame, "buffer_size"_a = MESSAGE_SIZE_MAX,
              nb::sig("def get_frame(buffer_size = MAX_MESSAGE_LENGTH) -> tuple[bytes, MetaData]"),
              R"doc(

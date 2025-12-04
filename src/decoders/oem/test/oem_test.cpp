@@ -89,7 +89,6 @@ class FramerTest : public ::testing::Test
 
     static void WriteFileStreamToFramer(std::string sFilename_)
     {
-        // TODO: Why no exception when file does not exist?
         pclMyIFS = std::make_unique<std::ifstream>(std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_, std::ios::binary);
         ASSERT_TRUE(pclMyIFS->is_open());
 

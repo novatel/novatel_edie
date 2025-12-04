@@ -74,7 +74,7 @@ class FramerManager
     //! \param[in] selectedFramers A list of framer names to initialize. Each name
     //! must match a framer that has been registered via RegisterFramer().
     //!
-    //! \sa RegisterFramer(), ListAvailableFramers()
+    //! \sa RegisterFramer()
     //----------------------------------------------------------------------------
     explicit FramerManager(const std::vector<std::string>& selectedFramers = {});
 
@@ -98,15 +98,6 @@ class FramerManager
     //! \return nullptr if the framer is not found.
     //----------------------------------------------------------------------------
     MetaDataBase* GetMetaData(std::string framerName_);
-
-    //----------------------------------------------------------------------------
-    //! \brief List all available framers that have been registered.
-    //----------------------------------------------------------------------------
-    static void ListAvailableFramers()
-    {
-        std::cout << "Available Framers:" << std::endl;
-        for (const auto& pair : GetFramerFactories()) { std::cout << "- " << pair.first << std::endl; }
-    }
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.

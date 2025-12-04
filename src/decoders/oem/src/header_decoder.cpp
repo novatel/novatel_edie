@@ -406,7 +406,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         break;
 
     case HEADER_FORMAT::NMEA: return STATUS::UNSUPPORTED;
-    
+
     default: return STATUS::UNKNOWN;
     }
 
