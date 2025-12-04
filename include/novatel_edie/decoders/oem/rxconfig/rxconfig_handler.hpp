@@ -53,7 +53,7 @@ class RxConfigHandler
     static constexpr std::string_view szAbbrevAsciiEmbeddedHeaderPrefix = "<     ";
     static constexpr uint32_t uiInternalBufferSize = MESSAGE_SIZE_MAX;
 
-    std::shared_ptr<Framer> pclMyFramer;
+    Framer clMyFramer;
     HeaderDecoder clMyHeaderDecoder;
     MessageDecoder clMyMessageDecoder;
     Encoder clMyEncoder;
@@ -233,14 +233,6 @@ class RxConfigHandler
     RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_ = nullptr);
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the RxConfigHandler class.
-    //
-    //! \param[in] pclFramer A shared pointer to a Framer object.
-    //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
-    //----------------------------------------------------------------------------
-    RxConfigHandler(std::shared_ptr<Framer> pclFramer, const MessageDatabase::Ptr& pclMessageDb_ = nullptr);
-
-    //----------------------------------------------------------------------------
     //! \brief Returns whether a message ID corresponds to an RXCONFIG message.
     //!
     //! \param[in] usMessageId_ The message ID to check.
@@ -357,7 +349,7 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     uint32_t Flush(unsigned char* pucBuffer_ = nullptr, uint32_t uiBufferSize_ = uiInternalBufferSize)
     {
-        return pclMyFramer->Flush(pucBuffer_, uiBufferSize_);
+        return clMyFramer.Flush(pucBuffer_, uiBufferSize_);
     }
 };
 

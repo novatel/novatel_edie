@@ -117,7 +117,7 @@ def test_proprietary_binary_incomplete(helper):
 def test_proprietary_binary_sync_error(helper):
     helper.write_file_to_framer("proprietary_binary_sync_error.BIN")
     expected_meta_data = ne.MetaData()
-    expected_meta_data.length = 3
+    expected_meta_data.length = ne.MAX_BINARY_MESSAGE_LENGTH
     expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     _, test_meta_data = helper.framer.get_frame()
     assert compare_metadata(test_meta_data, expected_meta_data)

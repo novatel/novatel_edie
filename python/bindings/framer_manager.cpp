@@ -15,7 +15,7 @@ using namespace novatel::edie;
 nb::tuple PyFramerManager::PyGetFrame(uint32_t buffer_size)
 {
     std::vector<char> buffer(buffer_size);
-    static MetaDataBase* metadata; // maintain metadata until frame is returned
+    thread_local MetaDataBase* metadata; // maintain metadata until frame is returned
     STATUS status = GetFrame(reinterpret_cast<uint8_t*>(buffer.data()), buffer_size, metadata);
     switch (status)
     {
@@ -115,7 +115,7 @@ void init_common_framer_manager(nb::module_& m)
         .def("get_frame", &PyFramerManager::PyGetFrame, "buffer_size"_a = MESSAGE_SIZE_MAX,
              nb::sig("def get_frame(buffer_size = MAX_MESSAGE_LENGTH) -> tuple[bytes, MetaData]"),
              R"doc(
-            Attempts to get a frame from the Framer's buffer.
+            Attempts to get a frame from the Framer Manager's buffer.
 
             Args:
                 buffer_size: The maximum number of bytes to use for a framed message.
@@ -127,7 +127,7 @@ void init_common_framer_manager(nb::module_& m)
                 BufferEmptyException: There are no more bytes in the internal buffer.
                 BufferFullException: The framed message does not fit in the provided
                     buffer size.
-                IncompleteException: The framer found the start of a message, but 
+                IncompleteException: The framer manager found the start of a message, but 
                     there are no more bytes in the internal buffer.
             )doc")
         .def(

@@ -41,12 +41,6 @@
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/framer.hpp"
 
-//----------------------------------------------------------------------------
-//! \brief A constructor for the FramerBase class.
-//
-//! \param[in] strLoggerName_ String to name the internal logger.
-//----------------------------------------------------------------------------
-
 namespace novatel::edie {
 
 struct FramerEntry
@@ -62,37 +56,61 @@ struct FramerEntry
     }
 };
 
-// Forward Declarations of Framers
-// class novatel::edie::oem::Framer;
+//================================================================================
+//! \class FramerManager
+//! \brief Provides an interface to operate multiple framers on the same data buffer.
+//================================================================================
 class FramerManager
 {
   public:
     using FramerFactory = std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>, MetaDataBase&)>;
 
+    //----------------------------------------------------------------------------
+    //! \brief Construct a FramerManager with specified framers.
+    //!
+    //! Creates a FramerManager instance and initializes it with the specified
+    //! framers from the registered framer factories.
+    //!
+    //! \param[in] selectedFramers A list of framer names to initialize. Each name
+    //! must match a framer that has been registered via RegisterFramer().
+    //!
+    //! \sa RegisterFramer(), ListAvailableFramers()
+    //----------------------------------------------------------------------------
     explicit FramerManager(const std::vector<std::string>& selectedFramers = {});
 
+    //----------------------------------------------------------------------------
+    //! \brief Add a framer type to the internal registry.
+    //
+    //! \param[in] framerName_ A name that uniquely identifies the framer type.
+    //! \param[in] framerFactory_ A factory function that creates instances of the framer type.
+    //! \param[in] metadataConstructor_ A factory function that creates instances of the
+    //! metadata for the specified framer type.
+    //----------------------------------------------------------------------------
     static void RegisterFramer(const std::string& framerName_,
                                std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)> framerFactory_,
                                std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_);
-    //---------------------------------------------------------------------------
+
+    //----------------------------------------------------------------------------
     //! \brief Get the MetaData for a specific framer.
     //
     //! \param[in] framerId_ The ID of the framer to get the MetaData for.
     //! \return A pointer to the MetaData for the specified framer.
     //! \return nullptr if the framer is not found.
-    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     MetaDataBase* GetMetaData(std::string framerName_);
 
-    // Lists available Framers
+    //----------------------------------------------------------------------------
+    //! \brief List all available framers that have been registered.
+    //----------------------------------------------------------------------------
     static void ListAvailableFramers()
     {
-        std::cout << "Available Framers:\n";
-        for (const auto& pair : GetFramerFactories()) { std::cout << "- " << pair.first << "\n"; }
+        std::cout << "Available Framers:" << std::endl;
+        for (const auto& pair : GetFramerFactories()) { std::cout << "- " << pair.first << std::endl; }
     }
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
-    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     void ResetAllFramerStates() const;
 
     //----------------------------------------------------------------------------
@@ -111,7 +129,7 @@ class FramerManager
     [[nodiscard]] std::shared_ptr<UCharFixedRingBuffer> GetFixedRingBuffer() const { return pclMyFixedRingBuffer; }
 
     //----------------------------------------------------------------------------
-    //! \brief A destructor for the FramerBase class.
+    //! \brief A destructor for the FramerManager class.
     //----------------------------------------------------------------------------
     ~FramerManager() = default;
 
@@ -121,14 +139,14 @@ class FramerManager
     //! \param[in] framerId_ The ID of the framer to get the FramerElement for.
     //
     //! \return A pointer to the FramerElement for the specified framer.
-    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     FramerEntry* GetFramerElement(const std::string framerName_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the name of the active framer.
     //
     //! \return The name of the currently active FramerElement.
-    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     std::string GetActiveFramerName() const { return framerRegistry.front().framerName; }
 
     //----------------------------------------------------------------------------
@@ -161,7 +179,7 @@ class FramerManager
     //! \brief Get the number of bytes currently available in the internal buffer.
     //!
     //! \return The number of bytes available in the internal circular buffer.
-    //------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     [[nodiscard]] size_t GetAvailableSpace() const { return pclMyFixedRingBuffer->available_space(); }
 
     //----------------------------------------------------------------------------
@@ -185,14 +203,14 @@ class FramerManager
     //! \param[in] uiFrameBufferSize_ The size of the provided buffer.
     //
     //! \return The status of the frame discovery.
-    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase*& stMetaData_);
 
     //----------------------------------------------------------------------------
-    //! \brief Return the list of framer factory function pointers
+    //! \brief Get the registered framer factories.
     //
-    //! \return A map of the framer name, framer factory function pointer, and metadata constructor function pointer.
-    //---------------------------------------------------------------------------
+    //! \return A map from framer names to their associated factory functions.
+    //----------------------------------------------------------------------------
     static auto GetFramerFactories()
         -> std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
                                                      std::function<std::unique_ptr<MetaDataBase>()>>>&;

@@ -47,6 +47,9 @@ Framer::Framer(std::shared_ptr<UCharFixedRingBuffer> ringBuffer) : FramerBase("n
 }
 
 // -------------------------------------------------------------------------------------------------------
+bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }
+
+// -------------------------------------------------------------------------------------------------------
 bool Framer::IsAbbrevSeparatorCrlf(const uint32_t uiRingBufferPosition_) const
 {
     return IsCrlf(uiRingBufferPosition_ + 1) && (*pclMyBuffer)[uiRingBufferPosition_] == OEM4_ABBREV_ASCII_SEPARATOR;
@@ -108,18 +111,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
         {
             if (eMyFrameState != NovAtelFrameState::WAITING_FOR_SYNC)
             {
-                // This logic should only be operated on ABB_ASCII
-                if (stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII)
-                {
-                    // If the data lands between ABB_ASCII SYNC1 & 2, it can be missed unless it's tested again when there is more data
-                    if ((*pclMyBuffer)[uiMyByteCount - 1] == OEM4_ABBREV_ASCII_SYNC)
-                    {
-                        InitAttributes();
-                        ResetState();
-                    }
-                    // If the data lands on the abbreviated header CRLF then it can be missed unless it's tested again when there is more data
-                    else { uiMyByteCount--; }
-                }
+                // If the data lands on the abbreviated header CRLF then it can be missed unless it's tested again when there is more data
+                if (stMetaData_.eFormat == HEADER_FORMAT::ABB_ASCII) { uiMyByteCount--; }
 
                 return STATUS::INCOMPLETE;
             }
@@ -190,7 +183,6 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
             if (eMyFrameState != NovAtelFrameState::WAITING_FOR_SYNC && uiMyByteCount > 1)
             {
                 stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                // TODO: why -1 here?
                 stMetaData_.uiLength = uiMyByteCount - 1;
                 if (!bMetadataOnly_) { HandleUnknownBytes(pucFrameBuffer_, uiMyByteCount - 1); }
                 return STATUS::UNKNOWN;
@@ -247,23 +239,9 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
             }
             else
             {
-                if (pclMyBuffer->size() == uiMyByteCount)
-                {
-                    // If the data lands on the abbreviated header CRLF then it can be missed unless it's tested again when there is more data
-                    uiMyByteCount--;
-                    return STATUS::INCOMPLETE;
-                }
-                uiMyExpectedPayloadLength = 0;
-                uiMyExpectedMessageLength = 0;
                 stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                stMetaData_.uiLength = uiMyByteCount;
-                if (!bMetadataOnly_)
-                {
-                    pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                    pclMyBuffer->erase_begin(uiMyByteCount);
-                }
                 ResetState();
-                return STATUS::UNKNOWN;
+                uiMyByteCount--;
             }
             break;
 
@@ -289,15 +267,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                     uiMyByteCount = OEM4_BINARY_SYNC_LENGTH;
                     uiMyExpectedPayloadLength = 0;
                     uiMyExpectedMessageLength = 0;
-                    stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                    stMetaData_.uiLength = uiMyByteCount;
-                    if (!bMetadataOnly_)
-                    {
-                        pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                        pclMyBuffer->erase_begin(uiMyByteCount);
-                    }
                     ResetState();
-                    return STATUS::UNKNOWN;
+                    break;
                 }
 
                 if ((bMyPayloadOnly && uiFrameBufferSize_ < uiMyExpectedPayloadLength) ||
@@ -337,15 +308,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                     uiMyByteCount = OEM4_SHORT_BINARY_SYNC_LENGTH;
                     uiMyExpectedPayloadLength = 0;
                     uiMyExpectedMessageLength = 0;
-                    if (!bMetadataOnly_)
-                    {
-                        stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                        stMetaData_.uiLength = uiMyByteCount;
-                        pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                        pclMyBuffer->erase_begin(uiMyByteCount);
-                    }
                     ResetState();
-                    return STATUS::UNKNOWN;
+                    break;
                 }
 
                 if ((bMyPayloadOnly && uiFrameBufferSize_ < uiMyExpectedPayloadLength) ||
@@ -380,13 +344,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                             pclMyBuffer->erase_begin(uiMyExpectedPayloadLength + OEM4_BINARY_CRC_LENGTH);
                         }
                     }
-                    else
+                    else if (!bMetadataOnly_)
                     {
-                        if (!bMetadataOnly_)
-                        {
-                            pclMyBuffer->copy_out(pucFrameBuffer_, stMetaData_.uiLength);
-                            pclMyBuffer->erase_begin(stMetaData_.uiLength);
-                        }
+                        pclMyBuffer->copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                        pclMyBuffer->erase_begin(stMetaData_.uiLength);
                     }
 
                     uiMyByteCount = 0;
@@ -434,16 +395,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
             {
                 uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                 uiMyExpectedPayloadLength = 0;
-                uiMyExpectedMessageLength = 0;
-                stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                stMetaData_.uiLength = uiMyByteCount;
-                if (!bMetadataOnly_)
-                {
-                    pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                    pclMyBuffer->erase_begin(uiMyByteCount);
-                }
                 ResetState();
-                return STATUS::UNKNOWN;
             }
             else { CalculateCharacterCrc32(uiMyCalculatedCrc32, ucDataByte); }
             break;
@@ -492,32 +444,16 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                 {
                     uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                     uiMyExpectedPayloadLength = 0;
-                    uiMyExpectedMessageLength = 0;
-                    stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                    stMetaData_.uiLength = uiMyByteCount;
-                    if (!bMetadataOnly_)
-                    {
-                        pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                        pclMyBuffer->erase_begin(uiMyByteCount);
-                    }
+                    uiMyAbbrevAsciiHeaderPosition = 0;
                     ResetState();
-                    return STATUS::UNKNOWN;
                 }
             }
             else if (uiMyByteCount >= MAX_ASCII_MESSAGE_LENGTH)
             {
                 uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
+                uiMyAbbrevAsciiHeaderPosition = 0;
                 uiMyExpectedPayloadLength = 0;
-                uiMyExpectedMessageLength = 0;
-                stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                stMetaData_.uiLength = uiMyByteCount;
-                if (!bMetadataOnly_)
-                {
-                    pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                    pclMyBuffer->erase_begin(uiMyByteCount);
-                }
                 ResetState();
-                return STATUS::UNKNOWN;
             }
             break;
 
@@ -549,17 +485,9 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                     else
                     {
                         uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
+                        uiMyAbbrevAsciiHeaderPosition = 0;
                         uiMyExpectedPayloadLength = 0;
-                        uiMyExpectedMessageLength = 0;
-                        stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                        stMetaData_.uiLength = uiMyByteCount;
-                        if (!bMetadataOnly_)
-                        {
-                            pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                            pclMyBuffer->erase_begin(uiMyByteCount);
-                        }
                         ResetState();
-                        return STATUS::UNKNOWN;
                     }
                 }
             }
@@ -593,17 +521,9 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
             else if (uiMyByteCount >= MAX_ABB_ASCII_RESPONSE_LENGTH)
             {
                 uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
+                uiMyAbbrevAsciiHeaderPosition = 0;
                 uiMyExpectedPayloadLength = 0;
-                uiMyExpectedMessageLength = 0;
-                stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                stMetaData_.uiLength = uiMyByteCount;
-                if (!bMetadataOnly_)
-                {
-                    pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                    pclMyBuffer->erase_begin(uiMyByteCount);
-                }
                 ResetState();
-                return STATUS::UNKNOWN;
             }
             break;
 
@@ -641,30 +561,13 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                 else
                 {
                     uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
-                    stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                    stMetaData_.uiLength = uiMyByteCount;
-                    if (!bMetadataOnly_)
-                    {
-                        pclMyBuffer->copy_out(pucFrameBuffer_, uiMyByteCount);
-                        pclMyBuffer->erase_begin(uiMyByteCount);
-                    }
                     ResetState();
-                    return STATUS::UNKNOWN;
                 }
             }
             else if (uiMyByteCount >= MAX_ASCII_MESSAGE_LENGTH)
             {
                 uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
                 uiMyExpectedPayloadLength = 0;
-                stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                stMetaData_.uiLength = uiMyByteCount;
-                if (!bMetadataOnly_)
-                {
-                    stMetaData_.eFormat = HEADER_FORMAT::UNKNOWN;
-                    stMetaData_.uiLength = uiMyByteCount;
-                    pclMyBuffer->copy_out(pucFrameBuffer_, stMetaData_.uiLength);
-                    pclMyBuffer->erase_begin(stMetaData_.uiLength);
-                }
                 ResetState();
             }
             break;
@@ -702,8 +605,12 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                         return STATUS::BUFFER_FULL;
                     }
 
-                    pclMyBuffer->copy_out(pucFrameBuffer_, stMetaData_.uiLength);
-                    pclMyBuffer->erase_begin(stMetaData_.uiLength);
+                    if (!bMetadataOnly_)
+                    {
+                        pclMyBuffer->copy_out(pucFrameBuffer_, stMetaData_.uiLength);
+                        pclMyBuffer->erase_begin(stMetaData_.uiLength);
+                    }
+
                     eMyFrameState = NovAtelFrameState::COMPLETE_MESSAGE;
                 }
                 else

@@ -24,9 +24,9 @@
 ########################################################################
 #                            DESCRIPTION
 #
-# \file converter_components.py
+# \file converter_components_framer_manager.py
 # \brief Demonstrate how to use the Python API for converting OEM
-# messages using the low-level components.
+# messages using the low-level components with the framer manager.
 ########################################################################
 
 import logging

@@ -87,8 +87,6 @@ class FileParser
     //----------------------------------------------------------------------------
     FileParser(const MessageDatabase::Ptr& pclMessageDb_ = {nullptr});
 
-    ~FileParser() = default;
-
     //----------------------------------------------------------------------------
     //! \brief Load a MessageDatabase object.
     //

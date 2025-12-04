@@ -157,14 +157,14 @@ TEST_F(FramerTest, ASCII_INCOMPLETE)
 TEST_F(FramerTest, ASCII_SYNC_ERROR)
 {
     WriteFileStreamToFramer("ascii_sync_error.ASC");
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ASCII_BAD_CRC)
 {
     constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*ffffffff\r\n";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ASCII_RUN_ON_CRC)
@@ -248,10 +248,8 @@ TEST_F(FramerTest, ASCII_TRICK)
     constexpr unsigned char aucData[] = "#TEST;*ffffffff\r\n#;*\r\n#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
     uint32_t uiLogSize = sizeof(aucData) - 1;
     WriteBytesToFramer(aucData, uiLogSize);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(16, MAX_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(17, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
@@ -340,7 +338,7 @@ TEST_F(FramerTest, BINARY_BUFFER_FULL)
 TEST_F(FramerTest, BINARY_SYNC_ERROR)
 {
     WriteFileStreamToFramer("binary_sync_error.BIN");
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(3, MAX_BINARY_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_BINARY_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, BINARY_BAD_CRC)
@@ -461,14 +459,14 @@ TEST_F(FramerTest, SHORT_ASCII_INCOMPLETE)
 TEST_F(FramerTest, SHORT_ASCII_SYNC_ERROR)
 {
     WriteFileStreamToFramer("short_ascii_sync_error.ASC");
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_ASCII_BAD_CRC)
 {
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*ffffffff\r\n";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, SHORT_ASCII_RUN_ON_CRC)
@@ -553,8 +551,7 @@ TEST_F(FramerTest, SHORT_ASCII_TRICK)
     constexpr unsigned char aucData[] = "%;*\r\n%%**\r\n%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
     uint32_t uiLogSize = sizeof(aucData) - 1;
     WriteBytesToFramer(aucData, uiLogSize);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
@@ -834,7 +831,7 @@ TEST_F(FramerTest, ABBREV_ASCII_BUFFER_FULL)
 TEST_F(FramerTest, ABBREV_ASCII_SYNC_ERROR)
 {
     WriteFileStreamToFramer("abbreviated_ascii_sync_error.ASC");
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_INADEQUATE_BUFFER)
@@ -886,10 +883,8 @@ TEST_F(FramerTest, ABBREV_ASCII_SWAPPED)
     constexpr unsigned char aucData[] = "<     64 60 B1D2 4 e2410e75b821e2664201b02000b022816c36140020001ddde0000000\r\n"
                                         "<BDSRAWNAVSUBFRAME ICOM1_29 0 40.5 FINESTEERING 2204 236927.000 02060000 88f3 16807\r\n<GARBAGE";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(75, MAX_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
-    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(84, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(77, MAX_ASCII_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(85, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerTest, ABBREV_ASCII_EMPTY_ARRAY)
@@ -1095,8 +1090,6 @@ class FramerManagerTest : public ::testing::Test
         stExpectedMetaData.eFormat = F;
         stExpectedMetaData.uiLength = uiLength_;
         MetaDataBase* stTestMetaData;
-        // TODO: Does GetFrame really need to take a reference to a pointer to a MetaDataBase? Could it have
-        // the same interface as FramerBase::GetFrame?
         ASSERT_EQ(S, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, stTestMetaData));
         if (bCompareMetaData)
         {
@@ -1177,14 +1170,14 @@ TEST_F(FramerManagerTest, ASCII_INCOMPLETE)
 TEST_F(FramerManagerTest, ASCII_SYNC_ERROR)
 {
     WriteFileStreamToFramer("ascii_sync_error.ASC");
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, ASCII_BAD_CRC)
 {
     constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*ffffffff\r\n";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, ASCII_RUN_ON_CRC)
@@ -1270,10 +1263,8 @@ TEST_F(FramerManagerTest, ASCII_TRICK)
     constexpr unsigned char aucData[] = "#TEST;*ffffffff\r\n#;*\r\n#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
     uint32_t uiLogSize = sizeof(aucData) - 1;
     WriteBytesToFramer(aucData, uiLogSize);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH, /*bCompareMetaData = */false);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(16, MAX_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(17, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
@@ -1342,7 +1333,7 @@ TEST_F(FramerManagerTest, BINARY_BUFFER_FULL)
 TEST_F(FramerManagerTest, BINARY_SYNC_ERROR)
 {
     WriteFileStreamToFramer("binary_sync_error.BIN");
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(3, MAX_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_BINARY_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, BINARY_BAD_CRC)
@@ -1461,14 +1452,14 @@ TEST_F(FramerManagerTest, SHORT_ASCII_COMPLETE)
 TEST_F(FramerManagerTest, SHORT_ASCII_SYNC_ERROR)
 {
     WriteFileStreamToFramer("short_ascii_sync_error.ASC");
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, SHORT_ASCII_BAD_CRC)
 {
     constexpr unsigned char aucData[] = "%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*ffffffff\r\n";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(sizeof(aucData) - 1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, SHORT_ASCII_RUN_ON_CRC)
@@ -1553,11 +1544,9 @@ TEST_F(FramerManagerTest, SHORT_ASCII_TRICK)
     constexpr unsigned char aucData[] = "%;*\r\n%%**\r\n%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n";
     uint32_t uiLogSize = sizeof(aucData) - 1;
     WriteBytesToFramer(aucData, uiLogSize);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_SHORT_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_SHORT_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(4, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_SHORT_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<HEADER_FORMAT::SHORT_ASCII, STATUS::SUCCESS>(120, MAX_SHORT_ASCII_MESSAGE_LENGTH);
 }
 
@@ -1833,7 +1822,7 @@ TEST_F(FramerManagerTest, ABBREV_ASCII_BUFFER_FULL)
 TEST_F(FramerManagerTest, ABBREV_ASCII_SYNC_ERROR)
 {
     WriteFileStreamToFramer("abbreviated_ascii_sync_error.ASC");
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, ABBREV_ASCII_INADEQUATE_BUFFER)
@@ -1885,10 +1874,8 @@ TEST_F(FramerManagerTest, ABBREV_ASCII_SWAPPED)
     constexpr unsigned char aucData[] = "<     64 60 B1D2 4 e2410e75b821e2664201b02000b022816c36140020001ddde0000000\r\n"
                                         "<BDSRAWNAVSUBFRAME ICOM1_29 0 40.5 FINESTEERING 2204 236927.000 02060000 88f3 16807\r\n<GARBAGE";
     WriteBytesToFramer(aucData, sizeof(aucData) - 1);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(75, MAX_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(84, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(77, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(85, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, ABBREV_ASCII_EMPTY_ARRAY)
@@ -1926,7 +1913,7 @@ TEST_F(FramerManagerTest, OEM_ASCII_AND_MOCK_FRAMES) {
 
     FramerManagerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
     FramerManagerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH); // To account for the extra '\r\n' after the mock log
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH); // Discard the extra '\r\n' after the mock log
     FramerManagerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
@@ -1934,34 +1921,96 @@ TEST_F(FramerManagerTest, OEM_ASCII_INCOMPLETE_AND_MOCK_FRAMES) {
     // Even though the OEM framer finds the first valid sync bytes, the first valid log should be found
     // by the mock framer.  The second valid log should be found by the OEM framer.
     constexpr unsigned char aucData[] = "#BESTP"
-                                         "<log>testing123</log>\r\n"
-                                         "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
+                                        "<log>testing123</log>\r\n"
+                                        "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
     WriteBytesToFramer(aucData, 6);     // Write #BESTP
     FramerManagerHelper<HEADER_FORMAT::ASCII, STATUS::INCOMPLETE>(6, MAX_ASCII_MESSAGE_LENGTH);
 
     WriteBytesToFramer(&aucData[6], sizeof(aucData) - 6);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH); // OEM framer discards the ASCII sync byte
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_ASCII_MESSAGE_LENGTH); // Discard the rest of the incomplete log
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(6, MAX_ASCII_MESSAGE_LENGTH);  // Discard '#BESTP'
     FramerManagerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH); // To account for the extra '\r\n' after the mock log
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard the extra '\r\n' after the mock log
     FramerManagerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
 }
 
 TEST_F(FramerManagerTest, OEM_ASCII_AND_MOCK_INCOMPLETE_FRAMES) {
     constexpr unsigned char aucData[] = "<log>testing123</log"
-                                         "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
-                                         "<log>testing123</log>\r\n";
+                                        "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
+                                        "<log>testing123</log>\r\n";
     WriteBytesToFramer(aucData, 20);    // Write <log>testing123</log
     FramerManagerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::INCOMPLETE>(20, MAX_ASCII_MESSAGE_LENGTH, false); // Do not compare metadata - framer selected depends on order of framers in manager
 
     WriteBytesToFramer(&aucData[20], sizeof(aucData) - 20);
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(1, MAX_ASCII_MESSAGE_LENGTH);     // OEM framer discards abb ASCII sync byte
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(14, MAX_ASCII_MESSAGE_LENGTH);    // Discard until the next potential abb ASCII sync
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);     // OEM framer discards '</'
-    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(3, MAX_ASCII_MESSAGE_LENGTH);     // Discard 'log'
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(15, MAX_ASCII_MESSAGE_LENGTH);     // Discard '<log>testing123'
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(5, MAX_ASCII_MESSAGE_LENGTH);      // Discard '</log'
     FramerManagerHelper<HEADER_FORMAT::ASCII, STATUS::SUCCESS>(217, MAX_ASCII_MESSAGE_LENGTH);
     // OEM framer consumes the extra '\r\n' after the mock log
     FramerManagerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(21, MAX_ASCII_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, OEM_ABBREV_ASCII_AND_MOCK_FRAMES) {
+    constexpr unsigned char aucOEMData[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
+                                           "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n[COM1]";
+    constexpr unsigned char aucMockData[] = "<log>testing123</log>\r\n";
+
+    WriteBytesToFramer(aucOEMData, sizeof(aucOEMData) - 1);
+    WriteBytesToFramer(aucMockData, sizeof(aucMockData) - 1);
+    WriteBytesToFramer(aucOEMData, sizeof(aucOEMData) - 1);
+    FramerManagerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucOEMData) - 7, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(6, MAX_ASCII_MESSAGE_LENGTH);  // Discard '[COM1]'
+    FramerManagerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard '\r\n' after the mock log
+    FramerManagerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucOEMData) - 7, MAX_ASCII_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, OEM_ABBREV_ASCII_INCOMPLETE_AND_MOCK_FRAMES) {
+    constexpr unsigned char aucOEMData[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
+                                           "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n[COM1]";
+    constexpr unsigned char aucPartialOEMData[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
+                                                  "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84";
+    constexpr unsigned char aucMockData[] = "<log>testing123</log>\r\n";
+    constexpr unsigned char aucCrlf[] = "\r\n";
+
+    WriteBytesToFramer(aucPartialOEMData, sizeof(aucPartialOEMData) - 1);
+    FramerManagerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::INCOMPLETE>(sizeof(aucPartialOEMData) - 1, MAX_ASCII_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(aucCrlf, sizeof(aucCrlf) - 1);
+    WriteBytesToFramer(aucMockData, sizeof(aucMockData) - 1);
+    WriteBytesToFramer(aucOEMData, sizeof(aucOEMData) - 1);
+    FramerManagerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucPartialOEMData) + 1, MAX_ASCII_MESSAGE_LENGTH);  // Match partial OEM abb ASCII log + '\r\n'
+    FramerManagerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard '\r\n' after the mock log
+    FramerManagerHelper<HEADER_FORMAT::ABB_ASCII, STATUS::SUCCESS>(sizeof(aucOEMData) - 7, MAX_ASCII_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, OEM_BINARY_AND_MOCK_FRAMES) {
+    constexpr unsigned char aucOEMData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
+    constexpr unsigned char aucMockData[] = "<log>testing123</log>\r\n";
+                                        
+    WriteBytesToFramer(aucOEMData, sizeof(aucOEMData));
+    WriteBytesToFramer(aucMockData, sizeof(aucMockData) - 1);
+    WriteBytesToFramer(aucOEMData, sizeof(aucOEMData));
+
+    FramerManagerHelper<HEADER_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucOEMData), MAX_BINARY_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard the extra '\r\n' after the mock log
+    FramerManagerHelper<HEADER_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucOEMData), MAX_BINARY_MESSAGE_LENGTH);
+}
+
+TEST_F(FramerManagerTest, OEM_BINARY_INCOMPLETE_AND_MOCK_FRAMES) {
+    constexpr unsigned char aucOEMData[] = {0xAA, 0x44, 0x12, 0x1C, 0x2A, 0x00, 0x00, 0x20, 0x48, 0x00, 0x00, 0x00, 0xA3, 0xB4, 0x73, 0x08, 0x98, 0x74, 0xA8, 0x13, 0x00, 0x00, 0x00, 0x02, 0xF6, 0xB1, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0xFC, 0xAB, 0xE1, 0x82, 0x41, 0x93, 0x49, 0x40, 0xBA, 0x32, 0x86, 0x8A, 0xF6, 0x81, 0x5C, 0xC0, 0x00, 0x10, 0xE5, 0xDF, 0x71, 0x23, 0x91, 0x40, 0x00, 0x00, 0x88, 0xC1, 0x3D, 0x00, 0x00, 0x00, 0x24, 0x21, 0xA5, 0x3F, 0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89};
+    constexpr unsigned char aucMockData[] = "<log>testing123</log>\r\n";
+                                        
+    WriteBytesToFramer(aucOEMData, 50);
+    FramerManagerHelper<HEADER_FORMAT::BINARY, STATUS::INCOMPLETE>(50, MAX_BINARY_MESSAGE_LENGTH);
+
+    WriteBytesToFramer(aucMockData, sizeof(aucMockData) - 1);
+    WriteBytesToFramer(aucOEMData, sizeof(aucOEMData));
+
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(50, MAX_BINARY_MESSAGE_LENGTH);    // Discard partial OEM binary log
+    FramerManagerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucMockData) - 3, MAX_ASCII_MESSAGE_LENGTH);
+    FramerManagerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(2, MAX_ASCII_MESSAGE_LENGTH);  // Discard the extra '\r\n' after the mock log
+    FramerManagerHelper<HEADER_FORMAT::BINARY, STATUS::SUCCESS>(sizeof(aucOEMData), MAX_BINARY_MESSAGE_LENGTH);
 }
 
 

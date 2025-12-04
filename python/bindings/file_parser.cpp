@@ -80,7 +80,6 @@ void init_novatel_file_parser(nb::module_& m)
             "__init__",
             [](oem::PyFileParser* self, const std::filesystem::path& file_path, PyMessageDatabase::Ptr message_db) {
                 if (!message_db) { message_db = MessageDbSingleton::get(); }
-                if (!message_db) { throw std::runtime_error("Message database is not available"); }
                 new (self) oem::PyFileParser(file_path, message_db);
             },
             "file_path"_a, nb::arg("message_db") = nb::none(),
@@ -92,9 +91,6 @@ void init_novatel_file_parser(nb::module_& m)
                  message_db: The message database to parse message with.
                     If None, use the default database.
             )doc")
-        .def("__del__", [](oem::PyFileParser* self) {
-            self->~PyFileParser();
-        })
         .def_prop_rw("ignore_abbreviated_ascii_responses", &oem::PyFileParser::GetIgnoreAbbreviatedAsciiResponses,
                      &oem::PyFileParser::SetIgnoreAbbreviatedAsciiResponses,
                      "Whether to skip over abbreviated ASCII message responses e.g. `<OK`/`<ERROR`.")

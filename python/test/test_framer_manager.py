@@ -78,13 +78,13 @@ def test_ascii_sync_error(helper):
     file = "ascii_sync_error.ASC"
     data = helper.get_file_contents(file)
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1, buffer_size=ne.MAX_ASCII_MESSAGE_LENGTH)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, ne.MAX_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_ASCII_MESSAGE_LENGTH)
 
 
 def test_ascii_bad_crc(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*ffffffff\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1, buffer_size=len(data))
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, len(data), buffer_size=len(data))
 
 
 def test_ascii_run_on_crc(helper):
@@ -146,10 +146,8 @@ def test_ascii_segmented(helper):
 def test_ascii_trick(helper):
     data = b"#TEST;*ffffffff\r\n#;*\r\n#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 16)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 4)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 17)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 5)
     helper.test_framer_manager(HEADER_FORMAT.ASCII, 217)
 
 
@@ -225,10 +223,7 @@ def test_binary_buffer_full(helper):
 
 def test_binary_sync_error(helper):
     helper.write_file_to_framer("binary_sync_error.BIN")
-    expected_meta_data = ne.MetaData()
-    expected_meta_data.length = ne.MAX_BINARY_MESSAGE_LENGTH
-    expected_meta_data.format = HEADER_FORMAT.UNKNOWN
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 3, buffer_size=ne.MAX_BINARY_MESSAGE_LENGTH)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, ne.MAX_BINARY_MESSAGE_LENGTH, buffer_size=ne.MAX_BINARY_MESSAGE_LENGTH)
 
 
 def test_binary_bad_crc(helper):
@@ -367,13 +362,13 @@ def test_short_ascii_incomplete(helper):
 
 def test_short_ascii_sync_error(helper):
     helper.write_file_to_framer("short_ascii_sync_error.ASC")
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1, buffer_size=ne.MAX_SHORT_ASCII_MESSAGE_LENGTH)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, ne.MAX_SHORT_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_SHORT_ASCII_MESSAGE_LENGTH)
 
 
 def test_short_ascii_bad_crc(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*ffffffff\r\n"
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1, buffer_size=len(data))
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, len(data), buffer_size=len(data))
 
 
 def test_short_ascii_run_on_crc(helper):
@@ -440,11 +435,9 @@ def test_short_ascii_segmented(helper):
 def test_short_ascii_trick(helper):
     data = b"%;*\r\n%%**\r\n%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     helper.write_bytes_to_framer_manager(data)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 5)
     helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 4)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 4)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 5)
     helper.test_framer_manager(HEADER_FORMAT.SHORT_ASCII, 120)
 
 
@@ -620,7 +613,7 @@ def test_abbrev_ascii_buffer_full(helper):
 
 def test_abbrev_ascii_sync_error(helper):
     helper.write_file_to_framer("abbreviated_ascii_sync_error.ASC")
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1, buffer_size=ne.MAX_ASCII_MESSAGE_LENGTH)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, ne.MAX_ASCII_MESSAGE_LENGTH, buffer_size=ne.MAX_ASCII_MESSAGE_LENGTH)
 
 
 def test_abbrev_ascii_inadequate_buffer(helper):
@@ -661,10 +654,8 @@ def test_abbrev_ascii_swapped(helper):
     data = (b"<     64 60 B1D2 4 e2410e75b821e2664201b02000b022816c36140020001ddde0000000\r\n"
             b"<BDSRAWNAVSUBFRAME ICOM1_29 0 40.5 FINESTEERING 2204 236927.000 02060000 88f3 16807\r\n<GARBAGE")
     helper.write_bytes_to_framer_manager(data)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 2)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 75)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 1)
-    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 84)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 77)
+    helper.test_framer_manager(HEADER_FORMAT.UNKNOWN, 85)
 
 
 def test_abbrev_ascii_empty_array(helper):

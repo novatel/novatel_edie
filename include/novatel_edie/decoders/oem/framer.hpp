@@ -49,7 +49,7 @@ class Framer : public FramerBase
     //! \param[in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
     //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }
+    [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
     [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiRingBufferPosition_) const;
     [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiRingBufferPosition_) const;
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;

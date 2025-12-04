@@ -108,7 +108,7 @@ class FramerBase
     {
         pclMyLogger->debug("FramerBase initializing...");
         if (pclMyBuffer == nullptr) { pclMyBuffer = std::make_shared<UCharFixedRingBuffer>(); }
-        pclMyLogger->debug("Framer initialized");
+        pclMyLogger->debug("FramerBase initialized");
     }
 
     //----------------------------------------------------------------------------
@@ -169,13 +169,6 @@ class FramerBase
     void SetReportUnknownBytes(const bool bReportUnknownBytes_) { bMyReportUnknownBytes = bReportUnknownBytes_; }
 
     //----------------------------------------------------------------------------
-    //! \brief Get the number of bytes available in the internal circular buffer.
-    //
-    //! \return The number of bytes available in the internal circular buffer.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] size_t GetBytesAvailableInBuffer() const { return pclMyBuffer->capacity() - pclMyBuffer->size(); }
-
-    //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
     //
     //! \param[in] pucDataBuffer_ The data buffer containing the bytes to be
@@ -208,24 +201,11 @@ class FramerBase
     //------------------------------------------------------------------------------
     [[nodiscard]] size_t GetAvailableSpace() const { return pclMyBuffer->available_space(); }
 
-    ////----------------------------------------------------------------------------
-    ////! \brief Flush bytes from the internal circular buffer.
-    ////
-    ////! \param[in] uiBufferSize_ The size of the provided buffer.
-    ////
-    ////! \return The number of bytes flushed from the internal circular buffer.
-    ////----------------------------------------------------------------------------
-    virtual uint32_t Flush(uint32_t uiBufferSize_)
-    {
-        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(pclMyBuffer->size()), uiBufferSize_);
-        return uiBytesToFlush;
-    }
-
     //----------------------------------------------------------------------------
-    //! \brief virtual function to be overridden with casting MetaDataBase to type-specific MetaDataStruct
+    //! \brief Get a frame from the internal circular buffer if one exists
     //
-    //! \param [out] pucFrameBuffer_ The buffer which the Framer should copy the
-    //! framed message to.
+    //! \param [out] pucFrameBuffer_ The buffer to which the Framer should copy the
+    //! framed message.
     //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
     //! \param [out] stMetaData_ A MetaDataBase to contain some information
     //! about the message frame.
@@ -238,8 +218,7 @@ class FramerBase
     //!   INCOMPLETE: The framer found what could be a message, but there
     //! are no more bytes in the internal buffer.
     //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
-    //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
-    //! to the size specified by uiFrameBufferSize_.
+    //!   BUFFER_FULL: The frame found is larger than uiFrameBufferSize_ bytes.
     //----------------------------------------------------------------------------
     [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
                                           bool bMetadataOnly_ = false) = 0;

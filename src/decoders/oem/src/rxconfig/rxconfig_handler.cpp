@@ -39,20 +39,6 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
 
     pclMyLogger->debug("RxConfigHandler initializing...");
 
-    pclMyFramer = std::make_shared<Framer>();
-    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
-
-    pclMyLogger->debug("RxConfigHandler initialized");
-}
-
-RxConfigHandler::RxConfigHandler(std::shared_ptr<Framer> framer, const MessageDatabase::Ptr& pclMessageDb_)
-    : pclMyFramer(std::move(framer)), clMyHeaderDecoder(pclMessageDb_), clMyMessageDecoder(pclMessageDb_), clMyEncoder(pclMessageDb_),
-      pcMyFrameBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize)),
-      pcMyEncodeBuffer(std::make_unique<unsigned char[]>(uiInternalBufferSize))
-{
-    pclMyLogger = GetBaseLoggerManager()->RegisterLogger("rxconfig_handler");
-    pclMyLogger->debug("RxConfigHandler initializing...");
-
     if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
 
     pclMyLogger->debug("RxConfigHandler initialized");
@@ -107,7 +93,7 @@ bool RxConfigHandler::IsRxConfigTypeMsg(uint16_t usMessageId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-size_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return pclMyFramer->Write(pucData_, uiDataSize_); }
+size_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize_) { return clMyFramer.Write(pucData_, uiDataSize_); }
 
 // -------------------------------------------------------------------------------------------------------
 BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
@@ -472,7 +458,7 @@ RxConfigHandler::Convert(MessageDataStruct& stRxConfigMessageData_, MetaDataStru
     unsigned char* pucTempEncodeBuffer = pcMyEncodeBuffer.get();
 
     // Get an RXCONFIG log.
-    STATUS eStatus = pclMyFramer->GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
+    STATUS eStatus = clMyFramer.GetFrame(pcMyFrameBuffer.get(), uiInternalBufferSize, stRxConfigMetaData_);
     if (eStatus == STATUS::BUFFER_EMPTY || eStatus == STATUS::INCOMPLETE) { return STATUS::BUFFER_EMPTY; }
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
