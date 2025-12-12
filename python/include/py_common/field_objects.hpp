@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "novatel_edie/decoders/oem/filter.hpp"
+#include "novatel_edie/decoders/common/message_decoder.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/message_database.hpp"
 #include "py_common/py_logger.hpp"
@@ -19,10 +19,10 @@ namespace novatel::edie::py_common {
 struct PyField
 {
     std::string name;
-    bool has_ptype; // Whether the field has a specific Python type associated with it
+    bool hasPtype; // Whether the field has a specific Python type associated with it
 
-    explicit PyField(std::string name_, bool has_ptype_, std::vector<FieldContainer> message_, py_common::PyMessageDatabaseCore::ConstPtr parent_db_)
-        : name(std::move(name_)), has_ptype(has_ptype_), fields(std::move(message_)), parent_db_(std::move(parent_db_)) {};
+    explicit PyField(std::string name_, bool hasPtype_, std::vector<FieldContainer> message_, py_common::PyMessageDatabaseCore::ConstPtr parentDb_)
+        : name(std::move(name_)), hasPtype(hasPtype_), fields(std::move(message_)), parentDb(std::move(parentDb_)) {};
 
     //============================================================================
     //! \brief Creates a shallow dictionary representing the field.
@@ -105,8 +105,9 @@ struct PyField
     mutable nb::dict cached_values_;
     mutable nb::dict cached_fields_;
 
-    py_common::PyMessageDatabaseCore::ConstPtr parent_db_;
+    py_common::PyMessageDatabaseCore::ConstPtr parentDb;
 };
 
-nb::object convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db, std::string parent, bool has_ptype);
+nb::object convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db, std::string parent,
+                         bool has_ptype);
 } // namespace novatel::edie::py_common

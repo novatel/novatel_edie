@@ -2,8 +2,7 @@
 
 #include <functional>
 
-#include "novatel_edie/decoders/oem/encoder.hpp"
-#include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
+#include "novatel_edie/decoders/common/message_database.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
 

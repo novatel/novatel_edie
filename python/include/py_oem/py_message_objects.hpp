@@ -79,7 +79,6 @@ struct PyMessageTypeField
 struct PyHeader : public oem::IntermediateHeader
 {
     HEADER_FORMAT format;
-    // uint32_t raw_length;
 
     PyMessageTypeField GetPyMessageType() { return PyMessageTypeField(ucMessageType); }
     PyRecieverStatus GetRecieverStatus() { return PyRecieverStatus(uiReceiverStatus); }
@@ -117,12 +116,12 @@ struct PyEncodableField : public py_common::PyField
 
   public:
     PyHeader header;
-    PyMessageDatabase::ConstPtr parent_db_;
+    PyMessageDatabase::ConstPtr encoderDb;
 
-    explicit PyEncodableField(std::string name_, bool has_ptype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr parent_db_,
+    explicit PyEncodableField(std::string name_, bool hasPtype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr encoderDb_,
                               PyHeader header_)
-        : PyField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_->GetCoreDatabase())), header(std::move(header_)),
-          parent_db_(std::move(parent_db_)) {};
+        : PyField(std::move(name_), hasPtype_, std::move(fields_), std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
+          encoderDb(std::move(encoderDb_)) {};
 
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
     py_common::PyMessageData to_ascii();
@@ -170,7 +169,7 @@ struct PyResponse : public PyEncodableField
 
     nb::object GetEnumValue()
     {
-        std::unordered_map<std::string, nb::object> enum_map = parent_db_->GetEnumsByNameDict();
+        std::unordered_map<std::string, nb::object> enum_map = encoderDb->GetEnumsByNameDict();
         auto it = enum_map.find("Responses");
         if (it == enum_map.end()) { return nb::none(); }
         nb::object response_enum = it->second;

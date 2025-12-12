@@ -134,7 +134,7 @@ void from_json(const json& j_, MessageDefinition& md_)
     md_.name = j_.at("name");
     md_.description = j_.at("description").is_null() ? "" : j_.at("description");
     md_.latestMessageCrc = std::stoul(j_.at("latestMsgDefCrc").get<std::string>());
-    md_.messageStyle = j_.at("messageStyle").is_null() ? "" : j_.at("messageStyle");
+    md_.messageStyle = j_.contains("messageStyle") && !j_.at("messageStyle").is_null() ? j_.at("messageStyle") : "";
 
     for (const auto& fields : j_.at("fields").items())
     {

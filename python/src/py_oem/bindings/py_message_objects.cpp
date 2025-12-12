@@ -51,9 +51,9 @@ nb::dict py_oem::PyHeader::to_dict() const
 #pragma region PyMessageMethods
 
 // Static initalization of this struct will populate the BasePythonTypes map with a way to access the oem PyMessage type
-struct OEMMessageStyleTypeInitialzier
+struct OEMMessageStyleTypeInitializer
 {
-    OEMMessageStyleTypeInitialzier()
+    OEMMessageStyleTypeInitializer()
     {
         auto& baseTypes = py_common::GetBasePythonTypes();
         std::function<nb::handle()> typeGetter = []() { return nb::type<py_oem::PyMessage>(); };
@@ -61,13 +61,13 @@ struct OEMMessageStyleTypeInitialzier
         baseTypes["OEM4_COMPRESSED_STYLE"] = typeGetter;
     }
 };
-static OEMMessageStyleTypeInitialzier oem_message_style_type_initializer;
+static OEMMessageStyleTypeInitializer oem_message_style_type_initializer;
 
 py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format)
 {
     STATUS status;
     MessageDataStruct message_data = MessageDataStruct();
-    RxConfigHandler* pclRxConfigHandler = this->parent_db_->GetRxConfigHandler();
+    RxConfigHandler* pclRxConfigHandler = this->encoderDb->GetRxConfigHandler();
 
     // Allocate more space for JSON messages.
     // A TRACKSTAT message can use about 47k bytes when encoded as JSON.
@@ -77,11 +77,11 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
     uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
     if (pclRxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
     {
-        status = this->parent_db_->GetRxConfigHandler()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
+        status = this->encoderDb->GetRxConfigHandler()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
     }
     else
     {
-        status = this->parent_db_->GetEncoder()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, this->header.format, format);
+        status = this->encoderDb->GetEncoder()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, this->header.format, format);
     }
     throw_exception_from_status(status);
     return py_common::PyMessageData(message_data);

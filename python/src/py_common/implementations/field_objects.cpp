@@ -128,7 +128,7 @@ PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
                 std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
                 cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
             }
-            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parent_db_, this->name, this->has_ptype);
+            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parentDb, this->name, this->hasPtype);
         }
     }
     return cached_values_;

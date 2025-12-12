@@ -4,11 +4,11 @@ python_oem.__prefix__:
 
 python_oem.Filter.(lower|upper)_time_bound:
     @property
-    def \1_time_bound(self) -> GpsTime | None:
+    def lower_time_bound(self) -> GpsTime | None:
         \doc
 
     @lower_time_bound.setter
-    def \1_time_bound(self, value: GpsTime | None): ...
+    def lower_time_bound(self, value: GpsTime | None): ...
 
 python_oem.Filter.decimation_period$:
     @property
@@ -34,7 +34,7 @@ python_oem.Filter.include_non_responses$:
     @include_non_responses.setter
     def include_non_responses(self, include: bool): ...
 
-py_oem.Response.response_enum:
+python_oem.Response.response_enum:
     from typing import TYPE_CHECKING
     if TYPE_CHECKING:
         from novatel_edie.enums import Responses

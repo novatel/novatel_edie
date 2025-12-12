@@ -184,7 +184,8 @@ void py_common::init_common_message_database(nb::module_& m)
         .def("get_msg_def", nb::overload_cast<std::string_view>(&py_common::PyMessageDatabaseCore::GetMsgDef, nb::const_), "msg_name"_a)
         .def("get_msg_def", nb::overload_cast<int32_t>(&py_common::PyMessageDatabaseCore::GetMsgDef, nb::const_), "msg_id"_a)
         .def("get_enum_def", &py_common::PyMessageDatabaseCore::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def", &py_common::PyMessageDatabaseCore::GetEnumDefName, "enum_name"_a)
+        .def("get_enum_def_by_id", &py_common::PyMessageDatabaseCore::GetEnumDefId, "enum_id"_a)
+        .def("get_enum_def_by_name", &py_common::PyMessageDatabaseCore::GetEnumDefName, "enum_name"_a)
         .def(
             "get_msg_type",
             [](py_common::PyMessageDatabaseCore& self, std::string name) { return self.GetMessagesByNameDict().at(name)->python_type; }, "name"_a)

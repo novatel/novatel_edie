@@ -11,9 +11,16 @@ import importlib
 from nanobind.stubgen import main as stubgen_main
 
 def parse_options(args: List[str]) -> argparse.Namespace:
-    """Parse the command line options."""
+    """Parse command line options for stub generation
+
+    Args:
+        args: List of command line arguments to parse
+
+    Returns:
+        Parsed command line arguments
+    """
     parser = argparse.ArgumentParser(
-        prog="cleanup_stubs.py",
+        prog="create_bindings_stubs.py",
         description="Generate stubs for nanobind-based extensions.",
     )
 
@@ -68,6 +75,11 @@ def parse_options(args: List[str]) -> argparse.Namespace:
     return opt
 
 def call_stubgen(args: argparse.Namespace):
+    """Call nanobind stubgen with prepared arguments
+
+    Args:
+        args: Parsed command line arguments containing module, output file, pattern file, and import paths
+    """
     stubgen_args = []
 
     stubgen_args.extend(["-m", args.module])
@@ -84,25 +96,25 @@ def call_stubgen(args: argparse.Namespace):
 
 
 def main():
+    """Generate stub files for nanobind modules with dependency handling"""
     args = parse_options(sys.argv[1:])
 
     # Setup relative import paths
     for i in args.imports:
         sys.path.insert(0, i)
 
+    # Import dependency modules so that importing the target module succeeds
     for dep in args.dependency_modules:
         importlib.import_module(dep)
 
+    # Generate the stubs via nanobind tooling
     call_stubgen(args)
 
-    # Convert to pathlib Path
+    # Process output to replace incorrectly inserted import statements
     output_path = Path(args.output_file)
-
-    print(f"PATH: {output_path}")
     with open(output_path, "r") as file:
         lines = file.readlines()
 
-    # Process lines to replace exact "import py_common" lines
     processed_lines = []
     for line in lines:
         specifies_dependency = False
