@@ -23,7 +23,7 @@ nb::object oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& messag
     case STATUS::SUCCESS: return create_message_instance(header_, std::move(message_fields_), metadata_, database_);
     case STATUS::NO_DEFINITION:
         return create_unknown_message_instance(nb::bytes(message_data_.pucMessageBody, message_data_.uiMessageBodyLength), header_, database_);
-    case STATUS::UNKNOWN: return create_unknown_bytes(nb::bytes(message_data_.pucMessage, message_data_.uiMessageLength));
+    case STATUS::UNKNOWN: return create_unknown_bytes(nb::bytes(message_data_.pucMessage, message_data_.uiMessageLength), metadata_);
     default: throw_exception_from_status(status_);
     }
 }
@@ -132,7 +132,7 @@ void init_novatel_parser(nb::module_& m)
                  data: A set of bytes to append to the Parser's internal buffer.
 
              Returns:
-                    The number of bytes written to the Parser's internal buffer. 
+                    The number of bytes written to the Parser's internal buffer.
                     Can be less than the length of `data` if the buffer is full.
             )doc")
         .def("read", &oem::PyParser::PyRead, "decode_incomplete_abbreviated"_a = false,
