@@ -10,8 +10,8 @@ regression/targets/* eol=crlf
 *.gps text eol=crlf
 *.BIN -text
 
-CMakeLists.txt text eol=auto
-conanfile.txt text eol=auto
+CMakeLists.txt text eol=lf
+conanfile.txt text eol=lf
 
 # another way of doing
 #  git config --global core.autocrlf false
