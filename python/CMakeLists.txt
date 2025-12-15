@@ -38,7 +38,7 @@ if(MSVC)
 endif()
 
 
-add_library(python_common SHARED
+add_library(python_common MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/init_bindings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/exceptions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/common.cpp
@@ -46,12 +46,7 @@ add_library(python_common SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/field_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/internal/logger_tester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_database.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_db_singleton.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/unknown_bytes.cpp
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_db_singleton.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/field_objects.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_database.cpp
 )
 target_include_directories(python_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(python_common PUBLIC ${NANOBIND_LIB_NAME})
@@ -82,10 +77,10 @@ add_library(python_oem MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/rxconfig_handler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/py_message_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/internal/decoder_tester.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/message_db_singleton.cpp
 )
 target_link_libraries(python_oem PRIVATE decoders_common)
 target_link_libraries(python_oem PRIVATE ${NANOBIND_LIB_NAME})
-target_link_libraries(python_oem PRIVATE python_common)
 target_link_libraries(python_oem PRIVATE oem_decoder)
 nanobind_opt_size(python_oem)
 nanobind_lto(python_oem)

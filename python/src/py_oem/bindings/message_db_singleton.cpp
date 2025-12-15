@@ -1,14 +1,16 @@
-#include "py_common/message_db_singleton.hpp"
+#include "py_oem/message_db_singleton.hpp"
 
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "py_common/bindings_core.hpp"
+#include "py_common/exceptions.hpp"
 #include "py_common/message_database.hpp"
+#include "py_oem/init_bindings.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-py_common::PyMessageDatabaseCore::Ptr& py_common::MessageDbSingleton::get()
+py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
 {
     static py_common::PyMessageDatabaseCore::Ptr json_db = nullptr;
 
@@ -42,6 +44,18 @@ py_common::PyMessageDatabaseCore::Ptr& py_common::MessageDbSingleton::get()
     }
     // If the database file exists, load it
     std::string default_json_db_path = nb::cast<std::string>(db_path);
-    json_db = std::make_shared<py_common::PyMessageDatabaseCore>(*LoadJsonDbFile(default_json_db_path));
+    try
+    {
+        json_db = std::make_shared<py_common::PyMessageDatabaseCore>(*LoadJsonDbFile(default_json_db_path));
+    }
+    catch (const std::exception& e)
+    {
+        throw py_common::FailureException("Failed to initialize PyMessageDatabaseCore from '" + default_json_db_path + "': " + e.what());
+    }
     return json_db;
+}
+
+void py_oem::init_message_db_singleton(nb::module_& m)
+{
+    m.def("get_builtin_database", &py_oem::MessageDbSingleton::get, "Get the JSON database built-in to the package.");
 }

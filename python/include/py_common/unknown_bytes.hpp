@@ -16,5 +16,14 @@ struct PyUnknownBytes
     explicit PyUnknownBytes(nb::bytes data_) : data(std::move(data_)) {}
 };
 
-nb::object create_unknown_bytes(nb::bytes data);
+inline nb::object create_unknown_bytes(nb::bytes data)
+{
+    nb::handle data_pytype = nb::type<PyUnknownBytes>();
+    nb::object data_pyinst = nb::inst_alloc(data_pytype);
+    PyUnknownBytes* data_cinst = nb::inst_ptr<PyUnknownBytes>(data_pyinst);
+    new (data_cinst) PyUnknownBytes(data);
+    nb::inst_mark_ready(data_pyinst);
+    return data_pyinst;
+}
+
 } // namespace novatel::edie::py_common

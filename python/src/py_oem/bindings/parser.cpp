@@ -2,16 +2,15 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_common/message_db_singleton.hpp"
 #include "py_common/py_logger.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/unknown_bytes.hpp"
 #include "py_oem/filter.hpp"
 #include "py_oem/init_bindings.hpp"
 #include "py_oem/message_database.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/parser.hpp"
 #include "py_oem/py_message_objects.hpp"
-
 
 namespace nb = nanobind;
 using namespace nb::literals;

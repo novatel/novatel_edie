@@ -7,8 +7,8 @@
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/field_objects.hpp"
-#include "py_common/message_db_singleton.hpp"
 #include "py_oem/init_bindings.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/py_message_objects.hpp"
 
 namespace nb = nanobind;
@@ -40,7 +40,7 @@ void py_oem::init_decoder_tester(nb::module_& m)
     nb::class_<DecoderTester>(m, "DecoderTester")
         .def("__init__",
              [](DecoderTester* t, py_common::PyMessageDatabaseCore::Ptr message_db) {
-                 if (!message_db) { py_common::MessageDbSingleton::get(); };
+                 if (!message_db) { py_oem::MessageDbSingleton::get(); };
                  new (t) DecoderTester(message_db);
              }) // NOLINT(*.NewDeleteLeaks)
         .def(

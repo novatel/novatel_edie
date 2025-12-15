@@ -1,8 +1,7 @@
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "py_common/bindings_core.hpp"
-#include "py_common/message_db_singleton.hpp"
 #include "py_oem/init_bindings.hpp"
-
+#include "py_oem/message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -111,12 +110,12 @@ void py_oem::init_novatel_common(nb::module_& m)
             })
         .def_prop_ro("message_description",
                      [](const oem::MetaDataStruct& self) {
-                         auto msg_def = py_common::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
+                         auto msg_def = py_oem::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
                          return msg_def ? nb::cast(msg_def->description) : nb::none();
                      })
         .def_prop_ro("message_fields",
                      [](const oem::MetaDataStruct& self) {
-                         auto msg_def = py_common::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
+                         auto msg_def = py_oem::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
                          if (!msg_def) { return nb::none(); }
                          auto fields_it = msg_def->fields.find(self.uiMessageCrc);
                          return fields_it == msg_def->fields.end() ? nb::none() : nb::cast(fields_it->second);

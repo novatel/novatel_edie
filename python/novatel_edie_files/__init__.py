@@ -33,7 +33,7 @@ from .python_common import (
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,
     throw_exception_from_status,
     FIELD_TYPE, DATA_TYPE,
-    MessageDatabase, get_builtin_database,
+    MessageDatabase,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
     EnumDataType,
     ENCODE_FORMAT,
@@ -55,7 +55,8 @@ from .python_oem import (
     Oem4BinaryHeader, Oem4BinaryShortHeader,  MetaData,
     Framer, Filter, Decoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
-    messages, enums, _internal as _novatel_internal
+    messages, enums, _internal as _novatel_internal,
+    get_builtin_database
 )
 
 def default_json_db_path():

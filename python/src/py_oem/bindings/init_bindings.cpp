@@ -29,4 +29,5 @@ NB_MODULE(python_oem, m)
     init_novatel_oem_messages(messages_mod);
     init_novatel_oem_enums(enums_mod);
     init_decoder_tester(internal_mod);
+    init_message_db_singleton(m);
 }
