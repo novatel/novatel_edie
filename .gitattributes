@@ -1,5 +1,5 @@
-# Check out as LF or CRLF based on your OS, store in Git index as LF
-* text=auto
+# Always checkout as lf (conan needs it to be consistent for revision numbers)
+* text=auto eol=lf
 
 # These are unit test files and should use crlf
 regression/targets/* eol=crlf
@@ -10,8 +10,8 @@ regression/targets/* eol=crlf
 *.gps text eol=crlf
 *.BIN -text
 
-CMakeLists.txt text eol=auto
-conanfile.txt text eol=auto
+CMakeLists.txt text eol=lf
+conanfile.txt text eol=lf
 
 # another way of doing
 #  git config --global core.autocrlf false
