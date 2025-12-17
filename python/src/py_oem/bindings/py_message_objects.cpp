@@ -18,7 +18,6 @@
 #include "py_oem/message_database.hpp"
 #include "py_oem/message_db_singleton.hpp"
 
-
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
@@ -150,7 +149,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
             has_ptype = false;
         }
     }
-    catch (const std::out_of_range& e)
+    catch (const std::out_of_range&)
     {
         // This case should never happen, if it does there is a bug
         throw std::runtime_error("Message name '" + message_name + "' not found in the JSON database");

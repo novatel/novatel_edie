@@ -278,7 +278,7 @@ class PyLoggerManager : public LoggerManager
             // Directly forward arguments to original setLevel function
             original_func(*args_, **kwargs_);
         }
-        catch (const nb::python_error& e)
+        catch (const nb::python_error&)
         {
             // Throw errors according to original function implementation
             throw;

@@ -9,7 +9,6 @@
 #include "py_oem/message_db_singleton.hpp"
 #include "py_oem/py_message_objects.hpp"
 
-
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;

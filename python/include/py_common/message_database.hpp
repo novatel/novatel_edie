@@ -257,7 +257,7 @@ inline nb::object convert_field(const FieldContainer& field, const std::shared_p
                 {
                     field_ptype = parent_db->GetFieldsByNameDict().at(field_name);
                 }
-                catch (const std::out_of_range& e)
+                catch (const std::out_of_range&)
                 {
                     // This case should never happen, if it does there is a bug
                     throw std::runtime_error("Field type not found for " + field_name);
@@ -343,7 +343,7 @@ inline nb::dict& PyField::to_shallow_dict() const
 inline nb::list PyField::get_field_names() const
 {
     nb::list field_names = nb::list();
-    for (const auto& [name, value] : to_shallow_dict()) { field_names.append(name); }
+    for (const auto& [field_name, value] : to_shallow_dict()) { field_names.append(field_name); }
     return field_names;
 }
 
