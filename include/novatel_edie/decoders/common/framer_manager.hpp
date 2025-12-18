@@ -46,12 +46,15 @@ namespace novatel::edie {
 struct FramerEntry
 {
     std::string framerName;
+    uint32_t framerId;
     std::unique_ptr<FramerBase> framerInstance;
     std::unique_ptr<MetaDataBase> metadataInstance;
     int32_t offset;
 
-    FramerEntry(std::string framerName_, std::unique_ptr<FramerBase> framerInstance_, std::unique_ptr<MetaDataBase> metadataInstance_)
-        : framerName(framerName_), framerInstance(std::move(framerInstance_)), metadataInstance(std::move(metadataInstance_)), offset(0)
+    FramerEntry(std::string framerName_, uint32_t framerId_, std::unique_ptr<FramerBase> framerInstance_,
+                std::unique_ptr<MetaDataBase> metadataInstance_)
+        : framerName(framerName_), framerId(framerId_), framerInstance(std::move(framerInstance_)), metadataInstance(std::move(metadataInstance_)),
+          offset(0)
     {
     }
 };
@@ -138,7 +141,21 @@ class FramerManager
     //
     //! \return The name of the currently active FramerElement.
     //----------------------------------------------------------------------------
-    std::string GetActiveFramerName() const { return framerRegistry.front().framerName; }
+    inline std::string GetActiveFramerName() const { return framerRegistry.front().framerName; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the id of the active framer.
+    //
+    //! \return The id of the currently active FramerElement.
+    //----------------------------------------------------------------------------
+    inline uint32_t GetActiveFramerId() const { return framerRegistry.front().framerId; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the id of the given framer.
+    //
+    //! \return The id belonging to the framer with the given name.
+    //----------------------------------------------------------------------------
+    static constexpr uint32_t GetFramerId(std::string_view framerName_) { return CalculateBlockCrc32(framerName_); }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.
@@ -203,8 +220,8 @@ class FramerManager
     //! \return A map from framer names to their associated factory functions.
     //----------------------------------------------------------------------------
     static auto GetFramerFactories()
-        -> std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
-                                                     std::function<std::unique_ptr<MetaDataBase>()>>>&;
+        -> std::unordered_map<std::uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
+                                                       std::function<std::unique_ptr<MetaDataBase>()>>>&;
 
   protected:
     bool bMyReportUnknownBytes{true};

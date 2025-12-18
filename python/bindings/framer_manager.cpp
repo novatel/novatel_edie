@@ -25,9 +25,8 @@ nb::tuple PyFramerManager::PyGetFrame(uint32_t buffer_size)
         nb::bytes frame_bytes(buffer.data(), metadata->uiLength);
 
         // Check which framer produced this frame
-        if (GetActiveFramerName() == "OEM") {
-            // Cast to OEM metadata and return it
-            auto* oem_meta = static_cast<oem::MetaDataStruct*>(metadata);
+        if (GetActiveFramerId() == FramerManager::GetFramerId("OEM")) {
+            auto* oem_meta = reinterpret_cast<oem::MetaDataStruct*>(metadata);
             if (oem_meta) {
                 return nb::make_tuple(frame_bytes, *oem_meta);
             }

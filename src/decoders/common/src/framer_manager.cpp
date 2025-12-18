@@ -37,13 +37,14 @@ FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
 
     for (const auto& name : selectedFramers)
     {
-        auto it = factoryMap.find(name);
+        auto framerId = CalculateBlockCrc32(name);
+        auto it = factoryMap.find(framerId);
         if (it != factoryMap.end())
         {
             auto& constructors = it->second;
             auto metadataInstance = constructors.second();
             auto framerInstance = constructors.first(pclMyFixedRingBuffer);
-            framerRegistry.emplace_back(name, std::move(framerInstance), std::move(metadataInstance));
+            framerRegistry.emplace_back(name, framerId, std::move(framerInstance), std::move(metadataInstance));
             pclMyLogger->info("Registered framer '{}'", name);
         }
         else { pclMyLogger->warn("Framer '{}' not found in registered framer factories.", name); }
@@ -55,15 +56,25 @@ void FramerManager::RegisterFramer(const std::string& framerName_,
                                    std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_)
 {
     auto& factoryMap = GetFramerFactories();
-    factoryMap[framerName_] = {std::move(framerFactory_), std::move(metadataConstructor_)};
+    auto framerId = CalculateBlockCrc32(framerName_);
+
+    // Check for collision in framer name hash value
+    if (factoryMap.find(framerId) != factoryMap.end())
+    {
+        throw std::runtime_error("Framer with ID " + std::to_string(framerId) +
+                                 " is already registered."
+                                 " Please choose a different name for '" +
+                                 framerName_ + "'.");
+    }
+    factoryMap[framerId] = {std::move(framerFactory_), std::move(metadataConstructor_)};
 }
 
-std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
-                                          std::function<std::unique_ptr<MetaDataBase>()>>>&
+std::unordered_map<std::uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
+                                            std::function<std::unique_ptr<MetaDataBase>()>>>&
 FramerManager::GetFramerFactories()
 {
-    static std::unordered_map<std::string, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
-                                                     std::function<std::unique_ptr<MetaDataBase>()>>>
+    static std::unordered_map<uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
+                                                  std::function<std::unique_ptr<MetaDataBase>()>>>
         factories;
     return factories;
 }

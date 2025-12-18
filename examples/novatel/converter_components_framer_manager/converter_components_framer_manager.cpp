@@ -162,12 +162,9 @@ int main(int argc, char* argv[])
 
             if (eFramerStatus == STATUS::SUCCESS)
             {
-                if (clFramer.GetActiveFramerName() == "OEM")
+                if (clFramer.GetActiveFramerId() == FramerManager::GetFramerId("OEM"))
                 {
-                    // Tell clang-tidy not to warn about the downcast here
-                    // TODO: measure performance impact of enabling RTTI on MetaDataBase and using dynamic_cast
-                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
-                    auto& stMetaData = static_cast<MetaDataStruct&>(*stMetaDataPtr);
+                    auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*stMetaDataPtr);
 
                     if (stMetaData.bResponse)
                     {
