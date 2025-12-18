@@ -44,19 +44,40 @@ class Framer : public FramerBase
     uint32_t uiMyJsonObjectOpenBraces{0};
     uint32_t uiMyAbbrevAsciiHeaderPosition{0};
 
-    void ResetState() override;
-
     //----------------------------------------------------------------------------
     //! \brief Check if the characters following an '*' fit the CRC format.
     //! \param[in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
     //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
     //----------------------------------------------------------------------------
     [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
-    [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiCircularBufferPosition_) const;
-    [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiCircularBufferPosition_) const;
+    [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiRingBufferPosition_) const;
+    [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiRingBufferPosition_) const;
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
   public:
+    //----------------------------------------------------------------------------
+    //! \brief Reset the state of the Framer.
+    //----------------------------------------------------------------------------
+    void ResetState() override { eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC; };
+
+    //----------------------------------------------------------------------------
+    //! \brief Initialize the attributes of the Framer.
+    //----------------------------------------------------------------------------
+    void InitAttributes() override
+    {
+        uiMyAbbrevAsciiHeaderPosition = 0;
+        uiMyExpectedMessageLength = 0;
+        uiMyExpectedPayloadLength = 0;
+        uiMyByteCount = 0;
+    };
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the Framer class.
+    //! \param [in] ringBuffer a shared pointer to the framer manager's fixed ring
+    //! buffer.
+    //----------------------------------------------------------------------------
+    Framer(std::shared_ptr<UCharFixedRingBuffer> ringBuffer);
+
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
     //----------------------------------------------------------------------------
@@ -68,7 +89,7 @@ class Framer : public FramerBase
     //! \param[out] pucFrameBuffer_ The buffer which the Framer should copy the
     //! framed OEM message to.
     //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
-    //! \param[out] stMetaData_ A MetaDataStruct to contain some information
+    //! \param[out] stMetaData_ A MetaDataBase to contain some information
     //! about OEM message frame.
     //
     //! \return An error code describing the result of framing.
@@ -81,7 +102,8 @@ class Framer : public FramerBase
     //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
     //! to the size specified by uiFrameBufferSize_.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_);
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
+                                  bool bMetadataOnly_ = false) override;
 };
 
 } // namespace novatel::edie::oem

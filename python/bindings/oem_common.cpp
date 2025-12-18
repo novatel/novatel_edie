@@ -74,7 +74,7 @@ void init_novatel_common(nb::module_& m)
         .value("ALL", novatel::edie::HEADER_FORMAT::ALL)
         .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
 
-    nb::class_<oem::MetaDataStruct>(m, "MetaData", R"doc(
+    nb::class_<oem::MetaDataStruct, MetaDataBase>(m, "MetaData", R"doc(
             Metadata for a specific message.
         
             Used as a storehouse for information during piece-wise decoding.)doc")
