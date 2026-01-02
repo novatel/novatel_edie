@@ -100,7 +100,7 @@ class NovatelEdieConan(ConanFile):
         if self.options.python:
             tc.cache_variables["BUILD_PYTHON"] = True
             tc.cache_variables["Python_EXECUTABLE"] = self._get_python()
-            print(f"Using python at: {tc.cache_variables["Python_EXECUTABLE"]}")
+            print(f"Using python at: {tc.cache_variables['Python_EXECUTABLE']}")
         tc.generate()
 
         deps = CMakeDeps(self)
