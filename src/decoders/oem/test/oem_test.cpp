@@ -191,24 +191,18 @@ TEST_F(FramerTest, ASCII_BYTE_BY_BYTE)
     stExpectedMetaData.eFormat = HEADER_FORMAT::ASCII;
     MetaDataStruct stTestMetaData;
 
-    while (true)
+    while (uiRemainingBytes > 1)
     {
         WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
         uiRemainingBytes--;
-        stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
+        // Framer rewinds to start of CRC if incomplete
+        if (uiRemainingBytes >= OEM4_ASCII_CRC_LENGTH + 2) { stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes; }
 
-        // We have to process the CRC all at the same time, so we can't test byte-by-byte within it
-        if (uiRemainingBytes >= OEM4_ASCII_CRC_LENGTH + 2) // CRC + CRLF
-        {
-            ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
-            ASSERT_EQ(stTestMetaData, stExpectedMetaData);
-        }
-        else if (uiRemainingBytes == 0)
-        {
-            break;
-        }
+        ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+        ASSERT_EQ(stTestMetaData, stExpectedMetaData);
     }
 
+    WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
     stExpectedMetaData.uiLength = uiLogSize;
     ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
     ASSERT_EQ(stTestMetaData, stExpectedMetaData);
@@ -494,24 +488,18 @@ TEST_F(FramerTest, SHORT_ASCII_BYTE_BY_BYTE)
     stExpectedMetaData.eFormat = HEADER_FORMAT::SHORT_ASCII;
     MetaDataStruct stTestMetaData;
 
-    while (true)
+    while (uiRemainingBytes > 1)
     {
         WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
         uiRemainingBytes--;
-        stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
+        // Framer rewinds to start of CRC if incomplete
+        if (uiRemainingBytes >= OEM4_ASCII_CRC_LENGTH + 2) { stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes; }
 
-        // We have to process the CRC all at the same time, so we can't test byte-by-byte within it
-        if (uiRemainingBytes >= OEM4_ASCII_CRC_LENGTH + 2) // CRC + CRLF
-        {
-            ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_SHORT_ASCII_MESSAGE_LENGTH, stTestMetaData));
-            ASSERT_EQ(stTestMetaData, stExpectedMetaData);
-        }
-        else if (uiRemainingBytes == 0)
-        {
-            break;
-        }
+        ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_SHORT_ASCII_MESSAGE_LENGTH, stTestMetaData));
+        ASSERT_EQ(stTestMetaData, stExpectedMetaData);
     }
 
+    WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
     stExpectedMetaData.uiLength = uiLogSize;
     ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_SHORT_ASCII_MESSAGE_LENGTH, stTestMetaData));
     ASSERT_EQ(stTestMetaData, stExpectedMetaData);
@@ -1204,25 +1192,18 @@ TEST_F(FramerManagerTest, ASCII_BYTE_BY_BYTE)
     stExpectedMetaData.eFormat = HEADER_FORMAT::ASCII;
     MetaDataBase* stTestMetaData;
 
-    while (true)
+    while (uiRemainingBytes > 1)
     {
         WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
         uiRemainingBytes--;
-        stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
+        // Framer rewinds to start of CRC if incomplete
+        if (uiRemainingBytes >= OEM4_ASCII_CRC_LENGTH + 2) { stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes; }
 
-        // We have to process the CRC all at the same time, so we can't test byte-by-byte within it
-        if (uiRemainingBytes >= OEM4_ASCII_CRC_LENGTH + 2) // CRC + CRLF
-        {
-            ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
-            
-            compareMetaData(stExpectedMetaData, stTestMetaData);
-        }
-        else if (uiRemainingBytes == 0)
-        {
-            break;
-        }
+        ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+        compareMetaData(stExpectedMetaData, stTestMetaData);
     }
 
+    WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
     stExpectedMetaData.uiLength = uiLogSize;
     ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
     compareMetaData(stExpectedMetaData, stTestMetaData);
@@ -1487,24 +1468,18 @@ TEST_F(FramerManagerTest, SHORT_ASCII_BYTE_BY_BYTE)
     stExpectedMetaData.eFormat = HEADER_FORMAT::SHORT_ASCII;
     MetaDataBase* stTestMetaData;
 
-    while (true)
+    while (uiRemainingBytes > 1)
     {
         WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
         uiRemainingBytes--;
-        stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
+        // Framer rewinds to start of CRC if incomplete
+        if (uiRemainingBytes >= OEM4_ASCII_CRC_LENGTH + 2) { stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes; }
 
-        // We have to process the CRC all at the same time, so we can't test byte-by-byte within it
-        if (uiRemainingBytes >= OEM4_ASCII_CRC_LENGTH + 2) // CRC + CRLF
-        {
-            ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_SHORT_ASCII_MESSAGE_LENGTH, stTestMetaData));
-            compareMetaData(stExpectedMetaData, stTestMetaData);
-        }
-        else if (uiRemainingBytes == 0)
-        {
-            break;
-        }
+        ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_SHORT_ASCII_MESSAGE_LENGTH, stTestMetaData));
+        compareMetaData(stExpectedMetaData, stTestMetaData);
     }
 
+    WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
     stExpectedMetaData.uiLength = uiLogSize;
     ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_SHORT_ASCII_MESSAGE_LENGTH, stTestMetaData));
     compareMetaData(stExpectedMetaData, stTestMetaData);
