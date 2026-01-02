@@ -75,7 +75,7 @@ def main():
                 if isinstance(meta, ne.MetaData):
                     if meta.format == HEADER_FORMAT.UNKNOWN:
                         continue
-                    logger.info(f"Framed ({len(frame)}): {format_frame(frame, meta.format)}")
+                    logger.info(f"Framed using {framer_manager.active_framer_name} ({len(frame)}): {format_frame(frame, meta.format)}")
 
                     # Decode the log header.
                     header = decoder.decode_header(frame, meta)
