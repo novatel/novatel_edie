@@ -25,17 +25,17 @@ Information on the `novatel_edie` [Python package can be found here](./python/re
 
 ## Getting Started
 
-EDIE can be built from source by cloning this repository `git clone https://github.com/novatel/novatel_edie.git` and following along 
+EDIE can be built from source by cloning this repository `git clone https://github.com/novatel/novatel_edie.git` and acting according to the following instructions.
 
 ### Dependencies
 
-EDIE is C++ 17 project which uses a [CMake](https://cmake.org/) build system directly integrated with [Conan 2](https://docs.conan.io/2/index.html) for dependency management. Information is provided below on how to acquire all of the necessary build dependencies.
+EDIE is a C++ 17 project which uses a [CMake](https://cmake.org/) build system directly integrated with [Conan 2](https://docs.conan.io/2/index.html) for dependency management. Information is provided below on how to acquire all of the necessary build dependencies.
 
 - C++ 17 compiler
     - Windows
         - MSVC (recommended): Download and install both the [Build Tools for Visual Studio 2026](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2026) and the [Microsoft Visual C++ v14 Redistributable](https://visualstudio.microsoft.com/downloads/#microsoft-visual-c-v14-redistributable).
-        - g++: Install as part of [the MSYS2  tool collection](https://www.msys2.org/).
-    - Linux 
+        - g++: Install as part of [the MSYS2 tool collection](https://www.msys2.org/).
+    - Linux
         - Install the toolchains for g++ or clang using your distribution's package manager.
 - CMake (>=3.15)
     Installers can be found on [the downloads page](https://cmake.org/download/). For Linux it is recommended to use your distribution's package manager instead.
@@ -50,9 +50,9 @@ A build can be configured using cmake as follows:
 cmake -S {path_to_edie_repository} -B {path_to_build_folder}
 ```
 
-This step will automatically use conan to install all dependencies within the newly created build folder. 
+This step will automatically use Conan to install all dependencies within the newly created build folder. 
 
-The build can then be kicked off as:
+The build can then be started with:
 
 ```
 cmake --build {path_to_build_folder}
@@ -60,29 +60,29 @@ cmake --build {path_to_build_folder}
 
 ### CMake Presets
 
-It is recommended to use [CMake presets](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html) to define specific build parameters e.g. compiler and build type.
+It is recommended to use [CMake presets](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html) to define specific build parameters, such as compiler and build type.
 The [CMakePresets.json](./CMakePresets.json) file contains a few default options and you can extend it by creating a `CMakeUserPresets.json` file with your personal configurations. 
 
 Take the `windows-msvc` configure preset and its corresponding `windows-msvc-debug` and `windows-msvc-release` build presets as an example. 
-The configure preset can be used via `cmake --preset windows-msvc` to configure a windows MSVC build within a `out/build` folder. 
-The a debug build can then be initiated via `cmake --build --preset windows-msvc-debug` or a release on via `cmake --build --preset windows-msvc-release`.
+The configure preset can be used via `cmake --preset windows-msvc` to configure a Windows MSVC build within an `out/build` folder. 
+A debug build can then be initiated via `cmake --build --preset windows-msvc-debug` or a release build via `cmake --build --preset windows-msvc-release`.
 
 CMake presets are especially useful when initiating builds from an IDE.
 Almost all IDEs have inbuilt or extension support for CMake which allow selecting between presets to configure a build.
 
 ### Conan CMake Presets
 
-Whenever conan installs dependencies it also creates a `CMakePresets.json` file within the build folder.
-To make these presets available add the following to your `CMakeUserPresets.json` file:
+Whenever Conan installs dependencies, it also creates a `CMakePresets.json` file within the build folder.
+To make these presets available, add the following to your `CMakeUserPresets.json` file:
 ```
     "include": [
         "ConanPresets.json"
     ]
 ```
 
-This works because the configuration in [conanfile.py](./conanfile.py) is set to place a reference presets file at this location.
+The configuration in [conanfile.py](./conanfile.py) is set to place a reference presets file at this location.
 
-This should be done when setting up a configuration directly via the `conan install` command. In most cases this approach is unnecessary, however it is the simplest way to do a cross compilation build. Otherwise you should not include these conan generated presets as they can pollute your options and lead to duplicate key errors.
+This should be done when setting up a configuration directly via the `conan install` command. In most cases this approach is unnecessary, however it is the simplest way to configure a cross-compilation build. Otherwise, you should not include these Conan-generated presets, as they can pollute your options and lead to duplicate key errors.
 
 ## Usage
 
