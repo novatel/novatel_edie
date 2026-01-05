@@ -1,5 +1,4 @@
 #include "novatel_edie/decoders/common/framer_manager.hpp"
-#include "novatel_edie/decoders/oem/framer.hpp"
 
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
@@ -23,16 +22,8 @@ nb::tuple PyFramerManager::PyGetFrame(uint32_t buffer_size)
     case STATUS::SUCCESS:
     {
         nb::bytes frame_bytes(buffer.data(), metadata->uiLength);
-
-        // Check which framer produced this frame
-        if (GetActiveFramerId() == FramerManager::GetFramerId("OEM")) {
-            auto* oem_meta = reinterpret_cast<oem::MetaDataStruct*>(metadata);
-            if (oem_meta) {
-                return nb::make_tuple(frame_bytes, *oem_meta);
-            }
-        }
-        
-        return nb::make_tuple(frame_bytes, *metadata);
+        auto metadata_copy = metadata->clone();
+        return nb::make_tuple(frame_bytes, nb::cast(metadata_copy.release(), nb::rv_policy::take_ownership));
     }
     default: throw_exception_from_status(status);
     }

@@ -49,12 +49,10 @@ struct FramerEntry
     uint32_t framerId;
     std::unique_ptr<FramerBase> framerInstance;
     std::unique_ptr<MetaDataBase> metadataInstance;
-    int32_t offset;
 
     FramerEntry(std::string framerName_, uint32_t framerId_, std::unique_ptr<FramerBase> framerInstance_,
                 std::unique_ptr<MetaDataBase> metadataInstance_)
-        : framerName(framerName_), framerId(framerId_), framerInstance(std::move(framerInstance_)), metadataInstance(std::move(metadataInstance_)),
-          offset(0)
+        : framerName(framerName_), framerId(framerId_), framerInstance(std::move(framerInstance_)), metadataInstance(std::move(metadataInstance_))
     {
     }
 };
@@ -100,7 +98,7 @@ class FramerManager
     //! \return A pointer to the MetaData for the specified framer.
     //! \return nullptr if the framer is not found.
     //----------------------------------------------------------------------------
-    MetaDataBase* GetMetaData(std::string framerName_);
+    MetaDataBase* GetMetaData(const std::string& framerName_);
 
     //----------------------------------------------------------------------------
     //! \brief Reset the state of all framers in the framer registry.
@@ -128,25 +126,25 @@ class FramerManager
     ~FramerManager() = default;
 
     //----------------------------------------------------------------------------
-    //! \brief Get the pointer to a FramerElement Structure for specified framer.
+    //! \brief Get the pointer to a FramerEntry Structure for specified framer.
     //
-    //! \param[in] framerId_ The ID of the framer to get the FramerElement for.
+    //! \param[in] framerName_ The name of the framer to get the FramerEntry for.
     //
-    //! \return A pointer to the FramerElement for the specified framer.
+    //! \return A pointer to the FramerEntry for the specified framer.
     //----------------------------------------------------------------------------
-    FramerEntry* GetFramerElement(const std::string framerName_);
+    FramerEntry* GetFramerEntry(const std::string framerName_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the name of the active framer.
     //
-    //! \return The name of the currently active FramerElement.
+    //! \return The name of the currently active FramerEntry.
     //----------------------------------------------------------------------------
     inline std::string GetActiveFramerName() const { return framerRegistry.front().framerName; }
 
     //----------------------------------------------------------------------------
     //! \brief Get the id of the active framer.
     //
-    //! \return The id of the currently active FramerElement.
+    //! \return The id of the currently active FramerEntry.
     //----------------------------------------------------------------------------
     inline uint32_t GetActiveFramerId() const { return framerRegistry.front().framerId; }
 

@@ -1057,7 +1057,7 @@ class FramerManagerTest : public ::testing::Test
 
         pclMyFramerManager = std::make_unique<FramerManager>(std::vector<std::string>{"OEM", "MockFramer"});
         pclMyFramerManager->SetReportUnknownBytes(true);
-        pclMyFramerManager->GetFramerElement("OEM")->framerInstance->SetPayloadOnly(false);
+        pclMyFramerManager->GetFramerEntry("OEM")->framerInstance->SetPayloadOnly(false);
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
     }
 

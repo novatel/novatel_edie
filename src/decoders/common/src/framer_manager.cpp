@@ -79,7 +79,7 @@ FramerManager::GetFramerFactories()
     return factories;
 }
 
-MetaDataBase* FramerManager::GetMetaData(const std::string framerName_)
+MetaDataBase* FramerManager::GetMetaData(const std::string& framerName_)
 {
     for (auto& framer : framerRegistry)
     {
@@ -97,7 +97,7 @@ void FramerManager::ResetAllFramerStates() const
     }
 }
 
-FramerEntry* FramerManager::GetFramerElement(const std::string framerName_)
+FramerEntry* FramerManager::GetFramerEntry(const std::string framerName_)
 {
     for (auto& framer : framerRegistry)
     {

@@ -164,33 +164,38 @@ int main(int argc, char* argv[])
             {
                 if (clFramer.GetActiveFramerId() == FramerManager::GetFramerId("OEM"))
                 {
-                    auto& stMetaData = reinterpret_cast<MetaDataStruct&>(*stMetaDataPtr);
-
-                    if (stMetaData.bResponse)
+                    auto* stOemMetaDataPtr = dynamic_cast<MetaDataStruct*>(stMetaDataPtr);
+                    if (!stOemMetaDataPtr)
                     {
-                        unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                        pclLogger->error("Failed to cast MetaDataBase to OEM MetaDataStruct");
                         continue;
                     }
 
-                    pucFrameBuffer[stMetaData.uiLength] = '\0';
+                    if (stOemMetaDataPtr->bResponse)
+                    {
+                        unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stOemMetaDataPtr->uiLength);
+                        continue;
+                    }
+
+                    pucFrameBuffer[stOemMetaDataPtr->uiLength] = '\0';
 
                     // Decode the header. Get metadata here and populate the Intermediate header.
-                    eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, stMetaData);
+                    eDecoderStatus = clHeaderDecoder.Decode(pucFrameBuffer, stHeader, *stOemMetaDataPtr);
 
                     if (eDecoderStatus == STATUS::SUCCESS)
                     {
                         // Filter the log, pass over this log if we don't want it.
-                        if (!clFilter.DoFiltering(stMetaData)) { continue; }
+                        if (!clFilter.DoFiltering(*stOemMetaDataPtr)) { continue; }
 
-                        pucFrameBuffer += stMetaData.uiHeaderLength;
-                        uint32_t uiBodyLength = stMetaData.uiLength - stMetaData.uiHeaderLength;
+                        pucFrameBuffer += stOemMetaDataPtr->uiHeaderLength;
+                        uint32_t uiBodyLength = stOemMetaDataPtr->uiLength - stOemMetaDataPtr->uiHeaderLength;
                         // Decode the Log, pass the metadata and populate the intermediate log.
-                        eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
+                        eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, *stOemMetaDataPtr);
 
                         if (eDecoderStatus == STATUS::SUCCESS)
                         {
                             eEncoderStatus = clEncoder.Encode(&pucEncodedMessageBuffer, MAX_ASCII_MESSAGE_LENGTH, stHeader, stMessage, stMessageData,
-                                                              stMetaData.eFormat, eEncodeFormat);
+                                                              stOemMetaDataPtr->eFormat, eEncodeFormat);
 
                             if (eEncoderStatus == STATUS::SUCCESS)
                             {
@@ -211,7 +216,7 @@ int main(int argc, char* argv[])
                     }
                     else
                     {
-                        unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stMetaData.uiLength);
+                        unknownOfs.write(reinterpret_cast<char*>(pucFrameBuffer), stOemMetaDataPtr->uiLength);
                         pclLogger->warn("HeaderDecoder returned with status code {}", eDecoderStatus);
                     }
                 }

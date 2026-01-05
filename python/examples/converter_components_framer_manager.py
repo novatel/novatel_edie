@@ -71,11 +71,13 @@ def main():
                 raise ne.FailureException(
                     f'Wrote {written_bytes} bytes, expected {len(read_data)} bytes.')
             for frame, meta in framer_manager:
+                logger.info("Framed using %s (%d): %s", framer_manager.active_framer_name,
+                                len(frame), format_frame(frame, meta.format))
+
                 # Make sure that the framed data is OEM format
                 if isinstance(meta, ne.MetaData):
                     if meta.format == HEADER_FORMAT.UNKNOWN:
                         continue
-                    logger.info(f"Framed using {framer_manager.active_framer_name} ({len(frame)}): {format_frame(frame, meta.format)}")
 
                     # Decode the log header.
                     header = decoder.decode_header(frame, meta)
