@@ -62,7 +62,8 @@ class FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
-        return uiPosition_ + 1 < pclMyBuffer->size() && (*pclMyBuffer)[uiPosition_] == '\r' && (*pclMyBuffer)[uiPosition_ + 1] == '\n';
+        const auto& clFrameBuffer = *pclMyBuffer;
+        return uiPosition_ + 1 < clFrameBuffer.size() && clFrameBuffer[uiPosition_] == '\r' && clFrameBuffer[uiPosition_ + 1] == '\n';
     }
 
   public:
