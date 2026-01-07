@@ -86,7 +86,8 @@ class NovatelEdieConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.user_presets_path = 'ConanPresets.json'
+        cmake_driven = self.conf.get("user.novatel_edie:cmake_driven", default=False)
+        tc.user_presets_path = None if cmake_driven else 'ConanPresets.json'
         tc.cache_variables["BUILD_BENCHMARKS"] = False
         tc.cache_variables["BUILD_EXAMPLES"] = False
         tc.cache_variables["BUILD_TESTS"] = False

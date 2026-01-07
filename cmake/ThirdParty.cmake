@@ -20,7 +20,7 @@ if(USE_CONAN)
     endif()
     include("${CMAKE_CURRENT_LIST_DIR}/SetDefaultProfile.cmake")
     # Set build cppstd for patchelf
-    set(CONAN_INSTALL_ARGS --build missing -o shared=${CONAN_BUILD_SHARED} --settings:build compiler.cppstd=17 CACHE INTERNAL "")
+    set(CONAN_INSTALL_ARGS --build missing -o shared=${CONAN_BUILD_SHARED} --settings:build compiler.cppstd=17  --conf=user.novatel_edie:cmake_driven=True CACHE INTERNAL "")
     list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/conan_provider.cmake)
 endif()
 
