@@ -390,6 +390,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         stInterHeader_.usMessageId = pstBinaryShortHeader->usMessageId;
         stInterHeader_.usWeek = pstBinaryShortHeader->usWeekNo;
         stInterHeader_.dMilliseconds = pstBinaryShortHeader->uiWeekMSec;
+        stInterHeader_.uiTimeStatus = static_cast<uint32_t>(TIME_STATUS::UNKNOWN);
         pcTempBuf += sizeof(Oem4BinaryShortHeader);
         break;
     }
