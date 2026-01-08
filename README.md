@@ -16,6 +16,11 @@ Information on the `novatel_edie` [Python package can be found here](./python/re
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+  - [Dependencies](#dependencies)
+  - [Building the Project](#building-the-project)
+  - [CMake Presets](#cmake-presets)
+  - [CMake Options](#cmake-options)
+  - [Conan-Driven Configurations](#conan-driven-configurations)
 - [Usage](#usage)
 - [Examples](#examples)
 - [Code Style](#code-style)
@@ -37,10 +42,13 @@ EDIE is a C++ 17 project which uses a [CMake](https://cmake.org/) build system d
         - g++: Install as part of [the MSYS2 tool collection](https://www.msys2.org/).
     - Linux
         - Install the toolchains for g++ or clang using your distribution's package manager.
-- CMake (>=3.15)
-    Installers can be found on [the downloads page](https://cmake.org/download/). For Linux it is recommended to use your distribution's package manager instead.
-- Conan (>=2.4.0)
-    Follow the [installation instructions](https://docs.conan.io/2/installation.html) from the Conan 2 documentation.
+- [CMake (>=3.15)](https://cmake.org/)
+    - Installers can be found on [the downloads page](https://cmake.org/download/). For Linux it is recommended to use your distribution's package manager instead.
+- [Conan (>=2.4.0)](https://docs.conan.io/2/introduction.html)
+    - Follow the [installation instructions](https://docs.conan.io/2/installation.html) from the Conan 2 documentation.
+- [nanobind (>=2.0.0)](https://nanobind.readthedocs.io/en/latest/)
+    - Only required if building the [`novatel_edie` python module](./python/readme.md).
+    - Install using pip with `pip install nanobind`.
 
 ### Building the Project
 
@@ -70,7 +78,36 @@ A debug build can then be initiated via `cmake --build --preset windows-msvc-deb
 CMake presets are especially useful when initiating builds from an IDE.
 Almost all IDEs have inbuilt or extension support for CMake which allow selecting between presets to configure a build.
 
-### Conan CMake Presets
+### CMake Options
+
+The following is a list of CMake cache variables specific to this project. 
+
+- `BUILD_TESTS`: Whether to build the test executables. Defaults to `ON`.
+- `BUILD_EXAMPLES`: Whether to build example programs that make basic use of EDIE's features. Defaults to `ON`.
+- `BUILD_BENCHMARKS`: Whether to build the benchmarking programs. Defaults to `OFF`.
+- `BUILD_PYTHON`: Whether to build the [`novatel_edie` python module](./python/readme.md). Defaults to `OFF`.
+- `Python_EXECUTABLE`: The python interpreter executable to use as a source for the [nanobind](https://nanobind.readthedocs.io/en/latest/) library which the `novatel_edie` python module is built upon.
+- `PYTHON_INSTALL_DIR`: The location to install the `novatel_edie` python module. During development, set this to your Python environment's site-packages directory. For example: `{$WORKSPACE}/venv/Lib/site-packages/novatel_edie`.
+
+These can be set within the `cacheVariables` field of a configure preset:
+```
+    "configurePresets": [
+        {
+            "name": "my-custom-preset",
+            "cacheVariables": {
+                "BUILD_TESTS": "ON",
+                ...
+            },
+            ...
+        }
+    ]
+```
+
+### Conan-Driven Configurations
+
+Instead of manually creating a cmake preset to configure a build, 
+the `conan install` command can be used to create a configuration based on a conan profile.
+This approach is particularly well-suited to cross-compilation builds.
 
 Whenever Conan installs dependencies, it also creates a `CMakePresets.json` file within the build folder.
 To make these presets available, add the following to your `CMakeUserPresets.json` file:
@@ -80,9 +117,8 @@ To make these presets available, add the following to your `CMakeUserPresets.jso
     ]
 ```
 
-The configuration in [conanfile.py](./conanfile.py) is set to place a reference presets file at this location.
+The [conanfile.py](./conanfile.py) is set to place a reference presets file at this location.
 
-This should be done when setting up a configuration directly via the `conan install` command. In most cases this approach is unnecessary, however it is the simplest way to configure a cross-compilation build. Otherwise, you should not include these Conan-generated presets, as they can pollute your options and lead to duplicate key errors.
 
 ## Usage
 
