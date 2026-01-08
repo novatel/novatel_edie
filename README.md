@@ -16,69 +16,123 @@ Information on the `novatel_edie` [Python package can be found here](./python/re
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+  - [Dependencies](#dependencies)
+  - [Building the Project](#building-the-project)
+  - [CMake Presets](#cmake-presets)
+  - [CMake Options](#cmake-options)
+  - [Conan-Driven Configurations](#conan-driven-configurations)
 - [Usage](#usage)
+  - [Flowchart](#flowchart)
+  - [Notes](#notes)
 - [Examples](#examples)
+  - [File Parser Format Conversion](#file-parser-format-conversion)
+  - [Parser Format Conversion](#parser-format-conversion)
+  - [Piecewise Conversion](#piecewise-conversion)
+  - [Adding Message Definitions](#adding-message-definitions)
+  - [Decompressing Range Logs](#decompressing-range-logs)
+  - [Command Encoding](#command-encoding)
+  - [Converting RXConfig Logs](#converting-rxconfig-logs)
+  - [Accessing Message Fields](#accessing-message-fields)
 - [Code Style](#code-style)
+  - [Clang-Format](#clang-format)
+  - [EditorConfig](#editorconfig)
+  - [Applying Formatting Settings](#applying-formatting-settings)
+- [Regression Testing](#regression-testing)
 - [API Stability](#api-stability)
 - [Authors](#authors)
 - [License](#license)
 
 ## Getting Started
 
-Regardless of your operating system, have [Conan](https://conan.io/) installed as a prerequisite. 
-Conan is a package manager for C++ and is used by EDIE.
+EDIE can be built from source by cloning this repository `git clone https://github.com/novatel/novatel_edie.git` and acting according to the following instructions.
 
-### Building EDIE on Linux (Ubuntu 18.04 or newer)
+### Dependencies
 
-1. Open terminal
-2. Update the system: `apt-get update`
-3. Install make, CMake tools, and the G++ compiler: `apt-get install --yes cmake make g++`
-4. Install multilib for gcc and G++: `apt-get install --yes gcc-multilib g++-multilib`
-5. Clone the EDIE repository and change the folder permission: `sudo chmod -R 777 nov-decoder/`
-6. Create a build folder in the root directory: `mkdir build`
-7. Go to build folder: `cd build`
-8. Configure CMake for static library: `cmake -DCMAKE_BUILD_TYPE=Release ..`
-   - The `-DCMAKE_BUILD_TYPE=` flag can be either `Release` or `Debug`
-9. Configure CMake for shared along with static library: `cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_LIB_SHARED=1 ..`
-10. Build using the make command: `make`
+EDIE is a C++ 17 project which uses a [CMake](https://cmake.org/) build system directly integrated with [Conan 2](https://docs.conan.io/2/index.html) for dependency management. Information is provided below on how to acquire all of the necessary build dependencies.
 
-After compiling the binaries you can also run `make install` to copy the binaries to the /usr/ directory.
-1. Archives are copied to `/usr/lib`
-2. Libraries are copied to `/usr/lib`
-3. Public headers are copied to `/usr/include/novatel/edie/decoder`
+- C++ 17 compiler
+    - Windows
+        - MSVC (recommended): Download and install both the [Build Tools for Visual Studio 2026](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2026) and the [Microsoft Visual C++ v14 Redistributable](https://visualstudio.microsoft.com/downloads/#microsoft-visual-c-v14-redistributable).
+        - g++: Install as part of [the MSYS2 tool collection](https://www.msys2.org/).
+    - Linux
+        - Install the toolchains for g++ or clang using your distribution's package manager.
+- [CMake (>=3.15)](https://cmake.org/)
+    - Installers can be found on [the downloads page](https://cmake.org/download/). For Linux it is recommended to use your distribution's package manager instead.
+- [Conan (>=2.4.0)](https://docs.conan.io/2/introduction.html)
+    - Follow the [installation instructions](https://docs.conan.io/2/installation.html) from the Conan 2 documentation.
+- [nanobind (>=2.0.0)](https://nanobind.readthedocs.io/en/latest/)
+    - Only required if building the [`novatel_edie` python module](./python/readme.md).
+    - Install using pip with `pip install nanobind`.
 
-### Building EDIE on Windows 10
+### Building the Project
 
-1. Install [CMake](https://cmake.org/install/)
-2. Install [VS Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
-3. Clone the EDIE repository
-4. Open a PowerShell session in the repository folder
-5. Create a build directory and navigate to it: `mkdir build && cd build`
-6. Generate the configuration for static library for Visual Studio: `cmake .. -G "Visual Studio 16 2019" -A Win32`
-   - The argument for `-G` can be replaced with any Visual Studio version newer than "Visual Studio 16 2019"
-7. Generate the configuration for shared along with static library for VS 2017: `cmake .. -G "Visual Studio 16 2019" -A Win32 -DCMAKE_LIB_SHARED=1`
-8. Build & Install: `cmake --build . --config Release --target install`
-   - The `--config` flag can be either `Release` or `Debug`
+A build can be configured using cmake as follows:
 
-Build artifacts (such as public include files) will be copied to the bin directory in the root of the project.
-Building the EDIE library in Windows will also create a solution file (<project>.sln) in the build directory, which can be opened in Visual Studio. EDIE can also be built by Visual Studio through this solution file. 
-Alternatively, newer version of Visual Studio can open CMake projects directly.
+```
+cmake -S {path_to_edie_repository} -B {path_to_build_folder}
+```
 
-### Building EDIE on VS Code
+This step will automatically use Conan to install all dependencies within the newly created build folder. 
 
-1. Install [CMake](https://cmake.org/install/)
-2. Install [VS Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16)
-3. Clone the EDIE repository
-4. In VS Code, open the repository as the working directory
-5. Follow steps 4-7 in the [Windows build process](#building-edie-on-windows).
-6. Install the following VS Code extensions:
-   - ms-vscode.cpptools
-   - ms-vscode.cmake-tools
-   - twxs.cmake
-7. Restart VS Code, then check that the extensions are active in the bottom toolbar of the IDE
-8. Select the CMake build type and use the appropriate architecture for Visual Studio Build Tools 2019 Release
-9. Use the "Build" button on the toolbar to execute the build process
-   - The CMake tab on the left-hand column of the IDE can be used to configure the project by right-clicking EDIE --> ALL_BUILD --> CMakeLists.txt
+The build can then be started with:
+
+```
+cmake --build {path_to_build_folder}
+```
+
+### CMake Presets
+
+It is recommended to use [CMake presets](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html) to define specific build parameters, such as compiler and build type.
+The [CMakePresets.json](./CMakePresets.json) file contains a few default options and you can extend it by creating a `CMakeUserPresets.json` file with your personal configurations. 
+
+Take the `windows-msvc` configure preset and its corresponding `windows-msvc-debug` and `windows-msvc-release` build presets as an example. 
+The configure preset can be used via `cmake --preset windows-msvc` to configure a Windows MSVC build within an `out/build` folder. 
+A debug build can then be initiated via `cmake --build --preset windows-msvc-debug` or a release build via `cmake --build --preset windows-msvc-release`.
+
+CMake presets are especially useful when initiating builds from an IDE.
+Almost all IDEs have inbuilt or extension support for CMake which allow selecting between presets to configure a build.
+
+### CMake Options
+
+The following is a list of CMake cache variables specific to this project. 
+
+- `BUILD_TESTS`: Whether to build the test executables. Defaults to `ON`.
+- `BUILD_EXAMPLES`: Whether to build example programs that make basic use of EDIE's features. Defaults to `ON`.
+- `BUILD_BENCHMARKS`: Whether to build the benchmarking programs. Defaults to `OFF`.
+- `BUILD_PYTHON`: Whether to build the [`novatel_edie` python module](./python/readme.md). Defaults to `OFF`.
+- `Python_EXECUTABLE`: The python interpreter executable to use as a source for the [nanobind](https://nanobind.readthedocs.io/en/latest/) library which the `novatel_edie` python module is built upon.
+- `PYTHON_INSTALL_DIR`: The location to install the `novatel_edie` python module. During development, set this to your Python environment's site-packages directory. For example: `{$WORKSPACE}/venv/Lib/site-packages/novatel_edie`.
+
+These can be set within the `cacheVariables` field of a configure preset:
+```
+    "configurePresets": [
+        {
+            "name": "my-custom-preset",
+            "cacheVariables": {
+                "BUILD_TESTS": "ON",
+                ...
+            },
+            ...
+        }
+    ]
+```
+
+### Conan-Driven Configurations
+
+Instead of manually creating a cmake preset to configure a build, 
+the `conan install` command can be used to create a configuration based on a conan profile.
+This approach is particularly well-suited to cross-compilation builds.
+
+Whenever Conan installs dependencies, it also creates a `CMakePresets.json` file within the build folder.
+To make these presets available, add the following to your `CMakeUserPresets.json` file:
+```
+    "include": [
+        "ConanPresets.json"
+    ]
+```
+
+The [conanfile.py](./conanfile.py) is set to place a reference presets file at this location.
+
 
 ## Usage
 

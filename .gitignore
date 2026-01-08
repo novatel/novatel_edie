@@ -12,6 +12,7 @@ Debug/
 conan_host_profile
 CMakeSettings.json
 CMakeUserPresets.json
+ConanPresets.json
 /include/novatel_edie/version.h
 edie.*.log
 edie.log
