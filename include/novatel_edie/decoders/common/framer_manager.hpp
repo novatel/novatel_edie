@@ -238,7 +238,7 @@ class FramerManager
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, size_t uiUnknownBytes_) const;
 
-    std::deque<FramerEntry> framerRegistry;
+    std::vector<FramerEntry> framerRegistry;
 };
 
 } // namespace novatel::edie

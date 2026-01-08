@@ -113,23 +113,25 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
         if (pclMyFixedRingBuffer->empty()) { return STATUS::BUFFER_EMPTY; }
 
         STATUS eStatus = STATUS::UNKNOWN;
-        STATUS bestStatus = STATUS::UNKNOWN;
         MetaDataBase* currentMetaData;
+        auto registrySize = framerRegistry.size();
+
+        auto bestFramerIndex = registrySize;
         auto bestOffset = static_cast<uint32_t>(pclMyFixedRingBuffer->size());
-        auto framerIt = framerRegistry.begin();
-        auto bestFramerIt = framerRegistry.end();
+        STATUS bestStatus = STATUS::UNKNOWN;
 
         // Scan for first frame offset among all registered framers
-        for (; framerIt != framerRegistry.end(); framerIt++)
+        for (size_t i = 0; i < registrySize; i++)
         {
-            currentMetaData = framerIt->metadataInstance.get();
-            eStatus = framerIt->framerInstance->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, *currentMetaData, /*bMetadataOnly=*/true);
+            auto& framer = framerRegistry[i];
+            currentMetaData = framer.metadataInstance.get();
+            eStatus = framer.framerInstance->GetFrame(pucFrameBuffer_, uiFrameBufferSize_, *currentMetaData, /*bMetadataOnly=*/true);
 
             // If any framer returns a known status, keep it as the best candidate. If multiple framers
             // return known statuses but no framer returns SUCCESS, one of the known statuses will be returned.
             if (eStatus != STATUS::UNKNOWN)
             {
-                bestFramerIt = framerIt;
+                bestFramerIndex = i;
                 bestStatus = eStatus;
                 stMetaData_ = currentMetaData;
                 // If a framer sees a valid, complete frame, then use it immediately
@@ -139,11 +141,11 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
             else if (currentMetaData->uiLength < bestOffset) { bestOffset = currentMetaData->uiLength; }
         }
 
-        assert((bestStatus == STATUS::UNKNOWN && bestFramerIt == framerRegistry.end()) ||
-               (bestStatus != STATUS::UNKNOWN && bestFramerIt != framerRegistry.end()));
+        assert((bestStatus == STATUS::UNKNOWN && bestFramerIndex == registrySize) ||
+               (bestStatus != STATUS::UNKNOWN && bestFramerIndex < registrySize));
 
         // No frame found at all
-        if (bestFramerIt == framerRegistry.end())
+        if (bestFramerIndex == registrySize)
         {
             assert(bestOffset > 0 && bestOffset <= static_cast<uint32_t>(pclMyFixedRingBuffer->size()));
             HandleUnknownBytes(pucFrameBuffer_, bestOffset);
@@ -156,7 +158,10 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
         if (bestStatus == STATUS::SUCCESS)
         {
             // Move this framer to the front
-            if (framerIt != framerRegistry.begin()) { std::rotate(framerRegistry.begin(), framerIt, framerIt + 1); }
+            if (bestFramerIndex != 0)
+            {
+                std::rotate(framerRegistry.begin(), framerRegistry.begin() + bestFramerIndex, framerRegistry.begin() + bestFramerIndex + 1);
+            }
 
             if (stMetaData_->uiLength > uiFrameBufferSize_) { return STATUS::BUFFER_FULL; }
 
