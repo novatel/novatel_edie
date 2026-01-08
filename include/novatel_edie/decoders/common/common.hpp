@@ -267,6 +267,18 @@ struct MetaDataBase
     uint16_t usMessageId{0};
     uint32_t uiMessageCrc{0};
     std::string messageName;
+
+    virtual ~MetaDataBase() = default;
+
+    bool operator==(const MetaDataBase& other_) const
+    {
+        return bResponse == other_.bResponse && eFormat == other_.eFormat && usWeek == other_.usWeek &&
+               IsEqual(dMilliseconds, other_.dMilliseconds) && uiLength == other_.uiLength && uiBinaryMsgLength == other_.uiBinaryMsgLength &&
+               uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId && uiMessageCrc == other_.uiMessageCrc &&
+               messageName == other_.messageName;
+    }
+
+    virtual std::unique_ptr<MetaDataBase> clone() const { return std::make_unique<MetaDataBase>(*this); }
 };
 
 } // namespace novatel::edie

@@ -39,6 +39,7 @@ class ProprietaryFramerTest : public ::testing::Test
     static std::unique_ptr<Framer> pclMyFramer;
     static std::unique_ptr<std::istream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
+    static std::shared_ptr<UCharFixedRingBuffer> pclMyFixedRingBuffer;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
@@ -59,6 +60,16 @@ class ProprietaryFramerTest : public ::testing::Test
     void TearDown() override { FlushFramer(); }
 
   public:
+    template <HEADER_FORMAT F, STATUS S> void FramerHelper(uint32_t uiLength_, uint32_t uiFrameLength_)
+    {
+        MetaDataStruct stExpectedMetaData;
+        stExpectedMetaData.eFormat = F;
+        stExpectedMetaData.uiLength = uiLength_;
+        MetaDataStruct stTestMetaData;
+        ASSERT_EQ(S, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), uiFrameLength_, stTestMetaData));
+        ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    }
+
     static void WriteFileStreamToFramer(const std::string& sFilename_)
     {
         pclMyIFS = std::make_unique<std::ifstream>(std::filesystem::path(std::getenv("TEST_RESOURCE_PATH")) / sFilename_, std::ios::binary);
@@ -87,6 +98,8 @@ class ProprietaryFramerTest : public ::testing::Test
 std::unique_ptr<Framer> ProprietaryFramerTest::pclMyFramer = nullptr;
 std::unique_ptr<std::istream> ProprietaryFramerTest::pclMyIFS = nullptr;
 std::unique_ptr<unsigned char[]> ProprietaryFramerTest::pucMyTestFrameBuffer = nullptr;
+std::shared_ptr<UCharFixedRingBuffer> ProprietaryFramerTest::pclMyFixedRingBuffer = nullptr;
+// clang-format off
 
 // -------------------------------------------------------------------------------------------------------
 // Proprietary Binary Framer Unit Tests
@@ -101,17 +114,8 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_COMPLETE)
                          0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC};
     WriteBytesToFramer(aucData, sizeof(aucData));
 
-    MetaDataStruct stExpectedMetaData;
-    MetaDataStruct stTestMetaData;
-    stExpectedMetaData.uiLength = 12;
-    stExpectedMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
-    ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
-
-    stExpectedMetaData.uiLength = 76;
-    stExpectedMetaData.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY;
-    ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(12, MAX_BINARY_MESSAGE_LENGTH);
+    FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(76, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INCOMPLETE)
@@ -122,24 +126,14 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INCOMPLETE)
                          0x14, 0xDC, 0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A};
     WriteBytesToFramer(aucData, sizeof(aucData));
 
-    MetaDataStruct stExpectedMetaData;
-    MetaDataStruct stTestMetaData;
-    stExpectedMetaData.uiLength = 59;
-    stExpectedMetaData.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY;
-    ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::INCOMPLETE>(59, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_SYNC_ERROR)
 {
     WriteFileStreamToFramer("proprietary_binary_sync_error.BIN");
 
-    MetaDataStruct stExpectedMetaData;
-    MetaDataStruct stTestMetaData;
-    stExpectedMetaData.uiLength = MAX_BINARY_MESSAGE_LENGTH;
-    stExpectedMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
-    ASSERT_EQ(STATUS::UNKNOWN, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_BINARY_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BAD_CRC)
@@ -168,12 +162,7 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_RUN_ON_CRC)
                          0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC, 0xFF};
     WriteBytesToFramer(aucData, sizeof(aucData));
 
-    MetaDataStruct stExpectedMetaData;
-    MetaDataStruct stTestMetaData;
-    stExpectedMetaData.uiLength = 76;
-    stExpectedMetaData.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY;
-    ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), MAX_BINARY_MESSAGE_LENGTH, stTestMetaData));
-    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(76, MAX_BINARY_MESSAGE_LENGTH);
 }
 
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INADEQUATE_BUFFER)
@@ -185,15 +174,8 @@ TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_INADEQUATE_BUFFER)
                          0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC};
     WriteBytesToFramer(aucData, sizeof(aucData));
 
-    MetaDataStruct stExpectedMetaData;
-    MetaDataStruct stTestMetaData;
-    stExpectedMetaData.uiLength = 76;
-    stExpectedMetaData.eFormat = HEADER_FORMAT::PROPRIETARY_BINARY;
-    ASSERT_EQ(STATUS::BUFFER_FULL, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), 38, stTestMetaData));
-    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
-
-    ASSERT_EQ(STATUS::SUCCESS, pclMyFramer->GetFrame(pucMyTestFrameBuffer.get(), 76, stTestMetaData));
-    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::BUFFER_FULL>(sizeof(aucData), sizeof(aucData) - 1);
+    FramerHelper<HEADER_FORMAT::PROPRIETARY_BINARY, STATUS::SUCCESS>(sizeof(aucData), sizeof(aucData));
 }
 
 TEST_F(ProprietaryFramerTest, PROPRIETARY_BINARY_BYTE_BY_BYTE)
