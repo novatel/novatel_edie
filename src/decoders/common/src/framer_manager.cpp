@@ -33,6 +33,10 @@ using namespace novatel::edie;
 FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
     : pclMyLogger(GetBaseLoggerManager()->RegisterLogger("FramerManager")), pclMyFixedRingBuffer(std::make_shared<UCharFixedRingBuffer>())
 {
+    pclMyLogger->info("Note: the FramerManager is under active development and should be treated as an experimental feature. "
+                      "Currently, the FramerManager is simply a thin wrapper around the OEM Framer. Until we have implemented "
+                      "additional Framers, it is probably best to use the OEM Framer directly.");
+
     auto& factoryMap = GetFramerFactories();
 
     for (const auto& name : selectedFramers)
