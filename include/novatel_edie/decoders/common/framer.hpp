@@ -29,6 +29,9 @@
 
 #include "novatel_edie/common/fixed_ring_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
+#include "novatel_edie/decoders/common/common.hpp"
+
+namespace novatel::edie {
 
 //============================================================================
 //! \class FramerBase
@@ -39,7 +42,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    FixedRingBuffer<unsigned char, 1 << 18> clMyBuffer{};
+    std::shared_ptr<UCharFixedRingBuffer> pclMyBuffer{std::make_shared<UCharFixedRingBuffer>()};
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -50,22 +53,44 @@ class FramerBase
     bool bMyPayloadOnly{false};
     bool bMyFrameJson{false};
 
-    virtual void ResetState() = 0;
-
+    //----------------------------------------------------------------------------
+    //! \brief Check if the provided position is a CRLF (carriage return and line feed).
+    //!
+    //! \param[in] uiPosition_ The position to check in the shared circular buffer.
+    //
+    //! \return true if the position is a CRLF, false otherwise.
+    //----------------------------------------------------------------------------
     [[nodiscard]] bool IsCrlf(const uint32_t uiPosition_) const
     {
-        return uiPosition_ + 1 < clMyBuffer.size() && clMyBuffer[uiPosition_] == '\r' && clMyBuffer[uiPosition_ + 1] == '\n';
+        const auto& clFrameBuffer = *pclMyBuffer;
+        return uiPosition_ + 1 < clFrameBuffer.size() && clFrameBuffer[uiPosition_] == '\r' && clFrameBuffer[uiPosition_ + 1] == '\n';
     }
+
+  public:
+    //----------------------------------------------------------------------------
+    //! \brief Reset the state of the Framer.
+    //----------------------------------------------------------------------------
+    virtual void ResetState() = 0;
+
+    //----------------------------------------------------------------------------
+    //! \brief Initialize the attributes of the Framer.
+    //----------------------------------------------------------------------------
+    virtual void InitAttributes()
+    {
+        uiMyExpectedMessageLength = 0;
+        uiMyExpectedPayloadLength = 0;
+        uiMyByteCount = 0;
+    };
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, size_t count_)
     {
-        count_ = std::min(count_, clMyBuffer.size());
+        count_ = std::min(count_, pclMyBuffer->size());
 
         if (count_ == 0) { return; }
 
-        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { clMyBuffer.copy_out(pucBuffer_, count_); }
+        if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyBuffer->copy_out(pucBuffer_, count_); }
 
-        clMyBuffer.erase_begin(count_);
+        pclMyBuffer->erase_begin(count_);
         uiMyByteCount = 0;
         uiMyExpectedMessageLength = 0;
         uiMyExpectedPayloadLength = 0;
@@ -73,6 +98,8 @@ class FramerBase
     }
 
   public:
+    uint32_t GetMyByteCount() { return uiMyByteCount; };
+
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FramerBase class.
     //
@@ -80,7 +107,21 @@ class FramerBase
     //----------------------------------------------------------------------------
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_))
     {
-        pclMyLogger->debug("Framer initialized");
+        pclMyLogger->debug("FramerBase initializing...");
+        if (pclMyBuffer == nullptr) { pclMyBuffer = std::make_shared<UCharFixedRingBuffer>(); }
+        pclMyLogger->debug("FramerBase initialized");
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the FramerBase class.
+    //
+    //! \param[in] strLoggerName_ String to name the internal logger.
+    //! \param[in] ringBuffer_ pointer to an already created sharable ring_buffer.
+    //----------------------------------------------------------------------------
+    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<UCharFixedRingBuffer> ringBuffer_)
+        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(ringBuffer_)
+    {
+        pclMyLogger->debug("FramerBase initialized");
     }
 
     //----------------------------------------------------------------------------
@@ -137,7 +178,7 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return clMyBuffer.Write(pucDataBuffer_, uiDataBytes_); }
+    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return pclMyBuffer->Write(pucDataBuffer_, uiDataBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
@@ -149,7 +190,7 @@ class FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] uint32_t Flush(unsigned char* pucBuffer_, uint32_t uiBufferSize_)
     {
-        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(clMyBuffer.size()), uiBufferSize_);
+        const uint32_t uiBytesToFlush = std::min(static_cast<uint32_t>(pclMyBuffer->size()), uiBufferSize_);
         HandleUnknownBytes(pucBuffer_, uiBytesToFlush);
         return uiBytesToFlush;
     }
@@ -159,7 +200,30 @@ class FramerBase
     //!
     //! \return The number of bytes available in the internal circular buffer.
     //------------------------------------------------------------------------------
-    [[nodiscard]] size_t GetAvailableSpace() const { return clMyBuffer.available_space(); }
+    [[nodiscard]] size_t GetAvailableSpace() const { return pclMyBuffer->available_space(); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get a frame from the internal circular buffer if one exists
+    //
+    //! \param [out] pucFrameBuffer_ The buffer to which the Framer should copy the
+    //! framed message.
+    //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
+    //! \param [out] stMetaData_ A MetaDataBase to contain some information
+    //! about the message frame.
+    //! \param [out] bMetadataOnly_ Only populate metadata and do not copy the message.
+    //
+    //! \return An error code describing the result of framing.
+    //!   SUCCESS: A message frame was found.
+    //!   NULL_PROVIDED: pucFrameBuffer_ is a null pointer.
+    //!   UNKNOWN: The bytes returned are unknown.
+    //!   INCOMPLETE: The framer found what could be a message, but there
+    //! are no more bytes in the internal buffer.
+    //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
+    //!   BUFFER_FULL: The frame found is larger than uiFrameBufferSize_ bytes.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
+                                          bool bMetadataOnly_ = false) = 0;
 };
+} // namespace novatel::edie
 
 #endif // FRAMER_HPP

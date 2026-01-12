@@ -141,6 +141,8 @@ struct MetaDataStruct : public MetaDataBase
                uiHeaderLength == other_.uiHeaderLength && usMessageId == other_.usMessageId && uiMessageCrc == other_.uiMessageCrc &&
                messageName == other_.messageName;
     }
+
+    std::unique_ptr<MetaDataBase> clone() const override { return std::make_unique<MetaDataStruct>(*this); }
 };
 
 //-----------------------------------------------------------------------
