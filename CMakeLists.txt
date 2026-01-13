@@ -21,6 +21,10 @@ option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile commands" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
 
+if (BUILD_PYTHON)
+    set(BUILD_SHARED_LIBS ON)
+endif()
+
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 include(GNUInstallDirs)

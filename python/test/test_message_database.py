@@ -22,6 +22,7 @@
 #
 ################################################################################=
 
+from novatel_edie import MessageDatabase
 from novatel_edie.enums import Datum
 
 def test_message_db_enums(json_db):
@@ -31,3 +32,34 @@ def test_message_db_enums(json_db):
     assert datum_enum.WGS84 == 61
     assert datum_enum.WGS84.name == "WGS84"
     assert datum_enum.WGS84 == Datum.WGS84
+
+def test_append_messages(json_db: MessageDatabase):
+    # Arrange
+    new_db = MessageDatabase()
+    bestpos_id = 42
+    bestpos_def = json_db.get_msg_def(bestpos_id)
+    range_id = 43
+    range_def = json_db.get_msg_def(range_id)
+
+    # Act
+    new_db.append_messages([bestpos_def, range_def])
+
+    # Assert
+    assert new_db.get_msg_def(bestpos_id) == bestpos_def
+    assert new_db.get_msg_def(range_id) == range_def
+
+def test_remove_message(json_db: MessageDatabase):
+    # Arrange
+    new_db = MessageDatabase()
+    bestpos_id = 42
+    bestpos_def = json_db.get_msg_def(bestpos_id)
+    range_id = 43
+    range_def = json_db.get_msg_def(range_id)
+    new_db.append_messages([bestpos_def, range_def])
+
+    # Act
+    new_db.remove_message(bestpos_id)
+
+    # Assert
+    assert new_db.get_msg_def(bestpos_id) is None
+    assert new_db.get_msg_def(range_id) == range_def
