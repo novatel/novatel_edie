@@ -36,16 +36,19 @@ build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 cmake.minimum-version = "3.24"
-cmake.targets = ["python_bindings", "bindings_stub", "dynamic_stubs"]
+cmake.targets = ["common", "decoders_common", "oem_decoder", "python_common", "python_oem", "common_stubs", "oem_stubs", "dynamic_stubs"]
 install.components = ["python"]
 wheel.license-files = ["LICENSE"]
 build-dir = "out/build/{wheel_tag}"
 # Build stable ABI wheels for CPython 3.12+
 wheel.py-api = "cp312"
+wheel.packages = []
+logging.level = "DEBUG"
+# Explicitly include vendored cmake files in source dist - noticed inconsistency across platforms without this
+sdist.include = ["cmake/*"]
 
 [tool.scikit-build.cmake.define]
 BUILD_PYTHON = true
-BUILD_SHARED_LIBS = false
 BUILD_BENCHMARK = false
 BUILD_EXAMPLES = false
 BUILD_TESTS = false
@@ -60,6 +63,10 @@ test-command = "pytest {project}/python/test --color=yes -v"
 build-verbosity = 1
 archs = "auto64"
 manylinux-x86_64-image = "manylinux_2_28"
+
+[tool.cibuildwheel.linux]
+# Shared library installation already handled by CMake
+repair-wheel-command = ""
 
 [tool.cibuildwheel.macos.environment]
 # Needed for full C++17 support

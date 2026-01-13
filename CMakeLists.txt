@@ -21,6 +21,10 @@ option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile commands" ON)
 option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(COVERAGE "Coverage" OFF)
 
+if (BUILD_PYTHON)
+    set(BUILD_SHARED_LIBS ON)
+endif()
+
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 include(GNUInstallDirs)
@@ -60,8 +64,15 @@ add_subdirectory(src/decoders/oem)
 add_library(novatel_edie INTERFACE)
 add_library(novatel_edie::novatel_edie ALIAS novatel_edie)
 
-# Use whole-archive linking with oem_decoder to ensure framer auto-registration is included
-if(MSVC)
+if(BUILD_SHARED_LIBS)
+    target_link_libraries(novatel_edie INTERFACE
+        oem_decoder
+        common
+        decoders_common
+    )
+elseif(MSVC)
+    # Use /WHOLEARCHIVE to ensure framer auto-registration symbols are included.
+    # This is only needed for static libraries
     target_link_options(novatel_edie INTERFACE /WHOLEARCHIVE:$<TARGET_FILE:oem_decoder>)
     target_link_libraries(novatel_edie INTERFACE
         oem_decoder
@@ -89,7 +100,7 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(BUILD_TESTS)
-    enable_testing()
+    include(CTest)
     add_subdirectory(src/common/test)
     add_subdirectory(src/decoders/common/test)
     add_subdirectory(src/decoders/oem/test)

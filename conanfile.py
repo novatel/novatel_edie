@@ -19,10 +19,12 @@ class NovatelEdieConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
+        "python": [True, False],
         "fPIC": [True, False],
     }
     default_options = {
         "shared": False,
+        "python": False,
         "fPIC": True,
     }
 
@@ -36,10 +38,16 @@ class NovatelEdieConan(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
+        if self.options.python:
+            self.options.shared = True
 
     def configure(self):
         print(f"Configuring conan with the following options: {self.options}")
-        if self.options.shared:
+        if self.options.python:
+            self.options.rm_safe("fPIC")
+            # Within the python module spdlog is always accessed via the "edie_common" library so static linking works
+            self.options["spdlog"].shared = False
+        elif self.options.shared:
             self.options.rm_safe("fPIC")
             self.options["spdlog"].shared = True
 
@@ -62,13 +70,14 @@ class NovatelEdieConan(ConanFile):
     def validate(self):
         check_min_cppstd(self, 17)
 
-        if self.options.shared and not self.dependencies["spdlog"].options.shared:
+        if self.options.shared and not self.options.python and not self.dependencies["spdlog"].options.shared:
             # Statically linking against spdlog causes its singleton registry to be
             # re-instantiated in each shared library and executable that links against it.
             raise ConanInvalidConfiguration("spdlog must be dynamically linked when building novatel_edie as a shared library")
 
     def generate(self):
         tc = CMakeToolchain(self)
+        tc.user_presets_path = 'ConanPresets.json'
         tc.cache_variables["BUILD_BENCHMARKS"] = False
         tc.cache_variables["BUILD_EXAMPLES"] = False
         tc.cache_variables["BUILD_TESTS"] = False
