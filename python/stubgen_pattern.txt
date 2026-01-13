@@ -2,13 +2,21 @@ python_oem.__prefix__:
     from typing import Iterator
     import novatel_edie.python_common as python_common
 
-python_oem.Filter.(lower|upper)_time_bound:
+python_oem.Filter.lower_time_bound:
     @property
     def lower_time_bound(self) -> GpsTime | None:
         \doc
 
     @lower_time_bound.setter
     def lower_time_bound(self, value: GpsTime | None): ...
+
+python_oem.Filter.upper_time_bound:
+    @property
+    def upper_time_bound(self) -> GpsTime | None:
+        \doc
+
+    @lower_time_bound.setter
+    def upper_time_bound(self, value: GpsTime | None): ...
 
 python_oem.Filter.decimation_period$:
     @property
