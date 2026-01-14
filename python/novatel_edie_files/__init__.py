@@ -42,6 +42,7 @@ from .python_common import (
     CPP_VERSION, CPP_PRETTY_VERSION, GIT_SHA, GIT_BRANCH, GIT_IS_DIRTY, BUILD_TIMESTAMP,
     calculate_crc, SatelliteId,
     UnknownBytes, Field, MessageData,
+    FramerManager, MetaDataBase
 )
 
 from .python_oem import (

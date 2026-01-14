@@ -15,6 +15,7 @@ NB_MODULE(python_common, m)
 
     init_common(m);
     init_common_logger(m, internal_mod);
+    init_common_framer_manager(m);
     init_logger_tester(internal_mod);
     init_exceptions(m);
     init_field_objects(m);

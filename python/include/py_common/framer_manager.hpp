@@ -1,3 +1,5 @@
+#pragma once
+
 #include "novatel_edie/decoders/common/framer_manager.hpp"
 #include "py_common/bindings_core.hpp"
 

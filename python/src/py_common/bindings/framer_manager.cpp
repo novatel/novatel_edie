@@ -6,6 +6,7 @@
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
 #include "py_common/framer_manager.hpp"
+#include "py_common/init_bindings.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -46,7 +47,7 @@ nb::tuple PyFramerManager::PyIterGetFrame()
     throw nb::stop_iteration("No more frames detected in buffer");
 }
 
-void init_common_framer_manager(nb::module_& m)
+void py_common::init_common_framer_manager(nb::module_& m)
 {
     nb::class_<PyFramerManager>(m, "FramerManager")
         // Constructor that accepts a list of strings (framer names)
