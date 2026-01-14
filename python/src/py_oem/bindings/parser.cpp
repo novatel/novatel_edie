@@ -27,7 +27,7 @@ nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& mes
     case STATUS::SUCCESS: return create_message_instance(header_, std::move(message_fields_), metadata_, database_);
     case STATUS::NO_DEFINITION:
         return create_unknown_message_instance(nb::bytes(message_data_.pucMessageBody, message_data_.uiMessageBodyLength), header_, database_);
-    case STATUS::UNKNOWN: return py_common::create_unknown_bytes(nb::bytes(message_data_.pucMessage, message_data_.uiMessageLength));
+    case STATUS::UNKNOWN: return py_common::create_unknown_bytes(nb::bytes(message_data_.pucMessage, message_data_.uiMessageLength), metadata_);
     default: throw_exception_from_status(status_);
     }
 }
