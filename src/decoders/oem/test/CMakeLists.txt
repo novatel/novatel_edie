@@ -10,7 +10,7 @@ target_link_libraries(${TARGET_NAME} PUBLIC
 add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME})
 
 # Copy runtime DLLs to the output directory on Windows
-if(WIN32)
+if(WIN32 AND BUILD_SHARED_LIBS)
     add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_RUNTIME_DLLS:${TARGET_NAME}>
