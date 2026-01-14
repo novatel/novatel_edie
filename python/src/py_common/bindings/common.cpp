@@ -126,6 +126,20 @@ void py_common::init_common(nb::module_& m)
                         metadata.uiBinaryMsgLength, metadata.uiLength, metadata.uiHeaderLength, metadata.usMessageId, metadata.uiMessageCrc);
         });
 
+    nb::enum_<novatel::edie::HEADER_FORMAT>(m, "HEADER_FORMAT", nb::is_arithmetic(), "Formats for novatel headers.")
+        .value("UNKNOWN", novatel::edie::HEADER_FORMAT::UNKNOWN)
+        .value("BINARY", novatel::edie::HEADER_FORMAT::BINARY)
+        .value("SHORT_BINARY", novatel::edie::HEADER_FORMAT::SHORT_BINARY)
+        .value("PROPRIETARY_BINARY", novatel::edie::HEADER_FORMAT::PROPRIETARY_BINARY)
+        .value("ASCII", novatel::edie::HEADER_FORMAT::ASCII)
+        .value("SHORT_ASCII", novatel::edie::HEADER_FORMAT::SHORT_ASCII)
+        .value("ABB_ASCII", novatel::edie::HEADER_FORMAT::ABB_ASCII)
+        .value("NMEA", novatel::edie::HEADER_FORMAT::NMEA)
+        .value("JSON", novatel::edie::HEADER_FORMAT::JSON)
+        .value("SHORT_ABB_ASCII", novatel::edie::HEADER_FORMAT::SHORT_ABB_ASCII)
+        .value("ALL", novatel::edie::HEADER_FORMAT::ALL)
+        .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
+
     m.attr("MAX_MESSAGE_LENGTH") = MESSAGE_SIZE_MAX;
     m.attr("MAX_ASCII_MESSAGE_LENGTH") = MAX_ASCII_MESSAGE_LENGTH;
     m.attr("MAX_BINARY_MESSAGE_LENGTH") = MAX_BINARY_MESSAGE_LENGTH;

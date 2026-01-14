@@ -3,7 +3,6 @@
 #include "py_common/message_db_singleton.hpp"
 #include "py_oem/init_bindings.hpp"
 
-
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
@@ -60,20 +59,6 @@ void py_oem::init_novatel_common(nb::module_& m)
         .value("RECEIVER_STATUS", oem::ASCII_HEADER::RECEIVER_STATUS, "Receiver status.")
         .value("MSG_DEF_CRC", oem::ASCII_HEADER::MSG_DEF_CRC, "Reserved Field.")
         .value("RECEIVER_SW_VERSION", oem::ASCII_HEADER::RECEIVER_SW_VERSION, "Receiver software version.")
-        .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
-
-    nb::enum_<novatel::edie::HEADER_FORMAT>(m, "HEADER_FORMAT", nb::is_arithmetic(), "Formats for novatel headers.")
-        .value("UNKNOWN", novatel::edie::HEADER_FORMAT::UNKNOWN)
-        .value("BINARY", novatel::edie::HEADER_FORMAT::BINARY)
-        .value("SHORT_BINARY", novatel::edie::HEADER_FORMAT::SHORT_BINARY)
-        .value("PROPRIETARY_BINARY", novatel::edie::HEADER_FORMAT::PROPRIETARY_BINARY)
-        .value("ASCII", novatel::edie::HEADER_FORMAT::ASCII)
-        .value("SHORT_ASCII", novatel::edie::HEADER_FORMAT::SHORT_ASCII)
-        .value("ABB_ASCII", novatel::edie::HEADER_FORMAT::ABB_ASCII)
-        .value("NMEA", novatel::edie::HEADER_FORMAT::NMEA)
-        .value("JSON", novatel::edie::HEADER_FORMAT::JSON)
-        .value("SHORT_ABB_ASCII", novatel::edie::HEADER_FORMAT::SHORT_ABB_ASCII)
-        .value("ALL", novatel::edie::HEADER_FORMAT::ALL)
         .def("__str__", [](const nb::handle self) { return getattr(self, "__name__"); });
 
     nb::class_<oem::MetaDataStruct, MetaDataBase>(m, "MetaData", R"doc(
