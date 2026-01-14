@@ -39,6 +39,7 @@ from novatel_edie.messages import BESTPOS, GLOEPHEMERIS
 import pytest
 from pytest import approx
 
+
 # pylint: disable=redefined-outer-name
 
 

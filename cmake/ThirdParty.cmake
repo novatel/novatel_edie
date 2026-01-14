@@ -14,13 +14,18 @@ if(BUILD_SHARED_LIBS)
    set(CONAN_BUILD_SHARED "True")  
 endif()
 
+set (CONAN_PYTHON "False")
+if (BUILD_PYTHON)
+    set(CONAN_PYTHON "True")
+endif()
+
 if(USE_CONAN)
     if(CMAKE_VERSION VERSION_LESS 3.24)
         message(FATAL_ERROR "Automatic Conan integration requires CMake 3.24 or later.")
     endif()
     include("${CMAKE_CURRENT_LIST_DIR}/SetDefaultProfile.cmake")
     # Set build cppstd for patchelf
-    set(CONAN_INSTALL_ARGS --build missing -o shared=${CONAN_BUILD_SHARED} --settings:build compiler.cppstd=17 CACHE INTERNAL "")
+    set(CONAN_INSTALL_ARGS --build missing -o shared=${CONAN_BUILD_SHARED} -o python=${CONAN_PYTHON} --settings:build compiler.cppstd=17 CACHE INTERNAL "")
     list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/conan_provider.cmake)
 endif()
 

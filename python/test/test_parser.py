@@ -133,3 +133,19 @@ def test_write_exceeding_max_num_bytes(parser: ne.Parser):
     bytes_written = parser.write(data)
     # Assert
     assert bytes_written <= parser.available_space
+
+
+def test_nmea_parsed_as_unknown_bytes(parser: ne.Parser):
+    """Tests that unrecognized NMEA sentences are returned as UnknownBytes with NMEA reason."""
+    # Arrange
+    parser.return_unknown_bytes = True
+    parser.write(b'$GPHDT,265.1253,T*01\r\n')
+
+    # Act
+    msgs = list(parser)
+
+    # Assert
+    assert len(msgs) == 1
+    assert isinstance(msgs[0], ne.UnknownBytes)
+    assert msgs[0].reason == ne.UNKNOWN_REASON.NMEA
+    assert msgs[0].data == b'$GPHDT,265.1253,T*01\r\n'
