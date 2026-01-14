@@ -43,7 +43,7 @@ class PyMessageDatabase
     void Merge(const MessageDatabase& other_) { pclMessageDb->Merge(other_); }
 
     // PyMessageDatabaseCore wrappers
-    [[nodiscard]] const std::unordered_map<std::string, py_common::PyMessageType*>& GetMessagesByNameDict() const
+    [[nodiscard]] const std::unordered_map<std::string, py_common::PyMessageType>& GetMessagesByNameDict() const
     {
         return pclMessageDb->GetMessagesByNameDict();
     }

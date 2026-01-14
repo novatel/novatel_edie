@@ -18,6 +18,7 @@ struct PyMessageType
     nb::object python_type;
     uint32_t crc;
 
+    PyMessageType() {}
     PyMessageType(nb::object python_type_, uint32_t crc_) : python_type(std::move(python_type_)), crc(crc_) {}
 };
 
@@ -29,11 +30,41 @@ class PyMessageDatabaseCore : public MessageDatabase
     explicit PyMessageDatabaseCore(const MessageDatabase& message_db) noexcept;
     explicit PyMessageDatabaseCore(const MessageDatabase&& message_db) noexcept;
 
-    [[nodiscard]] const std::unordered_map<std::string, PyMessageType*>& GetMessagesByNameDict() const { return messages_by_name; }
+    [[nodiscard]] const std::unordered_map<std::string, PyMessageType>& GetMessagesByNameDict() const { return messages_by_name; }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetFieldsByNameDict() const { return fields_by_name; }
 
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
+
+    //-----------------------------------------------------------------------
+    //! \brief Creates Python Enums for multiple enum definitions.
+    //!
+    //! These classes are stored by ID in the enums_by_id map and by name in the enums_by_name map.
+    //-----------------------------------------------------------------------
+    void AppendEnumTypes(const std::vector<EnumDefinition::ConstPtr>& enum_defs);
+    //-----------------------------------------------------------------------
+    //! \brief Removes an enum type from the Python type maps.
+    //!
+    //! Removes the enum from both enums_by_id and enums_by_name.
+    //-----------------------------------------------------------------------
+    void RemoveEnumType(const std::string& enum_name);
+    //-----------------------------------------------------------------------
+    //! \brief Creates Python types for multiple message definitions and their fields.
+    //!
+    //! A message named "MESSAGE" will be mapped to a Python class named "MESSAGE".
+    //! A field of that payload named "FIELD" will be mapped to a class named "MESSAGE_FIELD_Field".
+    //! A subfield of that field named "SUBFIELD" will be mapped to a class named "MESSAGE_FIELD_Field_SUBFIELD_Field".
+    //!
+    //! These classes are stored by name in the messages_by_name and fields_by_message maps.
+    //-----------------------------------------------------------------------
+    void AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs);
+    //-----------------------------------------------------------------------
+    //! \brief Removes a message type and its associated field types from the Python type maps.
+    //!
+    //! Removes the message from messages_by_name and all its associated fields from
+    //! fields_by_name and fields_by_message.
+    //-----------------------------------------------------------------------
+    void RemoveMessageType(uint32_t message_id);
 
   private:
     void GenerateMessageMappings() override;
@@ -54,11 +85,12 @@ class PyMessageDatabaseCore : public MessageDatabase
     //! These classes are stored by name in the messages_by_name map.
     //-----------------------------------------------------------------------
     void UpdatePythonMessageTypes();
-    void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, nb::handle type_cons, nb::handle type_tuple,
-                      nb::handle type_dict);
+    void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message, nb::handle type_cons,
+                      nb::handle type_tuple, nb::handle type_dict);
 
-    std::unordered_map<std::string, PyMessageType*> messages_by_name{};
+    std::unordered_map<std::string, PyMessageType> messages_by_name{};
     std::unordered_map<std::string, nb::object> fields_by_name{};
+    std::unordered_map<std::string, std::vector<std::string>> fields_by_message{};
 
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};
