@@ -1043,18 +1043,6 @@ class FramerManagerTest : public ::testing::Test
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        // RegisterAllFramers();
-
-        // FramerManager::RegisterFramer(
-        //     "MockFramer",
-        //     [](std::shared_ptr<UCharFixedRingBuffer> ringBuffer_) -> std::unique_ptr<FramerBase> {
-        //         return std::make_unique<MockFramer>(ringBuffer_);
-        //     },
-        //     []() -> std::unique_ptr<MetaDataBase> {
-        //         return std::make_unique<MetaDataStruct>();
-        //     }
-        // );
-
         pclMyFramerManager = std::make_unique<FramerManager>(std::vector<std::string>{"OEM", "MockFramer"});
         pclMyFramerManager->SetReportUnknownBytes(true);
         pclMyFramerManager->GetFramerEntry("OEM")->framerInstance->SetPayloadOnly(false);
