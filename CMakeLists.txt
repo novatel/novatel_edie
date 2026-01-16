@@ -60,21 +60,27 @@ add_subdirectory(src/decoders/oem)
 add_library(novatel_edie INTERFACE)
 add_library(novatel_edie::novatel_edie ALIAS novatel_edie)
 
-# Use whole-archive linking with oem_decoder to ensure framer auto-registration is included
-if(MSVC)
-    target_link_options(novatel_edie INTERFACE /WHOLEARCHIVE:$<TARGET_FILE:oem_decoder>)
-    target_link_libraries(novatel_edie INTERFACE
-        oem_decoder
-        common
-        decoders_common
-    )
-else()
-    target_link_libraries(novatel_edie INTERFACE
-        -Wl,--whole-archive oem_decoder -Wl,--no-whole-archive
-        common
-        decoders_common
-    )
+if(NOT BUILD_SHARED_LIBS)
+    # Use whole-archive linking with oem_decoder to ensure framer auto-registration is included
+    # Only needed for static libraries - shared libraries export all symbols automatically
+    if(MSVC)
+        target_link_options(novatel_edie INTERFACE /WHOLEARCHIVE:$<TARGET_FILE:oem_decoder>)
+    else()
+        target_link_options(novatel_edie INTERFACE
+            -Wl,--whole-archive
+            $<TARGET_FILE:oem_decoder>
+            -Wl,--no-whole-archive
+            $<TARGET_FILE:common>
+            $<TARGET_FILE:decoders_common>
+        )
+    endif()
 endif()
+
+target_link_libraries(novatel_edie INTERFACE
+    oem_decoder
+    common
+    decoders_common
+)
 
 if(BUILD_PYTHON)
     add_subdirectory(python)
