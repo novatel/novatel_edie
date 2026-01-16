@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 from pathlib import Path
 from conan import ConanFile
@@ -19,14 +20,30 @@ class NovatelEdieConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
+        "python": [True, False],
         "fPIC": [True, False],
     }
     default_options = {
         "shared": False,
+        "python": False,
         "fPIC": True,
     }
 
-    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "LICENSE", "!doc", "!test", "CMakeLists.txt"]
+    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "python/*", "LICENSE", "!doc", "!test", "CMakeLists.txt"]
+
+    def _get_python(self) -> str:
+        """Retrieves the path to the python executable to be used in the build."""
+        # Prefer user-provided conf
+        user_python = self.conf.get("user.python:exe", default=None)
+        if user_python:
+            return user_python
+
+        # Fallback to the current interpreter
+        if sys.executable:
+            return sys.executable
+        raise ConanInvalidConfiguration(
+            "Python executable not found. Set it via -c user.python:exe=/path/to/python"
+        )
 
     def set_version(self):
         cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
@@ -69,10 +86,17 @@ class NovatelEdieConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
+        cmake_driven = self.conf.get("user.novatel_edie:cmake_driven", default=False)
+        tc.user_presets_path = None if cmake_driven else 'ConanPresets.json'
         tc.cache_variables["BUILD_BENCHMARKS"] = False
         tc.cache_variables["BUILD_EXAMPLES"] = False
         tc.cache_variables["BUILD_TESTS"] = False
         tc.cache_variables["CMAKE_INSTALL_DATADIR"] = "res"
+        if self.options.python:
+            tc.cache_variables["BUILD_PYTHON"] = True
+            tc.cache_variables["Python_EXECUTABLE"] = self._get_python()
+            tc.cache_variables["PYTHON_INSTALL_DIR"] = "python_package/novatel_edie"
+            print(f"Using python at: {tc.cache_variables['Python_EXECUTABLE']}")
         tc.generate()
 
         deps = CMakeDeps(self)
