@@ -54,6 +54,29 @@ class Framer : public FramerBase
     [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiRingBufferPosition_) const;
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
+    //----------------------------------------------------------------------------
+    //! \brief Frame an OEM message from bytes written to the Framer.
+    //
+    //! \param[out] pucFrameBuffer_ The buffer which the Framer should copy the
+    //! framed OEM message to.
+    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
+    //! \param[out] stMetaData_ A MetaDataBase to contain some information
+    //! about OEM message frame.
+    //! \param [out] bMetadataOnly_ Only populate metadata and do not copy the message.
+    //
+    //! \return An error code describing the result of framing.
+    //!   SUCCESS: An OEM message frame was found.
+    //!   NULL_PROVIDED: pucFrameBuffer_ is a null pointer.
+    //!   UNKNOWN: The bytes returned are unknown.
+    //!   INCOMPLETE: The framer found what could be an OEM message, but there
+    //! are no more bytes in the internal buffer.
+    //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
+    //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
+    //! to the size specified by uiFrameBufferSize_.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
+                                  bool bMetadataOnly_ = false) override;
+
   public:
     //----------------------------------------------------------------------------
     //! \brief Reset the state of the Framer.
@@ -84,26 +107,14 @@ class Framer : public FramerBase
     Framer();
 
     //----------------------------------------------------------------------------
-    //! \brief Frame an OEM message from bytes written to the Framer.
+    //! \brief Public interface to frame an OEM message - enforces metadata type.
     //
-    //! \param[out] pucFrameBuffer_ The buffer which the Framer should copy the
-    //! framed OEM message to.
-    //! \param[in] uiFrameBufferSize_ The length of pucFrameBuffer_.
-    //! \param[out] stMetaData_ A MetaDataBase to contain some information
-    //! about OEM message frame.
-    //
-    //! \return An error code describing the result of framing.
-    //!   SUCCESS: An OEM message frame was found.
-    //!   NULL_PROVIDED: pucFrameBuffer_ is a null pointer.
-    //!   UNKNOWN: The bytes returned are unknown.
-    //!   INCOMPLETE: The framer found what could be an OEM message, but there
-    //! are no more bytes in the internal buffer.
-    //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
-    //!   BUFFER_FULL: pucFrameBuffer_ has no more room for added bytes, according
-    //! to the size specified by uiFrameBufferSize_.
+    //! \see GetFrame(unsigned char*, uint32_t, MetaDataBase&, bool)
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
-                                  bool bMetadataOnly_ = false) override;
+    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_)
+    {
+        return GetFrame(pucFrameBuffer_, uiFrameBufferSize_, stMetaData_, false);
+    }
 };
 
 } // namespace novatel::edie::oem

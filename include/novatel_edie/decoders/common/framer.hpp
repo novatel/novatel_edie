@@ -66,6 +66,28 @@ class FramerBase
         return uiPosition_ + 1 < clFrameBuffer.size() && clFrameBuffer[uiPosition_] == '\r' && clFrameBuffer[uiPosition_ + 1] == '\n';
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Get a frame from the internal circular buffer if one exists
+    //
+    //! \param [out] pucFrameBuffer_ The buffer to which the Framer should copy the
+    //! framed message.
+    //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
+    //! \param [out] stMetaData_ A MetaDataBase to contain some information
+    //! about the message frame.
+    //! \param [out] bMetadataOnly_ Only populate metadata and do not copy the message.
+    //
+    //! \return An error code describing the result of framing.
+    //!   SUCCESS: A message frame was found.
+    //!   NULL_PROVIDED: pucFrameBuffer_ is a null pointer.
+    //!   UNKNOWN: The bytes returned are unknown.
+    //!   INCOMPLETE: The framer found what could be a message, but there
+    //! are no more bytes in the internal buffer.
+    //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
+    //!   BUFFER_FULL: The frame found is larger than uiFrameBufferSize_ bytes.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
+                                          bool bMetadataOnly_ = false) = 0;
+
   public:
     //----------------------------------------------------------------------------
     //! \brief Reset the state of the Framer.
@@ -203,26 +225,9 @@ class FramerBase
     [[nodiscard]] size_t GetAvailableSpace() const { return pclMyBuffer->available_space(); }
 
     //----------------------------------------------------------------------------
-    //! \brief Get a frame from the internal circular buffer if one exists
-    //
-    //! \param [out] pucFrameBuffer_ The buffer to which the Framer should copy the
-    //! framed message.
-    //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
-    //! \param [out] stMetaData_ A MetaDataBase to contain some information
-    //! about the message frame.
-    //! \param [out] bMetadataOnly_ Only populate metadata and do not copy the message.
-    //
-    //! \return An error code describing the result of framing.
-    //!   SUCCESS: A message frame was found.
-    //!   NULL_PROVIDED: pucFrameBuffer_ is a null pointer.
-    //!   UNKNOWN: The bytes returned are unknown.
-    //!   INCOMPLETE: The framer found what could be a message, but there
-    //! are no more bytes in the internal buffer.
-    //!   BUFFER_EMPTY: There are no more bytes in the internal buffer.
-    //!   BUFFER_FULL: The frame found is larger than uiFrameBufferSize_ bytes.
+    //! \brief Allow FramerManager to access protected GetFrame method.
     //----------------------------------------------------------------------------
-    [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
-                                          bool bMetadataOnly_ = false) = 0;
+    friend class FramerManager;
 };
 } // namespace novatel::edie
 
