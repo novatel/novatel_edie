@@ -29,7 +29,7 @@ class NovatelEdieConan(ConanFile):
         "fPIC": True,
     }
 
-    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "LICENSE", "!doc", "!test", "CMakeLists.txt"]
+    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "python/*", "LICENSE", "!doc", "!test", "CMakeLists.txt"]
 
     def _get_python(self) -> str:
         """Retrieves the path to the python executable to be used in the build."""
@@ -95,6 +95,7 @@ class NovatelEdieConan(ConanFile):
         if self.options.python:
             tc.cache_variables["BUILD_PYTHON"] = True
             tc.cache_variables["Python_EXECUTABLE"] = self._get_python()
+            tc.cache_variables["PYTHON_INSTALL_DIR"] = "python_package/novatel_edie"
             print(f"Using python at: {tc.cache_variables['Python_EXECUTABLE']}")
         tc.generate()
 
