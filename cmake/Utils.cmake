@@ -15,23 +15,6 @@ function(copy_cpp_runtime_dlls target_dir)
     endif()
 endfunction()
 
-# Set test environment for Windows to find DLLs at runtime
-# Must be called after add_test() and uses OUTPUT_DIR_BASE from parent scope
-function(set_test_dll_path test_name)
-    if(WIN32)
-        get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-        if(IS_MULTI_CONFIG)
-            set_tests_properties(${test_name} PROPERTIES
-                ENVIRONMENT "PATH=${OUTPUT_DIR_BASE}-$<CONFIG>;$ENV{PATH}"
-            )
-        else()
-            set_tests_properties(${test_name} PROPERTIES
-                ENVIRONMENT "PATH=${OUTPUT_DIR};$ENV{PATH}"
-            )
-        endif()
-    endif()
-endfunction()
-
 # Generate and install nova_edie-config.cmake
 function(install_novatel_edie_cmake_config)
     include(GNUInstallDirs)
