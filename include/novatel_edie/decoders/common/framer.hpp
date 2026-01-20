@@ -102,6 +102,7 @@ class FramerBase
         uiMyExpectedMessageLength = 0;
         uiMyExpectedPayloadLength = 0;
         uiMyByteCount = 0;
+        uiMyCalculatedCrc32 = 0;
     };
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, size_t count_)
@@ -113,9 +114,7 @@ class FramerBase
         if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyBuffer->copy_out(pucBuffer_, count_); }
 
         pclMyBuffer->erase_begin(count_);
-        uiMyByteCount = 0;
-        uiMyExpectedMessageLength = 0;
-        uiMyExpectedPayloadLength = 0;
+        InitAttributes();
         ResetState();
     }
 
