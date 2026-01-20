@@ -7,6 +7,7 @@ from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeDeps
 from conan.tools.files import copy, rmdir
+from pathlib import Path
 
 required_conan_version = ">=2.4.0"
 
@@ -85,6 +86,22 @@ class NovatelEdieConan(ConanFile):
             raise ConanInvalidConfiguration("spdlog must be dynamically linked when building novatel_edie as a shared library")
 
     def generate(self):
+        # Place shared libraries into an easily retrievable spot
+        # {CMAKE_BINARY_DIR}/conan/build/third_party_libs/{build_type}
+        # Both Debug and Release folders will be created when using a cmake driven build
+        third_party_dep_path = (
+            Path(self.build_folder)
+            / "third_party_libs"
+            / str(self.settings.build_type) # Debug or Release
+        )
+        for dep in self.dependencies.values():
+            search_dirs = dep.cpp_info.libdirs + dep.cpp_info.bindirs
+            for search_dir in search_dirs:
+                copy(self, "*.dll", search_dir, third_party_dep_path)
+                copy(self, "*.dylib", search_dir, third_party_dep_path)
+                copy(self, "*.so", search_dir, third_party_dep_path)
+
+        # Configure build toolchain
         tc = CMakeToolchain(self)
         cmake_driven = self.conf.get("user.novatel_edie:cmake_driven", default=False)
         tc.user_presets_path = None if cmake_driven else 'ConanPresets.json'

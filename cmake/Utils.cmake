@@ -1,4 +1,5 @@
 # Copy the C++ runtime DLL for non-MSVC compilers on Windows
+# Uses a custom target so generator expressions (like $<CONFIG>) work in target_dir
 function(copy_cpp_runtime_dlls target_dir)
     if(WIN32 AND NOT MSVC)
         if(NOT EXISTS CMAKE_CXX_COMPILER)
@@ -7,11 +8,19 @@ function(copy_cpp_runtime_dlls target_dir)
             set(CXX_COMPILER_PATH "${CMAKE_CXX_COMPILER}")
         endif()
         get_filename_component(COMPILER_BIN_DIR "${CXX_COMPILER_PATH}" DIRECTORY)
+        set(copy_commands)
         foreach(stdcpp_library libstdc++-6.dll libc++.dll)
             if(EXISTS "${COMPILER_BIN_DIR}/${stdcpp_library}")
-                file(COPY "${COMPILER_BIN_DIR}/${stdcpp_library}" DESTINATION "${target_dir}")
+                list(APPEND copy_commands
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        "${COMPILER_BIN_DIR}/${stdcpp_library}"
+                        "${target_dir}/${stdcpp_library}")
             endif()
         endforeach()
+        if(copy_commands)
+            add_custom_target(copy_runtime_dlls ALL ${copy_commands}
+                COMMENT "Copying C++ runtime DLLs to ${target_dir}")
+        endif()
     endif()
 endfunction()
 

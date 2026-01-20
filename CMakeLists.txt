@@ -37,22 +37,10 @@ set(OUTPUT_DIR_BASE "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_
 
 # For multi-config generators (Ninja Multi-Config, Visual Studio), set per-config output directories
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(IS_MULTI_CONFIG)
-    foreach(CONFIG IN LISTS CMAKE_CONFIGURATION_TYPES)
-        string(TOUPPER ${CONFIG} CONFIG_UPPER)
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} "${OUTPUT_DIR_BASE}-${CONFIG}")
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} "${OUTPUT_DIR_BASE}-${CONFIG}")
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} "${OUTPUT_DIR_BASE}-${CONFIG}")
-    endforeach()
-    # For generator expressions that need the path at build time
-    set(OUTPUT_DIR "${OUTPUT_DIR_BASE}-$<CONFIG>")
-else()
-    set(OUTPUT_DIR "${OUTPUT_DIR_BASE}-${CMAKE_BUILD_TYPE}")
-    string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
-endif()
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR_BASE}-$<CONFIG>")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR_BASE}-$<CONFIG>")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR_BASE}-$<CONFIG>")
+set(OUTPUT_DIR "${OUTPUT_DIR_BASE}-$<CONFIG>")
 
 # Look for shared libs in the same directory as the executable when running tests
 set(CMAKE_BUILD_RPATH "\$ORIGIN")
@@ -118,14 +106,8 @@ endif()
 
 if(BUILD_BENCHMARKS OR BUILD_EXAMPLES OR BUILD_TESTS)
     # Copy shared libs to the build output directory for tests and examples
-    copy_third_party_shared_libs("${OUTPUT_DIR_BASE}")
-    if(IS_MULTI_CONFIG)
-        foreach(CONFIG IN LISTS CMAKE_CONFIGURATION_TYPES)
-            copy_cpp_runtime_dlls("${OUTPUT_DIR_BASE}-${CONFIG}")
-        endforeach()
-    else()
-        copy_cpp_runtime_dlls("${OUTPUT_DIR}")
-    endif()
+    copy_third_party_shared_libs("${OUTPUT_DIR}")
+    copy_cpp_runtime_dlls("${OUTPUT_DIR}")
 endif()
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
