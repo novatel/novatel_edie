@@ -38,7 +38,7 @@ set(OUTPUT_DIR_BASE "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_
 # For multi-config generators (Ninja Multi-Config, Visual Studio), set per-config output directories
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTI_CONFIG)
-    foreach(CONFIG IN ITEMS Debug Release RelWithDebInfo MinSizeRel)
+    foreach(CONFIG IN LISTS CMAKE_CONFIGURATION_TYPES)
         string(TOUPPER ${CONFIG} CONFIG_UPPER)
         set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} "${OUTPUT_DIR_BASE}-${CONFIG}")
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} "${OUTPUT_DIR_BASE}-${CONFIG}")
@@ -120,7 +120,7 @@ if(BUILD_BENCHMARKS OR BUILD_EXAMPLES OR BUILD_TESTS)
     # Copy shared libs to the build output directory for tests and examples
     copy_third_party_shared_libs("${OUTPUT_DIR_BASE}")
     if(IS_MULTI_CONFIG)
-        foreach(CONFIG IN ITEMS Debug Release RelWithDebInfo MinSizeRel)
+        foreach(CONFIG IN LISTS CMAKE_CONFIGURATION_TYPES)
             copy_cpp_runtime_dlls("${OUTPUT_DIR_BASE}-${CONFIG}")
         endforeach()
     else()

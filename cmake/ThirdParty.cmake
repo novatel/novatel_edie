@@ -51,7 +51,7 @@ function(copy_third_party_shared_libs target_dir_base)
     get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     if(IS_MULTI_CONFIG)
         # Parse $<$<CONFIG:X>:path> expressions and group by config
-        foreach(CONFIG IN ITEMS Debug Release)
+        foreach(CONFIG IN ITEMS CMAKE_CONFIGURATION_TYPES)
             set(${CONFIG}_PATHS)
         endforeach()
 
@@ -64,7 +64,7 @@ function(copy_third_party_shared_libs target_dir_base)
             endif()
         endforeach()
 
-        foreach(CONFIG IN ITEMS Debug Release)
+        foreach(CONFIG IN ITEMS CMAKE_CONFIGURATION_TYPES)
             set(target_dir "${target_dir_base}-${CONFIG}")
             set(copy_commands)
             foreach(path ${${CONFIG}_PATHS})
