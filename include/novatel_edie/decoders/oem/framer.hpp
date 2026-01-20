@@ -92,6 +92,7 @@ class Framer : public FramerBase
         uiMyExpectedMessageLength = 0;
         uiMyExpectedPayloadLength = 0;
         uiMyByteCount = 0;
+        uiMyCalculatedCrc32 = 0;
     };
 
     //----------------------------------------------------------------------------
