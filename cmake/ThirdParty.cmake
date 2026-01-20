@@ -24,6 +24,9 @@ if(USE_CONAN)
     list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/conan_provider.cmake)
 endif()
 
+# Capture this at parse time, not inside the function
+set(_THIRD_PARTY_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
+
 # Copy third-party shared libs to the build directory for tests
 function(copy_third_party_shared_libs target_dir)
     if(NOT USE_CONAN)
@@ -31,29 +34,14 @@ function(copy_third_party_shared_libs target_dir)
         return()
     endif()
 
-    set(third_party_base "${CMAKE_BINARY_DIR}/conan/build/third_party_libs")
-    set(source_dir "${third_party_base}/$<CONFIG>")
+    set(source_dir "${CMAKE_BINARY_DIR}/conan/build/third_party_libs/$<CONFIG>")
+    set(copy_script "${_THIRD_PARTY_CMAKE_DIR}/CopyThirdPartyLibs.cmake")
 
-    set(copied_files)
-    message(STATUS "Copying shared libraries from ${source_dir}")
-    file(GLOB libs "${source_dir}/*")
-    file(COPY ${libs} DESTINATION "${target_dir}")
-    foreach(lib ${libs})
-        get_filename_component(lib_name ${lib} NAME)
-        list(APPEND copied_files "${target_dir}/${lib_name}")
-    endforeach()
-
-    # Set RPATH to $ORIGIN for the copied libraries
-    if(NOT WIN32)
-        foreach(lib ${copied_files})
-            if(APPLE)
-                execute_process(COMMAND install_name_tool -add_rpath @loader_path "${lib}"
-                    COMMAND_ERROR_IS_FATAL ANY)
-            else()
-                find_program(PATCHELF_EXECUTABLE patchelf REQUIRED)
-                execute_process(COMMAND "${PATCHELF_EXECUTABLE}" --set-rpath \$ORIGIN "${lib}"
-                    COMMAND_ERROR_IS_FATAL ANY)
-            endif()
-        endforeach()
-    endif()
+    add_custom_target(copy_third_party_libs ALL
+        COMMAND ${CMAKE_COMMAND}
+            -DSOURCE_DIR="${source_dir}"
+            -DTARGET_DIR="${target_dir}"
+            -P "${copy_script}"
+        COMMENT "Copying third-party shared libraries to ${target_dir}"
+    )
 endfunction()
