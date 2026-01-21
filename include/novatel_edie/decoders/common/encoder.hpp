@@ -283,7 +283,7 @@ template <typename Derived> class EncoderBase
         asciiFieldMap;
     std::unordered_map<uint64_t, std::function<bool(const FieldContainer&, char**, uint32_t&, [[maybe_unused]] const MessageDatabase&)>> jsonFieldMap;
 
-    template <bool Flatten, bool Align>
+    template <bool Flatten, bool Align, bool IsWaasFlatten = false>
     [[nodiscard]] bool EncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
     {
         unsigned char* pucTempStart;
@@ -319,9 +319,10 @@ template <typename Derived> class EncoderBase
                             return false;
                         }
                     }
-
-                    // For a flattened version of the log, fill in the remaining fields with 0x00.
-                    if constexpr (Flatten)
+                    // SWAP:5940 - RXCOOMANDS conversion is failing due to this commented out code
+                    //  Allignement with EDIE v3.3
+                    //  For a flattened version of the log, fill in the remaining fields with 0x00.
+                    if constexpr (Flatten && !IsWaasFlatten)
                     {
                         const uint32_t maxSize = dynamic_cast<const FieldArrayField*>(field.fieldDef.get())->fieldSize;
                         const auto diff = static_cast<uint32_t>(*ppucOutBuf_ - pucTempStart);
