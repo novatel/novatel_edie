@@ -29,10 +29,10 @@ class NovatelEdieConan(ConanFile):
     }
     default_options = {
         "shared": False,
-        "python": False,
         "tests": False,
         "examples": False,
         "benchmarks": False,
+        "python": False,
         "fPIC": True,
     }
 
