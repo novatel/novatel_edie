@@ -98,7 +98,10 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(BUILD_TESTS)
-    enable_testing()
+    # Enable CTest and generation of config files without cluttering targets
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/21730
+    set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
+    include(CTest)
     add_subdirectory(src/common/test)
     add_subdirectory(src/decoders/common/test)
     add_subdirectory(src/decoders/oem/test)
@@ -106,7 +109,7 @@ endif()
 
 if(BUILD_BENCHMARKS OR BUILD_EXAMPLES OR BUILD_TESTS)
     # Copy shared libs to the build output directory for tests and examples
-    copy_third_party_shared_libs("${OUTPUT_DIR}")
+    copy_third_party_shared_libs("${OUTPUT_DIR_BASE}")
     copy_cpp_runtime_dlls("${OUTPUT_DIR}")
 endif()
 

@@ -7,30 +7,38 @@ from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeDeps
 from conan.tools.files import copy, rmdir
-from pathlib import Path
 
 required_conan_version = ">=2.4.0"
 
 class NovatelEdieConan(ConanFile):
     name = "novatel_edie"
-    description = ("EDIE (Encode Decode Interface Engine) is a C++ SDK that can encode and decode messages "
-                   "from NovAtel's OEM7 receivers from one format into another.")
+    description = (
+        "EDIE (Encode Decode Interface Engine) is a C++ SDK that can encode and decode messages "
+        "from NovAtel's OEM7 receivers from one format into another.")
     url = "https://github.com/novatel/novatel_edie"
     license = "MIT"
     package_type = "library"
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
+        "tests": [True, False],
+        "examples": [True, False],
+        "benchmarks": [True, False],
         "python": [True, False],
         "fPIC": [True, False],
     }
     default_options = {
         "shared": False,
         "python": False,
+        "tests": False,
+        "examples": False,
+        "benchmarks": False,
         "fPIC": True,
     }
 
-    exports_sources = ["cmake/*", "database/*", "include/*", "src/*", "python/*", "LICENSE", "!doc", "!test", "CMakeLists.txt"]
+    exports_sources = [
+        "cmake/*", "database/*", "include/*", "src/*", "python/*",
+        "LICENSE", "!doc", "!test", "CMakeLists.txt"]
 
     def _get_python(self) -> str:
         """Retrieves the path to the python executable to be used in the build."""
@@ -45,6 +53,21 @@ class NovatelEdieConan(ConanFile):
         raise ConanInvalidConfiguration(
             "Python executable not found. Set it via -c user.python:exe=/path/to/python"
         )
+
+    def _deploy_shared_libs(self):
+        """Copies shared library binaries of dependencies into a known location."""
+        # Both Debug and Release folders will be created when using a cmake driven build
+        third_party_dep_path = (
+            Path(self.build_folder)
+            / "third_party_libs"
+            / str(self.settings.build_type) # Debug or Release
+        )
+        for dep in self.dependencies.values():
+            search_dirs = dep.cpp_info.libdirs + dep.cpp_info.bindirs
+            for search_dir in search_dirs:
+                copy(self, "*.dll", search_dir, third_party_dep_path)
+                copy(self, "*.dylib", search_dir, third_party_dep_path)
+                copy(self, "*.so", search_dir, third_party_dep_path)
 
     def set_version(self):
         cmakelists_content = Path(self.recipe_folder, "CMakeLists.txt").read_text()
@@ -85,46 +108,35 @@ class NovatelEdieConan(ConanFile):
             # re-instantiated in each shared library and executable that links against it.
             raise ConanInvalidConfiguration("spdlog must be dynamically linked when building novatel_edie as a shared library")
 
+
     def generate(self):
-        # Place shared libraries into an easily retrievable spot
-        # {CMAKE_BINARY_DIR}/conan/build/third_party_libs/{build_type}
-        # Both Debug and Release folders will be created when using a cmake driven build
-        third_party_dep_path = (
-            Path(self.build_folder)
-            / "third_party_libs"
-            / str(self.settings.build_type) # Debug or Release
-        )
-        for dep in self.dependencies.values():
-            search_dirs = dep.cpp_info.libdirs + dep.cpp_info.bindirs
-            for search_dir in search_dirs:
-                copy(self, "*.dll", search_dir, third_party_dep_path)
-                copy(self, "*.dylib", search_dir, third_party_dep_path)
-                copy(self, "*.so", search_dir, third_party_dep_path)
-
-        # Configure build toolchain
-        tc = CMakeToolchain(self)
+        """Deploys pre-requistes to the build folder."""
+        # Determine whether conan is being invoked as part of a cmake configuration
         cmake_driven = self.conf.get("user.novatel_edie:cmake_driven", default=False)
-        tc.user_presets_path = None if cmake_driven else 'ConanPresets.json'
-        tc.cache_variables["BUILD_BENCHMARKS"] = False
-        tc.cache_variables["BUILD_EXAMPLES"] = False
-        tc.cache_variables["BUILD_TESTS"] = False
-        tc.cache_variables["CMAKE_INSTALL_DATADIR"] = "res"
-        if self.options.python:
-            tc.cache_variables["BUILD_PYTHON"] = True
-            tc.cache_variables["Python_EXECUTABLE"] = self._get_python()
-            tc.cache_variables["PYTHON_INSTALL_DIR"] = "python_package/novatel_edie"
-            print(f"Using python at: {tc.cache_variables['Python_EXECUTABLE']}")
-        tc.generate()
 
+        # Deploy CMake information for dependencies
         deps = CMakeDeps(self)
         deps.generate()
 
-        # A workaround for conan_provider.cmake not loading conan_toolchain.cmake
-        # TODO: replace with conan_cmakedeps_paths.cmake from the new CMakeDeps generator:
-        # https://github.com/conan-io/conan/issues/7240#issuecomment-2443768898
-        toolchain_lines = Path(self.generators_folder, "conan_toolchain.cmake").read_text().splitlines()
-        runtime_paths = "\n".join(l for l in toolchain_lines if ("CONAN_RUNTIME_LIB_DIRS" in l or "CMAKE_PROGRAM_PATH" in l))
-        Path(self.generators_folder, "conan_runtime_paths.cmake").write_text(runtime_paths)
+        # Deploy any shared libraries
+        self._deploy_shared_libs()
+
+        if not cmake_driven:
+            # Configure a CMakeToolchain if conan is not invoked by an existing one
+            tc = CMakeToolchain(self)
+            tc.user_presets_path = "ConanPresets.json"
+            tc.cache_variables["CONAN_BUILD_DIR"] = str(self.build_folder)
+            tc.cache_variables["BUILD_BENCHMARKS"] = self.options.benchmarks
+            tc.cache_variables["BUILD_EXAMPLES"] = self.options.examples
+            tc.cache_variables["BUILD_TESTS"] = self.options.tests
+            tc.cache_variables["CMAKE_INSTALL_DATADIR"] = "res"
+            if self.options.python:
+                tc.cache_variables["BUILD_PYTHON"] = True
+                python_exe = self._get_python()
+                tc.cache_variables["Python_EXECUTABLE"] = python_exe
+                tc.cache_variables["PYTHON_INSTALL_DIR"] = "python_package/novatel_edie"
+                print(f"Using python at: {python_exe}")
+            tc.generate()
 
     def build(self):
         cmake = CMake(self)
@@ -138,6 +150,7 @@ class NovatelEdieConan(ConanFile):
         rmdir(self, os.path.join(self.source_folder, "lib", "cmake"))
 
     def package_info(self):
+        """Provides information to consumers."""
         self.cpp_info.set_property("cmake_file_name", "novatel_edie")
         self.cpp_info.set_property("cmake_target_name", "novatel_edie::novatel_edie")
         self.cpp_info.resdirs = ["res"]
