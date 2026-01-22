@@ -7,38 +7,46 @@
     },
     "configurePresets": [
         {
-            "name": "windows-msvc",
-            "displayName": "MSVC",
+            "name": "base",
+            "hidden": true,
             "generator": "Ninja Multi-Config",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "installDir": "${sourceDir}/out/install/${presetName}",
             "cacheVariables": {
-                "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe",
                 "CONAN_INSTALL_BUILD_CONFIGURATIONS": "Release;Debug"
+            }
+        },
+        {
+            "name": "windows-msvc",
+            "displayName": "MSVC",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe"
             },
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
-            }
+            },
+            "inherits": [
+                "base"
+            ]
         },
         {
             "name": "linux-gcc",
             "displayName": "GCC",
-            "generator": "Ninja Multi-Config",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++",
-                "CONAN_INSTALL_BUILD_CONFIGURATIONS": "Release;Debug"
+                "CMAKE_CXX_COMPILER": "g++"
             },
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Linux"
-            }
+            },
+            "inherits": [
+                "base"
+            ]
         }
     ],
     "buildPresets": [
