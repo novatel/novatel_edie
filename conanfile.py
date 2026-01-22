@@ -56,11 +56,11 @@ class NovatelEdieConan(ConanFile):
 
     def _deploy_shared_libs(self):
         """Copies shared library binaries of dependencies into a known location."""
-        # Both Debug and Release folders will be created when using a cmake driven build
+        # Creates a folder for each config in CONAN_INSTALL_BUILD_CONFIGURATIONS when cmake-driven
         third_party_dep_path = (
             Path(self.build_folder)
             / "third_party_libs"
-            / str(self.settings.build_type) # Debug or Release
+            / str(self.settings.build_type)
         )
         for dep in self.dependencies.values():
             search_dirs = dep.cpp_info.libdirs + dep.cpp_info.bindirs
