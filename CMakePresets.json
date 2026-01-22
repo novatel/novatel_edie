@@ -14,7 +14,8 @@
             "installDir": "${sourceDir}/out/install/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CONAN_INSTALL_BUILD_CONFIGURATIONS": "Release;Debug"
             },
             "condition": {
                 "type": "equals",
@@ -30,7 +31,8 @@
             "installDir": "${sourceDir}/out/install/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++"
+                "CMAKE_CXX_COMPILER": "g++",
+                "CONAN_INSTALL_BUILD_CONFIGURATIONS": "Release;Debug"
             },
             "condition": {
                 "type": "equals",
