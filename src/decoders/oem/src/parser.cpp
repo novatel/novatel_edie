@@ -65,10 +65,15 @@ void Parser::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
         clMyRangeCmpFilter.IncludeMessageId(RANGECMP3_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
         clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
         clMyRangeCmpFilter.IncludeMessageId(RANGECMP4_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP5_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::PRIMARY));
+        clMyRangeCmpFilter.IncludeMessageId(RANGECMP5_MSG_ID, HEADER_FORMAT::ALL, static_cast<uint8_t>(MEASUREMENT_SOURCE::SECONDARY));
 
         pclMyMessageDb = pclMessageDb_;
     }
-    else { pclMyLogger->debug("JSON DB is a nullptr."); }
+    else
+    {
+        pclMyLogger->debug("JSON DB is a nullptr.");
+    }
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -161,7 +166,10 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
                 {
                     eStatus = clMyRxConfigHandler.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
                 }
-                else { eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_); }
+                else
+                {
+                    eStatus = clMyMessageDecoder.Decode(pucMyFrameBufferPointer, stMessage_, stMetaData_);
+                }
 
                 if (eStatus == STATUS::SUCCESS || eStatus == STATUS::NO_DEFINITION) { return eStatus; }
 
@@ -188,7 +196,10 @@ Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& 
             }
         }
         else if (eStatus == STATUS::INCOMPLETE || eStatus == STATUS::BUFFER_EMPTY) { return STATUS::BUFFER_EMPTY; }
-        else { pclMyLogger->info("Framer returned status {}", eStatus); }
+        else
+        {
+            pclMyLogger->info("Framer returned status {}", eStatus);
+        }
     }
 }
 
