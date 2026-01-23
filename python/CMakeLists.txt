@@ -3,13 +3,15 @@ find_package(Python 3.8
     OPTIONAL_COMPONENTS Development.SABIModule)
 
 if(NOT DEFINED nanobind_DIR)
+    message(${Python_EXECUTABLE})
     execute_process(COMMAND ${Python_EXECUTABLE} -c "import nanobind; print(nanobind.cmake_dir())"
         RESULT_VARIABLE cmd_result
         OUTPUT_VARIABLE nanobind_DIR
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     if (NOT cmd_result EQUAL 0)
-        unset(nanobind_DIR)
+        message(FATAL_ERROR "nanobind is not availible to the python executable: " ${Python_EXECUTABLE} "\n"
+        "Change the python executable with the Python_EXECTUTABLE cache variable or with user.python:exe in your conan configuration.")
     endif()
 endif()
 find_package(nanobind CONFIG REQUIRED)

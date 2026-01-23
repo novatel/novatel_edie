@@ -31,13 +31,15 @@ include(cmake/Utils.cmake)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 # Output all binaries in the same directory for easier testing
-string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
 string(TOLOWER ${CMAKE_SYSTEM_NAME} OPERATING_SYSTEM)
 string(TOLOWER ${CMAKE_CXX_COMPILER_ID} COMPILER)
-set(OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}-${CMAKE_BUILD_TYPE}")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${BUILD_TYPE} "${OUTPUT_DIR}")
+set(OUTPUT_DIR_BASE "${CMAKE_BINARY_DIR}/bin/${OPERATING_SYSTEM}-${CMAKE_SYSTEM_PROCESSOR}-${COMPILER}")
+
+# For multi-config generators (Ninja Multi-Config, Visual Studio), set per-config output directories
+set(OUTPUT_DIR "${OUTPUT_DIR_BASE}-$<CONFIG>")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
 
 # Look for shared libs in the same directory as the executable when running tests
 set(CMAKE_BUILD_RPATH "\$ORIGIN")
@@ -95,7 +97,10 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(BUILD_TESTS)
-    enable_testing()
+    # Enable CTest and generation of config files without cluttering targets
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/21730
+    set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
+    include(CTest)
     add_subdirectory(src/common/test)
     add_subdirectory(src/decoders/common/test)
     add_subdirectory(src/decoders/oem/test)
@@ -103,8 +108,8 @@ endif()
 
 if(BUILD_BENCHMARKS OR BUILD_EXAMPLES OR BUILD_TESTS)
     # Copy shared libs to the build output directory for tests and examples
+    copy_third_party_shared_libs("${OUTPUT_DIR_BASE}")
     copy_cpp_runtime_dlls("${OUTPUT_DIR}")
-    copy_third_party_shared_libs("${OUTPUT_DIR}")
 endif()
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
