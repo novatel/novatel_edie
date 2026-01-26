@@ -22,9 +22,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
 endif()
 
 add_compile_definitions(VERSION_INFO=${SKBUILD_PROJECT_VERSION})
-if(DEFINED SKBUILD_PROJECT_NAME)
-    set(PYTHON_INSTALL_DIR ${SKBUILD_PROJECT_NAME})
-elseif(NOT DEFINED PYTHON_INSTALL_DIR)
+if(NOT DEFINED PYTHON_INSTALL_DIR)
     set(PYTHON_INSTALL_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/novatel_edie)
 endif()
 
