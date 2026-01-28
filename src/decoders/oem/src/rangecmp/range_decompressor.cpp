@@ -799,10 +799,10 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
     {
         eFormat_ = eFormat == HEADER_FORMAT::BINARY || eFormat == HEADER_FORMAT::SHORT_BINARY || eFormat == HEADER_FORMAT::PROPRIETARY_BINARY
                        ? ENCODE_FORMAT::BINARY
-                   : eFormat == HEADER_FORMAT::ASCII || eFormat == HEADER_FORMAT::SHORT_ASCII || eFormat == HEADER_FORMAT::ABB_ASCII
-                       ? ENCODE_FORMAT::ASCII
-                   : eFormat == HEADER_FORMAT::JSON ? ENCODE_FORMAT::JSON
-                                                    : ENCODE_FORMAT::ASCII; // Default to ASCII
+                   : eFormat == HEADER_FORMAT::ASCII || eFormat == HEADER_FORMAT::SHORT_ASCII ? ENCODE_FORMAT::ASCII
+                   : eFormat == HEADER_FORMAT::ABB_ASCII                                      ? ENCODE_FORMAT::ABBREV_ASCII
+                   : eFormat == HEADER_FORMAT::JSON                                           ? ENCODE_FORMAT::JSON
+                                                                                              : ENCODE_FORMAT::ASCII; // Default to ASCII
     }
 
     // Re-encode the data back into the range message buffer.
