@@ -46,6 +46,8 @@ endif()
 nanobind_build_library(${NANOBIND_LIB_NAME})
 set_target_properties(${NANOBIND_LIB_NAME} PROPERTIES FOLDER python_bindings)
 if (PYTHON_STABLE_ABI)
+    # Tells python header files to link against stable ABI for Python 3.12+
+    # 3(x03).12(x0C).0(x0000)
     target_compile_definitions(${NANOBIND_LIB_NAME} PUBLIC -DPy_LIMITED_API=0x030C0000)
 endif()
 if(MSVC)
