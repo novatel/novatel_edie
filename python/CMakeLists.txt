@@ -26,11 +26,28 @@ if(NOT DEFINED PYTHON_INSTALL_DIR)
     set(PYTHON_INSTALL_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/novatel_edie)
 endif()
 
-# Low level equivalent of add module
-set(NANOBIND_LIB_NAME "nanobind-abi3" CACHE STRING "Name of the nanobind shared library")
+# Use stable ABI builds if CPython >= 3.12 and Python::SABIModule is availible
+if ((Python_VERSION VERSION_LESS 3.12) OR
+    (NOT Python_INTERPRETER_ID STREQUAL "Python") OR
+    (NOT TARGET Python::SABIModule))
+    set(PYTHON_STABLE_ABI FALSE)
+    message(STATUS "Not using Python stable ABI")
+else()
+    set(PYTHON_STABLE_ABI TRUE)
+    message(STATUS "Using Python stable ABI")
+endif()
+
+
+if (PYTHON_STABLE_ABI)
+    set(NANOBIND_LIB_NAME "nanobind-abi3" CACHE STRING "Name of the nanobind shared library")
+else()
+    set(NANOBIND_LIB_NAME "nanobind" CACHE STRING "Name of the nanobind shared library")
+endif()
 nanobind_build_library(${NANOBIND_LIB_NAME})
-target_compile_definitions(${NANOBIND_LIB_NAME} PUBLIC -DPy_LIMITED_API=0x030C0000)
 set_target_properties(${NANOBIND_LIB_NAME} PROPERTIES FOLDER python_bindings)
+if (PYTHON_STABLE_ABI)
+    target_compile_definitions(${NANOBIND_LIB_NAME} PUBLIC -DPy_LIMITED_API=0x030C0000)
+endif()
 if(MSVC)
     # Nanobind already explicity marks symbols for MSVC builds and the auto-gen consistently crashes
     set_target_properties(${NANOBIND_LIB_NAME} PROPERTIES
@@ -61,7 +78,11 @@ target_link_libraries(python_common PUBLIC decoders_common)
 nanobind_disable_stack_protector(python_common)
 nanobind_compile_options(python_common)
 nanobind_musl_static_libcpp(python_common)
-nanobind_extension_abi3(python_common)
+if (PYTHON_STABLE_ABI)
+    nanobind_extension_abi3(python_common)
+else()
+    nanobind_extension(python_common)
+endif()
 
 set_target_properties(python_common PROPERTIES
     FOLDER "python_bindings"
@@ -94,7 +115,12 @@ nanobind_lto(python_oem)
 nanobind_set_visibility(python_oem)
 nanobind_strip(python_oem)
 nanobind_disable_stack_protector(python_oem)
-nanobind_extension_abi3(python_oem)
+if (PYTHON_STABLE_ABI)
+    nanobind_extension_abi3(python_oem)
+else()
+    nanobind_extension(python_oem)
+endif()
+
 nanobind_compile_options(python_oem)
 nanobind_link_options(python_oem)
 nanobind_musl_static_libcpp(python_oem)
