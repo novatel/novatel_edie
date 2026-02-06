@@ -101,6 +101,8 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(BUILD_TESTS)
+    find_package(GTest REQUIRED CONFIG)
+    include(GoogleTest)
     # Enable CTest and generation of config files without cluttering targets
     # https://gitlab.kitware.com/cmake/cmake/-/issues/21730
     set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
