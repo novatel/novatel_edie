@@ -354,6 +354,20 @@ struct FieldArrayField : BaseField
 };
 
 //-----------------------------------------------------------------------
+//! \struct DbMetadata
+//! \brief Struct containing metadata about the message database.
+//-----------------------------------------------------------------------
+struct DbMetadata
+{
+    std::string subset;
+    std::string version;
+    std::string messageFamily;
+
+    using Ptr = std::shared_ptr<DbMetadata>;
+    using ConstPtr = std::shared_ptr<const DbMetadata>;
+};
+
+//-----------------------------------------------------------------------
 //! \struct MessageDefinition
 //! \brief Struct containing elements of message definitions in the UI
 //! DB.
@@ -380,6 +394,7 @@ struct MessageDefinition
 //============================================================================
 class MessageDatabase
 {
+    DbMetadata::ConstPtr pDbMetadata;
     std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
     std::unordered_map<std::string_view, MessageDefinition::ConstPtr> mMessageName;
@@ -401,6 +416,21 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
         : vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_))
+    {
+        GenerateEnumMappings();
+        GenerateMessageMappings();
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief A constructor for the MessageDatabase class.
+    //
+    //! \param[in] vMessageDefinitions_ A vector of message definitions
+    //! \param[in] vEnumDefinitions_ A vector of enum definitions
+    //! \param[in] pDbMetadata_ Database metadata
+    //----------------------------------------------------------------------------
+    MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_,
+                    DbMetadata::ConstPtr pDbMetadata_)
+        : pDbMetadata(std::move(pDbMetadata_)), vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_))
     {
         GenerateEnumMappings();
         GenerateMessageMappings();
@@ -532,6 +562,11 @@ class MessageDatabase
     //! \brief Returns all defined message types.
     //----------------------------------------------------------------------------
     [[nodiscard]] const std::vector<MessageDefinition::ConstPtr>& MessageDefinitions() const { return vMessageDefinitions; }
+
+    //----------------------------------------------------------------------------
+    //! \brief Returns DB metadata.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] DbMetadata::ConstPtr GetDbMetadata() const { return pDbMetadata; }
 
   protected:
     virtual void GenerateEnumMappings()
