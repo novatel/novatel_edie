@@ -39,7 +39,7 @@ class MessageDecoderTypesTest : public ::testing::Test
     class DecoderTester : public MessageDecoderBase
     {
       public:
-        DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoderBase(std::move(pclMessageDb_)) {}
+        DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoderBase("OEM", std::move(pclMessageDb_)) {}
 
         STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_,
                                std::vector<FieldContainer>& vIntermediateFormat_)

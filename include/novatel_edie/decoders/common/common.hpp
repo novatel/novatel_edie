@@ -41,6 +41,25 @@
 
 namespace novatel::edie {
 
+inline void ValidateMessageDatabaseFamily(MessageDatabase::ConstPtr pclMessageDb_, std::string_view expectedFamily,
+                                          const std::shared_ptr<spdlog::logger>& logger)
+{
+    if (pclMessageDb_ == nullptr) { return; }
+
+    if (auto dbMeta = pclMessageDb_->GetDbMetadata())
+    {
+        const auto& family = dbMeta->messageFamily;
+        if (!family.empty() && family != expectedFamily)
+        {
+            SPDLOG_LOGGER_ERROR(logger, "Message database family {} does not match expected family {}", family, expectedFamily);
+            throw std::invalid_argument("Message database family does not match expected family");
+        }
+
+        if (family.empty()) { SPDLOG_LOGGER_WARN(logger, "Message database family is not present in 'meta' field; cannot verify message family"); }
+    }
+    else { SPDLOG_LOGGER_WARN(logger, "Message database 'meta' field is missing; cannot verify message family"); }
+}
+
 //-----------------------------------------------------------------------
 //! \enum STATUS
 //! \brief Enumeration for status codes returned from EDIE components.

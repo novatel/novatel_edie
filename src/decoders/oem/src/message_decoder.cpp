@@ -37,11 +37,7 @@ using namespace novatel::edie::oem;
 using json = nlohmann::json;
 
 // -------------------------------------------------------------------------------------------------------
-MessageDecoder::MessageDecoder(const MessageDatabase::Ptr& pclMessageDb_) : MessageDecoderBase(pclMessageDb_)
-{
-    InitOemFieldMaps();
-    if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
-}
+MessageDecoder::MessageDecoder(const MessageDatabase::Ptr& pclMessageDb_) : MessageDecoderBase("OEM", pclMessageDb_) { InitOemFieldMaps(); }
 
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoder::InitOemFieldMaps()

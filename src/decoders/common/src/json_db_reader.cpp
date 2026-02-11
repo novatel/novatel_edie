@@ -167,7 +167,7 @@ void from_json(const json& j_, EnumDefinition& ed_)
 void from_json(const json& j_, DbMetadata& dbm_)
 {
     dbm_.subset = j_.value("subset", "");
-    dbm_.version = j_.value("version", "");
+    dbm_.version = j_.value("version", "0.0.0");
     dbm_.messageFamily = j_.value("messageFamily", "");
 }
 
@@ -247,7 +247,9 @@ template <typename T> MessageDatabase::Ptr ParseJsonDbImpl(T&& source, std::stri
 
         auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
         auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
-        auto dbMeta = json.contains("meta") ? std::make_shared<DbMetadata>(json.at("meta").template get<DbMetadata>()) : nullptr;
+
+        DbMetadata::Ptr dbMeta;
+        if (json.contains("meta")) { dbMeta = std::make_shared<DbMetadata>(json.at("meta").template get<DbMetadata>()); }
 
         return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get(), dbMeta);
     }

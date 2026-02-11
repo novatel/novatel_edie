@@ -270,6 +270,9 @@ template <typename T> std::function<bool(const FieldContainer&, char**, uint32_t
 //============================================================================
 template <typename Derived> class EncoderBase
 {
+  private:
+    std::string sMyExpectedMessageFamily;
+
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("encoder")};
     MessageDatabase::ConstPtr pclMyMsgDb{nullptr};
@@ -757,18 +760,20 @@ template <typename Derived> class EncoderBase
 
   public:
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the Encoder class.
+    //! \brief A constructor for the EncoderBase class.
     //
+    //! \param[in] expectedMessageFamily_ The expected message family for the encoder.
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    EncoderBase(MessageDatabase::ConstPtr pclMessageDb_ = nullptr)
+    EncoderBase(std::string expectedMessageFamily_, MessageDatabase::ConstPtr pclMessageDb_ = nullptr)
+        : sMyExpectedMessageFamily(std::move(expectedMessageFamily_))
     {
         static_cast<Derived*>(this)->InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
     }
 
     //----------------------------------------------------------------------------
-    //! \brief A destructor for the Encoder class.
+    //! \brief A destructor for the EncoderBase class.
     //----------------------------------------------------------------------------
     ~EncoderBase() = default;
 
@@ -779,6 +784,7 @@ template <typename Derived> class EncoderBase
     //----------------------------------------------------------------------------
     void LoadJsonDb(MessageDatabase::ConstPtr pclMessageDb_)
     {
+        ValidateMessageDatabaseFamily(pclMessageDb_, sMyExpectedMessageFamily, pclMyLogger);
         pclMyMsgDb = pclMessageDb_;
         static_cast<Derived*>(this)->InitEnumDefinitions();
     }

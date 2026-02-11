@@ -44,8 +44,9 @@ HeaderDecoder::HeaderDecoder(MessageDatabase::Ptr pclMessageDb_)
 // -------------------------------------------------------------------------------------------------------
 void HeaderDecoder::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
-    pclMyMsgDb = pclMessageDb_;
+    ValidateMessageDatabaseFamily(pclMessageDb_, "OEM", pclMyLogger);
 
+    pclMyMsgDb = pclMessageDb_;
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
     vMyGpsTimeStatusDefinitions = pclMyMsgDb->GetEnumDefName("GPSTimeStatus");
