@@ -181,7 +181,9 @@ add_custom_target(
 )
 
 set_target_properties(dynamic_stubs PROPERTIES FOLDER python_bindings)
-set_target_properties(common_bindings decoders_common oem_decoder oem_bindings common PROPERTIES INSTALL_RPATH "$ORIGIN")
+set_target_properties(decoders_common oem_decoder common PROPERTIES INSTALL_RPATH "$ORIGIN")
+set_target_properties(common_bindings PROPERTIES INSTALL_RPATH "$ORIGIN/shared_libs")
+set_target_properties(oem_bindings PROPERTIES INSTALL_RPATH "$ORIGIN/../shared_libs")
 
 message(STATUS "PYTHON_INSTALL_DIR: ${PYTHON_INSTALL_DIR}")
 
