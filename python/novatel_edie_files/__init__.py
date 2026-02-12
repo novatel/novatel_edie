@@ -23,8 +23,13 @@ SOFTWARE.
 """
 
 import importlib_resources
+import os
+import sys
 
-from .python_common import (
+if sys.platform == "win32":
+    os.add_dll_directory(os.path.join(os.path.dirname(__file__), "shared_libs"))
+
+from .common_bindings import (
     _internal,  enable_internal_logging, disable_internal_logging,
     STATUS, TIME_STATUS, MEASUREMENT_SOURCE,
     NovatelEdieException, FailureException, UnknownException, IncompleteException, IncompleteMoreDataException,
@@ -45,18 +50,36 @@ from .python_common import (
     FramerManager, MetaDataBase
 )
 
-from .python_oem import (
-    NMEA_SYNC_LENGTH, NMEA_CRC_LENGTH,
-    OEM4_BINARY_HEADER_LENGTH, OEM4_SHORT_BINARY_HEADER_LENGTH,
-    OEM4_BINARY_CRC_LENGTH, OEM4_ASCII_CRC_LENGTH,
-    OEM4_BINARY_SYNC_LENGTH, OEM4_SHORT_ASCII_SYNC_LENGTH, OEM4_ASCII_SYNC_LENGTH, OEM4_SHORT_BINARY_SYNC_LENGTH,
-    OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3,
-    Header, UnknownMessage, Message, Response, GpsTime,
-    Oem4BinaryHeader, Oem4BinaryShortHeader,  MetaData,
-    Framer, Filter, Decoder, Commander, Parser, FileParser,
-    RangeDecompressor, RxConfigHandler,
-    messages, enums, _internal as _novatel_internal
-)
+# OEM symbols available via novatel_edie.oem; top-level access is deprecated.
+_OEM_DEPRECATED_NAMES = {
+    "NMEA_SYNC_LENGTH", "NMEA_CRC_LENGTH",
+    "OEM4_BINARY_HEADER_LENGTH", "OEM4_SHORT_BINARY_HEADER_LENGTH",
+    "OEM4_BINARY_CRC_LENGTH", "OEM4_ASCII_CRC_LENGTH",
+    "OEM4_BINARY_SYNC_LENGTH", "OEM4_SHORT_ASCII_SYNC_LENGTH", "OEM4_ASCII_SYNC_LENGTH", "OEM4_SHORT_BINARY_SYNC_LENGTH",
+    "OEM4_BINARY_SYNC1", "OEM4_BINARY_SYNC2", "OEM4_BINARY_SYNC3",
+    "Header", "UnknownMessage", "Message", "Response", "GpsTime",
+    "Oem4BinaryHeader", "Oem4BinaryShortHeader", "MetaData",
+    "Framer", "Filter", "Decoder", "Commander", "Parser", "FileParser",
+    "RangeDecompressor", "RxConfigHandler",
+    "messages", "enums", "_novatel_internal",
+}
+
+_ALREADY_WARNED = set()
+def __getattr__(name):
+    if name in _OEM_DEPRECATED_NAMES:
+        # Create warning at import location for first occurance
+        if name not in _ALREADY_WARNED:
+            import warnings
+            warnings.warn(
+                f"Accessing '{name}' from {repr(__name__)} is deprecated. "
+                f"Use 'novatel_edie.oem.{name}' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            _ALREADY_WARNED.add(name)
+        import novatel_edie.oem as oem
+        return getattr(oem, name)
+    raise AttributeError(f"module {repr(__name__)} has no attribute {repr(name)}")
 
 def default_json_db_path():
     """Returns a context manager that yields the path to the default JSON database."""

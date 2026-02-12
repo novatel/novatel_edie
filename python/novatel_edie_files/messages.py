@@ -22,4 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .python_oem.messages import *
+import warnings
+
+warnings.warn(
+    "'novatel_edie.messages' is deprecated. Use 'novatel_edie.oem.messages' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from .oem.messages import *

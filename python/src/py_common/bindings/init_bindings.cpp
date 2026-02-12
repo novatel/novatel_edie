@@ -9,7 +9,7 @@
 namespace nb = nanobind;
 using namespace novatel::edie::py_common;
 
-NB_MODULE(python_common, m)
+NB_MODULE(common_bindings, m)
 {
     nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
 

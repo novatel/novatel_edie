@@ -1,8 +1,8 @@
-python_oem.__prefix__:
+oem_bindings.__prefix__:
     from typing import Iterator
-    import novatel_edie.python_common as python_common
+    import novatel_edie.common_bindings as common_bindings
 
-python_oem.Filter.lower_time_bound:
+oem_bindings.Filter.lower_time_bound:
     @property
     def lower_time_bound(self) -> GpsTime | None:
         \doc
@@ -10,7 +10,7 @@ python_oem.Filter.lower_time_bound:
     @lower_time_bound.setter
     def lower_time_bound(self, value: GpsTime | None): ...
 
-python_oem.Filter.upper_time_bound:
+oem_bindings.Filter.upper_time_bound:
     @property
     def upper_time_bound(self) -> GpsTime | None:
         \doc
@@ -18,7 +18,7 @@ python_oem.Filter.upper_time_bound:
     @lower_time_bound.setter
     def upper_time_bound(self, value: GpsTime | None): ...
 
-python_oem.Filter.decimation_period$:
+oem_bindings.Filter.decimation_period$:
     @property
     def decimation_period(self) -> int | None:
         \doc
@@ -26,7 +26,7 @@ python_oem.Filter.decimation_period$:
     @decimation_period.setter
     def decimation_period(self, value: int | None): ...
 
-python_oem.Filter.include_responses$:
+oem_bindings.Filter.include_responses$:
     @property
     def include_responses(self) -> bool:
         \doc
@@ -34,7 +34,7 @@ python_oem.Filter.include_responses$:
     @include_responses.setter
     def include_responses(self, include: bool): ...
 
-python_oem.Filter.include_non_responses$:
+oem_bindings.Filter.include_non_responses$:
     @property
     def include_non_responses(self) -> bool:
         \doc
@@ -42,7 +42,7 @@ python_oem.Filter.include_non_responses$:
     @include_non_responses.setter
     def include_non_responses(self, include: bool): ...
 
-python_oem.Response.response_enum:
+oem_bindings.Response.response_enum:
     from typing import TYPE_CHECKING
     if TYPE_CHECKING:
         from novatel_edie.enums import Responses
