@@ -28,6 +28,7 @@
 #define CRC32_HPP
 
 #include <array>
+#include <string_view>
 #include <cstdint>
 #include <string_view>
 

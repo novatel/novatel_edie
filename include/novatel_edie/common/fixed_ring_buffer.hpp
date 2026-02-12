@@ -28,6 +28,7 @@
 #define FIXED_RING_BUFFER_HPP
 
 #include <algorithm>
+#include <numeric>
 #include <cstddef>
 #include <cstring>
 #include <memory>
@@ -45,6 +46,9 @@ template <typename T, size_t N> class FixedRingBuffer
     static_assert(std::is_trivially_copyable_v<T>, "FixedRingBuffer requires a trivially copyable type T for memcpy usage");
 
   public:
+    //! \brief A special value indicating "not found" in search operations.
+    static constexpr size_t npos = static_cast<size_t>(-1);
+
     //! \brief Adds an element to the end of the buffer, overwriting the oldest if full.
     void push_back(const T& value) noexcept { buffer[(head + sz++) & Mask] = value; }
 
@@ -112,6 +116,80 @@ template <typename T, size_t N> class FixedRingBuffer
 
         sz += count;
         return count;
+    }
+
+    //! \brief Finds the first occurrence of a byte value in the buffer (logical order).
+    //! \return Logical index (0 = oldest) or npos if not found.
+    template <typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
+    [[nodiscard]] size_t search_char(unsigned char value, size_t start, size_t count = sz) const noexcept
+    {
+        count = std::min(count, sz);
+        if (count == 0) { return npos; }
+
+        const size_t start_idx = (head + start) & Mask;
+        const size_t first_chunk_elements = std::min(count, N - start_idx);
+        const void* first_ptr = std::memchr(buffer.get() + start_idx, value, first_chunk_elements);
+        if (first_ptr != nullptr)
+        {
+            return static_cast<size_t>(static_cast<const unsigned char*>(first_ptr) - (buffer.get() + start_idx) + start);
+        }
+
+        const size_t second_chunk_elements = count - first_chunk_elements;
+        if (second_chunk_elements == 0) { return npos; }
+
+        const void* second_ptr = std::memchr(buffer.get(), value, second_chunk_elements);
+        if (second_ptr != nullptr)
+        {
+            return first_chunk_elements +
+                   static_cast<size_t>(static_cast<const unsigned char*>(second_ptr) - buffer.get()) + start;
+        }
+
+        return npos;
+    }
+
+    //! \brief Accumulates a range of elements in logical order (0 = oldest).
+    //! \param[in] start Logical start index.
+    //! \param[in] count Number of elements to include.
+    //! \param[in] init Initial value for accumulation.
+    template <typename BinaryOp, typename AccT = T,
+              typename = std::enable_if_t<std::is_invocable_r_v<AccT, BinaryOp, AccT, T>>>
+    [[nodiscard]] AccT accumulate_range(size_t start, size_t count, AccT init, BinaryOp op) const
+    {
+        if (start >= sz || count == 0) { return init; }
+        count = std::min(count, sz - start);
+
+        const size_t start_idx = (head + start) & Mask;
+        const size_t first_chunk = std::min(count, N - start_idx);
+
+        init = std::accumulate(buffer.get() + start_idx,
+                               buffer.get() + start_idx + first_chunk,
+                               init,
+                               op);
+
+        const size_t second_chunk = count - first_chunk;
+        if (second_chunk == 0) { return init; }
+
+        return std::accumulate(buffer.get(),
+                               buffer.get() + second_chunk,
+                               init,
+                               op);
+    }
+
+    //! \brief Safely reads a multi-byte value from the buffer, handling wraparound.
+    //! \tparam U The type to read (e.g., uint16_t, uint32_t). Must be trivially copyable.
+    //! \param[in] logical_index The starting logical index of the value.
+    //! \return The value read from the buffer.
+    template <typename U, typename = std::enable_if_t<std::is_trivially_copyable_v<U>>>
+    [[nodiscard]] U read_value(size_t logical_index) const noexcept
+    {
+        static_assert(sizeof(U) % sizeof(T) == 0, "Value size must be a multiple of element size");
+        constexpr size_t num_elements = sizeof(U) / sizeof(T);
+        
+        U result;
+        auto* dest = reinterpret_cast<T*>(&result);
+        for (size_t i = 0; i < num_elements; ++i) { dest[i] = (*this)[logical_index + i]; }
+        
+        return result;
     }
 
     //! \brief Returns the number of elements currently in the buffer.
