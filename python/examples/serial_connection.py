@@ -38,7 +38,8 @@ import queue
 from threading import Event
 
 import novatel_edie as ne
-import novatel_edie.messages as ne_msgs
+import novatel_edie.oem as oem
+import novatel_edie.oem.messages as ne_msgs
 
 from common_setup import setup_example_logging
 
@@ -63,7 +64,7 @@ class SerialParser:
             message_db: Optional message database for parsing messages.
         """
         self._buffer = queue.Queue()
-        self._parser = ne.Parser(message_db)
+        self._parser = oem.Parser(message_db)
         self._data_received = Event()
         self._serial_connection = serial_connection
         self._serial_reader = serial.threaded.ReaderThread(
@@ -84,7 +85,7 @@ class SerialParser:
         self._serial_connection.close()
 
     def read(self, timeout: float = 1) -> (
-            ne.Message | ne.Response | ne.UnknownMessage| ne.UnknownBytes):
+            oem.Message | oem.Response | oem.UnknownMessage| ne.UnknownBytes):
         """Reads data from the serial connection.
 
         Args:
@@ -190,7 +191,7 @@ def main():
             if isinstance(message, ne_msgs.BESTPOS):
                 print(f'BESTPOS -> Lat: {message.latitude}, Lon: {message.longitude}')
                 messages += 1
-            elif isinstance(message, ne.UnknownMessage):
+            elif isinstance(message, oem.UnknownMessage):
                 pass
             elif isinstance(message, ne.UnknownBytes):
                 pass

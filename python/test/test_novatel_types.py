@@ -31,7 +31,7 @@
 import novatel_edie as ne
 import pytest
 from novatel_edie import STATUS, FIELD_TYPE, DATA_TYPE, throw_exception_from_status
-from novatel_edie import _novatel_internal
+from novatel_edie.oem import _novatel_internal
 from pytest import approx
 
 # -------------------------------------------------------------------------------------------------------

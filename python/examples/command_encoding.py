@@ -32,6 +32,7 @@
 import logging
 
 import novatel_edie as ne
+import novatel_edie.oem as oem
 from novatel_edie import CPP_PRETTY_VERSION
 
 from common_setup import setup_example_logging
@@ -49,7 +50,7 @@ def main():
 
     # Encode the command
     logger.info(f'Converting "{command}" to {encode_format}')
-    commander = ne.Commander()
+    commander = oem.Commander()
     encoded_command = commander.encode(command, encode_format)
     print(encoded_command)
 

@@ -13,17 +13,18 @@
 ################################################################################
 
 import novatel_edie as ne
-from novatel_edie import messages as ne_msgs
-from novatel_edie import enums as ne_enums
+import novatel_edie.oem as oem
+from novatel_edie.oem import messages as ne_msgs
+from novatel_edie.oem import enums as ne_enums
 from novatel_edie import STATUS, ENCODE_FORMAT
 import pytest
 
 @pytest.fixture
 def decoder():
-    return ne.Decoder()
+    return oem.Decoder()
 
 
-def test_rxconfig_decoding(decoder: ne.Decoder):
+def test_rxconfig_decoding(decoder: oem.Decoder):
     """Test that the payload of an RXCONFIG message can be converted to bytes and decoded."""
     # Arrange
     raw_message = b"#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*ca0f5c51*71be1427\r\n"

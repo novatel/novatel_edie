@@ -30,11 +30,12 @@
 import pytest
 
 import novatel_edie as ne
+import novatel_edie.oem as oem
 
 @pytest.fixture
 def decoder():
     """Fixture for creating a decoder instance."""
-    return ne.Decoder()
+    return oem.Decoder()
 
 def nest_values(message: ne.Field):
     """Convert the values of field into a nested list structure.
@@ -100,13 +101,13 @@ def compare_with_floating_point(item1, item2) -> bool:
             'gps_and_glo_mask'
         ],
         [
-            ne.enums.SolStatus.SOL_COMPUTED,
-            ne.enums.SolType.WAAS,
+            oem.enums.SolStatus.SOL_COMPUTED,
+            oem.enums.SolType.WAAS,
             51.15043699323,
             -114.03067932462,
             1096.9772,
             -17.0,
-            ne.enums.Datum.WGS84,
+            oem.enums.Datum.WGS84,
             0.6074000000953674,
             0.579200029373169,
             0.9563999772071838,
@@ -144,7 +145,7 @@ def compare_with_floating_point(item1, item2) -> bool:
     )
 ])
 def test_field_names_and_values(
-        data: bytes, exp_fields: list, exp_values: list, decoder: ne.Decoder):
+        data: bytes, exp_fields: list, exp_values: list, decoder: oem.Decoder):
     """Test that the field names are correct."""
     # Act
     msg = decoder.decode(data)
@@ -158,7 +159,7 @@ def test_field_names_and_values(
 @pytest.mark.parametrize("data, exp_dict", [
     (
         b'#SATVIS2A,USB1,1,64.0,FINESTEERING,2379,485000.000,02000020,a867,32768;QZSS,TRUE,TRUE,5,194,1,13.5,306.6,142.865,142.827,195,1,-19.6,268.0,-241.672,-241.710,199,1,-25.6,293.3,-3.932,-3.970,200,16,-41.5,329.5,-3.242,-3.280,196,16,-48.1,278.4,327.067,327.029*c8e214c6\r\n',
-        {'system_type': ne.enums.SystemType.QZSS,
+        {'system_type': oem.enums.SystemType.QZSS,
          'is_sat_vis_valid': True,
          'was_gnss_almanac_used': True,
          'sat_vis_list_length': 5,
@@ -186,7 +187,7 @@ def test_field_names_and_values(
         }
     )
 ])
-def test_to_dict(data: bytes, exp_dict: dict, decoder: ne.Decoder):
+def test_to_dict(data: bytes, exp_dict: dict, decoder: oem.Decoder):
     """Test that the to_dict method works correctly."""
     # Act
     msg = decoder.decode(data)

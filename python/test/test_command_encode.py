@@ -29,16 +29,14 @@
 ################################################################################
 
 import novatel_edie as ne
+import novatel_edie.oem as oem
 from novatel_edie import STATUS, ENCODE_FORMAT
 import pytest
-
-# -------------------------------------------------------------------------------------------------------
-# Command Encoding Unit Tests
 # -------------------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="function")
 def commander():
-    return ne.Commander()
+    return oem.Commander()
 
 # -------------------------------------------------------------------------------------------------------
 # ASCII Command Encoding Unit Tests

@@ -28,6 +28,7 @@
 ################################################################################
 
 import novatel_edie as ne
+import novatel_edie.oem as oem
 import pytest
 from novatel_edie import HEADER_FORMAT, STATUS
 from test.test_framer import Helper
@@ -91,7 +92,7 @@ def test_proprietary_binary_complete(helper):
          0x79, 0xB4, 0x16, 0xE9, 0xFA, 0x4C, 0xBF, 0x34, 0x0E, 0xD8, 0xCF, 0x59, 0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35,
          0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27, 0x6F, 0x8E, 0x0B, 0xCC])
     helper.write_bytes_to_framer(data)
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.length = 12
     expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     _, test_meta_data = helper.framer.get_frame()
@@ -116,7 +117,7 @@ def test_proprietary_binary_incomplete(helper):
 
 def test_proprietary_binary_sync_error(helper):
     helper.write_file_to_framer("proprietary_binary_sync_error.BIN")
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.length = ne.MAX_BINARY_MESSAGE_LENGTH
     expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     _, test_meta_data = helper.framer.get_frame()
@@ -132,7 +133,7 @@ def test_proprietary_binary_bad_crc(helper):
          0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27,
          0x6F, 0x8E, 0x0B, 0xFF])
     helper.write_bytes_to_framer(data)
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.length = 30  # Unknown bytes up to 0x24 ('$') should be returned (NMEA sync was found mid-log)
     expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     _, test_meta_data = helper.framer.get_frame()
@@ -148,7 +149,7 @@ def test_proprietary_binary_run_on_crc(helper):
          0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27,
          0x6F, 0x8E, 0x0B, 0xCC, 0xFF])
     helper.write_bytes_to_framer(data)
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.length = 76
     expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
     _, test_meta_data = helper.framer.get_frame()
@@ -164,10 +165,10 @@ def test_proprietary_binary_inadequate_buffer(helper):
          0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27,
          0x6F, 0x8E, 0x0B, 0xCC])
     helper.write_bytes_to_framer(data)
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.length = 76
     expected_meta_data.format = HEADER_FORMAT.PROPRIETARY_BINARY
-    test_meta_data = ne.MetaData()
+    test_meta_data = oem.MetaData()
     helper.test_framer_errors(ne.BufferFullException, buffer_size=38)
 
     _, test_meta_data = helper.framer.get_frame(76)
@@ -203,20 +204,20 @@ def test_proprietary_binary_segmented(helper):
          0xE3, 0xF5, 0x87, 0x8F, 0x8A, 0x35, 0xFF, 0xB1, 0x94, 0x64, 0x6B, 0xA4, 0xBD, 0xA8, 0x6C, 0x27, 0x91, 0x27,
          0x6F, 0x8E, 0x0B, 0xCC])
     bytes_written = 0
-    helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
-    bytes_written += ne.OEM4_BINARY_SYNC_LENGTH
+    helper.write_bytes_to_framer(data[bytes_written:][:oem.OEM4_BINARY_SYNC_LENGTH])
+    bytes_written += oem.OEM4_BINARY_SYNC_LENGTH
     helper.test_framer_errors(ne.IncompleteException)
 
-    helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH])
-    bytes_written += ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH
+    helper.write_bytes_to_framer(data[bytes_written:][:oem.OEM4_BINARY_HEADER_LENGTH - oem.OEM4_BINARY_SYNC_LENGTH])
+    bytes_written += oem.OEM4_BINARY_HEADER_LENGTH - oem.OEM4_BINARY_SYNC_LENGTH
     helper.test_framer_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer(data[bytes_written:][:44])
     bytes_written += 44
     helper.test_framer_errors(ne.IncompleteException)
 
-    helper.write_bytes_to_framer(data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
-    bytes_written += ne.OEM4_BINARY_CRC_LENGTH
+    helper.write_bytes_to_framer(data[bytes_written:][:oem.OEM4_BINARY_CRC_LENGTH])
+    bytes_written += oem.OEM4_BINARY_CRC_LENGTH
     helper.test_framer(HEADER_FORMAT.PROPRIETARY_BINARY, bytes_written)
     assert bytes_written == len(data)
 

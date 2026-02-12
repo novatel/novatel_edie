@@ -29,13 +29,14 @@
 ################################################################################
 
 import novatel_edie as ne
+import novatel_edie.oem as oem
 import pytest
 from novatel_edie import STATUS, ENCODE_FORMAT
 
 
 @pytest.fixture(scope="function")
 def fp(test_gps_file):
-    return ne.FileParser(test_gps_file)
+    return oem.FileParser(test_gps_file)
 
 
 @pytest.fixture(scope="module")
@@ -45,10 +46,10 @@ def test_gps_file(decoders_test_resources):
 
 @pytest.mark.skip(reason="Slow and redundant")
 def test_fileparser_instantiation(json_db, json_db_path):
-    fp = ne.FileParser()
+    fp = oem.FileParser()
     fp.load_json_db(json_db)
-    ne.FileParser(json_db_path)
-    ne.FileParser(json_db)
+    oem.FileParser(json_db_path)
+    oem.FileParser(json_db)
 
 
 def test_range_cmp(fp):
@@ -66,12 +67,12 @@ def test_unknown_bytes(fp):
 
 
 def test_parse_file_with_filter(fp):
-    fp.filter = ne.Filter()
+    fp.filter = oem.Filter()
     msgs = []
     while True:
         try:
             msg = fp.read()
-            if isinstance(msg, ne.Message):
+            if isinstance(msg, oem.Message):
                 msgs.append(msg)
         except ne.StreamEmptyException:
             break
@@ -85,8 +86,8 @@ def test_parse_file_with_filter(fp):
 
 
 def test_file_parser_iterator(fp):
-    fp.filter = ne.Filter()
-    msgs = [msg for msg in fp if isinstance(msg, ne.Message)]
+    fp.filter = oem.Filter()
+    msgs = [msg for msg in fp if isinstance(msg, oem.Message)]
     assert len(msgs) == 2
 
     assert msgs[0].header.milliseconds == pytest.approx(270605000)
