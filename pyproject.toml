@@ -14,7 +14,8 @@ requires = [
     "scikit-build-core >=0.4.3",
     "nanobind >=2.0.0",
     "conan >=2.4.0",
-    "typer >=0.15"
+    "typer >=0.15",
+    "typing_extensions >=4.15.0"
 ]
 build-backend = "scikit_build_core.build"
 

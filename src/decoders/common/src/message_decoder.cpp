@@ -183,7 +183,8 @@ bool FieldContainer::ValidateSimpleField() const
 #endif
 
 // -------------------------------------------------------------------------------------------------------
-MessageDecoderBase::MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_)
+MessageDecoderBase::MessageDecoderBase(std::string expectedMessageFamily_, MessageDatabase::Ptr pclMessageDb_)
+    : sMyExpectedMessageFamily(std::move(expectedMessageFamily_))
 {
     InitFieldMaps();
     if (pclMessageDb_ != nullptr) { LoadJsonDb(std::move(pclMessageDb_)); }
@@ -192,6 +193,7 @@ MessageDecoderBase::MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_)
 // -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
+    ValidateMessageDatabaseFamily(pclMyMsgDb, sMyExpectedMessageFamily, pclMyLogger);
     pclMyMsgDb = std::move(pclMessageDb_);
     InitEnumDefinitions();
     CreateResponseMsgDefinitions();

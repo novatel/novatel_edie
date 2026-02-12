@@ -46,6 +46,7 @@ void from_json(const json& j_, ArrayField& fd_);
 void from_json(const json& j_, FieldArrayField& fd_);
 void from_json(const json& j_, MessageDefinition& md_);
 void from_json(const json& j_, EnumDefinition& ed_);
+void from_json(const json& j_, DbMetadata& dbm_);
 
 // Forward declaration of parse_fields and parse_enumerators
 uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_);
@@ -163,6 +164,14 @@ void from_json(const json& j_, EnumDefinition& ed_)
 }
 
 //-----------------------------------------------------------------------
+void from_json(const json& j_, DbMetadata& dbm_)
+{
+    dbm_.subset = j_.value("subset", "");
+    dbm_.version = j_.value("version", "0.0.0");
+    dbm_.messageFamily = j_.value("messageFamily", "");
+}
+
+//-----------------------------------------------------------------------
 uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
 {
     uint32_t uiFieldSize = 0;
@@ -229,40 +238,32 @@ std::vector<EnumDefinition::ConstPtr> ProcessEnumDefinitions(const json& jArray)
 }
 
 //-----------------------------------------------------------------------
-MessageDatabase::Ptr LoadJsonDbFile(const std::filesystem::path& filePath_)
+namespace {
+template <typename T> MessageDatabase::Ptr ParseJsonDbImpl(T&& source, std::string_view errorContext)
 {
     try
     {
-        std::ifstream jsonFile(filePath_);
-        auto json = json::parse(jsonFile);
+        auto json = json::parse(std::forward<T>(source));
 
         auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
         auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
 
-        return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get());
+        DbMetadata::Ptr dbMeta;
+        if (json.contains("meta")) { dbMeta = std::make_shared<DbMetadata>(json.at("meta").template get<DbMetadata>()); }
+
+        return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get(), dbMeta);
     }
     catch (const std::exception& e)
     {
-        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, e.what());
+        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, errorContext, e.what());
     }
 }
+} // namespace
 
 //-----------------------------------------------------------------------
-MessageDatabase::Ptr ParseJsonDb(std::string_view strJsonData_)
-{
-    try
-    {
-        auto json = json::parse(strJsonData_);
+MessageDatabase::Ptr LoadJsonDbFile(const std::filesystem::path& filePath_) { return ParseJsonDbImpl(std::ifstream(filePath_), filePath_.string()); }
 
-        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
-        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
-
-        return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get());
-    }
-    catch (const std::exception& e)
-    {
-        throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, strJsonData_, e.what());
-    }
-}
+//-----------------------------------------------------------------------
+MessageDatabase::Ptr ParseJsonDb(std::string_view strJsonData_) { return ParseJsonDbImpl(strJsonData_, strJsonData_); }
 
 } // namespace novatel::edie

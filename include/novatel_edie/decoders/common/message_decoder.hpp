@@ -122,6 +122,8 @@ class MessageDecoderBase
 
     MessageDefinition::Ptr stMyRespDef{nullptr};
 
+    std::string sMyExpectedMessageFamily;
+
     // Enum util functions
     void InitEnumDefinitions();
     void InitFieldMaps();
@@ -250,9 +252,10 @@ class MessageDecoderBase
     //----------------------------------------------------------------------------
     //! \brief A constructor for the MessageDecoderBase class.
     //
+    //! \param[in] expectedMessageFamily_ The expected message family for the encoder.
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    MessageDecoderBase(MessageDatabase::Ptr pclMessageDb_ = nullptr);
+    MessageDecoderBase(std::string expectedMessageFamily_, MessageDatabase::Ptr pclMessageDb_ = nullptr);
 
     virtual ~MessageDecoderBase() = default;
 
@@ -261,7 +264,7 @@ class MessageDecoderBase
     //
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object.
     //----------------------------------------------------------------------------
-    void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
+    virtual void LoadJsonDb(MessageDatabase::Ptr pclMessageDb_);
 
     //----------------------------------------------------------------------------
     //! \brief Get the internal logger.
