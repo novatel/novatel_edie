@@ -22,15 +22,21 @@ py_common::PyMessageDatabaseCore::Ptr& py_common::MessageDbSingleton::get()
 
     // Determine if the novatel_edie package exists within the current Python environment
     nb::object module_spec = import_lib_util.attr("find_spec")("novatel_edie");
-    bool module_exists = nb::cast<bool>(builtins.attr("bool")(import_lib_util.attr("find_spec")("novatel_edie")));
-    // If the package does not exist, return an empty database
-    if (!module_exists)
+    if (!nb::cast<bool>(builtins.attr("bool")(module_spec)))
     {
+        // If the package does not exist, return an empty database
         json_db = std::make_shared<py_common::PyMessageDatabaseCore>(MessageDatabase());
         return json_db;
     }
 
     // Determine the path to the database file within the novatel_edie package
+    nb::object module_origin = module_spec.attr("origin");
+    if (!nb::cast<bool>(builtins.attr("bool")(module_origin)))
+    {
+        // Return an empty database if the package is empty
+        json_db = std::make_shared<py_common::PyMessageDatabaseCore>(MessageDatabase());
+        return json_db;
+    }
     nb::object novatel_edie_path = os_path.attr("dirname")(module_spec.attr("origin"));
     nb::object db_path = os_path.attr("join")(novatel_edie_path, "database.json");
     // If the database file does not exist, return an empty database
