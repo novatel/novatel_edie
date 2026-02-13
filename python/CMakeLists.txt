@@ -58,7 +58,7 @@ if(MSVC)
 endif()
 
 
-add_library(python_common SHARED
+add_library(common_bindings SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/init_bindings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/exceptions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/common.cpp
@@ -74,24 +74,24 @@ add_library(python_common SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/field_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_database.cpp
 )
-target_include_directories(python_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(python_common PUBLIC ${NANOBIND_LIB_NAME})
-target_link_libraries(python_common PUBLIC decoders_common)
-nanobind_disable_stack_protector(python_common)
-nanobind_compile_options(python_common)
-nanobind_musl_static_libcpp(python_common)
+target_include_directories(common_bindings PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(common_bindings PUBLIC ${NANOBIND_LIB_NAME})
+target_link_libraries(common_bindings PUBLIC decoders_common)
+nanobind_disable_stack_protector(common_bindings)
+nanobind_compile_options(common_bindings)
+nanobind_musl_static_libcpp(common_bindings)
 if (PYTHON_STABLE_ABI)
-    nanobind_extension_abi3(python_common)
+    nanobind_extension_abi3(common_bindings)
 else()
-    nanobind_extension(python_common)
+    nanobind_extension(common_bindings)
 endif()
 
-set_target_properties(python_common PROPERTIES
+set_target_properties(common_bindings PROPERTIES
     FOLDER "python_bindings"
 )
 
 
-add_library(python_oem MODULE
+add_library(oem_bindings MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/implementations/message_database.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/init_bindings.cpp
@@ -108,72 +108,72 @@ add_library(python_oem MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/py_message_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/internal/decoder_tester.cpp
 )
-target_link_libraries(python_oem PRIVATE decoders_common)
-target_link_libraries(python_oem PRIVATE ${NANOBIND_LIB_NAME})
-target_link_libraries(python_oem PRIVATE python_common)
-target_link_libraries(python_oem PRIVATE oem_decoder)
-nanobind_opt_size(python_oem)
-nanobind_lto(python_oem)
-nanobind_set_visibility(python_oem)
-nanobind_strip(python_oem)
-nanobind_disable_stack_protector(python_oem)
+target_link_libraries(oem_bindings PRIVATE decoders_common)
+target_link_libraries(oem_bindings PRIVATE ${NANOBIND_LIB_NAME})
+target_link_libraries(oem_bindings PRIVATE common_bindings)
+target_link_libraries(oem_bindings PRIVATE oem_decoder)
+nanobind_opt_size(oem_bindings)
+nanobind_lto(oem_bindings)
+nanobind_set_visibility(oem_bindings)
+nanobind_strip(oem_bindings)
+nanobind_disable_stack_protector(oem_bindings)
 if (PYTHON_STABLE_ABI)
-    nanobind_extension_abi3(python_oem)
+    nanobind_extension_abi3(oem_bindings)
 else()
-    nanobind_extension(python_oem)
+    nanobind_extension(oem_bindings)
 endif()
 
-nanobind_compile_options(python_oem)
-nanobind_link_options(python_oem)
-nanobind_musl_static_libcpp(python_oem)
+nanobind_compile_options(oem_bindings)
+nanobind_link_options(oem_bindings)
+nanobind_musl_static_libcpp(oem_bindings)
 
 
-set_target_properties(python_oem PROPERTIES FOLDER python_bindings)
-target_include_directories(python_oem PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set_target_properties(oem_bindings PROPERTIES FOLDER python_bindings)
+target_include_directories(oem_bindings PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
-target_compile_definitions(python_oem PRIVATE
+target_compile_definitions(oem_bindings PRIVATE
     VERSION_INFO=${SKBUILD_PROJECT_VERSION}
     # https://github.com/boostorg/system/issues/32#issuecomment-462912013
     HAVE_SNPRINTF
 )
 
-# Copy dependent DLLs to python_common output directory for stub generation
+# Copy dependent DLLs to common_bindings output directory for stub generation
 if(WIN32)
-    add_custom_command(TARGET python_common POST_BUILD
+    add_custom_command(TARGET common_bindings POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:decoders_common>
             $<TARGET_FILE:common>
             $<TARGET_FILE:oem_decoder>
             $<TARGET_FILE:${NANOBIND_LIB_NAME}>
-            $<TARGET_FILE_DIR:python_common>
-        COMMENT "Copying dependent DLLs to python_common output directory"
+            $<TARGET_FILE_DIR:common_bindings>
+        COMMENT "Copying dependent DLLs to common_bindings output directory"
     )
 endif()
 
 add_custom_target(
     common_stubs ALL
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_binding_stubs.py
-    --import $<TARGET_FILE_DIR:python_common>
-    -m python_common
-    -o ${CMAKE_CURRENT_BINARY_DIR}/stubs/python_common.pyi
-    DEPENDS python_common decoders_common
+    --import $<TARGET_FILE_DIR:common_bindings>
+    -m common_bindings
+    -o ${CMAKE_CURRENT_BINARY_DIR}/stubs/common_bindings.pyi
+    DEPENDS common_bindings decoders_common
 )
 
 add_custom_target(
     oem_stubs ALL
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_binding_stubs.py
-    --import $<TARGET_FILE_DIR:python_common>
+    --import $<TARGET_FILE_DIR:common_bindings>
     --pattern-file ${CMAKE_CURRENT_SOURCE_DIR}/stubgen_pattern.txt
-    -d python_common
-    -m python_oem
-    -o ${CMAKE_CURRENT_BINARY_DIR}/stubs/python_oem.pyi
-    DEPENDS python_oem common_stubs
+    -d common_bindings
+    -m oem_bindings
+    -o ${CMAKE_CURRENT_BINARY_DIR}/stubs/oem/oem_bindings.pyi
+    DEPENDS oem_bindings common_stubs
 )
 
 add_custom_target(
     dynamic_stubs ALL
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie_files/stubgen.py ${CMAKE_SOURCE_DIR}/database/database.json ${CMAKE_CURRENT_BINARY_DIR}/stubs
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie_files/stubgen.py ${CMAKE_SOURCE_DIR}/database/database.json ${CMAKE_CURRENT_BINARY_DIR}/stubs/oem
     COMMENT "Generating dynamic stubs"
     DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/novatel_edie_files/stubgen.py
@@ -181,21 +181,27 @@ add_custom_target(
 )
 
 set_target_properties(dynamic_stubs PROPERTIES FOLDER python_bindings)
-set_target_properties(python_common decoders_common oem_decoder python_oem common PROPERTIES INSTALL_RPATH "$ORIGIN")
+set_target_properties(decoders_common oem_decoder common PROPERTIES INSTALL_RPATH "$ORIGIN")
+set_target_properties(common_bindings PROPERTIES INSTALL_RPATH "$ORIGIN/shared_libs")
+set_target_properties(oem_bindings PROPERTIES INSTALL_RPATH "$ORIGIN/../shared_libs")
 
 message(STATUS "PYTHON_INSTALL_DIR: ${PYTHON_INSTALL_DIR}")
 
-install(TARGETS python_common
+install(TARGETS common_bindings
     RUNTIME DESTINATION ${PYTHON_INSTALL_DIR} COMPONENT python
     LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
     COMPONENT python)
 install(TARGETS common decoders_common  ${NANOBIND_LIB_NAME}
-    RUNTIME DESTINATION ${PYTHON_INSTALL_DIR} COMPONENT python
-    LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
+    RUNTIME DESTINATION ${PYTHON_INSTALL_DIR}/shared_libs COMPONENT python
+    LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}/shared_libs
     COMPONENT python)
-install(TARGETS oem_decoder python_oem
-    RUNTIME DESTINATION ${PYTHON_INSTALL_DIR} COMPONENT python
-    LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
+install(TARGETS oem_decoder
+    RUNTIME DESTINATION ${PYTHON_INSTALL_DIR}/shared_libs COMPONENT python
+    LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}/shared_libs
+    COMPONENT python)
+install(TARGETS oem_bindings
+    RUNTIME DESTINATION ${PYTHON_INSTALL_DIR}/oem COMPONENT python
+    LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}/oem
     COMPONENT python)
 
 

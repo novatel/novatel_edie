@@ -22,4 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .python_oem.enums import *
+import warnings
+
+warnings.warn(
+    "'novatel_edie.enums' is deprecated. Use 'novatel_edie.oem.enums' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from .oem.enums import *
