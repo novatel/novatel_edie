@@ -32,7 +32,7 @@
 import logging
 import timeit
 
-import novatel_edie as ne
+from novatel_edie import UnknownBytes
 import novatel_edie.oem as oem
 import novatel_edie.oem.messages as ne_msgs
 
@@ -84,7 +84,7 @@ def main():
             unknown_id = message.header.message_id
             payload = message.payload
         # Handle bytes that could not be parsed into a message
-        elif isinstance(message, ne.UnknownBytes):
+        elif isinstance(message, UnknownBytes):
             data = message.data
     pass
 

@@ -31,9 +31,8 @@
 
 import logging
 
-import novatel_edie as ne
 import novatel_edie.oem as oem
-from novatel_edie import CPP_PRETTY_VERSION
+from novatel_edie import CPP_PRETTY_VERSION, ENCODE_FORMAT
 
 from common_setup import setup_example_logging
 
@@ -45,7 +44,7 @@ def main():
     logger.info(f"Decoder library information:\n{CPP_PRETTY_VERSION}")
 
     # Set value to encode
-    encode_format = ne.ENCODE_FORMAT.ASCII
+    encode_format = ENCODE_FORMAT.ASCII
     command = b"CONFIGCODE ERASE_TABLE \"WJ4HDW\" \"GM5Z99\" \"T2M7DP\" \"KG2T8T\" \"KF7GKR\" \"TABLECLEAR\""
 
     # Encode the command
