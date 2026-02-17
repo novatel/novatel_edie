@@ -40,7 +40,7 @@ REGISTER_FRAMER(OEM_BINARY, oem::FramerBinary, MetaDataStruct)
 FramerBinary::FramerBinary() : FramerBase("novatel_framer_binary") {}
 
 // -------------------------------------------------------------------------------------------------------
-FramerBinary::FramerBinary(std::shared_ptr<UCharFixedRingBuffer> ringBuffer) : FramerBase("novatel_framer_binary", ringBuffer)
+FramerBinary::FramerBinary(std::shared_ptr<UCharFixedBuffer> ringBuffer) : FramerBase("novatel_framer_binary", ringBuffer)
 {
     pclMyLogger->info("FramerBinary initialized");
 }
@@ -72,12 +72,12 @@ FramerBinary::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBuf
         {
             uiSyncIndex = clInternalFrameBuffer.search_char(OEM4_BINARY_SYNC1, uiMyByteCount, uiMaxMessageLength - uiMyByteCount);
             uiMyByteCount += static_cast<uint32_t>(uiSyncIndex + 1); // +1 moves past the first sync character for the next search
-        } while (uiSyncIndex != UCharFixedRingBuffer::npos &&
+        } while (uiSyncIndex != UCharFixedBuffer::npos &&
                  ((uiSyncIndex + 1 < uiMaxMessageLength && clInternalFrameBuffer[uiSyncIndex + 1] != OEM4_BINARY_SYNC2) ||
                  (uiSyncIndex + 2 < uiMaxMessageLength && clInternalFrameBuffer[uiSyncIndex + 2] != OEM4_BINARY_SYNC3)));
 
         // Sync character not at start of buffer - handle unknown bytes before sync
-        if (uiSyncIndex != 0) { return handleUnknown(static_cast<uint32_t>(uiSyncIndex == UCharFixedRingBuffer::npos ? uiMaxMessageLength : uiSyncIndex)); }
+        if (uiSyncIndex != 0) { return handleUnknown(static_cast<uint32_t>(uiSyncIndex == UCharFixedBuffer::npos ? uiMaxLookahead : uiSyncIndex)); }
     }
 
     stMetaData_.eFormat = HEADER_FORMAT::BINARY;

@@ -83,7 +83,7 @@ class FramerBinary : public FramerBase
     //! \param [in] ringBuffer a shared pointer to the framer manager's fixed ring
     //! buffer.
     //----------------------------------------------------------------------------
-    FramerBinary(std::shared_ptr<UCharFixedRingBuffer> ringBuffer);
+    FramerBinary(std::shared_ptr<UCharFixedBuffer> ringBuffer);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FramerBinary class.

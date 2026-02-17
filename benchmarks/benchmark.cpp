@@ -33,6 +33,7 @@
 #include <novatel_edie/decoders/common/json_db_reader.hpp>
 #include <novatel_edie/decoders/oem/encoder.hpp>
 #include <novatel_edie/decoders/oem/file_parser.hpp>
+#include <novatel_edie/decoders/oem/framer_binary.hpp>
 #include <novatel_edie/decoders/oem/header_decoder.hpp>
 #include <novatel_edie/decoders/oem/message_decoder.hpp>
 #include <novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp>
@@ -97,16 +98,17 @@ static void Parse(benchmark::State& state)
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations() * 1000, benchmark::Counter::kIsRate);
 }
 
-template <size_t N> static void Frame(benchmark::State& state, const unsigned char(&data)[N])
+template <typename FramerType, size_t N> static void Frame(benchmark::State& state, const unsigned char(&data)[N])
 {
     std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> buffer;
-    Framer clFramer;
+    FramerType clFramer;
     clFramer.SetFrameJson(true);
     MetaDataStruct stMetaData;
     
     for ([[maybe_unused]] auto _ : state) {
         (void)clFramer.Write(data, sizeof(data));
         (void)clFramer.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
+        (void)clFramer.Flush(buffer.data(), static_cast<uint32_t>(buffer.size()));
     }
     
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
@@ -122,6 +124,7 @@ template <size_t N> static void FrameManager(benchmark::State& state, const unsi
     for ([[maybe_unused]] auto _ : state) {
         (void)clFramerManager.Write(data, sizeof(data));
         (void)clFramerManager.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
+        (void)clFramerManager.Flush(buffer.data(), static_cast<uint32_t>(buffer.size()));
     }
 
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
@@ -129,22 +132,27 @@ template <size_t N> static void FrameManager(benchmark::State& state, const unsi
 
 static void FrameAscii(benchmark::State& state)
 {
-    Frame(state, bestposAscii);
+    Frame<oem::Framer>(state, bestposAscii);
 }
 
 static void FrameAbbAscii(benchmark::State& state)
 {
-    Frame(state, bestposAbbAscii);
+    Frame<oem::Framer>(state, bestposAbbAscii);
 }
 
 static void FrameBinary(benchmark::State& state)
 {
-    Frame(state, bestposBinary);
+    Frame<oem::Framer>(state, bestposBinary);
+}
+
+static void FrameBinaryStandalone(benchmark::State& state)
+{
+    Frame<oem::FramerBinary>(state, bestposBinary);
 }
 
 static void FrameJson(benchmark::State& state)
 {
-    Frame(state, bestsatsJson);
+    Frame<oem::Framer>(state, bestsatsJson);
 }
 
 static void FrameAsciiFramerManager(benchmark::State& state)
@@ -310,6 +318,7 @@ BENCHMARK(Parse);
 BENCHMARK(FrameAscii)->MinTime(2.0);
 BENCHMARK(FrameAbbAscii)->MinTime(2.0);
 BENCHMARK(FrameBinary)->MinTime(2.0);
+BENCHMARK(FrameBinaryStandalone)->MinTime(2.0);
 BENCHMARK(FrameJson)->MinTime(2.0);
 BENCHMARK(FrameAsciiFramerManager)->MinTime(2.0);
 BENCHMARK(FrameAbbAsciiFramerManager)->MinTime(2.0);

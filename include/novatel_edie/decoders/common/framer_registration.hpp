@@ -27,7 +27,7 @@
 #ifndef FRAMER_REGISTRATION_HPP
 #define FRAMER_REGISTRATION_HPP
 
-#include "novatel_edie/common/fixed_ring_buffer.hpp"
+#include "novatel_edie/common/fixed_buffer.hpp"
 #include "novatel_edie/decoders/common/framer.hpp"
 #include "novatel_edie/decoders/common/framer_manager.hpp"
 
@@ -45,7 +45,7 @@ using namespace novatel::edie;
     {                                                                                                                                                \
         novatel::edie::FramerManager::RegisterFramer(                                                                                                \
             #FramerName,                                                                                                                             \
-            [](std::shared_ptr<novatel::edie::UCharFixedRingBuffer> buffer) -> std::unique_ptr<novatel::edie::FramerBase> {                          \
+            [](std::shared_ptr<novatel::edie::UCharFixedBuffer> buffer) -> std::unique_ptr<novatel::edie::FramerBase> {                          \
                 return std::make_unique<FramerClass>(buffer);                                                                                        \
             },                                                                                                                                       \
             []() -> std::unique_ptr<novatel::edie::MetaDataBase> { return std::make_unique<MetaDataClass>(); });                                     \
