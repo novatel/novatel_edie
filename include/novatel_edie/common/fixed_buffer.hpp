@@ -21,11 +21,10 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file fixed_ring_buffer.hpp
+// ! \file fixed_buffer.hpp
 // ===============================================================================
 
-#ifndef FIXED_RING_BUFFER_HPP
-#define FIXED_RING_BUFFER_HPP
+#pragma once
 
 #include <algorithm>
 #include <numeric>
@@ -35,28 +34,32 @@
 #include <type_traits>
 
 //============================================================================
-//! \class FixedRingBuffer
-//! \brief A minimal, fixed-size ring buffer optimized for power-of-2 capacity.
+//! \class FixedBuffer
+//! \brief A minimal, fixed-size linear buffer. Data is stored contiguously
+//! and consumed from the front. When a write would exceed the buffer end,
+//! unconsumed data is shifted back to the beginning before writing. A FixedBuffer
+//! of logical capacity N uses an underlying array of size 2*N to mitigate the
+//! worst-case impact of shifting.
 //! \tparam T The type of elements stored in the buffer. Must be trivially copyable.
-//! \tparam N The fixed capacity, MUST be a power of 2.
+//! \tparam N The fixed logical capacity.
 //============================================================================
-template <typename T, size_t N> class FixedRingBuffer
+template <typename T, size_t N> class FixedBuffer
 {
-    static_assert(N > 0 && (N & (N - 1)) == 0, "FixedRingBuffer capacity N must be a power of 2");
-    static_assert(std::is_trivially_copyable_v<T>, "FixedRingBuffer requires a trivially copyable type T for memcpy usage");
+    static_assert(N > 0, "FixedBuffer capacity N must be positive");
+    static_assert(std::is_trivially_copyable_v<T>, "FixedBuffer requires a trivially copyable type T for memcpy usage");
 
   public:
     //! \brief A special value indicating "not found" in search operations.
     static constexpr size_t npos = static_cast<size_t>(-1);
 
-    //! \brief Adds an element to the end of the buffer, overwriting the oldest if full.
-    void push_back(const T& value) noexcept { buffer[(head + sz++) & Mask] = value; }
+    //! \brief Adds an element to the end of the buffer.
+    void push_back(const T& value) noexcept { buffer[head + sz++] = value; }
 
     //! \brief Accesses the element at the specified logical index (0 = oldest). Const version.
-    [[nodiscard]] const T& operator[](size_t i) const noexcept { return buffer[(head + i) & Mask]; }
+    [[nodiscard]] const T& operator[](size_t i) const noexcept { return buffer[head + i]; }
 
     //! \brief Accesses the element at the specified logical index (0 = oldest).
-    [[nodiscard]] T& operator[](size_t i) noexcept { return buffer[(head + i) & Mask]; }
+    [[nodiscard]] T& operator[](size_t i) noexcept { return buffer[head + i]; }
 
     //! \brief Removes elements from the beginning (oldest elements).
     void erase_begin(size_t count) noexcept
@@ -64,56 +67,42 @@ template <typename T, size_t N> class FixedRingBuffer
         count = std::min(count, sz);
         if (count == 0) { return; }
 
-        head = (head + count) & Mask;
         sz -= count;
+        head = sz == 0 ? 0 : head + count;
     }
 
     //! \brief Copies data starting from the beginning (oldest element) to a destination buffer.
     //! \param[out] destination Pointer to the destination buffer. Must be large enough (count * sizeof(T) bytes).
     //! \param[in] count The maximum number of *elements* (not bytes) to copy.
-    //! \return The actual number of *elements* copied (min of count and buffer size).
     void copy_out(T* destination, size_t count) const noexcept
     {
         if (destination == nullptr || count == 0 || sz == 0) { return; }
 
         count = std::min(count, sz);
-
-        const size_t first_chunk_elements = std::min(count, N - head);
-        const size_t first_chunk_bytes = first_chunk_elements * sizeof(T);
-
-        memcpy(destination, buffer.get() + head, first_chunk_bytes);
-
-        if (count == first_chunk_elements) { return; }
-
-        const size_t second_chunk_elements = count - first_chunk_elements;
-        const size_t second_chunk_bytes = second_chunk_elements * sizeof(T);
-
-        memcpy(reinterpret_cast<unsigned char*>(destination) + first_chunk_bytes, buffer.get(), second_chunk_bytes);
+        std::memcpy(destination, buffer.get() + head, count * sizeof(T));
     }
 
     //! \brief Writes a block of data to the end of the buffer if space is available.
+    //! When the write would exceed the buffer end, unconsumed data is first
+    //! shifted back to the beginning using memmove.
     //! \param[in] data_ptr Pointer to the source data buffer.
     //! \param[in] count The number of *elements* (of type T) to write.
-    //! \return True if all elements were written (enough space), false otherwise.
+    //! \return The number of elements written, or 0 if there is not enough total space.
     [[nodiscard]] size_t Write(const T* data_ptr, size_t count) noexcept
     {
-        if (data_ptr == nullptr || count > available_space()) { return 0; }
-        if (count == 0) { return 0; }
+        if (data_ptr == nullptr || count > available_space() || count == 0) { return 0; }
 
-        const size_t write_start_idx = (head + sz) & Mask;
-        const size_t first_chunk_elements = std::min(count, N - write_start_idx);
-        const size_t first_chunk_bytes = first_chunk_elements * sizeof(T);
-
-        memcpy(buffer.get() + write_start_idx, data_ptr, first_chunk_bytes);
-
-        if (count != first_chunk_elements)
+        // If the write would go past the end of the buffer, compact unconsumed data to the front.
+        if (head + sz + count > 2*N)
         {
-            const size_t second_chunk_elements = count - first_chunk_elements;
-            const size_t second_chunk_bytes = second_chunk_elements * sizeof(T);
-
-            memcpy(buffer.get(), reinterpret_cast<const unsigned char*>(data_ptr) + first_chunk_bytes, second_chunk_bytes);
+            // The available_space() check above guarantees that count <= N - sz, so sz + count <= N.
+            // Therefore, head + sz + count > 2*N implies head > N, so we can safely use
+            // memcpy rather than memmove here.
+            std::memcpy(buffer.get(), buffer.get() + head, sz * sizeof(T));
+            head = 0;
         }
 
+        std::memcpy(buffer.get() + head + sz, data_ptr, count * sizeof(T));
         sz += count;
         return count;
     }
@@ -121,27 +110,16 @@ template <typename T, size_t N> class FixedRingBuffer
     //! \brief Finds the first occurrence of a byte value in the buffer (logical order).
     //! \return Logical index (0 = oldest) or npos if not found.
     template <typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
-    [[nodiscard]] size_t search_char(unsigned char value, size_t start, size_t count = sz) const noexcept
+    [[nodiscard]] size_t search_char(unsigned char value, size_t start, size_t count = npos) const noexcept
     {
-        count = std::min(count, sz);
+        if (start >= sz) { return npos; }
+        count = std::min(count, sz - start);
         if (count == 0) { return npos; }
 
-        const size_t start_idx = (head + start) & Mask;
-        const size_t first_chunk_elements = std::min(count, N - start_idx);
-        const void* first_ptr = std::memchr(buffer.get() + start_idx, value, first_chunk_elements);
-        if (first_ptr != nullptr)
+        const void* ptr = std::memchr(buffer.get() + head + start, value, count);
+        if (ptr != nullptr)
         {
-            return static_cast<size_t>(static_cast<const unsigned char*>(first_ptr) - (buffer.get() + start_idx) + start);
-        }
-
-        const size_t second_chunk_elements = count - first_chunk_elements;
-        if (second_chunk_elements == 0) { return npos; }
-
-        const void* second_ptr = std::memchr(buffer.get(), value, second_chunk_elements);
-        if (second_ptr != nullptr)
-        {
-            return first_chunk_elements +
-                   static_cast<size_t>(static_cast<const unsigned char*>(second_ptr) - buffer.get()) + start;
+            return static_cast<size_t>(static_cast<const unsigned char*>(ptr) - (buffer.get() + head + start)) + start;
         }
 
         return npos;
@@ -158,24 +136,13 @@ template <typename T, size_t N> class FixedRingBuffer
         if (start >= sz || count == 0) { return init; }
         count = std::min(count, sz - start);
 
-        const size_t start_idx = (head + start) & Mask;
-        const size_t first_chunk = std::min(count, N - start_idx);
-
-        init = std::accumulate(buffer.get() + start_idx,
-                               buffer.get() + start_idx + first_chunk,
-                               init,
-                               op);
-
-        const size_t second_chunk = count - first_chunk;
-        if (second_chunk == 0) { return init; }
-
-        return std::accumulate(buffer.get(),
-                               buffer.get() + second_chunk,
+        return std::accumulate(buffer.get() + head + start,
+                               buffer.get() + head + start + count,
                                init,
                                op);
     }
 
-    //! \brief Safely reads a multi-byte value from the buffer, handling wraparound.
+    //! \brief Reads a multi-byte value from the buffer.
     //! \tparam U The type to read (e.g., uint16_t, uint32_t). Must be trivially copyable.
     //! \param[in] logical_index The starting logical index of the value.
     //! \return The value read from the buffer.
@@ -183,12 +150,10 @@ template <typename T, size_t N> class FixedRingBuffer
     [[nodiscard]] U read_value(size_t logical_index) const noexcept
     {
         static_assert(sizeof(U) % sizeof(T) == 0, "Value size must be a multiple of element size");
-        constexpr size_t num_elements = sizeof(U) / sizeof(T);
-        
+
+        // Note: alignment requirement of U is not guaranteed, so we cannot simply cast to U
         U result;
-        auto* dest = reinterpret_cast<T*>(&result);
-        for (size_t i = 0; i < num_elements; ++i) { dest[i] = (*this)[logical_index + i]; }
-        
+        std::memcpy(&result, buffer.get() + head + logical_index, sizeof(U));
         return result;
     }
 
@@ -204,16 +169,12 @@ template <typename T, size_t N> class FixedRingBuffer
     [[nodiscard]] constexpr bool full() const noexcept { return sz == N; }
 
   private:
-    static constexpr size_t Mask = N - 1;
-
-    std::unique_ptr<T[]> buffer{std::make_unique<T[]>(N)};
+    std::unique_ptr<T[]> buffer{std::make_unique<T[]>(2*N)};
     size_t head = 0;
     size_t sz = 0;
 };
 
 namespace novatel::edie {
-//! \brief FixedRingBuffer specialization for unsigned char with 256KB capacity.
-using UCharFixedRingBuffer = FixedRingBuffer<unsigned char, (1 << 18)>;
+//! \brief FixedBuffer specialization for unsigned char with 256KB capacity.
+using UCharFixedBuffer = FixedBuffer<unsigned char, (1 << 18)>;
 } // namespace novatel::edie
-
-#endif // FIXED_RING_BUFFER_HPP

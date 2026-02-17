@@ -36,7 +36,7 @@
 #include <vector>
 
 #include "novatel_edie/common/crc32.hpp"
-#include "novatel_edie/common/fixed_ring_buffer.hpp"
+#include "novatel_edie/common/fixed_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/framer.hpp"
@@ -64,7 +64,7 @@ struct FramerEntry
 class FramerManager
 {
   public:
-    using FramerFactory = std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>, MetaDataBase&)>;
+    using FramerFactory = std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedBuffer>, MetaDataBase&)>;
 
     //----------------------------------------------------------------------------
     //! \brief Construct a FramerManager with specified framers.
@@ -88,7 +88,7 @@ class FramerManager
     //! metadata for the specified framer type.
     //----------------------------------------------------------------------------
     static void RegisterFramer(const std::string& framerName_,
-                               std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)> framerFactory_,
+                               std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedBuffer>)> framerFactory_,
                                std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_);
 
     //----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ class FramerManager
     //
     //! \return Shared pointer to the internal fixed ring buffer object.
     //---------------------------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<UCharFixedRingBuffer> GetFixedRingBuffer() const { return pclMyFixedRingBuffer; }
+    [[nodiscard]] std::shared_ptr<UCharFixedBuffer> GetFixedRingBuffer() const { return pclMyFixedRingBuffer; }
 
     //----------------------------------------------------------------------------
     //! \brief A destructor for the FramerManager class.
@@ -218,7 +218,7 @@ class FramerManager
     //! \return A map from framer names to their associated factory functions.
     //----------------------------------------------------------------------------
     static auto GetFramerFactories()
-        -> std::unordered_map<std::uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
+        -> std::unordered_map<std::uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedBuffer>)>,
                                                        std::function<std::unique_ptr<MetaDataBase>()>>>&;
 
   protected:
@@ -234,7 +234,7 @@ class FramerManager
     MetaDataBase stMyMetaData;
 
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    std::shared_ptr<UCharFixedRingBuffer> pclMyFixedRingBuffer;
+    std::shared_ptr<UCharFixedBuffer> pclMyFixedRingBuffer;
 
     void HandleUnknownBytes(unsigned char* pucBuffer_, size_t uiUnknownBytes_) const;
 

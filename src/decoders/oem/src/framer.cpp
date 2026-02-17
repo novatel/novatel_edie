@@ -41,7 +41,7 @@ REGISTER_FRAMER(OEM, oem::Framer, MetaDataStruct)
 Framer::Framer() : FramerBase("novatel_framer") {}
 
 // -------------------------------------------------------------------------------------------------------
-Framer::Framer(std::shared_ptr<UCharFixedRingBuffer> ringBuffer) : FramerBase("novatel_framer", ringBuffer)
+Framer::Framer(std::shared_ptr<UCharFixedBuffer> ringBuffer) : FramerBase("novatel_framer", ringBuffer)
 {
     pclMyLogger->info("Framer initialized");
 }

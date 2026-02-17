@@ -100,7 +100,7 @@ class Framer : public FramerBase
     //! \param [in] ringBuffer a shared pointer to the framer manager's fixed ring
     //! buffer.
     //----------------------------------------------------------------------------
-    Framer(std::shared_ptr<UCharFixedRingBuffer> ringBuffer);
+    Framer(std::shared_ptr<UCharFixedBuffer> ringBuffer);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
