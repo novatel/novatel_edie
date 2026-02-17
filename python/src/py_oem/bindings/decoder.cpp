@@ -4,7 +4,7 @@
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_common/message_db_singleton.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_oem/init_bindings.hpp"
 #include "py_oem/py_message_objects.hpp"
@@ -39,7 +39,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
         .def(
             "__init__",
             [](py_oem::PyDecoder* self, py_common::PyMessageDatabaseCore::Ptr message_db) {
-                if (!message_db) { message_db = MessageDbSingleton::get(); }
+                if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); }
                 new (self) py_oem::PyDecoder(message_db);
             },
             nb::arg("message_db") = nb::none(),

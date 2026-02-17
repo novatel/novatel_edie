@@ -14,6 +14,7 @@ using namespace novatel::edie;
 
 PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore()
 {
+    ResolveBaseType();
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
@@ -22,18 +23,21 @@ PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(std::vec
                                                                         std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
     : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
 {
+    ResolveBaseType();
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
 
 PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
 {
+    ResolveBaseType();
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
 
 PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
 {
+    ResolveBaseType();
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
@@ -122,6 +126,8 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<
     }
 }
 
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::ResolveBaseType() { base_type_ = GetMessageFamilyType(pDbMetadata->messageFamily); }
+
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::UpdatePythonMessageTypes()
 {
     // clear existing definitions
@@ -145,9 +151,8 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const 
     {
         // remove existing message type if it exists to ensure clean overwrite
         RemoveMessageType(message_def->logID);
-
         // specify the python superclass for the message type
-        nb::tuple message_type_tuple = nb::make_tuple(GetBasePythonType(message_def->messageStyle));
+        nb::tuple message_type_tuple = nb::make_tuple(base_type_);
         uint32_t crc = message_def->latestMessageCrc;
         nb::object msg_type_def = type_constructor(message_def->name, message_type_tuple, type_dict);
         messages_by_name[message_def->name] = PyMessageType(msg_type_def, crc);
@@ -181,15 +186,15 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveMessageType(uint32_
     }
 }
 
-PYCOMMON_EXPORT std::unordered_map<std::string, std::function<nb::handle()>>& py_common::GetBasePythonTypes()
+PYCOMMON_EXPORT std::unordered_map<std::string, std::function<nb::handle()>>& py_common::GetMessageFamilyTypes()
 {
     static std::unordered_map<std::string, std::function<nb::handle()>> nameToTypeGetter;
     return nameToTypeGetter;
 }
 
-PYCOMMON_EXPORT nb::handle py_common::GetBasePythonType(const std::string& message_style)
+PYCOMMON_EXPORT nb::handle py_common::GetMessageFamilyType(const std::string& message_family)
 {
-    std::unordered_map<std::string, std::function<nb::handle()>>& typeGetters = GetBasePythonTypes();
-    std::function<nb::handle()> typeGetter = typeGetters.at(message_style);
+    std::unordered_map<std::string, std::function<nb::handle()>>& typeGetters = GetMessageFamilyTypes();
+    std::function<nb::handle()> typeGetter = typeGetters.at(message_family);
     return typeGetter();
 }

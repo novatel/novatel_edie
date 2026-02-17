@@ -1,7 +1,7 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 
 #include "py_common/bindings_core.hpp"
-#include "py_common/message_db_singleton.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/pystream.hpp"
 #include "py_oem/file_parser.hpp"
@@ -82,7 +82,7 @@ void py_oem::init_novatel_file_parser(nb::module_& m)
         .def(
             "__init__",
             [](py_oem::PyFileParser* self, const std::filesystem::path& file_path, py_common::PyMessageDatabaseCore::Ptr message_db) {
-                if (!message_db) { message_db = MessageDbSingleton::get(); }
+                if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); }
                 new (self) py_oem::PyFileParser(file_path, message_db);
             },
             "file_path"_a, nb::arg("message_db") = nb::none(),

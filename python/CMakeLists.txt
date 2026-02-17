@@ -66,11 +66,9 @@ add_library(common_bindings SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/field_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/internal/logger_tester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_database.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_db_singleton.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/unknown_bytes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/framer_manager.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_db_singleton.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/field_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_database.cpp
 )
@@ -93,6 +91,7 @@ set_target_properties(common_bindings PROPERTIES
 
 add_library(oem_bindings MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/implementations/message_database.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/implementations/message_db_singleton.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/init_bindings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/commander.cpp

@@ -10,8 +10,8 @@ namespace nb = nanobind;
 
 namespace novatel::edie::py_common {
 
-std::unordered_map<std::string, std::function<nb::handle()>>& GetBasePythonTypes();
-nb::handle GetBasePythonType(const std::string& message_style);
+std::unordered_map<std::string, std::function<nb::handle()>>& GetMessageFamilyTypes();
+nb::handle GetMessageFamilyType(const std::string& message_family);
 
 struct PyMessageType
 {
@@ -85,9 +85,11 @@ class PyMessageDatabaseCore : public MessageDatabase
     //! These classes are stored by name in the messages_by_name map.
     //-----------------------------------------------------------------------
     void UpdatePythonMessageTypes();
+    void ResolveBaseType();
     void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message, nb::handle type_cons,
                       nb::handle type_tuple, nb::handle type_dict);
 
+    nb::handle base_type_;
     std::unordered_map<std::string, PyMessageType> messages_by_name{};
     std::unordered_map<std::string, nb::object> fields_by_name{};
     std::unordered_map<std::string, std::vector<std::string>> fields_by_message{};

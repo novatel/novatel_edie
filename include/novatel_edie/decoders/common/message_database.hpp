@@ -394,6 +394,7 @@ struct MessageDefinition
 //============================================================================
 class MessageDatabase
 {
+  protected:
     DbMetadata::ConstPtr pDbMetadata;
     std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;

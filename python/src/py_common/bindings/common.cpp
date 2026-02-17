@@ -3,7 +3,6 @@
 #include "novatel_edie/version.h"
 #include "py_common/bindings_core.hpp"
 #include "py_common/init_bindings.hpp"
-#include "py_common/message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -105,18 +104,6 @@ void py_common::init_common(nb::module_& m)
                 if (message_name.length() > MAX_ASCII_MESSAGE_LENGTH) { throw std::runtime_error("Message name is too long"); }
                 self.messageName = message_name;
             })
-        .def_prop_ro("message_description",
-                     [](const MetaDataBase& self) {
-                         auto msg_def = MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
-                         return msg_def ? nb::cast(msg_def->description) : nb::none();
-                     })
-        .def_prop_ro("message_fields",
-                     [](const MetaDataBase& self) {
-                         auto msg_def = MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
-                         if (!msg_def) { return nb::none(); }
-                         auto fields_it = msg_def->fields.find(self.uiMessageCrc);
-                         return fields_it == msg_def->fields.end() ? nb::none() : nb::cast(fields_it->second);
-                     })
         .def("__repr__", [](const nb::handle self) {
             auto& metadata = nb::cast<MetaDataBase&>(self);
             return nb::str("MetaData(message_name={!r}, format={!r}, measurement_source={!r}, time_status={!r}, response={!r}, "
