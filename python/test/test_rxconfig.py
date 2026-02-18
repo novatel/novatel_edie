@@ -14,8 +14,8 @@
 
 import novatel_edie as ne
 import novatel_edie.oem as oem
-from novatel_edie.oem import messages as ne_msgs
-from novatel_edie.oem import enums as ne_enums
+from novatel_edie.oem import messages as oem_msgs
+from novatel_edie.oem import enums as oem_enums
 from novatel_edie import STATUS, ENCODE_FORMAT
 import pytest
 
@@ -30,11 +30,11 @@ def test_rxconfig_decoding(decoder: oem.Decoder):
     raw_message = b"#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*ca0f5c51*71be1427\r\n"
 
     # Act
-    decoded_message: ne_msgs.RXCONFIG = decoder.decode(raw_message)
+    decoded_message: oem_msgs.RXCONFIG = decoder.decode(raw_message)
     decoded_message_data = bytes(decoded_message.embedded_message_data)
-    decoded_embedded_message: ne_msgs.INTERFACEMODE = decoder.decode(decoded_message_data)
+    decoded_embedded_message: oem_msgs.INTERFACEMODE = decoder.decode(decoded_message_data)
 
     # Assert
     assert decoded_embedded_message.name == "INTERFACEMODE"
-    assert decoded_embedded_message.port == ne_enums.CommPort.COM1
-    assert decoded_embedded_message.responses == ne_enums.OnOff.ON
+    assert decoded_embedded_message.port == oem_enums.CommPort.COM1
+    assert decoded_embedded_message.responses == oem_enums.OnOff.ON

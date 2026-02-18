@@ -35,7 +35,7 @@ from binascii import hexlify
 import novatel_edie as ne
 import novatel_edie.oem as oem
 from novatel_edie import HEADER_FORMAT, ENCODE_FORMAT, CPP_PRETTY_VERSION
-import novatel_edie.oem.messages as ne_msgs
+import novatel_edie.oem.messages as oem_msgs
 
 from common_setup import setup_example_logging, handle_args
 
@@ -92,7 +92,7 @@ def main():
                     message = decoder.decode_payload(payload, header, meta)
 
                     # Get info from the log.
-                    if isinstance(message, ne_msgs.RANGE):
+                    if isinstance(message, oem_msgs.RANGE):
                         obs = message.obs
                         for ob in obs:
                             value = ob.psr

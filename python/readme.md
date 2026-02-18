@@ -40,8 +40,8 @@ All code in this readme assumes that the following import statement appears at t
 ```python
 import novatel_edie as ne
 import novatel_edie.oem as oem
-import novatel_edie.oem.messages as ne_msgs
-import novatel_edie.oem.enums as ne_enums
+import novatel_edie.oem.messages as oem_msgs
+import novatel_edie.oem.enums as oem_enums
 ```
 
 ### Core Functionality Breakdown
@@ -124,7 +124,7 @@ for msg in parser:
     elif isinstance(msg, oem.UnknownMessage):
         print(f"No definition was found for message with id: {msg.header.id}")
     elif isinstance(msg, oem.Message):
-        if isinstance(msg, ne_msgs.BESTPOS):    # use this instead of 'msg.name==...' for better type-hints
+        if isinstance(msg, oem_msgs.BESTPOS):    # use this instead of 'msg.name==...' for better type-hints
             print(f"Estimated position: (lat={msg.latitude}, long={msg.longitude})")
         else:
             print(f"Message with type: {msg.name}")
@@ -205,7 +205,7 @@ bestpos_filter.message_names_excluded = False    # Set filter to be inclusive
 parser = oem.Parser()
 parser.filter = bestpos_filter
 for bestpos_msg in parser:
-    if isinstance(msg, ne_msgs.BESTPOS):    # still worth doing to enable type-hinting in IDE
+    if isinstance(msg, oem_msgs.BESTPOS):    # still worth doing to enable type-hinting in IDE
         ...
 ```
 
@@ -448,7 +448,7 @@ default_db_parser = FileParser("file_name")
 custom_db_parser = FileParser("file_name", message_db=custom_db)
 
 for msg in default_db_parser:
-    if isinstance(msgs.BESTPOS):        # Correct
+    if isinstance(oem_msgs.BESTPOS):        # Correct
         print(msg)
     if isinstance(custom_bestpos_type): # DOES NOT WORK!
         print(msg)
@@ -456,7 +456,7 @@ for msg in default_db_parser:
 for msg in custom_db_parser:
     if isinstance(custom_bestpos_type): # Correct
         print(msg)
-    if isinstance(msgs.BESTPOS):        # DOES NOT WORK!
+    if isinstance(oem_msgs.BESTPOS):        # DOES NOT WORK!
         print(msg)
 ```
 

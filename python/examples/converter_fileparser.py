@@ -34,7 +34,7 @@ import timeit
 
 from novatel_edie import UnknownBytes
 import novatel_edie.oem as oem
-import novatel_edie.oem.messages as ne_msgs
+import novatel_edie.oem.messages as oem_msgs
 
 from common_setup import setup_example_logging, handle_args
 
@@ -70,11 +70,11 @@ def main():
             dict_msg = message.to_dict()
             messages += 1
             # Handle BESTPOS messages
-            if isinstance(message, ne_msgs.BESTPOS):
+            if isinstance(message, oem_msgs.BESTPOS):
                 # Access specific fields
                 lat = message.latitude
                 lon = message.longitude
-            elif isinstance(message, ne_msgs.RANGE):
+            elif isinstance(message, oem_msgs.RANGE):
                 pass
                 msgs.append(message.obs)
                 if len(msgs) >= 10000:

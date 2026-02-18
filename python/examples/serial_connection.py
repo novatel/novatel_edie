@@ -39,7 +39,7 @@ from threading import Event
 
 import novatel_edie as ne
 import novatel_edie.oem as oem
-import novatel_edie.oem.messages as ne_msgs
+import novatel_edie.oem.messages as oem_msgs
 
 from common_setup import setup_example_logging
 
@@ -188,7 +188,7 @@ def main():
                 continue
 
             # Process the parsed message
-            if isinstance(message, ne_msgs.BESTPOS):
+            if isinstance(message, oem_msgs.BESTPOS):
                 print(f'BESTPOS -> Lat: {message.latitude}, Lon: {message.longitude}')
                 messages += 1
             elif isinstance(message, oem.UnknownMessage):
