@@ -188,12 +188,28 @@ void py_common::init_common_message_database(nb::module_& m)
         .def("get_enum_def_by_name", &py_common::PyMessageDatabaseCore::GetEnumDefName, "enum_name"_a)
         .def(
             "get_msg_type",
-            [](py_common::PyMessageDatabaseCore& self, std::string name) { return self.GetMessagesByNameDict().at(name).python_type; }, "name"_a)
-        .def(
-            "get_enum_type_by_name", [](py_common::PyMessageDatabaseCore& self, std::string name) { return self.GetEnumsByNameDict().at(name); },
+            [](py_common::PyMessageDatabaseCore& self, std::string name) {
+                auto msgIt = self.GetMessagesByNameDict().find(name);
+                if (msgIt == self.GetMessagesByNameDict().end()) { return nb::none(); }
+                return msgIt->second.python_type;
+            },
             "name"_a)
         .def(
-            "get_enum_type_by_id", [](py_common::PyMessageDatabaseCore& self, std::string id) { return self.GetEnumsByIdDict().at(id); }, "id"_a)
+            "get_enum_type_by_name",
+            [](py_common::PyMessageDatabaseCore& self, std::string name) {
+                auto enumIt = self.GetEnumsByNameDict().find(name);
+                if (enumIt == self.GetEnumsByNameDict().end()) { return nb::none(); }
+                return enumIt->second;
+            },
+            "name"_a)
+        .def(
+            "get_enum_type_by_id",
+            [](py_common::PyMessageDatabaseCore& self, std::string id) {
+                auto enumIt = self.GetEnumsByIdDict().find(id);
+                if (enumIt == self.GetEnumsByIdDict().end()) { return nb::none(); }
+                return enumIt->second;
+            },
+            "id"_a)
         .def_prop_rw("message_family", &py_common::PyMessageDatabaseCore::GetMessageFamily, &py_common::PyMessageDatabaseCore::SetMessageFamily)
         .def_prop_ro("is_fixed", &py_common::PyMessageDatabaseCore::IsFixed)
         .def(

@@ -96,15 +96,15 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendEnumerations(const 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveMessage(uint32_t iMsgId_)
 {
     CheckMutable();
-    MessageDatabase::RemoveMessage(iMsgId_);
     RemoveMessageType(iMsgId_);
+    MessageDatabase::RemoveMessage(iMsgId_);
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveEnumeration(std::string strEnumeration_)
 {
     CheckMutable();
-    MessageDatabase::RemoveEnumeration(strEnumeration_);
     RemoveEnumType(strEnumeration_);
+    MessageDatabase::RemoveEnumeration(strEnumeration_);
 }
 
 void cleanString(std::string& str)

@@ -49,7 +49,9 @@ def test_append_messages(json_db: MessageDatabase):
 
     # Assert
     assert new_db.get_msg_def(bestpos_id) == bestpos_def
+    assert new_db.get_msg_type("BESTPOS") is not None
     assert new_db.get_msg_def(range_id) == range_def
+    assert new_db.get_msg_type("RANGE") is not None
 
 def test_remove_message(json_db: MessageDatabase):
     # Arrange
@@ -59,13 +61,16 @@ def test_remove_message(json_db: MessageDatabase):
     range_id = 43
     range_def = json_db.get_msg_def(range_id)
     new_db.append_messages([bestpos_def, range_def])
+    new_range_type = new_db.get_msg_type("RANGE")
 
     # Act
     new_db.remove_message(bestpos_id)
 
     # Assert
     assert new_db.get_msg_def(bestpos_id) is None
+    assert new_db.get_msg_type("BESTPOS") is None
     assert new_db.get_msg_def(range_id) == range_def
+    assert new_db.get_msg_type("RANGE") is new_range_type
 
 
 def test_builtin_database_is_fixed(json_db: MessageDatabase):
@@ -88,7 +93,7 @@ def test_builtin_database_is_fixed(json_db: MessageDatabase):
         json_db.remove_enumeration("Datum")
 
     with pytest.raises(FailureException, match="fixed"):
-        json_db.message_family = "TEST"
+        json_db.message_family = "OEM"
 
 
 def test_database_fixed_after_passing_to_decoder():
