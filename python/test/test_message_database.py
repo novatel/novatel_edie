@@ -73,7 +73,7 @@ def test_remove_message(json_db: MessageDatabase):
     assert new_db.get_msg_type("RANGE") is new_range_type
 
 def test_merge(json_db: MessageDatabase):
-    """The built-in database should be fixed and reject mutations."""
+    """Tests that one databases messages can be merged into another."""
     # Arrange
     oem_minus_bestpos_db = json_db.clone()
     new_db_with_bestpos = MessageDatabase()
