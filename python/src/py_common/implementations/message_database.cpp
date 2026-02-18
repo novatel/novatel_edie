@@ -253,16 +253,16 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveMessageType(uint32_
     }
 }
 
-PYCOMMON_EXPORT std::unordered_map<std::string, std::function<nb::handle()>>& py_common::GetMessageFamilyTypes()
+PYCOMMON_EXPORT std::unordered_map<std::string, nb::handle>& py_common::GetMessageFamilyTypes()
 {
-    static std::unordered_map<std::string, std::function<nb::handle()>> nameToTypeGetter;
-    return nameToTypeGetter;
+    static std::unordered_map<std::string, nb::handle> nameToType;
+    return nameToType;
 }
 
 PYCOMMON_EXPORT nb::handle py_common::GetMessageFamilyType(const std::string& message_family)
 {
-    std::unordered_map<std::string, std::function<nb::handle()>>& typeGetters = GetMessageFamilyTypes();
+    std::unordered_map<std::string, nb::handle>& typeGetters = GetMessageFamilyTypes();
     auto typeGetterIt = typeGetters.find(message_family);
     if (typeGetterIt == typeGetters.end()) { return nb::handle(); }
-    else { return typeGetterIt->second(); }
+    else { return typeGetterIt->second; }
 }

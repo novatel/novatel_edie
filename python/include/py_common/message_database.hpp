@@ -10,7 +10,7 @@ namespace nb = nanobind;
 
 namespace novatel::edie::py_common {
 
-std::unordered_map<std::string, std::function<nb::handle()>>& GetMessageFamilyTypes();
+std::unordered_map<std::string, nb::handle>& GetMessageFamilyTypes();
 nb::handle GetMessageFamilyType(const std::string& message_family);
 
 struct PyMessageType
