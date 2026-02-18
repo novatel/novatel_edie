@@ -8,6 +8,7 @@ from .oem_bindings import (
     Oem4BinaryHeader, Oem4BinaryShortHeader, MetaData,
     Framer, Filter, Decoder, Commander, Parser, FileParser,
     RangeDecompressor, RxConfigHandler,
+    get_builtin_database,
     _internal as _novatel_internal
 )
 
