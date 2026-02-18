@@ -192,5 +192,14 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(
             "get_enum_type_by_name", [](py_common::PyMessageDatabaseCore& self, std::string name) { return self.GetEnumsByNameDict().at(name); },
             "name"_a)
-        .def("get_enum_type_by_id", [](py_common::PyMessageDatabaseCore& self, std::string id) { return self.GetEnumsByIdDict().at(id); }, "id"_a);
+        .def(
+            "get_enum_type_by_id", [](py_common::PyMessageDatabaseCore& self, std::string id) { return self.GetEnumsByIdDict().at(id); }, "id"_a)
+        .def_prop_rw("message_family", &py_common::PyMessageDatabaseCore::GetMessageFamily, &py_common::PyMessageDatabaseCore::SetMessageFamily)
+        .def_prop_ro("is_fixed", &py_common::PyMessageDatabaseCore::IsFixed)
+        .def(
+            "clone",
+            [](const py_common::PyMessageDatabaseCore& self) {
+                return std::make_shared<py_common::PyMessageDatabaseCore>(static_cast<const MessageDatabase&>(self));
+            },
+            "Create an unfixed copy of this database.");
 }

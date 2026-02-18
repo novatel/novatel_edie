@@ -12,16 +12,7 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore()
-{
-    ResolveBaseType();
-    UpdatePythonEnums();
-    UpdatePythonMessageTypes();
-}
-
-PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_,
-                                                                        std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_)
-    : MessageDatabase(std::move(vMessageDefinitions_), std::move(vEnumDefinitions_))
+PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore() : MessageDatabase()
 {
     ResolveBaseType();
     UpdatePythonEnums();
@@ -54,6 +45,68 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::GenerateEnumMappings()
     UpdatePythonEnums();
 }
 
+std::string py_common::PyMessageDatabaseCore::GetMessageFamily() const { return pDbMetadata ? pDbMetadata->messageFamily : ""; }
+
+void py_common::PyMessageDatabaseCore::SetMessageFamily(const std::string& messageFamily)
+{
+    CheckMutable();
+    auto newMetadata = std::make_shared<DbMetadata>();
+    if (pDbMetadata) { *newMetadata = *pDbMetadata; }
+    newMetadata->messageFamily = messageFamily;
+    pDbMetadata = newMetadata;
+    ResolveBaseType();
+    UpdatePythonMessageTypes();
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::CheckMutable() const
+{
+    if (fixed)
+    {
+        throw FailureException("The contents of this database have been fixed. It is likely in use by another class which relies on it remaining "
+                               "consistent.\nUse the \".clone()\" method to edit a copy of it.");
+    }
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::SetFixed() { fixed = true; }
+
+PYCOMMON_EXPORT bool py_common::PyMessageDatabaseCore::IsFixed() const { return fixed; }
+
+void py_common::PyMessageDatabaseCore::Merge(const PyMessageDatabaseCore::Ptr other_)
+{
+    CheckMutable();
+    MessageDatabase::Merge(*other_.get());
+    UpdatePythonEnums();
+    UpdatePythonMessageTypes();
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
+{
+    CheckMutable();
+    MessageDatabase::AppendMessages(vMessageDefinitions_);
+    AppendMessageTypes(vMessageDefinitions_);
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
+{
+    CheckMutable();
+    MessageDatabase::AppendEnumerations(vEnumDefinitions_);
+    AppendEnumTypes(vEnumDefinitions_);
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveMessage(uint32_t iMsgId_)
+{
+    CheckMutable();
+    MessageDatabase::RemoveMessage(iMsgId_);
+    RemoveMessageType(iMsgId_);
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveEnumeration(std::string strEnumeration_)
+{
+    CheckMutable();
+    MessageDatabase::RemoveEnumeration(strEnumeration_);
+    RemoveEnumType(strEnumeration_);
+}
+
 void cleanString(std::string& str)
 {
     // Remove special characters from the string to make it a valid python attribute name
@@ -73,6 +126,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::UpdatePythonEnums()
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendEnumTypes(const std::vector<EnumDefinition::ConstPtr>& enum_defs)
 {
+    CheckMutable();
     nb::object IntEnum = nb::module_::import_("enum").attr("IntEnum");
     for (const auto& enum_def : enum_defs)
     {
@@ -97,6 +151,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendEnumTypes(const std
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveEnumType(const std::string& enum_name)
 {
+    CheckMutable();
     // get the enum definition to retrieve the name
     EnumDefinition::ConstPtr enum_def = GetEnumDefName(enum_name);
     if (enum_def)
@@ -126,7 +181,17 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<
     }
 }
 
-PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::ResolveBaseType() { base_type_ = GetMessageFamilyType(pDbMetadata->messageFamily); }
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::ResolveBaseType()
+{
+    if (!pDbMetadata)
+    {
+        auto dbMetadata = std::make_shared<DbMetadata>();
+        dbMetadata->messageFamily = "";
+        pDbMetadata = dbMetadata;
+    }
+    base_message_type = GetMessageFamilyType(pDbMetadata->messageFamily);
+    if (!base_message_type.is_valid()) { throw FailureException(pDbMetadata->messageFamily + " is not a recognized message type."); }
+}
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::UpdatePythonMessageTypes()
 {
@@ -139,6 +204,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::UpdatePythonMessageTypes(
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs)
 {
+    CheckMutable();
     // get type constructor
     nb::object type_constructor = nb::module_::import_("builtins").attr("type");
     // specify the python superclass for the message body types
@@ -152,7 +218,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const 
         // remove existing message type if it exists to ensure clean overwrite
         RemoveMessageType(message_def->logID);
         // specify the python superclass for the message type
-        nb::tuple message_type_tuple = nb::make_tuple(base_type_);
+        nb::tuple message_type_tuple = nb::make_tuple(base_message_type);
         uint32_t crc = message_def->latestMessageCrc;
         nb::object msg_type_def = type_constructor(message_def->name, message_type_tuple, type_dict);
         messages_by_name[message_def->name] = PyMessageType(msg_type_def, crc);
@@ -163,6 +229,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const 
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveMessageType(uint32_t message_id)
 {
+    CheckMutable();
     // get the message definition to retrieve the name
     MessageDefinition::ConstPtr message_def = GetMsgDef(message_id);
     if (!message_def) { return; }
@@ -195,6 +262,7 @@ PYCOMMON_EXPORT std::unordered_map<std::string, std::function<nb::handle()>>& py
 PYCOMMON_EXPORT nb::handle py_common::GetMessageFamilyType(const std::string& message_family)
 {
     std::unordered_map<std::string, std::function<nb::handle()>>& typeGetters = GetMessageFamilyTypes();
-    std::function<nb::handle()> typeGetter = typeGetters.at(message_family);
-    return typeGetter();
+    auto typeGetterIt = typeGetters.find(message_family);
+    if (typeGetterIt == typeGetters.end()) { return nb::handle(); }
+    else { return typeGetterIt->second(); }
 }

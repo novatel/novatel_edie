@@ -26,6 +26,7 @@ py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
     {
         // If the package does not exist, return an empty database
         json_db = std::make_shared<py_common::PyMessageDatabaseCore>(MessageDatabase());
+        json_db->SetFixed();
         return json_db;
     }
 
@@ -35,6 +36,7 @@ py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
     {
         // Return an empty database if the package is empty
         json_db = std::make_shared<py_common::PyMessageDatabaseCore>(MessageDatabase());
+        json_db->SetFixed();
         return json_db;
     }
     nb::object novatel_edie_path = os_path.attr("dirname")(module_spec.attr("origin"));
@@ -44,10 +46,12 @@ py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
     if (!db_exists)
     {
         json_db = std::make_shared<py_common::PyMessageDatabaseCore>(MessageDatabase());
+        json_db->SetFixed();
         return json_db;
     }
     // If the database file exists, load it
     std::string default_json_db_path = nb::cast<std::string>(db_path);
     json_db = std::make_shared<py_common::PyMessageDatabaseCore>(*LoadJsonDbFile(default_json_db_path));
+    json_db->SetFixed();
     return json_db;
 }

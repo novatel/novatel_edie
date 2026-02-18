@@ -1,7 +1,6 @@
 #pragma once
 
 #include "novatel_edie/decoders/common/message_database.hpp"
-
 #include "py_common/message_database.hpp"
 
 namespace novatel::edie::py_common {
@@ -20,13 +19,12 @@ class MessageDbSingleton
   public:
     MessageDbSingleton() = delete;
 
-
     //----------------------------------------------------------------------------
     //! \brief Method to get the MessageDbSingleton.
     //!
     //! If the instance does not yet exist, it will be created and returned.
     //----------------------------------------------------------------------------
-    [[nodiscard]] static py_common::PyMessageDatabaseCore::Ptr& get();
+    [[nodiscard]] static py_common::PyMessageDatabaseCore::Ptr get();
 };
 
-} // namespace novatel::edie
+} // namespace novatel::edie::py_common

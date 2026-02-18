@@ -22,7 +22,10 @@
 #
 ################################################################################=
 
-from novatel_edie import MessageDatabase
+import pytest
+
+from novatel_edie import MessageDatabase, FailureException
+from novatel_edie.oem import Decoder
 from novatel_edie.oem.enums import Datum
 
 def test_message_db_enums(json_db):
@@ -63,3 +66,51 @@ def test_remove_message(json_db: MessageDatabase):
     # Assert
     assert new_db.get_msg_def(bestpos_id) is None
     assert new_db.get_msg_def(range_id) == range_def
+
+
+def test_builtin_database_is_fixed(json_db: MessageDatabase):
+    """The built-in database should be fixed and reject mutations."""
+    bestpos_def = json_db.get_msg_def(42)
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.merge(MessageDatabase())
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.append_messages([bestpos_def])
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.append_enumerations([])
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.remove_message(42)
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.remove_enumeration("Datum")
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.message_family = "TEST"
+
+
+def test_database_fixed_after_passing_to_decoder():
+    """A database passed to a Decoder should become fixed."""
+    db = MessageDatabase()
+    assert not db.is_fixed
+    Decoder(db)
+    assert db.is_fixed
+
+    with pytest.raises(FailureException, match="fixed"):
+        db.append_messages([])
+
+    with pytest.raises(FailureException, match="fixed"):
+        db.merge(MessageDatabase())
+
+
+def test_clone_unfixes_database(json_db: MessageDatabase):
+    """Cloning a fixed database should produce an unfixed copy."""
+    cloned = json_db.clone()
+    assert not cloned.is_fixed
+    # Should not raise
+    cloned.remove_message(42)
+    assert cloned.get_msg_def(42) is None
+    # Original should be unaffected
+    assert json_db.get_msg_def(42) is not None

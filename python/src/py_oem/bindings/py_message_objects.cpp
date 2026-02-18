@@ -322,6 +322,7 @@ void py_oem::init_message_objects(nb::module_& m)
     auto& familyTypes = py_common::GetMessageFamilyTypes();
     std::function<nb::handle()> typeGetter = []() { return nb::type<py_oem::PyMessage>(); };
     familyTypes["OEM"] = typeGetter;
+    familyTypes[""] = typeGetter; // Use as the default
 
     nb::class_<py_oem::PyResponse>(m, "Response")
         .def("encode", &py_oem::PyResponse::encode)
