@@ -33,7 +33,8 @@ import logging
 import timeit
 
 import novatel_edie as ne
-import novatel_edie.messages as ne_msgs
+import novatel_edie.oem as oem
+import novatel_edie.oem.messages as oem_msgs
 
 from common_setup import setup_example_logging, handle_args
 
@@ -48,7 +49,7 @@ def main():
     input_file, encode_format = handle_args(logger)
 
     # Create a Parser
-    parser = ne.Parser()
+    parser = oem.Parser()
 
     # Iterate through the messages
     messages = 0
@@ -61,7 +62,7 @@ def main():
                     f'Wrote {written_bytes} bytes, expected {len(read_data)} bytes.')
             for message in parser:
                 # Handle messages that can be fully decoded
-                if isinstance(message, ne.Message):
+                if isinstance(message, oem.Message):
                     # Encode the message into different formats
                     encoded_msg = message.encode(encode_format)
                     ascii_msg = message.to_ascii()
@@ -69,12 +70,12 @@ def main():
                     dict_msg = message.to_dict()
                     messages += 1
                     # Handle BESTPOS messages
-                    if isinstance(message, ne_msgs.BESTPOS):
+                    if isinstance(message, oem_msgs.BESTPOS):
                         # Access specific fields
                         lat = message.latitude
                         lon = message.longitude
                 # Handle messages that did not match any known definitions
-                elif isinstance(message, ne.UnknownMessage):
+                elif isinstance(message, oem.UnknownMessage):
                     unknown_id = message.header.message_id
                     payload = message.payload
                 # Handle bytes that could not be parsed into a message

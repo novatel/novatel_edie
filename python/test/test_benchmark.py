@@ -31,11 +31,9 @@
 import timeit
 
 import novatel_edie as ne
+import novatel_edie.oem as oem
 from novatel_edie import STATUS, ENCODE_FORMAT
 import pytest
-
-# -------------------------------------------------------------------------------------------------------
-# Decode/Encode Benchmark Unit Tests
 # -------------------------------------------------------------------------------------------------------
 
 max_count = 1000
@@ -43,10 +41,10 @@ max_count = 1000
 
 class Benchmarker:
     def __init__(self):
-        self.decoder = ne.Decoder()
+        self.decoder = oem.Decoder()
 
     def run(self, log, encode_format):
-        meta_data = ne.MetaData()
+        meta_data = oem.MetaData()
         failed_once = False
         count = 0
         start = timeit.default_timer()

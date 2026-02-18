@@ -1,4 +1,5 @@
 import novatel_edie as ne
+import novatel_edie.oem as oem
 import pytest
 from novatel_edie import HEADER_FORMAT, STATUS
 
@@ -110,7 +111,7 @@ def test_ascii_byte_by_byte(helper):
         remaining_bytes -= 1
         # We have to process the CRC all at the same time, so we can't test byte-by-byte
         # within it
-        if remaining_bytes >= ne.OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
+        if remaining_bytes >= oem.OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
             helper.test_framer_manager_errors(ne.IncompleteException)
         if not remaining_bytes:
             break
@@ -120,8 +121,8 @@ def test_ascii_byte_by_byte(helper):
 def test_ascii_segmented(helper):
     data = b"#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n"
     bytes_written = 0
-    helper.write_bytes_to_framer_manager(data[bytes_written:][:ne.OEM4_ASCII_SYNC_LENGTH])
-    bytes_written += ne.OEM4_ASCII_SYNC_LENGTH
+    helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_ASCII_SYNC_LENGTH])
+    bytes_written += oem.OEM4_ASCII_SYNC_LENGTH
     helper.test_framer_manager_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer_manager(data[bytes_written:][:70])
@@ -136,8 +137,8 @@ def test_ascii_segmented(helper):
     bytes_written += 1
     helper.test_framer_manager_errors(ne.IncompleteException)
 
-    helper.write_bytes_to_framer_manager(data[bytes_written:][:ne.OEM4_ASCII_CRC_LENGTH + 2])
-    bytes_written += ne.OEM4_ASCII_CRC_LENGTH + 2
+    helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_ASCII_CRC_LENGTH + 2])
+    bytes_written += oem.OEM4_ASCII_CRC_LENGTH + 2
     helper.test_framer_manager(HEADER_FORMAT.ASCII, bytes_written)
 
     assert bytes_written == len(data)
@@ -277,13 +278,13 @@ def test_binary_byte_by_byte(helper):
          0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89])
     log_size = len(data)
     remaining_bytes = log_size
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     while True:
         helper.write_bytes_to_framer_manager(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
-        if expected_meta_data.length == ne.OEM4_BINARY_SYNC_LENGTH:
+        if expected_meta_data.length == oem.OEM4_BINARY_SYNC_LENGTH:
             expected_meta_data.format = HEADER_FORMAT.BINARY
 
         if remaining_bytes > 0:
@@ -304,16 +305,16 @@ def test_binary_segmented(helper):
          0xF1, 0x8F, 0x8F, 0x3F, 0x43, 0x74, 0x3C, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x15, 0x15, 0x15, 0x00, 0x00, 0x02, 0x11, 0x01, 0x55, 0xCE, 0xC3, 0x89])
     bytes_written = 0
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.format = HEADER_FORMAT.BINARY
-    helper.write_bytes_to_framer_manager(data[bytes_written:][:ne.OEM4_BINARY_SYNC_LENGTH])
-    bytes_written += ne.OEM4_BINARY_SYNC_LENGTH
+    helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_BINARY_SYNC_LENGTH])
+    bytes_written += oem.OEM4_BINARY_SYNC_LENGTH
     expected_meta_data.length = bytes_written
     helper.test_framer_manager_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer_manager(
-        data[bytes_written:][:(ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH)])
-    bytes_written += (ne.OEM4_BINARY_HEADER_LENGTH - ne.OEM4_BINARY_SYNC_LENGTH)
+        data[bytes_written:][:(oem.OEM4_BINARY_HEADER_LENGTH - oem.OEM4_BINARY_SYNC_LENGTH)])
+    bytes_written += (oem.OEM4_BINARY_HEADER_LENGTH - oem.OEM4_BINARY_SYNC_LENGTH)
     expected_meta_data.length = bytes_written
     helper.test_framer_manager_errors(ne.IncompleteException)
 
@@ -322,8 +323,8 @@ def test_binary_segmented(helper):
     expected_meta_data.length = bytes_written
     helper.test_framer_manager_errors(ne.IncompleteException)
 
-    helper.write_bytes_to_framer_manager(data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
-    bytes_written += ne.OEM4_BINARY_CRC_LENGTH
+    helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_BINARY_CRC_LENGTH])
+    bytes_written += oem.OEM4_BINARY_CRC_LENGTH
     expected_meta_data.length = bytes_written
     helper.test_framer_manager(HEADER_FORMAT.BINARY, len(data))
 
@@ -389,7 +390,7 @@ def test_short_ascii_byte_by_byte(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     log_size = len(data)
     remaining_bytes = log_size
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.format = HEADER_FORMAT.SHORT_ASCII
     while True:
         helper.write_bytes_to_framer_manager(data[log_size - remaining_bytes:][:1])
@@ -397,7 +398,7 @@ def test_short_ascii_byte_by_byte(helper):
         expected_meta_data.length = log_size - remaining_bytes
         # We have to process the CRC all at the same time, so we can't test byte-by-byte
         # within it
-        if remaining_bytes >= ne.OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
+        if remaining_bytes >= oem.OEM4_ASCII_CRC_LENGTH + 2:  # CRC + CRLF
             helper.test_framer_manager_errors(ne.IncompleteException)
 
         if not remaining_bytes:
@@ -409,8 +410,8 @@ def test_short_ascii_byte_by_byte(helper):
 def test_short_ascii_segmented(helper):
     data = b"%RAWIMUSXA,1692,484620.664;00,11,1692,484620.664389000,00801503,43110635,-817242,-202184,-215194,-41188,-9895*a5db8c7b\r\n"
     bytes_written = 0
-    helper.write_bytes_to_framer_manager(data[bytes_written:][:ne.OEM4_SHORT_ASCII_SYNC_LENGTH])
-    bytes_written += ne.OEM4_SHORT_ASCII_SYNC_LENGTH
+    helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_SHORT_ASCII_SYNC_LENGTH])
+    bytes_written += oem.OEM4_SHORT_ASCII_SYNC_LENGTH
     helper.test_framer_manager_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer_manager(data[bytes_written:][:26])
@@ -425,8 +426,8 @@ def test_short_ascii_segmented(helper):
     bytes_written += 1
     helper.test_framer_manager_errors(ne.IncompleteException)
 
-    helper.write_bytes_to_framer_manager(data[bytes_written:][:ne.OEM4_ASCII_CRC_LENGTH + 2])
-    bytes_written += ne.OEM4_ASCII_CRC_LENGTH + 2
+    helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_ASCII_CRC_LENGTH + 2])
+    bytes_written += oem.OEM4_ASCII_CRC_LENGTH + 2
     helper.test_framer_manager(HEADER_FORMAT.SHORT_ASCII, bytes_written)
 
     assert bytes_written == len(data)
@@ -470,7 +471,7 @@ def test_short_binary_buffer_full(helper):
         [0xAA, 0x44, 0x13, 0x28, 0xB6, 0x05, 0x9C, 0x06, 0x78, 0xB9, 0xE2, 0x1C, 0x00, 0x0B, 0x9C, 0x06, 0x0B, 0x97,
          0x55, 0xA8, 0x32, 0x94, 0x1D, 0x41, 0x03, 0x15, 0x80, 0x00, 0xEB, 0xD0, 0x91, 0x02, 0xA6, 0x87])
     helper.write_bytes_to_framer_manager(data)
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.length = 34
     expected_meta_data.format = HEADER_FORMAT.SHORT_BINARY
     helper.test_framer_manager_errors(ne.BufferFullException, len(data) - 1)
@@ -524,13 +525,13 @@ def test_short_binary_byte_by_byte(helper):
          0xAF, 0xBA])
     log_size = len(data)
     remaining_bytes = log_size
-    expected_meta_data = ne.MetaData()
+    expected_meta_data = oem.MetaData()
     expected_meta_data.format = HEADER_FORMAT.UNKNOWN
     while True:
         helper.write_bytes_to_framer_manager(data[log_size - remaining_bytes:][:1])
         remaining_bytes -= 1
         expected_meta_data.length = log_size - remaining_bytes
-        if expected_meta_data.length == ne.OEM4_SHORT_BINARY_SYNC_LENGTH:
+        if expected_meta_data.length == oem.OEM4_SHORT_BINARY_SYNC_LENGTH:
             expected_meta_data.format = HEADER_FORMAT.SHORT_BINARY
 
         if remaining_bytes > 0:
@@ -549,21 +550,21 @@ def test_short_binary_segmented(helper):
          0x38, 0xEA, 0xFC, 0xFF, 0x66, 0xB7, 0xFC, 0xFF, 0x1C, 0x5F, 0xFF, 0xFF, 0x59, 0xD9, 0xFF, 0xFF, 0x47, 0x5F,
          0xAF, 0xBA])
     bytes_written = 0
-    helper.write_bytes_to_framer_manager(data[bytes_written:][:ne.OEM4_SHORT_BINARY_SYNC_LENGTH])
-    bytes_written += ne.OEM4_SHORT_BINARY_SYNC_LENGTH
+    helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_SHORT_BINARY_SYNC_LENGTH])
+    bytes_written += oem.OEM4_SHORT_BINARY_SYNC_LENGTH
     helper.test_framer_manager_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer_manager(
-        data[bytes_written:][:ne.OEM4_SHORT_BINARY_HEADER_LENGTH - ne.OEM4_SHORT_BINARY_SYNC_LENGTH])
-    bytes_written += ne.OEM4_SHORT_BINARY_HEADER_LENGTH - ne.OEM4_SHORT_BINARY_SYNC_LENGTH
+        data[bytes_written:][:oem.OEM4_SHORT_BINARY_HEADER_LENGTH - oem.OEM4_SHORT_BINARY_SYNC_LENGTH])
+    bytes_written += oem.OEM4_SHORT_BINARY_HEADER_LENGTH - oem.OEM4_SHORT_BINARY_SYNC_LENGTH
     helper.test_framer_manager_errors(ne.IncompleteException)
 
     helper.write_bytes_to_framer_manager(data[bytes_written:][:40])
     bytes_written += 40
     helper.test_framer_manager_errors(ne.IncompleteException)
 
-    helper.write_bytes_to_framer_manager(data[bytes_written:][:ne.OEM4_BINARY_CRC_LENGTH])
-    bytes_written += ne.OEM4_BINARY_CRC_LENGTH
+    helper.write_bytes_to_framer_manager(data[bytes_written:][:oem.OEM4_BINARY_CRC_LENGTH])
+    bytes_written += oem.OEM4_BINARY_CRC_LENGTH
     helper.test_framer_manager(HEADER_FORMAT.SHORT_BINARY, bytes_written)
 
 

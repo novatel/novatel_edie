@@ -23,7 +23,7 @@
 ################################################################################=
 
 from novatel_edie import MessageDatabase
-from novatel_edie.enums import Datum
+from novatel_edie.oem.enums import Datum
 
 def test_message_db_enums(json_db):
     # Act

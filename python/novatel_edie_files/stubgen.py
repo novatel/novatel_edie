@@ -225,8 +225,9 @@ class StubGenerator:
             A string containing type hint stubs for all messages in the database.
         """
         stub_str = 'from typing import Any\n\n'
-        stub_str += 'from novatel_edie import Header, Field, Message, SatelliteId\n'
-        stub_str += 'from novatel_edie.enums import *\n\n'
+        stub_str += 'from novatel_edie import Field, SatelliteId\n'
+        stub_str += 'from novatel_edie.oem import Header, Message\n'
+        stub_str += 'from novatel_edie.oem.enums import *\n\n'
         stub_str += ('class UNKNOWN(Message):\n'
                      '    def __repr__(self) -> str: ...\n\n'
                      '    @property\n'

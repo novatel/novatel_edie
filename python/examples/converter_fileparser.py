@@ -32,8 +32,9 @@
 import logging
 import timeit
 
-import novatel_edie as ne
-import novatel_edie.messages as ne_msgs
+from novatel_edie import UnknownBytes
+import novatel_edie.oem as oem
+import novatel_edie.oem.messages as oem_msgs
 
 from common_setup import setup_example_logging, handle_args
 
@@ -48,10 +49,10 @@ def main():
     input_file, encode_format = handle_args(logger)
 
     # Create a FileParser
-    file_parser = ne.FileParser(input_file)
+    file_parser = oem.FileParser(input_file)
 
     # Setup a custom filter here
-    my_filter = ne.Filter()
+    my_filter = oem.Filter()
     file_parser.filter = my_filter
 
     # Iterate through the messages
@@ -61,7 +62,7 @@ def main():
     observation_list = []
     for message in file_parser:
         # Handle messages that can be fully decoded
-        if isinstance(message, ne.Message):
+        if isinstance(message, oem.Message):
             # Encode the message into different formats
             encoded_msg = message.encode(encode_format)
             ascii_msg = message.to_ascii()
@@ -69,21 +70,21 @@ def main():
             dict_msg = message.to_dict()
             messages += 1
             # Handle BESTPOS messages
-            if isinstance(message, ne_msgs.BESTPOS):
+            if isinstance(message, oem_msgs.BESTPOS):
                 # Access specific fields
                 lat = message.latitude
                 lon = message.longitude
-            elif isinstance(message, ne_msgs.RANGE):
+            elif isinstance(message, oem_msgs.RANGE):
                 pass
                 msgs.append(message.obs)
                 if len(msgs) >= 10000:
                     break
         # Handle messages that did not match any known definitions
-        elif isinstance(message, ne.UnknownMessage):
+        elif isinstance(message, oem.UnknownMessage):
             unknown_id = message.header.message_id
             payload = message.payload
         # Handle bytes that could not be parsed into a message
-        elif isinstance(message, ne.UnknownBytes):
+        elif isinstance(message, UnknownBytes):
             data = message.data
     pass
 

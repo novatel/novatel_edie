@@ -29,13 +29,14 @@
 ################################################################################
 
 import novatel_edie as ne
+import novatel_edie.oem as oem
 import pytest
 from novatel_edie import STATUS, ENCODE_FORMAT
 
 
 @pytest.fixture(scope="function")
 def parser():
-    return ne.Parser()
+    return oem.Parser()
 
 @pytest.fixture(scope="module")
 def test_gps_file(decoders_test_resources):
@@ -44,10 +45,10 @@ def test_gps_file(decoders_test_resources):
 
 @pytest.mark.skip(reason="Slow and redundant")
 def test_parser_instantiation(json_db, json_db_path):
-    parser = ne.Parser()
+    parser = oem.Parser()
     parser.load_json_db(json_db)
-    ne.Parser(json_db_path)
-    ne.Parser(json_db)
+    oem.Parser(json_db_path)
+    oem.Parser(json_db)
 
 
 def test_range_cmp(parser):
@@ -65,12 +66,12 @@ def test_unknown_bytes(parser):
 
 
 def test_parse_file_with_filter(parser, test_gps_file):
-    parser.filter = ne.Filter()
+    parser.filter = oem.Filter()
     msgs = []
     with test_gps_file.open("rb") as f:
         while chunk := f.read(32):
             parser.write(chunk)
-            msgs.extend([msg for msg in parser if isinstance(msg, ne.Message)])
+            msgs.extend([msg for msg in parser if isinstance(msg, oem.Message)])
 
 
     assert len(msgs) == 2
@@ -101,7 +102,7 @@ def test_parse_abbrev_ascii_resp(response_str, context, ignore_responses, parser
 
     # Assert
     for i, msgs in enumerate(msg_sets):
-        responses = [msg for msg in msgs if isinstance(msg, ne.Response)]
+        responses = [msg for msg in msgs if isinstance(msg, oem.Response)]
         try:
             if ignore_responses:
                 assert len(responses) == 0
@@ -112,7 +113,7 @@ def test_parse_abbrev_ascii_resp(response_str, context, ignore_responses, parser
                 f"Failure at permutation {permutations[i]}: {e}") from e
 
 
-def test_write_max_num_bytes(parser: ne.Parser):
+def test_write_max_num_bytes(parser: oem.Parser):
     """Tests that data with length matching available space can be written."""
     # Arrange
     data = b'a' * parser.available_space
@@ -122,7 +123,7 @@ def test_write_max_num_bytes(parser: ne.Parser):
     assert bytes_written == len(data)
 
 
-def test_write_exceeding_max_num_bytes(parser: ne.Parser):
+def test_write_exceeding_max_num_bytes(parser: oem.Parser):
     """Tests that data exceeding available space is not fully written.
 
     Whether data is partially written is not defined in the spec.
@@ -135,7 +136,7 @@ def test_write_exceeding_max_num_bytes(parser: ne.Parser):
     assert bytes_written <= parser.available_space
 
 
-def test_nmea_parsed_as_unknown_bytes(parser: ne.Parser):
+def test_nmea_parsed_as_unknown_bytes(parser: oem.Parser):
     """Tests that unrecognized NMEA sentences are returned as UnknownBytes with NMEA reason."""
     # Arrange
     parser.return_unknown_bytes = True

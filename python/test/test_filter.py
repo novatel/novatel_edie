@@ -29,7 +29,9 @@
 ################################################################################
 
 import novatel_edie as ne
-from novatel_edie import HEADER_FORMAT, STATUS, TIME_STATUS, MEASUREMENT_SOURCE, GpsTime
+import novatel_edie.oem as oem
+from novatel_edie import HEADER_FORMAT, STATUS, TIME_STATUS, MEASUREMENT_SOURCE
+from novatel_edie.oem import GpsTime
 import pytest
 
 # -------------------------------------------------------------------------------------------------------
@@ -38,14 +40,14 @@ import pytest
 
 @pytest.fixture(scope="function")
 def decoder():
-    return ne.Decoder()
+    return oem.Decoder()
 
 @pytest.fixture(scope="function")
 def my_filter():
-    return ne.Filter()
+    return oem.Filter()
 
 def TestFilter(filter, decoder, message):
-   meta_data = ne.MetaData()
+   meta_data = oem.MetaData()
    if isinstance(message, str):
        message = message.encode()
    try:

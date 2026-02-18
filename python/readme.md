@@ -30,16 +30,18 @@ This package uses the nanobind binding library to expose functionality of EDIE t
 
 ### Package Structure
 
-Functionality in `novatel_edie` is split up into three pieces:
-- `novatel_edie`: All core classes and functions. 
-- `novatel_edie.messages`: The default set of messages.
-- `novatel_edie.enums`: The default set of enums which appear in messages.
+Functionality in `novatel_edie` is split up into several pieces:
+- `novatel_edie`: Common classes and functions (e.g. `MessageDatabase`, `ENCODE_FORMAT`, `STATUS`).
+- `novatel_edie.oem`: OEM-specific classes and functions (e.g. `Parser`, `Decoder`, `Filter`).
+- `novatel_edie.oem.messages`: The default set of OEM messages.
+- `novatel_edie.oem.enums`: The default set of enums which appear in OEM messages.
 
 All code in this readme assumes that the following import statement appears at the top of the file:
 ```python
 import novatel_edie as ne
-import novatel_edie.messages as ne_msgs
-import novatel_edie.enums as ne_enums
+import novatel_edie.oem as oem
+import novatel_edie.oem.messages as oem_msgs
+import novatel_edie.oem.enums as oem_enums
 ```
 
 ### Core Functionality Breakdown
@@ -88,7 +90,7 @@ being how data is fed into each one.
 Data is written to a `Parser` as `bytes` via its `write()` method:
 
 ```python
-parser = ne.Parser()
+parser = oem.Parser()
 bytes_written = parser.write(b'message_data')
 ```
 
@@ -97,14 +99,14 @@ This number will be less than the size of the input if the `Parser` lacks space 
 To guarentee that all bytes will be successfully, use the `Parser.available_space` property:
 
 ```python
-parser = ne.Parser()
+parser = oem.Parser()
 bytes_written = parser.write(msg[:parser.available_space])
 ```
 
 A `FileParser` accesses its data from a filepath provided at instantiation:
 
 ```python
-file_parser = ne.FileParser('path/to/log/file')
+file_parser = oem.FileParser('path/to/log/file')
 ```
 
 The simplest way to get information out of either object is by iterating through it.
@@ -119,14 +121,14 @@ You can expect anything returned during iteration to be a `Message`, `Response`,
 for msg in parser:
     if isinstance(msg, ne.UnknownBytes):
         print(f"This set of bytes could not be identified as a message: {msg}")
-    elif isinstance(msg, ne.UnknownMessage):
+    elif isinstance(msg, oem.UnknownMessage):
         print(f"No definition was found for message with id: {msg.header.id}")
-    elif isinstance(msg, ne.Message):
-        if isinstance(msg, ne_msgs.BESTPOS):    # use this instead of 'msg.name==...' for better type-hints
+    elif isinstance(msg, oem.Message):
+        if isinstance(msg, oem_msgs.BESTPOS):    # use this instead of 'msg.name==...' for better type-hints
             print(f"Estimated position: (lat={msg.latitude}, long={msg.longitude})")
         else:
             print(f"Message with type: {msg.name}")
-    elif isinstance(msg, ne.Response):
+    elif isinstance(msg, oem.Response):
         print(f"Response with the following message: {msg.response_string}")
 ```
 
@@ -197,13 +199,13 @@ except Exception:
 Which messages are parsed can be manipulated by attaching a `Filter` to either parser.
 
 ```python
-bestpos_filter = ne.Filter()
+bestpos_filter = oem.Filter()
 bestpos_filter.add_message_name('BESTPOS')      # Filter BESTPOS messages
 bestpos_filter.message_names_excluded = False    # Set filter to be inclusive
-parser = ne.Parser()
+parser = oem.Parser()
 parser.filter = bestpos_filter
 for bestpos_msg in parser:
-    if isinstance(msg, ne_msgs.BESTPOS):    # still worth doing to enable type-hinting in IDE
+    if isinstance(msg, oem_msgs.BESTPOS):    # still worth doing to enable type-hinting in IDE
         ...
 ```
 
@@ -410,11 +412,11 @@ The following are a few strategies to avoid this:
 To decode or encode a message `novatel_edie` needs the definition for it. [This database of novatel OEM message definitions](./../database/database.json) is included within the package and is used as the default source for decoding information.
 
 
-This built-in database is where the message and enum types from `novatel_edie.messages` and `novatel_edie.enums` are sourced from:
+This built-in database is where the message and enum types from `novatel_edie.oem.messages` and `novatel_edie.oem.enums` are sourced from:
 
 ```python
-from novatel_edie.messages import BESTPOS
-from novatel_edie.enums import SolStatus
+from novatel_edie.oem.messages import BESTPOS
+from novatel_edie.oem.enums import SolStatus
 ```
 
 ### Changing the built-in database
@@ -446,7 +448,7 @@ default_db_parser = FileParser("file_name")
 custom_db_parser = FileParser("file_name", message_db=custom_db)
 
 for msg in default_db_parser:
-    if isinstance(msgs.BESTPOS):        # Correct
+    if isinstance(oem_msgs.BESTPOS):        # Correct
         print(msg)
     if isinstance(custom_bestpos_type): # DOES NOT WORK!
         print(msg)
@@ -454,7 +456,7 @@ for msg in default_db_parser:
 for msg in custom_db_parser:
     if isinstance(custom_bestpos_type): # Correct
         print(msg)
-    if isinstance(msgs.BESTPOS):        # DOES NOT WORK!
+    if isinstance(oem_msgs.BESTPOS):        # DOES NOT WORK!
         print(msg)
 ```
 
@@ -481,8 +483,10 @@ is in the python interface files included with the package distribution.
 
 ```tree
 novatel_edie
-├── bindings.pyi (main definitions)
-├── messages.pyi (message definitions)
-├── enums.pyi (enum definitions)
+├── common_bindings.pyi (common definitions)
+├── oem/
+│   ├── oem_bindings.pyi (OEM definitions)
+│   ├── messages.pyi (message definitions)
+│   └── enums.pyi (enum definitions)
 └── ...
 ```
