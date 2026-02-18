@@ -74,9 +74,10 @@ PYCOMMON_EXPORT bool py_common::PyMessageDatabaseCore::IsFixed() const { return 
 void py_common::PyMessageDatabaseCore::Merge(const PyMessageDatabaseCore::Ptr other_)
 {
     CheckMutable();
-    MessageDatabase::Merge(*other_.get());
-    UpdatePythonEnums();
-    UpdatePythonMessageTypes();
+    MessageDatabase::AppendEnumerations(other_->vEnumDefinitions);
+    AppendEnumTypes(other_->vEnumDefinitions);
+    MessageDatabase::AppendMessages(other_->vMessageDefinitions);
+    AppendMessageTypes(other_->vMessageDefinitions);
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
@@ -223,7 +224,10 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const 
         nb::object msg_type_def = type_constructor(message_def->name, message_type_tuple, type_dict);
         messages_by_name[message_def->name] = PyMessageType(msg_type_def, crc);
         // add additional MessageBody types for each field array element within the message definition
-        AddFieldType(message_def->fields.at(crc), message_def->name, message_def->name, type_constructor, field_type_tuple, type_dict);
+
+        auto activeFieldIt = message_def->fields.find(crc);
+        if (activeFieldIt == message_def->fields.end()) { throw NoDefinitionException("No message definition matching latest CRC."); }
+        AddFieldType(activeFieldIt->second, message_def->name, message_def->name, type_constructor, field_type_tuple, type_dict);
     }
 }
 
