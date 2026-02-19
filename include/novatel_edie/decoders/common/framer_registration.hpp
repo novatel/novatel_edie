@@ -45,7 +45,7 @@ using namespace novatel::edie;
     {                                                                                                                                                \
         novatel::edie::FramerManager::RegisterFramer(                                                                                                \
             #FramerName,                                                                                                                             \
-            [](std::shared_ptr<novatel::edie::UCharFixedBuffer> buffer) -> std::unique_ptr<novatel::edie::FramerBase> {                          \
+            [](std::shared_ptr<novatel::edie::UCharFixedBuffer> buffer) -> std::unique_ptr<novatel::edie::FramerBase> {                              \
                 return std::make_unique<FramerClass>(buffer);                                                                                        \
             },                                                                                                                                       \
             []() -> std::unique_ptr<novatel::edie::MetaDataBase> { return std::make_unique<MetaDataClass>(); });                                     \

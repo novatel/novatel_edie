@@ -41,10 +41,7 @@ REGISTER_FRAMER(OEM, oem::Framer, MetaDataStruct)
 Framer::Framer() : FramerBase("novatel_framer") {}
 
 // -------------------------------------------------------------------------------------------------------
-Framer::Framer(std::shared_ptr<UCharFixedBuffer> ringBuffer) : FramerBase("novatel_framer", ringBuffer)
-{
-    pclMyLogger->info("Framer initialized");
-}
+Framer::Framer(std::shared_ptr<UCharFixedBuffer> ringBuffer) : FramerBase("novatel_framer", ringBuffer) { pclMyLogger->info("Framer initialized"); }
 
 // -------------------------------------------------------------------------------------------------------
 bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }

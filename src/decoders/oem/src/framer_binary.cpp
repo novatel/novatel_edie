@@ -24,11 +24,11 @@
 // ! \file framer.cpp
 // ===============================================================================
 
+#include "novatel_edie/decoders/oem/framer_binary.hpp"
+
 #include <charconv>
 
-#include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/decoders/common/framer_registration.hpp"
-#include "novatel_edie/decoders/oem/framer_binary.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -67,35 +67,39 @@ FramerBinary::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBuf
 
     if (uiMyByteCount == 0)
     {
+        // Look for the sync byte pattern in the buffer up to the max message length (or end of buffer)
         size_t uiSyncIndex = 0;
-        do
+        while (uiSyncIndex != UCharFixedBuffer::npos &&
+               ((uiSyncIndex + 1 < uiMaxMessageLength && clInternalFrameBuffer[uiSyncIndex + 1] != OEM4_BINARY_SYNC2) ||
+                (uiSyncIndex + 2 < uiMaxMessageLength && clInternalFrameBuffer[uiSyncIndex + 2] != OEM4_BINARY_SYNC3)))
         {
-            uiSyncIndex = clInternalFrameBuffer.search_char(OEM4_BINARY_SYNC1, uiMyByteCount, uiMaxMessageLength - uiMyByteCount);
+            uiSyncIndex = clInternalFrameBuffer.search_char(OEM4_BINARY_SYNC1, uiMyByteCount, uiMaxMessageLength);
             uiMyByteCount += static_cast<uint32_t>(uiSyncIndex + 1); // +1 moves past the first sync character for the next search
-        } while (uiSyncIndex != UCharFixedBuffer::npos &&
-                 ((uiSyncIndex + 1 < uiMaxMessageLength && clInternalFrameBuffer[uiSyncIndex + 1] != OEM4_BINARY_SYNC2) ||
-                 (uiSyncIndex + 2 < uiMaxMessageLength && clInternalFrameBuffer[uiSyncIndex + 2] != OEM4_BINARY_SYNC3)));
-
-        // Sync character not at start of buffer - handle unknown bytes before sync
-        if (uiSyncIndex != 0) { return handleUnknown(static_cast<uint32_t>(uiSyncIndex == UCharFixedBuffer::npos ? uiMaxLookahead : uiSyncIndex)); }
-    }
-
-    stMetaData_.eFormat = HEADER_FORMAT::BINARY;
-    uint16_t uiMessageLength = 0;
-    if (uiMaxMessageLength >= OEM4_BINARY_HEADER_LENGTH &&
-        uiMaxMessageLength >= OEM4_BINARY_HEADER_LENGTH +
-                              (uiMessageLength = clInternalFrameBuffer.read_value<uint16_t>(OEM4_BINARY_MESSAGE_LENGTH_INDEX)) +
-                              OEM4_BINARY_CRC_LENGTH)
-    {
-        auto uiCombinedMessageLength = OEM4_BINARY_HEADER_LENGTH + uiMessageLength;
-        auto uiCalcCrc = clInternalFrameBuffer.accumulate_range(0, uiCombinedMessageLength, static_cast<uint32_t>(0), GetNextCharacterCrc32);
-        if (uiCalcCrc != clInternalFrameBuffer.read_value<uint32_t>(uiCombinedMessageLength))
-        {
-            return handleUnknown(OEM4_BINARY_SYNC_LENGTH);
         }
 
+        // Sync character not at start of buffer - handle unknown bytes before sync
+        if (uiSyncIndex != 0)
+        {
+            return handleUnknown(static_cast<uint32_t>(uiSyncIndex == UCharFixedBuffer::npos ? uiMaxMessageLength : uiSyncIndex));
+        }
+    }
+
+    // Next two conditions aren't strictly necessary for the framer's functionality, but they match the OEM framer behaviour.
+    if (uiFrameBufferSize_ < OEM4_BINARY_HEADER_LENGTH) { return STATUS::BUFFER_FULL; }
+    if (uiMaxMessageLength >= OEM4_BINARY_SYNC_LENGTH) { stMetaData_.eFormat = HEADER_FORMAT::BINARY; }
+
+    // Read the message length from the header and add the CRC length to get total body length
+    uint16_t uiMessageBodyLength = uiMaxMessageLength >= OEM4_BINARY_HEADER_LENGTH
+                                       ? clInternalFrameBuffer.read_value<uint16_t>(OEM4_BINARY_MESSAGE_LENGTH_INDEX) + OEM4_BINARY_CRC_LENGTH
+                                       : 0;
+    if (uiMaxMessageLength >= static_cast<size_t>(OEM4_BINARY_HEADER_LENGTH + uiMessageBodyLength))
+    {
+        auto uiTotalMessageLength = OEM4_BINARY_HEADER_LENGTH + uiMessageBodyLength;
+        auto uiCalcCrc = clInternalFrameBuffer.CalculateBlockCrc32(0, uiTotalMessageLength);
+        if (uiCalcCrc != 0) { return handleUnknown(OEM4_BINARY_SYNC_LENGTH); }
+
         // Valid frame found
-        stMetaData_.uiLength = uiCombinedMessageLength + OEM4_BINARY_CRC_LENGTH;
+        stMetaData_.uiLength = uiTotalMessageLength;
 
         if (uiFrameBufferSize_ < stMetaData_.uiLength) { return STATUS::BUFFER_FULL; }
 
@@ -109,7 +113,7 @@ FramerBinary::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBuf
         return STATUS::SUCCESS;
     }
 
-    if (uiMessageLength > MAX_BINARY_MESSAGE_LENGTH - OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_CRC_LENGTH)
+    if (uiMessageBodyLength > MAX_BINARY_MESSAGE_LENGTH - OEM4_BINARY_HEADER_LENGTH - OEM4_BINARY_CRC_LENGTH)
     {
         // Invalid message length
         return handleUnknown(OEM4_BINARY_SYNC_LENGTH);
