@@ -27,11 +27,13 @@
 #pragma once
 
 #include <algorithm>
-#include <numeric>
 #include <cstddef>
 #include <cstring>
 #include <memory>
+#include <numeric>
 #include <type_traits>
+
+#include "novatel_edie/common/crc32.hpp"
 
 //============================================================================
 //! \class FixedBuffer
@@ -93,7 +95,7 @@ template <typename T, size_t N> class FixedBuffer
         if (data_ptr == nullptr || count > available_space() || count == 0) { return 0; }
 
         // If the write would go past the end of the buffer, compact unconsumed data to the front.
-        if (head + sz + count > 2*N)
+        if (head + sz + count > 2 * N)
         {
             // The available_space() check above guarantees that count <= N - sz, so sz + count <= N.
             // Therefore, head + sz + count > 2*N implies head > N, so we can safely use
@@ -117,10 +119,7 @@ template <typename T, size_t N> class FixedBuffer
         if (count == 0) { return npos; }
 
         const void* ptr = std::memchr(buffer.get() + head + start, value, count);
-        if (ptr != nullptr)
-        {
-            return static_cast<size_t>(static_cast<const unsigned char*>(ptr) - (buffer.get() + head + start)) + start;
-        }
+        if (ptr != nullptr) { return static_cast<size_t>(static_cast<const unsigned char*>(ptr) - (buffer.get() + head + start)) + start; }
 
         return npos;
     }
@@ -129,17 +128,13 @@ template <typename T, size_t N> class FixedBuffer
     //! \param[in] start Logical start index.
     //! \param[in] count Number of elements to include.
     //! \param[in] init Initial value for accumulation.
-    template <typename BinaryOp, typename AccT = T,
-              typename = std::enable_if_t<std::is_invocable_r_v<AccT, BinaryOp, AccT, T>>>
-    [[nodiscard]] AccT accumulate_range(size_t start, size_t count, AccT init, BinaryOp op) const
+    template <typename BinaryOp, typename AccT, typename = std::enable_if_t<std::is_invocable_r_v<AccT, BinaryOp, AccT, T>>>
+    [[nodiscard]] AccT accumulate(size_t start, size_t count, AccT init, BinaryOp op) const
     {
         if (start >= sz || count == 0) { return init; }
         count = std::min(count, sz - start);
 
-        return std::accumulate(buffer.get() + head + start,
-                               buffer.get() + head + start + count,
-                               init,
-                               op);
+        return std::accumulate(buffer.get() + head + start, buffer.get() + head + start + count, init, op);
     }
 
     //! \brief Reads a multi-byte value from the buffer.
@@ -157,6 +152,14 @@ template <typename T, size_t N> class FixedBuffer
         return result;
     }
 
+    //! \brief Calculates the CRC-32 of a range of elements in logical order (0 = oldest).
+    //! \param[in] start Logical start index.
+    //! \param[in] count Number of elements to include.
+    [[nodiscard]] uint32_t CalculateBlockCrc32(size_t start, size_t count) const
+    {
+        return ::CalculateBlockCrc32(buffer.get() + head + start, static_cast<uint32_t>(std::min(count, sz - start) * sizeof(T)));
+    }
+
     //! \brief Returns the number of elements currently in the buffer.
     [[nodiscard]] constexpr size_t size() const noexcept { return sz; }
     //! \brief Returns the maximum number of elements the buffer can hold.
@@ -169,7 +172,7 @@ template <typename T, size_t N> class FixedBuffer
     [[nodiscard]] constexpr bool full() const noexcept { return sz == N; }
 
   private:
-    std::unique_ptr<T[]> buffer{std::make_unique<T[]>(2*N)};
+    std::unique_ptr<T[]> buffer{std::make_unique<T[]>(2 * N)};
     size_t head = 0;
     size_t sz = 0;
 };

@@ -108,7 +108,6 @@ template <typename FramerType, size_t N> static void Frame(benchmark::State& sta
     for ([[maybe_unused]] auto _ : state) {
         (void)clFramer.Write(data, sizeof(data));
         (void)clFramer.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
-        (void)clFramer.Flush(buffer.data(), static_cast<uint32_t>(buffer.size()));
     }
     
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
@@ -124,7 +123,6 @@ template <size_t N> static void FrameManager(benchmark::State& state, const unsi
     for ([[maybe_unused]] auto _ : state) {
         (void)clFramerManager.Write(data, sizeof(data));
         (void)clFramerManager.GetFrame(buffer.data(), static_cast<uint32_t>(buffer.size()), stMetaData);
-        (void)clFramerManager.Flush(buffer.data(), static_cast<uint32_t>(buffer.size()));
     }
 
     state.counters["logs_per_second"] = benchmark::Counter(state.iterations(), benchmark::Counter::kIsRate);
