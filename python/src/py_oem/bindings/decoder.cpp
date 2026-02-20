@@ -40,7 +40,6 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             "__init__",
             [](py_oem::PyDecoder* self, py_common::PyMessageDatabaseCore::Ptr message_db) {
                 if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); }
-                message_db->SetFixed();
                 new (self) py_oem::PyDecoder(message_db);
             },
             nb::arg("message_db") = nb::none(),
