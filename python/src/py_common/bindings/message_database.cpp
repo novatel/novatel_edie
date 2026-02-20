@@ -208,6 +208,7 @@ void py_common::init_common_message_database(nb::module_& m)
             },
             "id"_a)
         .def_prop_rw("message_family", &py_common::PyMessageDatabaseCore::GetMessageFamily, &py_common::PyMessageDatabaseCore::SetMessageFamily)
+        .def_prop_ro("is_fixed", &py_common::PyMessageDatabaseCore::IsFixed)
         .def(
             "clone",
             [](const py_common::PyMessageDatabaseCore& self) {
