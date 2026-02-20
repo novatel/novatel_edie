@@ -190,24 +190,21 @@ void py_common::init_common_message_database(nb::module_& m)
             "get_msg_type",
             [](py_common::PyMessageDatabaseCore& self, std::string name) {
                 auto msgIt = self.GetMessagesByNameDict().find(name);
-                if (msgIt == self.GetMessagesByNameDict().end()) { return nb::none(); }
-                return msgIt->second.python_type;
+                return msgIt == self.GetMessagesByNameDict().end() ? nb::none() : msgIt->second.python_type;
             },
             "name"_a)
         .def(
             "get_enum_type_by_name",
             [](py_common::PyMessageDatabaseCore& self, std::string name) {
                 auto enumIt = self.GetEnumsByNameDict().find(name);
-                if (enumIt == self.GetEnumsByNameDict().end()) { return nb::none(); }
-                return enumIt->second;
+                return enumIt == self.GetEnumsByNameDict().end() ? nb::none() : enumIt->second;
             },
             "name"_a)
         .def(
             "get_enum_type_by_id",
             [](py_common::PyMessageDatabaseCore& self, std::string id) {
                 auto enumIt = self.GetEnumsByIdDict().find(id);
-                if (enumIt == self.GetEnumsByIdDict().end()) { return nb::none(); }
-                return enumIt->second;
+                return enumIt == self.GetEnumsByIdDict().end() ? nb::none() : enumIt->second;
             },
             "id"_a)
         .def_prop_rw("message_family", &py_common::PyMessageDatabaseCore::GetMessageFamily, &py_common::PyMessageDatabaseCore::SetMessageFamily)
