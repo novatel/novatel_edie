@@ -22,6 +22,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
 endif()
 
 add_compile_definitions(VERSION_INFO=${SKBUILD_PROJECT_VERSION})
+
+# Option to enable breaking Python edie v3.0 features; defines ENABLE_PY_EDIE_V3_BREAKING when ON
+option(ENABLE_PY_EDIE_V3_BREAKING "Enable breaking Python edie v3.0 features" OFF)
+
 if(NOT DEFINED PYTHON_INSTALL_DIR)
     set(PYTHON_INSTALL_DIR lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/novatel_edie)
 endif()
@@ -136,6 +140,12 @@ target_compile_definitions(oem_bindings PRIVATE
     # https://github.com/boostorg/system/issues/32#issuecomment-462912013
     HAVE_SNPRINTF
 )
+
+# If enabled, add breaking v3 macro to python bindings targets
+if(ENABLE_PY_EDIE_V3_BREAKING)
+    target_compile_definitions(common_bindings PRIVATE PY_EDIE_V3_BREAKING)
+    target_compile_definitions(oem_bindings PRIVATE PY_EDIE_V3_BREAKING)
+endif()
 
 # Copy dependent DLLs to common_bindings output directory for stub generation
 if(WIN32)

@@ -57,11 +57,14 @@ void py_common::PyMessageDatabaseCore::SetMessageFamily(const std::string& messa
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::CheckMutable() const
 {
+// TODO: Enable this validation check
+#ifdef PY_EDIE_V3_BREAKING
     if (fixed)
     {
         throw FailureException("The contents of this database have been fixed. It is likely in use by another class which relies on it remaining "
                                "consistent.\nUse the \".clone()\" method to edit a copy of it.");
     }
+#endif
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::SetFixed() { fixed = true; }
