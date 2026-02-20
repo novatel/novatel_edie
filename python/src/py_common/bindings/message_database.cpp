@@ -208,11 +208,10 @@ void py_common::init_common_message_database(nb::module_& m)
             },
             "id"_a)
         .def_prop_rw("message_family", &py_common::PyMessageDatabaseCore::GetMessageFamily, &py_common::PyMessageDatabaseCore::SetMessageFamily)
-        
         .def(
             "clone",
             [](const py_common::PyMessageDatabaseCore& self) {
                 return std::make_shared<py_common::PyMessageDatabaseCore>(static_cast<const MessageDatabase&>(self));
             },
-            "Create an unfixed copy of this database.");
+            "Create an copy of this database.");
 }
