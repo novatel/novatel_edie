@@ -50,10 +50,7 @@ std::string py_common::PyMessageDatabaseCore::GetMessageFamily() const { return 
 void py_common::PyMessageDatabaseCore::SetMessageFamily(const std::string& messageFamily)
 {
     CheckMutable();
-    auto newMetadata = std::make_shared<DbMetadata>();
-    if (pDbMetadata) { *newMetadata = *pDbMetadata; }
-    newMetadata->messageFamily = messageFamily;
-    pDbMetadata = newMetadata;
+    pDbMetadata->messageFamily = messageFamily;
     ResolveBaseType();
     UpdatePythonMessageTypes();
 }
