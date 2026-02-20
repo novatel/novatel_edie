@@ -41,6 +41,7 @@ void py_oem::init_decoder_tester(nb::module_& m)
         .def("__init__",
              [](DecoderTester* t, py_common::PyMessageDatabaseCore::Ptr message_db) {
                  if (!message_db) { py_oem::MessageDbSingleton::get(); };
+                 message_db->SetFixed();
                  new (t) DecoderTester(message_db);
              }) // NOLINT(*.NewDeleteLeaks)
         .def(

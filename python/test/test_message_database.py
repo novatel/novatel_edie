@@ -95,3 +95,51 @@ def test_merge(json_db: MessageDatabase):
     assert new_db_with_bestpos.get_msg_def(other_msg_name) == other_msg_def
     assert new_db_with_bestpos.get_msg_type(other_msg_name) is not None
     assert new_db_with_bestpos.get_msg_type(other_msg_name) != other_msg_type
+
+@pytest.mark.skip("Validation is disabled until 3.0")
+def test_builtin_database_is_fixed(json_db: MessageDatabase):
+    """The built-in database should be fixed and reject mutations."""
+    bestpos_def = json_db.get_msg_def(42)
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.merge(MessageDatabase())
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.append_messages([bestpos_def])
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.append_enumerations([])
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.remove_message(42)
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.remove_enumeration("Datum")
+
+    with pytest.raises(FailureException, match="fixed"):
+        json_db.message_family = "OEM"
+
+@pytest.mark.skip("Validation is breaking until 3.0")
+def test_database_fixed_after_passing_to_decoder():
+    """A database passed to a Decoder should become fixed."""
+    db = MessageDatabase()
+    assert not db.is_fixed
+    Decoder(db)
+    assert db.is_fixed
+
+    with pytest.raises(FailureException, match="fixed"):
+        db.append_messages([])
+
+    with pytest.raises(FailureException, match="fixed"):
+        db.merge(MessageDatabase())
+
+@pytest.mark.skip("Validation is disabled until 3.0")
+def test_clone_unfixes_database(json_db: MessageDatabase):
+    """Cloning a fixed database should produce an unfixed copy."""
+    cloned = json_db.clone()
+    assert not cloned.is_fixed
+    # Should not raise
+    cloned.remove_message(42)
+    assert cloned.get_msg_def(42) is None
+    # Original should be unaffected
+    assert json_db.get_msg_def(42) is not None

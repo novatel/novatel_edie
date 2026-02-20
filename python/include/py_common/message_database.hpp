@@ -38,7 +38,14 @@ class PyMessageDatabaseCore : public MessageDatabase
     [[nodiscard]] std::string GetMessageFamily() const;
     void SetMessageFamily(const std::string& messageFamily);
 
-
+    //-----------------------------------------------------------------------
+    //! \brief Marks the message database as immutable going forward.
+    //-----------------------------------------------------------------------
+    void SetFixed();
+    //-----------------------------------------------------------------------
+    //! \brief Returns whether the message database contents have been fixed.
+    //-----------------------------------------------------------------------
+    [[nodiscard]] bool IsFixed() const;
 
     // MessageDatabase overloads
     void Merge(const std::shared_ptr<PyMessageDatabaseCore> other_);
@@ -99,10 +106,10 @@ class PyMessageDatabaseCore : public MessageDatabase
     void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message, nb::handle type_cons,
                       nb::handle type_tuple, nb::handle type_dict);
 
-
+    void CheckMutable() const;
     void ResolveBaseType();
 
-
+    bool fixed{false};
     nb::handle base_message_type;
     std::unordered_map<std::string, PyMessageType> messages_by_name{};
     std::unordered_map<std::string, nb::object> fields_by_name{};
