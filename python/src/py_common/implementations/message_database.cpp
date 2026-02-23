@@ -54,12 +54,6 @@ void py_common::PyMessageDatabaseCore::SetMessageFamily(const std::string& messa
     UpdatePythonMessageTypes();
 }
 
-
-
-
-
-
-
 void py_common::PyMessageDatabaseCore::Merge(const PyMessageDatabaseCore::Ptr other_)
 {
     MessageDatabase::AppendEnumerations(other_->vEnumDefinitions);
