@@ -1,4 +1,4 @@
-#include "py_common/message_db_singleton.hpp"
+#include "py_oem/message_db_singleton.hpp"
 
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "py_common/bindings_core.hpp"
@@ -8,7 +8,7 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-py_common::PyMessageDatabaseCore::Ptr& py_common::MessageDbSingleton::get()
+py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
 {
     static py_common::PyMessageDatabaseCore::Ptr json_db = nullptr;
 

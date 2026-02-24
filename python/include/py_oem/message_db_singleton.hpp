@@ -1,16 +1,15 @@
 #pragma once
 
-#include "novatel_edie/decoders/common/message_database.hpp"
-
 #include "py_common/message_database.hpp"
 
-namespace novatel::edie::py_common {
+namespace novatel::edie::py_oem {
 
 //============================================================================
 //! \class MessageDbSingleton
 //! \brief The singular default MessageDatabase based on the JSON database
 //!        file included in the novatel_edie package.
 //!
+//! This is OEM-specific because the built-in database is an OEM database.
 //! If the package does not contain a JSON database file or the C++ bindings
 //! submodule is imported outside of the package, the default database will
 //! be empty.
@@ -20,7 +19,6 @@ class MessageDbSingleton
   public:
     MessageDbSingleton() = delete;
 
-
     //----------------------------------------------------------------------------
     //! \brief Method to get the MessageDbSingleton.
     //!
@@ -29,4 +27,4 @@ class MessageDbSingleton
     [[nodiscard]] static py_common::PyMessageDatabaseCore::Ptr& get();
 };
 
-} // namespace novatel::edie
+} // namespace novatel::edie::py_oem

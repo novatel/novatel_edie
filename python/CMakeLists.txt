@@ -66,11 +66,9 @@ add_library(common_bindings SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/field_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/internal/logger_tester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_database.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/message_db_singleton.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/unknown_bytes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/bindings/framer_manager.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_db_singleton.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/field_objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_common/implementations/message_database.cpp
 )
@@ -93,6 +91,7 @@ set_target_properties(common_bindings PROPERTIES
 
 add_library(oem_bindings MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/implementations/message_database.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/implementations/message_db_singleton.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/init_bindings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/commander.cpp
@@ -181,9 +180,9 @@ add_custom_target(
 )
 
 set_target_properties(dynamic_stubs PROPERTIES FOLDER python_bindings)
-set_target_properties(decoders_common oem_decoder common PROPERTIES INSTALL_RPATH "$ORIGIN")
-set_target_properties(common_bindings PROPERTIES INSTALL_RPATH "$ORIGIN/shared_libs")
-set_target_properties(oem_bindings PROPERTIES INSTALL_RPATH "$ORIGIN/../shared_libs")
+set_target_properties(decoders_common oem_decoder common PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/..")
+set_target_properties(common_bindings PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/shared_libs")
+set_target_properties(oem_bindings PROPERTIES INSTALL_RPATH "$ORIGIN/..;$ORIGIN/../shared_libs")
 
 message(STATUS "PYTHON_INSTALL_DIR: ${PYTHON_INSTALL_DIR}")
 

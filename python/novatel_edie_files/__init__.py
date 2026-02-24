@@ -38,7 +38,7 @@ from .common_bindings import (
     MalformedInputException, DecompressionFailureException, JsonDbReaderException,
     throw_exception_from_status,
     FIELD_TYPE, DATA_TYPE,
-    MessageDatabase, get_builtin_database,
+    MessageDatabase,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
     EnumDataType,
     ENCODE_FORMAT, HEADER_FORMAT,
@@ -49,6 +49,8 @@ from .common_bindings import (
     UNKNOWN_REASON, UnknownBytes, Field, MessageData,
     FramerManager, MetaDataBase
 )
+
+from .oem.oem_bindings import get_builtin_database
 
 # OEM symbols available via novatel_edie.oem; top-level access is deprecated.
 _OEM_DEPRECATED_NAMES = {
@@ -61,7 +63,7 @@ _OEM_DEPRECATED_NAMES = {
     "Oem4BinaryHeader", "Oem4BinaryShortHeader", "MetaData",
     "Framer", "Filter", "Decoder", "Commander", "Parser", "FileParser",
     "RangeDecompressor", "RxConfigHandler",
-    "messages", "enums", "_novatel_internal",
+    "messages", "enums", "get_builtin_database", "_novatel_internal",
 }
 
 _ALREADY_WARNED = set()

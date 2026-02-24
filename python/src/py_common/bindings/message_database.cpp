@@ -188,9 +188,30 @@ void py_common::init_common_message_database(nb::module_& m)
         .def("get_enum_def_by_name", &py_common::PyMessageDatabaseCore::GetEnumDefName, "enum_name"_a)
         .def(
             "get_msg_type",
-            [](py_common::PyMessageDatabaseCore& self, std::string name) { return self.GetMessagesByNameDict().at(name).python_type; }, "name"_a)
-        .def(
-            "get_enum_type_by_name", [](py_common::PyMessageDatabaseCore& self, std::string name) { return self.GetEnumsByNameDict().at(name); },
+            [](py_common::PyMessageDatabaseCore& self, std::string name) {
+                auto msgIt = self.GetMessagesByNameDict().find(name);
+                return msgIt == self.GetMessagesByNameDict().end() ? nb::none() : msgIt->second.python_type;
+            },
             "name"_a)
-        .def("get_enum_type_by_id", [](py_common::PyMessageDatabaseCore& self, std::string id) { return self.GetEnumsByIdDict().at(id); }, "id"_a);
+        .def(
+            "get_enum_type_by_name",
+            [](py_common::PyMessageDatabaseCore& self, std::string name) {
+                auto enumIt = self.GetEnumsByNameDict().find(name);
+                return enumIt == self.GetEnumsByNameDict().end() ? nb::none() : enumIt->second;
+            },
+            "name"_a)
+        .def(
+            "get_enum_type_by_id",
+            [](py_common::PyMessageDatabaseCore& self, std::string id) {
+                auto enumIt = self.GetEnumsByIdDict().find(id);
+                return enumIt == self.GetEnumsByIdDict().end() ? nb::none() : enumIt->second;
+            },
+            "id"_a)
+        .def_prop_rw("message_family", &py_common::PyMessageDatabaseCore::GetMessageFamily, &py_common::PyMessageDatabaseCore::SetMessageFamily)
+        .def(
+            "clone",
+            [](const py_common::PyMessageDatabaseCore& self) {
+                return std::make_shared<py_common::PyMessageDatabaseCore>(static_cast<const MessageDatabase&>(self));
+            },
+            "Create an copy of this database.");
 }

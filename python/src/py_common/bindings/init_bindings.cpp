@@ -21,5 +21,4 @@ NB_MODULE(common_bindings, m)
     init_field_objects(m);
     init_raw_data_classes(m);
     init_common_message_database(m);
-    init_message_db_singleton(m);
 }

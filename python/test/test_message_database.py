@@ -22,7 +22,10 @@
 #
 ################################################################################=
 
-from novatel_edie import MessageDatabase
+import pytest
+
+from novatel_edie import MessageDatabase, FailureException
+from novatel_edie.oem import Decoder
 from novatel_edie.oem.enums import Datum
 
 def test_message_db_enums(json_db):
@@ -46,7 +49,9 @@ def test_append_messages(json_db: MessageDatabase):
 
     # Assert
     assert new_db.get_msg_def(bestpos_id) == bestpos_def
+    assert new_db.get_msg_type("BESTPOS") is not None
     assert new_db.get_msg_def(range_id) == range_def
+    assert new_db.get_msg_type("RANGE") is not None
 
 def test_remove_message(json_db: MessageDatabase):
     # Arrange
@@ -56,10 +61,37 @@ def test_remove_message(json_db: MessageDatabase):
     range_id = 43
     range_def = json_db.get_msg_def(range_id)
     new_db.append_messages([bestpos_def, range_def])
+    new_range_type = new_db.get_msg_type("RANGE")
 
     # Act
     new_db.remove_message(bestpos_id)
 
     # Assert
     assert new_db.get_msg_def(bestpos_id) is None
+    assert new_db.get_msg_type("BESTPOS") is None
     assert new_db.get_msg_def(range_id) == range_def
+    assert new_db.get_msg_type("RANGE") is new_range_type
+
+def test_merge(json_db: MessageDatabase):
+    """Tests that one databases messages can be merged into another."""
+    # Arrange
+    oem_minus_bestpos_db = json_db.clone()
+    new_db_with_bestpos = MessageDatabase()
+    bestpos_name = "BESTPOS"
+    bestpos_msg_def = oem_minus_bestpos_db.get_msg_def(bestpos_name)
+    new_db_with_bestpos.append_messages([bestpos_msg_def])
+    bestpos_msg_type = new_db_with_bestpos.get_msg_type(bestpos_name)
+    other_msg_name = "RANGE"
+    other_msg_def = oem_minus_bestpos_db.get_msg_def(other_msg_name)
+    other_msg_type = oem_minus_bestpos_db.get_msg_type(other_msg_name)
+    oem_minus_bestpos_db.remove_message(bestpos_msg_def.log_id)
+
+    # Act
+    new_db_with_bestpos.merge(oem_minus_bestpos_db)
+
+    # Assert
+    assert new_db_with_bestpos.get_msg_def(bestpos_name) == bestpos_msg_def
+    assert new_db_with_bestpos.get_msg_type(bestpos_name) is bestpos_msg_type
+    assert new_db_with_bestpos.get_msg_def(other_msg_name) == other_msg_def
+    assert new_db_with_bestpos.get_msg_type(other_msg_name) is not None
+    assert new_db_with_bestpos.get_msg_type(other_msg_name) != other_msg_type

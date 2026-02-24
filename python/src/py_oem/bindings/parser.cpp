@@ -2,7 +2,7 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_common/message_db_singleton.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_common/py_logger.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/unknown_bytes.hpp"
@@ -97,7 +97,7 @@ void py_oem::init_novatel_parser(nb::module_& m)
         .def(
             "__init__",
             [](py_oem::PyParser* self, py_common::PyMessageDatabaseCore::Ptr message_db) {
-                if (!message_db) { message_db = MessageDbSingleton::get(); }
+                if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); }
                 new (self) py_oem::PyParser(message_db);
             },
             nb::arg("message_db") = nb::none(),

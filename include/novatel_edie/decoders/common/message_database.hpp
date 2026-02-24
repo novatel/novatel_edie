@@ -394,7 +394,8 @@ struct MessageDefinition
 //============================================================================
 class MessageDatabase
 {
-    DbMetadata::ConstPtr pDbMetadata;
+  protected:
+    DbMetadata::Ptr pDbMetadata;
     std::vector<MessageDefinition::ConstPtr> vMessageDefinitions;
     std::vector<EnumDefinition::ConstPtr> vEnumDefinitions;
     std::unordered_map<std::string_view, MessageDefinition::ConstPtr> mMessageName;
@@ -429,7 +430,7 @@ class MessageDatabase
     //! \param[in] pDbMetadata_ Database metadata
     //----------------------------------------------------------------------------
     MessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_,
-                    DbMetadata::ConstPtr pDbMetadata_)
+                    DbMetadata::Ptr pDbMetadata_)
         : pDbMetadata(std::move(pDbMetadata_)), vMessageDefinitions(std::move(vMessageDefinitions_)), vEnumDefinitions(std::move(vEnumDefinitions_))
     {
         GenerateEnumMappings();

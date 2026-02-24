@@ -1,7 +1,7 @@
 #include "novatel_edie/decoders/oem/common.hpp"
 #include "py_common/bindings_core.hpp"
-#include "py_common/message_db_singleton.hpp"
 #include "py_oem/init_bindings.hpp"
+#include "py_oem/message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -94,14 +94,21 @@ void py_oem::init_novatel_common(nb::module_& m)
                 if (message_name.length() > oem::OEM4_ASCII_MESSAGE_NAME_MAX) { throw std::runtime_error("Message name is too long"); }
                 self.messageName = message_name;
             })
-        .def_prop_ro("message_description",
-                     [](const oem::MetaDataStruct& self) {
-                         auto msg_def = py_common::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
-                         return msg_def ? nb::cast(msg_def->description) : nb::none();
-                     })
+        .def_prop_ro(
+            "message_description",
+            [](const oem::MetaDataStruct& self) {
+                GetBaseLoggerManager()
+                    ->RegisterLogger("deprecation_warning")
+                    ->warn("The 'message_description' property is deprecated as it relies on the builtin MessageDatabase matching the MetaData.");
+                auto msg_def = py_oem::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
+                return msg_def ? nb::cast(msg_def->description) : nb::none();
+            })
         .def_prop_ro("message_fields",
                      [](const oem::MetaDataStruct& self) {
-                         auto msg_def = py_common::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
+                         GetBaseLoggerManager()
+                             ->RegisterLogger("deprecation_warning")
+                             ->warn("The 'message_fields' property is deprecated as it relies on the builtin MessageDatabase matching the MetaData.");
+                         auto msg_def = py_oem::MessageDbSingleton::get()->GetMsgDef(self.usMessageId);
                          if (!msg_def) { return nb::none(); }
                          auto fields_it = msg_def->fields.find(self.uiMessageCrc);
                          return fields_it == msg_def->fields.end() ? nb::none() : nb::cast(fields_it->second);

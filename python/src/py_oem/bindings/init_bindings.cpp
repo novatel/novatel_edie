@@ -28,5 +28,6 @@ NB_MODULE(oem_bindings, m)
     init_novatel_rxconfig_handler(m);
     init_novatel_oem_messages(messages_mod);
     init_novatel_oem_enums(enums_mod);
+    init_message_db_singleton(m);
     init_decoder_tester(internal_mod);
 }

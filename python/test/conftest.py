@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import novatel_edie as ne
+from novatel_edie.oem import get_builtin_database
 import pytest
 
 @pytest.fixture(scope="session", autouse=True)
@@ -37,7 +38,7 @@ def json_db_path():
 
 @pytest.fixture(scope="session")
 def json_db():
-    return ne.get_builtin_database()
+    return get_builtin_database()
 
 
 @pytest.fixture(scope="session")

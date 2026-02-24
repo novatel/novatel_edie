@@ -2,7 +2,7 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_common/message_db_singleton.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_oem/init_bindings.hpp"
 
@@ -18,7 +18,7 @@ void py_oem::init_novatel_rxconfig_handler(nb::module_& m)
         .def(
             "__init__",
             [](oem::RxConfigHandler* t, py_common::PyMessageDatabaseCore::Ptr message_db) {
-                if (!message_db) { message_db = MessageDbSingleton::get(); };
+                if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); };
                 new (t) oem::RxConfigHandler(message_db);
                 t->GetLogger()->warn(
                     "The RXConfigHandler interface is currently unstable! It may undergo breaking changes between minor version increments.");

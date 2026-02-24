@@ -14,24 +14,9 @@ class PyMessageDatabase
     void Initialize();
 
   public:
-    PyMessageDatabase();
-    PyMessageDatabase(std::vector<MessageDefinition::ConstPtr> vMessageDefinitions_, std::vector<EnumDefinition::ConstPtr> vEnumDefinitions_);
-    explicit PyMessageDatabase(const MessageDatabase& message_db);
-    explicit PyMessageDatabase(const MessageDatabase&& message_db);
     explicit PyMessageDatabase(py_common::PyMessageDatabaseCore::Ptr pclMessageDb_);
 
     [[nodiscard]] std::string MsgIdToMsgName(uint32_t uiMessageId_) const { return pclMessageDb->MsgIdToMsgName(uiMessageId_); };
-
-    void PyAppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
-    {
-        pclMessageDb->AppendMessages(vMessageDefinitions_);
-    }
-
-    void PyAppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_) { pclMessageDb->AppendEnumerations(vEnumDefinitions_); }
-
-    void PyRemoveMessage(const uint32_t iMsgId_) { pclMessageDb->RemoveMessage(iMsgId_); }
-
-    void PyRemoveEnumeration(std::string_view strEnumeration_) { pclMessageDb->RemoveEnumeration(strEnumeration_); }
 
     // MessageDatabase wrappers
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view strMsgName_) const { return pclMessageDb->GetMsgDef(strMsgName_); }
@@ -39,8 +24,6 @@ class PyMessageDatabase
 
     [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(std::string& strEnumId_) const { return pclMessageDb->GetEnumDefId(strEnumId_); }
     [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(std::string& strEnumName_) const { return pclMessageDb->GetEnumDefName(strEnumName_); }
-
-    void Merge(const MessageDatabase& other_) { pclMessageDb->Merge(other_); }
 
     // PyMessageDatabaseCore wrappers
     [[nodiscard]] const std::unordered_map<std::string, py_common::PyMessageType>& GetMessagesByNameDict() const

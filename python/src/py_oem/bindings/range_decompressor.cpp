@@ -4,7 +4,7 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_common/message_db_singleton.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/init_bindings.hpp"
 
 
@@ -19,7 +19,7 @@ void py_oem::init_novatel_range_decompressor(nb::module_& m)
         .def(
             "__init__",
             [](oem::RangeDecompressor* t, py_common::PyMessageDatabaseCore::Ptr message_db) {
-                if (!message_db) { message_db = MessageDbSingleton::get(); };
+                if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); };
                 new (t) oem::RangeDecompressor(message_db);
                 t->GetLogger()->warn(
                     "The RangeDecompressor interface is currently unstable! It may undergo breaking changes between minor version increments.");

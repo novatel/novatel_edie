@@ -12,7 +12,6 @@
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
 #include "py_common/field_objects.hpp"
-#include "py_common/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/unknown_bytes.hpp"
 #include "py_oem/init_bindings.hpp"
@@ -49,19 +48,6 @@ nb::dict py_oem::PyHeader::to_dict() const
 #pragma endregion
 
 #pragma region PyMessageMethods
-
-// Static initalization of this struct will populate the BasePythonTypes map with a way to access the oem PyMessage type
-struct OEMMessageStyleTypeInitializer
-{
-    OEMMessageStyleTypeInitializer()
-    {
-        auto& baseTypes = py_common::GetBasePythonTypes();
-        std::function<nb::handle()> typeGetter = []() { return nb::type<py_oem::PyMessage>(); };
-        baseTypes["OEM4_MESSAGE_STYLE"] = typeGetter;
-        baseTypes["OEM4_COMPRESSED_STYLE"] = typeGetter;
-    }
-};
-static OEMMessageStyleTypeInitializer oem_message_style_type_initializer;
 
 py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format)
 {
@@ -332,6 +318,10 @@ void py_oem::init_message_objects(nb::module_& m)
             )doc")
         .def_ro("header", &py_oem::PyMessage::header, "The header of the message.")
         .def_ro("name", &py_oem::PyMessage::name, "The type of message it is.");
+
+    auto& familyTypes = py_common::GetMessageFamilyTypes();
+    familyTypes["OEM"] = nb::type<py_oem::PyMessage>();
+    familyTypes[""] = nb::type<py_oem::PyMessage>(); // Use as the default
 
     nb::class_<py_oem::PyResponse>(m, "Response")
         .def("encode", &py_oem::PyResponse::encode)
