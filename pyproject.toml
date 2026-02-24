@@ -1,7 +1,7 @@
 [project]
 name = "novatel_edie"
 description = "SDK for interfacing with and decoding data from NovAtel OEM7 receivers"
-version = "2.6.35"
+version = "2.6.36"
 license = {text = "MIT"}
 requires-python = ">=3.8"
 dependencies = [
@@ -74,7 +74,7 @@ repair-wheel-command = ""
 MACOSX_DEPLOYMENT_TARGET = "13.0"
 
 [tool.bumpversion]
-current_version = "2.6.35"
+current_version = "2.6.36"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
