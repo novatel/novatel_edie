@@ -524,7 +524,11 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
                 // Traverse the decoded fields to find the field with a matching name.
                 for (const auto& it : vIntermediateFormat_)
                 {
-                    if (it.fieldDef->name == arrayLengthRef) { uiArraySize = std::get<uint8_t>(it.fieldValue); }
+                    if (const auto arraySize = TryGetArraySize(it.fieldValue))
+                    {
+                        uiArraySize = *arraySize;
+                        break;
+                    }
                 }
                 // TODO: Throw exception if no matching key is found
             }

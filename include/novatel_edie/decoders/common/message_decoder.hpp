@@ -28,6 +28,7 @@
 #define MESSAGE_DECODER_HPP
 
 #include <charconv>
+#include <limits>
 #include <string>
 #include <utility>
 #include <variant>
@@ -246,6 +247,33 @@ class MessageDecoderBase
     {
         return [](std::vector<FieldContainer>& vIntermediate_, BaseField::ConstPtr&& pstMessageDataType_, simdjson::dom::element clJsonField_,
                   [[maybe_unused]] MessageDatabase& pclMsgDb_) { PushElement<T>(vIntermediate_, std::move(pstMessageDataType_), clJsonField_); };
+    }
+
+    // -------------------------------------------------------------------------------------------------------
+    static std::optional<uint32_t> TryGetArraySize(const FieldValueVariant& fieldValue)
+    {
+        return std::visit(
+            [](const auto& value) -> std::optional<uint32_t> {
+                using ValueType = std::decay_t<decltype(value)>;
+
+                if constexpr (std::is_integral_v<ValueType>)
+                {
+                    if constexpr (std::is_signed_v<ValueType>)
+                    {
+                        if (value < 0) { return std::nullopt; }
+                    }
+
+                    if constexpr (sizeof(ValueType) > sizeof(uint32_t))
+                    {
+                        if (value > static_cast<ValueType>(std::numeric_limits<uint32_t>::max())) { return std::nullopt; }
+                    }
+
+                    return static_cast<uint32_t>(value);
+                }
+
+                return std::nullopt;
+            },
+            fieldValue);
     }
 
   public:
