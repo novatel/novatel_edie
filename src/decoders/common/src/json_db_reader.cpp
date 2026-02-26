@@ -115,6 +115,7 @@ void from_json(const json& j_, ArrayField& fd_)
 
     fd_.arrayLength = j_.at("arrayLength");
     fd_.dataType = j_.at("dataType");
+    if (j_.find("arrayLengthRef") != j_.end()) { fd_.arrayLengthRef = j_.at("arrayLengthRef").is_null() ? "" : j_.at("arrayLengthRef"); }
 }
 
 //-----------------------------------------------------------------------

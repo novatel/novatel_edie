@@ -491,8 +491,8 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            const uint32_t uiArraySize = *reinterpret_cast<const std::uint32_t*>(*ppucLogBuf_);
-            *ppucLogBuf_ += sizeof(uint32_t);
+            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, dynamic_cast<ArrayField*>(field.get())->arrayLengthRef, vIntermediateFormat_);
+
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
             pvFieldContainer.reserve(uiArraySize);
@@ -511,27 +511,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             auto* subFieldDefinitions = dynamic_cast<FieldArrayField*>(field.get());
-            std::string_view arrayLengthRef = subFieldDefinitions->arrayLengthRef;
-            uint32_t uiArraySize = 0;
-
-            if (arrayLengthRef.empty())
-            {
-                uiArraySize = *reinterpret_cast<const std::uint32_t*>(*ppucLogBuf_);
-                *ppucLogBuf_ += sizeof(int32_t);
-            }
-            else
-            {
-                // Traverse the decoded fields to find the field with a matching name.
-                for (const auto& it : vIntermediateFormat_)
-                {
-                    if (const auto arraySize = TryGetArraySize(it.fieldValue))
-                    {
-                        uiArraySize = *arraySize;
-                        break;
-                    }
-                }
-                // TODO: Throw exception if no matching key is found
-            }
+            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, subFieldDefinitions->arrayLengthRef, vIntermediateFormat_);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);

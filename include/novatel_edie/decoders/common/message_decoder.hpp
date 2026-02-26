@@ -250,30 +250,50 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    static std::optional<uint32_t> TryGetArraySize(const FieldValueVariant& fieldValue)
+    static uint32_t GetArrayLength(const unsigned char** ppucLogBuf_, std::string_view arrayLengthRef,
+                                   const std::vector<FieldContainer>& vIntermediateFormat_)
     {
-        return std::visit(
-            [](const auto& value) -> std::optional<uint32_t> {
-                using ValueType = std::decay_t<decltype(value)>;
+        if (arrayLengthRef.empty())
+        {
+            // If no arrayLengthRef in definition, treat first 4 bytes of field as array length
+            const uint32_t uiArrayLength = *reinterpret_cast<const std::uint32_t*>(*ppucLogBuf_);
+            *ppucLogBuf_ += sizeof(int32_t);
+            return uiArrayLength;
+        }
 
-                if constexpr (std::is_integral_v<ValueType>)
+        // Traverse the decoded fields to find the arrayLengthRef field by its name.
+        for (const auto& it : vIntermediateFormat_)
+        {
+            if (it.fieldDef->name == arrayLengthRef)
+            {
+                // Visit the active variant type at runtime. For each instantiation the compiler
+                // statically eliminates branches via 'if constexpr', returning nullopt for
+                // non-integral types, negative signed values, or values exceeding uint32_t range.
+                if (const auto arraySize = std::visit(
+                        [](const auto& value) -> std::optional<uint32_t> {
+                            using T = std::decay_t<decltype(value)>;
+                            if constexpr (std::is_integral_v<T>)
+                            {
+                                if constexpr (std::is_signed_v<T>)
+                                {
+                                    if (value < 0) { return std::nullopt; }
+                                }
+                                if constexpr (sizeof(T) > sizeof(uint32_t))
+                                {
+                                    if (value > static_cast<T>(std::numeric_limits<uint32_t>::max())) { return std::nullopt; }
+                                }
+                                return static_cast<uint32_t>(value);
+                            }
+                            return std::nullopt;
+                        },
+                        it.fieldValue))
                 {
-                    if constexpr (std::is_signed_v<ValueType>)
-                    {
-                        if (value < 0) { return std::nullopt; }
-                    }
-
-                    if constexpr (sizeof(ValueType) > sizeof(uint32_t))
-                    {
-                        if (value > static_cast<ValueType>(std::numeric_limits<uint32_t>::max())) { return std::nullopt; }
-                    }
-
-                    return static_cast<uint32_t>(value);
+                    return *arraySize;
                 }
+            }
+        }
 
-                return std::nullopt;
-            },
-            fieldValue);
+        throw std::runtime_error("GetArrayLength(): No matching field found for arrayLengthRef");
     }
 
   public:

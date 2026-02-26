@@ -334,6 +334,7 @@ struct EnumField : BaseField
 struct ArrayField : BaseField
 {
     uint32_t arrayLength{0};
+    std::string arrayLengthRef; // TODO: use something other than string
 
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;
@@ -343,10 +344,9 @@ struct ArrayField : BaseField
 //! \struct FieldArrayField
 //! \brief Struct containing elements of field array fields in the UI DB.
 //-----------------------------------------------------------------------
-struct FieldArrayField : BaseField
+struct FieldArrayField : ArrayField
 {
-    uint32_t arrayLength{0}, fieldSize{0};
-    std::string arrayLengthRef; // TODO: use something other than string
+    uint32_t fieldSize{0};
     std::vector<std::shared_ptr<BaseField>> fields;
 
     using Ptr = std::shared_ptr<FieldArrayField>;
