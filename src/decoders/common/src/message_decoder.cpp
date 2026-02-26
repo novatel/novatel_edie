@@ -634,13 +634,17 @@ template <bool Abbreviated>
 STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, const char** ppcLogBuf_,
                                        std::vector<FieldContainer>& vIntermediateFormat_) const
 {
-    constexpr auto delimiters = Abbreviated ? std::array<char, 3>{' ', '\r', '\n'} : std::array<char, 3>{',', '*', '\0'};
-    constexpr std::array<char, 3> unquotedStringDelimiters = {delimiters[0], delimiters[1], '\0'};
-    constexpr std::array<char, 3> quotedStringDelimiters = {'\"', delimiters[1], '\0'};
-    constexpr std::array<char, 4> tokenDelimiters = {delimiters[0], delimiters[1], delimiters[2], '\0'};
-    constexpr std::array<char, 2> responseDelimiters = {delimiters[1], '\0'};
+    constexpr char fieldDelim = Abbreviated ? ' ' : ',';
+    constexpr char endDelim = Abbreviated ? '\r' : '*';
+    
+    // Null-terminated C-strings for strcspn
+    constexpr std::array<char, 3> tokenDelimiters = {fieldDelim, endDelim, '\0'};
+    constexpr std::array<char, 3> unquotedStringDelimiters = {fieldDelim, endDelim, '\0'};
+    constexpr std::array<char, 3> quotedStringDelimiters = {'\"', endDelim, '\0'};
+    constexpr std::array<char, 2> responseDelimiters = {endDelim, '\0'};
 
-    const char* pcBufEnd = *ppcLogBuf_ + strlen(*ppcLogBuf_);
+    const char* pcBufEnd = //*ppcLogBuf_ + strlen(*ppcLogBuf_);
+        static_cast<const char*>(std::memchr(*ppcLogBuf_, '\0', MAX_ASCII_MESSAGE_LENGTH));
 
     for (const auto& field : vMsgDefFields_)
     {
@@ -651,7 +655,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         size_t tokenLength = strcspn(*ppcLogBuf_, tokenDelimiters.data());
         if (tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
 
-        bool bEarlyEndOfMessage = (*(*ppcLogBuf_ + tokenLength) == delimiters[1]);
+        bool bEarlyEndOfMessage = (*(*ppcLogBuf_ + tokenLength) == endDelim);
 
         switch (field->type)
         {
@@ -687,19 +691,18 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                 vIntermediateFormat_.emplace_back(std::string(""), field);
                 *ppcLogBuf_ += 1;
                 break;
-            case '"':
+            case '"': {
                 // If a field delimiter character is in the string, the previous tokenLength value is invalid.
                 tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '"' character, skipping past the first.
                 vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to pass opening double-quote.
                 // Skip past the first '"', string token and the remaining characters ('"' and ',').
-                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
+                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength + 1, unquotedStringDelimiters.data()) + 2;
                 break;
+            }
             default:
-                // String that isn't surrounded by quotes
-                tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '"' or '*' character, skipping past the first.
-                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
-                // Skip past the first '"', string token and the remaining characters ('"' and ',').
-                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
+                // Unquoted string: initial tokenLength is the length of the string
+                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field);
+                *ppcLogBuf_ += tokenLength + 1;
                 break;
             }
             break;
@@ -726,7 +729,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength; }
             else
             {
-                auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + strlen(*ppcLogBuf_), uiArraySize);
+                auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + tokenLength + 1, uiArraySize);
                 if (result.ec != std::errc())
                 {
                     SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::VARIABLE_LENGTH_ARRAY: Array length not valid number. Malformed Input\n");
@@ -786,7 +789,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             uint32_t uiArraySize;
-            auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + strlen(*ppcLogBuf_), uiArraySize);
+            auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + tokenLength + 1, uiArraySize);
             if (result.ec != std::errc())
             {
                 SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::FIELD_ARRAY: Field Array length not valid number. Malformed Input\n");
