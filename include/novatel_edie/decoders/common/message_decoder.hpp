@@ -142,7 +142,7 @@ class MessageDecoderBase
                                       std::vector<FieldContainer>& vIntermediateFormat_, uint32_t uiMessageLength_) const;
     template <bool Abbreviated>
     [[nodiscard]] STATUS DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, const char** ppcLogBuf_,
-                                     std::vector<FieldContainer>& vIntermediateFormat_, const int32_t uiMsgLength_ = 0) const;
+                                     std::vector<FieldContainer>& vIntermediateFormat_, const char* pcBufEnd = nullptr) const;
     [[nodiscard]] STATUS DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, simdjson::dom::element jsonData,
                                     std::vector<FieldContainer>& vIntermediateFormat_) const;
 
