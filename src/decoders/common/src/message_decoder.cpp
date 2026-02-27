@@ -636,15 +636,15 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
 {
     constexpr char fieldDelim = Abbreviated ? ' ' : ',';
     constexpr char endDelim = Abbreviated ? '\r' : '*';
-    
+
     // Null-terminated C-strings for strcspn
     constexpr std::array<char, 3> tokenDelimiters = {fieldDelim, endDelim, '\0'};
     constexpr std::array<char, 3> unquotedStringDelimiters = {fieldDelim, endDelim, '\0'};
     constexpr std::array<char, 3> quotedStringDelimiters = {'\"', endDelim, '\0'};
     constexpr std::array<char, 2> responseDelimiters = {endDelim, '\0'};
 
-    const char* pcBufEnd = uiMsgLength_ > 0 ? *ppcLogBuf_ + uiMsgLength_ :
-        static_cast<const char*>(std::memchr(*ppcLogBuf_, '\0', MAX_ASCII_MESSAGE_LENGTH));
+    const char* pcBufEnd =
+        uiMsgLength_ > 0 ? *ppcLogBuf_ + uiMsgLength_ : static_cast<const char*>(std::memchr(*ppcLogBuf_, '\0', MAX_ASCII_MESSAGE_LENGTH));
 
     for (const auto& field : vMsgDefFields_)
     {
@@ -691,14 +691,13 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                 vIntermediateFormat_.emplace_back(std::string(""), field);
                 *ppcLogBuf_ += 1;
                 break;
-            case '"': {
+            case '"':
                 // If a field delimiter character is in the string, the previous tokenLength value is invalid.
                 tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '"' character, skipping past the first.
                 vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to pass opening double-quote.
                 // Skip past the first '"', string token and the remaining characters ('"' and ',').
                 *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength + 1, unquotedStringDelimiters.data()) + 2;
                 break;
-            }
             default:
                 // Unquoted string: initial tokenLength is the length of the string
                 vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field);
@@ -836,8 +835,10 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
 }
 
 // explicit template instantiations
-template STATUS MessageDecoderBase::DecodeAscii<true>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&, const int32_t) const;
-template STATUS MessageDecoderBase::DecodeAscii<false>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&, const int32_t) const;
+template STATUS MessageDecoderBase::DecodeAscii<true>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&,
+                                                      const int32_t) const;
+template STATUS MessageDecoderBase::DecodeAscii<false>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&,
+                                                       const int32_t) const;
 
 // -------------------------------------------------------------------------------------------------------
 STATUS MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, simdjson::dom::element jsonData,
@@ -1012,10 +1013,12 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
     {
     case HEADER_FORMAT::ASCII: [[fallthrough]];
     case HEADER_FORMAT::SHORT_ASCII: //
-        return DecodeAscii<false>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_, stMetaData_.uiLength - stMetaData_.uiHeaderLength);
+        return DecodeAscii<false>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_,
+                                  stMetaData_.uiLength - stMetaData_.uiHeaderLength);
     case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
     case HEADER_FORMAT::SHORT_ABB_ASCII: //
-        return DecodeAscii<true>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_, stMetaData_.uiLength - stMetaData_.uiHeaderLength);
+        return DecodeAscii<true>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_,
+                                 stMetaData_.uiLength - stMetaData_.uiHeaderLength);
     case HEADER_FORMAT::BINARY: [[fallthrough]];
     case HEADER_FORMAT::SHORT_BINARY: //
         return DecodeBinary(msgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
