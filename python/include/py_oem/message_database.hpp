@@ -30,7 +30,6 @@ class PyMessageDatabase
     {
         return pclMessageDb->GetMessagesByNameDict();
     }
-    [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetFieldsByNameDict() const { return pclMessageDb->GetFieldsByNameDict(); }
 
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return pclMessageDb->GetEnumsByIdDict(); }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return pclMessageDb->GetEnumsByNameDict(); }

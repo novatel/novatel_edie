@@ -59,15 +59,14 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
             if (has_ptype)
             {
                 // If a parent type name is provided, get a field type based on the parent and field name
-                field_name = parent + "_" + field.fieldDef->name + "_Field";
                 try
                 {
-                    field_ptype = parent_db->GetFieldsByNameDict().at(field_name);
+                    field_ptype = parent_db->GetFieldType(field.fieldDef.get());
                 }
-                catch (const std::out_of_range& e)
+                catch (const std::out_of_range&)
                 {
                     // This case should never happen, if it does there is a bug
-                    throw std::runtime_error("Field type not found for " + field_name);
+                    throw std::runtime_error("Python type not found for subfield!");
                 }
             }
             else
@@ -216,4 +215,3 @@ PYCOMMON_EXPORT nb::object PyField::getitem(nb::str field_name) const { return t
 PYCOMMON_EXPORT bool PyField::contains(nb::str field_name) const { return to_shallow_dict().contains(std::move(field_name)); }
 
 PYCOMMON_EXPORT size_t PyField::len() const { return fields.size(); }
-
