@@ -90,9 +90,10 @@ def compare_with_floating_point(item1, item2) -> bool:
     return item1 == item2
 
 
-@pytest.mark.parametrize("data, exp_fields, exp_values", [
+@pytest.mark.parametrize("data, exp_type, exp_fields, exp_values", [
     pytest.param(
         b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;SOL_COMPUTED,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n",
+        oem.Message, # Does not use most recent CRC
         [
             'solution_status', 'position_type', 'latitude', 'longitude', 'height', 'undulation',
             'datum_id', 'latitude_std_dev', 'longitude_std_dev', 'height_std_dev', 'base_id',
@@ -127,6 +128,7 @@ def compare_with_floating_point(item1, item2) -> bool:
     ),
     pytest.param(
         b'#RANGECMP2A,USB1,0,66.5,FINESTEERING,2378,227093.000,03000020,1fe3,32768;5,ffffffffff*58bf791d',
+        oem.messages.RANGECMP2,
         ['range_data_length', 'range_data'],
         [
             5,
@@ -136,6 +138,7 @@ def compare_with_floating_point(item1, item2) -> bool:
     ),
     pytest.param(
         b'#RANGEA,USB1,0,66.0,FINESTEERING,2378,230219.000,03000020,5103,32768;1,27,0,24627698.557,0.246,-129419430.405069,0.014,3666.953,42.6,344.455,0810dc04*1d271f23',
+        oem.messages.RANGE,
         ['obs_length', 'obs'],
         [
             1,
@@ -145,13 +148,14 @@ def compare_with_floating_point(item1, item2) -> bool:
     )
 ])
 def test_field_names_and_values(
-        data: bytes, exp_fields: list, exp_values: list, decoder: oem.Decoder):
+        data: bytes, exp_type: type, exp_fields: list, exp_values: list, decoder: oem.Decoder):
     """Test that the field names are correct."""
     # Act
     msg = decoder.decode(data)
     fields = msg.get_field_names()
     values = nest_values(msg)
     # Assert
+    assert isinstance(msg, exp_type)
     assert fields == exp_fields, f"Expected fields: {exp_fields}, but got: {fields}"
     assert compare_with_floating_point(values, exp_values), f"Expected values: {exp_values}, but got: {values}"
 
