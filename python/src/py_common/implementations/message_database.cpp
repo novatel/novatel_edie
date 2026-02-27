@@ -151,6 +151,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<
             auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
             nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
+            field_by_def[field.get()] = field_type;
             fields_by_name[field_name] = field_type;
             fields_by_message[parent_message].push_back(field_name);
             AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor, type_tuple, type_dict);
