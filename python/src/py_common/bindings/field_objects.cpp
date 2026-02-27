@@ -22,7 +22,7 @@ void py_common::init_field_objects(nb::module_& m)
              [](nb::handle self) {
                  py_common::PyField* body = nb::inst_ptr<py_common::PyField>(self);
                  std::stringstream repr;
-                 repr << body->name << "(";
+                 repr << nb::cast<nb::str>(self.attr("__class__").attr("__name__")).c_str() << "(";
                  bool first = true;
                  for (const auto& [field_name, value] : body->to_shallow_dict())
                  {
