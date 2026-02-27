@@ -21,8 +21,9 @@ struct PyField
     std::string name;
     bool hasPtype; // Whether the field has a specific Python type associated with it
 
-    explicit PyField(std::string name_, bool hasPtype_, std::vector<FieldContainer> message_, py_common::PyMessageDatabaseCore::ConstPtr parentDb_)
-        : name(std::move(name_)), hasPtype(hasPtype_), fields(std::move(message_)), parentDb(std::move(parentDb_)) {};
+    explicit PyField(std::string name_, bool hasPtype_, std::vector<FieldContainer> message_, const ::novatel::edie::BaseField* fieldDef_,
+                     py_common::PyMessageDatabaseCore::ConstPtr parentDb_)
+        : name(std::move(name_)), hasPtype(hasPtype_), fields(std::move(message_)), fieldDef(fieldDef_), parentDb(std::move(parentDb_)) {};
 
     //============================================================================
     //! \brief Creates a shallow dictionary representing the field.
@@ -100,6 +101,7 @@ struct PyField
     std::string repr() const;
 
     std::vector<FieldContainer> fields;
+    const BaseField* fieldDef{nullptr};
 
   protected:
     mutable nb::dict cached_values_;

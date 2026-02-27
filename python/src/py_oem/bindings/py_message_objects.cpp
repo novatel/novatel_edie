@@ -115,7 +115,8 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
         nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
         bool is_complete = (metadata.eFormat != HEADER_FORMAT::ABB_ASCII);
-        new (response_cinst) PyResponse(message_name, message_fields, database, header, is_complete);
+        auto msgDef = database->GetMsgDef(message_name);
+        new (response_cinst) PyResponse(message_name, message_fields, database, header, is_complete, msgDef.get(), metadata.uiMessageCrc);
         nb::inst_mark_ready(response_pyinst);
 
         return response_pyinst;
@@ -142,7 +143,8 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
     }
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
-    new (message_cinst) PyMessage(message_name, has_ptype, std::move(message_fields), database, header);
+    auto msgDef = database->GetMsgDef(message_name);
+    new (message_cinst) PyMessage(message_name, has_ptype, std::move(message_fields), database, header, msgDef.get(), metadata.uiMessageCrc);
 
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;
@@ -317,7 +319,7 @@ void py_oem::init_message_objects(nb::module_& m)
                 A dictionary representation of the message.
             )doc")
         .def_ro("header", &py_oem::PyMessage::header, "The header of the message.")
-        .def_ro("name", &py_oem::PyMessage::name, "The type of message it is.");
+        .def_prop_ro("name", &py_oem::PyEncodableField::name, "The type of message it is.");
 
     auto& familyTypes = py_common::GetMessageFamilyTypes();
     familyTypes["OEM"] = nb::type<py_oem::PyMessage>();
@@ -364,7 +366,7 @@ void py_oem::init_message_objects(nb::module_& m)
                          if (!self.complete) { return nb::none(); }
                          return nb::cast(self.header);
                      })
-        .def_ro("name", &py_oem::PyResponse::name, "The type of message it is.")
+        .def_prop_ro("name", &py_oem::PyEncodableField::name, "The type of message it is.")
         .def_prop_ro("response_id", &py_oem::PyResponse::GetResponseId)
         .def_prop_ro("response_string", &py_oem::PyResponse::GetResponseString)
         // typehints in stubgen_pattern.txt
