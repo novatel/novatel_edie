@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <stdexcept>
 
 #include "novatel_edie/decoders/oem/filter.hpp"
 #include "py_common/bindings_core.hpp"
@@ -117,7 +116,7 @@ struct PyEncodableField : public py_common::PyField
   public:
     PyHeader header;
     PyMessageDatabase::ConstPtr encoderDb;
-    const MessageDefinition* messageDef{nullptr};
+    const MessageDefinition* messageDef;
 
     // Return the message name from the stored message definition.
     // Throws if no message definition is available (do not fall back to the raw name).
@@ -130,19 +129,13 @@ struct PyEncodableField : public py_common::PyField
     explicit PyEncodableField(bool hasPtype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr encoderDb_, PyHeader header_,
                               const MessageDefinition* messageDef_, uint32_t messageCrc_)
         : PyField(hasPtype_, std::move(fields_), nullptr, std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
-          encoderDb(std::move(encoderDb_))
+          encoderDb(std::move(encoderDb_)), messageDef(messageDef_)
     {
-        // store provided message definition pointer
-        this->messageDef = messageDef_;
-
-        const BaseField* selected = nullptr;
         if (messageDef_)
         {
             auto it = messageDef_->fields.find(messageCrc_);
-            if (it != messageDef_->fields.end() && !it->second.empty()) { selected = it->second[0].get(); }
+            if (it != messageDef_->fields.end() && !it->second.empty()) { fieldDef = it->second[0].get(); }
         }
-
-        this->fieldDef = selected;
     };
 
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
