@@ -127,9 +127,9 @@ struct PyEncodableField : public py_common::PyField
         return messageDef->name;
     }
 
-    explicit PyEncodableField(std::string name_, bool hasPtype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr encoderDb_,
-                              PyHeader header_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
-        : PyField(std::move(name_), hasPtype_, std::move(fields_), nullptr, std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
+    explicit PyEncodableField(bool hasPtype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr encoderDb_, PyHeader header_,
+                              const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyField(hasPtype_, std::move(fields_), nullptr, std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
           encoderDb(std::move(encoderDb_))
     {
         // store provided message definition pointer
@@ -159,9 +159,9 @@ struct PyEncodableField : public py_common::PyField
 //============================================================================
 struct PyMessage : public PyEncodableField
 {
-    explicit PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
-                       PyHeader header_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
-        : PyEncodableField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_) {};
+    explicit PyMessage(bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
+                       const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyEncodableField(has_ptype_, std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_) {};
 };
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database);
@@ -179,10 +179,9 @@ nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>
 struct PyResponse : public PyEncodableField
 {
     bool complete;
-    explicit PyResponse(std::string name_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
-                        bool complete_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
-        : PyEncodableField(std::move(name_), false, std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_),
-          complete(complete_) {};
+    explicit PyResponse(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_,
+                        const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyEncodableField(false, std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_), complete(complete_) {};
 
     // Retrieve response ID from first field of response
     int32_t GetResponseId() { return std::get<int>(fields[0].fieldValue); }

@@ -116,7 +116,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
         bool is_complete = (metadata.eFormat != HEADER_FORMAT::ABB_ASCII);
         auto msgDef = database->GetMsgDef(message_name);
-        new (response_cinst) PyResponse(message_name, message_fields, database, header, is_complete, msgDef.get(), metadata.uiMessageCrc);
+        new (response_cinst) PyResponse(message_fields, database, header, is_complete, msgDef.get(), metadata.uiMessageCrc);
         nb::inst_mark_ready(response_pyinst);
 
         return response_pyinst;
@@ -144,7 +144,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
     auto msgDef = database->GetMsgDef(message_name);
-    new (message_cinst) PyMessage(message_name, has_ptype, std::move(message_fields), database, header, msgDef.get(), metadata.uiMessageCrc);
+    new (message_cinst) PyMessage(has_ptype, std::move(message_fields), database, header, msgDef.get(), metadata.uiMessageCrc);
 
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;
