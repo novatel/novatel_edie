@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <stdexcept>
 
 #include "novatel_edie/decoders/oem/filter.hpp"
 #include "py_common/bindings_core.hpp"
@@ -116,11 +117,33 @@ struct PyEncodableField : public py_common::PyField
   public:
     PyHeader header;
     PyMessageDatabase::ConstPtr encoderDb;
+    const MessageDefinition* messageDef{nullptr};
+
+    // Return the message name from the stored message definition.
+    // Throws if no message definition is available (do not fall back to the raw name).
+    std::string name() const
+    {
+        if (!messageDef) { return std::string("UNKNOWN"); }
+        return messageDef->name;
+    }
 
     explicit PyEncodableField(std::string name_, bool hasPtype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr encoderDb_,
-                              PyHeader header_)
-        : PyField(std::move(name_), hasPtype_, std::move(fields_), std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
-          encoderDb(std::move(encoderDb_)) {};
+                              PyHeader header_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyField(std::move(name_), hasPtype_, std::move(fields_), nullptr, std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
+          encoderDb(std::move(encoderDb_))
+    {
+        // store provided message definition pointer
+        this->messageDef = messageDef_;
+
+        const BaseField* selected = nullptr;
+        if (messageDef_)
+        {
+            auto it = messageDef_->fields.find(messageCrc_);
+            if (it != messageDef_->fields.end() && !it->second.empty()) { selected = it->second[0].get(); }
+        }
+
+        this->fieldDef = selected;
+    };
 
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
     py_common::PyMessageData to_ascii();
@@ -137,8 +160,8 @@ struct PyEncodableField : public py_common::PyField
 struct PyMessage : public PyEncodableField
 {
     explicit PyMessage(std::string name_, bool has_ptype_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_,
-                       PyHeader header_)
-        : PyEncodableField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_), std::move(header_)) {};
+                       PyHeader header_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyEncodableField(std::move(name_), has_ptype_, std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_) {};
 };
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database);
@@ -157,8 +180,9 @@ struct PyResponse : public PyEncodableField
 {
     bool complete;
     explicit PyResponse(std::string name_, std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
-                        bool complete_)
-        : PyEncodableField(std::move(name_), false, std::move(fields_), std::move(parent_db_), std::move(header_)), complete(complete_) {};
+                        bool complete_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyEncodableField(std::move(name_), false, std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_),
+          complete(complete_) {};
 
     // Retrieve response ID from first field of response
     int32_t GetResponseId() { return std::get<int>(fields[0].fieldValue); }

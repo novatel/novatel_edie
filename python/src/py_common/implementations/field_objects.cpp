@@ -85,7 +85,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
                 nb::object pyinst = nb::inst_alloc(field_ptype);
                 PyField* cinst = nb::inst_ptr<PyField>(pyinst);
                 const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-                new (cinst) PyField(field_name, has_ptype, message_subfield, parent_db);
+                new (cinst) PyField(field_name, has_ptype, message_subfield, subfield.fieldDef.get(), parent_db);
                 nb::inst_mark_ready(pyinst);
                 sub_values.push_back(pyinst);
             }
@@ -217,17 +217,3 @@ PYCOMMON_EXPORT bool PyField::contains(nb::str field_name) const { return to_sha
 
 PYCOMMON_EXPORT size_t PyField::len() const { return fields.size(); }
 
-PYCOMMON_EXPORT std::string PyField::repr() const
-{
-    std::stringstream repr;
-    repr << name << "(";
-    bool first = true;
-    for (const auto& [field_name, value] : to_shallow_dict())
-    {
-        if (!first) { repr << ", "; }
-        first = false;
-        repr << nb::str("{}={!r}").format(field_name, value).c_str();
-    }
-    repr << ")";
-    return repr.str();
-}
