@@ -31,7 +31,7 @@
 using namespace novatel::edie;
 
 FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
-    : pclMyLogger(GetBaseLoggerManager()->RegisterLogger("FramerManager")), pclMyFixedRingBuffer(std::make_shared<UCharFixedRingBuffer>())
+    : pclMyLogger(GetBaseLoggerManager()->RegisterLogger("FramerManager")), pclMyFixedRingBuffer(std::make_shared<UCharFixedBuffer>())
 {
     pclMyLogger->info("Note: the FramerManager is under active development and should be treated as an experimental feature. "
                       "Currently, the FramerManager is simply a thin wrapper around the OEM Framer. Until we have implemented "
@@ -56,7 +56,7 @@ FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
 }
 
 void FramerManager::RegisterFramer(const std::string& framerName_,
-                                   std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)> framerFactory_,
+                                   std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedBuffer>)> framerFactory_,
                                    std::function<std::unique_ptr<MetaDataBase>()> metadataConstructor_)
 {
     auto& factoryMap = GetFramerFactories();
@@ -73,11 +73,11 @@ void FramerManager::RegisterFramer(const std::string& framerName_,
     factoryMap[framerId] = {std::move(framerFactory_), std::move(metadataConstructor_)};
 }
 
-std::unordered_map<std::uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
+std::unordered_map<std::uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedBuffer>)>,
                                             std::function<std::unique_ptr<MetaDataBase>()>>>&
 FramerManager::GetFramerFactories()
 {
-    static std::unordered_map<uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedRingBuffer>)>,
+    static std::unordered_map<uint32_t, std::pair<std::function<std::unique_ptr<FramerBase>(std::shared_ptr<UCharFixedBuffer>)>,
                                                   std::function<std::unique_ptr<MetaDataBase>()>>>
         factories;
     return factories;
