@@ -491,7 +491,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, dynamic_cast<ArrayField*>(field.get())->arrayLengthRef, vIntermediateFormat_);
+            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, dynamic_cast<FieldArrayField&>(*field.get()), vIntermediateFormat_);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
@@ -511,7 +511,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             auto* subFieldDefinitions = dynamic_cast<FieldArrayField*>(field.get());
-            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, subFieldDefinitions->arrayLengthRef, vIntermediateFormat_);
+            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, *subFieldDefinitions, vIntermediateFormat_);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
