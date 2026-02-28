@@ -262,21 +262,29 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    static uint32_t GetArrayLength(const unsigned char** ppucLogBuf_, std::string_view arrayLengthRef,
+    static uint32_t GetArrayLength(const unsigned char** ppucLogBuf_, FieldArrayField& arrayDef,
                                    const std::vector<FieldContainer>& vIntermediateFormat_)
     {
-        if (arrayLengthRef.empty())
+        if (arrayDef.arrayLengthRef.empty())
         {
-            // If no arrayLengthRef in definition, treat first 4 bytes of field as array length
-            const uint32_t uiArrayLength = *reinterpret_cast<const std::uint32_t*>(*ppucLogBuf_);
-            *ppucLogBuf_ += sizeof(int32_t);
+            // Use the dataType.length to determine number of bytes used to store the size data.
+            // Not all Arrays use 4 bytes to store length data.
+
+            const std::size_t lenBytes = arrayDef.dataType.length;
+            if (!(lenBytes == 1 || lenBytes == 2 || lenBytes == 4))
+                throw std::runtime_error("GetArrayLength: Unsupported length size; must be 1,2 or 4");
+
+            uint32_t uiArrayLength = 0;
+            for (std::size_t i = 0; i < arrayDef.dataType.length; ++i) { uiArrayLength |= static_cast<uint32_t>((*ppucLogBuf_)[i]) << (8 * i); }
+
+            *ppucLogBuf_ += arrayDef.dataType.length;
             return uiArrayLength;
         }
 
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
         for (const auto& it : vIntermediateFormat_)
         {
-            if (it.fieldDef->name == arrayLengthRef)
+            if (it.fieldDef->name == arrayDef.arrayLengthRef)
             {
                 // Visit the active variant type at runtime. For each instantiation the compiler
                 // statically eliminates branches via 'if constexpr', returning nullopt for

@@ -460,6 +460,7 @@ template <typename Derived> class EncoderBase
                             {
                                 return false;
                             }
+                            newIndentLine = true;
                         }
                         // Data was printed so a new line is required at the end of the array if there are more fields in the log
                         else
