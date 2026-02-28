@@ -178,7 +178,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                 {
                     eMyFrameState = NovAtelFrameState::WAITING_FOR_JSON_OBJECT;
                     stMetaData_.eFormat = HEADER_FORMAT::JSON;
-                    uiMyJsonObjectOpenBraces++;
+                    uiMyJsonObjectOpenBraces = 1;
                 }
                 break;
             default: break;
