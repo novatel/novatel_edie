@@ -151,9 +151,8 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<
             auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
             nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
-            field_by_def[field.get()] = field_type;
-            fields_by_name[field_name] = field_type;
-            fields_by_message[parent_message].push_back(field_name);
+            fields_by_def[field.get()] = field_type;
+            fields_by_message[parent_message].push_back(field.get());
             AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor, type_tuple, type_dict);
         }
     }
@@ -222,10 +221,10 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveMessageType(uint32_
     auto fields_it = fields_by_message.find(message_name);
     if (fields_it != fields_by_message.end())
     {
-        for (const std::string& field_name : fields_it->second)
+        for (const BaseField* field_def : fields_it->second)
         {
             // remove from fields_by_name
-            fields_by_name.erase(field_name);
+            fields_by_def.erase(field_def);
         }
         // remove from fields_by_message
         fields_by_message.erase(fields_it);

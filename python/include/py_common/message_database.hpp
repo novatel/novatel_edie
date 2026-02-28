@@ -31,12 +31,12 @@ class PyMessageDatabaseCore : public MessageDatabase
 
     [[nodiscard]] nb::object GetFieldType(const BaseField* field) const
     {
-        auto it = field_by_def.find(field);
-        if (it == field_by_def.end()) { throw std::out_of_range("Field type not found"); }
+        auto it = fields_by_def.find(field);
+        if (it == fields_by_def.end()) { throw std::out_of_range("Field type not found"); }
         return it->second;
     }
 
-    [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return field_by_def; }
+    [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return fields_by_def; }
 
     [[nodiscard]] const std::unordered_map<std::string, PyMessageType>& GetMessagesByNameDict() const { return messages_by_name; }
 
@@ -109,9 +109,8 @@ class PyMessageDatabaseCore : public MessageDatabase
 
     nb::handle base_message_type;
     std::unordered_map<std::string, PyMessageType> messages_by_name{};
-    std::unordered_map<std::string, nb::object> fields_by_name{};
-    std::unordered_map<const BaseField*, nb::object> field_by_def{};
-    std::unordered_map<std::string, std::vector<std::string>> fields_by_message{};
+    std::unordered_map<const BaseField*, nb::object> fields_by_def{};
+    std::unordered_map<std::string, std::vector<const BaseField*>> fields_by_message{};
 
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};
