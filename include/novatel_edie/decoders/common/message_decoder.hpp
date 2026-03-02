@@ -262,7 +262,7 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    static uint32_t GetArrayLength(const unsigned char** ppucLogBuf_, FieldArrayField& arrayDef,
+    static uint32_t GetArrayLength(const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
                                    const std::vector<FieldContainer>& vIntermediateFormat_)
     {
         if (arrayDef.arrayLengthRef.empty())

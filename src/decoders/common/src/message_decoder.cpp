@@ -491,7 +491,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, dynamic_cast<FieldArrayField&>(*field.get()), vIntermediateFormat_);
+            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, dynamic_cast<ArrayField&>(*field), vIntermediateFormat_);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
