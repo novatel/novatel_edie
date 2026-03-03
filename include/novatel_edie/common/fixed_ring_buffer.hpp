@@ -33,6 +33,8 @@
 #include <memory>
 #include <type_traits>
 
+#include "novatel_edie/common/crc32.hpp"
+
 //============================================================================
 //! \class FixedRingBuffer
 //! \brief A minimal, fixed-size ring buffer optimized for power-of-2 capacity.
@@ -45,6 +47,9 @@ template <typename T, size_t N> class FixedRingBuffer
     static_assert(std::is_trivially_copyable_v<T>, "FixedRingBuffer requires a trivially copyable type T for memcpy usage");
 
   public:
+    //! \brief A special value indicating "not found" in search operations.
+    static constexpr size_t npos = static_cast<size_t>(-1);
+
     //! \brief Adds an element to the end of the buffer, overwriting the oldest if full.
     void push_back(const T& value) noexcept { buffer[(head + sz++) & Mask] = value; }
 
@@ -112,6 +117,63 @@ template <typename T, size_t N> class FixedRingBuffer
 
         sz += count;
         return count;
+    }
+
+    //! \brief Finds the first occurrence of a byte value in the buffer (logical order).
+    //! \return Logical index (0 = oldest) or npos if not found.
+    template <typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
+    [[nodiscard]] size_t search_char(unsigned char value, size_t start, size_t count) const noexcept
+    {
+        count = std::min(count, sz);
+        if (count == 0) { return npos; }
+
+        const size_t start_idx = (head + start) & Mask;
+        const size_t first_chunk_elements = std::min(count, N - start_idx);
+        const void* first_ptr = std::memchr(buffer.get() + start_idx, value, first_chunk_elements);
+        if (first_ptr != nullptr) { return static_cast<size_t>(static_cast<const unsigned char*>(first_ptr) - (buffer.get() + start_idx) + start); }
+
+        const size_t second_chunk_elements = count - first_chunk_elements;
+        if (second_chunk_elements == 0) { return npos; }
+
+        const void* second_ptr = std::memchr(buffer.get(), value, second_chunk_elements);
+        if (second_ptr != nullptr)
+        {
+            return first_chunk_elements + static_cast<size_t>(static_cast<const unsigned char*>(second_ptr) - buffer.get()) + start;
+        }
+
+        return npos;
+    }
+
+    //! \brief Safely reads a multi-byte value from the buffer, handling wraparound.
+    //! \tparam U The type to read (e.g., uint16_t, uint32_t). Must be trivially copyable.
+    //! \param[in] logical_index The starting logical index of the value.
+    //! \return The value read from the buffer.
+    template <typename U, typename = std::enable_if_t<std::is_trivially_copyable_v<U>>>
+    [[nodiscard]] U read_value(size_t logical_index) const noexcept
+    {
+        static_assert(sizeof(U) % sizeof(T) == 0, "Value size must be a multiple of element size");
+        constexpr size_t num_elements = sizeof(U) / sizeof(T);
+
+        U result;
+        const size_t physical_index = (head + logical_index) & Mask;
+
+        // Fast path: contiguous read (no wraparound)
+        if (physical_index + num_elements <= N) { std::memcpy(&result, buffer.get() + physical_index, sizeof(U)); }
+        else
+        {
+            auto* dest = reinterpret_cast<T*>(&result);
+            for (size_t i = 0; i < num_elements; ++i) { dest[i] = buffer[(physical_index + i) & Mask]; }
+        }
+
+        return result;
+    }
+
+    //! \brief Calculates the CRC-32 of a range of elements in logical order (0 = oldest).
+    //! \param[in] start Logical start index.
+    //! \param[in] count Number of elements to include.
+    [[nodiscard]] uint32_t CalculateBlockCrc32(size_t start, size_t count) const
+    {
+        return ::CalculateBlockCrc32(buffer.get() + head + start, static_cast<uint32_t>(std::min(count, sz - start) * sizeof(T)));
     }
 
     //! \brief Returns the number of elements currently in the buffer.
