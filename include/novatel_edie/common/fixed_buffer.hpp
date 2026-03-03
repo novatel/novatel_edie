@@ -34,6 +34,8 @@
 #include <numeric>
 #include <type_traits>
 
+#include "novatel_edie/common/crc32.hpp"
+
 //============================================================================
 //! \class FixedBuffer
 //! \brief A minimal, fixed-size linear buffer. Data is stored contiguously
