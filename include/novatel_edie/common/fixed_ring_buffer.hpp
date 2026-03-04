@@ -171,9 +171,9 @@ template <typename T, size_t N> class FixedRingBuffer
     //! \brief Calculates the CRC-32 of a range of elements in logical order (0 = oldest).
     //! \param[in] start Logical start index.
     //! \param[in] count Number of elements to include.
-    [[nodiscard]] uint32_t CalculateBlockCrc32(size_t start, size_t count) const
+    template <uint32_t Poly = 0xEDB88320UL> [[nodiscard]] uint32_t CalculateBlockCrc32(size_t start, size_t count, uint32_t initial_crc = 0) const
     {
-        return ::CalculateBlockCrc32(buffer.get() + head + start, static_cast<uint32_t>(std::min(count, sz - start) * sizeof(T)));
+        return ::CalculateBlockCrc32<Poly>(buffer.get() + head + start, static_cast<uint32_t>(std::min(count, sz - start) * sizeof(T)), initial_crc);
     }
 
     //! \brief Returns the number of elements currently in the buffer.

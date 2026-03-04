@@ -31,14 +31,17 @@
 #include <cstdint>
 #include <string_view>
 
-constexpr auto UI_CRC_TABLE = [] {
+// Build the slice-by-8 lookup tables for the given (reflected) generator polynomial.
+// Called once per unique Poly; result cached in UI_CRC_TABLE<Poly> below.
+template <uint32_t Poly> constexpr auto make_crc_table()
+{
     std::array<std::array<uint32_t, 256>, 8> uiPreCalcCrcTables{};
 
     for (uint32_t i = 0; i < 256; ++i)
     {
         uint32_t uiCrc = i;
 
-        for (uint32_t j = 0; j < 8; ++j) { uiCrc = (uiCrc & 1) != 0U ? (uiCrc >> 1) ^ 0xEDB88320L : uiCrc >> 1; }
+        for (uint32_t j = 0; j < 8; ++j) { uiCrc = (uiCrc & 1) != 0U ? (uiCrc >> 1) ^ Poly : uiCrc >> 1; }
 
         uiPreCalcCrcTables[0][i] = uiCrc;
     }
@@ -53,23 +56,27 @@ constexpr auto UI_CRC_TABLE = [] {
     }
 
     return uiPreCalcCrcTables;
-}();
+}
+
+// Variable template: one table instance per polynomial, computed entirely at compile time.
+template <uint32_t Poly = 0xEDB88320UL> inline constexpr auto UI_CRC_TABLE = make_crc_table<Poly>();
 
 // --------------------------------------------------------------------------
 // Accumulate a single character into the given CRC-32 value
 // --------------------------------------------------------------------------
-constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_)
+template <uint32_t Poly = 0xEDB88320UL> constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_)
 {
     const uint32_t uiIndex = (uiCrc_ ^ ucChar_) & 0xff;
-    uiCrc_ = ((uiCrc_ >> 8) & 0x00FFFFFFL) ^ UI_CRC_TABLE[0][uiIndex];
+    uiCrc_ = ((uiCrc_ >> 8) & 0x00FFFFFFL) ^ UI_CRC_TABLE<Poly>[0][uiIndex];
 }
 
 // --------------------------------------------------------------------------
 // Calculates the CRC-32 of a block of data all at once
 // --------------------------------------------------------------------------
-constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t uiCount_)
+template <uint32_t Poly = 0xEDB88320UL>
+constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t uiCount_, uint32_t uiInitialCrc_ = 0)
 {
-    uint32_t crc = 0;
+    uint32_t crc = uiInitialCrc_;
 
     size_t i = 0;
 
@@ -100,16 +107,17 @@ constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t 
         //
         // Each term depends only on one byte and its bit position, so it can be
         // precomputed in a 256-entry lookup table per position:
-        //   UI_CRC_TABLE[7] for b0, UI_CRC_TABLE[6] for b1, ..., UI_CRC_TABLE[0] for b7.
+        //   UI_CRC_TABLE<Poly>[7] for b0, UI_CRC_TABLE<Poly>[6] for b1, ..., UI_CRC_TABLE<Poly>[0] for b7.
         // See e.g. https://static.aminer.org/pdf/PDF/000/432/446/a_systematic_approach_to_building_high_performance_software_based_crc.pdf
-        crc = UI_CRC_TABLE[7][(lo) & 0xFF] ^ UI_CRC_TABLE[6][(lo >> 8) & 0xFF] ^ UI_CRC_TABLE[5][(lo >> 16) & 0xFF] ^ UI_CRC_TABLE[4][(lo >> 24)] ^
-              UI_CRC_TABLE[3][(hi) & 0xFF] ^ UI_CRC_TABLE[2][(hi >> 8) & 0xFF] ^ UI_CRC_TABLE[1][(hi >> 16) & 0xFF] ^ UI_CRC_TABLE[0][(hi >> 24)];
+        crc = UI_CRC_TABLE<Poly>[7][(lo) & 0xFF] ^ UI_CRC_TABLE<Poly>[6][(lo >> 8) & 0xFF] ^ UI_CRC_TABLE<Poly>[5][(lo >> 16) & 0xFF] ^
+              UI_CRC_TABLE<Poly>[4][(lo >> 24)] ^ UI_CRC_TABLE<Poly>[3][(hi) & 0xFF] ^ UI_CRC_TABLE<Poly>[2][(hi >> 8) & 0xFF] ^
+              UI_CRC_TABLE<Poly>[1][(hi >> 16) & 0xFF] ^ UI_CRC_TABLE<Poly>[0][(hi >> 24)];
 
         i += 8;
     }
 
     // Process remaining bytes
-    for (; i < uiCount_; i++) { CalculateCharacterCrc32(crc, ucBuffer_[i]); }
+    for (; i < uiCount_; i++) { CalculateCharacterCrc32<Poly>(crc, ucBuffer_[i]); }
 
     return crc;
 }
@@ -117,10 +125,10 @@ constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t 
 // --------------------------------------------------------------------------
 // Calculates the CRC-32 for a string
 // --------------------------------------------------------------------------
-constexpr uint32_t CalculateBlockCrc32(std::string_view buffer_)
+template <uint32_t Poly = 0xEDB88320UL> constexpr uint32_t CalculateBlockCrc32(std::string_view buffer_)
 {
     uint32_t uiCrc = 0;
-    for (const char c : buffer_) { CalculateCharacterCrc32(uiCrc, static_cast<unsigned char>(c)); }
+    for (const char c : buffer_) { CalculateCharacterCrc32<Poly>(uiCrc, static_cast<unsigned char>(c)); }
     return uiCrc;
 }
 
