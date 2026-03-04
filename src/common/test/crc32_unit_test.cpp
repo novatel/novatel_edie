@@ -31,7 +31,7 @@
 // -------------------------------------------------------------------------------------------------------
 // CRC32 Unit Tests
 // -------------------------------------------------------------------------------------------------------
-TEST(CRC32Test, CalculateCharacterCRC32)
+TEST(CRC32Test, CalculateCharacterCRC32_BESTPOS)
 {
     std::string sMessage("#BESTPOSA,SPECIAL,0,72.5,FINESTEERING,2000,202512.000,02000020,b1f6,32768;SOL_COMPUTED,"
                          "SINGLE,17.44306884140,78.37411522222,649.8119,-76.8000,WGS84,0.9206,1.0236,1.9887,\"\",0."
@@ -53,7 +53,7 @@ TEST(CRC32Test, CalculateCharacterCRC32)
     ASSERT_EQ(uiCalculatedCRC, 0x42d4f5ccUL);
 }
 
-TEST(CRC32Test, CalculateBlockCRC32)
+TEST(CRC32Test, CalculateBlockCRC32_BESTPOS)
 {
     std::string sMessage("#BESTPOSA,SPECIAL,0,72.5,FINESTEERING,2000,202512.000,02000020,b1f6,32768;SOL_COMPUTED,"
                          "SINGLE,17.44306884140,78.37411522222,649.8119,-76.8000,WGS84,0.9206,1.0236,1.9887,\"\",0."
@@ -68,6 +68,15 @@ TEST(CRC32Test, CalculateBlockCRC32)
     auto uiCalculatedCRC = CalculateBlockCrc32(reinterpret_cast<unsigned char*>(sMessage.data() + 1), uiTerminatorIndex - 1);
 
     ASSERT_EQ(uiCalculatedCRC, 0x42d4f5ccUL);
+}
+
+// CRC32 parameters due to Koopman, "32-Bit Cyclic Redundancy Codes for Internet Applications"
+// see: https://users.ece.cmu.edu/~koopman/networks/dsn02/dsn02_koopman.pdf
+TEST(CRC32Test, CalculateBlockCRC32_Koopman)
+{
+    constexpr unsigned char log[] = {0x33, 0x22, 0x55, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x3D, 0x34, 0x5A, 0xA6};
+    auto uiCalculatedCRC = CalculateBlockCrc32<0xC8DF352FUL>(log, sizeof(log), 0xFFFFFFFFUL);
+    ASSERT_EQ(uiCalculatedCRC, 0x904CDDBFUL);
 }
 
 TEST(CRC32Test, CalculateBlockCRC32Fast)
