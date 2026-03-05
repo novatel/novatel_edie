@@ -123,20 +123,9 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
     }
     try
     {
-        py_common::PyMessageType message_type_struct = database->GetMessagesByNameDict().at(message_name);
-        if (message_type_struct.crc == metadata.uiMessageCrc)
-        {
-            // If the CRCs match, use the specific message type
-            message_pytype = message_type_struct.python_type;
-        }
-        else
-        {
-            // If the CRCs don't match, use the generic "CompleteMessage" type
-            message_pytype = nb::type<PyMessage>();
-            has_ptype = false;
-        }
+        message_pytype = database->GetCoreDatabase()->GetMessageType<true>(message_name, metadata.uiMessageCrc);
     }
-    catch (const std::out_of_range& e)
+    catch (const std::out_of_range&)
     {
         // This case should never happen, if it does there is a bug
         throw std::runtime_error("Message name '" + message_name + "' not found in the JSON database");

@@ -25,12 +25,6 @@ class PyMessageDatabase
     [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(std::string& strEnumId_) const { return pclMessageDb->GetEnumDefId(strEnumId_); }
     [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(std::string& strEnumName_) const { return pclMessageDb->GetEnumDefName(strEnumName_); }
 
-    // PyMessageDatabaseCore wrappers
-    [[nodiscard]] const std::unordered_map<std::string, py_common::PyMessageType>& GetMessagesByNameDict() const
-    {
-        return pclMessageDb->GetMessagesByNameDict();
-    }
-
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return pclMessageDb->GetEnumsByIdDict(); }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return pclMessageDb->GetEnumsByNameDict(); }
 

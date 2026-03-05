@@ -117,6 +117,7 @@ struct PyEncodableField : public py_common::PyField
     PyHeader header;
     PyMessageDatabase::ConstPtr encoderDb;
     const MessageDefinition* messageDef;
+    uint32_t messageCrc;
 
     // Return the message name from the stored message definition.
     // Throws if no message definition is available (do not fall back to the raw name).
@@ -129,14 +130,7 @@ struct PyEncodableField : public py_common::PyField
     explicit PyEncodableField(bool hasPtype_, std::vector<FieldContainer>&& fields_, PyMessageDatabase::ConstPtr encoderDb_, PyHeader header_,
                               const MessageDefinition* messageDef_, uint32_t messageCrc_)
         : PyField(hasPtype_, std::move(fields_), nullptr, std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
-          encoderDb(std::move(encoderDb_)), messageDef(messageDef_)
-    {
-        if (messageDef_)
-        {
-            auto it = messageDef_->fields.find(messageCrc_);
-            if (it != messageDef_->fields.end() && !it->second.empty()) { fieldDef = it->second[0].get(); }
-        }
-    };
+          encoderDb(std::move(encoderDb_)), messageDef(messageDef_), messageCrc(messageCrc_) {};
 
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
     py_common::PyMessageData to_ascii();

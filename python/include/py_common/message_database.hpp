@@ -36,9 +36,32 @@ class PyMessageDatabaseCore : public MessageDatabase
         return it->second;
     }
 
-    [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return fields_by_def; }
+    [[nodiscard]] nb::object GetMessageType(const MessageDefinition* message)
+    {
+        if (message == nullptr) { return nb::none(); }
+        return GetMessageType(message, message->latestMessageCrc);
+    }
 
-    [[nodiscard]] const std::unordered_map<std::string, PyMessageType>& GetMessagesByNameDict() const { return messages_by_name; }
+    template <bool crcFallback = false> [[nodiscard]] nb::object GetMessageType(const MessageDefinition* message, uint32_t crc)
+    {
+        auto it = messages_by_name.find(message);
+        if (it == messages_by_name.end()) { return nb::none(); }
+        auto nestedIt = it->second.find(crc);
+        if (nestedIt == it->second.end())
+        {
+            if constexpr (crcFallback) { return it->second.at(message->latestMessageCrc); }
+            else { return nb::none(); }
+        }
+        return nestedIt->second;
+    }
+
+    template <bool crcFallback = false> [[nodiscard]] nb::object GetMessageType(std::string_view messageName, uint32_t crc)
+    {
+        return GetMessageType<crcFallback>(GetMsgDef(messageName).get(), crc);
+    }
+    [[nodiscard]] nb::object GetMessageType(std::string_view messageName) { return GetMessageType(GetMsgDef(messageName).get()); }
+
+    [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return fields_by_def; }
 
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
@@ -51,12 +74,54 @@ class PyMessageDatabaseCore : public MessageDatabase
     void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_);
     void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_);
     void RemoveMessage(uint32_t iMsgId_);
+    void RemoveFieldTypes(const std::vector<BaseField::Ptr>& fieldDefs);
     void RemoveEnumeration(std::string strEnumeration_);
+
+    void bindFieldsToModule(nanobind::module_& m_, const std::vector<BaseField::Ptr>& fields_)
+    {
+        for (const auto& field : fields_)
+        {
+            if (field->type == FIELD_TYPE::FIELD_ARRAY)
+            {
+                auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
+                nb::handle fieldType = fields_by_def[fieldArrayField];
+                fieldType.attr("__module__") = m_.attr("__name__");
+                m_.attr(fieldType.attr("__name__")) = fieldType;
+                bindFieldsToModule(m_, fieldArrayField->fields);
+            }
+        }
+    }
+
+    void addFieldAliasToModule(nanobind::module_& m_, const std::vector<BaseField::Ptr>& fields_, const std::string& parentAlias_)
+    {
+        for (const auto& field : fields_)
+        {
+            if (field->type == FIELD_TYPE::FIELD_ARRAY)
+            {
+                auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
+                nb::handle fieldType = fields_by_def[fieldArrayField];
+                std::string alias = parentAlias_ + "_" + fieldArrayField->name;
+                m_.attr(alias.c_str()) = fieldType;
+                addFieldAliasToModule(m_, fieldArrayField->fields, alias);
+            }
+        }
+    }
 
     void bindToModule(nanobind::module_& messageMod_, nanobind::module_& enumsMod_)
     {
-        for (const auto& [name, message_type_struct] : messages_by_name) { messageMod_.attr(name.c_str()) = message_type_struct.python_type; }
-        for (const auto& [def, field_type] : fields_by_def) { messageMod_.attr(field_type.attr("__class__").attr("__name__")) = field_type; }
+        for (const auto& [message_def, message_version_defs] : messages_by_name)
+        {
+            for (const auto& [crc, message_type] : message_version_defs)
+            {
+                message_type.attr("__module__") = messageMod_.attr("__name__");
+                std::string name = nb::cast<nb::str>(message_type.attr("__name__")).c_str();
+                messageMod_.attr(message_type.attr("__name__")) = message_type;
+                bindFieldsToModule(messageMod_, message_def->fields.at(crc));
+            }
+            const std::vector<BaseField::Ptr>& latestDef = message_def->fields.at(message_def->latestMessageCrc);
+            messageMod_.attr(message_def->name.c_str()) = message_version_defs.at(message_def->latestMessageCrc);
+            addFieldAliasToModule(messageMod_, latestDef, message_def->name);
+        }
         for (const auto& [name, enum_type] : enums_by_name) { enumsMod_.attr(name.c_str()) = enum_type; }
     }
 
@@ -115,9 +180,8 @@ class PyMessageDatabaseCore : public MessageDatabase
     void ResolveBaseType();
 
     nb::handle base_message_type;
-    std::unordered_map<std::string, PyMessageType> messages_by_name{};
+    std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_by_name{};
     std::unordered_map<const BaseField*, nb::object> fields_by_def{};
-    std::unordered_map<std::string, std::vector<const BaseField*>> fields_by_message{};
 
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};

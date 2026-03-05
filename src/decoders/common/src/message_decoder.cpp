@@ -1002,7 +1002,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
 
     // Expand the intermediate format vector to prevent the copy constructor from being called when the vector grows in size
     stInterMessage_.clear();
-    stInterMessage_.reserve(msgFields.size()); // TODO: this does not account for field arrays, could improve performance by doing so.
+    stInterMessage_.reserve(msgFields.size()); // TODO: t his does not account for field arrays, could improve performance by doing so.
 
     // Decode the detected format
     switch (stMetaData_.eFormat)
