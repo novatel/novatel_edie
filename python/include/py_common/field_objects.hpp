@@ -18,11 +18,9 @@ namespace novatel::edie::py_common {
 //============================================================================
 struct PyField
 {
-    bool hasPtype; // Whether the field has a specific Python type associated with it
-
-    explicit PyField(bool hasPtype_, std::vector<FieldContainer> message_, const ::novatel::edie::BaseField* fieldDef_,
+    explicit PyField(std::vector<FieldContainer> message_, const ::novatel::edie::BaseField* fieldDef_,
                      py_common::PyMessageDatabaseCore::ConstPtr parentDb_)
-        : hasPtype(hasPtype_), fields(std::move(message_)), fieldDef(fieldDef_), parentDb(std::move(parentDb_)) {};
+        : fields(std::move(message_)), fieldDef(fieldDef_), parentDb(std::move(parentDb_)) {};
 
     //============================================================================
     //! \brief Creates a shallow dictionary representing the field.
@@ -109,5 +107,5 @@ struct PyField
     py_common::PyMessageDatabaseCore::ConstPtr parentDb;
 };
 
-nb::object convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db, bool has_ptype);
+nb::object convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db);
 } // namespace novatel::edie::py_common

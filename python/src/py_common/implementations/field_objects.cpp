@@ -14,8 +14,7 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db,
-                                                    bool has_ptype)
+PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db)
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
@@ -41,25 +40,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
         else if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
             // Handle Field Arrays
-            nb::handle field_ptype;
-            if (has_ptype)
-            {
-                // If a parent type name is provided, get a field type based on the parent and field name
-                try
-                {
-                    field_ptype = parent_db->GetFieldType(field.fieldDef.get());
-                }
-                catch (const std::out_of_range&)
-                {
-                    // This case should never happen, if it does there is a bug
-                    throw std::runtime_error("Python type not found for subfield!");
-                }
-            }
-            else
-            {
-                // If field has no ptype, use the generic "Field" type
-                field_ptype = nb::type<PyField>();
-            }
+            nb::handle field_ptype = parent_db->GetFieldType(field.fieldDef.get());
 
             // Create an appropriate PyField instance for each subfield in the array
             std::vector<nb::object> sub_values;
@@ -69,7 +50,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
                 nb::object pyinst = nb::inst_alloc(field_ptype);
                 PyField* cinst = nb::inst_ptr<PyField>(pyinst);
                 const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-                new (cinst) PyField(has_ptype, message_subfield, subfield.fieldDef.get(), parent_db);
+                new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parent_db);
                 nb::inst_mark_ready(pyinst);
                 sub_values.push_back(pyinst);
             }
@@ -93,7 +74,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
             }
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
-            for (const auto& f : message_field) { sub_values.push_back(py_common::convert_field(f, parent_db, has_ptype)); }
+            for (const auto& f : message_field) { sub_values.push_back(py_common::convert_field(f, parent_db)); }
             return nb::cast(sub_values);
         }
     }
@@ -125,7 +106,7 @@ PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
                 std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
                 cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
             }
-            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parentDb, this->hasPtype);
+            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parentDb);
         }
     }
     return cached_values_;

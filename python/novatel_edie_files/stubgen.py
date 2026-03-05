@@ -26,7 +26,6 @@ A module concerning the generation of type hint stub files for the novatel_edie 
 import os
 import json
 import re
-import textwrap
 import logging
 from typing import Union
 
@@ -152,7 +151,7 @@ class StubGenerator:
             python_type = 'Any'
         return python_type
 
-    def _convert_field_array_def(self, field_array_def: dict, parent: str) -> str:
+    def _convert_field_array_def(self, field_array_def: dict, parent: str, parent_aliases: list) -> str:
         """Convert a field array definition to a type hint string.
 
         Args:
@@ -166,6 +165,7 @@ class StubGenerator:
 
         # Create MessageBodyField type hint
         name = f'{parent}_{field_array_def["name"]}_Field'
+        aliases = [f'{parent_alias}_{field_array_def["name"]}_Field' for parent_alias in parent_aliases]
         type_hint = f'class {name}(Field):\n'
         for field in field_array_def['fields']:
             python_type = self._get_field_pytype(field, name)
@@ -173,13 +173,19 @@ class StubGenerator:
                           f'    def {field["name"]}(self) -> {python_type}: ...\n\n')
             # Create hints for any subfields
             if field['type'] == 'FIELD_ARRAY':
-                subfield_hints.append(self._convert_field_array_def(field, name))
+                subfield_hints.append(self._convert_field_array_def(field, name, aliases))
+
+        # Create alias hints
+        alias_decls = [f'{alias} = {name}\n' for alias in aliases]
 
         # Combine all hints
-        hints = subfield_hints + [type_hint]
+        hints = subfield_hints + [type_hint] + alias_decls
         hint_str = '\n'.join(hints)
 
         return hint_str
+
+    def _to_hex(self, crc: str) -> str:
+        return f'{int(crc):04X}'
 
     def _convert_message_def(self, message_def: dict) -> str:
         """Create a type hint string for a message definition.
@@ -189,34 +195,38 @@ class StubGenerator:
         Returns:
             A string containing type hint stubs for the message definition.
         """
-        subfield_hints = []
 
-        # Create the Message type hint
-        name = message_def["name"]
-        body_hint = f'class {name}(Message):\n'
-        fields = message_def['fields'][message_def['latestMsgDefCrc']]
-        if not fields:
-            body_hint += '    pass\n\n'
-        for field in fields:
-            if field['type'] in ('FIELD_ARRAY', 'VARIABLE_LENGTH_ARRAY'):
-                body_hint += f'    @property\n'
-                body_hint += f'    def {field["name"]}_length(self) -> int: ...\n\n'
+        hint_strs = []
 
-            python_type = self._get_field_pytype(field, name)
-            body_hint +=  '    @property\n'
-            body_hint += f'    def {field["name"]}(self) -> {python_type}: ...\n\n'
+        # Create the CRC specific message type hints
+        for crc, fields in message_def['fields'].items():
+            subfield_hints = []
+            name = message_def["name"] + "_" + self._to_hex(crc)
+            aliases = [message_def["name"]] if crc == message_def["latestMsgDefCrc"] else []
+            body_hint = f'class {name}(Message):\n'
+            if not fields:
+                body_hint += '    pass\n\n'
+            for field in fields:
+                if field['type'] in ('FIELD_ARRAY', 'VARIABLE_LENGTH_ARRAY'):
+                    body_hint += f'    @property\n'
+                    body_hint += f'    def {field["name"]}_length(self) -> int: ...\n\n'
 
-            # Create hints for any subfields
-            if field['type'] == 'FIELD_ARRAY':
-                subfield_hints.append(self._convert_field_array_def(field, name))
+                python_type = self._get_field_pytype(field, name)
+                body_hint +=  '    @property\n'
+                body_hint += f'    def {field["name"]}(self) -> {python_type}: ...\n\n'
 
+                # Create hints for any subfields
+                if field['type'] == 'FIELD_ARRAY':
+                    subfield_hints.append(self._convert_field_array_def(field, name, aliases))
 
+            # Add aliases
+            alias_decls = [f'{alias} = {name}\n' for alias in aliases]
 
-        # Combine all hints
-        hints = subfield_hints + [body_hint]
-        hint_str = '\n'.join(hints)
+            # Combine all hints
+            hints = subfield_hints + [body_hint] + alias_decls
+            hint_strs.append('\n'.join(hints))
 
-        return hint_str
+        return '\n'.join(hint_strs)
 
     def get_message_stubs(self) -> str:
         """Get a stub string for all messages in the database.
