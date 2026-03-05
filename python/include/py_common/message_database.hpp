@@ -13,15 +13,6 @@ namespace novatel::edie::py_common {
 std::unordered_map<std::string, nb::handle>& GetMessageFamilyTypes();
 nb::handle GetMessageFamilyType(const std::string& message_family);
 
-struct PyMessageType
-{
-    nb::object python_type;
-    uint32_t crc;
-
-    PyMessageType() {}
-    PyMessageType(nb::object python_type_, uint32_t crc_) : python_type(std::move(python_type_)), crc(crc_) {}
-};
-
 class PyMessageDatabaseCore : public MessageDatabase
 {
   public:
@@ -31,8 +22,8 @@ class PyMessageDatabaseCore : public MessageDatabase
 
     [[nodiscard]] nb::object GetFieldType(const BaseField* field) const
     {
-        auto it = fields_by_def.find(field);
-        if (it == fields_by_def.end()) { throw std::out_of_range("Field type not found"); }
+        auto it = field_types.find(field);
+        if (it == field_types.end()) { throw std::out_of_range("Field type not found"); }
         return it->second;
     }
 
@@ -44,8 +35,8 @@ class PyMessageDatabaseCore : public MessageDatabase
 
     template <bool crcFallback = false> [[nodiscard]] nb::object GetMessageType(const MessageDefinition* message, uint32_t crc)
     {
-        auto it = messages_by_name.find(message);
-        if (it == messages_by_name.end()) { return nb::none(); }
+        auto it = messages_types.find(message);
+        if (it == messages_types.end()) { return nb::none(); }
         auto nestedIt = it->second.find(crc);
         if (nestedIt == it->second.end())
         {
@@ -61,7 +52,7 @@ class PyMessageDatabaseCore : public MessageDatabase
     }
     [[nodiscard]] nb::object GetMessageType(std::string_view messageName) { return GetMessageType(GetMsgDef(messageName).get()); }
 
-    [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return fields_by_def; }
+    [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return field_types; }
 
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByIdDict() const { return enums_by_id; }
     [[nodiscard]] const std::unordered_map<std::string, nb::object>& GetEnumsByNameDict() const { return enums_by_name; }
@@ -84,7 +75,7 @@ class PyMessageDatabaseCore : public MessageDatabase
             if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
                 auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
-                nb::handle fieldType = fields_by_def[fieldArrayField];
+                nb::handle fieldType = field_types[fieldArrayField];
                 m_.attr(fieldType.attr("__name__")) = fieldType;
                 bindFieldsToModule(m_, fieldArrayField->fields);
             }
@@ -98,7 +89,7 @@ class PyMessageDatabaseCore : public MessageDatabase
             if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
                 auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
-                nb::handle fieldType = fields_by_def[fieldArrayField];
+                nb::handle fieldType = field_types[fieldArrayField];
                 std::string alias = parentAlias_ + "_" + fieldArrayField->name;
                 m_.attr(alias.c_str()) = fieldType;
                 addFieldAliasToModule(m_, fieldArrayField->fields, alias);
@@ -108,7 +99,7 @@ class PyMessageDatabaseCore : public MessageDatabase
 
     void bindToModule(nanobind::module_& messageMod_, nanobind::module_& enumsMod_)
     {
-        for (const auto& [message_def, message_version_defs] : messages_by_name)
+        for (const auto& [message_def, message_version_defs] : messages_types)
         {
             for (const auto& [crc, message_type] : message_version_defs)
             {
@@ -178,8 +169,8 @@ class PyMessageDatabaseCore : public MessageDatabase
     void ResolveBaseType();
 
     nb::handle base_message_type;
-    std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_by_name{};
-    std::unordered_map<const BaseField*, nb::object> fields_by_def{};
+    std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_types{};
+    std::unordered_map<const BaseField*, nb::object> field_types{};
 
     std::unordered_map<std::string, nb::object> enums_by_id{};
     std::unordered_map<std::string, nb::object> enums_by_name{};
