@@ -85,7 +85,6 @@ class PyMessageDatabaseCore : public MessageDatabase
             {
                 auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
                 nb::handle fieldType = fields_by_def[fieldArrayField];
-                fieldType.attr("__module__") = m_.attr("__name__");
                 m_.attr(fieldType.attr("__name__")) = fieldType;
                 bindFieldsToModule(m_, fieldArrayField->fields);
             }
@@ -113,7 +112,6 @@ class PyMessageDatabaseCore : public MessageDatabase
         {
             for (const auto& [crc, message_type] : message_version_defs)
             {
-                message_type.attr("__module__") = messageMod_.attr("__name__");
                 std::string name = nb::cast<nb::str>(message_type.attr("__name__")).c_str();
                 messageMod_.attr(message_type.attr("__name__")) = message_type;
                 bindFieldsToModule(messageMod_, message_def->fields.at(crc));

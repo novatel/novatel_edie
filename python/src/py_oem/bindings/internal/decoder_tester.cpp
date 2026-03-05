@@ -52,7 +52,7 @@ void py_oem::init_decoder_tester(nb::module_& m)
                 const char* data_ptr = body_str.data();
                 STATUS status = decoder.TestDecodeAscii(msg_def_fields, &data_ptr, fields);
                 return nb::make_tuple(status,
-                                      py_common::PyField(false, std::move(fields), nullptr,
+                                      py_common::PyField(std::move(fields), nullptr,
                                                          std::dynamic_pointer_cast<const py_common::PyMessageDatabaseCore>(decoder.MessageDb())));
             },
             "msg_def_fields"_a, "message_body"_a)
@@ -63,7 +63,7 @@ void py_oem::init_decoder_tester(nb::module_& m)
                 const char* data_ptr = message_body.c_str();
                 STATUS status = decoder.TestDecodeBinary(msg_def_fields, reinterpret_cast<const uint8_t**>(&data_ptr), fields, message_length);
                 return nb::make_tuple(status,
-                                      py_common::PyField(false, std::move(fields), nullptr,
+                                      py_common::PyField(std::move(fields), nullptr,
                                                          std::dynamic_pointer_cast<const py_common::PyMessageDatabaseCore>(decoder.MessageDb())));
             },
             "msg_def_fields"_a, "message_body"_a, "message_length"_a);
