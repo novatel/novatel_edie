@@ -1,6 +1,8 @@
 #include "py_common/message_database.hpp"
 
 #include <functional>
+#include <iomanip>
+#include <sstream>
 
 #include <nanobind/stl/unordered_map.h>
 
@@ -140,25 +142,6 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveEnumType(const std:
     }
 }
 
-PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name,
-                                                                    std::string parent_message, nb::handle type_constructor, nb::handle type_tuple,
-                                                                    nb::handle type_dict)
-{
-    // rescursively add field types for each field array element within the provided vector
-    for (const auto& field : fields)
-    {
-        if (field->type == FIELD_TYPE::FIELD_ARRAY)
-        {
-            auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
-            std::string field_name = base_name + "_" + field_array_field->name + "_Field";
-            nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
-            fields_by_def[field.get()] = field_type;
-            fields_by_message[parent_message].push_back(field.get());
-            AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor, type_tuple, type_dict);
-        }
-    }
-}
-
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::ResolveBaseType()
 {
     if (!pDbMetadata)
@@ -180,6 +163,25 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::UpdatePythonMessageTypes(
     AppendMessageTypes(MessageDefinitions());
 }
 
+PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name,
+                                                                    std::string parent_message, nb::handle type_constructor, nb::handle type_tuple,
+                                                                    nb::handle type_dict)
+{
+    // rescursively add field types for each field array element within the provided vector
+    for (const auto& field : fields)
+    {
+        if (field->type == FIELD_TYPE::FIELD_ARRAY)
+        {
+            auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
+            std::string field_name = base_name + "_" + field_array_field->name + "_Field";
+            nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
+            fields_by_def[field.get()] = field_type;
+            // fields_by_message[parent_message].push_back(field.get());
+            AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor, type_tuple, type_dict);
+        }
+    }
+}
+
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs)
 {
     // get type constructor
@@ -188,22 +190,28 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const 
     nb::tuple field_type_tuple = nb::make_tuple(nb::type<py_common::PyField>());
     // provide no additional attributes via `__dict__`
     nb::dict type_dict = nb::dict();
+    nb::tuple message_type_tuple = nb::make_tuple(base_message_type);
 
     // add message and message body types for each message definition
     for (const auto& message_def : message_defs)
     {
+        // Initialize message mapping
         // remove existing message type if it exists to ensure clean overwrite
         RemoveMessageType(message_def->logID);
-        // specify the python superclass for the message type
-        nb::tuple message_type_tuple = nb::make_tuple(base_message_type);
-        uint32_t crc = message_def->latestMessageCrc;
-        nb::object msg_type_def = type_constructor(message_def->name, message_type_tuple, type_dict);
-        messages_by_name[message_def->name] = PyMessageType(msg_type_def, crc);
-        // add additional MessageBody types for each field array element within the message definition
+        messages_by_name[message_def.get()] = std::map<uint32_t, nb::object>{};
 
-        auto activeFieldIt = message_def->fields.find(crc);
-        if (activeFieldIt == message_def->fields.end()) { throw NoDefinitionException("No message definition matching latest CRC."); }
-        AddFieldType(activeFieldIt->second, message_def->name, message_def->name, type_constructor, field_type_tuple, type_dict);
+        for (const auto& [crc, message_fields] : message_def->fields)
+        {
+            std::ostringstream ss;
+            ss << message_def->name << "_" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << crc;
+            std::string message_name = ss.str();
+
+            // specify the python superclass for the message type
+            nb::object msg_py_type = type_constructor(message_name, message_type_tuple, type_dict);
+            messages_by_name[message_def.get()][crc] = msg_py_type;
+
+            AddFieldType(message_fields, message_name, message_name, type_constructor, field_type_tuple, type_dict);
+        }
     }
 }
 
@@ -213,22 +221,23 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveMessageType(uint32_
     MessageDefinition::ConstPtr message_def = GetMsgDef(message_id);
     if (!message_def) { return; }
 
-    const std::string& message_name = message_def->name;
-
     // remove the message type
-    messages_by_name.erase(message_name);
+    messages_by_name.erase(message_def.get());
 
     // remove all field types associated with this message from fields_by_name
-    auto fields_it = fields_by_message.find(message_name);
-    if (fields_it != fields_by_message.end())
+    for (const auto& [crc, fields] : message_def->fields) { RemoveFieldTypes(fields); }
+}
+
+void py_common::PyMessageDatabaseCore::RemoveFieldTypes(const std::vector<BaseField::Ptr>& fieldDefs)
+{
+    for (const auto& fieldDef : fieldDefs)
     {
-        for (const BaseField* field_def : fields_it->second)
+        fields_by_def.erase(fieldDef.get());
+        if (fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
-            // remove from fields_by_name
-            fields_by_def.erase(field_def);
+            auto* fieldArrayFieldDef = dynamic_cast<FieldArrayField*>(fieldDef.get());
+            RemoveFieldTypes(fieldArrayFieldDef->fields);
         }
-        // remove from fields_by_message
-        fields_by_message.erase(fields_it);
     }
 }
 
