@@ -53,6 +53,13 @@ class PyMessageDatabaseCore : public MessageDatabase
     void RemoveMessage(uint32_t iMsgId_);
     void RemoveEnumeration(std::string strEnumeration_);
 
+    void bindToModule(nanobind::module_& messageMod_, nanobind::module_& enumsMod_)
+    {
+        for (const auto& [name, message_type_struct] : messages_by_name) { messageMod_.attr(name.c_str()) = message_type_struct.python_type; }
+        for (const auto& [def, field_type] : fields_by_def) { messageMod_.attr(field_type.attr("__class__").attr("__name__")) = field_type; }
+        for (const auto& [name, enum_type] : enums_by_name) { enumsMod_.attr(name.c_str()) = enum_type; }
+    }
+
   private:
     //-----------------------------------------------------------------------
     //! \brief Creates Python Enums for multiple enum definitions.
