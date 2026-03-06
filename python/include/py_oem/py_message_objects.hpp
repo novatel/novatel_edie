@@ -96,10 +96,7 @@ struct PyUnknownMessage
     PyHeader header;
 
     nb::bytes payload;
-    explicit PyUnknownMessage(py_oem::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, nb::bytes bytes_)
-        : header(std::move(header_)), payload(std::move(bytes_))
-    {
-    }
+    explicit PyUnknownMessage(PyHeader header_, nb::bytes bytes_) : header(std::move(header_)), payload(std::move(bytes_)) {}
 };
 
 //============================================================================
@@ -151,7 +148,7 @@ struct PyMessage : public PyEncodableField
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_) {};
 };
 
-nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header, PyMessageDatabase::ConstPtr database);
+nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header);
 
 nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>&& message_fields, oem::MetaDataStruct& metadata,
                                    PyMessageDatabase::ConstPtr database);

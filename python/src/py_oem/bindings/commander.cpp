@@ -2,9 +2,9 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/init_bindings.hpp"
 #include "py_oem/message_database.hpp"
+#include "py_oem/message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -26,7 +26,7 @@ void py_oem::init_novatel_commander(nb::module_& m)
             [](oem::Commander& commander, const nb::bytes& command, const ENCODE_FORMAT format) {
                 char buffer[MESSAGE_SIZE_MAX];
                 uint32_t buf_size = MESSAGE_SIZE_MAX;
-                STATUS status = commander.Encode(command.c_str(), nb::len(command), buffer, buf_size, format);
+                STATUS status = commander.Encode(command.c_str(), static_cast<uint32_t>(nb::len(command)), buffer, buf_size, format);
                 throw_exception_from_status(status);
                 return nb::bytes(buffer, buf_size);
             },

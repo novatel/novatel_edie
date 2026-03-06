@@ -89,12 +89,12 @@ py_common::PyMessageData py_oem::PyEncodableField::to_json() { return PyEncode(E
 
 #pragma region Message Constructor Functions
 
-nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHeader& header, py_oem::PyMessageDatabase::ConstPtr database)
+nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHeader& header)
 {
     nb::handle message_pytype = nb::type<py_oem::PyUnknownMessage>();
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     py_oem::PyUnknownMessage* message_cinst = nb::inst_ptr<py_oem::PyUnknownMessage>(message_pyinst);
-    new (message_cinst) py_oem::PyUnknownMessage(database, header, data);
+    new (message_cinst) py_oem::PyUnknownMessage(header, data);
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;
 }

@@ -2,10 +2,9 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_oem/init_bindings.hpp"
-
+#include "py_oem/message_db_singleton.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -24,8 +23,10 @@ void py_oem::init_novatel_rxconfig_handler(nb::module_& m)
                     "The RXConfigHandler interface is currently unstable! It may undergo breaking changes between minor version increments.");
             },
             nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
-        .def("write", [](oem::RxConfigHandler& self,
-                         const nb::bytes& data) { return self.Write(reinterpret_cast<uint8_t*>(const_cast<char*>(data.c_str())), data.size()); })
+        .def("write",
+             [](oem::RxConfigHandler& self, const nb::bytes& data) {
+                 return self.Write(reinterpret_cast<uint8_t*>(const_cast<char*>(data.c_str())), static_cast<uint32_t>(data.size()));
+             })
         .def(
             "convert",
             [](oem::RxConfigHandler& self, ENCODE_FORMAT encode_format) {
