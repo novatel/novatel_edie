@@ -86,7 +86,7 @@ class PyMessageDatabaseCore : public MessageDatabase
             if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
                 auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
-                nb::handle fieldType = field_types[fieldArrayField];
+                nb::handle fieldType = field_types.at(fieldArrayField);
                 m_.attr(fieldType.attr("__name__")) = fieldType;
                 bindFieldsToModule(m_, fieldArrayField->fields);
             }
