@@ -2,13 +2,13 @@
 
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_common/py_logger.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_common/unknown_bytes.hpp"
 #include "py_oem/filter.hpp"
 #include "py_oem/init_bindings.hpp"
 #include "py_oem/message_database.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/parser.hpp"
 #include "py_oem/py_message_objects.hpp"
 
@@ -26,9 +26,9 @@ nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& mes
     {
     case STATUS::SUCCESS: return create_message_instance(header_, std::move(message_fields_), metadata_, database_);
     case STATUS::NO_DEFINITION:
-        return create_unknown_message_instance(nb::bytes(message_data_.pucMessageBody, message_data_.uiMessageBodyLength), header_, database_);
+        return create_unknown_message_instance(nb::bytes(message_data_.pucMessageBody, message_data_.uiMessageBodyLength), header_);
     case STATUS::UNKNOWN: return py_common::create_unknown_bytes(nb::bytes(message_data_.pucMessage, message_data_.uiMessageLength), metadata_);
-    default: throw_exception_from_status(status_);
+    default: throw_exception_from_failing_status(status_);
     }
 }
 

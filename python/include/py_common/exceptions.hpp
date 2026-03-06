@@ -1,9 +1,7 @@
 #pragma once
 
-
 #include "novatel_edie/decoders/common/common.hpp"
 #include "py_common/bindings_core.hpp"
-
 
 namespace novatel::edie::py_common {
 
@@ -118,13 +116,11 @@ class DecompressionFailureException : public EdieException
     DecompressionFailureException(const std::string& message_ = "The RANGECMP log could not be decompressed.") : EdieException(message_) {}
 };
 
-inline void throw_exception_from_status(STATUS status)
+[[noreturn]] inline void throw_exception_from_failing_status(STATUS status)
 {
+    assert(status != STATUS::SUCCESS);
     switch (status)
     {
-    case STATUS::SUCCESS:
-        // No exception for success
-        break;
     case STATUS::FAILURE: throw FailureException();
     case STATUS::UNKNOWN: throw UnknownException();
     case STATUS::INCOMPLETE: throw IncompleteException();
@@ -141,6 +137,12 @@ inline void throw_exception_from_status(STATUS status)
     case STATUS::DECOMPRESSION_FAILURE: throw DecompressionFailureException();
     default: throw std::runtime_error("Unknown STATUS value: " + std::to_string(int(status)));
     }
+}
+
+inline void throw_exception_from_status(STATUS status)
+{
+    if (status == STATUS::SUCCESS) { return; }
+    throw_exception_from_failing_status(status);
 }
 
 } // namespace novatel::edie::py_common

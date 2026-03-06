@@ -25,7 +25,7 @@ nb::tuple PyFramerManager::PyGetFrame(uint32_t buffer_size)
         auto metadata_copy = metadata->clone();
         return nb::make_tuple(frame_bytes, nb::cast(metadata_copy.release(), nb::rv_policy::take_ownership));
     }
-    default: py_common::throw_exception_from_status(status);
+    default: py_common::throw_exception_from_failing_status(status);
     }
 }
 

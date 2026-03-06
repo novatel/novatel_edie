@@ -142,5 +142,7 @@ void py_common::init_common(nb::module_& m)
     m.attr("BUILD_TIMESTAMP") = BUILD_TIMESTAMP;
     m.attr("CPP_PRETTY_VERSION") = caPrettyPrint;
 
-    m.def("calculate_crc", [](nb::bytes bytes) { return CalculateBlockCrc32(reinterpret_cast<const unsigned char*>(bytes.c_str()), bytes.size()); });
+    m.def("calculate_crc", [](nb::bytes bytes) {
+        return CalculateBlockCrc32(reinterpret_cast<const unsigned char*>(bytes.c_str()), static_cast<uint32_t>(bytes.size()));
+    });
 }
