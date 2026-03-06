@@ -91,12 +91,6 @@ struct PyField
     //============================================================================
     size_t len() const;
 
-    //============================================================================
-    //! \brief Generates a string representation of the object.
-    //! \return A string representing the object.
-    //============================================================================
-    std::string repr() const;
-
     std::vector<FieldContainer> fields;
     const BaseField* fieldDef{nullptr};
 
