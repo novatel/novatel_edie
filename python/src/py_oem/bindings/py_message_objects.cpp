@@ -103,11 +103,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
                                            py_oem::PyMessageDatabase::ConstPtr database)
 {
 
-    nb::handle message_pytype;
-
-    const std::string message_name = metadata.messageName;
-
-    bool has_ptype = true;
+    auto msgDef = database->GetMsgDef(metadata.usMessageId);
 
     if (metadata.bResponse)
     {
@@ -115,25 +111,16 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
         nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
         bool is_complete = (metadata.eFormat != HEADER_FORMAT::ABB_ASCII);
-        auto msgDef = database->GetMsgDef(message_name);
         new (response_cinst) PyResponse(message_fields, database, header, is_complete, msgDef.get(), metadata.uiMessageCrc);
         nb::inst_mark_ready(response_pyinst);
 
         return response_pyinst;
     }
-    try
-    {
-        message_pytype = database->GetCoreDatabase()->GetMessageType<true>(message_name, metadata.uiMessageCrc);
-    }
-    catch (const std::out_of_range&)
-    {
-        // This case should never happen, if it does there is a bug
-        throw std::runtime_error("Message name '" + message_name + "' not found in the JSON database");
-    }
+
+    nb::handle message_pytype = database->GetCoreDatabase()->GetMessageType<true>(metadata.usMessageId, metadata.uiMessageCrc);
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
-    auto msgDef = database->GetMsgDef(message_name);
-    new (message_cinst) PyMessage(has_ptype, std::move(message_fields), database, header, msgDef.get(), metadata.uiMessageCrc);
+    new (message_cinst) PyMessage(std::move(message_fields), database, header, msgDef.get(), metadata.uiMessageCrc);
 
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;
