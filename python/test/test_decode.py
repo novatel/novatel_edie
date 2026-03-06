@@ -214,6 +214,7 @@ def compare_with_floating_point(item1, item2) -> bool:
         ],
         id="RANGEA"
     )
+
 ])
 def test_field_names_and_values(
         data: bytes, exp_type: type, exp_fields: list, exp_values: list, decoder: oem.Decoder):
@@ -227,6 +228,22 @@ def test_field_names_and_values(
     assert fields == exp_fields, f"Expected fields: {exp_fields}, but got: {fields}"
     assert compare_with_floating_point(values, exp_values), f"Expected values: {exp_values}, but got: {values}"
 
+@pytest.mark.parametrize("data, exp_name, exp_id, exp_string, exp_enum", [pytest.param(
+        b'#FRESETR,COM1,0,73.0,UNKNOWN,0,0.000,00000000,06e5,0;OK*55c70910',
+        'FRESET',
+        1,
+        'OK',
+        oem.enums.Responses.RESPONSE_OK
+        )])
+def test_response(data: bytes, decoder: oem.Decoder, exp_name: str, exp_id: int, exp_string: str, exp_enum: oem.enums.Responses):
+    """Tests that responses are decoded correctly."""
+    # Act
+    msg: oem.Response = decoder.decode(data)
+    # Assert
+    assert msg.name == exp_name
+    assert msg.response_id == exp_id
+    assert msg.response_string == exp_string
+    assert msg.response_enum == exp_enum
 
 @pytest.mark.parametrize("data, exp_dict", [
     (
