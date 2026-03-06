@@ -128,6 +128,7 @@ def compare_with_floating_point(item1, item2) -> bool:
     ),
     pytest.param(
         b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;UNRECOGNIZABLE,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n",
+        oem.messages.BESTPOS_B1F6,
         [
             'solution_status', 'position_type', 'latitude', 'longitude', 'height', 'undulation',
             'datum_id', 'latitude_std_dev', 'longitude_std_dev', 'height_std_dev', 'base_id',
@@ -162,6 +163,7 @@ def compare_with_floating_point(item1, item2) -> bool:
     ),
     pytest.param(
         b'\xaaD\x12\x1c*\x00\x00 H\x00\x00\x00y\xb4v\x08h\xf5\x7f\x13\x00\x00\x00\x02\xf6\xb1x?\x24\x00\x00\x00\x12\x00\x00\x00\x06\x04\xf7\x84A\x93I@\x00\xfai\xa6\xf6\x81\\\xc0\x9b\xe6\x1d\xa7\xe8#\x91@\x00\x00\x88\xc1=\x00\x00\x00\x91~\x1b?tF\x14?\xa1\xd6t?131\x00\x00\x00\xe0@\x00\x00\x00\x00*""\x1c\x00\x0b\x1f7_\t0\xba',
+        oem.messages.BESTPOS_B1F6,
         [
             'solution_status', 'position_type', 'latitude', 'longitude', 'height', 'undulation',
             'datum_id', 'latitude_std_dev', 'longitude_std_dev', 'height_std_dev', 'base_id',
