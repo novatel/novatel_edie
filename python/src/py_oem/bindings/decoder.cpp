@@ -4,9 +4,9 @@
 #include "novatel_edie/decoders/oem/message_decoder.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
 #include "py_oem/init_bindings.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/py_message_objects.hpp"
 
 namespace nb = nanobind;
@@ -28,8 +28,8 @@ nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::Py
     switch (status)
     {
     case STATUS::SUCCESS: return py_oem::create_message_instance(header, std::move(fields), metadata, database);
-    case STATUS::NO_DEFINITION: return py_oem::create_unknown_message_instance(raw_body, header, database);
-    default: throw_exception_from_status(status);
+    case STATUS::NO_DEFINITION: return py_oem::create_unknown_message_instance(raw_body, header);
+    default: throw_exception_from_failing_status(status);
     }
 }
 
@@ -85,7 +85,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 {
                     oem::MetaDataStruct default_metadata = oem::MetaDataStruct();
                     default_metadata.uiHeaderLength = header.usLength;
-                    default_metadata.uiBinaryMsgLength = raw_payload.size();
+                    default_metadata.uiBinaryMsgLength = static_cast<uint32_t>(raw_payload.size());
                     default_metadata.uiLength = default_metadata.uiHeaderLength + default_metadata.uiBinaryMsgLength;
                     default_metadata.uiMessageCrc = header.uiMessageDefinitionCrc;
                     default_metadata.eFormat = header.format;
@@ -114,7 +114,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             "decode",
             [](const py_oem::PyDecoder& decoder, const nb::bytes raw_message) {
                 oem::MetaDataStruct metadata;
-                metadata.uiLength = raw_message.size();
+                metadata.uiLength = static_cast<uint32_t>(raw_message.size());
                 std::vector<FieldContainer> fields;
                 py_oem::PyHeader header;
                 const unsigned char* message_pointer = reinterpret_cast<const uint8_t*>(raw_message.c_str());
@@ -131,9 +131,8 @@ void py_oem::init_novatel_decoder(nb::module_& m)
                 {
                 case STATUS::SUCCESS: return py_oem::create_message_instance(header, std::move(fields), metadata, decoder.database);
                 case STATUS::NO_DEFINITION:
-                    return py_oem::create_unknown_message_instance(nb::bytes(body_pointer, metadata.uiLength - metadata.uiHeaderLength), header,
-                                                                   decoder.database);
-                default: throw_exception_from_status(status);
+                    return py_oem::create_unknown_message_instance(nb::bytes(body_pointer, metadata.uiLength - metadata.uiHeaderLength), header);
+                default: throw_exception_from_failing_status(status);
                 }
             },
             "message"_a, nb::sig("def decode(self, raw_message: bytes) -> Message"),
