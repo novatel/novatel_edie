@@ -41,27 +41,24 @@ REGISTER_FRAMER(OEM, oem::Framer, MetaDataStruct)
 Framer::Framer() : FramerBase("novatel_framer") {}
 
 // -------------------------------------------------------------------------------------------------------
-Framer::Framer(std::shared_ptr<UCharFixedRingBuffer> ringBuffer) : FramerBase("novatel_framer", ringBuffer)
-{
-    pclMyLogger->info("Framer initialized");
-}
+Framer::Framer(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBase("novatel_framer", buffer) { pclMyLogger->info("Framer initialized"); }
 
 // -------------------------------------------------------------------------------------------------------
 bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsAbbrevSeparatorCrlf(const uint32_t uiRingBufferPosition_) const
+bool Framer::IsAbbrevSeparatorCrlf(const uint32_t uiBufferPosition_) const
 {
-    return IsCrlf(uiRingBufferPosition_ + 1) && (*pclMyBuffer)[uiRingBufferPosition_] == OEM4_ABBREV_ASCII_SEPARATOR;
+    return IsCrlf(uiBufferPosition_ + 1) && (*pclMyBuffer)[uiBufferPosition_] == OEM4_ABBREV_ASCII_SEPARATOR;
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsEmptyAbbrevLine(uint32_t uiRingBufferPosition_) const
+bool Framer::IsEmptyAbbrevLine(uint32_t uiBufferPosition_) const
 {
     const auto& clFrameBuffer = *pclMyBuffer;
-    while (clFrameBuffer[uiRingBufferPosition_--] == OEM4_ABBREV_ASCII_SEPARATOR)
+    while (clFrameBuffer[uiBufferPosition_--] == OEM4_ABBREV_ASCII_SEPARATOR)
     {
-        if (clFrameBuffer[uiRingBufferPosition_] == OEM4_ABBREV_ASCII_SYNC) { return true; }
+        if (clFrameBuffer[uiBufferPosition_] == OEM4_ABBREV_ASCII_SYNC) { return true; }
     }
 
     return false;
@@ -111,7 +108,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
     while (eMyFrameState != NovAtelFrameState::COMPLETE_MESSAGE)
     {
         stMetaData_.bResponse = false;
-        // Read data from ring buffer until we reach the end or we didn't find a complete frame in current data buffer
+        // Read data from buffer until we reach the end or we didn't find a complete frame in current data buffer
         if (clInternalFrameBuffer.size() == uiMyByteCount)
         {
             if (eMyFrameState != NovAtelFrameState::WAITING_FOR_SYNC)

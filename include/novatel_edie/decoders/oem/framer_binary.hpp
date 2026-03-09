@@ -21,11 +21,10 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file framer.hpp
+// ! \file framer_binary.hpp
 // ===============================================================================
 
-#ifndef NOVATEL_FRAMER_HPP
-#define NOVATEL_FRAMER_HPP
+#pragma once
 
 #include "novatel_edie/decoders/common/framer.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
@@ -33,26 +32,13 @@
 namespace novatel::edie::oem {
 
 //============================================================================
-//! \class Framer
-//! \brief Search bytes for patterns that could be OEM message.
+//! \class FramerBinary
+//! \brief Search bytes for patterns that could be an OEM binary message.
 //============================================================================
-class Framer : public FramerBase
+class FramerBinary : public FramerBase
 {
   private:
-    NovAtelFrameState eMyFrameState{NovAtelFrameState::WAITING_FOR_SYNC};
-
-    uint32_t uiMyJsonObjectOpenBraces{0};
-    uint32_t uiMyAbbrevAsciiHeaderPosition{0};
-
-    //----------------------------------------------------------------------------
-    //! \brief Check if the characters following an '*' fit the CRC format.
-    //! \param[in] uiDelimiterPosition_ Position of the CRC delimiter '*'.
-    //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
-    [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiBufferPosition_) const;
-    [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiBufferPosition_) const;
-    [[nodiscard]] bool IsAbbrevAsciiResponse() const;
+    static constexpr size_t OEM4_BINARY_MESSAGE_LENGTH_INDEX{8U};
 
     //----------------------------------------------------------------------------
     //! \brief Frame an OEM message from bytes written to the Framer.
@@ -81,30 +67,27 @@ class Framer : public FramerBase
     //----------------------------------------------------------------------------
     //! \brief Reset the state of the Framer.
     //----------------------------------------------------------------------------
-    void ResetState() override { eMyFrameState = NovAtelFrameState::WAITING_FOR_SYNC; };
+    void ResetState() override {}
 
     //----------------------------------------------------------------------------
     //! \brief Initialize the attributes of the Framer.
     //----------------------------------------------------------------------------
     void InitAttributes() override
     {
-        uiMyAbbrevAsciiHeaderPosition = 0;
-        uiMyExpectedMessageLength = 0;
-        uiMyExpectedPayloadLength = 0;
         uiMyByteCount = 0;
         uiMyCalculatedCrc32 = 0;
     };
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the Framer class.
+    //! \brief A constructor for the FramerBinary class.
     //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
     //----------------------------------------------------------------------------
-    Framer(std::shared_ptr<UCharFixedBuffer> buffer);
+    FramerBinary(std::shared_ptr<UCharFixedBuffer> buffer);
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the Framer class.
+    //! \brief A constructor for the FramerBinary class.
     //----------------------------------------------------------------------------
-    Framer();
+    FramerBinary();
 
     //----------------------------------------------------------------------------
     //! \brief Public interface to frame an OEM message - enforces metadata type.
@@ -118,5 +101,3 @@ class Framer : public FramerBase
 };
 
 } // namespace novatel::edie::oem
-
-#endif // FRAMER_H
