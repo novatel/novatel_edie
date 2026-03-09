@@ -56,15 +56,15 @@ template <typename FramerType> class FramerTest : public ::testing::Test
     static std::unique_ptr<FramerType> pclMyFramer;
     static std::unique_ptr<std::ifstream> pclMyIFS;
     static std::unique_ptr<unsigned char[]> pucMyTestFrameBuffer;
-    static std::shared_ptr<UCharFixedBuffer> pclMyFixedRingBuffer;
+    static std::shared_ptr<UCharFixedBuffer> pclMyFixedBuffer;
 
     MetaDataStruct stMyTestMetaData;
 
     // Per-test-suite setup
     static void SetUpTestSuite()
     {
-        pclMyFixedRingBuffer = std::make_shared<UCharFixedBuffer>();
-        pclMyFramer = std::make_unique<FramerType>(pclMyFixedRingBuffer);
+        pclMyFixedBuffer = std::make_shared<UCharFixedBuffer>();
+        pclMyFramer = std::make_unique<FramerType>(pclMyFixedBuffer);
         pclMyFramer->SetReportUnknownBytes(true);
         pclMyFramer->SetPayloadOnly(false);
         pucMyTestFrameBuffer = std::make_unique<unsigned char[]>(131071); // 128kB
@@ -120,7 +120,7 @@ template <typename FramerType> class FramerTest : public ::testing::Test
 template <typename FramerType> std::unique_ptr<FramerType> FramerTest<FramerType>::pclMyFramer = nullptr;
 template <typename FramerType> std::unique_ptr<std::ifstream> FramerTest<FramerType>::pclMyIFS = nullptr;
 template <typename FramerType> std::unique_ptr<unsigned char[]> FramerTest<FramerType>::pucMyTestFrameBuffer = nullptr;
-template <typename FramerType> std::shared_ptr<UCharFixedBuffer> FramerTest<FramerType>::pclMyFixedRingBuffer = nullptr;
+template <typename FramerType> std::shared_ptr<UCharFixedBuffer> FramerTest<FramerType>::pclMyFixedBuffer = nullptr;
 
 using OEMFramerTest = FramerTest<Framer>;
 using BinaryFramerTypes = ::testing::Types<Framer, FramerBinary>;
@@ -942,7 +942,7 @@ class MockFramer : public FramerBase
     MockFramerState eMyState{MockFramerState::WAITING_FOR_SYNC};
 
   public:
-    MockFramer(std::shared_ptr<UCharFixedBuffer> ringBuffer) : FramerBase("mock_framer", ringBuffer) {}
+    MockFramer(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBase("mock_framer", buffer) {}
 
     void ResetState() override { eMyState = MockFramerState::WAITING_FOR_SYNC; }
 

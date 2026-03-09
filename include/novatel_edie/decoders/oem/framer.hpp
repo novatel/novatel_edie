@@ -50,8 +50,8 @@ class Framer : public FramerBase
     //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
     //----------------------------------------------------------------------------
     [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
-    [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiRingBufferPosition_) const;
-    [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiRingBufferPosition_) const;
+    [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiBufferPosition_) const;
+    [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiBufferPosition_) const;
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
     //----------------------------------------------------------------------------
@@ -97,10 +97,9 @@ class Framer : public FramerBase
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.
-    //! \param [in] ringBuffer a shared pointer to the framer manager's fixed ring
-    //! buffer.
+    //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
     //----------------------------------------------------------------------------
-    Framer(std::shared_ptr<UCharFixedBuffer> ringBuffer);
+    Framer(std::shared_ptr<UCharFixedBuffer> buffer);
 
     //----------------------------------------------------------------------------
     //! \brief A constructor for the Framer class.

@@ -28,6 +28,7 @@
 
 #include <charconv>
 
+#include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/decoders/common/framer_registration.hpp"
 
 using namespace novatel::edie;
@@ -40,7 +41,7 @@ REGISTER_FRAMER(OEM_BINARY, oem::FramerBinary, MetaDataStruct)
 FramerBinary::FramerBinary() : FramerBase("novatel_framer_binary") {}
 
 // -------------------------------------------------------------------------------------------------------
-FramerBinary::FramerBinary(std::shared_ptr<UCharFixedBuffer> ringBuffer) : FramerBase("novatel_framer_binary", ringBuffer)
+FramerBinary::FramerBinary(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBase("novatel_framer_binary", buffer)
 {
     pclMyLogger->info("FramerBinary initialized");
 }
@@ -95,7 +96,7 @@ FramerBinary::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBuf
     if (uiMaxMessageLength >= static_cast<size_t>(OEM4_BINARY_HEADER_LENGTH + uiMessageBodyLength))
     {
         auto uiTotalMessageLength = OEM4_BINARY_HEADER_LENGTH + uiMessageBodyLength;
-        auto uiCalcCrc = clInternalFrameBuffer.CalculateBlockCrc32(0, uiTotalMessageLength);
+        auto uiCalcCrc = CalculateBlockCrc32(clInternalFrameBuffer.data(), uiTotalMessageLength);
         if (uiCalcCrc != 0) { return handleUnknown(OEM4_BINARY_SYNC_LENGTH); }
 
         // Valid frame found

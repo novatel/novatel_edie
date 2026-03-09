@@ -33,8 +33,6 @@
 #include <numeric>
 #include <type_traits>
 
-#include "novatel_edie/common/crc32.hpp"
-
 //============================================================================
 //! \class FixedBuffer
 //! \brief A minimal, fixed-size linear buffer. Data is stored contiguously
@@ -53,9 +51,6 @@ template <typename T, size_t N> class FixedBuffer
   public:
     //! \brief A special value indicating "not found" in search operations.
     static constexpr size_t npos = static_cast<size_t>(-1);
-
-    //! \brief Adds an element to the end of the buffer.
-    void push_back(const T& value) noexcept { buffer[head + sz++] = value; }
 
     //! \brief Accesses the element at the specified logical index (0 = oldest). Const version.
     [[nodiscard]] const T& operator[](size_t i) const noexcept { return buffer[head + i]; }
@@ -90,7 +85,7 @@ template <typename T, size_t N> class FixedBuffer
     //! \param[in] data_ptr Pointer to the source data buffer.
     //! \param[in] count The number of *elements* (of type T) to write.
     //! \return The number of elements written, or 0 if there is not enough total space.
-    [[nodiscard]] size_t Write(const T* data_ptr, size_t count) noexcept
+    [[nodiscard]] size_t write(const T* data_ptr, size_t count) noexcept
     {
         if (data_ptr == nullptr || count > available_space() || count == 0) { return 0; }
 
@@ -110,6 +105,9 @@ template <typename T, size_t N> class FixedBuffer
     }
 
     //! \brief Finds the first occurrence of a byte value in the buffer (logical order).
+    //! \param[in] value The byte value to search for.
+    //! \param[in] start The logical index to start the search from (0 = oldest).
+    //! \param[in] count The maximum number of elements to search through.
     //! \return Logical index (0 = oldest) or npos if not found.
     template <typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
     [[nodiscard]] size_t search_char(unsigned char value, size_t start, size_t count = npos) const noexcept
@@ -152,14 +150,8 @@ template <typename T, size_t N> class FixedBuffer
         return result;
     }
 
-    //! \brief Calculates the CRC-32 of a range of elements in logical order (0 = oldest).
-    //! \param[in] start Logical start index.
-    //! \param[in] count Number of elements to include.
-    [[nodiscard]] uint32_t CalculateBlockCrc32(size_t start, size_t count) const
-    {
-        return ::CalculateBlockCrc32(buffer.get() + head + start, static_cast<uint32_t>(std::min(count, sz - start) * sizeof(T)));
-    }
-
+    //! \brief Returns a pointer to the beginning of the valid data in the buffer.
+    [[nodiscard]] const T* data() const noexcept { return buffer.get() + head; }
     //! \brief Returns the number of elements currently in the buffer.
     [[nodiscard]] constexpr size_t size() const noexcept { return sz; }
     //! \brief Returns the maximum number of elements the buffer can hold.
