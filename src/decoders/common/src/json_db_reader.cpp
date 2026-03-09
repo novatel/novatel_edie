@@ -114,6 +114,7 @@ void from_json(const json& j_, ArrayField& fd_)
     from_json(j_, static_cast<BaseField&>(fd_));
 
     fd_.arrayLength = j_.at("arrayLength");
+    fd_.arrayLengthFieldSize = j_.value("arrayLengthFieldSize", 0);
     fd_.dataType = j_.at("dataType");
     if (j_.find("arrayLengthRef") != j_.end()) { fd_.arrayLengthRef = j_.at("arrayLengthRef").is_null() ? "" : j_.at("arrayLengthRef"); }
 }
@@ -124,6 +125,7 @@ void from_json(const json& j_, FieldArrayField& fd_)
     from_json(j_, static_cast<BaseField&>(fd_));
 
     fd_.arrayLength = j_.at("arrayLength").is_null() ? 0 : static_cast<uint32_t>(j_.at("arrayLength"));
+    fd_.arrayLengthFieldSize = j_.value("arrayLengthFieldSize", 0);
     fd_.fieldSize = fd_.arrayLength * ParseFields(j_.at("fields"), fd_.fields);
     if (j_.find("arrayLengthRef") != j_.end()) { fd_.arrayLengthRef = j_.at("arrayLengthRef").is_null() ? "" : j_.at("arrayLengthRef"); }
 }
