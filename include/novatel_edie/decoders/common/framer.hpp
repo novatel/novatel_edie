@@ -137,10 +137,10 @@ class FramerBase
     //! \brief A constructor for the FramerBase class.
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
-    //! \param[in] ringBuffer_ pointer to an already created sharable ring_buffer.
+    //! \param[in] buffer pointer to an already created sharable fixed buffer.
     //----------------------------------------------------------------------------
-    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<UCharFixedBuffer> ringBuffer_)
-        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(ringBuffer_)
+    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<UCharFixedBuffer> buffer_)
+        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(buffer_)
     {
         pclMyLogger->debug("FramerBase initialized");
     }
@@ -199,7 +199,7 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return pclMyBuffer->Write(pucDataBuffer_, uiDataBytes_); }
+    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return pclMyBuffer->write(pucDataBuffer_, uiDataBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.

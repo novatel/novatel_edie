@@ -31,7 +31,7 @@
 using namespace novatel::edie;
 
 FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
-    : pclMyLogger(GetBaseLoggerManager()->RegisterLogger("FramerManager")), pclMyFixedRingBuffer(std::make_shared<UCharFixedBuffer>())
+    : pclMyLogger(GetBaseLoggerManager()->RegisterLogger("FramerManager")), pclMyFixedBuffer(std::make_shared<UCharFixedBuffer>())
 {
     pclMyLogger->info("Note: the FramerManager is under active development and should be treated as an experimental feature. "
                       "Currently, the FramerManager is simply a thin wrapper around the OEM Framer. Until we have implemented "
@@ -47,7 +47,7 @@ FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
         {
             auto& constructors = it->second;
             auto metadataInstance = constructors.second();
-            auto framerInstance = constructors.first(pclMyFixedRingBuffer);
+            auto framerInstance = constructors.first(pclMyFixedBuffer);
             framerRegistry.emplace_back(name, framerId, std::move(framerInstance), std::move(metadataInstance));
             pclMyLogger->info("Registered framer '{}'", name);
         }
@@ -114,14 +114,14 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 {
     while (true)
     {
-        if (pclMyFixedRingBuffer->empty()) { return STATUS::BUFFER_EMPTY; }
+        if (pclMyFixedBuffer->empty()) { return STATUS::BUFFER_EMPTY; }
 
         STATUS eStatus = STATUS::UNKNOWN;
         MetaDataBase* currentMetaData;
         auto registrySize = framerRegistry.size();
 
         auto bestFramerIndex = registrySize;
-        auto bestOffset = static_cast<uint32_t>(pclMyFixedRingBuffer->size());
+        auto bestOffset = static_cast<uint32_t>(pclMyFixedBuffer->size());
         STATUS bestStatus = STATUS::UNKNOWN;
 
         // Scan for first frame offset among all registered framers
@@ -151,7 +151,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
         // No frame found at all
         if (bestFramerIndex == registrySize)
         {
-            assert(bestOffset > 0 && bestOffset <= static_cast<uint32_t>(pclMyFixedRingBuffer->size()));
+            assert(bestOffset > 0 && bestOffset <= static_cast<uint32_t>(pclMyFixedBuffer->size()));
             HandleUnknownBytes(pucFrameBuffer_, bestOffset);
             stMyMetaData.uiLength = bestOffset;
             stMyMetaData.eFormat = HEADER_FORMAT::UNKNOWN;
@@ -169,8 +169,8 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
             if (stMetaData_->uiLength > uiFrameBufferSize_) { return STATUS::BUFFER_FULL; }
 
-            pclMyFixedRingBuffer->copy_out(pucFrameBuffer_, stMetaData_->uiLength);
-            pclMyFixedRingBuffer->erase_begin(stMetaData_->uiLength);
+            pclMyFixedBuffer->copy_out(pucFrameBuffer_, stMetaData_->uiLength);
+            pclMyFixedBuffer->erase_begin(stMetaData_->uiLength);
             ResetAllFramerStates();
             return STATUS::SUCCESS;
         }
@@ -189,7 +189,7 @@ STATUS FramerManager::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameB
 
 void FramerManager::HandleUnknownBytes(unsigned char* pucBuffer_, size_t uiUnknownBytes_) const
 {
-    if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyFixedRingBuffer->copy_out(pucBuffer_, uiUnknownBytes_); }
-    pclMyFixedRingBuffer->erase_begin(uiUnknownBytes_);
+    if (bMyReportUnknownBytes && pucBuffer_ != nullptr) { pclMyFixedBuffer->copy_out(pucBuffer_, uiUnknownBytes_); }
+    pclMyFixedBuffer->erase_begin(uiUnknownBytes_);
     ResetAllFramerStates();
 }
