@@ -173,7 +173,20 @@ template <typename T, size_t N> class FixedRingBuffer
     //! \param[in] count Number of elements to include.
     template <uint32_t Poly = 0xEDB88320UL> [[nodiscard]] uint32_t CalculateBlockCrc32(size_t start, size_t count, uint32_t initial_crc = 0) const
     {
-        return ::CalculateBlockCrc32<Poly>(buffer.get() + head + start, static_cast<uint32_t>(std::min(count, sz - start) * sizeof(T)), initial_crc);
+        count = std::min(count, sz - start);
+        if (count == 0) { return initial_crc; }
+
+        const size_t start_idx = (head + start) & Mask;
+        const size_t first_chunk_elements = std::min(count, N - start_idx);
+
+        uint32_t crc = ::CalculateBlockCrc32<Poly>(reinterpret_cast<const unsigned char*>(buffer.get() + start_idx),
+                                                   static_cast<uint32_t>(first_chunk_elements * sizeof(T)), initial_crc);
+
+        const size_t second_chunk_elements = count - first_chunk_elements;
+        if (second_chunk_elements == 0) { return crc; }
+
+        return ::CalculateBlockCrc32<Poly>(reinterpret_cast<const unsigned char*>(buffer.get()),
+                                           static_cast<uint32_t>(second_chunk_elements * sizeof(T)), crc);
     }
 
     //! \brief Returns the number of elements currently in the buffer.
