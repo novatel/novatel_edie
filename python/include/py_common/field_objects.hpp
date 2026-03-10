@@ -26,12 +26,12 @@ struct PyField
         fieldCount = fields.size();
     };
 
-    explicit PyField(std::vector<FieldContainer> message_, const ::novatel::edie::BaseField* fieldDef_,
+    explicit PyField(std::vector<FieldContainer>& message_, const ::novatel::edie::BaseField* fieldDef_,
                      py_common::PyMessageDatabaseCore::ConstPtr parentDb_, nb::object parentField_)
-        : fields(std::move(message_)), fieldDef(fieldDef_), parentDb(std::move(parentDb_)), parent(std::move(parentField_))
+        : fieldDef(fieldDef_), parentDb(std::move(parentDb_)), parent(std::move(parentField_))
     {
-        fieldsPtr = fields.data();
-        fieldCount = fields.size();
+        fieldsPtr = message_.data();
+        fieldCount = message_.size();
     };
 
     //============================================================================
@@ -107,7 +107,7 @@ struct PyField
     const BaseField* fieldDef{nullptr};
 
   protected:
-    nb::object convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db) const;
+    nb::object convert_field(FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db) const;
 
     FieldContainer* fieldsPtr;
     size_t fieldCount;

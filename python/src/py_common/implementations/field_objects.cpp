@@ -15,8 +15,7 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const FieldContainer& field,
-                                                             const py_common::PyMessageDatabaseCore::ConstPtr& parent_db) const
+PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db) const
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
@@ -44,7 +43,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const FieldContaine
     }
     else if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
     {
-        const auto& message_field = std::get<std::vector<FieldContainer>>(field.fieldValue);
+        auto& message_field = std::get<std::vector<FieldContainer>>(field.fieldValue);
         if (message_field.empty())
         {
             // Handle Empty Arrays
@@ -59,11 +58,11 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const FieldContaine
             // Create an appropriate PyField instance for each subfield in the array
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
-            for (const auto& subfield : message_field)
+            for (auto& subfield : message_field)
             {
                 nb::object pyinst = nb::inst_alloc(field_ptype);
                 PyField* cinst = nb::inst_ptr<PyField>(pyinst);
-                const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
+                auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
                 new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parent_db, nb::cast(this, nb::rv_policy::none));
                 nb::inst_mark_ready(pyinst);
                 sub_values.push_back(pyinst);
@@ -88,7 +87,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const FieldContaine
             }
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
-            for (const auto& f : message_field) { sub_values.push_back(convert_field(f, parent_db)); }
+            for (FieldContainer& f : message_field) { sub_values.push_back(convert_field(f, parent_db)); }
             return nb::cast(sub_values);
         }
     }
