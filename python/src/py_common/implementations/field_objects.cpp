@@ -1,5 +1,6 @@
 #include "py_common/field_objects.hpp"
 
+#include <cassert>
 #include <type_traits>
 #include <variant>
 
@@ -68,30 +69,22 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
     else if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
     {
         auto& message_field = std::get<std::vector<FieldContainer>>(field.fieldValue);
-        if (message_field.empty())
+        if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
-            // Handle Empty Arrays
-            return nb::list();
-        }
-        else if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
-        {
-            // Handle Field Arrays
-            nb::handle field_ptype = parentDb->GetFieldType(field.fieldDef.get());
-            if (field_ptype.is_none()) { throw py_common::FailureException("Message subfield has an unrecognized type."); }
+            // Handle Field Arrays — find the index of this field for caching
+            size_t fieldIdx = static_cast<size_t>(&field - fieldsPtr);
 
-            // Create an appropriate PyField instance for each subfield in the array
-            std::vector<nb::object> sub_values;
-            sub_values.reserve(message_field.size());
-            for (auto& subfield : message_field)
+            // Check if a cached PyFieldArray is still alive
+            if (cachedArrays_[fieldIdx].has_value())
             {
-                nb::object pyinst = nb::inst_alloc(field_ptype);
-                PyField* cinst = nb::inst_ptr<PyField>(pyinst);
-                auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-                new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parentDb, nb::cast(this, nb::rv_policy::none));
-                nb::inst_mark_ready(pyinst);
-                sub_values.push_back(pyinst);
+                nb::object existing = cachedArrays_[fieldIdx].value()();
+                if (!existing.is_none()) { return existing; }
             }
-            return nb::cast(sub_values);
+
+            // Construct a new PyFieldArray
+            nb::object pyArr = nb::cast(PyFieldArray(message_field, field.fieldDef.get(), parentDb, nb::cast(this, nb::rv_policy::none)));
+            cachedArrays_[fieldIdx] = nb::weakref(pyArr);
+            return pyArr;
         }
         else
         {
@@ -211,3 +204,31 @@ PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
 }
 
 PYCOMMON_EXPORT size_t PyField::len() const { return fields.size(); }
+
+PYCOMMON_EXPORT nb::object PyFieldArray::getitem(size_t index) const
+{
+    if (index >= data->size()) { throw nb::index_error("index out of range"); }
+
+    // Check if a cached object has been created
+    if (cache[index].has_value())
+    {
+        // Return it if it is still alive
+        nb::object existing = cache[index].value()();
+        if (!existing.is_none()) { return existing; }
+    }
+
+    // Construct a new PyField for this element
+    FieldContainer& subfield = (*data)[index];
+    auto& subfields = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
+
+    nb::handle field_ptype = parentDb->GetFieldType(fieldDef);
+    nb::object pyinst = nb::inst_alloc(field_ptype);
+    PyField* cinst = nb::inst_ptr<PyField>(pyinst);
+    new (cinst) PyField(subfields, fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
+    nb::inst_mark_ready(pyinst);
+
+    cache[index] = nb::weakref(pyinst);
+    return pyinst;
+}
+
+PYCOMMON_EXPORT size_t PyFieldArray::len() const { return data->size(); }

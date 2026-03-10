@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -36,6 +37,7 @@ struct PyField
         fieldsPtr = fields.data();
         fieldCount = fields.size();
         buildFieldNameMap();
+        cachedArrays_.resize(fieldCount);
     };
 
     explicit PyField(std::vector<FieldContainer>& message_, const ::novatel::edie::BaseField* fieldDef_,
@@ -45,6 +47,7 @@ struct PyField
         fieldsPtr = message_.data();
         fieldCount = message_.size();
         buildFieldNameMap();
+        cachedArrays_.resize(fieldCount);
     };
 
     //============================================================================
@@ -114,7 +117,7 @@ struct PyField
     FieldNameMap fieldNameMap_;
     nb::object parent;
     mutable nb::dict cached_values_;
-    mutable nb::dict cached_fields_;
+    mutable std::vector<std::optional<nb::weakref>> cachedArrays_;
 
     py_common::PyMessageDatabaseCore::ConstPtr parentDb;
 };
@@ -132,5 +135,26 @@ template <typename Fn> void PyField::for_each_entry(Fn&& visitor) const
         visitor(def->name, convert_field(fieldsPtr[i]));
     }
 }
+
+//============================================================================
+//! \class PyFieldArray
+//! \brief A python representation for an array of repeated message fields.
+//============================================================================
+struct PyFieldArray
+{
+    explicit PyFieldArray(std::vector<FieldContainer>& data_, const ::novatel::edie::BaseField* fieldDef_,
+                          py_common::PyMessageDatabaseCore::ConstPtr parentDb_, nb::object parent_)
+        : data(&data_), fieldDef(fieldDef_), parentDb(std::move(parentDb_)), parent(std::move(parent_)), cache(data_.size()) {};
+
+    nb::object getitem(size_t index) const;
+    size_t len() const;
+
+  private:
+    std::vector<FieldContainer>* data;
+    const BaseField* fieldDef{nullptr};
+    py_common::PyMessageDatabaseCore::ConstPtr parentDb;
+    nb::object parent;
+    mutable std::vector<std::optional<nb::weakref>> cache;
+};
 
 } // namespace novatel::edie::py_common
