@@ -15,14 +15,38 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db) const
+PYCOMMON_EXPORT void PyField::buildFieldNameMap()
+{
+    for (size_t i = 0; i < fieldCount; i++)
+    {
+        const auto& def = fieldsPtr[i].fieldDef;
+        fieldNameMap_[def->name] = {i, false};
+        if (def->type == FIELD_TYPE::FIELD_ARRAY || def->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+        {
+            fieldNameMap_[def->name + "_length"] = {i, true};
+        }
+    }
+}
+
+PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
+{
+    FieldContainer& field = fieldsPtr[entry.index];
+    if (entry.is_length)
+    {
+        auto& arr = std::get<std::vector<FieldContainer>>(field.fieldValue);
+        return nb::cast(arr.size());
+    }
+    return convert_field(field);
+}
+
+PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& field) const
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
         // Handle Enums
         const auto* enumField = static_cast<const EnumField*>(field.fieldDef.get());
-        const EnumDefinition* enumDef = parent_db->GetEnumDefId(enumField->enumId).get();
-        nb::object enum_type = parent_db->GetEnumType(enumField->enumDef.get());
+        const EnumDefinition* enumDef = parentDb->GetEnumDefId(enumField->enumId).get();
+        nb::object enum_type = parentDb->GetEnumType(enumField->enumDef.get());
         if (enum_type.is_none())
         {
             throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumField->enumId +
@@ -52,7 +76,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
         else if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
             // Handle Field Arrays
-            nb::handle field_ptype = parent_db->GetFieldType(field.fieldDef.get());
+            nb::handle field_ptype = parentDb->GetFieldType(field.fieldDef.get());
             if (field_ptype.is_none()) { throw py_common::FailureException("Message subfield has an unrecognized type."); }
 
             // Create an appropriate PyField instance for each subfield in the array
@@ -63,7 +87,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
                 nb::object pyinst = nb::inst_alloc(field_ptype);
                 PyField* cinst = nb::inst_ptr<PyField>(pyinst);
                 auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-                new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parent_db, nb::cast(this, nb::rv_policy::none));
+                new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parentDb, nb::cast(this, nb::rv_policy::none));
                 nb::inst_mark_ready(pyinst);
                 sub_values.push_back(pyinst);
             }
@@ -87,7 +111,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
             }
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
-            for (FieldContainer& f : message_field) { sub_values.push_back(convert_field(f, parent_db)); }
+            for (FieldContainer& f : message_field) { sub_values.push_back(convert_field(f)); }
             return nb::cast(sub_values);
         }
     }
@@ -120,78 +144,70 @@ PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
                 std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
                 cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
             }
-            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parentDb);
+            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field);
         }
     }
     return cached_values_;
 }
 
+nb::object PyField::unwrap_for_list(nb::object value)
+{
+    if (nb::isinstance<PyField>(value)) { return nb::cast<PyField>(value).to_list(); }
+    if (nb::isinstance<std::vector<nb::object>>(value))
+    {
+        nb::list sublist;
+        for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value)) { sublist.append(unwrap_for_list(nb::borrow(sub_item))); }
+        return sublist;
+    }
+    return value;
+}
+
+nb::object PyField::unwrap_for_dict(nb::object value)
+{
+    if (nb::isinstance<PyField>(value)) { return nb::cast<PyField>(value).to_dict(); }
+    if (nb::isinstance<std::vector<nb::object>>(value))
+    {
+        nb::list sublist;
+        for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value)) { sublist.append(unwrap_for_dict(nb::borrow(sub_item))); }
+        return sublist;
+    }
+    if (nb::isinstance<SatelliteId>(value)) { return value.attr("to_dict")(); }
+    return value;
+}
+
 PYCOMMON_EXPORT nb::list PyField::get_field_names() const
 {
-    nb::list field_names = nb::list();
-    for (const auto& [name, value] : to_shallow_dict()) { field_names.append(name); }
+    nb::list field_names;
+    for_each_entry([&](const std::string& name, nb::object) { field_names.append(nb::cast(name)); });
     return field_names;
 }
 
 PYCOMMON_EXPORT nb::list PyField::get_values() const
 {
-    nb::list values = nb::list();
-    nb::dict& unordered_values = to_shallow_dict();
-    for (const auto& field_name : get_field_names()) { values.append(unordered_values[field_name]); }
+    nb::list values;
+    for_each_entry([&](const std::string&, nb::object value) { values.append(std::move(value)); });
     return values;
 }
 
 PYCOMMON_EXPORT nb::list PyField::to_list() const
 {
-    nb::list list = nb::list();
-    for (const auto& [field_name, value] : to_shallow_dict())
-    {
-        if (nb::isinstance<PyField>(value)) { list.append(nb::cast<PyField>(value).to_list()); }
-        else if (nb::isinstance<std::vector<nb::object>>(value))
-        {
-            nb::list sublist;
-            for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value))
-            {
-                if (nb::isinstance<PyField>(sub_item)) { sublist.append(nb::cast<PyField>(sub_item).to_list()); }
-                else { sublist.append(sub_item); }
-            }
-            list.append(sublist);
-        }
-        else { list.append(value); }
-    }
+    nb::list list;
+    for_each_entry([&](const std::string&, nb::object value) { list.append(unwrap_for_list(std::move(value))); });
     return list;
 }
 
 PYCOMMON_EXPORT nb::dict PyField::to_dict() const
 {
     nb::dict dict;
-    for (const auto& [field_name, value] : to_shallow_dict())
-    {
-        if (nb::isinstance<PyField>(value)) { dict[field_name] = nb::cast<PyField>(value).to_dict(); }
-        else if (nb::isinstance<std::vector<nb::object>>(value))
-        {
-            nb::list list;
-            for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value))
-            {
-                if (nb::isinstance<PyField>(sub_item)) { list.append(nb::cast<PyField>(sub_item).to_dict()); }
-                else { list.append(sub_item); }
-            }
-            dict[field_name] = list;
-        }
-        else if (nb::isinstance<SatelliteId>(value)) { dict[field_name] = value.attr("to_dict")(); }
-        else { dict[field_name] = value; }
-    }
+    for_each_entry([&](const std::string& name, nb::object value) { dict[nb::cast(name)] = unwrap_for_dict(std::move(value)); });
     return dict;
 }
 
 PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
 {
-    if (!contains(field_name)) { throw nb::attribute_error(field_name.c_str()); }
-    return to_shallow_dict()[std::move(field_name)];
+    auto it = fieldNameMap_.find(field_name.c_str());
+    if (it == fieldNameMap_.end()) { throw nb::attribute_error(field_name.c_str()); }
+    return resolve_entry(it->second);
 }
-
-PYCOMMON_EXPORT nb::object PyField::getitem(nb::str field_name) const { return to_shallow_dict()[std::move(field_name)]; }
-
-PYCOMMON_EXPORT bool PyField::contains(nb::str field_name) const { return to_shallow_dict().contains(std::move(field_name)); }
 
 PYCOMMON_EXPORT size_t PyField::len() const { return fields.size(); }
