@@ -15,7 +15,8 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db)
+PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const FieldContainer& field,
+                                                             const py_common::PyMessageDatabaseCore::ConstPtr& parent_db) const
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
@@ -63,7 +64,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
                 nb::object pyinst = nb::inst_alloc(field_ptype);
                 PyField* cinst = nb::inst_ptr<PyField>(pyinst);
                 const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-                new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parent_db);
+                new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parent_db, nb::cast(this, nb::rv_policy::none));
                 nb::inst_mark_ready(pyinst);
                 sub_values.push_back(pyinst);
             }
@@ -87,7 +88,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
             }
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
-            for (const auto& f : message_field) { sub_values.push_back(py_common::convert_field(f, parent_db)); }
+            for (const auto& f : message_field) { sub_values.push_back(convert_field(f, parent_db)); }
             return nb::cast(sub_values);
         }
     }
@@ -111,8 +112,9 @@ PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
 {
     if (cached_values_.size() == 0)
     {
-        for (const auto& field : fields)
+        for (size_t i = 0; i < fieldCount; i++)
         {
+            FieldContainer& field = fieldsPtr[i];
             if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue) &&
                 (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY || field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY))
             {
