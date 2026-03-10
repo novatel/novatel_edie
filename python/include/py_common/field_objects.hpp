@@ -20,7 +20,19 @@ struct PyField
 {
     explicit PyField(std::vector<FieldContainer> message_, const ::novatel::edie::BaseField* fieldDef_,
                      py_common::PyMessageDatabaseCore::ConstPtr parentDb_)
-        : fields(std::move(message_)), fieldDef(fieldDef_), parentDb(std::move(parentDb_)) {};
+        : fields(std::move(message_)), fieldDef(fieldDef_), parentDb(std::move(parentDb_))
+    {
+        fieldsPtr = fields.data();
+        fieldCount = fields.size();
+    };
+
+    explicit PyField(std::vector<FieldContainer> message_, const ::novatel::edie::BaseField* fieldDef_,
+                     py_common::PyMessageDatabaseCore::ConstPtr parentDb_, nb::object parentField_)
+        : fields(std::move(message_)), fieldDef(fieldDef_), parentDb(std::move(parentDb_)), parent(std::move(parentField_))
+    {
+        fieldsPtr = fields.data();
+        fieldCount = fields.size();
+    };
 
     //============================================================================
     //! \brief Creates a shallow dictionary representing the field.
@@ -95,11 +107,15 @@ struct PyField
     const BaseField* fieldDef{nullptr};
 
   protected:
+    nb::object convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db) const;
+
+    FieldContainer* fieldsPtr;
+    size_t fieldCount;
+    nb::object parent;
     mutable nb::dict cached_values_;
     mutable nb::dict cached_fields_;
 
     py_common::PyMessageDatabaseCore::ConstPtr parentDb;
 };
 
-nb::object convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db);
 } // namespace novatel::edie::py_common
