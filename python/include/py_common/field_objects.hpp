@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 #include "py_common/bindings_core.hpp"
@@ -9,6 +11,15 @@
 #include "py_common/py_message_data.hpp"
 
 namespace novatel::edie::py_common {
+
+struct FieldLookupEntry
+{
+    size_t index;
+    bool is_length;
+};
+
+using FieldNameMap = std::unordered_map<std::string, FieldLookupEntry>;
+
 //============================================================================
 //! \class PyField
 //! \brief A python representation for a single message or message field.
@@ -24,6 +35,7 @@ struct PyField
     {
         fieldsPtr = fields.data();
         fieldCount = fields.size();
+        buildFieldNameMap();
     };
 
     explicit PyField(std::vector<FieldContainer>& message_, const ::novatel::edie::BaseField* fieldDef_,
@@ -32,6 +44,7 @@ struct PyField
     {
         fieldsPtr = message_.data();
         fieldCount = message_.size();
+        buildFieldNameMap();
     };
 
     //============================================================================
@@ -42,12 +55,6 @@ struct PyField
     //! \return A dictionary containing the field values.
     //============================================================================
     nb::dict& to_shallow_dict() const;
-
-    //============================================================================
-    //! \brief Retrieves all subfield definitions indexed by name.
-    //! \return A dictionary containing the fields.
-    //============================================================================
-    nb::dict& get_field_defs() const;
 
     //============================================================================
     //! \brief Retrieves the names of the subfields in order.
@@ -84,20 +91,6 @@ struct PyField
     nb::object getattr(nb::str field_name) const;
 
     //============================================================================
-    //! \brief Retrieves the value of a field by its name using the subscript operator.
-    //! \param field_name The name of the field to retrieve.
-    //! \return The value of the specified field as an nb::object.
-    //============================================================================
-    nb::object getitem(nb::str field_name) const;
-
-    //============================================================================
-    //! \brief Checks if a field with the given name exists in the object.
-    //! \param field_name The name of the field to check.
-    //! \return True if the field exists, otherwise false.
-    //============================================================================
-    bool contains(nb::str field_name) const;
-
-    //============================================================================
     //! \brief Retrieves the number of fields in the object.
     //! \return The number of fields as a size_t.
     //============================================================================
@@ -107,15 +100,37 @@ struct PyField
     const BaseField* fieldDef{nullptr};
 
   protected:
-    nb::object convert_field(FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db) const;
+    nb::object convert_field(FieldContainer& field) const;
+    nb::object resolve_entry(const FieldLookupEntry& entry) const;
+    void buildFieldNameMap();
+
+    template <typename Fn> void for_each_entry(Fn&& visitor) const;
+
+    static nb::object unwrap_for_list(nb::object value);
+    static nb::object unwrap_for_dict(nb::object value);
 
     FieldContainer* fieldsPtr;
     size_t fieldCount;
+    FieldNameMap fieldNameMap_;
     nb::object parent;
     mutable nb::dict cached_values_;
     mutable nb::dict cached_fields_;
 
     py_common::PyMessageDatabaseCore::ConstPtr parentDb;
 };
+
+template <typename Fn> void PyField::for_each_entry(Fn&& visitor) const
+{
+    for (size_t i = 0; i < fieldCount; i++)
+    {
+        const auto& def = fieldsPtr[i].fieldDef;
+        if (def->type == FIELD_TYPE::FIELD_ARRAY || def->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+        {
+            auto& arr = std::get<std::vector<FieldContainer>>(fieldsPtr[i].fieldValue);
+            visitor(def->name + "_length", nb::cast(arr.size()));
+        }
+        visitor(def->name, convert_field(fieldsPtr[i]));
+    }
+}
 
 } // namespace novatel::edie::py_common
