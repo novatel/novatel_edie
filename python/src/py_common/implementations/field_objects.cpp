@@ -203,8 +203,6 @@ PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
     return resolve_entry(it->second);
 }
 
-PYCOMMON_EXPORT size_t PyField::len() const { return fields.size(); }
-
 PYCOMMON_EXPORT nb::object PyFieldArray::getitem(size_t index) const
 {
     if (index >= data->size()) { throw nb::index_error("index out of range"); }
