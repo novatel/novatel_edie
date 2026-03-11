@@ -63,7 +63,7 @@ _OEM_DEPRECATED_NAMES = {
     "Oem4BinaryHeader", "Oem4BinaryShortHeader", "MetaData",
     "Framer", "Filter", "Decoder", "Commander", "Parser", "FileParser",
     "RangeDecompressor", "RxConfigHandler",
-    "messages", "enums", "get_builtin_database", "_novatel_internal",
+    "messages", "enums", "get_builtin_database"
 }
 
 _ALREADY_WARNED = set()
