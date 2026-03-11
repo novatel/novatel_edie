@@ -93,12 +93,6 @@ struct PyField
     //============================================================================
     nb::object getattr(nb::str field_name) const;
 
-    //============================================================================
-    //! \brief Retrieves the number of fields in the object.
-    //! \return The number of fields as a size_t.
-    //============================================================================
-    size_t len() const;
-
     std::vector<FieldContainer> fields;
     const BaseField* fieldDef{nullptr};
 
