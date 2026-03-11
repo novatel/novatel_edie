@@ -21,12 +21,13 @@ PYCOMMON_EXPORT void PyField::buildFieldNameMap()
     for (size_t i = 0; i < fieldCount; i++)
     {
         const auto& def = fieldsPtr[i].fieldDef;
-        fieldNameMap_[def->name] = {i, false};
+        ownedFieldNameMap_[def->name] = {i, false};
         if (def->type == FIELD_TYPE::FIELD_ARRAY || def->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
         {
-            fieldNameMap_[def->name + "_length"] = {i, true};
+            ownedFieldNameMap_[def->name + "_length"] = {i, true};
         }
     }
+    fieldNameMap_ = &ownedFieldNameMap_;
 }
 
 PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
@@ -198,8 +199,8 @@ PYCOMMON_EXPORT nb::dict PyField::to_dict() const
 
 PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
 {
-    auto it = fieldNameMap_.find(field_name.c_str());
-    if (it == fieldNameMap_.end()) { throw nb::attribute_error(field_name.c_str()); }
+    auto it = fieldNameMap_->find(field_name.c_str());
+    if (it == fieldNameMap_->end()) { throw nb::attribute_error(field_name.c_str()); }
     return resolve_entry(it->second);
 }
 
