@@ -13,14 +13,6 @@
 
 namespace novatel::edie::py_common {
 
-struct FieldLookupEntry
-{
-    size_t index;
-    bool is_length;
-};
-
-using FieldNameMap = std::unordered_map<std::string, FieldLookupEntry>;
-
 //============================================================================
 //! \class PyField
 //! \brief A python representation for a single message or message field.
@@ -36,7 +28,19 @@ struct PyField
     {
         fieldsPtr = fields.data();
         fieldCount = fields.size();
-        buildFieldNameMap();
+        fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(fieldDef_) : nullptr;
+        if (!fieldNameMap_) { buildFieldNameMap(); }
+        cachedArrays_.resize(fieldCount);
+    };
+
+    explicit PyField(std::vector<FieldContainer> message_, const ::novatel::edie::MessageDefinition* msgDef_, uint32_t crc_,
+                     py_common::PyMessageDatabaseCore::ConstPtr parentDb_)
+        : fields(std::move(message_)), parentDb(std::move(parentDb_))
+    {
+        fieldsPtr = fields.data();
+        fieldCount = fields.size();
+        fieldNameMap_ = msgDef_ ? parentDb->GetMessageFieldNameMap(msgDef_, crc_) : nullptr;
+        if (!fieldNameMap_) { buildFieldNameMap(); }
         cachedArrays_.resize(fieldCount);
     };
 
@@ -46,7 +50,8 @@ struct PyField
     {
         fieldsPtr = message_.data();
         fieldCount = message_.size();
-        buildFieldNameMap();
+        fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(fieldDef_) : nullptr;
+        if (!fieldNameMap_) { buildFieldNameMap(); }
         cachedArrays_.resize(fieldCount);
     };
 
@@ -108,7 +113,8 @@ struct PyField
 
     FieldContainer* fieldsPtr;
     size_t fieldCount;
-    FieldNameMap fieldNameMap_;
+    const FieldNameMap* fieldNameMap_{nullptr};
+    FieldNameMap ownedFieldNameMap_;
     nb::object parent;
     mutable nb::dict cached_values_;
     mutable std::vector<std::optional<nb::weakref>> cachedArrays_;
