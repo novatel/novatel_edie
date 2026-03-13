@@ -47,46 +47,6 @@ Framer::Framer(std::shared_ptr<UCharFixedRingBuffer> ringBuffer) : FramerBase("n
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsAsciiCrc(const uint32_t uiDelimiterPosition_) const { return IsCrlf(uiDelimiterPosition_ + OEM4_ASCII_CRC_LENGTH); }
-
-// -------------------------------------------------------------------------------------------------------
-bool Framer::IsAbbrevSeparatorCrlf(const uint32_t uiRingBufferPosition_) const
-{
-    return IsCrlf(uiRingBufferPosition_ + 1) && (*pclMyBuffer)[uiRingBufferPosition_] == OEM4_ABBREV_ASCII_SEPARATOR;
-}
-
-// -------------------------------------------------------------------------------------------------------
-bool Framer::IsAbbrevAsciiResponse() const
-{
-    constexpr uint32_t errorLen = 5;
-    constexpr uint32_t okLen = 2;
-    const auto& clFrameBuffer = *pclMyBuffer;
-
-    if (uiMyAbbrevAsciiHeaderPosition + okLen < clFrameBuffer.size())
-    {
-        if (clFrameBuffer[uiMyAbbrevAsciiHeaderPosition + 0] == 'O' && //
-            clFrameBuffer[uiMyAbbrevAsciiHeaderPosition + 1] == 'K')
-        {
-            return true;
-        }
-    }
-
-    if (uiMyAbbrevAsciiHeaderPosition + errorLen < clFrameBuffer.size())
-    {
-        if (clFrameBuffer[uiMyAbbrevAsciiHeaderPosition + 0] == 'E' && //
-            clFrameBuffer[uiMyAbbrevAsciiHeaderPosition + 1] == 'R' && //
-            clFrameBuffer[uiMyAbbrevAsciiHeaderPosition + 2] == 'R' && //
-            clFrameBuffer[uiMyAbbrevAsciiHeaderPosition + 3] == 'O' && //
-            clFrameBuffer[uiMyAbbrevAsciiHeaderPosition + 4] == 'R')
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-// -------------------------------------------------------------------------------------------------------
 STATUS
 Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_, bool bMetadataOnly_)
 {
@@ -452,8 +412,7 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
 
         case NovAtelFrameState::WAITING_FOR_ABB_ASCII_BODY:
             // End of buffer (can't look ahead, assume incomplete message)
-            if (uiMyByteCount + 1 >= clInternalFrameBuffer.size() ||
-                (uiMyByteCount + 2 == clInternalFrameBuffer.size() && clInternalFrameBuffer[uiMyByteCount + 1] == OEM4_ABBREV_ASCII_SYNC))
+            if (uiMyByteCount + 3 >= clInternalFrameBuffer.size())
             {
                 uiMyByteCount--; // If the data lands on the header CRLF then it can be missed
                                  // unless it's tested again when there is more data
