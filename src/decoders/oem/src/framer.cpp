@@ -56,18 +56,6 @@ bool Framer::IsAbbrevSeparatorCrlf(const uint32_t uiRingBufferPosition_) const
 }
 
 // -------------------------------------------------------------------------------------------------------
-bool Framer::IsEmptyAbbrevLine(uint32_t uiRingBufferPosition_) const
-{
-    const auto& clFrameBuffer = *pclMyBuffer;
-    while (clFrameBuffer[uiRingBufferPosition_--] == OEM4_ABBREV_ASCII_SEPARATOR)
-    {
-        if (clFrameBuffer[uiRingBufferPosition_] == OEM4_ABBREV_ASCII_SYNC) { return true; }
-    }
-
-    return false;
-}
-
-// -------------------------------------------------------------------------------------------------------
 bool Framer::IsAbbrevAsciiResponse() const
 {
     constexpr uint32_t errorLen = 5;
@@ -464,7 +452,8 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
 
         case NovAtelFrameState::WAITING_FOR_ABB_ASCII_BODY:
             // End of buffer (can't look ahead, assume incomplete message)
-            if (uiMyByteCount + 3 >= clInternalFrameBuffer.size())
+            if (uiMyByteCount + 1 >= clInternalFrameBuffer.size() ||
+                (uiMyByteCount + 2 == clInternalFrameBuffer.size() && clInternalFrameBuffer[uiMyByteCount + 1] == OEM4_ABBREV_ASCII_SYNC))
             {
                 uiMyByteCount--; // If the data lands on the header CRLF then it can be missed
                                  // unless it's tested again when there is more data
@@ -472,33 +461,10 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
                 return STATUS::INCOMPLETE;
             }
 
-            // Abbrev Array, more data to follow
-            if (IsAbbrevSeparatorCrlf(uiMyByteCount - 1))
-            {
-                uiMyByteCount += 2; // Consume CRLF
-
-                // New line with non abbrev data
-                if (clInternalFrameBuffer[uiMyByteCount] != OEM4_ABBREV_ASCII_SYNC
-                    // Abbrev data, but is the start of a new message rather than a
-                    // continuation of the current message: <NEWMESSAGE
-                    || clInternalFrameBuffer[uiMyByteCount + 1] != OEM4_ABBREV_ASCII_SEPARATOR)
-                {
-                    // 0 length arrays will output an empty line which suggests more data will
-                    // follow In this case, this is actually the end of the log
-                    // rewind back to CR, so we can treat this as end of log.
-                    if (IsEmptyAbbrevLine(uiMyByteCount - 3)) { uiMyByteCount--; }
-                    else
-                    {
-                        uiMyByteCount = OEM4_ASCII_SYNC_LENGTH;
-                        uiMyAbbrevAsciiHeaderPosition = 0;
-                        uiMyExpectedPayloadLength = 0;
-                        ResetState();
-                    }
-                }
-            }
-
             // End of Abbrev
-            if (IsCrlf(uiMyByteCount - 1))
+            if (IsCrlf(uiMyByteCount - 1) &&
+                (clInternalFrameBuffer[uiMyByteCount + 1] != OEM4_ABBREV_ASCII_SYNC ||     // Next line is not an abb ASCII log
+                 clInternalFrameBuffer[uiMyByteCount + 2] != OEM4_ABBREV_ASCII_SEPARATOR)) // Next line is a new abb ASCII log
             {
                 uiMyByteCount++; // Add 1 to consume LF
                 stMetaData_.uiLength = uiMyByteCount;

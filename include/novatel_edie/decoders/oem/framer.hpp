@@ -51,7 +51,6 @@ class Framer : public FramerBase
     //----------------------------------------------------------------------------
     [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
     [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiRingBufferPosition_) const;
-    [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiRingBufferPosition_) const;
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
     //----------------------------------------------------------------------------
