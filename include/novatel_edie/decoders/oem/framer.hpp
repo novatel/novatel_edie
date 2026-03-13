@@ -50,8 +50,7 @@ class Framer : public FramerBase
     //! \return If a CRLF appears 8 characters after uiDelimiterPosition_.
     //----------------------------------------------------------------------------
     [[nodiscard]] bool IsAsciiCrc(uint32_t uiDelimiterPosition_) const;
-    [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiBufferPosition_) const;
-    [[nodiscard]] bool IsEmptyAbbrevLine(uint32_t uiBufferPosition_) const;
+    [[nodiscard]] bool IsAbbrevSeparatorCrlf(uint32_t uiRingBufferPosition_) const;
     [[nodiscard]] bool IsAbbrevAsciiResponse() const;
 
     //----------------------------------------------------------------------------
