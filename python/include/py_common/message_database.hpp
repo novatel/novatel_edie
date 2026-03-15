@@ -72,7 +72,8 @@ class PyMessageDatabaseCore : public MessageDatabase
         auto it = message_field_name_maps_.find(msgDef);
         if (it == message_field_name_maps_.end()) { return nullptr; }
         auto nestedIt = it->second.find(crc);
-        return nestedIt != it->second.end() ? &nestedIt->second : nullptr;
+        if (nestedIt == it->second.end()) { return nullptr; }
+        return &nestedIt->second;
     }
 
     [[nodiscard]] nb::object GetEnumType(const EnumDefinition* enum_def) const
