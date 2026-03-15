@@ -16,20 +16,6 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-PYCOMMON_EXPORT void PyField::buildFieldNameMap()
-{
-    for (size_t i = 0; i < fieldCount; i++)
-    {
-        const auto& def = fieldsPtr[i].fieldDef;
-        ownedFieldNameMap_[def->name] = {i, false};
-        if (def->type == FIELD_TYPE::FIELD_ARRAY || def->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
-        {
-            ownedFieldNameMap_[def->name + "_length"] = {i, true};
-        }
-    }
-    fieldNameMap_ = &ownedFieldNameMap_;
-}
-
 PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
 {
     FieldContainer& field = fieldsPtr[entry.index];

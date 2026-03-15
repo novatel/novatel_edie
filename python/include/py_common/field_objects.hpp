@@ -1,5 +1,6 @@
 #pragma once
 
+#include <exception>
 #include <memory>
 #include <optional>
 #include <string>
@@ -29,7 +30,6 @@ struct PyField
         fieldsPtr = fields.data();
         fieldCount = fields.size();
         fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(fieldDef_) : nullptr;
-        if (!fieldNameMap_) { buildFieldNameMap(); }
         cachedArrays_.resize(fieldCount);
     };
 
@@ -40,7 +40,6 @@ struct PyField
         fieldsPtr = fields.data();
         fieldCount = fields.size();
         fieldNameMap_ = msgDef_ ? parentDb->GetMessageFieldNameMap(msgDef_, crc_) : nullptr;
-        if (!fieldNameMap_) { buildFieldNameMap(); }
         cachedArrays_.resize(fieldCount);
     };
 
@@ -51,7 +50,6 @@ struct PyField
         fieldsPtr = message_.data();
         fieldCount = message_.size();
         fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(fieldDef_) : nullptr;
-        if (!fieldNameMap_) { buildFieldNameMap(); }
         cachedArrays_.resize(fieldCount);
     };
 
@@ -104,7 +102,6 @@ struct PyField
   protected:
     nb::object convert_field(FieldContainer& field) const;
     nb::object resolve_entry(const FieldLookupEntry& entry) const;
-    void buildFieldNameMap();
 
     template <typename Fn> void for_each_entry(Fn&& visitor) const;
 
@@ -114,7 +111,6 @@ struct PyField
     FieldContainer* fieldsPtr;
     size_t fieldCount;
     const FieldNameMap* fieldNameMap_{nullptr};
-    FieldNameMap ownedFieldNameMap_;
     nb::object parent;
     mutable nb::dict cached_values_;
     mutable std::vector<std::optional<nb::weakref>> cachedArrays_;
