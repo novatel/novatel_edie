@@ -192,7 +192,13 @@ PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
 
 PYCOMMON_EXPORT nb::object PyFieldArray::getitem(size_t index) const
 {
-    if (index >= data->size()) { throw nb::index_error("index out of range"); }
+    if (index >= data->size())
+    {
+        // Raise index error in python
+        // Equivalent to `raise nb::index_error()` but much faster because it avoids throwing a C++ exception
+        PyErr_SetString(PyExc_IndexError, "");
+        return nb::object();
+    }
 
     // Check if a cached object has been created
     if (cache[index].has_value())

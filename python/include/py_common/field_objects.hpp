@@ -145,7 +145,6 @@ struct PyFieldArray
     nb::object getitem(size_t index) const;
     size_t len() const;
 
-  private:
     std::vector<FieldContainer>* data;
     const BaseField* fieldDef{nullptr};
     py_common::PyMessageDatabaseCore::ConstPtr parentDb;
