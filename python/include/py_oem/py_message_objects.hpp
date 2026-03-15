@@ -126,7 +126,7 @@ struct PyEncodableField : public py_common::PyField
 
     explicit PyEncodableField(std::vector<FieldContainer> fields_, PyMessageDatabase::ConstPtr encoderDb_, PyHeader header_,
                               const MessageDefinition* messageDef_, uint32_t messageCrc_)
-        : PyField(fields_, messageDef_, messageCrc_, std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
+        : PyField(std::move(fields_), messageDef_, messageCrc_, std::move(encoderDb_->GetCoreDatabase())), header(std::move(header_)),
           encoderDb(std::move(encoderDb_)), messageDef(messageDef_), messageCrc(messageCrc_) {};
 
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
