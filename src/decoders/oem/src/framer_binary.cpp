@@ -69,7 +69,7 @@ FramerBinary::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBuf
     if (uiMyByteCount == 0)
     {
         // Look for the sync byte pattern in the buffer up to the max message length (or end of buffer)
-        size_t uiSyncIndex = 0;
+        size_t uiSyncIndex = clInternalFrameBuffer.search_char(OEM4_BINARY_SYNC1, uiMyByteCount, uiMaxMessageLength);
         while (uiSyncIndex != UCharFixedBuffer::npos &&
                ((uiSyncIndex + 1 < uiMaxMessageLength && clInternalFrameBuffer[uiSyncIndex + 1] != OEM4_BINARY_SYNC2) ||
                 (uiSyncIndex + 2 < uiMaxMessageLength && clInternalFrameBuffer[uiSyncIndex + 2] != OEM4_BINARY_SYNC3)))

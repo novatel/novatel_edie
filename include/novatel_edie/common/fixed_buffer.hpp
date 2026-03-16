@@ -122,19 +122,6 @@ template <typename T, size_t N> class FixedBuffer
         return npos;
     }
 
-    //! \brief Accumulates a range of elements in logical order (0 = oldest).
-    //! \param[in] start Logical start index.
-    //! \param[in] count Number of elements to include.
-    //! \param[in] init Initial value for accumulation.
-    template <typename BinaryOp, typename AccT, typename = std::enable_if_t<std::is_invocable_r_v<AccT, BinaryOp, AccT, T>>>
-    [[nodiscard]] AccT accumulate(size_t start, size_t count, AccT init, BinaryOp op) const
-    {
-        if (start >= sz || count == 0) { return init; }
-        count = std::min(count, sz - start);
-
-        return std::accumulate(buffer.get() + head + start, buffer.get() + head + start + count, init, op);
-    }
-
     //! \brief Reads a multi-byte value from the buffer.
     //! \tparam U The type to read (e.g., uint16_t, uint32_t). Must be trivially copyable.
     //! \param[in] logical_index The starting logical index of the value.
