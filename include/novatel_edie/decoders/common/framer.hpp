@@ -27,7 +27,7 @@
 #ifndef FRAMER_HPP
 #define FRAMER_HPP
 
-#include "novatel_edie/common/fixed_ring_buffer.hpp"
+#include "novatel_edie/common/fixed_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 
@@ -42,7 +42,7 @@ class FramerBase
 {
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger;
-    std::shared_ptr<UCharFixedRingBuffer> pclMyBuffer{std::make_shared<UCharFixedRingBuffer>()};
+    std::shared_ptr<UCharFixedBuffer> pclMyBuffer{std::make_shared<UCharFixedBuffer>()};
 
     uint32_t uiMyCalculatedCrc32{0U};
     uint32_t uiMyByteCount{0U};
@@ -129,7 +129,7 @@ class FramerBase
     FramerBase(const std::string& strLoggerName_) : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_))
     {
         pclMyLogger->debug("FramerBase initializing...");
-        if (pclMyBuffer == nullptr) { pclMyBuffer = std::make_shared<UCharFixedRingBuffer>(); }
+        if (pclMyBuffer == nullptr) { pclMyBuffer = std::make_shared<UCharFixedBuffer>(); }
         pclMyLogger->debug("FramerBase initialized");
     }
 
@@ -137,10 +137,10 @@ class FramerBase
     //! \brief A constructor for the FramerBase class.
     //
     //! \param[in] strLoggerName_ String to name the internal logger.
-    //! \param[in] ringBuffer_ pointer to an already created sharable ring_buffer.
+    //! \param[in] buffer pointer to an already created sharable fixed buffer.
     //----------------------------------------------------------------------------
-    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<UCharFixedRingBuffer> ringBuffer_)
-        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(ringBuffer_)
+    FramerBase(const std::string& strLoggerName_, const std::shared_ptr<UCharFixedBuffer> buffer_)
+        : pclMyLogger(GetBaseLoggerManager()->RegisterLogger(strLoggerName_)), pclMyBuffer(buffer_)
     {
         pclMyLogger->debug("FramerBase initialized");
     }
@@ -199,7 +199,7 @@ class FramerBase
     //
     //! \return The number of bytes written to the internal circular buffer.
     //----------------------------------------------------------------------------
-    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return pclMyBuffer->Write(pucDataBuffer_, uiDataBytes_); }
+    [[nodiscard]] size_t Write(const unsigned char* pucDataBuffer_, size_t uiDataBytes_) { return pclMyBuffer->write(pucDataBuffer_, uiDataBytes_); }
 
     //----------------------------------------------------------------------------
     //! \brief Flush bytes from the internal circular buffer.
