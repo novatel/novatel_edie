@@ -198,6 +198,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const 
     // provide no additional attributes via `__dict__`
     nb::dict type_dict = nb::dict();
     nb::tuple message_type_tuple = nb::make_tuple(base_message_type);
+    type_dict[nb::str("__slots__")] = nb::make_tuple();
 
     // add message and message body types for each message definition
     for (const auto& message_def : message_defs)
