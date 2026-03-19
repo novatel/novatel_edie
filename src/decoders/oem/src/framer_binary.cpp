@@ -28,8 +28,8 @@
 
 #include <charconv>
 
-#include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/decoders/common/framer_registration.hpp"
+#include "novatel_edie/decoders/oem/crc32.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
@@ -96,7 +96,7 @@ FramerBinary::GetFrame(unsigned char* pucFrameBuffer_, const uint32_t uiFrameBuf
     if (uiMaxMessageLength >= static_cast<size_t>(OEM4_BINARY_HEADER_LENGTH + uiMessageBodyLength))
     {
         auto uiTotalMessageLength = OEM4_BINARY_HEADER_LENGTH + uiMessageBodyLength;
-        auto uiCalcCrc = CalculateBlockCrc32Fast(clInternalFrameBuffer.data(), uiTotalMessageLength);
+        auto uiCalcCrc = CalculateBlockCrc32(clInternalFrameBuffer.data(), uiTotalMessageLength);
         if (uiCalcCrc != 0) { return handleUnknown(OEM4_BINARY_SYNC_LENGTH); }
 
         // Valid frame found

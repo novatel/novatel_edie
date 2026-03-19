@@ -153,7 +153,7 @@ class FramerManager
     //
     //! \return The id belonging to the framer with the given name.
     //----------------------------------------------------------------------------
-    static constexpr uint32_t GetFramerId(std::string_view framerName_) { return CalculateBlockCrc32(framerName_); }
+    static constexpr uint32_t GetFramerId(std::string_view framerName_) { return crc::CalculateBlockCrc32(framerName_); }
 
     //----------------------------------------------------------------------------
     //! \brief Write new bytes to the internal circular buffer.

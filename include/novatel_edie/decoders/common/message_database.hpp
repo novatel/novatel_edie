@@ -301,12 +301,12 @@ struct BaseField
 
         conversionHash = 0;
 
-        while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
+        while (std::isalpha(*sConvertString)) { crc::CalculateCharacterCrc32(conversionHash, *sConvertString++); }
 
         if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
 
-        isString = type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
-        isCsv = !isString && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
+        isString = type == FIELD_TYPE::STRING || conversionHash == crc::CalculateBlockCrc32("s") || conversionHash == crc::CalculateBlockCrc32("S");
+        isCsv = !isString && conversionHash != crc::CalculateBlockCrc32("Z") && conversionHash != crc::CalculateBlockCrc32("P");
     }
 
     using Ptr = std::shared_ptr<BaseField>;

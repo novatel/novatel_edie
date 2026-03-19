@@ -31,6 +31,7 @@
 #include <simdjson.h>
 
 using namespace novatel::edie;
+using novatel::edie::crc::CalculateBlockCrc32;
 
 // -------------------------------------------------------------------------------------------------------
 #ifndef NDEBUG
