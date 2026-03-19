@@ -632,15 +632,18 @@ static STATUS DecodeNonCommaSeparatedAsciiArray(std::vector<FieldContainer>& pvF
 
 template <bool Abbreviated>
 STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDefFields_, const char** ppcLogBuf_,
-                                       std::vector<FieldContainer>& vIntermediateFormat_) const
+                                       std::vector<FieldContainer>& vIntermediateFormat_, const char* pcBufEnd) const
 {
-    constexpr auto delimiters = Abbreviated ? std::array<char, 3>{' ', '\r', '\n'} : std::array<char, 3>{',', '*', '\0'};
-    constexpr std::array<char, 3> unquotedStringDelimiters = {delimiters[0], delimiters[1], '\0'};
-    constexpr std::array<char, 3> quotedStringDelimiters = {'\"', delimiters[1], '\0'};
-    constexpr std::array<char, 4> tokenDelimiters = {delimiters[0], delimiters[1], delimiters[2], '\0'};
-    constexpr std::array<char, 2> responseDelimiters = {delimiters[1], '\0'};
+    constexpr char fieldDelim = Abbreviated ? ' ' : ',';
+    constexpr char endDelim = Abbreviated ? '\r' : '*';
 
-    const char* pcBufEnd = *ppcLogBuf_ + strlen(*ppcLogBuf_);
+    // Null-terminated C-strings for strcspn
+    constexpr std::array<char, 3> tokenDelimiters = {fieldDelim, endDelim, '\0'};
+    constexpr std::array<char, 3> unquotedStringDelimiters = {fieldDelim, endDelim, '\0'};
+    constexpr std::array<char, 3> quotedStringDelimiters = {'\"', endDelim, '\0'};
+    constexpr std::array<char, 2> responseDelimiters = {endDelim, '\0'};
+
+    if (pcBufEnd == nullptr) { pcBufEnd = static_cast<const char*>(std::memchr(*ppcLogBuf_, '\0', MAX_ASCII_MESSAGE_LENGTH)); }
 
     for (const auto& field : vMsgDefFields_)
     {
@@ -651,7 +654,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         size_t tokenLength = strcspn(*ppcLogBuf_, tokenDelimiters.data());
         if (tokenLength == 0) { return STATUS::MALFORMED_INPUT; }
 
-        bool bEarlyEndOfMessage = (*(*ppcLogBuf_ + tokenLength) == delimiters[1]);
+        bool bEarlyEndOfMessage = (*(*ppcLogBuf_ + tokenLength) == endDelim);
 
         switch (field->type)
         {
@@ -692,14 +695,12 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                 tokenLength = strcspn(*ppcLogBuf_ + 1, quotedStringDelimiters.data()); // Look for LAST '"' character, skipping past the first.
                 vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_ + 1, tokenLength), field); // + 1 to pass opening double-quote.
                 // Skip past the first '"', string token and the remaining characters ('"' and ',').
-                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
+                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength + 1, unquotedStringDelimiters.data()) + 2;
                 break;
             default:
-                // String that isn't surrounded by quotes
-                tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data()); // Look for LAST '"' or '*' character, skipping past the first.
-                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field); // +1 to pass opening double-quote.
-                // Skip past the first '"', string token and the remaining characters ('"' and ',').
-                *ppcLogBuf_ += tokenLength + strcspn(*ppcLogBuf_ + tokenLength, unquotedStringDelimiters.data()) + 1;
+                // Unquoted string: initial tokenLength is the length of the string
+                vIntermediateFormat_.emplace_back(std::string(*ppcLogBuf_, tokenLength), field);
+                *ppcLogBuf_ += tokenLength + 1;
                 break;
             }
             break;
@@ -726,7 +727,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
             if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength; }
             else
             {
-                auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + strlen(*ppcLogBuf_), uiArraySize);
+                auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + tokenLength + 1, uiArraySize);
                 if (result.ec != std::errc())
                 {
                     SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::VARIABLE_LENGTH_ARRAY: Array length not valid number. Malformed Input\n");
@@ -786,7 +787,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             uint32_t uiArraySize;
-            auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + strlen(*ppcLogBuf_), uiArraySize);
+            auto result = std::from_chars(*ppcLogBuf_, *ppcLogBuf_ + tokenLength + 1, uiArraySize);
             if (result.ec != std::errc())
             {
                 SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::FIELD_ARRAY: Field Array length not valid number. Malformed Input\n");
@@ -813,7 +814,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvSubFieldContainer = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().fieldValue);
                 pvSubFieldContainer.reserve(dynamic_cast<const FieldArrayField*>(field.get())->fields.size());
-                STATUS eStatus = DecodeAscii<Abbreviated>(subFieldDefinitions->fields, ppcLogBuf_, pvSubFieldContainer);
+                STATUS eStatus = DecodeAscii<Abbreviated>(subFieldDefinitions->fields, ppcLogBuf_, pvSubFieldContainer, pcBufEnd);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
             break;
@@ -833,8 +834,10 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
 }
 
 // explicit template instantiations
-template STATUS MessageDecoderBase::DecodeAscii<true>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&) const;
-template STATUS MessageDecoderBase::DecodeAscii<false>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&) const;
+template STATUS MessageDecoderBase::DecodeAscii<true>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&,
+                                                      const char*) const;
+template STATUS MessageDecoderBase::DecodeAscii<false>(const std::vector<BaseField::Ptr>&, const char**, std::vector<FieldContainer>&,
+                                                       const char*) const;
 
 // -------------------------------------------------------------------------------------------------------
 STATUS MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDefFields_, simdjson::dom::element jsonData,
@@ -1009,10 +1012,16 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
     {
     case HEADER_FORMAT::ASCII: [[fallthrough]];
     case HEADER_FORMAT::SHORT_ASCII: //
-        return DecodeAscii<false>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_);
+        return DecodeAscii<false>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_,
+                                  stMetaData_.uiLength > stMetaData_.uiHeaderLength
+                                      ? reinterpret_cast<const char*>(pucTempInData) + stMetaData_.uiLength - stMetaData_.uiHeaderLength
+                                      : nullptr);
     case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
     case HEADER_FORMAT::SHORT_ABB_ASCII: //
-        return DecodeAscii<true>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_);
+        return DecodeAscii<true>(msgFields, reinterpret_cast<const char**>(&pucTempInData), stInterMessage_,
+                                 stMetaData_.uiLength > stMetaData_.uiHeaderLength
+                                     ? reinterpret_cast<const char*>(pucTempInData) + stMetaData_.uiLength - stMetaData_.uiHeaderLength
+                                     : nullptr);
     case HEADER_FORMAT::BINARY: [[fallthrough]];
     case HEADER_FORMAT::SHORT_BINARY: //
         return DecodeBinary(msgFields, &pucTempInData, stInterMessage_, stMetaData_.uiBinaryMsgLength);
