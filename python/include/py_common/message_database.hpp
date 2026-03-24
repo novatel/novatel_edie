@@ -23,20 +23,16 @@ class PyMessageDatabaseCore : public MessageDatabase
     [[nodiscard]] nb::object GetFieldType(const BaseField* field) const
     {
         auto it = field_types.find(field);
-        if (it == field_types.end()) { throw std::out_of_range("Field type not found"); }
+        if (it == field_types.end()) { return nb::none(); }
         return it->second;
     }
 
-    template <bool crcFallback = false> [[nodiscard]] nb::object GetMessageType(const MessageDefinition* message, uint32_t crc) const
+    [[nodiscard]] nb::object GetMessageType(const MessageDefinition* message, uint32_t crc) const
     {
         auto it = messages_types.find(message);
         if (it == messages_types.end()) { return nb::none(); }
         auto nestedIt = it->second.find(crc);
-        if (nestedIt == it->second.end())
-        {
-            if constexpr (crcFallback) { return it->second.at(message->latestMessageCrc); }
-            else { return nb::none(); }
-        }
+        if (nestedIt == it->second.end()) { return nb::none(); }
         return nestedIt->second;
     }
     [[nodiscard]] nb::object GetMessageType(const MessageDefinition* message) const
@@ -45,19 +41,14 @@ class PyMessageDatabaseCore : public MessageDatabase
         return GetMessageType(message, message->latestMessageCrc);
     }
 
-    template <bool crcFallback = false> [[nodiscard]] nb::object GetMessageType(std::string_view messageName, uint32_t crc) const
+    [[nodiscard]] nb::object GetMessageType(std::string_view messageName, uint32_t crc) const
     {
-        return GetMessageType<crcFallback>(GetMsgDef(messageName).get(), crc);
+        return GetMessageType(GetMsgDef(messageName).get(), crc);
     }
     [[nodiscard]] nb::object GetMessageType(std::string_view messageName) const { return GetMessageType(GetMsgDef(messageName).get()); }
 
-    template <bool crcFallback = false> [[nodiscard]] nb::object GetMessageType(int32_t id, uint32_t crc) const
-    {
-        return GetMessageType<crcFallback>(GetMsgDef(id).get(), crc);
-    }
+    [[nodiscard]] nb::object GetMessageType(int32_t id, uint32_t crc) const { return GetMessageType(GetMsgDef(id).get(), crc); }
     [[nodiscard]] nb::object GetMessageType(int32_t id) const { return GetMessageType(GetMsgDef(id).get()); }
-
-    [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return field_types; }
 
     [[nodiscard]] nb::object GetEnumType(const EnumDefinition* enum_def) const
     {

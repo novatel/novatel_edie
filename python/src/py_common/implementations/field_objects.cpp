@@ -53,6 +53,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
         {
             // Handle Field Arrays
             nb::handle field_ptype = parent_db->GetFieldType(field.fieldDef.get());
+            if (field_ptype.is_none()) { throw py_common::FailureException("Message subfield has an unrecognized type."); }
 
             // Create an appropriate PyField instance for each subfield in the array
             std::vector<nb::object> sub_values;

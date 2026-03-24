@@ -117,7 +117,14 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
         return response_pyinst;
     }
 
-    nb::handle message_pytype = database->GetCoreDatabase()->GetMessageType<true>(metadata.usMessageId, metadata.uiMessageCrc);
+    PyMessageDatabaseCore* coreDatabase = database->GetCoreDatabase().get();
+    nb::handle message_pytype = coreDatabase->GetMessageType(metadata.usMessageId, metadata.uiMessageCrc);
+    if (message_pytype.is_none())
+    {
+        // Fallback to latest CRC
+        const MessageDefinition* def = coreDatabase->GetMsgDef(metadata.usMessageId).get();
+        message_pytype = database->GetCoreDatabase()->GetMessageType(def, def->latestMessageCrc);
+    }
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
     new (message_cinst) PyMessage(std::move(message_fields), database, header, msgDef.get(), metadata.uiMessageCrc);

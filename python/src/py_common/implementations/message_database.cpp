@@ -216,7 +216,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveMessageType(uint32_
     // remove the message type
     messages_types.erase(message_def.get());
 
-    // remove all field types associated with this message from fields_by_name
+    // remove all field types associated with this message from field_types
     for (const auto& [crc, fields] : message_def->fields) { RemoveFieldTypes(fields); }
 }
 
