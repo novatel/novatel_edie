@@ -504,9 +504,8 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             // This version of a string is different. It is hopefully null terminated.
             std::string_view sTemp(reinterpret_cast<const char*>(*ppucLogBuf_));
             vIntermediateFormat_.emplace_back(std::string(sTemp), field);
-            *ppucLogBuf_ += sTemp.size() + 1; // + 1 to consume the NULL at the end of the string. This is to maintain byte alignment.
-            // TODO: what was this for? It breaks RXCOMMANDSB.GPS. Is 4 supposed to be usTypeAlignment instead?
-            // if (reinterpret_cast<std::uint64_t>(*ppucLogBuf_) % 4 != 0) { *ppucLogBuf_ += 4 - reinterpret_cast<std::uint64_t>(*ppucLogBuf_) % 4; }
+            *ppucLogBuf_ += sTemp.size() + 1; // + 1 to consume the NULL at the end of the string.
+            AddStringFieldPadding(pucTempStart, ppucLogBuf_);
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {

@@ -181,6 +181,18 @@ class MessageDecoderBase
         if (offset != 0) { *ptr += alignment - offset; }
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Add padding after string fields if necessary to maintain alignment.
+    //
+    //! \param[in] start_ The starting pointer of the binary buffer. Used to
+    //! calculate the current offset relative to the beginning of the payload.
+    //! \param[in, out] ptr_ A pointer to the buffer pointer to be advanced
+    //! if padding is needed.
+    //
+    //! \return None. The buffer pointer is updated in place.
+    //----------------------------------------------------------------------------
+    virtual void AddStringFieldPadding([[maybe_unused]] const unsigned char* start, [[maybe_unused]] const unsigned char** ptr) const { return; }
+
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
     static void ParseAndEmplace(std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_, const char* token,
