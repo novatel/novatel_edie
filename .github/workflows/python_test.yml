@@ -1,0 +1,14 @@
+name: Test Python
+on:
+    branches-ignore:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'resources/**'
+jobs:
+  build:
+    uses: ./.github/workflows/build_python.yml
+    with:
+        python_versions: cp39* cp310* cp311* cp312* cp313*
+        build_matrix: '[ ["Linux","ubuntu-latest","x86_64"], ["Windows","windows-latest","AMD64"], ["Linux", "ubuntu-latest", "aarch64"] ]'
