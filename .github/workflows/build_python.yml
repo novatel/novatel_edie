@@ -43,6 +43,12 @@ jobs:
         with:
           platforms: all
 
+      - name: Install patchelf (aarch64)
+        if: runner.os == 'Linux' && matrix.platform[2] == 'aarch64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y patchelf
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.13'
