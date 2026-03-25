@@ -104,7 +104,11 @@ class NovatelEdieConan(ConanFile):
         self.test_requires("gtest/[>=1.14 <1.15]")
         self.test_requires("benchmark/[>=1.8 <2]")
         if self.settings.os in ["Linux", "FreeBSD"]:
-            self.tool_requires("patchelf/[*]")
+            use_system_patchelf = os.getenv("USE_SYSTEM_PATCHELF", "0").lower() in ("1","true","yes")
+            if use_system_patchelf:
+                print("Skipping conan patchelf; using system patchelf")
+            else:
+                self.tool_requires("patchelf/[*]")
 
     def validate(self):
         check_min_cppstd(self, 17)

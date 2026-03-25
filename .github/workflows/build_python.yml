@@ -53,7 +53,7 @@ jobs:
       - name: Ensure patchelf available inside cibuildwheel containers
         if: runner.os == 'Linux'
         run: |
-          echo 'CIBW_BEFORE_BUILD=apt-get update && apt-get install -y patchelf || yum -y install patchelf || microdnf -y install patchelf' >> $GITHUB_ENV
+          echo 'CIBW_BEFORE_BUILD=yum -y install patchelf' >> $GITHUB_ENV
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -61,6 +61,10 @@ jobs:
           CIBW_ARCHS: ${{ matrix.platform[2] }}
           CIBW_BUILD: ${{ inputs.python_versions }}
           CIBW_SKIP: "*-musllinux*"
+          # Ensure the manylinux container installs patchelf before building
+          CIBW_BEFORE_BUILD: ${{ env.CIBW_BEFORE_BUILD }}
+          # Tell in-container builds to use the system patchelf instead of Conan's patchelf package
+          CIBW_ENVIRONMENT: ${{ runner.os == 'Linux' ? 'USE_SYSTEM_PATCHELF=1' : '' }}
 
       - name: Inspect
         run: ls wheelhouse/
