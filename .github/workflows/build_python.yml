@@ -9,6 +9,11 @@ on:
         required: false
         default: cp39* cp313*
         type: string
+      build_matrix:
+        description: 'JSON array of platform triples to build, e.g. [["Linux","ubuntu-latest","x86_64"],["Windows","windows-latest","AMD64"]]'
+        required: false
+        default: '[ ["Linux","ubuntu-latest","x86_64"], ["Windows","windows-latest","AMD64"] ]'
+        type: string
 
 
 jobs:
@@ -18,10 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - [Linux, ubuntu-latest, x86_64]
-          # - [Linux, ubuntu-latest, i686]
-          - [Windows, windows-latest, AMD64]
+        platform: ${{ fromJSON(inputs.build_matrix) }}
           # - [Windows, windows-latest, x86]
           # - [Windows, windows-latest, ARM64]
           # - [MacOS, macos-latest, x86_64]
