@@ -29,7 +29,7 @@ jobs:
           # spdlog fails to build with the correct architecture on universal2
           # - [MacOS, macos-latest, universal2]
           # aarch64 with QEMU likely works, but builds 10x slower than the rest
-          # - [Linux, ubuntu-latest, aarch64]
+          - [Linux, ubuntu-latest, aarch64]
           # ppc64le is too obscure and slow to build due to emulation
           # - [Linux, ubuntu-latest, ppc64le]
     steps:
