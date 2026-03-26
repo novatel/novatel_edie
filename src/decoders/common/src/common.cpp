@@ -73,10 +73,10 @@ int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, std::string_view st
     if (stEnumDef_ != nullptr)
     {
         const auto it = stEnumDef_->nameValue.find(strEnum_);
-        if (it != stEnumDef_->nameValue.end()) { return it->second; }
+        if (it == stEnumDef_->nameValue.end()) { return stEnumDef_->unknownValue; }
+        return it->second;
     }
-
-    return stEnumDef_->unknownValue;
+    return 0;
 }
 
 //-----------------------------------------------------------------------
