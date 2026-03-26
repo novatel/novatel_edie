@@ -1,5 +1,6 @@
 #include "py_common/field_objects.hpp"
 
+#include <type_traits>
 #include <variant>
 
 #include <nanobind/stl/bind_vector.h>
@@ -27,8 +28,20 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
             throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumId +
                                      "' not found in the JSON database");
         }
+        const EnumDefinition* enumDef = parent_db->GetEnumDefId(enumId).get();
         nb::object enum_type = it->second;
-        return std::visit([&](auto&& value) { return enum_type(value); }, field.fieldValue);
+        return std::visit(
+            [&](auto&& value) {
+                using T = std::decay_t<decltype(value)>;
+                if constexpr (std::is_integral_v<T>)
+                {
+                    const uint32_t key = static_cast<uint32_t>(value);
+                    if (enumDef->valueName.count(key) > 0) { return enum_type(key); }
+                    else { return enum_type(enumDef->unknownValue); }
+                }
+                else { return enum_type(enumDef->unknownValue); }
+            },
+            field.fieldValue);
     }
     else if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
     {

@@ -76,7 +76,7 @@ int32_t GetEnumValue(const EnumDefinition* const stEnumDef_, std::string_view st
         if (it != stEnumDef_->nameValue.end()) { return it->second; }
     }
 
-    return 0;
+    return stEnumDef_->unknownValue;
 }
 
 //-----------------------------------------------------------------------
