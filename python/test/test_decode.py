@@ -126,6 +126,74 @@ def compare_with_floating_point(item1, item2) -> bool:
         id="BESTPOS"
     ),
     pytest.param(
+        b"#BESTPOSA,COM1,0,60.5,FINESTEERING,2166,327153.000,02000000,b1f6,16248;UNRECOGNIZABLE,WAAS,51.15043699323,-114.03067932462,1096.9772,-17.0000,WGS84,0.6074,0.5792,0.9564,\"131\",7.000,0.000,42,34,34,28,00,0b,1f,37*47bbdc4f\r\n",
+        [
+            'solution_status', 'position_type', 'latitude', 'longitude', 'height', 'undulation',
+            'datum_id', 'latitude_std_dev', 'longitude_std_dev', 'height_std_dev', 'base_id',
+            'diff_age','solution_age', 'num_svs', 'num_soln_svs', 'num_soln_L1_svs',
+            'num_soln_multi_svs', 'measurement_source', 'ext_sol_stat', 'gal_and_bds_mask',
+            'gps_and_glo_mask'
+        ],
+        [
+            oem.enums.SolStatus.EDIE_UNKNOWN,
+            oem.enums.SolType.WAAS,
+            51.15043699323,
+            -114.03067932462,
+            1096.9772,
+            -17.0,
+            oem.enums.Datum.WGS84,
+            0.6074000000953674,
+            0.579200029373169,
+            0.9563999772071838,
+            '131',
+            7.0,
+            0.0,
+            42,
+            34,
+            34,
+            28,
+            0,
+            11,
+            31,
+            55
+        ],
+        id="BESTPOS Unknown Enum"
+    ),
+    pytest.param(
+        b'\xaaD\x12\x1c*\x00\x00 H\x00\x00\x00y\xb4v\x08h\xf5\x7f\x13\x00\x00\x00\x02\xf6\xb1x?\x24\x00\x00\x00\x12\x00\x00\x00\x06\x04\xf7\x84A\x93I@\x00\xfai\xa6\xf6\x81\\\xc0\x9b\xe6\x1d\xa7\xe8#\x91@\x00\x00\x88\xc1=\x00\x00\x00\x91~\x1b?tF\x14?\xa1\xd6t?131\x00\x00\x00\xe0@\x00\x00\x00\x00*""\x1c\x00\x0b\x1f7_\t0\xba',
+        [
+            'solution_status', 'position_type', 'latitude', 'longitude', 'height', 'undulation',
+            'datum_id', 'latitude_std_dev', 'longitude_std_dev', 'height_std_dev', 'base_id',
+            'diff_age','solution_age', 'num_svs', 'num_soln_svs', 'num_soln_L1_svs',
+            'num_soln_multi_svs', 'measurement_source', 'ext_sol_stat', 'gal_and_bds_mask',
+            'gps_and_glo_mask'
+        ],
+        [
+            oem.enums.SolStatus.EDIE_UNKNOWN,
+            oem.enums.SolType.WAAS,
+            51.15043699323,
+            -114.03067932462,
+            1096.9772,
+            -17.0,
+            oem.enums.Datum.WGS84,
+            0.6074000000953674,
+            0.579200029373169,
+            0.9563999772071838,
+            '131',
+            7.0,
+            0.0,
+            42,
+            34,
+            34,
+            28,
+            0,
+            11,
+            31,
+            55
+        ],
+        id="BESTPOS Binary Unknown Enum"
+    ),
+    pytest.param(
         b'#RANGECMP2A,USB1,0,66.5,FINESTEERING,2378,227093.000,03000020,1fe3,32768;5,ffffffffff*58bf791d',
         ['range_data_length', 'range_data'],
         [

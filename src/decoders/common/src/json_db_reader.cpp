@@ -156,12 +156,15 @@ void from_json(const json& j_, EnumDefinition& ed_)
     ParseEnumerators(j_.at("enumerators"), ed_.enumerators);
 
     // Populate the lookup maps
+    uint32_t maxVal = 0;
     for (const auto& enumerator : ed_.enumerators)
     {
+        maxVal = std::max(maxVal, enumerator.value);
         ed_.nameValue[enumerator.name] = enumerator.value;
         ed_.valueName[enumerator.value] = enumerator.name;
         ed_.descriptionValue[enumerator.description] = enumerator.value;
     }
+    ed_.unknownValue = maxVal + 1;
 }
 
 //-----------------------------------------------------------------------

@@ -216,6 +216,7 @@ struct EnumDefinition
     std::unordered_map<std::string_view, uint32_t> nameValue;
     std::unordered_map<std::string_view, uint32_t> descriptionValue;
     std::unordered_map<uint32_t, std::string_view> valueName;
+    uint32_t unknownValue;
 
     using Ptr = std::shared_ptr<EnumDefinition>;
     using ConstPtr = std::shared_ptr<const EnumDefinition>;

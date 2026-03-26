@@ -119,6 +119,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendEnumTypes(const std
             cleanString(enumerator_name);
             values[enumerator_name.c_str()] = enumerator.value;
         }
+        values["EDIE_UNKNOWN"] = enum_def->unknownValue;
         nb::object enum_type = IntEnum(enum_name, values);
         enum_type.attr("_name") = enum_name;
         enum_type.attr("_id") = enum_def->_id;

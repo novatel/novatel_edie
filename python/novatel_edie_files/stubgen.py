@@ -99,12 +99,17 @@ class StubGenerator:
             A string containing a type hint for the enum definition.
         """
         type_hint = f'class {enum_def["name"]}(Enum):\n'
+        max_val = 0
         for enumerator in enum_def['enumerators']:
+            val = enumerator["value"]
+            max_val = max(val, max_val)
             name = enumerator['name']
             name = re.sub(r'[)(\-+./\\]', '_', name)
             if name[0].isdigit():
                 name = f'_{name}'
-            type_hint += f'    {name} = {enumerator["value"]}\n'
+            type_hint += f'    {name} = {val}\n'
+        type_hint += f'    EDIE_UNKNOWN = {max_val+1}\n'
+
         return type_hint
 
     def get_enum_stubs(self) -> str:
