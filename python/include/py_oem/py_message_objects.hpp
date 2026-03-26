@@ -117,7 +117,7 @@ struct PyEncodableField : public py_common::PyField
     uint32_t messageCrc;
 
     // Return the message name from the stored message definition.
-    // Throws if no message definition is available (do not fall back to the raw name).
+    // Falls back to "UNKNOWN" if no message definition is availiable
     std::string name() const
     {
         if (!messageDef) { return std::string("UNKNOWN"); }
