@@ -194,3 +194,20 @@ def test_to_dict(data: bytes, exp_dict: dict, decoder: oem.Decoder):
     dict_msg = msg.to_dict()
     # Assert
     assert compare_with_floating_point(dict_msg, exp_dict), f"Expected dict: {exp_dict}, but got: {dict_msg}"
+
+@pytest.mark.parametrize("data, exp_name, exp_id, exp_string, exp_enum", [pytest.param(
+        b'#FRESETR,COM1,0,73.0,UNKNOWN,0,0.000,00000000,06e5,0;OK*55c70910',
+        'FRESET',
+        1,
+        'OK',
+        oem.enums.Responses.RESPONSE_OK
+        )])
+def test_response(data: bytes, decoder: oem.Decoder, exp_name: str, exp_id: int, exp_string: str, exp_enum: oem.enums.Responses):
+    """Tests that responses are decoded correctly."""
+    # Act
+    msg: oem.Response = decoder.decode(data)
+    # Assert
+    assert msg.name == exp_name
+    assert msg.response_id == exp_id
+    assert msg.response_string == exp_string
+    assert msg.response_enum == exp_enum
