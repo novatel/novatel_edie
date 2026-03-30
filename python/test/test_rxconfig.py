@@ -32,6 +32,7 @@ def test_rxconfig_decoding(decoder: oem.Decoder):
     # Act
     decoded_message: oem_msgs.RXCONFIG = decoder.decode(raw_message)
     decoded_message_data = bytes(decoded_message.embedded_message_data)
+
     decoded_embedded_message: oem_msgs.INTERFACEMODE = decoder.decode(decoded_message_data)
 
     # Assert

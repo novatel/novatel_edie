@@ -103,7 +103,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
                                            py_oem::PyMessageDatabase::ConstPtr database)
 {
 
-    auto msgDef = database->GetMsgDef(metadata.usMessageId);
+    const MessageDefinition* msgDef = database->GetMsgDef(metadata.usMessageId).get();
 
     if (metadata.bResponse)
     {
@@ -111,23 +111,25 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
         nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
         bool is_complete = (metadata.eFormat != HEADER_FORMAT::ABB_ASCII);
-        new (response_cinst) PyResponse(message_fields, database, header, is_complete, msgDef.get(), metadata.uiMessageCrc);
+        new (response_cinst) PyResponse(message_fields, database, header, is_complete, msgDef, metadata.uiMessageCrc);
         nb::inst_mark_ready(response_pyinst);
 
         return response_pyinst;
     }
 
     PyMessageDatabaseCore* coreDatabase = database->GetCoreDatabase().get();
-    nb::handle message_pytype = coreDatabase->GetMessageType(metadata.usMessageId, metadata.uiMessageCrc);
+    uint32_t crc = metadata.uiMessageCrc;
+
+    nb::handle message_pytype = coreDatabase->GetMessageType(metadata.usMessageId, crc);
     if (message_pytype.is_none())
     {
         // Fallback to latest CRC
-        const MessageDefinition* def = coreDatabase->GetMsgDef(metadata.usMessageId).get();
-        message_pytype = database->GetCoreDatabase()->GetMessageType(def, def->latestMessageCrc);
+        crc = msgDef->latestMessageCrc;
+        message_pytype = database->GetCoreDatabase()->GetMessageType(msgDef, msgDef->latestMessageCrc);
     }
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
-    new (message_cinst) PyMessage(std::move(message_fields), database, header, msgDef.get(), metadata.uiMessageCrc);
+    new (message_cinst) PyMessage(std::move(message_fields), database, header, msgDef, crc);
 
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;
