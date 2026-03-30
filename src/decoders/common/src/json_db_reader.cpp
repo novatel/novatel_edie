@@ -165,6 +165,8 @@ void from_json(const json& j_, EnumDefinition& ed_)
         ed_.descriptionValue[enumerator.description] = enumerator.value;
     }
     ed_.unknownValue = maxVal + 1;
+    assert(ed_.unknownValue > maxVal &&
+           "Overflow encountered when determining placeholder value. Enumerator values are expected to  be within [0, 2^31).");
 }
 
 //-----------------------------------------------------------------------
