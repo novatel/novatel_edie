@@ -12,4 +12,4 @@ jobs:
     uses: ./.github/workflows/build_python.yml
     with:
         python_versions: cp312* cp313*
-        build_matrix: '[ ["Linux","ubuntu-latest","x86_64"] ]'
+        build_matrix: '[ ["Linux","ubuntu-latest","x86_64"], ["Windows","windows-latest","AMD64"] ]'
