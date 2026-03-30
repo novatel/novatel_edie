@@ -100,8 +100,7 @@ void cleanString(std::string& str)
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::UpdatePythonEnums()
 {
-    enums_by_id.clear();
-    enums_by_name.clear();
+    enum_types.clear();
     AppendEnumTypes(EnumDefinitions());
 }
 
@@ -125,21 +124,15 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendEnumTypes(const std
         nb::object enum_type = IntEnum(enum_name, values);
         enum_type.attr("_name") = enum_name;
         enum_type.attr("_id") = enum_def->_id;
-        enums_by_id[enum_def->_id.c_str()] = enum_type;
-        enums_by_name[enum_name] = enum_type;
+        enum_types[enum_def.get()] = enum_type;
     }
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::RemoveEnumType(const std::string& enum_name)
 {
-    // get the enum definition to retrieve the name
+    // get the enum definition to retrieve the pointer
     EnumDefinition::ConstPtr enum_def = GetEnumDefName(enum_name);
-    if (enum_def)
-    {
-        // remove from both maps
-        enums_by_id.erase(enum_def->_id);
-        enums_by_name.erase(enum_def->name);
-    }
+    if (enum_def) { enum_types.erase(enum_def.get()); }
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::ResolveBaseType()

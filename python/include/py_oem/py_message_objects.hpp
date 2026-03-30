@@ -175,10 +175,8 @@ struct PyResponse : public PyEncodableField
 
     nb::object GetEnumValue()
     {
-        std::unordered_map<std::string, nb::object> enum_map = encoderDb->GetEnumsByNameDict();
-        auto it = enum_map.find("Responses");
-        if (it == enum_map.end()) { return nb::none(); }
-        nb::object response_enum = it->second;
+        nb::object response_enum = encoderDb->GetEnumTypeByName("Responses");
+        if (response_enum.is_none()) { return nb::none(); }
         int32_t value = GetResponseId();
         nb::object enum_val = response_enum(value);
         return enum_val;

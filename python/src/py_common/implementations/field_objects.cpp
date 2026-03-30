@@ -20,15 +20,14 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
         // Handle Enums
-        const std::string& enumId = static_cast<const EnumField*>(field.fieldDef.get())->enumId;
-        auto it = parent_db->GetEnumsByIdDict().find(enumId);
-        if (it == parent_db->GetEnumsByIdDict().end())
+        const auto* enumField = static_cast<const EnumField*>(field.fieldDef.get());
+        const EnumDefinition* enumDef = parent_db->GetEnumDefId(enumField->enumId).get();
+        nb::object enum_type = parent_db->GetEnumType(enumField->enumDef.get());
+        if (enum_type.is_none())
         {
-            throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumId +
+            throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumField->enumId +
                                      "' not found in the JSON database");
         }
-        const EnumDefinition* enumDef = parent_db->GetEnumDefId(enumId).get();
-        nb::object enum_type = it->second;
         return std::visit(
             [&](auto&& value) {
                 using T = std::decay_t<decltype(value)>;
