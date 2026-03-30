@@ -27,6 +27,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <memory>
@@ -118,6 +119,36 @@ template <typename T, size_t N> class FixedBuffer
 
         const void* ptr = std::memchr(buffer.get() + head + start, value, count);
         if (ptr != nullptr) { return static_cast<size_t>(static_cast<const unsigned char*>(ptr) - (buffer.get() + head + start)) + start; }
+
+        return npos;
+    }
+
+    //! \brief Finds the first occurrence of a byte sequence in the buffer (logical order).
+    //! \param[in] values The byte sequence to search for.
+    //! \param[in] start The logical index to start the search from (0 = oldest).
+    //! \param[in] count The maximum number of elements to search through.
+    //! \return Logical index (0 = oldest) or npos if not found.
+    template <size_t M, typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
+    [[nodiscard]] size_t search_chars(const std::array<unsigned char, M>& values, size_t start, size_t count = npos) const noexcept
+    {
+        static_assert(M > 0, "search_chars requires a non-empty search pattern");
+
+        if (start >= sz) { return npos; }
+        count = std::min(count, sz - start);
+        if (count == 0) { return npos; }
+
+        const size_t end = start + count;
+        size_t index = search_char(values[0], start, count);
+
+        while (index != npos)
+        {
+            size_t matched = 1;
+            while (matched < M && index + matched < end && (*this)[index + matched] == values[matched]) { ++matched; }
+
+            if (matched == M || index + matched == end) { return index; }
+
+            index = search_char(values[0], index + 1, end - (index + 1));
+        }
 
         return npos;
     }

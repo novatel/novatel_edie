@@ -21,10 +21,10 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file framer_binary.cpp
+// ! \file framer_ascii.cpp
 // ===============================================================================
 
-#include "novatel_edie/decoders/oem/framer_binary.hpp"
+#include "novatel_edie/decoders/oem/framer_ascii.hpp"
 
 #include <charconv>
 
@@ -34,39 +34,50 @@
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
-// Register the OEM binary framer with the framer factory
-REGISTER_FRAMER(OEM_BINARY, oem::FramerBinary, MetaDataStruct)
+// Register the OEM ASCII framer with the framer factory
+REGISTER_FRAMER(OEM_ASCII, oem::FramerAscii, MetaDataStruct)
 
 // -------------------------------------------------------------------------------------------------------
-FramerBinary::FramerBinary() : FramerBase("novatel_framer_binary") {}
+FramerAscii::FramerAscii() : FramerBase("novatel_framer_ascii") {}
 
 // -------------------------------------------------------------------------------------------------------
-FramerBinary::FramerBinary(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBase("novatel_framer_binary", buffer)
+FramerAscii::FramerAscii(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBase("novatel_framer_ascii", buffer)
 {
-    pclMyLogger->info("FramerBinary initialized");
+    pclMyLogger->info("FramerAscii initialized");
 }
 
-[[nodiscard]] size_t FramerBinary::FindSync() const
+[[nodiscard]] size_t FramerAscii::FindSync() const
 {
-    return pclMyBuffer->search_chars(std::array<unsigned char, 3>{OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3}, 0, MAX_BINARY_MESSAGE_LENGTH);
+    return pclMyBuffer->search_char(OEM4_ASCII_SYNC, 0, MAX_ASCII_MESSAGE_LENGTH);
 }
 
-[[nodiscard]] FramerBase::FindFrameEndResult FramerBinary::FindFrameEnd([[maybe_unused]] size_t start) const
+[[nodiscard]] FramerBase::FindFrameEndResult FramerAscii::FindFrameEnd(size_t start) const
 {
     using ReturnStatus = FramerBase::FindFrameEndResult::Status;
     const auto& clFrameBuffer = *pclMyBuffer;
-    if (OEM4_BINARY_HEADER_LENGTH > clFrameBuffer.size()) { return {ReturnStatus::INCOMPLETE, clFrameBuffer.size() < OEM4_BINARY_SYNC_LENGTH ? HEADER_FORMAT::UNKNOWN : HEADER_FORMAT::BINARY, clFrameBuffer.size()}; }
-    uint16_t uiMessageBodyLength = clFrameBuffer.read_value<uint16_t>(OEM4_BINARY_MESSAGE_LENGTH_INDEX);
-    size_t uiTotalMessageLength = OEM4_BINARY_HEADER_LENGTH + uiMessageBodyLength + OEM4_BINARY_CRC_LENGTH;
-    return uiTotalMessageLength > MAX_BINARY_MESSAGE_LENGTH ? FramerBase::FindFrameEndResult{ReturnStatus::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_BINARY_SYNC_LENGTH} :
-                uiTotalMessageLength > clFrameBuffer.size() ? FramerBase::FindFrameEndResult{ReturnStatus::INCOMPLETE, HEADER_FORMAT::BINARY, clFrameBuffer.size()} :
-                FramerBase::FindFrameEndResult{ReturnStatus::COMPLETE, HEADER_FORMAT::BINARY, uiTotalMessageLength};
+    auto uiCrcDelimIndex = clFrameBuffer.search_char(OEM4_ASCII_CRC_DELIMITER, start, MAX_ASCII_MESSAGE_LENGTH);
+    while (uiCrcDelimIndex != UCharFixedBuffer::npos && clFrameBuffer.size() - uiCrcDelimIndex >= OEM4_ASCII_CRC_LENGTH + 3 && !IsAsciiCrc(static_cast<uint32_t>(uiCrcDelimIndex + 1)))
+    {
+        uiCrcDelimIndex = clFrameBuffer.search_char(OEM4_ASCII_CRC_DELIMITER, uiCrcDelimIndex + 1, MAX_ASCII_MESSAGE_LENGTH);
+    }
+
+    if (uiCrcDelimIndex == UCharFixedBuffer::npos)
+    {
+        return clFrameBuffer.size() >= MAX_ASCII_MESSAGE_LENGTH ? FramerBase::FindFrameEndResult{ReturnStatus::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH} :
+                    FramerBase::FindFrameEndResult{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ASCII, clFrameBuffer.size()};
+    }
+    return clFrameBuffer.size() - uiCrcDelimIndex >= OEM4_ASCII_CRC_LENGTH + 3 ? FramerBase::FindFrameEndResult{ReturnStatus::COMPLETE, HEADER_FORMAT::ASCII, uiCrcDelimIndex + OEM4_ASCII_CRC_LENGTH + 3} :
+           FramerBase::FindFrameEndResult{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ASCII, uiCrcDelimIndex};
 }
 
-[[nodiscard]] size_t FramerBinary::Validate(size_t frameEnd) const
+[[nodiscard]] size_t FramerAscii::Validate(size_t frameEnd) const
 {
     const auto& clFrameBuffer = *pclMyBuffer;
-    uint32_t uiMessageCrc = clFrameBuffer.read_value<uint32_t>(frameEnd - sizeof(uint32_t));
-    uint32_t uiCalcCrc = CalculateBlockCrc32(clFrameBuffer.data(), static_cast<uint32_t>(frameEnd - sizeof(uint32_t)));
-    return uiCalcCrc == uiMessageCrc ? 0 : OEM4_BINARY_SYNC_LENGTH;
+    char acCrc[OEM4_ASCII_CRC_LENGTH + 1];
+    std::memcpy(acCrc, clFrameBuffer.data() + frameEnd - OEM4_ASCII_CRC_LENGTH - 2, OEM4_ASCII_CRC_LENGTH);
+
+    uint32_t uiMessageCrc = 0;
+    auto result = std::from_chars(acCrc, acCrc + OEM4_ASCII_CRC_LENGTH, uiMessageCrc, 16);
+    auto uiCalcCrc = CalculateBlockCrc32(clFrameBuffer.data() + OEM4_ASCII_SYNC_LENGTH, static_cast<uint32_t>(frameEnd - OEM4_ASCII_SYNC_LENGTH - OEM4_ASCII_CRC_LENGTH - 3));
+    return result.ec == std::errc() && uiCalcCrc == uiMessageCrc ? 0 : OEM4_ASCII_SYNC_LENGTH;
 }

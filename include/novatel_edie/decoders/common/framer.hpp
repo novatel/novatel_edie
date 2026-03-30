@@ -41,6 +41,20 @@ namespace novatel::edie {
 class FramerBase
 {
   protected:
+    struct FindFrameEndResult
+    {
+        enum class Status
+        {
+            COMPLETE,   // A complete message frame was found
+            RESPONSE,   // A complete response frame was found
+            INCOMPLETE, // A potential frame was found, but the buffer ended before the end of the frame
+            INVALID     // The buffer size exceeded the max message length before finding a complete frame
+        };
+        Status eStatus{Status::INVALID};
+        HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
+        size_t uiIndex{0};
+    };
+
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<UCharFixedBuffer> pclMyBuffer{std::make_shared<UCharFixedBuffer>()};
 
@@ -66,12 +80,18 @@ class FramerBase
         return uiPosition_ + 1 < clFrameBuffer.size() && clFrameBuffer[uiPosition_] == '\r' && clFrameBuffer[uiPosition_ + 1] == '\n';
     }
 
+    [[nodiscard]] virtual size_t FindSync() const { return UCharFixedBuffer::npos; };
+
+    [[nodiscard]] virtual FindFrameEndResult FindFrameEnd([[maybe_unused]] size_t start) const { return FindFrameEndResult{}; };
+
+    [[nodiscard]] virtual size_t Validate([[maybe_unused]] size_t frameEnd) const { return 0; };
+
     //----------------------------------------------------------------------------
     //! \brief Get a frame from the internal circular buffer if one exists
     //
     //! \param [out] pucFrameBuffer_ The buffer to which the Framer should copy the
     //! framed message.
-    //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
+    //! \param [in] uiFrameBufferSize_ The length of pucFrameBuffer_.
     //! \param [out] stMetaData_ A MetaDataBase to contain some information
     //! about the message frame.
     //! \param [out] bMetadataOnly_ Only populate metadata and do not copy the message.
@@ -86,7 +106,7 @@ class FramerBase
     //!   BUFFER_FULL: The frame found is larger than uiFrameBufferSize_ bytes.
     //----------------------------------------------------------------------------
     [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
-                                          bool bMetadataOnly_ = false) = 0;
+                                          bool bMetadataOnly_ = false);
 
   public:
     //----------------------------------------------------------------------------
@@ -118,7 +138,6 @@ class FramerBase
         ResetState();
     }
 
-  public:
     uint32_t GetMyByteCount() { return uiMyByteCount; };
 
     //----------------------------------------------------------------------------
