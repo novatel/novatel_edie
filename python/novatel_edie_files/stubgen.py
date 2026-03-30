@@ -163,6 +163,8 @@ class StubGenerator:
             field_array_def: A dictionary containing a field array definition.
             parent: The name of the parent class. The name for the field array
                 class will be based on this.
+            parent_aliases: A list of alternative names for the parent field which
+                will be used to construct alternate names for this field.
         Returns:
             A string containing type hint stubs for the field array definition.
         """
