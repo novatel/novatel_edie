@@ -29,6 +29,7 @@
 #include <algorithm>
 
 using namespace novatel::edie;
+using novatel::edie::crc::CalculateBlockCrc32;
 
 FramerManager::FramerManager(const std::vector<std::string>& selectedFramers)
     : pclMyLogger(GetBaseLoggerManager()->RegisterLogger("FramerManager")), pclMyFixedBuffer(std::make_shared<UCharFixedBuffer>())

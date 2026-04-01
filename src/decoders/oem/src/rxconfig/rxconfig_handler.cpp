@@ -26,6 +26,8 @@
 
 #include "novatel_edie/decoders/oem/rxconfig/rxconfig_handler.hpp"
 
+#include "novatel_edie/decoders/oem/crc32.hpp"
+
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 

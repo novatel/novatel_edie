@@ -32,6 +32,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "novatel_edie/decoders/oem/crc32.hpp"
+
 using namespace novatel::edie::oem;
 
 using json = nlohmann::json;

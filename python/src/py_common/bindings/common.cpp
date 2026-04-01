@@ -7,6 +7,7 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
+using novatel::edie::crc::CalculateBlockCrc32;
 
 void py_common::init_common(nb::module_& m)
 {

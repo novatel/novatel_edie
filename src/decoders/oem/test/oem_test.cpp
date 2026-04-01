@@ -39,6 +39,7 @@
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 #include "novatel_edie/decoders/oem/commander.hpp"
+#include "novatel_edie/decoders/oem/crc32.hpp"
 #include "novatel_edie/decoders/oem/encoder.hpp"
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 #include "novatel_edie/decoders/oem/filter.hpp"
@@ -49,6 +50,25 @@
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
+
+// -------------------------------------------------------------------------------------------------------
+// CRC Unit Tests
+// -------------------------------------------------------------------------------------------------------
+
+TEST(CRC32Test, CalculateBlockCRC32)
+{
+    std::string sMessage("#BESTPOSA,SPECIAL,0,72.5,FINESTEERING,2000,202512.000,02000020,b1f6,32768;SOL_COMPUTED,"
+                         "SINGLE,17.44306884140,78.37411522222,649.8119,-76.8000,WGS84,0.9206,1.0236,1.9887,\"\",0."
+                         "000,0.000,34,34,34,34,00,06,39,33*42d4f5cc\r\n");
+
+    uint64_t uiTerminatorIndex = sMessage.length() - (OEM4_ASCII_CRC_LENGTH + 3);
+
+    if (uiTerminatorIndex == 0) { return; }
+
+    auto uiCalculatedCRC = CalculateBlockCrc32(reinterpret_cast<unsigned char*>(sMessage.data() + 1), uiTerminatorIndex - 1);
+
+    ASSERT_EQ(uiCalculatedCRC, 0x42d4f5ccUL);
+}
 
 template <typename FramerType> class FramerTest : public ::testing::Test
 {

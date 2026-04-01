@@ -24,21 +24,35 @@
 // ! \file crc32.hpp
 // ===============================================================================
 
-#ifndef CRC32_HPP
-#define CRC32_HPP
+#pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string_view>
 
-constexpr auto UI_CRC_TABLE = [] {
+namespace novatel::edie::crc {
+template <uint32_t Poly> constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_);
+
+namespace detail {
+//============================================================================
+//! \namespace novatel::edie::crc::detail
+//! \brief Internal CRC implementation details.
+//! \details Not part of the public API; may change without notice.
+//============================================================================
+
+// Build the slice-by-8 lookup tables for the given (reflected) generator polynomial.
+// Called once per unique Poly; result cached in UI_CRC_TABLE<Poly> below.
+template <uint32_t Poly> constexpr auto make_crc_table()
+{
     std::array<std::array<uint32_t, 256>, 8> uiPreCalcCrcTables{};
 
     for (uint32_t i = 0; i < 256; ++i)
     {
         uint32_t uiCrc = i;
 
-        for (uint32_t j = 0; j < 8; ++j) { uiCrc = (uiCrc & 1) != 0U ? (uiCrc >> 1) ^ 0xEDB88320L : uiCrc >> 1; }
+        for (uint32_t j = 0; j < 8; ++j) { uiCrc = (uiCrc & 1) != 0U ? (uiCrc >> 1) ^ Poly : uiCrc >> 1; }
 
         uiPreCalcCrcTables[0][i] = uiCrc;
     }
@@ -53,35 +67,33 @@ constexpr auto UI_CRC_TABLE = [] {
     }
 
     return uiPreCalcCrcTables;
-}();
-
-// --------------------------------------------------------------------------
-// Accumulate a single character into the given CRC-32 value
-// --------------------------------------------------------------------------
-constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_)
-{
-    const uint32_t uiIndex = (uiCrc_ ^ ucChar_) & 0xff;
-    uiCrc_ = ((uiCrc_ >> 8) & 0x00FFFFFFL) ^ UI_CRC_TABLE[0][uiIndex];
 }
 
-// --------------------------------------------------------------------------
-// Calculates the CRC-32 of a block of data all at once
-// --------------------------------------------------------------------------
-constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t uiCount_)
-{
-    uint32_t crc = 0;
+// Variable template: one table instance per polynomial, computed entirely at compile time.
+template <uint32_t Poly> inline constexpr auto UI_CRC_TABLE = make_crc_table<Poly>();
 
+//============================================================================
+//! \brief Calculates the CRC-32 of a block of data using slice-by-8 algorithm.
+//!
+//! Assumes the buffer is properly aligned to sizeof(uint32_t).
+//!
+//! \param ucBuffer_ The buffer to calculate CRC for.
+//! \param uiCount_ The number of bytes in the buffer.
+//! \param uiInitialCrc_ The initial CRC value (default 0).
+//! \return The calculated CRC-32 value.
+//============================================================================
+template <uint32_t Poly> inline uint32_t CalculateBlockCrc32Aligned(const unsigned char* ucBuffer_, uint32_t uiCount_, uint32_t uiInitialCrc_ = 0)
+{
+    uint32_t crc = uiInitialCrc_;
+    // Wrapper ensures this is aligned correctly
+    const auto* words = reinterpret_cast<const uint32_t*>(ucBuffer_);
+    const size_t chunks = uiCount_ / sizeof(uint64_t);
     size_t i = 0;
 
-    const size_t chunks = uiCount_ / 8;
-    for (size_t k = 0; k < chunks; k++)
+    for (; i < chunks * sizeof(uint64_t); i += 8)
     {
-        // Read the next 8 bytes from the input buffer (Note: cannot in general assume
-        // that ucBuffer_ is 4-byte aligned, so we cannot safely cast it to a uint32_t*)
-        uint32_t lo = (static_cast<uint32_t>(ucBuffer_[i + 0])) | (static_cast<uint32_t>(ucBuffer_[i + 1]) << 8) |
-                      (static_cast<uint32_t>(ucBuffer_[i + 2]) << 16) | (static_cast<uint32_t>(ucBuffer_[i + 3]) << 24);
-        uint32_t hi = (static_cast<uint32_t>(ucBuffer_[i + 4])) | (static_cast<uint32_t>(ucBuffer_[i + 5]) << 8) |
-                      (static_cast<uint32_t>(ucBuffer_[i + 6]) << 16) | (static_cast<uint32_t>(ucBuffer_[i + 7]) << 24);
+        uint32_t lo = words[i / sizeof(uint32_t)];
+        uint32_t hi = words[(i / sizeof(uint32_t)) + 1];
 
         lo ^= crc;
 
@@ -100,28 +112,91 @@ constexpr uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t 
         //
         // Each term depends only on one byte and its bit position, so it can be
         // precomputed in a 256-entry lookup table per position:
-        //   UI_CRC_TABLE[7] for b0, UI_CRC_TABLE[6] for b1, ..., UI_CRC_TABLE[0] for b7.
+        //   UI_CRC_TABLE<Poly>[7] for b0, UI_CRC_TABLE<Poly>[6] for b1, ..., UI_CRC_TABLE<Poly>[0] for b7.
         // See e.g. https://static.aminer.org/pdf/PDF/000/432/446/a_systematic_approach_to_building_high_performance_software_based_crc.pdf
-        crc = UI_CRC_TABLE[7][(lo) & 0xFF] ^ UI_CRC_TABLE[6][(lo >> 8) & 0xFF] ^ UI_CRC_TABLE[5][(lo >> 16) & 0xFF] ^ UI_CRC_TABLE[4][(lo >> 24)] ^
-              UI_CRC_TABLE[3][(hi) & 0xFF] ^ UI_CRC_TABLE[2][(hi >> 8) & 0xFF] ^ UI_CRC_TABLE[1][(hi >> 16) & 0xFF] ^ UI_CRC_TABLE[0][(hi >> 24)];
-
-        i += 8;
+        crc = UI_CRC_TABLE<Poly>[7][(lo) & 0xFF] ^ UI_CRC_TABLE<Poly>[6][(lo >> 8) & 0xFF] ^ UI_CRC_TABLE<Poly>[5][(lo >> 16) & 0xFF] ^
+              UI_CRC_TABLE<Poly>[4][(lo >> 24)] ^ UI_CRC_TABLE<Poly>[3][(hi) & 0xFF] ^ UI_CRC_TABLE<Poly>[2][(hi >> 8) & 0xFF] ^
+              UI_CRC_TABLE<Poly>[1][(hi >> 16) & 0xFF] ^ UI_CRC_TABLE<Poly>[0][(hi >> 24)];
     }
 
     // Process remaining bytes
-    for (; i < uiCount_; i++) { CalculateCharacterCrc32(crc, ucBuffer_[i]); }
+    for (; i < uiCount_; i++) { CalculateCharacterCrc32<Poly>(crc, ucBuffer_[i]); }
 
     return crc;
 }
 
-// --------------------------------------------------------------------------
-// Calculates the CRC-32 for a string
-// --------------------------------------------------------------------------
-constexpr uint32_t CalculateBlockCrc32(std::string_view buffer_)
+//============================================================================
+//! \brief Peel off misaligned head bytes to reach required alignment.
+//!
+//! \param ucBuffer_ The buffer pointer (updated to aligned position).
+//! \param uiCount_ The byte count (updated to reflect remaining bytes).
+//! \param crc The running CRC value (updated with head bytes).
+//! \param alignmentBytes The required alignment (typically 4 or 8).
+//============================================================================
+template <uint32_t Poly> inline void PeelAlignmentHeadBytes(const unsigned char*& ucBuffer_, uint32_t& uiCount_, uint32_t& crc, size_t alignmentBytes)
 {
-    uint32_t uiCrc = 0;
-    for (const char c : buffer_) { CalculateCharacterCrc32(uiCrc, static_cast<unsigned char>(c)); }
-    return uiCrc;
+    size_t alignment = reinterpret_cast<uintptr_t>(ucBuffer_) % alignmentBytes;
+
+    if (alignment != 0)
+    {
+        size_t headBytes = (alignmentBytes - alignment) > uiCount_ ? uiCount_ : (alignmentBytes - alignment);
+
+        for (size_t i = 0; i < headBytes; i++) { CalculateCharacterCrc32<Poly>(crc, ucBuffer_[i]); }
+
+        ucBuffer_ += headBytes;
+        uiCount_ -= static_cast<uint32_t>(headBytes);
+    }
+}
+} // namespace detail
+
+//============================================================================
+//! \name Public API
+//! Public CRC entry points. Components should use these wrappers (or
+//! policy-specific wrappers) rather than calling detail symbols directly.
+//! \{
+//============================================================================
+
+//============================================================================
+//! \brief Calculates CRC-32 with automatic alignment handling for slice-by-8 algorithm.
+//!
+//! Ensures 4-byte alignment is maintained before delegating to CalculateBlockCrc32Aligned.
+//!
+//! \param ucBuffer_ The buffer to calculate CRC for.
+//! \param uiCount_ The number of bytes in the buffer.
+//! \param uiInitialCrc_ The initial CRC value (default 0).
+//! \return The calculated CRC-32 value.
+//============================================================================
+template <uint32_t Poly = 0xEDB88320UL>
+inline uint32_t CalculateBlockCrc32(const unsigned char* ucBuffer_, uint32_t uiCount_, uint32_t uiInitialCrc_ = 0)
+{
+    const unsigned char* alignedBuffer = ucBuffer_;
+    uint32_t alignedCount = uiCount_;
+    novatel::edie::crc::detail::PeelAlignmentHeadBytes<Poly>(alignedBuffer, alignedCount, uiInitialCrc_, sizeof(uint32_t));
+    return novatel::edie::crc::detail::CalculateBlockCrc32Aligned<Poly>(alignedBuffer, alignedCount, uiInitialCrc_);
 }
 
-#endif // CRC32_HPP
+//============================================================================
+//! \brief Accumulate a single character into the given CRC-32 value.
+//! \param uiCrc_ The running CRC value to update.
+//! \param ucChar_ The character to accumulate.
+//============================================================================
+template <uint32_t Poly = 0xEDB88320UL> constexpr void CalculateCharacterCrc32(uint32_t& uiCrc_, unsigned char ucChar_)
+{
+    const uint32_t uiIndex = (uiCrc_ ^ ucChar_) & 0xff;
+    uiCrc_ = ((uiCrc_ >> 8) & 0x00FFFFFFL) ^ novatel::edie::crc::detail::UI_CRC_TABLE<Poly>[0][uiIndex];
+}
+
+//============================================================================
+//! \brief Calculates the CRC-32 for a string view using Sarwate byte-by-byte algorithm.
+//!
+//! \param buffer_ The string view to calculate CRC for.
+//! \return The calculated CRC-32 value.
+//============================================================================
+template <uint32_t Poly = 0xEDB88320UL> constexpr uint32_t CalculateBlockCrc32(std::string_view buffer_)
+{
+    uint32_t uiCrc = 0;
+    for (const char c : buffer_) { CalculateCharacterCrc32<Poly>(uiCrc, static_cast<unsigned char>(c)); }
+    return uiCrc;
+}
+//! \}
+} // namespace novatel::edie::crc
