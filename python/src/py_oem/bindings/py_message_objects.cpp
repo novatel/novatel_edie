@@ -53,7 +53,8 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
 {
     STATUS status;
     MessageDataStruct message_data = MessageDataStruct();
-    RxConfigHandler* pclRxConfigHandler = this->encoderDb->GetRxConfigHandler();
+    const py_oem::DatabaseExtras& extras = py_oem::GetDatabaseExtras(*parentDb);
+    RxConfigHandler* pclRxConfigHandler = extras.rxConfigHandler.get();
 
     // Allocate more space for JSON messages.
     // A TRACKSTAT message can use about 47k bytes when encoded as JSON.
@@ -63,12 +64,9 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
     uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
     if (pclRxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
     {
-        status = this->encoderDb->GetRxConfigHandler()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
+        status = extras.rxConfigHandler->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
     }
-    else
-    {
-        status = this->encoderDb->GetEncoder()->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, this->header.format, format);
-    }
+    else { status = extras.encoder->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, this->header.format, format); }
     throw_exception_from_status(status);
     return py_common::PyMessageData(message_data);
 }
@@ -100,7 +98,7 @@ nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHea
 }
 
 nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector<FieldContainer>&& message_fields, MetaDataStruct& metadata,
-                                           py_oem::PyMessageDatabase::ConstPtr database)
+                                           py_common::PyMessageDatabaseCore::ConstPtr database)
 {
 
     const MessageDefinition* msgDef = database->GetMsgDef(metadata.usMessageId).get();
@@ -117,7 +115,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
         return response_pyinst;
     }
 
-    PyMessageDatabaseCore* coreDatabase = database->GetCoreDatabase().get();
+    const PyMessageDatabaseCore* coreDatabase = database.get();
     uint32_t crc = metadata.uiMessageCrc;
 
     nb::handle message_pytype = coreDatabase->GetMessageType(metadata.usMessageId, crc);
@@ -125,7 +123,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
     {
         // Fallback to latest CRC
         crc = msgDef->latestMessageCrc;
-        message_pytype = database->GetCoreDatabase()->GetMessageType(msgDef, msgDef->latestMessageCrc);
+        message_pytype = database->GetMessageType(msgDef, msgDef->latestMessageCrc);
     }
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
@@ -306,9 +304,10 @@ void py_oem::init_message_objects(nb::module_& m)
         .def_ro("header", &py_oem::PyMessage::header, "The header of the message.")
         .def_prop_ro("name", &py_oem::PyEncodableField::name, "The type of message it is.");
 
-    auto& familyTypes = py_common::GetMessageFamilyTypes();
-    familyTypes["OEM"] = nb::type<py_oem::PyMessage>();
-    familyTypes[""] = nb::type<py_oem::PyMessage>(); // Use as the default
+    auto& familyRegistrations = py_common::GetMessageFamilyRegistrations();
+    familyRegistrations["OEM"] =
+        py_common::MessageFamilyRegistration{nb::type<py_oem::PyMessage>(), &py_oem::AllocateDatabaseExtras, &py_oem::FreeDatabaseExtras};
+    familyRegistrations[""] = py_common::MessageFamilyRegistration{nb::type<py_oem::PyMessage>(), nullptr, nullptr};
 
     nb::class_<py_oem::PyResponse>(m, "Response")
         .def("encode", &py_oem::PyResponse::encode)

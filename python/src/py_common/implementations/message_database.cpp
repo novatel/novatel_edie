@@ -14,26 +14,24 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore() : MessageDatabase()
+PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(MessageDatabase&& message_db) : MessageDatabase(std::move(message_db)) {}
+
+PYCOMMON_EXPORT std::shared_ptr<py_common::PyMessageDatabaseCore> py_common::PyMessageDatabaseCore::Create(MessageDatabase message_db)
+{
+    auto db = std::shared_ptr<PyMessageDatabaseCore>(new PyMessageDatabaseCore(std::move(message_db)));
+    db->self_weak_ = db;
+    db->InitializeAfterConstruction();
+    return db;
+}
+
+void py_common::PyMessageDatabaseCore::InitializeAfterConstruction()
 {
     ResolveBaseType();
     UpdatePythonEnums();
     UpdatePythonMessageTypes();
 }
 
-PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase& message_db) noexcept : MessageDatabase(message_db)
-{
-    ResolveBaseType();
-    UpdatePythonEnums();
-    UpdatePythonMessageTypes();
-}
-
-PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(const MessageDatabase&& message_db) noexcept : MessageDatabase(message_db)
-{
-    ResolveBaseType();
-    UpdatePythonEnums();
-    UpdatePythonMessageTypes();
-}
+PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::~PyMessageDatabaseCore() { ResetMessageFamilyExtras(); }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::GenerateMessageMappings()
 {
@@ -54,6 +52,16 @@ void py_common::PyMessageDatabaseCore::SetMessageFamily(const std::string& messa
     pDbMetadata->messageFamily = messageFamily;
     ResolveBaseType();
     UpdatePythonMessageTypes();
+}
+
+void py_common::PyMessageDatabaseCore::ResetMessageFamilyExtras()
+{
+    if (message_family_extras_ && message_family_registration_ && message_family_registration_->freeExtras)
+    {
+        message_family_registration_->freeExtras(message_family_extras_);
+        message_family_extras_ = nullptr;
+    }
+    else { message_family_extras_ = nullptr; }
 }
 
 void py_common::PyMessageDatabaseCore::Merge(const std::shared_ptr<PyMessageDatabaseCore> other_)
@@ -143,8 +151,16 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::ResolveBaseType()
         dbMetadata->messageFamily = "";
         pDbMetadata = dbMetadata;
     }
-    base_message_type = GetMessageFamilyType(pDbMetadata->messageFamily);
-    if (!base_message_type.is_valid()) { throw FailureException(pDbMetadata->messageFamily + " is not a recognized message type."); }
+
+    ResetMessageFamilyExtras();
+
+    message_family_registration_ = GetMessageFamilyRegistration(pDbMetadata->messageFamily);
+    if (!message_family_registration_ || !message_family_registration_->messageType.is_valid())
+    {
+        throw FailureException(pDbMetadata->messageFamily + " is not a recognized message type.");
+    }
+
+    if (message_family_registration_->allocateExtras) { message_family_extras_ = message_family_registration_->allocateExtras(this); }
 }
 
 static py_common::FieldNameMap BuildFieldNameMapFromDefs(const std::vector<BaseField::Ptr>& fields)
@@ -191,13 +207,18 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AddFieldType(std::vector<
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs)
 {
+    if (!message_family_registration_ || !message_family_registration_->messageType.is_valid())
+    {
+        throw FailureException("Message family type is not initialized.");
+    }
+
     // get type constructor
     nb::object type_constructor = nb::module_::import_("builtins").attr("type");
     // specify the python superclass for the message body types
     nb::tuple field_type_tuple = nb::make_tuple(nb::type<py_common::PyField>());
     // provide no additional attributes via `__dict__`
     nb::dict type_dict = nb::dict();
-    nb::tuple message_type_tuple = nb::make_tuple(base_message_type);
+    nb::tuple message_type_tuple = nb::make_tuple(message_family_registration_->messageType);
     type_dict[nb::str("__slots__")] = nb::make_tuple();
 
     // add message and message body types for each message definition
@@ -252,16 +273,16 @@ void py_common::PyMessageDatabaseCore::RemoveFieldTypes(const std::vector<BaseFi
     }
 }
 
-PYCOMMON_EXPORT std::unordered_map<std::string, nb::handle>& py_common::GetMessageFamilyTypes()
+PYCOMMON_EXPORT std::unordered_map<std::string, py_common::MessageFamilyRegistration>& py_common::GetMessageFamilyRegistrations()
 {
-    static std::unordered_map<std::string, nb::handle> nameToType;
-    return nameToType;
+    static std::unordered_map<std::string, py_common::MessageFamilyRegistration> registrations;
+    return registrations;
 }
 
-PYCOMMON_EXPORT nb::handle py_common::GetMessageFamilyType(const std::string& message_family)
+PYCOMMON_EXPORT const py_common::MessageFamilyRegistration* py_common::GetMessageFamilyRegistration(const std::string& message_family)
 {
-    std::unordered_map<std::string, nb::handle>& typeGetters = GetMessageFamilyTypes();
-    auto typeGetterIt = typeGetters.find(message_family);
-    if (typeGetterIt == typeGetters.end()) { return nb::handle(); }
-    else { return typeGetterIt->second; }
+    auto& registrations = GetMessageFamilyRegistrations();
+    auto registrationIt = registrations.find(message_family);
+    if (registrationIt == registrations.end()) { return nullptr; }
+    return &registrationIt->second;
 }
