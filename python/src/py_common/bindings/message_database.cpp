@@ -167,14 +167,12 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<py_common::PyMessageDatabaseCore>(m, "MessageDatabase")
-        .def(nb::new_([]() { return std::make_shared<py_common::PyMessageDatabaseCore>(); }))
-        .def(nb::new_([](std::filesystem::path& file_path) {
-                 return std::make_shared<py_common::PyMessageDatabaseCore>(std::move(*LoadJsonDbFile(file_path)));
-             }),
+        .def(nb::new_([]() { return py_common::PyMessageDatabaseCore::Create(); }))
+        .def(nb::new_(
+                 [](std::filesystem::path& file_path) { return py_common::PyMessageDatabaseCore::Create(std::move(*LoadJsonDbFile(file_path))); }),
              "file_path"_a)
         .def_static(
-            "from_string",
-            [](std::string_view json_data) { return std::make_shared<py_common::PyMessageDatabaseCore>(std::move(*ParseJsonDb(json_data))); },
+            "from_string", [](std::string_view json_data) { return py_common::PyMessageDatabaseCore::Create(std::move(*ParseJsonDb(json_data))); },
             "json_data"_a)
         .def("merge", &py_common::PyMessageDatabaseCore::Merge, "other_db"_a)
         .def("append_messages", &py_common::PyMessageDatabaseCore::AppendMessages, "messages"_a)
@@ -196,7 +194,7 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(
             "clone",
             [](const py_common::PyMessageDatabaseCore& self) {
-                return std::make_shared<py_common::PyMessageDatabaseCore>(static_cast<const MessageDatabase&>(self));
+                return py_common::PyMessageDatabaseCore::Create(static_cast<const MessageDatabase&>(self));
             },
             "Create an copy of this database.");
 }
