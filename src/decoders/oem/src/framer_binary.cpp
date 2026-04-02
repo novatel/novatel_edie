@@ -26,47 +26,19 @@
 
 #include "novatel_edie/decoders/oem/framer_binary.hpp"
 
-#include <charconv>
-
-#include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/decoders/common/framer_registration.hpp"
 
 using namespace novatel::edie;
 using namespace novatel::edie::oem;
 
 // Register the OEM binary framer with the framer factory
-REGISTER_FRAMER(OEM_BINARY, oem::FramerBinary, MetaDataStruct)
+REGISTER_FRAMER(OEM_BINARY, FramerBinary, MetaDataStruct)
 
 // -------------------------------------------------------------------------------------------------------
-FramerBinary::FramerBinary() : FramerBase("novatel_framer_binary") {}
+FramerBinary::FramerBinary() : FramerBinaryBase("novatel_framer_binary") {}
 
 // -------------------------------------------------------------------------------------------------------
-FramerBinary::FramerBinary(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBase("novatel_framer_binary", buffer)
+FramerBinary::FramerBinary(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBinaryBase(buffer, "novatel_framer_binary")
 {
     pclMyLogger->info("FramerBinary initialized");
-}
-
-[[nodiscard]] size_t FramerBinary::FindSync() const
-{
-    return pclMyBuffer->search_chars(std::array<unsigned char, 3>{OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3}, 0, MAX_BINARY_MESSAGE_LENGTH);
-}
-
-[[nodiscard]] FramerBase::FindFrameEndResult FramerBinary::FindFrameEnd([[maybe_unused]] size_t start) const
-{
-    using ReturnStatus = FramerBase::FindFrameEndResult::Status;
-    const auto& clFrameBuffer = *pclMyBuffer;
-    if (OEM4_BINARY_HEADER_LENGTH > clFrameBuffer.size()) { return {ReturnStatus::INCOMPLETE, clFrameBuffer.size() < OEM4_BINARY_SYNC_LENGTH ? HEADER_FORMAT::UNKNOWN : HEADER_FORMAT::BINARY, clFrameBuffer.size()}; }
-    uint16_t uiMessageBodyLength = clFrameBuffer.read_value<uint16_t>(OEM4_BINARY_MESSAGE_LENGTH_INDEX);
-    size_t uiTotalMessageLength = OEM4_BINARY_HEADER_LENGTH + uiMessageBodyLength + OEM4_BINARY_CRC_LENGTH;
-    return uiTotalMessageLength > MAX_BINARY_MESSAGE_LENGTH ? FramerBase::FindFrameEndResult{ReturnStatus::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_BINARY_SYNC_LENGTH} :
-                uiTotalMessageLength > clFrameBuffer.size() ? FramerBase::FindFrameEndResult{ReturnStatus::INCOMPLETE, HEADER_FORMAT::BINARY, clFrameBuffer.size()} :
-                FramerBase::FindFrameEndResult{ReturnStatus::COMPLETE, HEADER_FORMAT::BINARY, uiTotalMessageLength};
-}
-
-[[nodiscard]] size_t FramerBinary::Validate(size_t frameEnd) const
-{
-    const auto& clFrameBuffer = *pclMyBuffer;
-    uint32_t uiMessageCrc = clFrameBuffer.read_value<uint32_t>(frameEnd - sizeof(uint32_t));
-    uint32_t uiCalcCrc = CalculateBlockCrc32(clFrameBuffer.data(), static_cast<uint32_t>(frameEnd - sizeof(uint32_t)));
-    return uiCalcCrc == uiMessageCrc ? 0 : OEM4_BINARY_SYNC_LENGTH;
 }

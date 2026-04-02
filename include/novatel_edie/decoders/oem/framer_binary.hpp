@@ -26,8 +26,7 @@
 
 #pragma once
 
-#include "novatel_edie/decoders/common/framer.hpp"
-#include "novatel_edie/decoders/oem/common.hpp"
+#include "novatel_edie/decoders/oem/framer_binary_base.hpp"
 
 namespace novatel::edie::oem {
 
@@ -35,21 +34,15 @@ namespace novatel::edie::oem {
 //! \class FramerBinary
 //! \brief Search bytes for patterns that could be an OEM binary message.
 //============================================================================
-class FramerBinary : public FramerBase
+class FramerBinary : public FramerBinaryBase<HEADER_FORMAT::BINARY, OEM4_BINARY_HEADER_LENGTH, 8U, uint16_t, MAX_BINARY_MESSAGE_LENGTH>
 {
-  private:
-    static constexpr size_t OEM4_BINARY_MESSAGE_LENGTH_INDEX{8U};
-
-    size_t FindSync() const override;
-    FindFrameEndResult FindFrameEnd(size_t start) const override;
-    size_t Validate(size_t frameEnd) const override;
+  protected:
+    [[nodiscard]] std::array<unsigned char, 3> GetSyncByteArray() const noexcept override
+    {
+        return {OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3};
+    }
 
   public:
-    //----------------------------------------------------------------------------
-    //! \brief Reset the state of the Framer.
-    //----------------------------------------------------------------------------
-    void ResetState() override {}
-
     //----------------------------------------------------------------------------
     //! \brief A constructor for the FramerBinary class.
     //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
@@ -60,16 +53,6 @@ class FramerBinary : public FramerBase
     //! \brief A constructor for the FramerBinary class.
     //----------------------------------------------------------------------------
     FramerBinary();
-
-    //----------------------------------------------------------------------------
-    //! \brief Public interface to frame an OEM binary message - enforces metadata type.
-    //
-    //! \see GetFrame(unsigned char*, uint32_t, MetaDataBase&, bool)
-    //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataStruct& stMetaData_)
-    {
-        return FramerBase::GetFrame(pucFrameBuffer_, uiFrameBufferSize_, stMetaData_, false);
-    }
 };
 
 } // namespace novatel::edie::oem

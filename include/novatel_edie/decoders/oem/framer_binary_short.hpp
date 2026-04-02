@@ -21,33 +21,39 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file framer_ascii.hpp
+// ! \file framer_binary_short.hpp
 // ===============================================================================
 
 #pragma once
 
-#include "novatel_edie/decoders/oem/common.hpp"
-#include "novatel_edie/decoders/oem/framer_ascii_base.hpp"
+#include "novatel_edie/decoders/oem/framer_binary_base.hpp"
 
 namespace novatel::edie::oem {
 
 //============================================================================
-//! \class FramerAscii
-//! \brief Search bytes for patterns that could be an OEM ASCII message.
+//! \class FramerBinaryShort
+//! \brief Search bytes for patterns that could be an OEM binary message with a short header.
 //============================================================================
-class FramerAscii : public FramerAsciiBase<HEADER_FORMAT::ASCII, OEM4_ASCII_SYNC, MAX_ASCII_MESSAGE_LENGTH>
+class FramerBinaryShort
+    : public FramerBinaryBase<HEADER_FORMAT::SHORT_BINARY, OEM4_SHORT_BINARY_HEADER_LENGTH, 3U, uint8_t, MAX_SHORT_BINARY_MESSAGE_LENGTH>
 {
+  protected:
+    [[nodiscard]] std::array<unsigned char, 3> GetSyncByteArray() const noexcept override
+    {
+        return {OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_SHORT_BINARY_SYNC3};
+    }
+
   public:
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerAscii class.
+    //! \brief A constructor for the FramerBinaryShort class.
     //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
     //----------------------------------------------------------------------------
-    FramerAscii(std::shared_ptr<UCharFixedBuffer> buffer);
+    FramerBinaryShort(std::shared_ptr<UCharFixedBuffer> buffer);
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerAscii class.
+    //! \brief A constructor for the FramerBinaryShort class.
     //----------------------------------------------------------------------------
-    FramerAscii();
+    FramerBinaryShort();
 };
 
 } // namespace novatel::edie::oem

@@ -21,33 +21,24 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file framer_ascii.hpp
+// ! \file framer_ascii_short.cpp
 // ===============================================================================
 
-#pragma once
+#include "novatel_edie/decoders/oem/framer_ascii_short.hpp"
 
-#include "novatel_edie/decoders/oem/common.hpp"
-#include "novatel_edie/decoders/oem/framer_ascii_base.hpp"
+#include "novatel_edie/decoders/common/framer_registration.hpp"
 
-namespace novatel::edie::oem {
+using namespace novatel::edie;
+using namespace novatel::edie::oem;
 
-//============================================================================
-//! \class FramerAscii
-//! \brief Search bytes for patterns that could be an OEM ASCII message.
-//============================================================================
-class FramerAscii : public FramerAsciiBase<HEADER_FORMAT::ASCII, OEM4_ASCII_SYNC, MAX_ASCII_MESSAGE_LENGTH>
+// Register the OEM ASCII short framer with the framer factory
+REGISTER_FRAMER(OEM_ASCII_SHORT, oem::FramerAsciiShort, MetaDataStruct)
+
+// -------------------------------------------------------------------------------------------------------
+FramerAsciiShort::FramerAsciiShort() : FramerAsciiBase("novatel_framer_ascii_short") {}
+
+// -------------------------------------------------------------------------------------------------------
+FramerAsciiShort::FramerAsciiShort(std::shared_ptr<UCharFixedBuffer> buffer) : FramerAsciiBase(buffer, "novatel_framer_ascii_short")
 {
-  public:
-    //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerAscii class.
-    //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
-    //----------------------------------------------------------------------------
-    FramerAscii(std::shared_ptr<UCharFixedBuffer> buffer);
-
-    //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerAscii class.
-    //----------------------------------------------------------------------------
-    FramerAscii();
-};
-
-} // namespace novatel::edie::oem
+    pclMyLogger->info("FramerAsciiShort initialized");
+}

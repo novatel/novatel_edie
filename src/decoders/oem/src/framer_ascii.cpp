@@ -26,9 +26,6 @@
 
 #include "novatel_edie/decoders/oem/framer_ascii.hpp"
 
-#include <charconv>
-
-#include "novatel_edie/common/crc32.hpp"
 #include "novatel_edie/decoders/common/framer_registration.hpp"
 
 using namespace novatel::edie;
@@ -38,46 +35,10 @@ using namespace novatel::edie::oem;
 REGISTER_FRAMER(OEM_ASCII, oem::FramerAscii, MetaDataStruct)
 
 // -------------------------------------------------------------------------------------------------------
-FramerAscii::FramerAscii() : FramerBase("novatel_framer_ascii") {}
+FramerAscii::FramerAscii() : FramerAsciiBase("novatel_framer_ascii") {}
 
 // -------------------------------------------------------------------------------------------------------
-FramerAscii::FramerAscii(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBase("novatel_framer_ascii", buffer)
+FramerAscii::FramerAscii(std::shared_ptr<UCharFixedBuffer> buffer) : FramerAsciiBase(buffer, "novatel_framer_ascii")
 {
     pclMyLogger->info("FramerAscii initialized");
-}
-
-[[nodiscard]] size_t FramerAscii::FindSync() const
-{
-    return pclMyBuffer->search_char(OEM4_ASCII_SYNC, 0, MAX_ASCII_MESSAGE_LENGTH);
-}
-
-[[nodiscard]] FramerBase::FindFrameEndResult FramerAscii::FindFrameEnd(size_t start) const
-{
-    using ReturnStatus = FramerBase::FindFrameEndResult::Status;
-    const auto& clFrameBuffer = *pclMyBuffer;
-    auto uiCrcDelimIndex = clFrameBuffer.search_char(OEM4_ASCII_CRC_DELIMITER, start, MAX_ASCII_MESSAGE_LENGTH);
-    while (uiCrcDelimIndex != UCharFixedBuffer::npos && clFrameBuffer.size() - uiCrcDelimIndex >= OEM4_ASCII_CRC_LENGTH + 3 && !IsAsciiCrc(static_cast<uint32_t>(uiCrcDelimIndex + 1)))
-    {
-        uiCrcDelimIndex = clFrameBuffer.search_char(OEM4_ASCII_CRC_DELIMITER, uiCrcDelimIndex + 1, MAX_ASCII_MESSAGE_LENGTH);
-    }
-
-    if (uiCrcDelimIndex == UCharFixedBuffer::npos)
-    {
-        return clFrameBuffer.size() >= MAX_ASCII_MESSAGE_LENGTH ? FramerBase::FindFrameEndResult{ReturnStatus::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH} :
-                    FramerBase::FindFrameEndResult{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ASCII, clFrameBuffer.size()};
-    }
-    return clFrameBuffer.size() - uiCrcDelimIndex >= OEM4_ASCII_CRC_LENGTH + 3 ? FramerBase::FindFrameEndResult{ReturnStatus::COMPLETE, HEADER_FORMAT::ASCII, uiCrcDelimIndex + OEM4_ASCII_CRC_LENGTH + 3} :
-           FramerBase::FindFrameEndResult{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ASCII, uiCrcDelimIndex};
-}
-
-[[nodiscard]] size_t FramerAscii::Validate(size_t frameEnd) const
-{
-    const auto& clFrameBuffer = *pclMyBuffer;
-    char acCrc[OEM4_ASCII_CRC_LENGTH + 1];
-    std::memcpy(acCrc, clFrameBuffer.data() + frameEnd - OEM4_ASCII_CRC_LENGTH - 2, OEM4_ASCII_CRC_LENGTH);
-
-    uint32_t uiMessageCrc = 0;
-    auto result = std::from_chars(acCrc, acCrc + OEM4_ASCII_CRC_LENGTH, uiMessageCrc, 16);
-    auto uiCalcCrc = CalculateBlockCrc32(clFrameBuffer.data() + OEM4_ASCII_SYNC_LENGTH, static_cast<uint32_t>(frameEnd - OEM4_ASCII_SYNC_LENGTH - OEM4_ASCII_CRC_LENGTH - 3));
-    return result.ec == std::errc() && uiCalcCrc == uiMessageCrc ? 0 : OEM4_ASCII_SYNC_LENGTH;
 }

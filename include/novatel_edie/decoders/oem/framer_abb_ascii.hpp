@@ -33,12 +33,31 @@ namespace novatel::edie::oem {
 
 //============================================================================
 //! \class FramerAbbAscii
-//! \brief Search bytes for patterns that could be an OEM ASCII message.
+//! \brief Search bytes for patterns that could be an OEM abbreviated ASCII message.
 //============================================================================
 class FramerAbbAscii : public FramerBase
 {
   private:
+    //----------------------------------------------------------------------------
+    //! \brief Find the index of the first sync byte in the internal buffer.
+    //!
+    //! \return The index of the first sync byte if found, or UCharFixedBuffer::npos if not found.
+    //----------------------------------------------------------------------------
     size_t FindSync() const override;
+
+    //----------------------------------------------------------------------------
+    //! \brief Find the end of the candidate frame starting from the provided index.
+    //!
+    //! \details For abbreviated ASCII, the end of the frame is determined by finding
+    //!     either a response line (starting with "OK" or "ERROR") terminated by CRLF,
+    //!     or a header line followed by one or more body lines (starting with "< ")
+    //!     and terminated by CRLF that is not followed by "< ".
+    //!
+    //! \param[in] start The index from which to start searching for the end of the frame.
+    //! \return A FindFrameEndResult struct containing the status, format, and index of the end of the frame.
+    //!
+    //! \see FramerBase::FindFrameEndResult for details on the return struct.
+    //----------------------------------------------------------------------------
     FindFrameEndResult FindFrameEnd(size_t start) const override;
 
     //----------------------------------------------------------------------------
@@ -50,7 +69,13 @@ class FramerAbbAscii : public FramerBase
     {
         const auto& clFrameBuffer = *pclMyBuffer;
         return clFrameBuffer.search_chars(std::array<unsigned char, 2>{'O', 'K'}, OEM4_ASCII_SYNC_LENGTH, 2) == OEM4_ASCII_SYNC_LENGTH ||
-                clFrameBuffer.search_chars(std::array<unsigned char, 5>{'E', 'R', 'R', 'O', 'R'}, OEM4_ASCII_SYNC_LENGTH, 5) == OEM4_ASCII_SYNC_LENGTH;
+               clFrameBuffer.search_chars(std::array<unsigned char, 5>{'E', 'R', 'R', 'O', 'R'}, OEM4_ASCII_SYNC_LENGTH, 5) == OEM4_ASCII_SYNC_LENGTH;
+    }
+
+    [[nodiscard]] bool IsBodyLine(size_t index) const
+    {
+        const auto& clFrameBuffer = *pclMyBuffer;
+        return clFrameBuffer[index] == OEM4_ABBREV_ASCII_SYNC && clFrameBuffer[index + 1] == OEM4_ABBREV_ASCII_SEPARATOR;
     }
 
   public:
@@ -60,15 +85,17 @@ class FramerAbbAscii : public FramerBase
     void ResetState() override {}
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerAscii class.
+    //! \brief A constructor for the FramerAbbAscii class.
     //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
     //----------------------------------------------------------------------------
     FramerAbbAscii(std::shared_ptr<UCharFixedBuffer> buffer);
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerAscii class.
+    //! \brief A constructor for the FramerAbbAscii class.
     //----------------------------------------------------------------------------
     FramerAbbAscii();
+
+    using FramerBase::GetFrame;
 
     //----------------------------------------------------------------------------
     //! \brief Public interface to frame an OEM abb ASCII message - enforces metadata type.

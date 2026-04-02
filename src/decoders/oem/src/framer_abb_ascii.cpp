@@ -59,40 +59,41 @@ FramerAbbAscii::FramerAbbAscii(std::shared_ptr<UCharFixedBuffer> buffer) : Frame
 
 [[nodiscard]] FramerBase::FindFrameEndResult FramerAbbAscii::FindFrameEnd(size_t start) const
 {
-    using ReturnStatus = FramerBase::FindFrameEndResult::Status;
-    auto crlf = std::array<unsigned char, 2>{'\r', '\n'};
+    using Result = FramerBase::FindFrameEndResult;
+    using ReturnStatus = Result::Status;
+    const auto crlf = std::array<unsigned char, 2>{'\r', '\n'};
     const auto& clFrameBuffer = *pclMyBuffer;
-    auto uiCrlfIndex = clFrameBuffer.search_chars(crlf, start, MAX_ASCII_MESSAGE_LENGTH);
-    if (uiCrlfIndex != UCharFixedBuffer::npos && IsAbbrevAsciiResponse())
+
+    auto midLineIncomplete = [&clFrameBuffer]() -> Result {
+        return clFrameBuffer.size() >= MAX_ASCII_MESSAGE_LENGTH ? Result{ReturnStatus::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH}
+                                                                : Result{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ABB_ASCII, clFrameBuffer.size()};
+    };
+
+    // Step 1: Parse the first line (header/response line)
+    const size_t headerCrlfIndex = clFrameBuffer.search_chars(crlf, 0, MAX_ASCII_MESSAGE_LENGTH);
+    if (headerCrlfIndex == UCharFixedBuffer::npos) { return midLineIncomplete(); }
+
+    if (IsAbbrevAsciiResponse()) { return Result{ReturnStatus::RESPONSE, HEADER_FORMAT::ABB_ASCII, headerCrlfIndex + 2}; }
+
+    // If we reach this point, then the message is not a response
+    // Step 2: Ensure the body is nonempty
+    const size_t bodyStart = headerCrlfIndex + 2;
+    if (clFrameBuffer.size() <= bodyStart + 1) { return Result{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ABB_ASCII, headerCrlfIndex}; }
+    if (clFrameBuffer.size() > bodyStart && !IsBodyLine(bodyStart))
     {
-        return FramerBase::FindFrameEndResult{ReturnStatus::RESPONSE, HEADER_FORMAT::ABB_ASCII, uiCrlfIndex + 2};
+        return Result{ReturnStatus::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH};
     }
 
-    // Maybe need to keep persistent count of CRLFs... or something like that.
-    // following line rejects if a message's last line is split across writes
-
-    // Next line must be the start of the message body (so it must be sync followed by separator)
-    if (uiCrlfIndex != UCharFixedBuffer::npos && 
-        (clFrameBuffer.size() > uiCrlfIndex + 2 && clFrameBuffer[uiCrlfIndex + 2] != OEM4_ABBREV_ASCII_SYNC ||
-        clFrameBuffer.size() > uiCrlfIndex + 3 && clFrameBuffer[uiCrlfIndex + 3] != OEM4_ABBREV_ASCII_SEPARATOR))
-    {
-        return FramerBase::FindFrameEndResult{ReturnStatus::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH};
-    }
-
-    // Search for the end of the message body
-    while (uiCrlfIndex != UCharFixedBuffer::npos && clFrameBuffer.size() > uiCrlfIndex + 3 && clFrameBuffer[uiCrlfIndex + 2] == OEM4_ABBREV_ASCII_SYNC && clFrameBuffer[uiCrlfIndex + 3] == OEM4_ABBREV_ASCII_SEPARATOR)
+    // Step 3: Parse body lines
+    size_t uiCrlfIndex = clFrameBuffer.search_chars(crlf, std::max(start, bodyStart), MAX_ASCII_MESSAGE_LENGTH);
+    while (uiCrlfIndex != UCharFixedBuffer::npos && clFrameBuffer.size() > uiCrlfIndex + 3 && IsBodyLine(uiCrlfIndex + 2))
     {
         uiCrlfIndex = clFrameBuffer.search_chars(crlf, uiCrlfIndex + 1, MAX_ASCII_MESSAGE_LENGTH);
     }
-    if (uiCrlfIndex == UCharFixedBuffer::npos)
-    {
-        return clFrameBuffer.size() >= MAX_ASCII_MESSAGE_LENGTH ? FramerBase::FindFrameEndResult{ReturnStatus::INVALID, HEADER_FORMAT::UNKNOWN, OEM4_ASCII_SYNC_LENGTH} :
-                FramerBase::FindFrameEndResult{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ABB_ASCII, clFrameBuffer.size()};
-    }
-    if (clFrameBuffer.size() <= uiCrlfIndex + 3)
-    {
-        return FramerBase::FindFrameEndResult{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ABB_ASCII, uiCrlfIndex};
-    }
 
-    return FramerBase::FindFrameEndResult{ReturnStatus::COMPLETE, HEADER_FORMAT::ABB_ASCII, uiCrlfIndex + 2};
+    if (uiCrlfIndex == UCharFixedBuffer::npos) { return midLineIncomplete(); }
+
+    if (clFrameBuffer.size() <= uiCrlfIndex + 3) { return Result{ReturnStatus::INCOMPLETE, HEADER_FORMAT::ABB_ASCII, uiCrlfIndex}; }
+
+    return Result{ReturnStatus::COMPLETE, HEADER_FORMAT::ABB_ASCII, uiCrlfIndex + 2};
 }

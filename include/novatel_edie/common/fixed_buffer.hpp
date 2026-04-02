@@ -105,25 +105,9 @@ template <typename T, size_t N> class FixedBuffer
         return count;
     }
 
-    //! \brief Finds the first occurrence of a byte value in the buffer (logical order).
-    //! \param[in] value The byte value to search for.
-    //! \param[in] start The logical index to start the search from (0 = oldest).
-    //! \param[in] count The maximum number of elements to search through.
-    //! \return Logical index (0 = oldest) or npos if not found.
-    template <typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
-    [[nodiscard]] size_t search_char(unsigned char value, size_t start, size_t count = npos) const noexcept
-    {
-        if (start >= sz) { return npos; }
-        count = std::min(count, sz - start);
-        if (count == 0) { return npos; }
-
-        const void* ptr = std::memchr(buffer.get() + head + start, value, count);
-        if (ptr != nullptr) { return static_cast<size_t>(static_cast<const unsigned char*>(ptr) - (buffer.get() + head + start)) + start; }
-
-        return npos;
-    }
-
     //! \brief Finds the first occurrence of a byte sequence in the buffer (logical order).
+    //!     If the buffer ends with a nonempty prefix of the sequence, the index of the beginning
+    //!     of the prefix is returned.
     //! \param[in] values The byte sequence to search for.
     //! \param[in] start The logical index to start the search from (0 = oldest).
     //! \param[in] count The maximum number of elements to search through.
@@ -135,22 +119,38 @@ template <typename T, size_t N> class FixedBuffer
 
         if (start >= sz) { return npos; }
         count = std::min(count, sz - start);
-        if (count == 0) { return npos; }
 
-        const size_t end = start + count;
-        size_t index = search_char(values[0], start, count);
+        const unsigned char* data = buffer.get() + head;
+        const unsigned char* begin = data + start;
+        const unsigned char* end = begin + count;
 
-        while (index != npos)
+        const unsigned char first = values[0];
+        const unsigned char* pos = begin;
+
+        while (pos < end)
         {
-            size_t matched = 1;
-            while (matched < M && index + matched < end && (*this)[index + matched] == values[matched]) { ++matched; }
+            const void* found = std::memchr(pos, first, static_cast<size_t>(end - pos));
+            if (found == nullptr) { return npos; }
 
-            if (matched == M || index + matched == end) { return index; }
+            pos = static_cast<const unsigned char*>(found);
+            if constexpr (M == 1) { return static_cast<size_t>(pos - data); }
+            else if (std::memcmp(pos, values.data(), std::min(M, static_cast<size_t>(end - pos))) == 0) { return static_cast<size_t>(pos - data); }
 
-            index = search_char(values[0], index + 1, end - (index + 1));
+            ++pos;
         }
 
         return npos;
+    }
+
+    //! \brief Finds the first occurrence of a byte value in the buffer (logical order).
+    //! \param[in] value The byte value to search for.
+    //! \param[in] start The logical index to start the search from (0 = oldest).
+    //! \param[in] count The maximum number of elements to search through.
+    //! \return Logical index (0 = oldest) or npos if not found.
+    template <typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
+    [[nodiscard]] size_t search_char(unsigned char value, size_t start, size_t count = npos) const noexcept
+    {
+        return search_chars(std::array<unsigned char, 1>{value}, start, count);
     }
 
     //! \brief Reads a multi-byte value from the buffer.

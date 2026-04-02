@@ -28,12 +28,11 @@
 
 using namespace novatel::edie;
 
-[[nodiscard]] STATUS FramerBase::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
-                                          bool bMetadataOnly_)
+[[nodiscard]] STATUS FramerBase::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_, bool bMetadataOnly_)
 {
     if (pucFrameBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
-    // Dereferencing the pointer in the loop is expensive, so we cache the reference here
+    // Dereferencing the shared pointer is expensive, so we cache the reference here
     const auto& clInternalFrameBuffer = *pclMyBuffer;
     if (clInternalFrameBuffer.empty()) { return STATUS::BUFFER_EMPTY; }
 
@@ -45,36 +44,40 @@ using namespace novatel::edie;
         return STATUS::UNKNOWN;
     };
 
+    // --- Stage 1: Find sync byte(s) ---
     if (uiMyByteCount == 0)
     {
         size_t syncIndex = FindSync();
-        if (syncIndex == UCharFixedBuffer::npos) { return handleUnknown(static_cast<uint32_t>(std::min(clInternalFrameBuffer.size(), static_cast<size_t>(uiFrameBufferSize_)))); }
+        if (syncIndex == UCharFixedBuffer::npos)
+        {
+            return handleUnknown(static_cast<uint32_t>(std::min(clInternalFrameBuffer.size(), static_cast<size_t>(uiFrameBufferSize_))));
+        }
         if (syncIndex != 0) { return handleUnknown(static_cast<uint32_t>(syncIndex)); }
     }
 
-    FindFrameEndResult frameEndIndex = FindFrameEnd(uiMyByteCount);
-    stMetaData_.eFormat = frameEndIndex.eFormat;
-    if (uiFrameBufferSize_ < static_cast<uint32_t>(frameEndIndex.uiIndex)) {
-        stMetaData_.uiLength = static_cast<uint32_t>(frameEndIndex.uiIndex);
+    // --- Stage 2: Find end of candidate frame ---
+    FindFrameEndResult frameEnd = FindFrameEnd(uiMyByteCount);
+    stMetaData_.eFormat = frameEnd.eFormat;
+    if (uiFrameBufferSize_ < static_cast<uint32_t>(frameEnd.uiIndex))
+    {
+        stMetaData_.uiLength = static_cast<uint32_t>(frameEnd.uiIndex);
         return STATUS::BUFFER_FULL;
     }
 
-    uiMyByteCount = static_cast<uint32_t>(frameEndIndex.uiIndex);
+    // --- Stage 3: Validate candidate frame ---
+    uiMyByteCount = static_cast<uint32_t>(frameEnd.uiIndex);
     stMetaData_.uiLength = uiMyByteCount;
-    switch (frameEndIndex.eStatus)
+    switch (frameEnd.eStatus)
     {
-        case FindFrameEndResult::Status::COMPLETE:
-            if (size_t bytesToDiscard = Validate(frameEndIndex.uiIndex)) { return handleUnknown(static_cast<uint32_t>(bytesToDiscard)); }
-            break;
-        case FindFrameEndResult::Status::RESPONSE:
-            stMetaData_.bResponse = true;
-            break;
-        case FindFrameEndResult::Status::INCOMPLETE:
-            stMetaData_.uiLength = static_cast<uint32_t>(clInternalFrameBuffer.size());
-            return STATUS::INCOMPLETE;
-        case FindFrameEndResult::Status::INVALID: [[fallthrough]];
-        default:
-            return handleUnknown(static_cast<uint32_t>(frameEndIndex.uiIndex));
+    case FindFrameEndResult::Status::RESPONSE: stMetaData_.bResponse = true; [[fallthrough]];
+    case FindFrameEndResult::Status::COMPLETE:
+        if (size_t bytesToDiscard = Validate(frameEnd.uiIndex)) { return handleUnknown(static_cast<uint32_t>(bytesToDiscard)); }
+        break;
+    case FindFrameEndResult::Status::INCOMPLETE:
+        stMetaData_.uiLength = static_cast<uint32_t>(clInternalFrameBuffer.size());
+        return STATUS::INCOMPLETE;
+    case FindFrameEndResult::Status::INVALID: [[fallthrough]];
+    default: return handleUnknown(static_cast<uint32_t>(frameEnd.uiIndex));
     }
 
     if (!bMetadataOnly_)
@@ -82,6 +85,7 @@ using namespace novatel::edie;
         pclMyBuffer->copy_out(pucFrameBuffer_, stMetaData_.uiLength);
         pclMyBuffer->erase_begin(stMetaData_.uiLength);
         InitAttributes();
+        ResetState();
     }
 
     return STATUS::SUCCESS;

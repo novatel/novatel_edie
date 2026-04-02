@@ -21,7 +21,7 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file framer_ascii.hpp
+// ! \file framer_ascii_short.hpp
 // ===============================================================================
 
 #pragma once
@@ -32,22 +32,22 @@
 namespace novatel::edie::oem {
 
 //============================================================================
-//! \class FramerAscii
-//! \brief Search bytes for patterns that could be an OEM ASCII message.
+//! \class FramerAsciiShort
+//! \brief Search bytes for patterns that could be an OEM ASCII message with a short header.
 //============================================================================
-class FramerAscii : public FramerAsciiBase<HEADER_FORMAT::ASCII, OEM4_ASCII_SYNC, MAX_ASCII_MESSAGE_LENGTH>
+class FramerAsciiShort : public FramerAsciiBase<HEADER_FORMAT::SHORT_ASCII, OEM4_SHORT_ASCII_SYNC, MAX_SHORT_ASCII_MESSAGE_LENGTH>
 {
   public:
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerAscii class.
+    //! \brief A constructor for the FramerAsciiShort class.
     //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
     //----------------------------------------------------------------------------
-    FramerAscii(std::shared_ptr<UCharFixedBuffer> buffer);
+    FramerAsciiShort(std::shared_ptr<UCharFixedBuffer> buffer);
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerAscii class.
+    //! \brief A constructor for the FramerAsciiShort class.
     //----------------------------------------------------------------------------
-    FramerAscii();
+    FramerAsciiShort();
 };
 
 } // namespace novatel::edie::oem
