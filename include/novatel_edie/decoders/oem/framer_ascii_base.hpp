@@ -54,9 +54,14 @@ template <HEADER_FORMAT HeaderFormat, unsigned char SyncByte, size_t MaxMessageL
     //----------------------------------------------------------------------------
     //! \brief Find the index of the first sync byte in the internal buffer.
     //!
-    //! \return The index of the first sync byte if found, or UCharFixedBuffer::npos if not found.
+    //! \return The index of the first sync byte if found, or the minimum of the
+    //!     buffer size and the max lookahead if not found.
     //----------------------------------------------------------------------------
-    [[nodiscard]] size_t FindSync() const override { return pclMyBuffer->search_char(SyncByte, 0, MaxMessageLength); }
+    [[nodiscard]] size_t FindSync() const override
+    {
+        const auto syncIndex = pclMyBuffer->search_char(SyncByte, 0, MAX_LOOKAHEAD_BYTES);
+        return syncIndex == UCharFixedBuffer::npos ? std::min(pclMyBuffer->size(), MAX_LOOKAHEAD_BYTES) : syncIndex;
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Find the end of the candidate frame starting from the provided index.

@@ -63,6 +63,11 @@ class FramerBase
         size_t uiIndex{0};
     };
 
+    // The following constant defines a number of bytes that the framer should search through when looking for
+    // sync bytes. Custom framers may define their own max lookahead length, though empirical testing has
+    // shown the following value gives good performance when using the framer manager.
+    constexpr static size_t MAX_LOOKAHEAD_BYTES = 256;
+
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<UCharFixedBuffer> pclMyBuffer{std::make_shared<UCharFixedBuffer>()};
 
@@ -271,6 +276,13 @@ class FramerBase
     //! \return The number of bytes available in the internal circular buffer.
     //------------------------------------------------------------------------------
     [[nodiscard]] size_t GetAvailableSpace() const { return pclMyBuffer->available_space(); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the maximum number of bytes the framer will search through when looking for sync bytes.
+    //!
+    //! \return The maximum number of bytes the framer will search through when looking for sync bytes.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] static constexpr size_t GetMaxLookaheadBytes() noexcept { return MAX_LOOKAHEAD_BYTES; }
 
     //----------------------------------------------------------------------------
     //! \brief Allow FramerManager to access protected GetFrame method.

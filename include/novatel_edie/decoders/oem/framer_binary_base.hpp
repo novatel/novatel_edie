@@ -42,7 +42,11 @@ class FramerBinaryBase : public FramerBase
 
     [[nodiscard]] virtual std::array<unsigned char, 3> GetSyncByteArray() const noexcept = 0;
 
-    size_t FindSync() const override { return pclMyBuffer->search_chars(GetSyncByteArray(), 0, MaxMessageLength); }
+    size_t FindSync() const override
+    {
+        const auto syncIndex = pclMyBuffer->search_chars(GetSyncByteArray(), 0, MAX_LOOKAHEAD_BYTES);
+        return syncIndex == UCharFixedBuffer::npos ? std::min(pclMyBuffer->size(), MAX_LOOKAHEAD_BYTES) : syncIndex;
+    }
 
     FindFrameEndResult FindFrameEnd([[maybe_unused]] size_t start) const override
     {

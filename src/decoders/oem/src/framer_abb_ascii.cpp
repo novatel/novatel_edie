@@ -49,10 +49,11 @@ FramerAbbAscii::FramerAbbAscii(std::shared_ptr<UCharFixedBuffer> buffer) : Frame
 [[nodiscard]] size_t FramerAbbAscii::FindSync() const
 {
     const auto& clFrameBuffer = *pclMyBuffer;
-    auto syncIndex = clFrameBuffer.search_char(OEM4_ABBREV_ASCII_SYNC, 0, MAX_ASCII_MESSAGE_LENGTH);
-    while (syncIndex != UCharFixedBuffer::npos && clFrameBuffer.size() > syncIndex + 1 && clFrameBuffer[syncIndex + 1] == OEM4_ABBREV_ASCII_SEPARATOR)
+    auto syncIndex = clFrameBuffer.search_char(OEM4_ABBREV_ASCII_SYNC, 0, MAX_LOOKAHEAD_BYTES);
+    while (syncIndex != UCharFixedBuffer::npos && MAX_LOOKAHEAD_BYTES > syncIndex + 1 && clFrameBuffer.size() > syncIndex + 1 &&
+           clFrameBuffer[syncIndex + 1] == OEM4_ABBREV_ASCII_SEPARATOR)
     {
-        syncIndex = clFrameBuffer.search_char(OEM4_ABBREV_ASCII_SYNC, syncIndex + 1, MAX_ASCII_MESSAGE_LENGTH);
+        syncIndex = clFrameBuffer.search_char(OEM4_ABBREV_ASCII_SYNC, syncIndex + 1, MAX_LOOKAHEAD_BYTES - (syncIndex + 1));
     }
     return syncIndex;
 }
