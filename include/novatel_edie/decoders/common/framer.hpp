@@ -98,9 +98,10 @@ class FramerBase
     //----------------------------------------------------------------------------
     //! \brief Find the index of the first sync byte(s) in the internal buffer.
     //!
-    //! \return The index of the first sync byte(s) if found, or UCharFixedBuffer::npos if not found.
+    //! \return The index of the first sync byte(s) if found, or the minimum of the
+    //!     buffer size and the max lookahead if not found.
     //----------------------------------------------------------------------------
-    [[nodiscard]] virtual size_t FindSync() const { return UCharFixedBuffer::npos; };
+    [[nodiscard]] virtual size_t FindSync() const { return std::min(pclMyBuffer->size(), MAX_LOOKAHEAD_BYTES); }
 
     //----------------------------------------------------------------------------
     //! \brief Find the end of the candidate frame starting from the provided index.

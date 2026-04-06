@@ -47,12 +47,7 @@ using namespace novatel::edie;
     // --- Stage 1: Find sync byte(s) ---
     if (uiMyByteCount == 0)
     {
-        size_t syncIndex = FindSync();
-        if (syncIndex == UCharFixedBuffer::npos)
-        {
-            return handleUnknown(static_cast<uint32_t>(std::min(clInternalFrameBuffer.size(), static_cast<size_t>(uiFrameBufferSize_))));
-        }
-        if (syncIndex != 0) { return handleUnknown(static_cast<uint32_t>(syncIndex)); }
+        if (size_t syncIndex = FindSync()) { return handleUnknown(static_cast<uint32_t>(syncIndex)); }
     }
 
     // --- Stage 2: Find end of candidate frame ---
