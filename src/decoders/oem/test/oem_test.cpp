@@ -266,6 +266,39 @@ TYPED_TEST(AsciiFramerTest, ASCII_BYTE_BY_BYTE)
     ASSERT_EQ(stTestMetaData, stExpectedMetaData);
 }
 
+TYPED_TEST(AsciiFramerTest, ASCII_RXCONFIG_BYTE_BY_BYTE)
+{
+    unsigned char aucData[] = "#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,"
+                              "COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*"
+                              "ca0f5c51*71be1427\r\n";
+    uint32_t uiLogSize = sizeof(aucData) - 1;
+    uint32_t uiRemainingBytes = uiLogSize;
+
+    MetaDataStruct stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::ASCII;
+    MetaDataStruct stTestMetaData;
+
+    while (uiRemainingBytes > 1)
+    {
+        this->WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
+        uiRemainingBytes--;
+        // OEM Framer rewinds to start of CRC if incomplete
+        // OEM ASCII Framer always returns frame buffer size when message is incomplete
+        if (uiRemainingBytes >= 2 * OEM4_ASCII_CRC_LENGTH + 3 || std::is_same_v<TypeParam, FramerAscii>) { stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes; }
+
+        // OEM Framer rewinds to start of second CRC delim
+        if (uiRemainingBytes == OEM4_ASCII_CRC_LENGTH + 1 && std::is_same_v<TypeParam, Framer>) { stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes - 1; }
+
+        ASSERT_EQ(STATUS::INCOMPLETE, this->pclMyFramer->GetFrame(this->pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+        ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+    }
+
+    this->WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
+    stExpectedMetaData.uiLength = uiLogSize;
+    ASSERT_EQ(STATUS::SUCCESS, this->pclMyFramer->GetFrame(this->pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(stTestMetaData, stExpectedMetaData);
+}
+
 TYPED_TEST(AsciiFramerTest, ASCII_SEGMENTED)
 {
     constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
@@ -1337,6 +1370,34 @@ TEST_F(FramerManagerTest, ASCII_INADEQUATE_BUFFER)
 TEST_F(FramerManagerTest, ASCII_BYTE_BY_BYTE)
 {
     constexpr unsigned char aucData[] = "#BESTPOSA,COM1,0,83.5,FINESTEERING,2163,329760.000,02400000,b1f6,65535;SOL_COMPUTED,SINGLE,51.15043874397,-114.03066788586,1097.6822,-17.0000,WGS84,1.3648,1.1806,3.1112,\"\",0.000,0.000,18,18,18,0,00,02,11,01*c3194e35\r\n";
+    uint32_t uiLogSize = sizeof(aucData) - 1;
+    uint32_t uiRemainingBytes = uiLogSize;
+
+    MetaDataBase stExpectedMetaData;
+    stExpectedMetaData.eFormat = HEADER_FORMAT::ASCII;
+    MetaDataBase* stTestMetaData;
+
+    while (uiRemainingBytes > 1)
+    {
+        WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
+        uiRemainingBytes--;
+        stExpectedMetaData.uiLength = uiLogSize - uiRemainingBytes;
+
+        ASSERT_EQ(STATUS::INCOMPLETE, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+        compareMetaData(stExpectedMetaData, stTestMetaData);
+    }
+
+    WriteBytesToFramer(&aucData[uiLogSize - uiRemainingBytes], 1);
+    stExpectedMetaData.uiLength = uiLogSize;
+    ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    compareMetaData(stExpectedMetaData, stTestMetaData);
+}
+
+TEST_F(FramerManagerTest, ASCII_RXCONFIG_BYTE_BY_BYTE)
+{
+    unsigned char aucData[] = "#RXCONFIGA,COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;#INTERFACEMODEA,"
+                              "COM1,0,54.0,FINESTEERING,2172,155744.316,02010000,f702,16248;COM1,NOVATEL,NOVATEL,ON*"
+                              "ca0f5c51*71be1427\r\n";
     uint32_t uiLogSize = sizeof(aucData) - 1;
     uint32_t uiRemainingBytes = uiLogSize;
 
