@@ -55,7 +55,7 @@ FramerAbbAscii::FramerAbbAscii(std::shared_ptr<UCharFixedBuffer> buffer) : Frame
     {
         syncIndex = clFrameBuffer.search_char(OEM4_ABBREV_ASCII_SYNC, syncIndex + 1, MAX_LOOKAHEAD_BYTES - (syncIndex + 1));
     }
-    return syncIndex;
+    return syncIndex == UCharFixedBuffer::npos ? std::min(clFrameBuffer.size(), MAX_LOOKAHEAD_BYTES) : syncIndex;
 }
 
 [[nodiscard]] FramerBase::FindFrameEndResult FramerAbbAscii::FindFrameEnd(size_t start) const

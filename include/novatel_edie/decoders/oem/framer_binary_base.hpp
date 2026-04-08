@@ -53,6 +53,7 @@ class FramerBinaryBase : public FramerBase
 
     //----------------------------------------------------------------------------
     //! \brief Get the sync bytes that identify this binary message format.
+    //! \return An array containing the sync bytes.
     //----------------------------------------------------------------------------
     [[nodiscard]] virtual std::array<unsigned char, 3> GetSyncByteArray() const noexcept = 0;
 

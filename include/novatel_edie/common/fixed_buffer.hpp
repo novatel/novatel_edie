@@ -106,8 +106,12 @@ template <typename T, size_t N> class FixedBuffer
     }
 
     //! \brief Finds the first occurrence of a byte sequence in the buffer (logical order).
-    //!     If the buffer ends with a nonempty prefix of the sequence, the index of the beginning
-    //!     of the prefix is returned.
+    //!
+    //! \details If the buffer ends with a nonempty prefix of the sequence, the index of
+    //!          the beginning of the prefix is returned. This is needed so that a multi-byte
+    //!          sequence split across the search boundary can still be found (e.g. binary
+    //!          framer sync bytes).
+    //!
     //! \param[in] values The byte sequence to search for.
     //! \param[in] start The logical index to start the search from (0 = oldest).
     //! \param[in] count The maximum number of elements to search through.

@@ -198,7 +198,15 @@ TYPED_TEST(AsciiFramerTest, ASCII_SYNC_ERROR)
     // OEM Framer keeps searching for a valid frame until a complete valid frame is found or buffer is exhausted,
     // so it will discard all bytes. The ASCII OEM Framer returns when it exceeds the max message length and
     // discards only the sync byte.
-    this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(std::is_same_v<TypeParam, Framer> ? MAX_ASCII_MESSAGE_LENGTH : OEM4_ASCII_SYNC_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
+    if constexpr (std::is_same_v<TypeParam, Framer>)
+    {
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
+    }
+    else
+    {
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_ASCII_SYNC_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(static_cast<uint32_t>(FramerBase::GetMaxLookaheadBytes()), MAX_ASCII_MESSAGE_LENGTH);
+    }
 }
 
 TYPED_TEST(AsciiFramerTest, ASCII_BAD_CRC)
@@ -349,7 +357,15 @@ TYPED_TEST(BinaryFramerTest, BINARY_SYNC_ERROR)
     // OEM Framer keeps searching for a valid frame until a complete valid frame is found or buffer is exhausted,
     // so it will discard all bytes. The Binary OEM Framer returns once the candidate frame exceeds the max message
     // length and discards only the sync bytes.
-    this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(std::is_same_v<TypeParam, Framer> ? MAX_BINARY_MESSAGE_LENGTH : OEM4_BINARY_SYNC_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
+    if constexpr (std::is_same_v<TypeParam, Framer>)
+    {
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_BINARY_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
+    }
+    else
+    {
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_BINARY_SYNC_LENGTH, MAX_BINARY_MESSAGE_LENGTH);
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(static_cast<uint32_t>(FramerBase::GetMaxLookaheadBytes()), MAX_BINARY_MESSAGE_LENGTH);
+    }
 }
 
 TYPED_TEST(BinaryFramerTest, BINARY_BAD_CRC)
@@ -482,7 +498,15 @@ TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_INCOMPLETE)
 TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_SYNC_ERROR)
 {
     this->WriteFileStreamToFramer("short_ascii_sync_error.ASC");
-    this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(std::is_same_v<TypeParam, Framer> ? MAX_SHORT_ASCII_MESSAGE_LENGTH : OEM4_ASCII_SYNC_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    if constexpr (std::is_same_v<TypeParam, Framer>)
+    {
+         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    }
+    else
+    {
+         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_ASCII_SYNC_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH);
+         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(static_cast<uint32_t>(FramerBase::GetMaxLookaheadBytes()), MAX_SHORT_ASCII_MESSAGE_LENGTH);
+    }
 }
 
 TYPED_TEST(ShortAsciiFramerTest, SHORT_ASCII_BAD_CRC)
@@ -622,7 +646,15 @@ TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_BUFFER_FULL)
 TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_SYNC_ERROR)
 {
     this->WriteFileStreamToFramer("short_binary_sync_error.BIN");
-    this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(std::is_same_v<TypeParam, Framer> ? MAX_SHORT_BINARY_MESSAGE_LENGTH : OEM4_BINARY_SYNC_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    if constexpr (std::is_same_v<TypeParam, Framer>)
+    {
+         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_SHORT_BINARY_MESSAGE_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    }
+    else
+    {
+         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_BINARY_SYNC_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH);
+         this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(static_cast<uint32_t>(FramerBase::GetMaxLookaheadBytes()), MAX_SHORT_BINARY_MESSAGE_LENGTH);
+    }
 }
 
 TYPED_TEST(ShortBinaryFramerTest, SHORT_BINARY_BAD_CRC)
@@ -874,7 +906,15 @@ TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_BUFFER_FULL)
 TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_SYNC_ERROR)
 {
     this->WriteFileStreamToFramer("abbreviated_ascii_sync_error.ASC");
-    this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(std::is_same_v<TypeParam, Framer> ? MAX_ASCII_MESSAGE_LENGTH : OEM4_ASCII_SYNC_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
+    if constexpr (std::is_same_v<TypeParam, Framer>)
+    {
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(MAX_ASCII_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
+    }
+    else
+    {
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(OEM4_ASCII_SYNC_LENGTH, MAX_ASCII_MESSAGE_LENGTH);
+        this->template FramerHelper<HEADER_FORMAT::UNKNOWN, STATUS::UNKNOWN>(static_cast<uint32_t>(FramerBase::GetMaxLookaheadBytes()), MAX_ASCII_MESSAGE_LENGTH);
+    }
 }
 
 TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_INADEQUATE_BUFFER)

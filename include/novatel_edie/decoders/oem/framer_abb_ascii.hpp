@@ -43,7 +43,7 @@ class FramerAbbAscii : public FramerBase
     //!
     //! \return The index of the first sync byte if found, or UCharFixedBuffer::npos if not found.
     //----------------------------------------------------------------------------
-    size_t FindSync() const override;
+    [[nodiscard]] size_t FindSync() const override;
 
     //----------------------------------------------------------------------------
     //! \brief Find the end of the candidate frame starting from the provided index.
@@ -58,7 +58,7 @@ class FramerAbbAscii : public FramerBase
     //!
     //! \see FramerBase::FindFrameEndResult for details on the return struct.
     //----------------------------------------------------------------------------
-    FindFrameEndResult FindFrameEnd(size_t start) const override;
+    [[nodiscard]] FindFrameEndResult FindFrameEnd(size_t start) const override;
 
     //----------------------------------------------------------------------------
     //! \brief Check if the characters at the start of the frame buffer fit the
@@ -68,10 +68,17 @@ class FramerAbbAscii : public FramerBase
     [[nodiscard]] bool IsAbbrevAsciiResponse() const
     {
         const auto& clFrameBuffer = *pclMyBuffer;
-        return clFrameBuffer.search_chars(std::array<unsigned char, 2>{'O', 'K'}, OEM4_ASCII_SYNC_LENGTH, 2) == OEM4_ASCII_SYNC_LENGTH ||
-               clFrameBuffer.search_chars(std::array<unsigned char, 5>{'E', 'R', 'R', 'O', 'R'}, OEM4_ASCII_SYNC_LENGTH, 5) == OEM4_ASCII_SYNC_LENGTH;
+        return (clFrameBuffer.size() > 2 && std::memcmp(clFrameBuffer.data() + 1, "OK", 2) == 0) ||
+               (clFrameBuffer.size() > 5 && std::memcmp(clFrameBuffer.data() + 1, "ERROR", 5) == 0);
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Check if the line beginning at the provided index fits the format of
+    //! an abbreviated ASCII body line (i.e. starts with "< ").
+    //! \param index The index of the beginning of the line to check.
+    //! \pre pclMyBuffer->size() > index + 1
+    //! \return true if the line is an abbreviated ASCII body line, false otherwise.
+    //----------------------------------------------------------------------------
     [[nodiscard]] bool IsBodyLine(size_t index) const
     {
         const auto& clFrameBuffer = *pclMyBuffer;
