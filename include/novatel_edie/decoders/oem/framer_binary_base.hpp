@@ -34,6 +34,11 @@ namespace novatel::edie::oem {
 
 //============================================================================
 //! \class FramerBinaryBase
+//! \tparam HeaderFormat The header format enum value associated with the binary message type.
+//! \tparam HeaderLength The length of the binary message header in bytes.
+//! \tparam MessageLengthIndex The index within the header at which the message length field is located.
+//! \tparam MessageLengthT The type of the message length field.
+//! \tparam MaxMessageLength The maximum allowed length of a message frame.
 //! \brief Search bytes for patterns that could be an OEM binary message.
 //============================================================================
 template <HEADER_FORMAT HeaderFormat, size_t HeaderLength, size_t MessageLengthIndex, typename MessageLengthT, size_t MaxMessageLength>

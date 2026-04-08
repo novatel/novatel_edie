@@ -35,6 +35,9 @@ namespace novatel::edie::oem {
 
 //============================================================================
 //! \class FramerAsciiBase
+//! \tparam HeaderFormat The header format enum value associated with the ASCII message type.
+//! \tparam SyncByte The byte that indicates the start of a message frame.
+//! \tparam MaxMessageLength The maximum allowed length of a message frame.
 //! \brief Search bytes for patterns that could be an OEM ASCII message.
 //============================================================================
 template <HEADER_FORMAT HeaderFormat, unsigned char SyncByte, size_t MaxMessageLength> class FramerAsciiBase : public FramerBase
@@ -103,11 +106,10 @@ template <HEADER_FORMAT HeaderFormat, unsigned char SyncByte, size_t MaxMessageL
     [[nodiscard]] size_t Validate(size_t frameEnd) const override
     {
         const auto& clFrameBuffer = *pclMyBuffer;
-        char acCrc[OEM4_ASCII_CRC_LENGTH + 1];
-        std::memcpy(acCrc, clFrameBuffer.data() + frameEnd - OEM4_ASCII_CRC_LENGTH - 2, OEM4_ASCII_CRC_LENGTH);
-
+        const auto* pCrcStart = reinterpret_cast<const char*>(clFrameBuffer.data() + frameEnd - OEM4_ASCII_CRC_LENGTH - 2);
         uint32_t uiMessageCrc = 0;
-        auto result = std::from_chars(acCrc, acCrc + OEM4_ASCII_CRC_LENGTH, uiMessageCrc, 16);
+
+        auto result = std::from_chars(pCrcStart, pCrcStart + OEM4_ASCII_CRC_LENGTH, uiMessageCrc, 16);
         auto uiCalcCrc = CalculateBlockCrc32(clFrameBuffer.data() + OEM4_ASCII_SYNC_LENGTH,
                                              static_cast<uint32_t>(frameEnd - OEM4_ASCII_SYNC_LENGTH - OEM4_ASCII_CRC_LENGTH - 3));
         return result.ec == std::errc() && uiCalcCrc == uiMessageCrc ? 0 : OEM4_ASCII_SYNC_LENGTH;
