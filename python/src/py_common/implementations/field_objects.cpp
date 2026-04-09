@@ -15,21 +15,19 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db,
-                                                    std::string parent, bool has_ptype)
+PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db)
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
         // Handle Enums
-        const std::string& enumId = static_cast<const EnumField*>(field.fieldDef.get())->enumId;
-        auto it = parent_db->GetEnumsByIdDict().find(enumId);
-        if (it == parent_db->GetEnumsByIdDict().end())
+        const auto* enumField = static_cast<const EnumField*>(field.fieldDef.get());
+        const EnumDefinition* enumDef = parent_db->GetEnumDefId(enumField->enumId).get();
+        nb::object enum_type = parent_db->GetEnumType(enumField->enumDef.get());
+        if (enum_type.is_none())
         {
-            throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumId +
+            throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumField->enumId +
                                      "' not found in the JSON database");
         }
-        const EnumDefinition* enumDef = parent_db->GetEnumDefId(enumId).get();
-        nb::object enum_type = it->second;
         return std::visit(
             [&](auto&& value) {
                 using T = std::decay_t<decltype(value)>;
@@ -54,28 +52,8 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
         else if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
             // Handle Field Arrays
-            nb::handle field_ptype;
-            std::string field_name;
-            if (has_ptype)
-            {
-                // If a parent type name is provided, get a field type based on the parent and field name
-                field_name = parent + "_" + field.fieldDef->name + "_Field";
-                try
-                {
-                    field_ptype = parent_db->GetFieldsByNameDict().at(field_name);
-                }
-                catch (const std::out_of_range& e)
-                {
-                    // This case should never happen, if it does there is a bug
-                    throw std::runtime_error("Field type not found for " + field_name);
-                }
-            }
-            else
-            {
-                // If field has no ptype, use the generic "Field" type
-                field_name = std::move(parent);
-                field_ptype = nb::type<PyField>();
-            }
+            nb::handle field_ptype = parent_db->GetFieldType(field.fieldDef.get());
+            if (field_ptype.is_none()) { throw py_common::FailureException("Message subfield has an unrecognized type."); }
 
             // Create an appropriate PyField instance for each subfield in the array
             std::vector<nb::object> sub_values;
@@ -85,7 +63,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
                 nb::object pyinst = nb::inst_alloc(field_ptype);
                 PyField* cinst = nb::inst_ptr<PyField>(pyinst);
                 const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-                new (cinst) PyField(field_name, has_ptype, message_subfield, parent_db);
+                new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parent_db);
                 nb::inst_mark_ready(pyinst);
                 sub_values.push_back(pyinst);
             }
@@ -109,7 +87,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
             }
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
-            for (const auto& f : message_field) { sub_values.push_back(py_common::convert_field(f, parent_db, parent, has_ptype)); }
+            for (const auto& f : message_field) { sub_values.push_back(py_common::convert_field(f, parent_db)); }
             return nb::cast(sub_values);
         }
     }
@@ -141,7 +119,7 @@ PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
                 std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
                 cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
             }
-            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parentDb, this->name, this->hasPtype);
+            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parentDb);
         }
     }
     return cached_values_;
@@ -216,18 +194,3 @@ PYCOMMON_EXPORT nb::object PyField::getitem(nb::str field_name) const { return t
 PYCOMMON_EXPORT bool PyField::contains(nb::str field_name) const { return to_shallow_dict().contains(std::move(field_name)); }
 
 PYCOMMON_EXPORT size_t PyField::len() const { return fields.size(); }
-
-PYCOMMON_EXPORT std::string PyField::repr() const
-{
-    std::stringstream repr;
-    repr << name << "(";
-    bool first = true;
-    for (const auto& [field_name, value] : to_shallow_dict())
-    {
-        if (!first) { repr << ", "; }
-        first = false;
-        repr << nb::str("{}={!r}").format(field_name, value).c_str();
-    }
-    repr << ")";
-    return repr.str();
-}

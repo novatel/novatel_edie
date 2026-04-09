@@ -5,7 +5,6 @@
 #include "py_oem/framer.hpp"
 #include "py_oem/init_bindings.hpp"
 
-
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
@@ -24,7 +23,7 @@ nb::tuple oem::PyFramer::PyGetFrame(uint32_t buffer_size)
         metadata_copy = oem::MetaDataStruct(metadata);
         metadata = oem::MetaDataStruct();
         return nb::make_tuple(nb::bytes(buffer.data(), metadata_copy.uiLength), metadata_copy);
-    default: throw_exception_from_status(status);
+    default: throw_exception_from_failing_status(status);
     }
 }
 

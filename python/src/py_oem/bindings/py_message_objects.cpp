@@ -89,12 +89,12 @@ py_common::PyMessageData py_oem::PyEncodableField::to_json() { return PyEncode(E
 
 #pragma region Message Constructor Functions
 
-nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHeader& header, py_oem::PyMessageDatabase::ConstPtr database)
+nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHeader& header)
 {
     nb::handle message_pytype = nb::type<py_oem::PyUnknownMessage>();
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     py_oem::PyUnknownMessage* message_cinst = nb::inst_ptr<py_oem::PyUnknownMessage>(message_pyinst);
-    new (message_cinst) py_oem::PyUnknownMessage(database, header, data);
+    new (message_cinst) py_oem::PyUnknownMessage(header, data);
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;
 }
@@ -103,11 +103,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
                                            py_oem::PyMessageDatabase::ConstPtr database)
 {
 
-    nb::handle message_pytype;
-
-    const std::string message_name = metadata.messageName;
-
-    bool has_ptype = true;
+    auto msgDef = database->GetMsgDef(metadata.usMessageId);
 
     if (metadata.bResponse)
     {
@@ -115,34 +111,23 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
         nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
         bool is_complete = (metadata.eFormat != HEADER_FORMAT::ABB_ASCII);
-        new (response_cinst) PyResponse(message_name, message_fields, database, header, is_complete);
+        new (response_cinst) PyResponse(message_fields, database, header, is_complete, msgDef.get(), metadata.uiMessageCrc);
         nb::inst_mark_ready(response_pyinst);
 
         return response_pyinst;
     }
-    try
+
+    PyMessageDatabaseCore* coreDatabase = database->GetCoreDatabase().get();
+    nb::handle message_pytype = coreDatabase->GetMessageType(metadata.usMessageId, metadata.uiMessageCrc);
+    if (message_pytype.is_none())
     {
-        py_common::PyMessageType message_type_struct = database->GetMessagesByNameDict().at(message_name);
-        if (message_type_struct.crc == metadata.uiMessageCrc)
-        {
-            // If the CRCs match, use the specific message type
-            message_pytype = message_type_struct.python_type;
-        }
-        else
-        {
-            // If the CRCs don't match, use the generic "CompleteMessage" type
-            message_pytype = nb::type<PyMessage>();
-            has_ptype = false;
-        }
-    }
-    catch (const std::out_of_range& e)
-    {
-        // This case should never happen, if it does there is a bug
-        throw std::runtime_error("Message name '" + message_name + "' not found in the JSON database");
+        // Fallback to latest CRC
+        const MessageDefinition* def = coreDatabase->GetMsgDef(metadata.usMessageId).get();
+        message_pytype = database->GetCoreDatabase()->GetMessageType(def, def->latestMessageCrc);
     }
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
-    new (message_cinst) PyMessage(message_name, has_ptype, std::move(message_fields), database, header);
+    new (message_cinst) PyMessage(std::move(message_fields), database, header, msgDef.get(), metadata.uiMessageCrc);
 
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;
@@ -317,7 +302,7 @@ void py_oem::init_message_objects(nb::module_& m)
                 A dictionary representation of the message.
             )doc")
         .def_ro("header", &py_oem::PyMessage::header, "The header of the message.")
-        .def_ro("name", &py_oem::PyMessage::name, "The type of message it is.");
+        .def_prop_ro("name", &py_oem::PyEncodableField::name, "The type of message it is.");
 
     auto& familyTypes = py_common::GetMessageFamilyTypes();
     familyTypes["OEM"] = nb::type<py_oem::PyMessage>();
@@ -364,7 +349,7 @@ void py_oem::init_message_objects(nb::module_& m)
                          if (!self.complete) { return nb::none(); }
                          return nb::cast(self.header);
                      })
-        .def_ro("name", &py_oem::PyResponse::name, "The type of message it is.")
+        .def_prop_ro("name", &py_oem::PyEncodableField::name, "The type of message it is.")
         .def_prop_ro("response_id", &py_oem::PyResponse::GetResponseId)
         .def_prop_ro("response_string", &py_oem::PyResponse::GetResponseString)
         // typehints in stubgen_pattern.txt
