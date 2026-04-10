@@ -999,10 +999,11 @@ TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_ALTERNATING_RESPONSE_MESSAGE)
     constexpr unsigned char aucDataResponse[] = "<ERROR:Message is invalid for this model\r\n";
     constexpr unsigned char aucDataMessage[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
                                                "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n";
-    MetaDataStruct stExpectedMetaDataResponse, stExpectedMetaDataMessage;
+    MetaDataStruct stExpectedMetaDataResponse;
     stExpectedMetaDataResponse.bResponse = true;
     stExpectedMetaDataResponse.uiLength = sizeof(aucDataResponse) - 1;
     stExpectedMetaDataResponse.eFormat = HEADER_FORMAT::ABB_ASCII;
+    MetaDataStruct stExpectedMetaDataMessage;
     stExpectedMetaDataMessage.bResponse = false;
     stExpectedMetaDataMessage.uiLength = sizeof(aucDataMessage) - 1;
     stExpectedMetaDataMessage.eFormat = HEADER_FORMAT::ABB_ASCII;
@@ -1952,10 +1953,11 @@ TEST_F(FramerManagerTest, ABBREV_ASCII_ALTERNATING_RESPONSE_MESSAGE)
     constexpr unsigned char aucDataResponse[] = "<ERROR:Message is invalid for this model\r\n";
     constexpr unsigned char aucDataMessage[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
                                                "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n";
-    MetaDataBase stExpectedMetaDataResponse, stExpectedMetaDataMessage;
+    MetaDataBase stExpectedMetaDataResponse;
     stExpectedMetaDataResponse.bResponse = true;
     stExpectedMetaDataResponse.uiLength = sizeof(aucDataResponse) - 1;
     stExpectedMetaDataResponse.eFormat = HEADER_FORMAT::ABB_ASCII;
+    MetaDataBase stExpectedMetaDataMessage;
     stExpectedMetaDataMessage.bResponse = false;
     stExpectedMetaDataMessage.uiLength = sizeof(aucDataMessage) - 1;
     stExpectedMetaDataMessage.eFormat = HEADER_FORMAT::ABB_ASCII;
