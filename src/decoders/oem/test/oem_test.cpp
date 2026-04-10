@@ -994,6 +994,36 @@ TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_RESPONSE)
     ASSERT_EQ(stTestMetaData, stExpectedMetaData);
 }
 
+TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_ALTERNATING_RESPONSE_MESSAGE)
+{
+    constexpr unsigned char aucDataResponse[] = "<ERROR:Message is invalid for this model\r\n";
+    constexpr unsigned char aucDataMessage[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
+                                               "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n";
+    MetaDataStruct stExpectedMetaDataResponse, stExpectedMetaDataMessage;
+    stExpectedMetaDataResponse.bResponse = true;
+    stExpectedMetaDataResponse.uiLength = sizeof(aucDataResponse) - 1;
+    stExpectedMetaDataResponse.eFormat = HEADER_FORMAT::ABB_ASCII;
+    stExpectedMetaDataMessage.bResponse = false;
+    stExpectedMetaDataMessage.uiLength = sizeof(aucDataMessage) - 1;
+    stExpectedMetaDataMessage.eFormat = HEADER_FORMAT::ABB_ASCII;
+
+    MetaDataStruct stTestMetaData;
+    this->WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
+    this->WriteBytesToFramer(aucDataMessage, sizeof(aucDataMessage) - 1);
+    this->WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
+    this->WriteBytesToFramer(aucDataMessage, sizeof(aucDataMessage) - 1);
+    this->WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
+    
+    ASSERT_EQ(STATUS::SUCCESS, this->pclMyFramer->GetFrame(this->pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(stTestMetaData, stExpectedMetaDataResponse);
+    ASSERT_EQ(STATUS::SUCCESS, this->pclMyFramer->GetFrame(this->pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(stTestMetaData, stExpectedMetaDataMessage);
+    ASSERT_EQ(STATUS::SUCCESS, this->pclMyFramer->GetFrame(this->pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(stTestMetaData, stExpectedMetaDataResponse);
+    ASSERT_EQ(STATUS::SUCCESS, this->pclMyFramer->GetFrame(this->pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(stTestMetaData, stExpectedMetaDataMessage);
+}
+
 TYPED_TEST(AbbAsciiFramerTest, ABBREV_ASCII_SWAPPED)
 {
     constexpr unsigned char aucData[] = "<     64 60 B1D2 4 e2410e75b821e2664201b02000b022816c36140020001ddde0000000\r\n"
@@ -1915,6 +1945,36 @@ TEST_F(FramerManagerTest, ABBREV_ASCII_RESPONSE)
     stExpectedMetaData.uiLength = sizeof(aucData) - 1;
     ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
     ASSERT_EQ(*stTestMetaData, stExpectedMetaData);
+}
+
+TEST_F(FramerManagerTest, ABBREV_ASCII_ALTERNATING_RESPONSE_MESSAGE)
+{
+    constexpr unsigned char aucDataResponse[] = "<ERROR:Message is invalid for this model\r\n";
+    constexpr unsigned char aucDataMessage[] = "<BESTPOS COM1 0 72.0 FINESTEERING 2215 148248.000 02000020 cdba 32768\r\n"
+                                               "<     SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n";
+    MetaDataBase stExpectedMetaDataResponse, stExpectedMetaDataMessage;
+    stExpectedMetaDataResponse.bResponse = true;
+    stExpectedMetaDataResponse.uiLength = sizeof(aucDataResponse) - 1;
+    stExpectedMetaDataResponse.eFormat = HEADER_FORMAT::ABB_ASCII;
+    stExpectedMetaDataMessage.bResponse = false;
+    stExpectedMetaDataMessage.uiLength = sizeof(aucDataMessage) - 1;
+    stExpectedMetaDataMessage.eFormat = HEADER_FORMAT::ABB_ASCII;
+
+    MetaDataBase* stTestMetaData;
+    WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
+    WriteBytesToFramer(aucDataMessage, sizeof(aucDataMessage) - 1);
+    WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
+    WriteBytesToFramer(aucDataMessage, sizeof(aucDataMessage) - 1);
+    WriteBytesToFramer(aucDataResponse, sizeof(aucDataResponse) - 1);
+    
+    ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(*stTestMetaData, stExpectedMetaDataResponse);
+    ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(*stTestMetaData, stExpectedMetaDataMessage);
+    ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(*stTestMetaData, stExpectedMetaDataResponse);
+    ASSERT_EQ(STATUS::SUCCESS, pclMyFramerManager->GetFrame(pucMyTestFrameBuffer.get(), MAX_ASCII_MESSAGE_LENGTH, stTestMetaData));
+    ASSERT_EQ(*stTestMetaData, stExpectedMetaDataMessage);
 }
 
 TEST_F(FramerManagerTest, ABBREV_ASCII_SWAPPED)
