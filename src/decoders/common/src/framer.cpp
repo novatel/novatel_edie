@@ -53,6 +53,7 @@ using namespace novatel::edie;
     // --- Stage 2: Find end of candidate frame ---
     FindFrameEndResult frameEnd = FindFrameEnd(uiMyByteCount);
     stMetaData_.eFormat = frameEnd.eFormat;
+    stMetaData_.bResponse = (frameEnd.eStatus == FindFrameEndResult::Status::RESPONSE);
     if (uiFrameBufferSize_ < static_cast<uint32_t>(frameEnd.uiIndex))
     {
         stMetaData_.uiLength = static_cast<uint32_t>(frameEnd.uiIndex);
@@ -64,7 +65,7 @@ using namespace novatel::edie;
     stMetaData_.uiLength = uiMyByteCount;
     switch (frameEnd.eStatus)
     {
-    case FindFrameEndResult::Status::RESPONSE: stMetaData_.bResponse = true; [[fallthrough]];
+    case FindFrameEndResult::Status::RESPONSE: [[fallthrough]];
     case FindFrameEndResult::Status::COMPLETE:
         if (size_t bytesToDiscard = Validate(frameEnd.uiIndex)) { return handleUnknown(static_cast<uint32_t>(bytesToDiscard)); }
         break;
