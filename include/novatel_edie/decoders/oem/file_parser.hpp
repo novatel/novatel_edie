@@ -35,9 +35,9 @@ namespace novatel::edie::oem {
 //! \class FileParser
 //! \brief Frame, decode and re-encode OEM logs from an InputFileStream.
 //============================================================================
-class FileParser : public FileParserBase<Parser, Filter, MetaDataStruct, IntermediateHeader>
+class FileParser : public FileParserBase<oem::Parser, oem::Filter, oem::MetaDataStruct, oem::IntermediateHeader>
 {
-    using Base = FileParserBase<Parser, Filter, MetaDataStruct, IntermediateHeader>;
+    using Base = FileParserBase<oem::Parser, oem::Filter, oem::MetaDataStruct, oem::IntermediateHeader>;
 
   public:
     //! NOTE: The following constructors prevent this class from ever being

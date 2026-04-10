@@ -315,15 +315,15 @@ template <typename Derived> class EncoderBase
                                                   : arrayFieldDef->arrayLengthFieldSize;
                         switch (lenBytes)
                         {
+                        case 0: [[fallthrough]]; // By default, if arrayLengthFieldSize is not specified, encode array length using 4 bytes
+                        case 4:
+                            if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vFcCurrentVectorField.size()))) { return false; }
+                            break;
                         case 1:
                             if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint8_t>(vFcCurrentVectorField.size()))) { return false; }
                             break;
                         case 2:
                             if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint16_t>(vFcCurrentVectorField.size()))) { return false; }
-                            break;
-                        case 0: [[fallthrough]]; // By default, if arrayLengthFieldSize is not specified, encode array length using 4 bytes
-                        case 4:
-                            if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vFcCurrentVectorField.size()))) { return false; }
                             break;
                         default: return false;
                         }

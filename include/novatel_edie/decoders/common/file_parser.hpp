@@ -57,8 +57,7 @@ template <typename ParserT, typename FilterT, typename MetaDataT, typename Inter
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData{};
         pclMyInputStream->read(cData.data(), cData.size());
         size_t ullBytesRead = pclMyInputStream->gcount();
-        const auto uiBytesRead = static_cast<uint32_t>(ullBytesRead);
-        return ullBytesRead > 0 && clMyParser.Write(reinterpret_cast<unsigned char*>(cData.data()), uiBytesRead) == uiBytesRead;
+        return ullBytesRead > 0 && clMyParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ullBytesRead) == ullBytesRead;
     }
 
     //----------------------------------------------------------------------------
