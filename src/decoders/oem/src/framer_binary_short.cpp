@@ -21,38 +21,29 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file framer_binary.hpp
+// ! \file framer_binary_short.cpp
 // ===============================================================================
 
-#pragma once
+#include "novatel_edie/decoders/oem/framer_binary_short.hpp"
 
-#include "novatel_edie/decoders/oem/framer_binary_base.hpp"
+#include "novatel_edie/decoders/common/framer_registration.hpp"
 
-namespace novatel::edie::oem {
+using namespace novatel::edie;
+using namespace novatel::edie::oem;
 
-//============================================================================
-//! \class FramerBinary
-//! \brief Search bytes for patterns that could be an OEM binary message.
-//============================================================================
-class FramerBinary : public FramerBinaryBase<HEADER_FORMAT::BINARY, OEM4_BINARY_HEADER_LENGTH, 8U, uint16_t, MAX_BINARY_MESSAGE_LENGTH>
+// Register the OEM binary short framer with the framer factory
+REGISTER_FRAMER(OEM_BINARY_SHORT, FramerBinaryShort, MetaDataStruct)
+
+//----------------------------------------------------------------------------
+//! \brief A constructor for the FramerBinaryShort class.
+//----------------------------------------------------------------------------
+FramerBinaryShort::FramerBinaryShort() : FramerBinaryBase("novatel_framer_binary_short") {}
+
+//----------------------------------------------------------------------------
+//! \brief A constructor for the FramerBinaryShort class.
+//! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
+//----------------------------------------------------------------------------
+FramerBinaryShort::FramerBinaryShort(std::shared_ptr<UCharFixedBuffer> buffer) : FramerBinaryBase(buffer, "novatel_framer_binary_short")
 {
-  protected:
-    [[nodiscard]] std::array<unsigned char, 3> GetSyncByteArray() const noexcept override
-    {
-        return {OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3};
-    }
-
-  public:
-    //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerBinary class.
-    //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
-    //----------------------------------------------------------------------------
-    FramerBinary(std::shared_ptr<UCharFixedBuffer> buffer);
-
-    //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerBinary class.
-    //----------------------------------------------------------------------------
-    FramerBinary();
-};
-
-} // namespace novatel::edie::oem
+    pclMyLogger->info("FramerBinaryShort initialized");
+}

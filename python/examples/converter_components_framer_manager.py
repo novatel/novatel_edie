@@ -60,7 +60,7 @@ def main():
     input_file, encode_format = handle_args(logger)
 
     # Set up the EDIE components
-    framer_manager = ne.FramerManager(["OEM"])
+    framer_manager = ne.FramerManager(["OEM_ASCII", "OEM_ABB_ASCII", "OEM_BINARY"])
     framer_manager.report_unknown_bytes = True
     decoder = oem.Decoder()
     my_filter = oem.Filter()

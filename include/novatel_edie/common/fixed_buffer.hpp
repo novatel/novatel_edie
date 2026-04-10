@@ -27,6 +27,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <memory>
@@ -104,6 +105,47 @@ template <typename T, size_t N> class FixedBuffer
         return count;
     }
 
+    //! \brief Finds the first occurrence of a byte sequence in the buffer (logical order).
+    //!
+    //! \details If the buffer ends with a nonempty prefix of the sequence, the index of
+    //!          the beginning of the prefix is returned. This is needed so that a multi-byte
+    //!          sequence split across the search boundary can still be found (e.g. binary
+    //!          framer sync bytes).
+    //!
+    //! \param[in] values The byte sequence to search for.
+    //! \param[in] start The logical index to start the search from (0 = oldest).
+    //! \param[in] count The maximum number of elements to search through.
+    //! \return Logical index (0 = oldest) or npos if not found.
+    template <size_t M, typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
+    [[nodiscard]] size_t search_chars(const std::array<unsigned char, M>& values, size_t start, size_t count = npos) const noexcept
+    {
+        static_assert(M > 0, "search_chars requires a non-empty search pattern");
+
+        if (start >= sz) { return npos; }
+        count = std::min(count, sz - start);
+
+        const unsigned char* data = buffer.get() + head;
+        const unsigned char* begin = data + start;
+        const unsigned char* end = begin + count;
+
+        const unsigned char first = values[0];
+        const unsigned char* pos = begin;
+
+        while (pos < end)
+        {
+            const void* found = std::memchr(pos, first, static_cast<size_t>(end - pos));
+            if (found == nullptr) { return npos; }
+
+            pos = static_cast<const unsigned char*>(found);
+            if constexpr (M == 1) { return static_cast<size_t>(pos - data); }
+            else if (std::memcmp(pos, values.data(), std::min(M, static_cast<size_t>(end - pos))) == 0) { return static_cast<size_t>(pos - data); }
+
+            ++pos;
+        }
+
+        return npos;
+    }
+
     //! \brief Finds the first occurrence of a byte value in the buffer (logical order).
     //! \param[in] value The byte value to search for.
     //! \param[in] start The logical index to start the search from (0 = oldest).
@@ -112,14 +154,7 @@ template <typename T, size_t N> class FixedBuffer
     template <typename U = T, std::enable_if_t<std::is_same_v<U, unsigned char>, int> = 0>
     [[nodiscard]] size_t search_char(unsigned char value, size_t start, size_t count = npos) const noexcept
     {
-        if (start >= sz) { return npos; }
-        count = std::min(count, sz - start);
-        if (count == 0) { return npos; }
-
-        const void* ptr = std::memchr(buffer.get() + head + start, value, count);
-        if (ptr != nullptr) { return static_cast<size_t>(static_cast<const unsigned char*>(ptr) - (buffer.get() + head + start)) + start; }
-
-        return npos;
+        return search_chars(std::array<unsigned char, 1>{value}, start, count);
     }
 
     //! \brief Reads a multi-byte value from the buffer.

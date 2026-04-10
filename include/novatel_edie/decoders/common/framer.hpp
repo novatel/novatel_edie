@@ -24,8 +24,7 @@
 // ! \file framer.hpp
 // ===============================================================================
 
-#ifndef FRAMER_HPP
-#define FRAMER_HPP
+#pragma once
 
 #include "novatel_edie/common/fixed_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
@@ -41,6 +40,34 @@ namespace novatel::edie {
 class FramerBase
 {
   protected:
+    //----------------------------------------------------------------------------
+    //! \struct FindFrameEndResult
+    //! \brief A struct to hold the result of the FindFrameEnd method
+    //! \see FramerBase::FindFrameEnd
+    //----------------------------------------------------------------------------
+    struct FindFrameEndResult
+    {
+        enum class Status
+        {
+            COMPLETE,   // A complete message frame was found
+            RESPONSE,   // A complete response frame was found
+            INCOMPLETE, // A potential frame was found, but the buffer ended before the end of the frame
+            INVALID     // The buffer size exceeded the max message length before finding a complete frame
+        };
+        Status eStatus{Status::INVALID};
+        HEADER_FORMAT eFormat{HEADER_FORMAT::UNKNOWN};
+
+        // If eStatus is COMPLETE, RESPONSE, or INVALID, then uiIndex stores the index following the last byte
+        // of the message, response, or unknown data, respectively. If eStatus is INCOMPLETE, then uiIndex stores
+        // the index from which the search should be resumed when more data is available.
+        size_t uiIndex{0};
+    };
+
+    // The following constant defines a number of bytes that the framer should search through when looking for
+    // sync bytes. Custom framers may define their own max lookahead length, though empirical testing has
+    // shown the following value gives good performance when using the framer manager.
+    constexpr static size_t MAX_LOOKAHEAD_BYTES = 256;
+
     std::shared_ptr<spdlog::logger> pclMyLogger;
     std::shared_ptr<UCharFixedBuffer> pclMyBuffer{std::make_shared<UCharFixedBuffer>()};
 
@@ -66,12 +93,41 @@ class FramerBase
         return uiPosition_ + 1 < clFrameBuffer.size() && clFrameBuffer[uiPosition_] == '\r' && clFrameBuffer[uiPosition_ + 1] == '\n';
     }
 
+    // The following three methods are the main extension points for custom framers.
+
+    //----------------------------------------------------------------------------
+    //! \brief Find the index of the first sync byte(s) in the internal buffer.
+    //!
+    //! \return The index of the first sync byte(s) if found, or the minimum of the
+    //!     buffer size and the max lookahead if not found.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual size_t FindSync() const { return std::min(pclMyBuffer->size(), MAX_LOOKAHEAD_BYTES); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Find the end of the candidate frame starting from the provided index.
+    //!
+    //! \param[in] start The index from which to start searching for the end of the frame.
+    //! \return A FindFrameEndResult struct containing the status, format, and index of the end of the frame.
+    //!
+    //! \see FindFrameEndResult for details on the return struct.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual FindFrameEndResult FindFrameEnd([[maybe_unused]] size_t start) const { return FindFrameEndResult{}; };
+
+    //----------------------------------------------------------------------------
+    //! \brief Validate the candidate frame ending at the byte preceding the provided index.
+    //!
+    //! \param[in] frameEnd The index following the last byte of the candidate frame to validate.
+    //! \return If the frame is valid, return 0. If the frame is invalid, return the number of
+    //!     bytes to discard before the next potential frame.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual size_t Validate([[maybe_unused]] size_t frameEnd) const { return 0; };
+
     //----------------------------------------------------------------------------
     //! \brief Get a frame from the internal circular buffer if one exists
     //
     //! \param [out] pucFrameBuffer_ The buffer to which the Framer should copy the
     //! framed message.
-    //! \param [in] uiFrameBufferSize_ The length of pcFrameBuffer_.
+    //! \param [in] uiFrameBufferSize_ The length of pucFrameBuffer_.
     //! \param [out] stMetaData_ A MetaDataBase to contain some information
     //! about the message frame.
     //! \param [out] bMetadataOnly_ Only populate metadata and do not copy the message.
@@ -86,7 +142,7 @@ class FramerBase
     //!   BUFFER_FULL: The frame found is larger than uiFrameBufferSize_ bytes.
     //----------------------------------------------------------------------------
     [[nodiscard]] virtual STATUS GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, MetaDataBase& stMetaData_,
-                                          bool bMetadataOnly_ = false) = 0;
+                                          bool bMetadataOnly_ = false);
 
   public:
     //----------------------------------------------------------------------------
@@ -118,7 +174,6 @@ class FramerBase
         ResetState();
     }
 
-  public:
     uint32_t GetMyByteCount() { return uiMyByteCount; };
 
     //----------------------------------------------------------------------------
@@ -224,10 +279,15 @@ class FramerBase
     [[nodiscard]] size_t GetAvailableSpace() const { return pclMyBuffer->available_space(); }
 
     //----------------------------------------------------------------------------
+    //! \brief Get the maximum number of bytes the framer will search through when looking for sync bytes.
+    //!
+    //! \return The maximum number of bytes the framer will search through when looking for sync bytes.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] static constexpr size_t GetMaxLookaheadBytes() noexcept { return MAX_LOOKAHEAD_BYTES; }
+
+    //----------------------------------------------------------------------------
     //! \brief Allow FramerManager to access protected GetFrame method.
     //----------------------------------------------------------------------------
     friend class FramerManager;
 };
 } // namespace novatel::edie
-
-#endif // FRAMER_HPP

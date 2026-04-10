@@ -119,8 +119,7 @@ template <typename FramerType, size_t N> static void Frame(benchmark::State& sta
 template <size_t N> static void FrameManager(benchmark::State& state, const unsigned char(&data)[N])
 {
     std::array<unsigned char, MAX_ASCII_MESSAGE_LENGTH> buffer;
-    FramerManager clFramerManager({"OEM"});
-    clFramerManager.GetFramerEntry("OEM")->framerInstance->SetFrameJson(true);
+    FramerManager clFramerManager({"OEM_ASCII", "OEM_ABB_ASCII", "OEM_BINARY"});
     MetaDataBase* stMetaData;
 
     for ([[maybe_unused]] auto _ : state) {
@@ -147,11 +146,6 @@ static void FrameBinary(benchmark::State& state)
     Frame<oem::Framer>(state, bestposBinary);
 }
 
-static void FrameBinaryStandalone(benchmark::State& state)
-{
-    Frame<oem::FramerBinary>(state, bestposBinary);
-}
-
 static void FrameJson(benchmark::State& state)
 {
     Frame<oem::Framer>(state, bestsatsJson);
@@ -170,11 +164,6 @@ static void FrameAbbAsciiFramerManager(benchmark::State& state)
 static void FrameBinaryFramerManager(benchmark::State& state)
 {
     FrameManager(state, bestposBinary);
-}
-
-static void FrameJsonFramerManager(benchmark::State& state)
-{
-    FrameManager(state, bestsatsJson);
 }
 
 template <size_t N> static void DecodeLog(benchmark::State& state, const unsigned char (&data)[N])
@@ -330,12 +319,10 @@ BENCHMARK(Parse);
 BENCHMARK(FrameAscii)->MinTime(2.0);
 BENCHMARK(FrameAbbAscii)->MinTime(2.0);
 BENCHMARK(FrameBinary)->MinTime(2.0);
-BENCHMARK(FrameBinaryStandalone)->MinTime(2.0);
 BENCHMARK(FrameJson)->MinTime(2.0);
 BENCHMARK(FrameAsciiFramerManager)->MinTime(2.0);
 BENCHMARK(FrameAbbAsciiFramerManager)->MinTime(2.0);
 BENCHMARK(FrameBinaryFramerManager)->MinTime(2.0);
-BENCHMARK(FrameJsonFramerManager)->MinTime(2.0);
 BENCHMARK(DecodeAsciiLog);
 BENCHMARK(DecodeAsciiRangeLog);
 BENCHMARK(DecodeAbbrevAsciiLog);

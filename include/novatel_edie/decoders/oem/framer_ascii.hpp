@@ -21,38 +21,33 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file framer_binary.hpp
+// ! \file framer_ascii.hpp
 // ===============================================================================
 
 #pragma once
 
-#include "novatel_edie/decoders/oem/framer_binary_base.hpp"
+#include "novatel_edie/decoders/oem/common.hpp"
+#include "novatel_edie/decoders/oem/framer_ascii_base.hpp"
 
 namespace novatel::edie::oem {
 
 //============================================================================
-//! \class FramerBinary
-//! \brief Search bytes for patterns that could be an OEM binary message.
+//! \class FramerAscii
+//! \brief Search bytes for patterns that could be an OEM ASCII message.
 //============================================================================
-class FramerBinary : public FramerBinaryBase<HEADER_FORMAT::BINARY, OEM4_BINARY_HEADER_LENGTH, 8U, uint16_t, MAX_BINARY_MESSAGE_LENGTH>
+class FramerAscii : public FramerAsciiBase<HEADER_FORMAT::ASCII, OEM4_ASCII_SYNC, MAX_ASCII_MESSAGE_LENGTH>
 {
-  protected:
-    [[nodiscard]] std::array<unsigned char, 3> GetSyncByteArray() const noexcept override
-    {
-        return {OEM4_BINARY_SYNC1, OEM4_BINARY_SYNC2, OEM4_BINARY_SYNC3};
-    }
-
   public:
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerBinary class.
+    //! \brief A constructor for the FramerAscii class.
     //! \param [in] buffer a shared pointer to the framer manager's fixed buffer.
     //----------------------------------------------------------------------------
-    FramerBinary(std::shared_ptr<UCharFixedBuffer> buffer);
+    FramerAscii(std::shared_ptr<UCharFixedBuffer> buffer);
 
     //----------------------------------------------------------------------------
-    //! \brief A constructor for the FramerBinary class.
+    //! \brief A constructor for the FramerAscii class.
     //----------------------------------------------------------------------------
-    FramerBinary();
+    FramerAscii();
 };
 
 } // namespace novatel::edie::oem

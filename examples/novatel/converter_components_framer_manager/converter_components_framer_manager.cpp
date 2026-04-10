@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
                     std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - tStart).count());
 
     // Set up the EDIE components
-    FramerManager clFramer({"OEM"});
+    FramerManager clFramer({"OEM_ASCII", "OEM_ABB_ASCII", "OEM_BINARY"});
     clFramer.SetLoggerLevel(spdlog::level::debug);
     Logger::AddConsoleLogging(clFramer.GetLogger());
     Logger::AddRotatingFileLogger(clFramer.GetLogger());
@@ -162,7 +162,8 @@ int main(int argc, char* argv[])
 
             if (eFramerStatus == STATUS::SUCCESS)
             {
-                if (clFramer.GetActiveFramerId() == FramerManager::GetFramerId("OEM"))
+                // Only convert binary messages
+                if (clFramer.GetActiveFramerId() == FramerManager::GetFramerId("OEM_BINARY"))
                 {
                     auto* stOemMetaDataPtr = dynamic_cast<MetaDataStruct*>(stMetaDataPtr);
                     if (!stOemMetaDataPtr)
