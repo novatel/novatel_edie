@@ -21,12 +21,12 @@
 // |  DEALINGS IN THE SOFTWARE.                                                  |
 // |                                                                             |
 // ===============================================================================
-// ! \file crc32_unit_test.cpp
+// ! \file crc_unit_test.cpp
 // ===============================================================================
 
 #include <gtest/gtest.h>
 
-#include "novatel_edie/common/crc32.hpp"
+#include "novatel_edie/common/crc.hpp"
 
 // -------------------------------------------------------------------------------------------------------
 // CRC32 Unit Tests
@@ -72,9 +72,69 @@ TEST(CRC32Test, CalculateBlockCRC32_BESTPOS)
 
 // CRC32 parameters due to Koopman, "32-Bit Cyclic Redundancy Codes for Internet Applications"
 // see: https://users.ece.cmu.edu/~koopman/networks/dsn02/dsn02_koopman.pdf
-TEST(CRC32Test, CalculateBlockCRC32_Koopman)
+TEST(CRC32Test, CalculateBlockCRC32_Koopman_forward)
+{
+    constexpr unsigned char log[] = {0x33, 0x22, 0x55, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x3D, 0x34, 0x5A, 0xA6};
+    auto uiCalculatedCRC = CalculateBlockCrc32<0xF4ACFB13UL, false>(log, sizeof(log), 0xFFFFFFFFUL);
+    ASSERT_EQ(uiCalculatedCRC, 0x52DED2DCUL);
+}
+
+TEST(CRC32Test, CalculateBlockCRC32_Koopman_reflected)
 {
     constexpr unsigned char log[] = {0x33, 0x22, 0x55, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x3D, 0x34, 0x5A, 0xA6};
     auto uiCalculatedCRC = CalculateBlockCrc32<0xC8DF352FUL>(log, sizeof(log), 0xFFFFFFFFUL);
     ASSERT_EQ(uiCalculatedCRC, 0x904CDDBFUL);
+}
+
+// -------------------------------------------------------------------------------------------------------
+// CRC16 Unit Tests
+// -------------------------------------------------------------------------------------------------------
+TEST(CRC16Test, CalculateBlockCrc_CCITT_forward)
+{
+    constexpr unsigned char log[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C,
+                                     0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C};
+    auto uiCalculatedCRC = CalculateBlockCrc<uint16_t, 0x1021UL, false>(log, sizeof(log));
+    ASSERT_EQ(uiCalculatedCRC, 0x87D1UL);
+}
+
+TEST(CRC16Test, CalculateBlockCrc_CCITT_reflected)
+{
+    constexpr unsigned char log[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C,
+                                     0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C};
+    auto uiCalculatedCRC = CalculateBlockCrc<uint16_t, 0x8408UL, true>(log, sizeof(log));
+    ASSERT_EQ(uiCalculatedCRC, 0x61C1UL);
+}
+
+// -------------------------------------------------------------------------------------------------------
+// CRC8 Unit Tests
+// -------------------------------------------------------------------------------------------------------
+TEST(CRC8Test, CalculateBlockCrc_AUTOSAR_forward)
+{
+    constexpr unsigned char log[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48};
+    auto uiCalculatedCRC = CalculateBlockCrc<uint8_t, 0x2FUL, false>(log, sizeof(log));
+    ASSERT_EQ(uiCalculatedCRC, 0xABUL);
+}
+
+TEST(CRC8Test, CalculateBlockCrc_AUTOSAR_reflected)
+{
+    constexpr unsigned char log[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48};
+    auto uiCalculatedCRC = CalculateBlockCrc<uint8_t, 0xF4UL, true>(log, sizeof(log));
+    ASSERT_EQ(uiCalculatedCRC, 0x34UL);
+}
+
+// -------------------------------------------------------------------------------------------------------
+// CRC64 Unit Tests
+// -------------------------------------------------------------------------------------------------------
+TEST(CRC64Test, CalculateBlockCrc_ECMA182_forward)
+{
+    constexpr unsigned char log[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50};
+    auto uiCalculatedCRC = CalculateBlockCrc<uint64_t, 0x42F0E1EBA9EA3693UL, false>(log, sizeof(log));
+    ASSERT_EQ(uiCalculatedCRC, 0xEC07AF203BC7E0B5UL);
+}
+
+TEST(CRC64Test, CalculateBlockCrc_ECMA182_reflected)
+{
+    constexpr unsigned char log[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50};
+    auto uiCalculatedCRC = CalculateBlockCrc<uint64_t, 0xC96C5795D7870F42UL, true>(log, sizeof(log));
+    ASSERT_EQ(uiCalculatedCRC, 0x6B5F5863513AE525UL);
 }

@@ -34,7 +34,7 @@
 #include <numeric>
 #include <type_traits>
 
-#include "novatel_edie/common/crc32.hpp"
+#include "novatel_edie/common/crc.hpp"
 
 //============================================================================
 //! \class FixedBuffer

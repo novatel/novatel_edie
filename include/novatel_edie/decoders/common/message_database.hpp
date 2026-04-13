@@ -32,7 +32,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "novatel_edie/common/crc32.hpp"
+#include "novatel_edie/common/crc.hpp"
 #include "novatel_edie/common/logger.hpp"
 
 namespace novatel::edie {

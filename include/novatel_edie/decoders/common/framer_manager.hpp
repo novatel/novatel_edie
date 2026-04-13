@@ -35,7 +35,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "novatel_edie/common/crc32.hpp"
+#include "novatel_edie/common/crc.hpp"
 #include "novatel_edie/common/fixed_buffer.hpp"
 #include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
