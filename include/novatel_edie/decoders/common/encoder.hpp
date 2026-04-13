@@ -305,14 +305,37 @@ template <typename Derived> class EncoderBase
             {
                 const auto& vFcCurrentVectorField = std::get<std::vector<FieldContainer>>(field.fieldValue);
 
+                if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY || field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+                {
+                    const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(field.fieldDef.get());
+                    if (arrayFieldDef->arrayLengthRef.empty())
+                    {
+                        const auto lenBytes = arrayFieldDef->arrayLengthFieldSize == 0 && arrayFieldDef->type == FIELD_TYPE::FIELD_ARRAY
+                                                  ? arrayFieldDef->dataType.length
+                                                  : arrayFieldDef->arrayLengthFieldSize;
+                        switch (lenBytes)
+                        {
+                        case 0: [[fallthrough]]; // By default, if arrayLengthFieldSize is not specified, encode array length using 4 bytes
+                        case 4:
+                            if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vFcCurrentVectorField.size()))) { return false; }
+                            break;
+                        case 1:
+                            if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint8_t>(vFcCurrentVectorField.size()))) { return false; }
+                            break;
+                        case 2:
+                            if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint16_t>(vFcCurrentVectorField.size()))) { return false; }
+                            break;
+                        default: return false;
+                        }
+                    }
+                }
+
+                pucTempStart = *ppucOutBuf_; // Move the start placeholder to the front of the array start
+
                 // FIELD_ARRAY types contain several classes and so will use a recursive call
                 if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
                 {
                     const auto& vCurrentFieldArrayField = std::get<std::vector<FieldContainer>>(field.fieldValue);
-
-                    if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vCurrentFieldArrayField.size()))) { return false; }
-
-                    pucTempStart = *ppucOutBuf_; // Move the start placeholder to the front of the array start
 
                     for (const auto& clFieldArray : vCurrentFieldArrayField)
                     {
@@ -333,15 +356,6 @@ template <typename Derived> class EncoderBase
                 }
                 else
                 {
-                    // if the field is a variable array, print the size first
-                    if (field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY &&
-                        !CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vFcCurrentVectorField.size())))
-                    {
-                        return false;
-                    }
-
-                    pucTempStart = *ppucOutBuf_; // Move the start placeholder to the front of the array start
-
                     // This is an array of simple elements
                     for (const auto& arrayField : vFcCurrentVectorField)
                     {
@@ -460,6 +474,7 @@ template <typename Derived> class EncoderBase
                             {
                                 return false;
                             }
+                            newIndentLine = true;
                         }
                         // Data was printed so a new line is required at the end of the array if there are more fields in the log
                         else

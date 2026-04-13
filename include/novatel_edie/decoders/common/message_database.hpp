@@ -32,7 +32,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "novatel_edie/common/crc32.hpp"
+#include "novatel_edie/common/crc.hpp"
 #include "novatel_edie/common/logger.hpp"
 
 namespace novatel::edie {
@@ -335,7 +335,8 @@ struct EnumField : BaseField
 struct ArrayField : BaseField
 {
     uint32_t arrayLength{0};
-    std::string arrayLengthRef; // TODO: use something other than string
+    std::string arrayLengthRef;
+    uint8_t arrayLengthFieldSize{0}; // in bytes, only for variable-length and field arrays
 
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;

@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "novatel_edie/common/crc32.hpp"
+#include "novatel_edie/common/crc.hpp"
 #include "novatel_edie/decoders/common/framer.hpp"
 #include "novatel_edie/decoders/oem/common.hpp"
 
