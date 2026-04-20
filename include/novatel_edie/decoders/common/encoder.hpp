@@ -310,12 +310,14 @@ template <typename Derived> class EncoderBase
                     const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(field.fieldDef.get());
                     if (arrayFieldDef->arrayLengthRef.empty())
                     {
-                        const auto lenBytes = arrayFieldDef->arrayLengthFieldSize == 0 && arrayFieldDef->type == FIELD_TYPE::FIELD_ARRAY
-                                                  ? arrayFieldDef->dataType.length
-                                                  : arrayFieldDef->arrayLengthFieldSize;
+                        // Not all Arrays use 4 bytes to store length data.
+                        // If arrayLengthFieldSize is specified, use that. Otherwise, if it's a FIELD_ARRAY, use the data type length.
+                        // For other array types, default to 4 bytes.
+                        const std::size_t lenBytes = (arrayFieldDef->arrayLengthFieldSize == 0
+                                                          ? (arrayFieldDef->type == FIELD_TYPE::FIELD_ARRAY ? arrayFieldDef->dataType.length : 4)
+                                                          : arrayFieldDef->arrayLengthFieldSize);
                         switch (lenBytes)
                         {
-                        case 0: [[fallthrough]]; // By default, if arrayLengthFieldSize is not specified, encode array length using 4 bytes
                         case 4:
                             if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(vFcCurrentVectorField.size()))) { return false; }
                             break;

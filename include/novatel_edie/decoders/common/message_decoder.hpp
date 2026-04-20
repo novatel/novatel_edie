@@ -267,17 +267,19 @@ class MessageDecoderBase
     {
         if (arrayDef.arrayLengthRef.empty())
         {
-            // Use the dataType.length to determine number of bytes used to store the size data.
             // Not all Arrays use 4 bytes to store length data.
-
-            const std::size_t lenBytes = arrayDef.dataType.length;
+            // If arrayLengthFieldSize is specified, use that. Otherwise, if it's a FIELD_ARRAY, use the data type length.
+            // For other array types, default to 4 bytes.
+            const std::size_t lenBytes =
+                (arrayDef.arrayLengthFieldSize == 0 ? (arrayDef.type == FIELD_TYPE::FIELD_ARRAY ? arrayDef.dataType.length : 4)
+                                                    : arrayDef.arrayLengthFieldSize);
             if (!(lenBytes == 1 || lenBytes == 2 || lenBytes == 4))
                 throw std::runtime_error("GetArrayLength: Unsupported length size; must be 1,2 or 4");
 
             uint32_t uiArrayLength = 0;
-            for (std::size_t i = 0; i < arrayDef.dataType.length; ++i) { uiArrayLength |= static_cast<uint32_t>((*ppucLogBuf_)[i]) << (8 * i); }
+            for (std::size_t i = 0; i < lenBytes; ++i) { uiArrayLength |= static_cast<uint32_t>((*ppucLogBuf_)[i]) << (8 * i); }
 
-            *ppucLogBuf_ += arrayDef.dataType.length;
+            *ppucLogBuf_ += lenBytes;
             return uiArrayLength;
         }
 
