@@ -291,14 +291,21 @@ template <typename Derived> class EncoderBase
     {
         unsigned char* pucTempStart;
 
+        // TODO: MessageDecoderBase uses virtual functions to align the buffer pointer, which
+        // is probably a better approach because it allows each format to define its own
+        // alignment rules. In any case, should use the same approach for both encoder and
+        // decoder for consistency.
+        const auto alignBufferPtr = [&ppucOutBuf_, &uiBytesLeft_](uint8_t alignment) {
+            const auto uiAlign = std::min(static_cast<uint8_t>(4U), alignment);
+            const auto ullRem = reinterpret_cast<uint64_t>(*ppucOutBuf_) % uiAlign;
+            return (ullRem == 0) || SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, uiAlign - ullRem);
+        };
+
         for (const auto& field : stInterMessage_)
         {
             if constexpr (Align)
             {
-                // Realign to type byte boundary if needed
-                const uint32_t uiAlign = std::min(4U, static_cast<uint32_t>(field.fieldDef->dataType.length));
-                const auto ullRem = reinterpret_cast<uint64_t>(*ppucOutBuf_) % uiAlign;
-                if (ullRem && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, uiAlign - ullRem)) { return false; }
+                if (!alignBufferPtr(static_cast<uint8_t>(field.fieldDef->dataType.length))) { return false; }
             }
 
             if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
@@ -316,6 +323,12 @@ template <typename Derived> class EncoderBase
                         const std::size_t lenBytes = (arrayFieldDef->arrayLengthFieldSize == 0
                                                           ? (arrayFieldDef->type == FIELD_TYPE::FIELD_ARRAY ? arrayFieldDef->dataType.length : 4)
                                                           : arrayFieldDef->arrayLengthFieldSize);
+
+                        if constexpr (Align)
+                        {
+                            if (!alignBufferPtr(static_cast<uint8_t>(lenBytes))) { return false; }
+                        }
+
                         switch (lenBytes)
                         {
                         case 4:

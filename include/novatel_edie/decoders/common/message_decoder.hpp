@@ -156,17 +156,16 @@ class MessageDecoderBase
     //----------------------------------------------------------------------------
     //! \brief Align the binary buffer pointer to the expected type boundary.
     //
-    //! \param[in] field_ A shared pointer to the field definition describing
-    //! the expected data type and length.
-    //! \param[in] pucStart_ The starting pointer of the binary buffer. Used to
+    //! \param[in] align The alignment requirement in bytes.
+    //! \param[in] start The starting pointer of the binary buffer. Used to
     //! calculate the current offset relative to the beginning of the payload.
-    //! \param[in, out] ppucBuf_ A pointer to the buffer pointer to be advanced
+    //! \param[in, out] ptr A pointer to the buffer pointer to be advanced
     //! to meet the alignment requirement.
     //
     //! \remark This default implementation assumes NovAtel binary log alignment,
     //! where fields are generally aligned to 4-byte boundaries, unless the
     //! field's type length is smaller. The alignment applied is the minimum of
-    //! 4 and the field's length.
+    //! 4 and the requested alignment.
     //
     //! For binary formats that use packed structures and do not align fields
     //! this function should be overridden in a derived decoder class to skip
@@ -174,9 +173,9 @@ class MessageDecoderBase
     //
     //! \return None. The buffer pointer is updated in place.
     //----------------------------------------------------------------------------
-    virtual void AlignBufferPointer(const BaseField::Ptr& field, const unsigned char* start, const unsigned char** ptr) const
+    virtual void AlignBufferPointer(const uint8_t align, const unsigned char* start, const unsigned char** ptr) const
     {
-        uint8_t alignment = std::min(static_cast<uint16_t>(4), field->dataType.length);
+        uint8_t alignment = std::min(static_cast<uint8_t>(4), align);
         uint64_t offset = static_cast<uintptr_t>(*ptr - start) % alignment;
         if (offset != 0) { *ptr += alignment - offset; }
     }
@@ -262,8 +261,8 @@ class MessageDecoderBase
     }
 
     // -------------------------------------------------------------------------------------------------------
-    static uint32_t GetArrayLength(const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
-                                   const std::vector<FieldContainer>& vIntermediateFormat_)
+    uint32_t GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
+                            const std::vector<FieldContainer>& vIntermediateFormat_) const
     {
         if (arrayDef.arrayLengthRef.empty())
         {
@@ -275,6 +274,8 @@ class MessageDecoderBase
                                                     : arrayDef.arrayLengthFieldSize);
             if (!(lenBytes == 1 || lenBytes == 2 || lenBytes == 4))
                 throw std::runtime_error("GetArrayLength: Unsupported length size; must be 1,2 or 4");
+
+            AlignBufferPointer(static_cast<uint8_t>(lenBytes), pucTempStart, ppucLogBuf_);
 
             uint32_t uiArrayLength = 0;
             for (std::size_t i = 0; i < lenBytes; ++i) { uiArrayLength |= static_cast<uint32_t>((*ppucLogBuf_)[i]) << (8 * i); }

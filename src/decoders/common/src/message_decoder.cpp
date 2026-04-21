@@ -454,7 +454,8 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
 
     for (const auto& field : vMsgDefFields_)
     {
-        AlignBufferPointer(field, pucTempStart, ppucLogBuf_);
+        auto fieldTypeLength = static_cast<uint8_t>(field->dataType.length);
+        AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
 
         switch (field->type)
         {
@@ -491,7 +492,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, dynamic_cast<ArrayField&>(*field), vIntermediateFormat_);
+            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<ArrayField&>(*field), vIntermediateFormat_);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
@@ -510,7 +511,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             auto* subFieldDefinitions = dynamic_cast<FieldArrayField*>(field.get());
-            const uint32_t uiArraySize = GetArrayLength(ppucLogBuf_, *subFieldDefinitions, vIntermediateFormat_);
+            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, vIntermediateFormat_);
 
             vIntermediateFormat_.emplace_back(std::vector<FieldContainer>(), field);
             auto& pvFieldArrayContainer = std::get<std::vector<FieldContainer>>(vIntermediateFormat_.back().fieldValue);
@@ -519,7 +520,7 @@ MessageDecoderBase::DecodeBinary(const std::vector<BaseField::Ptr>& vMsgDefField
             for (uint32_t i = 0; i < uiArraySize; ++i)
             {
                 // Realign to type byte boundary if needed
-                AlignBufferPointer(field, pucTempStart, ppucLogBuf_);
+                AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
                 pvFieldArrayContainer.emplace_back(std::vector<FieldContainer>(), field);
                 auto& pvFieldContainer = std::get<std::vector<FieldContainer>>(pvFieldArrayContainer.back().fieldValue);
                 pvFieldContainer.reserve(dynamic_cast<const FieldArrayField*>(field.get())->fields.size());
