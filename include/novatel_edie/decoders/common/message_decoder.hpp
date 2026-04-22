@@ -266,12 +266,7 @@ class MessageDecoderBase
     {
         if (arrayDef.arrayLengthRef.empty())
         {
-            // Not all Arrays use 4 bytes to store length data.
-            // If arrayLengthFieldSize is specified, use that. Otherwise, if it's a FIELD_ARRAY, use the data type length.
-            // For other array types, default to 4 bytes.
-            const std::size_t lenBytes =
-                (arrayDef.arrayLengthFieldSize == 0 ? (arrayDef.type == FIELD_TYPE::FIELD_ARRAY ? arrayDef.dataType.length : 4)
-                                                    : arrayDef.arrayLengthFieldSize);
+            const std::size_t lenBytes = arrayDef.arrayLengthFieldSize;
             if (!(lenBytes == 1 || lenBytes == 2 || lenBytes == 4))
                 throw std::runtime_error("GetArrayLength: Unsupported length size; must be 1,2 or 4");
 

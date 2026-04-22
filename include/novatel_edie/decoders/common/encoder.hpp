@@ -317,12 +317,7 @@ template <typename Derived> class EncoderBase
                     const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(field.fieldDef.get());
                     if (arrayFieldDef->arrayLengthRef.empty())
                     {
-                        // Not all Arrays use 4 bytes to store length data.
-                        // If arrayLengthFieldSize is specified, use that. Otherwise, if it's a FIELD_ARRAY, use the data type length.
-                        // For other array types, default to 4 bytes.
-                        const std::size_t lenBytes = (arrayFieldDef->arrayLengthFieldSize == 0
-                                                          ? (arrayFieldDef->type == FIELD_TYPE::FIELD_ARRAY ? arrayFieldDef->dataType.length : 4)
-                                                          : arrayFieldDef->arrayLengthFieldSize);
+                        const std::size_t lenBytes = arrayFieldDef->arrayLengthFieldSize;
 
                         if constexpr (Align)
                         {
