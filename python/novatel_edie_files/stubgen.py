@@ -36,7 +36,7 @@ class StubGenerator:
     """Generator of type hint stub files for the novatel_edie package."""
     data_type_to_pytype = {
         'INT': 'int',
-        'UNIT': 'int',
+        'UINT': 'int',
         'BOOL': 'bool',
         'CHAR': 'int',
         'UCHAR': 'int',
