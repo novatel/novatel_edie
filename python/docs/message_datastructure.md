@@ -35,7 +35,7 @@ A caching layer ensures that accessing the same field twice returns the same Pyt
   - `Parent` — Strong reference to parent object (for non-owning fields)
 
 - **PyFieldArray** — Wraps array field data. Contains:
-  - `Owns` — Always false (parent PyField owns the data)
+  - `Owns` — Typically false (parent PyField owns the data)
   - `Data` — Pointer to the underlying array vector
   - `Children` — Cache of weak references to child `PyField` elements
   - `Parent` — Strong reference to parent PyField
@@ -52,11 +52,9 @@ This ensures repeated access to the same element returns the same Python object 
 
 ## Ownership Model
 
-- **Message-level PyField** objects own their data (`Owns = true`)
-- **Array element PyField** objects typically do not own data (`Owns = false`) and hold a strong reference to their parent
-- **PyFieldArray** objects typically do not own data and hold a strong reference to their parent PyField
-
-However, a `PyFieldArray` or an element within one may become separated from its original message (e.g., the message attribute is re-assigned) or may be created in isolation. In these cases, the object will own its data (`Owns = true`) and no parent reference is needed.
+- **Message-level PyField** objects own their data.
+- **PyFieldArray element PyField** objects typically do not own data and hold a strong reference to their parent array.
+- **PyFieldArray** objects typically do not own data and hold a strong reference to their parent PyField. However, a `PyFieldArray` or an element within one may become separated from its original message (e.g., the message attribute is re-assigned) or may be created in isolation. In these cases, the object will own its data and no parent reference is needed.
 
 This creates a reference chain that keeps data alive as long as any Python object referencing it exists, while allowing the garbage collector to reclaim objects when they're no longer needed.
 
