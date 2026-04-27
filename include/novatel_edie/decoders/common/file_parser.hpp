@@ -55,7 +55,7 @@ template <typename ParserT, typename FilterT, typename MetaDataT, typename Inter
     [[nodiscard]] bool ReadStream()
     {
         std::array<char, MAX_ASCII_MESSAGE_LENGTH> cData{};
-        pclMyInputStream->read(cData.data(), cData.size());
+        pclMyInputStream->read(cData.data(), std::min(cData.size(), clMyParser.GetAvailableSpace()));
         size_t ullBytesRead = pclMyInputStream->gcount();
         return ullBytesRead > 0 && clMyParser.Write(reinterpret_cast<unsigned char*>(cData.data()), ullBytesRead) == ullBytesRead;
     }
@@ -86,7 +86,12 @@ template <typename ParserT, typename FilterT, typename MetaDataT, typename Inter
             case STATUS::INCOMPLETE: [[fallthrough]];
             case STATUS::BUFFER_EMPTY: {
                 if (ReadStream()) { continue; }
-                return parserFunc_(std::forward<Args>(args_)..., true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
+                if constexpr (std::is_invocable_v<ParserFunc, Args..., bool>)
+                {
+                    // For OEM parser, make a final attempt to decode an incomplete abbreviated ASCII message from remaining bytes
+                    return parserFunc_(std::forward<Args>(args_)..., true) == STATUS::SUCCESS ? STATUS::SUCCESS : STATUS::STREAM_EMPTY;
+                }
+                return STATUS::STREAM_EMPTY;
             }
             default: pclMyLogger->info("Encountered an error: {}\n", eStatus); return eStatus;
             }
@@ -164,20 +169,6 @@ template <typename ParserT, typename FilterT, typename MetaDataT, typename Inter
     //! \param[in] eLevel_ The logging level to enable.
     //----------------------------------------------------------------------------
     void SetLoggerLevel(spdlog::level::level_enum eLevel_) const { pclMyLogger->set_level(eLevel_); }
-
-    //----------------------------------------------------------------------------
-    //! \brief Set the decompression option for RANGECMP messages.
-    //
-    //! \param[in] bDecompressRangeCmp_ true to decompress RANGECMP messages.
-    //----------------------------------------------------------------------------
-    void SetDecompressRangeCmp(bool bDecompressRangeCmp_) { clMyParser.SetDecompressRangeCmp(bDecompressRangeCmp_); }
-
-    //----------------------------------------------------------------------------
-    //! \brief Get the decompression option for RANGECMP messages.
-    //
-    //! \return The current option for decompressing RANGECMP messages.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] bool GetDecompressRangeCmp() const { return clMyParser.GetDecompressRangeCmp(); }
 
     //----------------------------------------------------------------------------
     //! \brief Set the return option for unknown bytes.

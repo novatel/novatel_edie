@@ -81,6 +81,20 @@ class FileParser : public FileParserBase<oem::Parser, oem::Filter, oem::MetaData
     //! \return The current option for ignoring abbreviated ASCII responses.
     //----------------------------------------------------------------------------
     [[nodiscard]] bool GetIgnoreAbbreviatedAsciiResponses() const { return clMyParser.GetIgnoreAbbreviatedAsciiResponses(); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Set the decompression option for RANGECMP messages.
+    //
+    //! \param[in] bDecompressRangeCmp_ true to decompress RANGECMP messages.
+    //----------------------------------------------------------------------------
+    void SetDecompressRangeCmp(bool bDecompressRangeCmp_) { clMyParser.SetDecompressRangeCmp(bDecompressRangeCmp_); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the decompression option for RANGECMP messages.
+    //
+    //! \return The current option for decompressing RANGECMP messages.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] bool GetDecompressRangeCmp() const { return clMyParser.GetDecompressRangeCmp(); }
 };
 
 } // namespace novatel::edie::oem
