@@ -38,7 +38,6 @@ pytestmark = pytest.mark.skip(
 
 
 from novatel_edie import STATUS, FIELD_TYPE, DATA_TYPE, throw_exception_from_status
-from novatel_edie.oem import Decoder
 from pytest import approx
 
 
@@ -62,10 +61,9 @@ ULLONG_MAX = 18446744073709551615
 
 
 class Helper:
-    def __init__(self, db: ne.MessageDatabase):
-        self.decoder = Decoder()
+    def __init__(self, db):
+        self.decoder = _novatel_internal.DecoderTester(db)
         self.msg_def_fields = []
-        db.ad
 
     def create_base_field(self, name, field_type, conversion, length, data_type):
         field = ne.FieldDefinition(name, field_type, conversion, length, data_type)
