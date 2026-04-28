@@ -20,7 +20,6 @@ struct DatabaseExtras
 void* AllocateDatabaseExtras(py_common::PyMessageDatabaseCore* database);
 void FreeDatabaseExtras(void* extras);
 
-DatabaseExtras& GetDatabaseExtras(py_common::PyMessageDatabaseCore& database);
 const DatabaseExtras& GetDatabaseExtras(const py_common::PyMessageDatabaseCore& database);
 
 void ThrowRXConfigConstructionError();

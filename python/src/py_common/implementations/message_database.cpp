@@ -20,11 +20,11 @@ PYCOMMON_EXPORT std::shared_ptr<py_common::PyMessageDatabaseCore> py_common::PyM
 {
     auto db = std::shared_ptr<PyMessageDatabaseCore>(new PyMessageDatabaseCore(std::move(message_db)));
     db->self_weak_ = db;
-    db->InitializeAfterConstruction();
+    db->Initialize();
     return db;
 }
 
-void py_common::PyMessageDatabaseCore::InitializeAfterConstruction()
+void py_common::PyMessageDatabaseCore::Initialize()
 {
     ResolveBaseType();
     UpdatePythonEnums();
@@ -59,9 +59,8 @@ void py_common::PyMessageDatabaseCore::ResetMessageFamilyExtras()
     if (message_family_extras_ && message_family_registration_ && message_family_registration_->freeExtras)
     {
         message_family_registration_->freeExtras(message_family_extras_);
-        message_family_extras_ = nullptr;
     }
-    else { message_family_extras_ = nullptr; }
+    message_family_extras_ = nullptr;
 }
 
 void py_common::PyMessageDatabaseCore::Merge(const std::shared_ptr<PyMessageDatabaseCore> other_)

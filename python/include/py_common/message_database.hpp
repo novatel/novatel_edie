@@ -38,10 +38,11 @@ const MessageFamilyRegistration* GetMessageFamilyRegistration(const std::string&
 class PyMessageDatabaseCore : public MessageDatabase
 {
   public:
+    // All python message databases are to be managed via a shared pointer
     static std::shared_ptr<PyMessageDatabaseCore> Create(MessageDatabase message_db = MessageDatabase());
-
     ~PyMessageDatabaseCore();
 
+    // Only allow construction via static Create method
     PyMessageDatabaseCore(const PyMessageDatabaseCore&) = delete;
     PyMessageDatabaseCore& operator=(const PyMessageDatabaseCore&) = delete;
     PyMessageDatabaseCore(PyMessageDatabaseCore&&) = delete;
@@ -107,12 +108,7 @@ class PyMessageDatabaseCore : public MessageDatabase
     void SetMessageFamily(const std::string& messageFamily);
 
     [[nodiscard]] void* GetMessageFamilyExtras() const { return message_family_extras_; }
-    [[nodiscard]] std::shared_ptr<PyMessageDatabaseCore> GetSharedPtr() const
-    {
-        auto self = self_weak_.lock();
-        if (!self) { throw FailureException("PyMessageDatabaseCore is not owned by a shared pointer."); }
-        return self;
-    }
+    [[nodiscard]] std::shared_ptr<PyMessageDatabaseCore> GetSharedPtr() const { return self_weak_.lock(); }
 
     // MessageDatabase overloads
     void Merge(const std::shared_ptr<PyMessageDatabaseCore> other_);
@@ -171,7 +167,7 @@ class PyMessageDatabaseCore : public MessageDatabase
   private:
     explicit PyMessageDatabaseCore(MessageDatabase&& message_db);
 
-    void InitializeAfterConstruction();
+    void Initialize();
     void ResetMessageFamilyExtras();
 
     //-----------------------------------------------------------------------
