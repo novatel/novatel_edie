@@ -6,8 +6,8 @@
 #include "novatel_edie/decoders/oem/file_parser.hpp"
 #include "py_common/bindings_core.hpp"
 #include "py_common/exceptions.hpp"
-#include "py_oem/message_db_singleton.hpp"
 #include "py_common/py_message_data.hpp"
+#include "py_oem/message_db_singleton.hpp"
 #include "py_oem/py_message_objects.hpp"
 
 namespace nb = nanobind;
@@ -17,7 +17,7 @@ namespace novatel::edie::py_oem {
 class PyFileParser : public oem::FileParser
 {
   private:
-    py_oem::PyMessageDatabase::Ptr pclPyMessageDb;
+    py_common::PyMessageDatabaseCore::Ptr pclPyMessageDb;
     void SetStreamByPath(const std::filesystem::path& filepath_)
     {
         auto ifs = std::make_shared<std::ifstream>(filepath_, std::ios::binary);
@@ -29,7 +29,7 @@ class PyFileParser : public oem::FileParser
     PyFileParser(const std::filesystem::path& filepath_) : PyFileParser(filepath_, py_oem::MessageDbSingleton::get()) {};
 
     PyFileParser(const std::filesystem::path& filepath_, const py_common::PyMessageDatabaseCore::Ptr& message_db_pointer)
-        : FileParser(message_db_pointer), pclPyMessageDb(std::make_shared<py_oem::PyMessageDatabase>(message_db_pointer))
+        : FileParser(message_db_pointer), pclPyMessageDb(message_db_pointer)
     {
         SetStreamByPath(filepath_);
     }
