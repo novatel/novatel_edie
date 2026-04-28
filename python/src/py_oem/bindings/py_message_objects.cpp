@@ -307,7 +307,8 @@ void py_oem::init_message_objects(nb::module_& m)
     auto& familyRegistrations = py_common::GetMessageFamilyRegistrations();
     familyRegistrations["OEM"] =
         py_common::MessageFamilyRegistration{nb::type<py_oem::PyMessage>(), &py_oem::AllocateDatabaseExtras, &py_oem::FreeDatabaseExtras};
-    familyRegistrations[""] = py_common::MessageFamilyRegistration{nb::type<py_oem::PyMessage>(), nullptr, nullptr};
+    familyRegistrations[""] =
+        py_common::MessageFamilyRegistration{nb::type<py_oem::PyMessage>(), &py_oem::AllocateDatabaseExtras, &py_oem::FreeDatabaseExtras};
 
     nb::class_<py_oem::PyResponse>(m, "Response")
         .def("encode", &py_oem::PyResponse::encode)

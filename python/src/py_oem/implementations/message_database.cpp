@@ -10,7 +10,8 @@ void py_oem::ThrowRXConfigConstructionError() { throw py_common::FailureExceptio
 
 void* py_oem::AllocateDatabaseExtras(py_common::PyMessageDatabaseCore* database)
 {
-    auto* extras = new DatabaseExtras();
+    // Use unique pointer for cleanup if method throws
+    auto extras = std::make_unique<DatabaseExtras>();
     extras->database = database;
 
     auto ownedDb = database->GetSharedPtr();
@@ -22,11 +23,10 @@ void* py_oem::AllocateDatabaseExtras(py_common::PyMessageDatabaseCore* database)
     }
     catch (const std::invalid_argument&)
     {
-        delete extras;
         ThrowRXConfigConstructionError();
     }
 
-    return extras;
+    return extras.release();
 }
 
 void py_oem::FreeDatabaseExtras(void* extras)
@@ -35,22 +35,13 @@ void py_oem::FreeDatabaseExtras(void* extras)
     delete typedExtras;
 }
 
-py_oem::DatabaseExtras& py_oem::GetDatabaseExtras(py_common::PyMessageDatabaseCore& database)
-{
-    if (database.GetMessageFamily() != "OEM") { throw py_common::FailureException("Database extras are only available for OEM message families."); }
-
-    void* extras = database.GetMessageFamilyExtras();
-    if (!extras) { throw py_common::FailureException("OEM database extras are not initialized for this database."); }
-
-    return *static_cast<DatabaseExtras*>(extras);
-}
-
 const py_oem::DatabaseExtras& py_oem::GetDatabaseExtras(const py_common::PyMessageDatabaseCore& database)
 {
-    if (database.GetMessageFamily() != "OEM") { throw py_common::FailureException("Database extras are only available for OEM message families."); }
+    // TODO: This check can be removed if we ever add safeguards around modifying database after initial use
+    if (database.GetMessageFamily() != "OEM" && database.GetMessageFamily() != "")
+    {
+        throw py_common::FailureException("Database extras are only available for OEM message families.");
+    }
 
-    void* extras = database.GetMessageFamilyExtras();
-    if (!extras) { throw py_common::FailureException("OEM database extras are not initialized for this database."); }
-
-    return *static_cast<const DatabaseExtras*>(extras);
+    return *static_cast<const DatabaseExtras*>(database.GetMessageFamilyExtras());
 }
