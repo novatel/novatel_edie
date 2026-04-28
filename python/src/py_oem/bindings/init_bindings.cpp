@@ -11,7 +11,6 @@ using namespace novatel::edie::py_oem;
 
 NB_MODULE(oem_bindings, m)
 {
-    nb::module_ internal_mod = m.def_submodule("_internal", "NOT PART OF THE PUBLIC API.");
     nb::module_ messages_mod = m.def_submodule("messages", "NovAtel OEM message types.");
     nb::module_ enums_mod = m.def_submodule("enums", "Enumerations used by NovAtel OEM message fields.");
 
@@ -27,5 +26,4 @@ NB_MODULE(oem_bindings, m)
     init_novatel_range_decompressor(m);
     init_novatel_rxconfig_handler(m);
     init_message_db_singleton(m, messages_mod, enums_mod);
-    init_decoder_tester(internal_mod);
 }

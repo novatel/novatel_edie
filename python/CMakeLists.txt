@@ -105,7 +105,6 @@ add_library(oem_bindings MODULE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/range_decompressor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/rxconfig_handler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/py_message_objects.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/py_oem/bindings/internal/decoder_tester.cpp
 )
 target_link_libraries(oem_bindings PRIVATE decoders_common)
 target_link_libraries(oem_bindings PRIVATE ${NANOBIND_LIB_NAME})

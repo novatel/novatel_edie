@@ -1,5 +1,6 @@
 #include "py_common/field_objects.hpp"
 
+#include <cassert>
 #include <type_traits>
 #include <variant>
 
@@ -15,14 +16,25 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field, const py_common::PyMessageDatabaseCore::ConstPtr& parent_db)
+PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
+{
+    FieldContainer& field = fieldsPtr[entry.index];
+    if (entry.is_length)
+    {
+        auto& arr = std::get<std::vector<FieldContainer>>(field.fieldValue);
+        return nb::cast(arr.size());
+    }
+    return convert_field(field);
+}
+
+PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& field) const
 {
     if (field.fieldDef->type == FIELD_TYPE::ENUM)
     {
         // Handle Enums
         const auto* enumField = static_cast<const EnumField*>(field.fieldDef.get());
-        const EnumDefinition* enumDef = parent_db->GetEnumDefId(enumField->enumId).get();
-        nb::object enum_type = parent_db->GetEnumType(enumField->enumDef.get());
+        const EnumDefinition* enumDef = parentDb->GetEnumDefId(enumField->enumId).get();
+        nb::object enum_type = parentDb->GetEnumType(enumField->enumDef.get());
         if (enum_type.is_none())
         {
             throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumField->enumId +
@@ -43,31 +55,23 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
     }
     else if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
     {
-        const auto& message_field = std::get<std::vector<FieldContainer>>(field.fieldValue);
-        if (message_field.empty())
+        auto& message_field = std::get<std::vector<FieldContainer>>(field.fieldValue);
+        if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
-            // Handle Empty Arrays
-            return nb::list();
-        }
-        else if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
-        {
-            // Handle Field Arrays
-            nb::handle field_ptype = parent_db->GetFieldType(field.fieldDef.get());
-            if (field_ptype.is_none()) { throw py_common::FailureException("Message subfield has an unrecognized type."); }
+            // Handle Field Arrays — find the index of this field for caching
+            size_t fieldIdx = static_cast<size_t>(&field - fieldsPtr);
 
-            // Create an appropriate PyField instance for each subfield in the array
-            std::vector<nb::object> sub_values;
-            sub_values.reserve(message_field.size());
-            for (const auto& subfield : message_field)
+            // Check if a cached PyFieldArray is still alive
+            if (cachedArrays_[fieldIdx].has_value())
             {
-                nb::object pyinst = nb::inst_alloc(field_ptype);
-                PyField* cinst = nb::inst_ptr<PyField>(pyinst);
-                const auto& message_subfield = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
-                new (cinst) PyField(message_subfield, subfield.fieldDef.get(), parent_db);
-                nb::inst_mark_ready(pyinst);
-                sub_values.push_back(pyinst);
+                nb::object existing = cachedArrays_[fieldIdx].value()();
+                if (!existing.is_none()) { return existing; }
             }
-            return nb::cast(sub_values);
+
+            // Construct a new PyFieldArray
+            nb::object pyArr = nb::cast(PyFieldArray(message_field, field.fieldDef.get(), parentDb, nb::cast(this, nb::rv_policy::none)));
+            cachedArrays_[fieldIdx] = nb::weakref(pyArr);
+            return pyArr;
         }
         else
         {
@@ -87,7 +91,7 @@ PYCOMMON_EXPORT nb::object py_common::convert_field(const FieldContainer& field,
             }
             std::vector<nb::object> sub_values;
             sub_values.reserve(message_field.size());
-            for (const auto& f : message_field) { sub_values.push_back(py_common::convert_field(f, parent_db)); }
+            for (FieldContainer& f : message_field) { sub_values.push_back(convert_field(f)); }
             return nb::cast(sub_values);
         }
     }
@@ -111,86 +115,111 @@ PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
 {
     if (cached_values_.size() == 0)
     {
-        for (const auto& field : fields)
+        for (size_t i = 0; i < fieldCount; i++)
         {
+            FieldContainer& field = fieldsPtr[i];
             if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue) &&
                 (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY || field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY))
             {
                 std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
                 cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
             }
-            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field, parentDb);
+            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field);
         }
     }
     return cached_values_;
 }
 
+nb::object PyField::unwrap_for_list(nb::object value)
+{
+    if (nb::isinstance<PyField>(value)) { return nb::cast<PyField>(value).to_list(); }
+    if (nb::isinstance<std::vector<nb::object>>(value))
+    {
+        nb::list sublist;
+        for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value)) { sublist.append(unwrap_for_list(nb::borrow(sub_item))); }
+        return sublist;
+    }
+    return value;
+}
+
+nb::object PyField::unwrap_for_dict(nb::object value)
+{
+    if (nb::isinstance<PyField>(value)) { return nb::cast<PyField>(value).to_dict(); }
+    if (nb::isinstance<std::vector<nb::object>>(value))
+    {
+        nb::list sublist;
+        for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value)) { sublist.append(unwrap_for_dict(nb::borrow(sub_item))); }
+        return sublist;
+    }
+    if (nb::isinstance<SatelliteId>(value)) { return value.attr("to_dict")(); }
+    return value;
+}
+
 PYCOMMON_EXPORT nb::list PyField::get_field_names() const
 {
-    nb::list field_names = nb::list();
-    for (const auto& [name, value] : to_shallow_dict()) { field_names.append(name); }
+    nb::list field_names;
+    for_each_entry([&](const std::string& name, nb::object) { field_names.append(nb::cast(name)); });
     return field_names;
 }
 
 PYCOMMON_EXPORT nb::list PyField::get_values() const
 {
-    nb::list values = nb::list();
-    nb::dict& unordered_values = to_shallow_dict();
-    for (const auto& field_name : get_field_names()) { values.append(unordered_values[field_name]); }
+    nb::list values;
+    for_each_entry([&](const std::string&, nb::object value) { values.append(std::move(value)); });
     return values;
 }
 
 PYCOMMON_EXPORT nb::list PyField::to_list() const
 {
-    nb::list list = nb::list();
-    for (const auto& [field_name, value] : to_shallow_dict())
-    {
-        if (nb::isinstance<PyField>(value)) { list.append(nb::cast<PyField>(value).to_list()); }
-        else if (nb::isinstance<std::vector<nb::object>>(value))
-        {
-            nb::list sublist;
-            for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value))
-            {
-                if (nb::isinstance<PyField>(sub_item)) { sublist.append(nb::cast<PyField>(sub_item).to_list()); }
-                else { sublist.append(sub_item); }
-            }
-            list.append(sublist);
-        }
-        else { list.append(value); }
-    }
+    nb::list list;
+    for_each_entry([&](const std::string&, nb::object value) { list.append(unwrap_for_list(std::move(value))); });
     return list;
 }
 
 PYCOMMON_EXPORT nb::dict PyField::to_dict() const
 {
     nb::dict dict;
-    for (const auto& [field_name, value] : to_shallow_dict())
-    {
-        if (nb::isinstance<PyField>(value)) { dict[field_name] = nb::cast<PyField>(value).to_dict(); }
-        else if (nb::isinstance<std::vector<nb::object>>(value))
-        {
-            nb::list list;
-            for (const auto& sub_item : nb::cast<std::vector<nb::object>>(value))
-            {
-                if (nb::isinstance<PyField>(sub_item)) { list.append(nb::cast<PyField>(sub_item).to_dict()); }
-                else { list.append(sub_item); }
-            }
-            dict[field_name] = list;
-        }
-        else if (nb::isinstance<SatelliteId>(value)) { dict[field_name] = value.attr("to_dict")(); }
-        else { dict[field_name] = value; }
-    }
+    for_each_entry([&](const std::string& name, nb::object value) { dict[nb::cast(name)] = unwrap_for_dict(std::move(value)); });
     return dict;
 }
 
 PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
 {
-    if (!contains(field_name)) { throw nb::attribute_error(field_name.c_str()); }
-    return to_shallow_dict()[std::move(field_name)];
+    auto it = fieldNameMap_->find(field_name.c_str());
+    if (it == fieldNameMap_->end()) { throw nb::attribute_error(field_name.c_str()); }
+    return resolve_entry(it->second);
 }
 
-PYCOMMON_EXPORT nb::object PyField::getitem(nb::str field_name) const { return to_shallow_dict()[std::move(field_name)]; }
+PYCOMMON_EXPORT nb::object PyFieldArray::getitem(size_t index) const
+{
+    if (index >= data->size())
+    {
+        // Raise index error in python
+        // Equivalent to `raise nb::index_error()` but much faster because it avoids throwing a C++ exception
+        PyErr_SetString(PyExc_IndexError, "");
+        return nb::object();
+    }
 
-PYCOMMON_EXPORT bool PyField::contains(nb::str field_name) const { return to_shallow_dict().contains(std::move(field_name)); }
+    // Check if a cached object has been created
+    if (cache[index].has_value())
+    {
+        // Return it if it is still alive
+        nb::object existing = cache[index].value()();
+        if (!existing.is_none()) { return existing; }
+    }
 
-PYCOMMON_EXPORT size_t PyField::len() const { return fields.size(); }
+    // Construct a new PyField for this element
+    FieldContainer& subfield = (*data)[index];
+    auto& subfields = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
+
+    nb::handle field_ptype = parentDb->GetFieldType(fieldDef);
+    nb::object pyinst = nb::inst_alloc(field_ptype);
+    PyField* cinst = nb::inst_ptr<PyField>(pyinst);
+    new (cinst) PyField(subfields, fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
+    nb::inst_mark_ready(pyinst);
+
+    cache[index] = nb::weakref(pyinst);
+    return pyinst;
+}
+
+PYCOMMON_EXPORT size_t PyFieldArray::len() const { return data->size(); }

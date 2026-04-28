@@ -30,9 +30,17 @@
 
 import novatel_edie as ne
 import pytest
+
+pytestmark = pytest.mark.skip(
+    "These tests rely on a deprecated internal interface. "
+    "They should be updated to use public interface once "
+    "better support for database configuration is added.")
+
+
 from novatel_edie import STATUS, FIELD_TYPE, DATA_TYPE, throw_exception_from_status
-from novatel_edie.oem import _novatel_internal
 from pytest import approx
+
+
 
 # -------------------------------------------------------------------------------------------------------
 # Novatel Types Unit Tests

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <unordered_map>
 
 #include "novatel_edie/decoders/common/message_database.hpp"
 #include "py_common/bindings_core.hpp"
@@ -9,6 +10,14 @@
 namespace nb = nanobind;
 
 namespace novatel::edie::py_common {
+
+struct FieldLookupEntry
+{
+    size_t index;
+    bool is_length;
+};
+
+using FieldNameMap = std::unordered_map<std::string, FieldLookupEntry>;
 
 std::unordered_map<std::string, nb::handle>& GetMessageFamilyTypes();
 nb::handle GetMessageFamilyType(const std::string& message_family);
@@ -49,6 +58,23 @@ class PyMessageDatabaseCore : public MessageDatabase
 
     [[nodiscard]] nb::object GetMessageType(int32_t id, uint32_t crc) const { return GetMessageType(GetMsgDef(id).get(), crc); }
     [[nodiscard]] nb::object GetMessageType(int32_t id) const { return GetMessageType(GetMsgDef(id).get()); }
+
+    [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return field_types; }
+
+    [[nodiscard]] const FieldNameMap* GetFieldNameMap(const BaseField* field) const
+    {
+        auto it = field_name_maps_.find(field);
+        return it != field_name_maps_.end() ? &it->second : nullptr;
+    }
+
+    [[nodiscard]] const FieldNameMap* GetMessageFieldNameMap(const MessageDefinition* msgDef, uint32_t crc) const
+    {
+        auto it = message_field_name_maps_.find(msgDef);
+        if (it == message_field_name_maps_.end()) { return nullptr; }
+        auto nestedIt = it->second.find(crc);
+        if (nestedIt == it->second.end()) { return nullptr; }
+        return &nestedIt->second;
+    }
 
     [[nodiscard]] nb::object GetEnumType(const EnumDefinition* enum_def) const
     {
@@ -172,6 +198,8 @@ class PyMessageDatabaseCore : public MessageDatabase
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_types{};
     std::unordered_map<const BaseField*, nb::object> field_types{};
     std::unordered_map<const EnumDefinition*, nb::object> enum_types{};
+    std::unordered_map<const BaseField*, FieldNameMap> field_name_maps_{};
+    std::unordered_map<const MessageDefinition*, std::map<uint32_t, FieldNameMap>> message_field_name_maps_{};
 
   public:
     using Ptr = std::shared_ptr<PyMessageDatabaseCore>;
