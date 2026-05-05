@@ -348,7 +348,7 @@ struct FieldInfo
 {
     size_t fixedFieldBytes{0};
     size_t varFieldCount{0};
-    std::shared_ptr<std::vector<BaseField::ConstPtr>> messageOrderedFields; // vector of field definitions in the order they are encoded in the message
+    std::vector<BaseField::ConstPtr> messageOrderedFields; // vector of field definitions in the order they are encoded in the message
     std::unordered_map<std::string, BaseField::ConstPtr> fields{}; // map of field name to field definition
 };
 
@@ -484,7 +484,7 @@ class MessageDatabase
 
             for (const auto& item : msgDef->fieldInfo)
             {
-                if (item.second.messageOrderedFields) { MapMessageEnumFields(*item.second.messageOrderedFields); }
+                if (!item.second.messageOrderedFields.empty()) { MapMessageEnumFields(item.second.messageOrderedFields); }
             }
         }
     }
@@ -612,7 +612,7 @@ class MessageDatabase
 
             for (const auto& item : msg->fieldInfo)
             {
-                if (item.second.messageOrderedFields) { MapMessageEnumFields(*item.second.messageOrderedFields); }
+                if (!item.second.messageOrderedFields.empty()) { MapMessageEnumFields(item.second.messageOrderedFields); }
             }
         }
     }
@@ -633,8 +633,8 @@ class MessageDatabase
             else if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
                 auto fieldArrayField = std::dynamic_pointer_cast<const FieldArrayField>(field);
-                if (!fieldArrayField || !fieldArrayField->fieldInfo.messageOrderedFields) { continue; }
-                MapMessageEnumFields(*fieldArrayField->fieldInfo.messageOrderedFields);
+                if (!fieldArrayField || fieldArrayField->fieldInfo.messageOrderedFields.empty()) { continue; }
+                MapMessageEnumFields(fieldArrayField->fieldInfo.messageOrderedFields);
             }
         }
     }

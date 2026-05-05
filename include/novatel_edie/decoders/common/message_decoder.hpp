@@ -403,7 +403,7 @@ struct MessageBody
 struct DefinedMessageBody
 {
     MessageBody body;
-    std::shared_ptr<std::vector<BaseField::ConstPtr>> fieldDefinitions;
+    MessageDefinition::ConstPtr definition;
 };
 
 
