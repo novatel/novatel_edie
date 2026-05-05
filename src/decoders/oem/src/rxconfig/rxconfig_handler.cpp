@@ -46,7 +46,7 @@ RxConfigHandler::RxConfigHandler(const MessageDatabase::Ptr& pclMessageDb_)
 
 void RxConfigHandler::ValidateMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
 {
-    const auto& vFieldDefs = *pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc).messageOrderedFields;
+    const auto& vFieldDefs = pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc).messageOrderedFields;
     std::string sMsgName = pclMsgDef_->name;
     if (vFieldDefs.size() != 1) { throw std::invalid_argument(sMsgName + " definition has too many fields."); }
     const BaseField::ConstPtr& pclFieldDef = vFieldDefs[0];
@@ -98,7 +98,7 @@ size_t RxConfigHandler::Write(const unsigned char* pucData_, uint32_t uiDataSize
 // -------------------------------------------------------------------------------------------------------
 BaseField::ConstPtr RxConfigHandler::GetFieldDefFromMsgDef(const MessageDefinition::ConstPtr& pclMsgDef_)
 {
-    return pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc).messageOrderedFields->at(0);
+    return pclMsgDef_->fieldInfo.at(pclMsgDef_->latestMessageCrc).messageOrderedFields.at(0);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -123,11 +123,10 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, DefinedMessageB
     else { return STATUS::UNSUPPORTED; }
 
     const unsigned char* pucTempMessagePointer = pucMessage_;
-    MetaDataStruct stEmbeddedMetaData_;
     std::vector<uint8_t> stEmbeddedMessageData;
     uint32_t uiTotalPayloadSize = stRxConfigMetaData_.uiLength - stRxConfigMetaData_.uiHeaderLength;
-    stInterMessage_.fieldDefinitions = std::make_shared<std::vector<BaseField::ConstPtr>>();
-    stInterMessage_.fieldDefinitions->push_back(pclFieldDef);
+    stInterMessage_.definition = pclMyMsgDb != nullptr ? pclMyMsgDb->GetMsgDef(stRxConfigMetaData_.usMessageId) : nullptr;
+    if (stInterMessage_.definition == nullptr) { return STATUS::NO_DEFINITION; }
     stInterMessage_.body.fixedFields.clear();
     stInterMessage_.body.varFields.resize(1);
 
@@ -282,8 +281,9 @@ STATUS RxConfigHandler::EncodeAbbrevAscii(unsigned char* const* ppucBuffer_, uin
     stEmbeddedMessageData_.uiMessageHeaderLength += static_cast<uint32_t>((szAbbrevAsciiEmbeddedHeaderPrefix.length()));
 
     // -- Encode Embedded Body --
-    eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedMessage_, stEmbeddedMessageData_, stEmbeddedMetaData_.eFormat,
-                                     ENCODE_FORMAT::ABBREV_ASCII);
+    const auto& embeddedFieldDefinitions = stEmbeddedMessage_.definition->GetMsgDefFromCrc(*pclMyLogger, stEmbeddedHeader_.uiMessageDefinitionCrc).messageOrderedFields;
+    eStatus = clMyEncoder.EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stEmbeddedMessage_.body, embeddedFieldDefinitions, stEmbeddedMessageData_,
+                                     stEmbeddedMetaData_.eFormat, ENCODE_FORMAT::ABBREV_ASCII);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
     pucTempEncodeBuffer += stEmbeddedMessageData_.uiMessageBodyLength;
 
@@ -414,8 +414,10 @@ STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBuf
     DefinedMessageBody stEmbeddedMessage;
 
     // Convert embedded data to a dynamically allocated character array
-    if (!stMessage_.fieldDefinitions || stMessage_.fieldDefinitions->empty()) { return STATUS::MALFORMED_INPUT; }
-    const auto& vEmbeddedData = std::get<std::vector<uint8_t>>(stMessage_.body.GetFieldValue(*stMessage_.fieldDefinitions->at(0)));
+    if (stMessage_.definition == nullptr) { return STATUS::MALFORMED_INPUT; }
+    const auto& fieldDefinitions = stMessage_.definition->GetMsgDefFromCrc(*pclMyLogger, stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
+    if (fieldDefinitions.empty()) { return STATUS::MALFORMED_INPUT; }
+    const auto& vEmbeddedData = std::get<std::vector<uint8_t>>(stMessage_.body.GetFieldValue(*fieldDefinitions.at(0)));
     std::unique_ptr<unsigned char[]> pucEmbeddedDataBuffer = std::make_unique<unsigned char[]>(vEmbeddedData.size());
     unsigned char* pucEmbeddedDataPointer = pucEmbeddedDataBuffer.get();
     for (const auto& value : vEmbeddedData) { *pucEmbeddedDataPointer++ = value; }
