@@ -84,9 +84,9 @@ void Commander::CreateResponseMsgDefinitions()
     // Message Definition
     stMyRespDef = std::make_shared<MessageDefinition>();
     stMyRespDef->name = "response";
-    stMyRespDef->fields[0]; // responses don't have CRCs, hardcoding in 0 as the key to the fields map
-    stMyRespDef->fields[0].emplace_back(std::make_shared<EnumField>(stRespIdField));
-    stMyRespDef->fields[0].emplace_back(std::make_shared<BaseField>(stRespStrField));
+    stMyRespDef->fieldInfo[0]; // responses don't have CRCs, hardcoding in 0 as the key to the fields map
+    stMyRespDef->fieldInfo[0].fields[stRespIdField.name] = std::make_shared<EnumField>(stRespIdField);
+    stMyRespDef->fieldInfo[0].fields[stRespStrField.name] = std::make_shared<BaseField>(stRespStrField);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -117,12 +117,12 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;
     IntermediateHeader stIntermediateHeader;
-    std::vector<FieldContainer> stIntermediateMessage;
+    DefinedMessageBody stIntermediateMessage;
 
     // Prime the metadata with information we already know
     stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
     stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
-    stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fields.begin()->first);
+    stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fieldInfo.begin()->first);
 
     STATUS eStatus = clMyMessageDecoder.Decode(reinterpret_cast<unsigned char*>(pcCmdParams), stIntermediateMessage, stMetaData);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
@@ -171,12 +171,12 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;
     IntermediateHeader stIntermediateHeader;
-    std::vector<FieldContainer> stIntermediateMessage;
+    DefinedMessageBody stIntermediateMessage;
 
     // Prime the metadata with information we already know
     stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
     stMetaData.usMessageId = static_cast<uint16_t>(pclMessageDef->logID);
-    stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fields.begin()->first);
+    stMetaData.uiMessageCrc = static_cast<uint32_t>(pclMessageDef->fieldInfo.begin()->first);
 
     const STATUS eDecoderStatus = clMessageDecoder_.Decode(pucCmdParams, stIntermediateMessage, stMetaData);
     if (eDecoderStatus != STATUS::SUCCESS) { return eDecoderStatus; }
