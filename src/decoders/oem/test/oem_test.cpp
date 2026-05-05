@@ -2214,7 +2214,7 @@ class DecodeEncodeTest : public ::testing::Test
                                 uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
     {
         IntermediateHeader stHeader;
-        std::vector<FieldContainer> stMessage;
+        DefinedMessageBody stMessage;
 
         unsigned char* pucTempPtr = pucMessageBuffer_;
         STATUS eStatus = pclMyHeaderDecoder->Decode(pucTempPtr, stHeader, stMetaData_);
@@ -3122,14 +3122,21 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     MessageDataStruct stMessageData;
 
     IntermediateHeader stHeader;
-    std::vector<FieldContainer> stMessage;
+    DefinedMessageBody stMessage;
+    stHeader.ucMessageType = static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE);
+    auto messageDefinition = std::make_shared<MessageDefinition>();
+    messageDefinition->fieldInfo[0];
+    stMessage.definition = messageDefinition;
+    const std::vector<BaseField::ConstPtr> fieldDefinitions;
 
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
     unsigned char* pucEncodeBuffer = acEncodeBuffer;
 
     ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
     ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
-    ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
+    ASSERT_EQ(STATUS::UNSUPPORTED,
+              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage.body, fieldDefinitions, stMessageData, stMetaData.eFormat,
+                                       ENCODE_FORMAT::UNSPECIFIED));
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -4206,23 +4213,80 @@ TEST_F(ParserTest, PARSE_FILE_WITH_FILTER)
 class NovatelTypesTest : public ::testing::Test
 {
   protected:
+    static FieldInfo BuildFieldInfo(const std::vector<BaseField::Ptr>& msgDefFields_)
+    {
+        FieldInfo fieldInfo;
+        size_t fixedOffset = 0;
+        size_t varIndex = 0;
+
+        for (const auto& field : msgDefFields_)
+        {
+            auto fieldDef = std::const_pointer_cast<BaseField>(std::static_pointer_cast<const BaseField>(field));
+
+            switch (fieldDef->type)
+            {
+            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
+            case FIELD_TYPE::STRING: [[fallthrough]];
+            case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
+            case FIELD_TYPE::RESPONSE_STR:
+                fieldDef->index = varIndex++;
+                break;
+            case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+                fieldDef->index = fixedOffset;
+                const auto arrayField = std::dynamic_pointer_cast<ArrayField>(fieldDef);
+                fixedOffset += static_cast<size_t>(arrayField->arrayLength) * fieldDef->dataType.length;
+                break;
+            }
+            default:
+                fieldDef->index = fixedOffset;
+                fixedOffset += fieldDef->dataType.length;
+                break;
+            }
+
+            fieldInfo.messageOrderedFields.push_back(fieldDef);
+            fieldInfo.fields[fieldDef->name] = fieldDef;
+        }
+
+        fieldInfo.fixedFieldBytes = fixedOffset;
+        fieldInfo.varFieldCount = varIndex;
+        return fieldInfo;
+    }
+
     class DecoderTester : public MessageDecoder
     {
       public:
         DecoderTester(MessageDatabase::Ptr pclMessageDb_) : MessageDecoder(pclMessageDb_) {}
 
-        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr> MsgDefFields_, const char** ppcLogBuf_,
-                               std::vector<FieldContainer>& vIntermediateFormat_)
+        STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_, MessageBody& vIntermediateFormat_)
         {
-            return DecodeAscii<false>(MsgDefFields_, ppcLogBuf_, vIntermediateFormat_);
+            const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
+            vIntermediateFormat_.fixedFields = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
+            vIntermediateFormat_.varFields.resize(fieldInfo.varFieldCount);
+            return DecodeAscii<false>(fieldInfo, ppcLogBuf_, vIntermediateFormat_);
         }
 
-        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr> MsgDefFields_, const unsigned char** ppucLogBuf_,
-                                std::vector<FieldContainer>& vIntermediateFormat_)
+        STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const unsigned char** ppucLogBuf_, MessageBody& vIntermediateFormat_)
         {
-            uint16_t MsgDefFieldsSize = 0;
-            for (const auto& field : MsgDefFields_) { MsgDefFieldsSize += field->dataType.length; }
-            return DecodeBinary(MsgDefFields_, ppucLogBuf_, vIntermediateFormat_, MsgDefFieldsSize);
+            const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
+            vIntermediateFormat_.fixedFields = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
+            vIntermediateFormat_.varFields.resize(fieldInfo.varFieldCount);
+
+            uint16_t msgDefFieldsSize = 0;
+            for (const auto& field : fieldInfo.messageOrderedFields)
+            {
+                if (field->type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
+                {
+                    const auto arrayField = std::dynamic_pointer_cast<const ArrayField>(field);
+                    msgDefFieldsSize += static_cast<uint16_t>(arrayField->arrayLength * field->dataType.length);
+                }
+                else if (field->type != FIELD_TYPE::VARIABLE_LENGTH_ARRAY && field->type != FIELD_TYPE::STRING && field->type != FIELD_TYPE::FIELD_ARRAY &&
+                         field->type != FIELD_TYPE::RESPONSE_STR)
+                {
+                    msgDefFieldsSize += field->dataType.length;
+                }
+            }
+
+            return DecodeBinary(fieldInfo, ppucLogBuf_, vIntermediateFormat_, msgDefFieldsSize);
         }
     };
 
@@ -4231,9 +4295,10 @@ class NovatelTypesTest : public ::testing::Test
       public:
         EncoderTester(MessageDatabase::Ptr pclMessageDb_) : Encoder(pclMessageDb_) {}
 
-        bool TestEncodeBinaryBody(const std::vector<FieldContainer>& stInterMessage_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
+        bool TestEncodeBinaryBody(const MessageBody& stInterMessage_, const std::vector<BaseField::Ptr>& msgDefFields_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
         {
-            return EncodeBinaryBody<false, true>(stInterMessage_, ppcOutBuf_, uiBytes);
+            const FieldInfo fieldInfo = BuildFieldInfo(msgDefFields_);
+            return EncodeBinaryBody<false, true>(stInterMessage_, fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytes);
         }
     };
 
@@ -4310,8 +4375,7 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec2", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec3", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
     MsgDefFields.emplace_back(std::make_shared<BaseField>("Sec4", FIELD_TYPE::SIMPLE, "%T", DATA_TYPE::ULONG));
-    std::vector<FieldContainer> vIntermediateFormat_;
-    vIntermediateFormat_.reserve(4);
+    MessageBody vIntermediateFormat_;
 
     const auto* testInput = "-1.000,0.000,604800.000,4294967295.000";
 
@@ -4320,10 +4384,10 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     ASSERT_EQ(stDecoderStatus, STATUS::SUCCESS);
     // If GPS time exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong
     // But the limit should be 604,800 (seconds) as that's the number of seconds in a GPS reference week
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[0].fieldValue), 4294966296U); // 4,294,967,295 + 1 - 1,000 = 4,294,966,296
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[1].fieldValue), 0U);
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[2].fieldValue), 604800000U);
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_[3].fieldValue), 4294966296U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[0])), 4294966296U); // 4,294,967,295 + 1 - 1,000 = 4,294,966,296
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[1])), 0U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[2])), 604800000U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[3])), 4294966296U);
 }
 
 // TODO: Add tests for OEM Message Decoder Quirks that aren't covered by the common tests

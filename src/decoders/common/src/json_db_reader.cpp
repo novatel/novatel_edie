@@ -225,8 +225,8 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
 
     array fields;
     if (j_.get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON array"); }
-    vFields_.messageOrderedFields = std::make_shared<std::vector<BaseField::ConstPtr>>();
-    vFields_.messageOrderedFields->reserve(fields.size());
+    vFields_.messageOrderedFields = std::vector<BaseField::ConstPtr>();
+    vFields_.messageOrderedFields.reserve(fields.size());
     vFields_.fields.reserve(fields.size());
 
     for (element field : fields)
@@ -242,7 +242,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
             ParseBaseField(field, *pstField);
             auto pstField = std::move(pstField);
             pstField->index = uiFieldSize;
-            vFields_.messageOrderedFields->push_back(pstField);
+            vFields_.messageOrderedFields.push_back(pstField);
             vFields_.fields[pstField->name] = pstField;
             uiFieldSize += stDataType.length;
             vFields_.fixedFieldBytes += stDataType.length;
@@ -253,7 +253,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
             ParseEnumField(field, *pstField);
             auto pstField = std::move(pstField);
             pstField->index = uiFieldSize;
-            vFields_.messageOrderedFields->push_back(pstField);
+            vFields_.messageOrderedFields.push_back(pstField);
             vFields_.fields[pstField->name] = pstField;
             uiFieldSize += stDataType.length;
             vFields_.fixedFieldBytes += stDataType.length;
@@ -266,7 +266,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
             if (sFieldType == "FIXED_LENGTH_ARRAY") { pstField->index = uiFieldSize; }
             else { pstField->index = vFields_.varFieldCount; }
 
-            vFields_.messageOrderedFields->push_back(pstField);
+            vFields_.messageOrderedFields.push_back(pstField);
             vFields_.fields[pstField->name] = pstField;
             uiFieldSize += stDataType.length * uiArrayLength;
             if (sFieldType == "FIXED_LENGTH_ARRAY") { vFields_.fixedFieldBytes += stDataType.length * uiArrayLength; }
@@ -275,7 +275,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
         else if (sFieldType == "FIELD_ARRAY") {
             auto pstField = std::make_shared<FieldArrayField>();
             ParseFieldArrayField(field, *pstField);
-            vFields_.messageOrderedFields->push_back(pstField);
+            vFields_.messageOrderedFields.push_back(pstField);
             pstField->index = vFields_.varFieldCount;
             vFields_.fields[pstField->name] = pstField;
             vFields_.varFieldCount++;

@@ -321,7 +321,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 {
     const unsigned char* pucTempStart = *ppucLogBuf_;
 
-    for (const auto& field : *vMsgDefFields_.messageOrderedFields)
+    for (const auto& field : vMsgDefFields_.messageOrderedFields)
     {
         auto fieldTypeLength = static_cast<uint8_t>(field->dataType.length);
         AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
@@ -491,7 +491,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
 
     if (pcBufEnd == nullptr) { pcBufEnd = static_cast<const char*>(std::memchr(*ppcLogBuf_, '\0', MAX_ASCII_MESSAGE_LENGTH)); }
 
-    for (const auto& field : *vMsgDefFields_.messageOrderedFields)
+    for (const auto& field : vMsgDefFields_.messageOrderedFields)
     {
         if (*ppcLogBuf_ >= pcBufEnd) { return STATUS::MALFORMED_INPUT; } // We encountered the end of the buffer unexpectedly
 
@@ -720,7 +720,7 @@ template STATUS MessageDecoderBase::DecodeAscii<false>(const FieldInfo&, const c
 STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_,
                                       simdjson::dom::element jsonData, MessageBody& vIntermediateFormat_) const
 {
-    for (const auto& field : *vMsgDefFields_.messageOrderedFields)
+    for (const auto& field : vMsgDefFields_.messageOrderedFields)
     {
         simdjson::dom::element clField;
         if (jsonData[field->name].get(clField) != simdjson::SUCCESS)
@@ -932,7 +932,6 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, DefinedMessageBody&
     if (pucMessage_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
     const unsigned char* pucTempInData = pucMessage_;
-    MessageDefinition::ConstPtr vMsgDef;
 
     if (stMetaData_.bResponse)
     {
@@ -942,15 +941,15 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, DefinedMessageBody&
         {
             return STATUS::NO_DEFINITION;
         }
-        vMsgDef = stMyRespDef;
+        stInterMessage_.definition = stMyRespDef;
     }
     else
     {
         if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
-        vMsgDef = pclMyMsgDb->GetMsgDef(stMetaData_.usMessageId);
+        stInterMessage_.definition = pclMyMsgDb->GetMsgDef(stMetaData_.usMessageId);
 
-        if (vMsgDef == nullptr)
+        if (stInterMessage_.definition == nullptr)
         {
             LogMissingMsgDef(*pclMyLogger, stMetaData_.usMessageId);
             return STATUS::NO_DEFINITION;
@@ -963,9 +962,8 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, DefinedMessageBody&
         return STATUS::UNSUPPORTED;
     }
     const FieldInfo& msgFieldInfo =
-        stMetaData_.bResponse ? vMsgDef->fieldInfo.at(0) : vMsgDef->GetMsgDefFromCrc(*pclMyLogger, stMetaData_.uiMessageCrc);
+        stMetaData_.bResponse ? stInterMessage_.definition->fieldInfo.at(0) : stInterMessage_.definition->GetMsgDefFromCrc(*pclMyLogger, stMetaData_.uiMessageCrc);
 
-    stInterMessage_.fieldDefinitions = std::make_shared<std::vector<BaseField::ConstPtr>>(*msgFieldInfo.messageOrderedFields);
     auto& messageBody = stInterMessage_.body;
     messageBody.fixedFields = std::vector<std::byte>(msgFieldInfo.fixedFieldBytes);
     messageBody.varFields.resize(msgFieldInfo.varFieldCount);
