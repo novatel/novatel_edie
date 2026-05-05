@@ -156,10 +156,10 @@ void LogMissingMsgDef(spdlog::logger& pclLogger_, const int32_t iMsgId_)
 }
 
 // -------------------------------------------------------------------------------------------------------
-const std::vector<BaseField::Ptr>& MessageDefinition::GetMsgDefFromCrc([[maybe_unused]] spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const
+const FieldInfo& MessageDefinition::GetMsgDefFromCrc([[maybe_unused]] spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const
 {
-    auto it = fields.find(uiMsgDefCrc_);
-    return (it != fields.end()) ? it->second : fields.at(latestMessageCrc);
+    auto it = fieldInfo.find(uiMsgDefCrc_);
+    return (it != fieldInfo.end()) ? it->second : fieldInfo.at(latestMessageCrc);
 }
 
 } // namespace novatel::edie
