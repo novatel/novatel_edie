@@ -747,7 +747,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
 
     MessageDataStruct stMessageData;
     IntermediateHeader stHeader;
-    std::vector<FieldContainer> stMessage;
+    DefinedMessageBody stMessage;
 
     unsigned char* pucTempMessagePointer = pucBuffer_;
     STATUS eStatus = clMyHeaderDecoder.Decode(pucTempMessagePointer, stHeader, stMetaData_);
@@ -801,7 +801,7 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
 
     // The message should be returned in its original format.
     stMetaData_.eFormat = HEADER_FORMAT::BINARY;
-    stMessage.clear();
+    stMessage = {};
     eStatus = clMyMessageDecoder.Decode(pucTempMessagePointer, stMessage, stMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 

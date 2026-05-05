@@ -313,6 +313,8 @@ struct BaseField
     bool isCsv{false};                // cached; Ascii encoding of this field is comma-separated,
                                       // true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
+    size_t index{0}; // if fixed, this is the byte offset of the field in MessageBody.fixedFields
+                     // if variable, this is the index of the field in MessageBody.variableFields
 
     BaseField() = default;
 
@@ -467,7 +469,7 @@ struct ArrayField : BaseField
 
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;
-
+    
   protected:
     [[nodiscard]] bool equalsImpl(const BaseField& other) const override
     {
@@ -477,6 +479,14 @@ struct ArrayField : BaseField
     }
 };
 
+struct FieldInfo
+{
+    size_t fixedFieldBytes{0};
+    size_t varFieldCount{0};
+    std::shared_ptr<std::vector<BaseField::ConstPtr>> messageOrderedFields; // vector of field definitions in the order they are encoded in the message
+    std::unordered_map<std::string, BaseField::ConstPtr> fields{}; // map of field name to field definition
+};
+
 //-----------------------------------------------------------------------
 //! \struct FieldArrayField
 //! \brief Struct containing elements of field array fields in the UI DB.
@@ -484,7 +494,7 @@ struct ArrayField : BaseField
 struct FieldArrayField : ArrayField
 {
     uint32_t fieldSize{0}; // cached
-    std::vector<std::shared_ptr<BaseField>> fields;
+    FieldInfo fieldInfo{};
 
     FieldArrayField() = default;
 
@@ -493,7 +503,7 @@ struct FieldArrayField : ArrayField
         : ArrayField(std::move(name_), type_, std::move(conversion_), eDataTypeName_, arrayLength_), fields(std::move(fields_))
     {
         uint32_t childTotal = 0;
-        for (const auto& f : fields)
+        for (const auto& f : *fieldInfo.messageOrderedFields)
         {
             if (!f) { continue; }
             switch (f->type)
@@ -514,7 +524,7 @@ struct FieldArrayField : ArrayField
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override
     {
         auto copy = std::make_shared<FieldArrayField>(*this);
-        for (auto& sub : copy->fields) { sub = sub->clone(); }
+        for (auto& sub : *copy->fieldInfo.messageOrderedFields) { sub = sub->clone(); }
         return copy;
     }
 
@@ -563,10 +573,11 @@ struct MessageDefinition
     uint32_t logID{0};
     std::string name;
     std::string description;
-    std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields; // map of crc keys to field definitions
+    std::string messageStyle;
+    std::unordered_map<uint32_t, FieldInfo> fieldInfo; // map of crc keys to field info
     uint32_t latestMessageCrc{0};
 
-    const std::vector<BaseField::Ptr>& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
+    const FieldInfo& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Compares the non-cached fields. Two `MessageDefinition`s compare
@@ -735,7 +746,10 @@ class MessageDatabase
             mMessageName[msgDef->name] = msgDef;
             mMessageId[msgDef->logID] = msgDef;
 
-            for (const auto& item : msgDef->fields) { MapMessageEnumFields(item.second); }
+            for (const auto& item : msgDef->fieldInfo)
+            {
+                if (item.second.messageOrderedFields) { MapMessageEnumFields(*item.second.messageOrderedFields); }
+            }
         }
     }
 
@@ -860,24 +874,31 @@ class MessageDatabase
             mMessageName[msg->name] = msg;
             mMessageId[msg->logID] = msg;
 
-            for (const auto& item : msg->fields) { MapMessageEnumFields(item.second); }
+            for (const auto& item : msg->fieldInfo)
+            {
+                if (item.second.messageOrderedFields) { MapMessageEnumFields(*item.second.messageOrderedFields); }
+            }
         }
     }
 
   private:
-    void MapMessageEnumFields(const std::vector<std::shared_ptr<BaseField>>& vMsgDefFields_)
+    void MapMessageEnumFields(const std::vector<BaseField::ConstPtr>& vMsgDefFields_)
     {
         for (const auto& field : vMsgDefFields_)
         {
             if (field->type == FIELD_TYPE::ENUM)
             {
-                auto* enumField = dynamic_cast<EnumField*>(field.get());
-                enumField->enumDef = GetEnumDefId(enumField->enumId);
+                auto enumField = std::dynamic_pointer_cast<const EnumField>(field);
+                if (!enumField) { continue; }
+
+                // Definitions are stored as ConstPtr but enumDef is populated after loading DBs.
+                std::const_pointer_cast<EnumField>(enumField)->enumDef = GetEnumDefId(enumField->enumId);
             }
             else if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
-                auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
-                MapMessageEnumFields(fieldArrayField->fields);
+                auto fieldArrayField = std::dynamic_pointer_cast<const FieldArrayField>(field);
+                if (!fieldArrayField || !fieldArrayField->fieldInfo.messageOrderedFields) { continue; }
+                MapMessageEnumFields(*fieldArrayField->fieldInfo.messageOrderedFields);
             }
         }
     }
