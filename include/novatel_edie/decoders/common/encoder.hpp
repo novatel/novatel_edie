@@ -243,17 +243,17 @@ template <typename BufferType, typename... Args>
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> std::function<bool(BaseField::ConstPtr, FieldValueVariant, char**, uint32_t&, const MessageDatabase&)> BasicIntMapEntry()
+template <typename T> std::function<bool(const BaseField::ConstPtr&, const FieldValueVariant&, char**, uint32_t&, const MessageDatabase&)> BasicIntMapEntry()
 {
-    return [](BaseField::ConstPtr, FieldValueVariant val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, const MessageDatabase&) {
+    return [](const BaseField::ConstPtr&, const FieldValueVariant& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, const MessageDatabase&) {
         return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<T>(val_));
     };
 }
 
 // -------------------------------------------------------------------------------------------------------
-template <typename T> std::function<bool(BaseField::ConstPtr, FieldValueVariant, char**, uint32_t&, const MessageDatabase&)> BasicHexMapEntry(uint32_t width)
+template <typename T> std::function<bool(const BaseField::ConstPtr&, const FieldValueVariant&, char**, uint32_t&, const MessageDatabase&)> BasicHexMapEntry(uint32_t width)
 {
-    return [width](BaseField::ConstPtr, FieldValueVariant val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, const MessageDatabase&) {
+    return [width](const BaseField::ConstPtr&, const FieldValueVariant& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_, const MessageDatabase&) {
         return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<T>(val_), width);
     };
 }
@@ -276,8 +276,8 @@ template <typename Derived> class EncoderBase
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
     // TODO: ASCII and JSON could probably share the same map.
-    std::unordered_map<uint64_t, std::function<bool(BaseField::ConstPtr, FieldValueVariant, char**, uint32_t&, const MessageDatabase&)>> asciiFieldMap;
-    std::unordered_map<uint64_t, std::function<bool(BaseField::ConstPtr, FieldValueVariant, char**, uint32_t&, const MessageDatabase&)>> jsonFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const BaseField::ConstPtr&, const FieldValueVariant&, char**, uint32_t&, const MessageDatabase&)>> asciiFieldMap;
+    std::unordered_map<uint64_t, std::function<bool(const BaseField::ConstPtr&, const FieldValueVariant&, char**, uint32_t&, const MessageDatabase&)>> jsonFieldMap;
 
     template <bool Flatten, bool Align>
     [[nodiscard]] bool EncodeBinaryBody(const MessageBody& stInterMessage_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
@@ -607,13 +607,13 @@ template <typename Derived> class EncoderBase
                     const auto* enumField = dynamic_cast<const EnumField*>(fieldDef.get());
                     if (enumField->length == 2)
                     {
-                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, std::get<int16_t>(vIntermediateFormat_.GetFieldValue(*fieldDef)))) ||
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, vIntermediateFormat_.GetFixedScalarValue<int16_t>(fieldDef->index))) ||
                             !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                         {
                             return false;
                         }
                     }
-                    else if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, std::get<int32_t>(vIntermediateFormat_.GetFieldValue(*fieldDef)))) ||
+                    else if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, vIntermediateFormat_.GetFixedScalarValue<int32_t>(fieldDef->index))) ||
                              !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                     {
                         return false;
@@ -629,26 +629,25 @@ template <typename Derived> class EncoderBase
                     }
                     break;
                 case FIELD_TYPE::SIMPLE: {
-                    const auto fieldValue = vIntermediateFormat_.GetFieldValue(*fieldDef);
                     bool encoded = false;
 
                     switch (fieldDef->dataType.name)
                     {
-                    case DATA_TYPE::BOOL: encoded = FieldToAscii(fieldDef, std::get<bool>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::BOOL: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<bool>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
                     case DATA_TYPE::HEXBYTE:
-                    case DATA_TYPE::UCHAR: encoded = FieldToAscii(fieldDef, std::get<uint8_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                    case DATA_TYPE::CHAR: encoded = FieldToAscii(fieldDef, std::get<int8_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                    case DATA_TYPE::USHORT: encoded = FieldToAscii(fieldDef, std::get<uint16_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                    case DATA_TYPE::SHORT: encoded = FieldToAscii(fieldDef, std::get<int16_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::UCHAR: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<uint8_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::CHAR: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<int8_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::USHORT: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<uint16_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::SHORT: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<int16_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
                     case DATA_TYPE::UINT:
                     case DATA_TYPE::ULONG:
-                    case DATA_TYPE::SATELLITEID: encoded = FieldToAscii(fieldDef, std::get<uint32_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::SATELLITEID: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<uint32_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
                     case DATA_TYPE::INT:
-                    case DATA_TYPE::LONG: encoded = FieldToAscii(fieldDef, std::get<int32_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                    case DATA_TYPE::ULONGLONG: encoded = FieldToAscii(fieldDef, std::get<uint64_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                    case DATA_TYPE::LONGLONG: encoded = FieldToAscii(fieldDef, std::get<int64_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                    case DATA_TYPE::FLOAT: encoded = FieldToAscii(fieldDef, std::get<float>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                    case DATA_TYPE::DOUBLE: encoded = FieldToAscii(fieldDef, std::get<double>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::LONG: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<int32_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::ULONGLONG: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<uint64_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::LONGLONG: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<int64_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::FLOAT: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<float>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                        case DATA_TYPE::DOUBLE: encoded = FieldToAscii(fieldDef, vIntermediateFormat_.GetFixedScalarValue<double>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
                     default: encoded = false; break;
                     }
 
@@ -663,13 +662,20 @@ template <typename Derived> class EncoderBase
     }
 
     template <typename FieldType>
-    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr fd_, const FieldType& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const FieldType& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         if constexpr (std::is_same_v<std::decay_t<FieldType>, MessageBody>) { return false; }
         else
         {
-            auto it = asciiFieldMap.find(fd_->conversionHash);
-            if (it != asciiFieldMap.end()) { return it->second(fd_, FieldValueVariant{val_}, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
+            if (fd_->conversionHash != 0)
+            {
+                auto it = asciiFieldMap.find(fd_->conversionHash);
+                if (it != asciiFieldMap.end())
+                {
+                    const FieldValueVariant v{val_};
+                    return it->second(fd_, v, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb);
+                }
+            }
 
             switch (fd_->dataType.name)
             {
@@ -697,13 +703,20 @@ template <typename Derived> class EncoderBase
     }
 
     template <typename FieldType>
-    [[nodiscard]] bool FieldToJson(const BaseField::ConstPtr fd_, const FieldType& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool FieldToJson(const BaseField::ConstPtr& fd_, const FieldType& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         if constexpr (std::is_same_v<std::decay_t<FieldType>, MessageBody>) { return false; }
         else
         {
-            auto it = jsonFieldMap.find(fd_->conversionHash);
-            if (it != jsonFieldMap.end()) { return it->second(fd_, FieldValueVariant{val_}, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
+            if (fd_->conversionHash != 0)
+            {
+                auto it = jsonFieldMap.find(fd_->conversionHash);
+                if (it != jsonFieldMap.end())
+                {
+                    const FieldValueVariant v{val_};
+                    return it->second(fd_, v, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb);
+                }
+            }
 
             switch (fd_->dataType.name)
             {
@@ -831,13 +844,13 @@ template <typename Derived> class EncoderBase
             {
                 const auto* enumField = dynamic_cast<const EnumField*>(fieldDef.get());
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")",
-                                     GetEnumString(enumField->enumDef, std::get<int32_t>(stInterMessage_.GetFieldValue(*fieldDef))), "\","))
+                             GetEnumString(enumField->enumDef, stInterMessage_.GetFixedScalarValue<int32_t>(fieldDef->index)), "\","))
                     return false;
             }
             else if (fieldDef->type == FIELD_TYPE::RESPONSE_ID)
             {
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": )",
-                                     std::get<int32_t>(stInterMessage_.GetFieldValue(*fieldDef)), ','))
+                             stInterMessage_.GetFixedScalarValue<int32_t>(fieldDef->index), ','))
                     return false;
             }
             else if (fieldDef->type == FIELD_TYPE::RESPONSE_STR)
@@ -850,25 +863,24 @@ template <typename Derived> class EncoderBase
             {
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": )")) { return false; }
 
-                const auto fieldValue = stInterMessage_.GetFieldValue(*fieldDef);
                 bool encoded = false;
                 switch (fieldDef->dataType.name)
                 {
-                case DATA_TYPE::BOOL: encoded = FieldToJson(fieldDef, std::get<bool>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::BOOL: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<bool>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
                 case DATA_TYPE::HEXBYTE:
-                case DATA_TYPE::UCHAR: encoded = FieldToJson(fieldDef, std::get<uint8_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                case DATA_TYPE::CHAR: encoded = FieldToJson(fieldDef, std::get<int8_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                case DATA_TYPE::USHORT: encoded = FieldToJson(fieldDef, std::get<uint16_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                case DATA_TYPE::SHORT: encoded = FieldToJson(fieldDef, std::get<int16_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::UCHAR: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<uint8_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::CHAR: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<int8_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::USHORT: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<uint16_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::SHORT: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<int16_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
                 case DATA_TYPE::UINT:
                 case DATA_TYPE::ULONG:
-                case DATA_TYPE::SATELLITEID: encoded = FieldToJson(fieldDef, std::get<uint32_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::SATELLITEID: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<uint32_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
                 case DATA_TYPE::INT:
-                case DATA_TYPE::LONG: encoded = FieldToJson(fieldDef, std::get<int32_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                case DATA_TYPE::ULONGLONG: encoded = FieldToJson(fieldDef, std::get<uint64_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                case DATA_TYPE::LONGLONG: encoded = FieldToJson(fieldDef, std::get<int64_t>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                case DATA_TYPE::FLOAT: encoded = FieldToJson(fieldDef, std::get<float>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
-                case DATA_TYPE::DOUBLE: encoded = FieldToJson(fieldDef, std::get<double>(fieldValue), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::LONG: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<int32_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::ULONGLONG: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<uint64_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::LONGLONG: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<int64_t>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::FLOAT: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<float>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
+                case DATA_TYPE::DOUBLE: encoded = FieldToJson(fieldDef, stInterMessage_.GetFixedScalarValue<double>(fieldDef->index), ppcOutBuf_, uiBytesLeft_); break;
                 default: encoded = false; break;
                 }
 
