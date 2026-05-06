@@ -48,16 +48,12 @@ class Commander
     Encoder clMyEncoder;
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
-    EnumDefinition::ConstPtr vMyResponseDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
-    MessageDefinition::Ptr stMyRespDef{nullptr};
-
     // Enum util functions
     void InitEnumDefinitions();
-    void CreateResponseMsgDefinitions();
 
   public:
     //----------------------------------------------------------------------------
