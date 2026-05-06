@@ -51,13 +51,13 @@ struct MessageBody;
 
 #define PRIMITIVE_TYPES bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double
 #define PRIMITIVE_VECTORS std::vector<int8_t>, std::vector<int16_t>, std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>, std::vector<uint64_t>, std::vector<float>, std::vector<double>
-using VarLengthVariant = std::variant<PRIMITIVE_VECTORS, std::vector<MessageBody>, std::string>;
+// using VarLengthVariant = std::variant<PRIMITIVE_VECTORS, std::vector<MessageBody>, std::string>;
 using FieldValueVariant = std::variant<PRIMITIVE_TYPES, PRIMITIVE_VECTORS, std::vector<MessageBody>, std::string>;
 
 struct MessageBody
 {
     std::vector<std::byte> fixedFields;
-    std::vector<VarLengthVariant> varFields;
+    std::vector<FieldValueVariant> varFields;
 
     MessageBody() = default;
 
@@ -94,6 +94,46 @@ struct MessageBody
             std::memcpy(values.data(), values_, valueSize);
             varFields[startIndex_] = std::move(values);
         }
+    }
+
+    template <typename T>
+    void SetFieldElement(const BaseField& field_, size_t elementIndex_, const T& value_, bool fixed = true)
+    {
+        using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
+
+        if (fixed)
+        {
+            if constexpr (std::is_same_v<T, bool>)
+            {
+                const auto storedValue = static_cast<uint8_t>(value_);
+                CopyToBuffer(field_.index + (elementIndex_ * sizeof(StoredType)), storedValue, 1, true);
+            }
+            else
+            {
+                CopyToBuffer(field_.index + (elementIndex_ * sizeof(T)), value_, 1, true);
+            }
+            return;
+        }
+
+        if (field_.index >= varFields.size())
+        {
+            throw std::runtime_error("SetFieldElement(): varFields index is out of range");
+        }
+
+        auto* values = std::get_if<std::vector<StoredType>>(&varFields[field_.index]);
+        if (values == nullptr)
+        {
+            varFields[field_.index] = std::vector<StoredType>{};
+            values = std::get_if<std::vector<StoredType>>(&varFields[field_.index]);
+        }
+
+        if (values == nullptr)
+        {
+            throw std::runtime_error("SetFieldElement(): field storage type mismatch");
+        }
+
+        if (values->size() <= elementIndex_) { values->resize(elementIndex_ + 1); }
+        (*values)[elementIndex_] = static_cast<StoredType>(value_);
     }
 
     template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
@@ -273,6 +313,10 @@ struct MessageBody
                     {
                         throw std::runtime_error("GetFieldByteSize(): field arrays require typed access");
                     }
+                    else if constexpr (std::is_arithmetic_v<T>)
+                    {
+                        throw std::runtime_error("GetFieldByteSize(): scalar values are not valid var field payloads");
+                    }
                     else { return sizeof(typename T::value_type) * value.size(); }
                 },
                 varFields[field_.index]);
@@ -314,6 +358,10 @@ struct MessageBody
                     else if constexpr (std::is_same_v<T, std::vector<MessageBody>>)
                     {
                         throw std::runtime_error("CopyFieldToBuffer(): field arrays require typed access");
+                    }
+                    else if constexpr (std::is_arithmetic_v<T>)
+                    {
+                        throw std::runtime_error("CopyFieldToBuffer(): scalar values are not valid var field payloads");
                     }
                     else
                     {
@@ -425,22 +473,19 @@ class MessageDecoderBase
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyGpsTimeStatusDefinitions{nullptr};
 
-    MessageDefinition::Ptr stMyRespDef{nullptr};
-
     std::string sMyExpectedMessageFamily;
 
     // Enum util functions
     void InitEnumDefinitions();
     void InitFieldMaps();
-    void CreateResponseMsgDefinitions();
 
   protected:
         std::unordered_map<uint32_t, std::function<void(MessageBody&, const BaseField::ConstPtr&, const char**, [[maybe_unused]] size_t,
-                                                    [[maybe_unused]] MessageDatabase&)>>
+                                [[maybe_unused]] size_t, [[maybe_unused]] bool, [[maybe_unused]] MessageDatabase&)>>
         asciiFieldMap;
         std::unordered_map<uint32_t,
-                   std::function<void(MessageBody&, const BaseField::ConstPtr&, simdjson::dom::element,
-                              [[maybe_unused]] MessageDatabase&)>>
+               std::function<void(MessageBody&, const BaseField::ConstPtr&, simdjson::dom::element,
+                      [[maybe_unused]] size_t, [[maybe_unused]] bool, [[maybe_unused]] MessageDatabase&)>>
             jsonFieldMap;
 
     [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_,
@@ -456,9 +501,9 @@ class MessageDecoderBase
     static void DecodeBinaryField(const BaseField::ConstPtr& pstMessageDataType_, const unsigned char** ppucLogBuf_,
                                   MessageBody& vIntermediateFormat_, size_t n = 1, bool fixed = true);
     void DecodeAsciiField(const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_, size_t tokenLength_,
-                          MessageBody& vIntermediateFormat_) const;
+                          MessageBody& vIntermediateFormat_, size_t elementIndex_ = 0, bool fixed_ = true) const;
     void DecodeJsonField(const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_,
-                         MessageBody& vIntermediateFormat_) const;
+                         MessageBody& vIntermediateFormat_, size_t elementIndex_ = 0, bool fixed_ = true) const;
 
     //----------------------------------------------------------------------------
     //! \brief Align the binary buffer pointer to the expected type boundary.
@@ -502,7 +547,7 @@ class MessageDecoderBase
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
     static void ParseAndEmplace(MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_, const char* token,
-                                size_t tokenLength)
+                                size_t tokenLength, size_t elementIndex_ = 0, bool fixed_ = true)
     {
         T value;
         std::from_chars_result result;
@@ -517,24 +562,26 @@ class MessageDecoderBase
 
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
 
-        vIntermediateFormat_.CopyToBuffer(pstMessageDataType_->index, value);
+        vIntermediateFormat_.SetFieldElement(*pstMessageDataType_, elementIndex_, value, fixed_);
     }
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T, int R = 10>
-    static std::function<void(MessageBody&, const BaseField::ConstPtr&, const char**, size_t, MessageDatabase&)> SimpleAsciiMapEntry()
+    static std::function<void(MessageBody&, const BaseField::ConstPtr&, const char**, size_t, size_t, bool, MessageDatabase&)> SimpleAsciiMapEntry()
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
         return [](MessageBody& vIntermediate_, const BaseField::ConstPtr& pstField_, const char** ppcToken_,
-                  [[maybe_unused]] const size_t tokenLength_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            ParseAndEmplace<T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_);
+                  [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
+                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+            ParseAndEmplace<T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_, fixed_);
         };
     }
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static void PushElement(MessageBody& vIntermediate_, const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_)
+    static void PushElement(MessageBody& vIntermediate_, const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_,
+                            size_t elementIndex_ = 0, bool fixed_ = true)
     {
         // Determine the intermediate type to use for simdjson::get
         using IntermediateType =
@@ -550,7 +597,7 @@ class MessageDecoderBase
         if (clJsonField_.get(intermediateValue) == simdjson::SUCCESS)
         {
             T value = static_cast<T>(intermediateValue);
-            vIntermediate_.CopyToBuffer(pstMessageDataType_->index, value);
+            vIntermediate_.SetFieldElement(*pstMessageDataType_, elementIndex_, value, fixed_);
         }
         else
         {
@@ -560,10 +607,12 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static std::function<void(MessageBody&, const BaseField::ConstPtr&, simdjson::dom::element, MessageDatabase&)> SimpleJsonMapEntry()
+    static std::function<void(MessageBody&, const BaseField::ConstPtr&, simdjson::dom::element, size_t, bool, MessageDatabase&)> SimpleJsonMapEntry()
     {
         return [](MessageBody& vIntermediate_, const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_,
-                  [[maybe_unused]] MessageDatabase& pclMsgDb_) { PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_); };
+                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+            PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_);
+        };
     }
 
     // -------------------------------------------------------------------------------------------------------
