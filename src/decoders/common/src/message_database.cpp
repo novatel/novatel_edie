@@ -144,6 +144,52 @@ MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(const int32_t iMsgId_) co
     return it != mMessageId.end() ? it->second : nullptr;
 }
 
+//-----------------------------------------------------------------------
+MessageDefinition::ConstPtr MessageDatabase::GetResponseDefinition() const
+{
+    if (pResponseDefinition != nullptr) { return pResponseDefinition; }
+
+    auto responseDefinition = std::make_shared<MessageDefinition>();
+    responseDefinition->name = "response";
+
+    auto responsesEnum = GetEnumDefName("Responses");
+
+    SimpleDataType responseIdDataType;
+    responseIdDataType.description = "Response as numerical id";
+    responseIdDataType.length = 4;
+    responseIdDataType.name = DATA_TYPE::UINT;
+
+    auto responseIdField = std::make_shared<EnumField>();
+    responseIdField->name = "response_id";
+    responseIdField->type = FIELD_TYPE::RESPONSE_ID;
+    responseIdField->dataType = responseIdDataType;
+    responseIdField->index = 0;
+    responseIdField->length = 4;
+    if (responsesEnum != nullptr) { responseIdField->enumId = responsesEnum->_id; }
+    responseIdField->enumDef = responsesEnum;
+
+    SimpleDataType responseStrDataType;
+    responseStrDataType.description = "Response as a string";
+    responseStrDataType.length = 1;
+    responseStrDataType.name = DATA_TYPE::CHAR;
+
+    auto responseStrField = std::make_shared<BaseField>();
+    responseStrField->name = "response_str";
+    responseStrField->type = FIELD_TYPE::RESPONSE_STR;
+    responseStrField->dataType = responseStrDataType;
+    responseStrField->index = 0;
+
+    auto& responseFieldInfo = responseDefinition->fieldInfo[0]; // Responses do not use definition CRCs.
+    responseFieldInfo.fixedFieldBytes = sizeof(uint32_t);
+    responseFieldInfo.varFieldCount = 1;
+    responseFieldInfo.messageOrderedFields = {responseIdField, responseStrField};
+    responseFieldInfo.fields[responseIdField->name] = responseIdField;
+    responseFieldInfo.fields[responseStrField->name] = responseStrField;
+
+    pResponseDefinition = responseDefinition;
+    return pResponseDefinition;
+}
+
 // -------------------------------------------------------------------------------------------------------
 const FieldInfo& MessageDefinition::GetMsgDefFromCrc([[maybe_unused]] spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const
 {

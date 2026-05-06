@@ -42,51 +42,14 @@ void Commander::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
     pclMyMsgDb = pclMessageDb_;
     InitEnumDefinitions();
-    CreateResponseMsgDefinitions();
 }
 
 // -------------------------------------------------------------------------------------------------------
 void Commander::InitEnumDefinitions()
 {
-    vMyResponseDefinitions = pclMyMsgDb->GetEnumDefName("Responses");
     vMyCommandDefinitions = pclMyMsgDb->GetEnumDefName("Commands");
     vMyPortAddressDefinitions = pclMyMsgDb->GetEnumDefName("PortAddress");
     vMyGpsTimeStatusDefinitions = pclMyMsgDb->GetEnumDefName("GPSTimeStatus");
-}
-
-// -------------------------------------------------------------------------------------------------------
-void Commander::CreateResponseMsgDefinitions()
-{
-    // Numerical response ID
-    SimpleDataType stRespIdDataType;
-    stRespIdDataType.description = "Response as numerical id";
-    stRespIdDataType.length = 4;
-    stRespIdDataType.name = DATA_TYPE::UINT;
-
-    EnumField stRespIdField;
-    stRespIdField.name = "response_id";
-    stRespIdField.type = FIELD_TYPE::RESPONSE_ID;
-    stRespIdField.dataType = stRespIdDataType;
-    if (vMyResponseDefinitions != nullptr) { stRespIdField.enumId = vMyResponseDefinitions->_id; }
-    stRespIdField.enumDef = vMyResponseDefinitions;
-
-    // String response ID
-    SimpleDataType stRespStrDataType;
-    stRespStrDataType.description = "Response as a string";
-    stRespStrDataType.length = 1;
-    stRespStrDataType.name = DATA_TYPE::CHAR;
-
-    BaseField stRespStrField;
-    stRespStrField.name = "response_str";
-    stRespStrField.type = FIELD_TYPE::RESPONSE_STR;
-    stRespStrField.dataType = stRespStrDataType;
-
-    // Message Definition
-    stMyRespDef = std::make_shared<MessageDefinition>();
-    stMyRespDef->name = "response";
-    stMyRespDef->fieldInfo[0]; // responses don't have CRCs, hardcoding in 0 as the key to the fields map
-    stMyRespDef->fieldInfo[0].fields[stRespIdField.name] = std::make_shared<EnumField>(stRespIdField);
-    stMyRespDef->fieldInfo[0].fields[stRespStrField.name] = std::make_shared<BaseField>(stRespStrField);
 }
 
 // -------------------------------------------------------------------------------------------------------

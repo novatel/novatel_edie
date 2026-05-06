@@ -300,8 +300,6 @@ template <typename Derived> class EncoderBase
                 if (!alignBufferPtr(static_cast<uint8_t>(fieldDef->dataType.length))) { return false; }
             }
 
-            const unsigned char* startPos = *ppucOutBuf_;
-
             if (fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
             {
                 const auto* arrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
@@ -319,6 +317,8 @@ template <typename Derived> class EncoderBase
                     default: return false;
                     }
                 }
+
+                const unsigned char* startPos = *ppucOutBuf_;
 
                 // Recursively encode each element
                 for (const auto& element : elements)
@@ -755,10 +755,8 @@ template <typename Derived> class EncoderBase
                     if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
                 }
             }
-            else if (fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
+            else if (fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY || fieldDef->type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
             {
-                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": [)")) { return false; }
-
                 const bool encoded = std::visit(
                     [&](auto&& arrayElements) -> bool {
                         using ArrayType = std::decay_t<decltype(arrayElements)>;
@@ -771,8 +769,23 @@ template <typename Derived> class EncoderBase
                         {
                             return true;  // Should not reach here
                         }
+                        else if constexpr (std::is_arithmetic_v<ArrayType>)
+                        {
+                            throw std::runtime_error("EncodeJsonBody(): scalar values are not valid array payloads");
+                        }
                         else
                         {
+                            if (fieldDef->isString)
+                            {
+                                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")")) { return false; }
+                            }
+                            // This is an array of simple elements
+                            else if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": [)") ||
+                                        (arrayElements.empty() && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ']')))
+                            {
+                                return false;
+                            }
+
                             // Numeric array
                             for (const auto& elem : arrayElements)
                             {
@@ -782,20 +795,30 @@ template <typename Derived> class EncoderBase
                                                            (std::is_same_v<ValueType, uint8_t> && elem == '\0')))
                                     break;
 
-                                if (!FieldToJson(fieldDef, elem, ppcOutBuf_, uiBytesLeft_))
+                                if (!FieldToJson(fieldDef, elem, ppcOutBuf_, uiBytesLeft_) ||
+                                    (!fieldDef->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')))
+                                {
                                     return false;
-
-                                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
-                                    return false;
+                                }
                             }
                             return true;
                         }
                     },
-                    stInterMessage_.varFields[fieldDef->index]);
+                    (fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY) ? stInterMessage_.varFields[fieldDef->index] : stInterMessage_.GetFieldValue(*fieldDef));
 
                 if (!encoded) { return false; }
-                *(*ppcOutBuf_ - 1) = ']';
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
+
+                // Quoted elements need a trailing comma
+                if (fieldDef->isString)
+                {
+                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\",")) { return false; }
+                }
+                // Non-quoted, non-internally-separated elements also need a trailing comma
+                else
+                {
+                    *(*ppcOutBuf_ - 1) = ']';
+                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
+                }
             }
             else if (fieldDef->type == FIELD_TYPE::STRING)
             {
@@ -823,7 +846,7 @@ template <typename Derived> class EncoderBase
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")", str, "\","))
                     return false;
             }
-            else if (fieldDef->type == FIELD_TYPE::SIMPLE)
+            else // SIMPLE fields
             {
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": )")) { return false; }
 
@@ -850,28 +873,6 @@ template <typename Derived> class EncoderBase
                 }
 
                 if (!encoded || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
-            }
-            else if (fieldDef->type == FIELD_TYPE::FIXED_LENGTH_ARRAY)
-            {
-                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": [)")) { return false; }
-
-                const bool encoded = std::visit(
-                    [&](auto&& elems) -> bool {
-                        using ArrayType = std::decay_t<decltype(elems)>;
-                        if constexpr (!is_specialization_of_v<ArrayType, std::vector>) { return false; }
-                        else
-                        {
-                            for (size_t i = 0; i < elems.size(); ++i)
-                            {
-                                if (!FieldToJson(fieldDef, elems[i], ppcOutBuf_, uiBytesLeft_)) { return false; }
-                                if (i + 1 < elems.size() && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
-                            }
-                            return true;
-                        }
-                    },
-                    stInterMessage_.GetFieldValue(*fieldDef));
-
-                if (!encoded || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ']') || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
             }
         }
 

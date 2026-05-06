@@ -387,11 +387,14 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
-    if (stMessage_.definition == nullptr) { return STATUS::NO_DEFINITION; }
 
     const bool isResponse = (stHeader_.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0;
-    const auto& fieldDefinitions = isResponse ? stMessage_.definition->fieldInfo.at(0).messageOrderedFields
-                                              : stMessage_.definition->GetMsgDefFromCrc(*pclMyLogger, stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
+    const auto messageDefinition = isResponse ? (stMessage_.definition != nullptr ? stMessage_.definition : pclMyMsgDb->GetResponseDefinition())
+                                              : stMessage_.definition;
+    if (messageDefinition == nullptr) { return STATUS::NO_DEFINITION; }
+
+    const auto& fieldDefinitions = isResponse ? messageDefinition->fieldInfo.at(0).messageOrderedFields
+                                              : messageDefinition->GetMsgDefFromCrc(*pclMyLogger, stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {

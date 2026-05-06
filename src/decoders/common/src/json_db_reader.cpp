@@ -194,7 +194,7 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_)
         if (sFieldType == "SIMPLE")
         {
             auto pstField = std::make_shared<BaseField>(field);
-            pstField->index = uiFieldSize;
+            pstField->index = vFields_.fixedFieldBytes;
             vFields_.messageOrderedFields.push_back(pstField);
             vFields_.fields[pstField->name] = pstField;
             uiFieldSize += stDataType.length;
@@ -203,7 +203,7 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_)
         else if (sFieldType == "ENUM")
         {
             auto pstField = std::make_shared<EnumField>(field);
-            pstField->index = uiFieldSize;
+            pstField->index = vFields_.fixedFieldBytes;
             pstField->length = stDataType.length;
             vFields_.messageOrderedFields.push_back(pstField);
             vFields_.fields[pstField->name] = pstField;
@@ -214,7 +214,7 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_)
         {
             auto pstField = std::make_shared<ArrayField>(field);
             uint32_t uiArrayLength = field.at("arrayLength").get<uint32_t>();
-            if (sFieldType == "FIXED_LENGTH_ARRAY") { pstField->index = uiFieldSize; }
+            if (sFieldType == "FIXED_LENGTH_ARRAY") { pstField->index = vFields_.fixedFieldBytes; }
             else { pstField->index = vFields_.varFieldCount; }
 
             vFields_.messageOrderedFields.push_back(pstField);

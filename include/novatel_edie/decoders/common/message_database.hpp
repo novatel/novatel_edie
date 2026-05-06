@@ -414,6 +414,7 @@ class MessageDatabase
     std::unordered_map<int32_t, MessageDefinition::ConstPtr> mMessageId;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumName;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
+    mutable MessageDefinition::ConstPtr pResponseDefinition;
 
   public:
     //----------------------------------------------------------------------------
@@ -532,6 +533,11 @@ class MessageDatabase
     //! \param[in] iMsgId_ The message ID.
     //----------------------------------------------------------------------------
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t iMsgId_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Get a fabricated response message definition shared by all components.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] MessageDefinition::ConstPtr GetResponseDefinition() const;
 
     //----------------------------------------------------------------------------
     //! \brief Convert a message name string to a message ID number.
