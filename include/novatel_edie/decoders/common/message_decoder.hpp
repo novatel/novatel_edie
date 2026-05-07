@@ -61,8 +61,8 @@ struct MessageBody
 
     MessageBody() = default;
 
-    template <typename T>
-    void CopyToBuffer(const size_t startIndex_, const T* values_, size_t n = 1, bool fixed = true)
+    template <bool Fixed = true, typename T>
+    void CopyToBuffer(const size_t startIndex_, const T* values_, size_t n = 1)
     {
         static_assert(std::is_trivially_copyable_v<T>, "CopyToBuffer only supports trivially copyable types");
 
@@ -73,7 +73,7 @@ struct MessageBody
 
         const size_t valueSize = sizeof(T) * n;
 
-        if (fixed)
+        if constexpr (Fixed)
         {
             if (startIndex_ + valueSize > fixedFields.size())
             {
@@ -96,59 +96,19 @@ struct MessageBody
         }
     }
 
-    template <typename T>
-    void SetFieldElement(const BaseField& field_, size_t elementIndex_, const T& value_, bool fixed = true)
+    template <bool Fixed = true, typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
+    void CopyToBuffer(const size_t startIndex_, const T& value_, size_t n = 1)
     {
-        using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
-
-        if (fixed)
-        {
-            if constexpr (std::is_same_v<T, bool>)
-            {
-                const auto storedValue = static_cast<uint8_t>(value_);
-                CopyToBuffer(field_.index + (elementIndex_ * sizeof(StoredType)), storedValue, 1, true);
-            }
-            else
-            {
-                CopyToBuffer(field_.index + (elementIndex_ * sizeof(T)), value_, 1, true);
-            }
-            return;
-        }
-
-        if (field_.index >= varFields.size())
-        {
-            throw std::runtime_error("SetFieldElement(): varFields index is out of range");
-        }
-
-        auto* values = std::get_if<std::vector<StoredType>>(&varFields[field_.index]);
-        if (values == nullptr)
-        {
-            varFields[field_.index] = std::vector<StoredType>{};
-            values = std::get_if<std::vector<StoredType>>(&varFields[field_.index]);
-        }
-
-        if (values == nullptr)
-        {
-            throw std::runtime_error("SetFieldElement(): field storage type mismatch");
-        }
-
-        if (values->size() <= elementIndex_) { values->resize(elementIndex_ + 1); }
-        (*values)[elementIndex_] = static_cast<StoredType>(value_);
+        CopyToBuffer<Fixed>(startIndex_, &value_, n);
     }
 
-    template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void CopyToBuffer(const size_t startIndex_, const T& value_, size_t n = 1, bool fixed = true)
-    {
-        CopyToBuffer(startIndex_, &value_, n, fixed);
-    }
-
-    template <typename T>
-    void CopyToBuffer(const size_t startIndex_, std::vector<T>&& values_, bool fixed = true)
+    template <bool Fixed = true, typename T>
+    void CopyToBuffer(const size_t startIndex_, std::vector<T>&& values_)
     {
         static_assert(std::is_trivially_copyable_v<T>, "CopyToBuffer only supports trivially copyable vector element types");
         static_assert(!std::is_same_v<T, bool>, "CopyToBuffer does not support std::vector<bool>");
 
-        if (fixed)
+        if constexpr (Fixed)
         {
             const size_t valueSize = sizeof(T) * values_.size();
             if (startIndex_ + valueSize > fixedFields.size())
@@ -172,9 +132,10 @@ struct MessageBody
         }
     }
 
-    void CopyToBuffer(const size_t startIndex_, std::string&& value_, bool fixed = true)
+    template <bool Fixed = true>
+    void CopyToBuffer(const size_t startIndex_, std::string&& value_)
     {
-        if (fixed)
+        if constexpr (Fixed)
         {
             const size_t valueSize = value_.size();
             if (startIndex_ + valueSize > fixedFields.size())
@@ -196,6 +157,46 @@ struct MessageBody
 
             varFields[startIndex_] = std::move(value_);
         }
+    }
+
+    template <bool Fixed = true, typename T>
+    void SetFieldElement(const size_t startIndex_, size_t elementIndex_, const T& value_)
+    {
+        using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
+
+        if constexpr (Fixed)
+        {
+            if constexpr (std::is_same_v<T, bool>)
+            {
+                const auto storedValue = static_cast<uint8_t>(value_);
+                CopyToBuffer<true>(startIndex_ + (elementIndex_ * sizeof(StoredType)), storedValue, 1);
+            }
+            else
+            {
+                CopyToBuffer<true>(startIndex_ + (elementIndex_ * sizeof(T)), value_, 1);
+            }
+            return;
+        }
+
+        if (startIndex_ >= varFields.size())
+        {
+            throw std::runtime_error("SetFieldElement(): varFields index is out of range");
+        }
+
+        auto* values = std::get_if<std::vector<StoredType>>(&varFields[startIndex_]);
+        if (values == nullptr)
+        {
+            varFields[startIndex_] = std::vector<StoredType>{};
+            values = std::get_if<std::vector<StoredType>>(&varFields[startIndex_]);
+        }
+
+        if (values == nullptr)
+        {
+            throw std::runtime_error("SetFieldElement(): field storage type mismatch");
+        }
+
+        if (values->size() <= elementIndex_) { values->resize(elementIndex_ + 1); }
+        (*values)[elementIndex_] = static_cast<StoredType>(value_);
     }
 
     template <typename T>
@@ -498,8 +499,9 @@ class MessageDecoderBase
     [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_,
                                     simdjson::dom::element jsonData, MessageBody& vIntermediateFormat_) const;
 
+    template <bool Fixed = true>
     static void DecodeBinaryField(const BaseField::ConstPtr& pstMessageDataType_, const unsigned char** ppucLogBuf_,
-                                  MessageBody& vIntermediateFormat_, size_t n = 1, bool fixed = true);
+                                  MessageBody& vIntermediateFormat_, size_t n = 1);
     void DecodeAsciiField(const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_, size_t tokenLength_,
                           MessageBody& vIntermediateFormat_, size_t elementIndex_ = 0, bool fixed_ = true) const;
     void DecodeJsonField(const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_,
@@ -545,9 +547,9 @@ class MessageDecoderBase
     virtual void AddStringFieldPadding([[maybe_unused]] const unsigned char* start, [[maybe_unused]] const unsigned char** ptr) const { return; }
 
     // -------------------------------------------------------------------------------------------------------
-    template <typename T, int R = 10>
-    static void ParseAndEmplace(MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_, const char* token,
-                                size_t tokenLength, size_t elementIndex_ = 0, bool fixed_ = true)
+    template <bool Fixed = true, typename T = int32_t, int R = 10>
+    static void ParseAndEmplace(MessageBody& vIntermediateFormat_, size_t fieldIndex_, const char* token,
+                                size_t tokenLength, size_t elementIndex_ = 0)
     {
         T value;
         std::from_chars_result result;
@@ -562,7 +564,7 @@ class MessageDecoderBase
 
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
 
-        vIntermediateFormat_.SetFieldElement(*pstMessageDataType_, elementIndex_, value, fixed_);
+        vIntermediateFormat_.SetFieldElement<Fixed>(fieldIndex_, elementIndex_, value);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -574,13 +576,14 @@ class MessageDecoderBase
         return [](MessageBody& vIntermediate_, const BaseField::ConstPtr& pstField_, const char** ppcToken_,
                   [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
                   [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            ParseAndEmplace<T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_, fixed_);
+            if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_->index, *ppcToken_, tokenLength_, elementIndex_); }
         };
     }
 
     // -------------------------------------------------------------------------------------------------------
     template <typename T>
-    static void PushElement(MessageBody& vIntermediate_, const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_,
+    static void PushElement(MessageBody& vIntermediate_, size_t fieldIndex_, simdjson::dom::element clJsonField_,
                             size_t elementIndex_ = 0, bool fixed_ = true)
     {
         // Determine the intermediate type to use for simdjson::get
@@ -599,7 +602,8 @@ class MessageDecoderBase
             throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
         }
         T value = static_cast<T>(intermediateValue);
-        vIntermediate_.SetFieldElement(*pstMessageDataType_, elementIndex_, value, fixed_);
+        if (fixed_) { vIntermediate_.SetFieldElement<true>(fieldIndex_, elementIndex_, value); }
+        else { vIntermediate_.SetFieldElement<false>(fieldIndex_, elementIndex_, value); }
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -608,7 +612,7 @@ class MessageDecoderBase
     {
         return [](MessageBody& vIntermediate_, const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_,
                   const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-            PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_);
+            PushElement<T>(vIntermediate_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_);
         };
     }
 
