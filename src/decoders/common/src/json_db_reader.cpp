@@ -229,6 +229,14 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
     vFields_.messageOrderedFields.reserve(fields.size());
     vFields_.fields.reserve(fields.size());
 
+    auto alignFixed = [&](size_t typeLength) {
+        const size_t alignment = std::min(typeLength, size_t{4});
+        if (alignment > 1) {
+            const size_t misalign = vFields_.fixedFieldBytes % alignment;
+            if (misalign != 0) { vFields_.fixedFieldBytes += alignment - misalign; }
+        }
+    };
+
     for (element field : fields)
     {
         const auto sFieldType = AsStringView(Member(field, "type"));
@@ -240,6 +248,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
         {
             auto pstField = std::make_shared<BaseField>();
             ParseBaseField(field, *pstField);
+            alignFixed(stDataType.length);
             pstField->index = vFields_.fixedFieldBytes;
             vFields_.messageOrderedFields.push_back(pstField);
             vFields_.fields[pstField->name] = pstField;
@@ -250,6 +259,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
         {
             auto pstField = std::make_shared<EnumField>();
             ParseEnumField(field, *pstField);
+            alignFixed(stDataType.length);
             pstField->index = vFields_.fixedFieldBytes;
             vFields_.messageOrderedFields.push_back(pstField);
             vFields_.fields[pstField->name] = pstField;
@@ -261,14 +271,18 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
             auto pstField = std::make_shared<ArrayField>();
             ParseArrayField(field, *pstField);
             auto uiArrayLength = static_cast<uint32_t>(AsUint(Member(field, "arrayLength")));
-            if (sFieldType == "FIXED_LENGTH_ARRAY") { pstField->index = vFields_.fixedFieldBytes; }
+            uiFieldSize += stDataType.length * uiArrayLength;
+            if (sFieldType == "FIXED_LENGTH_ARRAY")
+            {
+                alignFixed(stDataType.length);
+                pstField->index = vFields_.fixedFieldBytes;
+                vFields_.fixedFieldBytes += stDataType.length * uiArrayLength;
+            }
             else { pstField->index = vFields_.varFieldCount; }
 
             vFields_.messageOrderedFields.push_back(pstField);
             vFields_.fields[pstField->name] = pstField;
-            uiFieldSize += stDataType.length * uiArrayLength;
-            if (sFieldType == "FIXED_LENGTH_ARRAY") { vFields_.fixedFieldBytes += stDataType.length * uiArrayLength; }
-            else { vFields_.varFieldCount++; }
+            if (sFieldType != "FIXED_LENGTH_ARRAY") { vFields_.varFieldCount++; }
         }
         else if (sFieldType == "FIELD_ARRAY") {
             auto pstField = std::make_shared<FieldArrayField>();

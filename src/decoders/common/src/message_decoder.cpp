@@ -377,18 +377,28 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         case FIELD_TYPE::FIELD_ARRAY: {
             const auto* subFieldDefinitions = dynamic_cast<const FieldArrayField*>(field.get());
             const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, vIntermediateFormat_, vMsgDefFields_.fields);
-            vIntermediateFormat_.varFields[field->index] = std::vector<MessageBody>(uiArraySize);
-            auto& pvFieldArrayContainer = std::get<std::vector<MessageBody>>(vIntermediateFormat_.varFields[field->index]);
 
-            for (uint32_t i = 0; i < uiArraySize; ++i)
+            if (subFieldDefinitions->fieldInfo.varFieldCount == 0)
             {
-                // Realign to type byte boundary if needed
-                AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
-                pvFieldArrayContainer[i].fixedFields = std::vector<std::byte>(subFieldDefinitions->fieldInfo.fixedFieldBytes);
-                pvFieldArrayContainer[i].varFields.resize(subFieldDefinitions->fieldInfo.varFieldCount);
-                STATUS eStatus = DecodeBinary(subFieldDefinitions->fieldInfo, ppucLogBuf_, pvFieldArrayContainer[i],
-                                              uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
-                if (eStatus != STATUS::SUCCESS) { return eStatus; }
+                const size_t totalBytes = uiArraySize * subFieldDefinitions->fieldInfo.fixedFieldBytes;
+                std::vector<std::byte> flat(totalBytes);
+                std::memcpy(flat.data(), *ppucLogBuf_, totalBytes);
+                *ppucLogBuf_ += totalBytes;
+                vIntermediateFormat_.varFields[field->index] = std::move(flat);
+            }
+            else
+            {
+                vIntermediateFormat_.varFields[field->index] = std::vector<MessageBody>(uiArraySize);
+                auto& pvFieldArrayContainer = std::get<std::vector<MessageBody>>(vIntermediateFormat_.varFields[field->index]);
+                for (uint32_t i = 0; i < uiArraySize; ++i)
+                {
+                    AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
+                    pvFieldArrayContainer[i].fixedFields = std::vector<std::byte>(subFieldDefinitions->fieldInfo.fixedFieldBytes);
+                    pvFieldArrayContainer[i].varFields.resize(subFieldDefinitions->fieldInfo.varFieldCount);
+                    STATUS eStatus = DecodeBinary(subFieldDefinitions->fieldInfo, ppucLogBuf_, pvFieldArrayContainer[i],
+                                                  uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
+                    if (eStatus != STATUS::SUCCESS) { return eStatus; }
+                }
             }
             break;
         }
@@ -986,7 +996,12 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, DefinedMessageBody&
                                      ? reinterpret_cast<const char*>(pucTempInData) + stMetaData_.uiLength - stMetaData_.uiHeaderLength
                                      : nullptr);
     case HEADER_FORMAT::BINARY: [[fallthrough]];
-    case HEADER_FORMAT::SHORT_BINARY: //
+    case HEADER_FORMAT::SHORT_BINARY:
+        if (msgFieldInfo.varFieldCount == 0)
+        {
+            std::memcpy(messageBody.fixedFields.data(), pucTempInData, msgFieldInfo.fixedFieldBytes);
+            return STATUS::SUCCESS;
+        }
         return DecodeBinary(msgFieldInfo, &pucTempInData, messageBody, stMetaData_.uiBinaryMsgLength);
     case HEADER_FORMAT::JSON: {
         simdjson::dom::parser parser;

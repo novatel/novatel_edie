@@ -202,10 +202,10 @@ TEST_F(MessageDecoderTypesTest, LOGGER)
     SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
-    ASSERT_NE(spdlog::get("message_decoder"), nullptr);
-    std::shared_ptr<spdlog::logger> novatel_message_decoder = pclMyDecoderTester->GetLogger();
+    std::shared_ptr<spdlog::logger> novatel_message_decoder_logger = pclMyDecoderTester->GetLogger();
+    ASSERT_NE(novatel_message_decoder_logger, nullptr);
     pclMyDecoderTester->SetLoggerLevel(eLevel);
-    ASSERT_EQ(novatel_message_decoder->level(), eLevel);
+    ASSERT_EQ(novatel_message_decoder_logger->level(), eLevel);
 }
 
 TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_SIMPLE_VALID)
