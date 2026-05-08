@@ -2315,16 +2315,17 @@ TEST_F(DecodeEncodeTest, LOGGER)
     SKIP_IF_STATIC_SPDLOG_REGISTRY();
     ASSERT_NE(spdlog::get("novatel_header_decoder"), nullptr);
     std::shared_ptr<spdlog::logger> novatel_header_decoder = pclMyHeaderDecoder->GetLogger();
+    ASSERT_NE(novatel_header_decoder, nullptr);
     pclMyHeaderDecoder->SetLoggerLevel(spdlog::level::critical);
     ASSERT_EQ(novatel_header_decoder->level(), spdlog::level::critical);
 
-    ASSERT_NE(spdlog::get("message_decoder"), nullptr);
     std::shared_ptr<spdlog::logger> novatel_message_decoder = pclMyMessageDecoder->GetLogger();
+    ASSERT_NE(novatel_message_decoder, nullptr);
     pclMyMessageDecoder->SetLoggerLevel(spdlog::level::debug);
     ASSERT_EQ(novatel_message_decoder->level(), spdlog::level::debug);
 
-    ASSERT_NE(spdlog::get("encoder"), nullptr);
     std::shared_ptr<spdlog::logger> novatel_encoder = pclMyEncoder->GetLogger();
+    ASSERT_NE(novatel_encoder, nullptr);
     pclMyEncoder->SetLoggerLevel(spdlog::level::trace);
     ASSERT_EQ(novatel_encoder->level(), spdlog::level::trace);
 }
