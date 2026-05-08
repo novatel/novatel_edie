@@ -4372,10 +4372,10 @@ TEST_F(NovatelTypesTest, ASCII_GPSTIME_MSEC_VALID)
     ASSERT_EQ(stDecoderStatus, STATUS::SUCCESS);
     // If GPS time exceeds 4,294,967.295 (seconds) the conversion to milliseconds is wrong
     // But the limit should be 604,800 (seconds) as that's the number of seconds in a GPS reference week
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[0])), 4294966296U); // 4,294,967,295 + 1 - 1,000 = 4,294,966,296
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[1])), 0U);
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[2])), 604800000U);
-    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[3])), 4294966296U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.ReadFieldValue(*MsgDefFields[0])), 4294966296U); // 4,294,967,295 + 1 - 1,000 = 4,294,966,296
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.ReadFieldValue(*MsgDefFields[1])), 0U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.ReadFieldValue(*MsgDefFields[2])), 604800000U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat_.ReadFieldValue(*MsgDefFields[3])), 4294966296U);
 }
 
 // TODO: Add tests for OEM Message Decoder Quirks that aren't covered by the common tests
