@@ -51,7 +51,6 @@ struct MessageBody;
 
 #define PRIMITIVE_TYPES bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double
 #define PRIMITIVE_VECTORS std::vector<int8_t>, std::vector<int16_t>, std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>, std::vector<uint64_t>, std::vector<float>, std::vector<double>
-// using VarLengthVariant = std::variant<PRIMITIVE_VECTORS, std::vector<MessageBody>, std::string>;
 using FieldValueVariant = std::variant<PRIMITIVE_TYPES, PRIMITIVE_VECTORS, std::vector<MessageBody>, std::vector<std::byte>, std::string>;
 
 struct MessageBody
@@ -183,6 +182,18 @@ struct MessageBody
             throw std::runtime_error("SetFieldElement(): varFields index is out of range");
         }
 
+        // If this var field is already configured as flat bytes, preserve that storage type
+        // and accept any 1-byte scalar assignment.
+        if constexpr (!std::is_same_v<T, bool> && std::is_integral_v<T> && sizeof(T) == 1)
+        {
+            if (auto* byteValues = std::get_if<std::vector<std::byte>>(&varFields[startIndex_]))
+            {
+                if (byteValues->size() <= elementIndex_) { byteValues->resize(elementIndex_ + 1); }
+                (*byteValues)[elementIndex_] = static_cast<std::byte>(static_cast<uint8_t>(value_));
+                return;
+            }
+        }
+
         auto* values = std::get_if<std::vector<StoredType>>(&varFields[startIndex_]);
         if (values == nullptr)
         {
@@ -197,6 +208,34 @@ struct MessageBody
 
         if (values->size() <= elementIndex_) { values->resize(elementIndex_ + 1); }
         (*values)[elementIndex_] = static_cast<StoredType>(value_);
+    }
+
+    void SetFlatFieldArrayByte(const size_t startIndex_, const size_t elementIndex_, const std::byte value_)
+    {
+        if (startIndex_ >= varFields.size())
+        {
+            throw std::runtime_error("SetFlatFieldArrayByte(): varFields index is out of range");
+        }
+
+        auto* values = std::get_if<std::vector<std::byte>>(&varFields[startIndex_]);
+        if (values == nullptr)
+        {
+            varFields[startIndex_] = std::vector<std::byte>{};
+            values = std::get_if<std::vector<std::byte>>(&varFields[startIndex_]);
+        }
+
+        if (values == nullptr)
+        {
+            throw std::runtime_error("SetFlatFieldArrayByte(): field storage type mismatch");
+        }
+
+        if (values->size() <= elementIndex_) { values->resize(elementIndex_ + 1); }
+        (*values)[elementIndex_] = value_;
+    }
+
+    void SetFlatFieldArrayByte(const size_t startIndex_, const size_t elementIndex_, const uint8_t value_)
+    {
+        SetFlatFieldArrayByte(startIndex_, elementIndex_, static_cast<std::byte>(value_));
     }
 
     template <typename T>
@@ -286,8 +325,13 @@ struct MessageBody
 
             return std::visit([](const auto& value) -> FieldValueVariant { return value; }, varFields[field_.index]);
         case FIELD_TYPE::ENUM:
-            return (field_.dataType.length == 2) ? GetFixedScalarValue<int16_t>(field_.index)
-                                                 : GetFixedScalarValue<int32_t>(field_.index);
+            switch (field_.dataType.length)
+            {
+            case 1: return GetFixedScalarValue<uint8_t>(field_.index);
+            case 2: return GetFixedScalarValue<uint16_t>(field_.index);
+            case 4: return GetFixedScalarValue<uint32_t>(field_.index);
+            default: throw std::runtime_error("GetFieldValue(): unsupported enum width");
+            }
         default: return GetFixedFieldValue(field_);
         }
     }
@@ -381,30 +425,6 @@ struct MessageBody
         }
     }
 
-    size_t CopyFieldToBuffer(const BaseField& field_, char* buffer_, const size_t capacity_) const
-    {
-        return CopyFieldToBuffer(field_, reinterpret_cast<std::byte*>(buffer_), capacity_);
-    }
-
-    size_t CopyFieldToBuffer(const BaseField& field_, char** buffer_, uint32_t& capacity_) const
-    {
-        if (buffer_ == nullptr || *buffer_ == nullptr)
-        {
-            if (capacity_ == 0) { return 0; }
-            throw std::runtime_error("CopyFieldToBuffer(): destination buffer is null");
-        }
-
-        const auto written = CopyFieldToBuffer(field_, *buffer_, static_cast<size_t>(capacity_));
-        *buffer_ += written;
-        capacity_ -= static_cast<uint32_t>(written);
-        return written;
-    }
-
-    size_t CopyFieldToBuffer(const BaseField& field_, unsigned char* buffer_, const size_t capacity_) const
-    {
-        return CopyFieldToBuffer(field_, reinterpret_cast<std::byte*>(buffer_), capacity_);
-    }
-
     size_t CopyFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_) const
     {
         if (buffer_ == nullptr || *buffer_ == nullptr)
@@ -413,39 +433,50 @@ struct MessageBody
             throw std::runtime_error("CopyFieldToBuffer(): destination buffer is null");
         }
 
-        const auto written = CopyFieldToBuffer(field_, *buffer_, static_cast<size_t>(capacity_));
+        const auto written = CopyFieldToBuffer(field_, reinterpret_cast<std::byte*>(*buffer_), static_cast<size_t>(capacity_));
         *buffer_ += written;
         capacity_ -= static_cast<uint32_t>(written);
         return written;
     }
 
-    size_t CopyFieldToBuffer(const BaseField& field_, std::byte** buffer_, uint32_t& capacity_) const
+    // Non-breaking alias methods for API migration.
+    template <bool Fixed = true, typename T>
+    void WriteFieldData(const size_t startIndex_, const T* values_, const size_t n = 1)
     {
-        if (buffer_ == nullptr || *buffer_ == nullptr)
-        {
-            if (capacity_ == 0) { return 0; }
-            throw std::runtime_error("CopyFieldToBuffer(): destination buffer is null");
-        }
-
-        const auto written = CopyFieldToBuffer(field_, *buffer_, static_cast<size_t>(capacity_));
-        *buffer_ += written;
-        capacity_ -= static_cast<uint32_t>(written);
-        return written;
+        CopyToBuffer<Fixed>(startIndex_, values_, n);
     }
 
-    size_t CopyFieldToBuffer(const BaseField& field_, MessageBody* buffer_, const size_t capacity_) const
+    template <bool Fixed = true, typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
+    void WriteFieldData(const size_t startIndex_, const T& value_, const size_t n = 1)
     {
-        if (buffer_ == nullptr && capacity_ != 0) { throw std::runtime_error("CopyFieldToBuffer(): destination buffer is null"); }
+        CopyToBuffer<Fixed>(startIndex_, value_, n);
+    }
 
-        if (field_.type != FIELD_TYPE::FIELD_ARRAY) { throw std::runtime_error("CopyFieldToBuffer(): MessageBody buffer requires FIELD_ARRAY"); }
-        if (field_.index >= varFields.size()) { throw std::runtime_error("CopyFieldToBuffer(): var field index out of range"); }
+    template <bool Fixed = true, typename T>
+    void WriteFieldData(const size_t startIndex_, std::vector<T>&& values_)
+    {
+        CopyToBuffer<Fixed>(startIndex_, std::move(values_));
+    }
 
-        const auto* values = std::get_if<std::vector<MessageBody>>(&varFields[field_.index]);
-        if (values == nullptr) { throw std::runtime_error("CopyFieldToBuffer(): field does not contain MessageBody values"); }
-        if (values->size() > capacity_) { throw std::runtime_error("CopyFieldToBuffer(): destination buffer too small"); }
+    template <bool Fixed = true>
+    void WriteFieldData(const size_t startIndex_, std::string&& value_)
+    {
+        CopyToBuffer<Fixed>(startIndex_, std::move(value_));
+    }
 
-        if (!values->empty()) { std::copy(values->begin(), values->end(), buffer_); }
-        return values->size();
+    template <bool Fixed = true, typename T>
+    void WriteFieldElement(const size_t startIndex_, const size_t elementIndex_, const T& value_)
+    {
+        SetFieldElement<Fixed>(startIndex_, elementIndex_, value_);
+    }
+
+    [[nodiscard]] FieldValueVariant ReadFieldValue(const BaseField& field_) const { return GetFieldValue(field_); }
+
+    [[nodiscard]] size_t GetFieldSerializedSizeBytes(const BaseField& field_) const { return GetFieldByteSize(field_); }
+
+    [[nodiscard]] size_t WriteFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_) const
+    {
+        return CopyFieldToBuffer(field_, buffer_, capacity_);
     }
 };
 
@@ -564,7 +595,7 @@ class MessageDecoderBase
 
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
 
-        vIntermediateFormat_.SetFieldElement<Fixed>(fieldIndex_, elementIndex_, value);
+        vIntermediateFormat_.WriteFieldElement<Fixed>(fieldIndex_, elementIndex_, value);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -602,8 +633,8 @@ class MessageDecoderBase
             throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
         }
         T value = static_cast<T>(intermediateValue);
-        if (fixed_) { vIntermediate_.SetFieldElement<true>(fieldIndex_, elementIndex_, value); }
-        else { vIntermediate_.SetFieldElement<false>(fieldIndex_, elementIndex_, value); }
+        if (fixed_) { vIntermediate_.WriteFieldElement<true>(fieldIndex_, elementIndex_, value); }
+        else { vIntermediate_.WriteFieldElement<false>(fieldIndex_, elementIndex_, value); }
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -657,7 +688,7 @@ class MessageDecoderBase
                     }
                     return std::nullopt;
                 },
-                vIntermediateFormat_.GetFieldValue(*it->second));
+                vIntermediateFormat_.ReadFieldValue(*it->second));
 
             if (arraySize) { return *arraySize; }
         }
