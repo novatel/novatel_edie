@@ -61,13 +61,13 @@ struct MessageBody
     MessageBody() = default;
 
     template <bool Fixed = true, typename T>
-    void CopyToBuffer(const size_t startIndex_, const T* values_, size_t n = 1)
+    void WriteFieldData(const size_t startIndex_, const T* values_, size_t n = 1)
     {
-        static_assert(std::is_trivially_copyable_v<T>, "CopyToBuffer only supports trivially copyable types");
+        static_assert(std::is_trivially_copyable_v<T>, "WriteFieldData only supports trivially copyable types");
 
         if (values_ == nullptr)
         {
-            throw std::runtime_error("CopyToBuffer(): source pointer is null");
+            throw std::runtime_error("WriteFieldData(): source pointer is null");
         }
 
         const size_t valueSize = sizeof(T) * n;
@@ -76,7 +76,7 @@ struct MessageBody
         {
             if (startIndex_ + valueSize > fixedFields.size())
             {
-                throw std::runtime_error("CopyToBuffer(): fixedFields buffer overflow");
+                throw std::runtime_error("WriteFieldData(): fixedFields buffer overflow");
             }
 
             std::memcpy(fixedFields.data() + startIndex_, values_, valueSize);
@@ -85,7 +85,7 @@ struct MessageBody
         {
             if (startIndex_ >= varFields.size())
             {
-                throw std::runtime_error("CopyToBuffer(): varFields index is out of range");
+                throw std::runtime_error("WriteFieldData(): varFields index is out of range");
             }
 
             using BufferElementType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
@@ -96,23 +96,23 @@ struct MessageBody
     }
 
     template <bool Fixed = true, typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void CopyToBuffer(const size_t startIndex_, const T& value_, size_t n = 1)
+    void WriteFieldData(const size_t startIndex_, const T& value_, size_t n = 1)
     {
-        CopyToBuffer<Fixed>(startIndex_, &value_, n);
+        WriteFieldData<Fixed>(startIndex_, &value_, n);
     }
 
     template <bool Fixed = true, typename T>
-    void CopyToBuffer(const size_t startIndex_, std::vector<T>&& values_)
+    void WriteFieldData(const size_t startIndex_, std::vector<T>&& values_)
     {
-        static_assert(std::is_trivially_copyable_v<T>, "CopyToBuffer only supports trivially copyable vector element types");
-        static_assert(!std::is_same_v<T, bool>, "CopyToBuffer does not support std::vector<bool>");
+        static_assert(std::is_trivially_copyable_v<T>, "WriteFieldData only supports trivially copyable vector element types");
+        static_assert(!std::is_same_v<T, bool>, "WriteFieldData does not support std::vector<bool>");
 
         if constexpr (Fixed)
         {
             const size_t valueSize = sizeof(T) * values_.size();
             if (startIndex_ + valueSize > fixedFields.size())
             {
-                throw std::runtime_error("CopyToBuffer(): fixedFields buffer overflow");
+                throw std::runtime_error("WriteFieldData(): fixedFields buffer overflow");
             }
 
             if (valueSize > 0)
@@ -124,7 +124,7 @@ struct MessageBody
         {
             if (startIndex_ >= varFields.size())
             {
-                throw std::runtime_error("CopyToBuffer(): varFields index is out of range");
+                throw std::runtime_error("WriteFieldData(): varFields index is out of range");
             }
 
             varFields[startIndex_] = std::move(values_);
@@ -132,14 +132,14 @@ struct MessageBody
     }
 
     template <bool Fixed = true>
-    void CopyToBuffer(const size_t startIndex_, std::string&& value_)
+    void WriteFieldData(const size_t startIndex_, std::string&& value_)
     {
         if constexpr (Fixed)
         {
             const size_t valueSize = value_.size();
             if (startIndex_ + valueSize > fixedFields.size())
             {
-                throw std::runtime_error("CopyToBuffer(): fixedFields buffer overflow");
+                throw std::runtime_error("WriteFieldData(): fixedFields buffer overflow");
             }
 
             if (valueSize > 0)
@@ -151,7 +151,7 @@ struct MessageBody
         {
             if (startIndex_ >= varFields.size())
             {
-                throw std::runtime_error("CopyToBuffer(): varFields index is out of range");
+                throw std::runtime_error("WriteFieldData(): varFields index is out of range");
             }
 
             varFields[startIndex_] = std::move(value_);
@@ -159,7 +159,7 @@ struct MessageBody
     }
 
     template <bool Fixed = true, typename T>
-    void SetFieldElement(const size_t startIndex_, size_t elementIndex_, const T& value_)
+    void WriteFieldElement(const size_t startIndex_, size_t elementIndex_, const T& value_)
     {
         using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
 
@@ -168,18 +168,18 @@ struct MessageBody
             if constexpr (std::is_same_v<T, bool>)
             {
                 const auto storedValue = static_cast<uint8_t>(value_);
-                CopyToBuffer<true>(startIndex_ + (elementIndex_ * sizeof(StoredType)), storedValue, 1);
+                WriteFieldData<true>(startIndex_ + (elementIndex_ * sizeof(StoredType)), storedValue, 1);
             }
             else
             {
-                CopyToBuffer<true>(startIndex_ + (elementIndex_ * sizeof(T)), value_, 1);
+                WriteFieldData<true>(startIndex_ + (elementIndex_ * sizeof(T)), value_, 1);
             }
             return;
         }
 
         if (startIndex_ >= varFields.size())
         {
-            throw std::runtime_error("SetFieldElement(): varFields index is out of range");
+            throw std::runtime_error("WriteFieldElement(): varFields index is out of range");
         }
 
         // If this var field is already configured as flat bytes, preserve that storage type
@@ -203,25 +203,25 @@ struct MessageBody
 
         if (values == nullptr)
         {
-            throw std::runtime_error("SetFieldElement(): field storage type mismatch");
+            throw std::runtime_error("WriteFieldElement(): field storage type mismatch");
         }
 
         if (values->size() <= elementIndex_) { values->resize(elementIndex_ + 1); }
         (*values)[elementIndex_] = static_cast<StoredType>(value_);
     }
 
-    void SetFlatFieldArrayByte(const size_t startIndex_, const size_t elementIndex_, const std::byte value_)
+    void SetFlatFieldArrayByte(const size_t fieldIndex_, const size_t elementIndex_, const std::byte value_)
     {
-        if (startIndex_ >= varFields.size())
+        if (fieldIndex_ >= varFields.size())
         {
             throw std::runtime_error("SetFlatFieldArrayByte(): varFields index is out of range");
         }
 
-        auto* values = std::get_if<std::vector<std::byte>>(&varFields[startIndex_]);
+        auto* values = std::get_if<std::vector<std::byte>>(&varFields[fieldIndex_]);
         if (values == nullptr)
         {
-            varFields[startIndex_] = std::vector<std::byte>{};
-            values = std::get_if<std::vector<std::byte>>(&varFields[startIndex_]);
+            varFields[fieldIndex_] = std::vector<std::byte>{};
+            values = std::get_if<std::vector<std::byte>>(&varFields[fieldIndex_]);
         }
 
         if (values == nullptr)
@@ -233,9 +233,9 @@ struct MessageBody
         (*values)[elementIndex_] = value_;
     }
 
-    void SetFlatFieldArrayByte(const size_t startIndex_, const size_t elementIndex_, const uint8_t value_)
+    void SetFlatFieldArrayByte(const size_t fieldIndex_, const size_t elementIndex_, const uint8_t value_)
     {
-        SetFlatFieldArrayByte(startIndex_, elementIndex_, static_cast<std::byte>(value_));
+        SetFlatFieldArrayByte(fieldIndex_, elementIndex_, static_cast<std::byte>(value_));
     }
 
     template <typename T>
@@ -263,24 +263,42 @@ struct MessageBody
     {
         const size_t idx = field_.index;
         if (idx + field_.dataType.length > fixedFields.size()) { throw std::runtime_error("GetFieldValue(): index out of range"); }
+        bool isArray = field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY;
+        uint32_t arrayLength = 0;
+        if (isArray) {
+            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
+            if (arrayField == nullptr) { throw std::runtime_error("GetFixedFieldValue(): missing fixed array metadata"); }
+            arrayLength = arrayField->arrayLength;
+        }
 
         switch (field_.dataType.name)
         {
-        case DATA_TYPE::BOOL:      return GetFixedScalarValue<bool>(idx);
-        case DATA_TYPE::CHAR:      return GetFixedScalarValue<int8_t>(idx);
+        case DATA_TYPE::BOOL:      return isArray ? FieldValueVariant(GetFixedArrayValue<uint8_t>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<bool>(idx));
+        case DATA_TYPE::CHAR:      return isArray ? FieldValueVariant(GetFixedArrayValue<int8_t>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<int8_t>(idx));
         case DATA_TYPE::HEXBYTE:   [[fallthrough]];
-        case DATA_TYPE::UCHAR:     return GetFixedScalarValue<uint8_t>(idx);
-        case DATA_TYPE::SHORT:     return GetFixedScalarValue<int16_t>(idx);
-        case DATA_TYPE::USHORT:    return GetFixedScalarValue<uint16_t>(idx);
+        case DATA_TYPE::UCHAR:     return isArray ? FieldValueVariant(GetFixedArrayValue<uint8_t>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<uint8_t>(idx));
+        case DATA_TYPE::SHORT:     return isArray ? FieldValueVariant(GetFixedArrayValue<int16_t>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<int16_t>(idx));
+        case DATA_TYPE::USHORT:    return isArray ? FieldValueVariant(GetFixedArrayValue<uint16_t>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<uint16_t>(idx));
         case DATA_TYPE::INT:       [[fallthrough]];
-        case DATA_TYPE::LONG:      return GetFixedScalarValue<int32_t>(idx);
+        case DATA_TYPE::LONG:      return isArray ? FieldValueVariant(GetFixedArrayValue<int32_t>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<int32_t>(idx));
         case DATA_TYPE::UINT:      [[fallthrough]];
         case DATA_TYPE::ULONG:     [[fallthrough]];
-        case DATA_TYPE::SATELLITEID: return GetFixedScalarValue<uint32_t>(idx);
-        case DATA_TYPE::LONGLONG:  return GetFixedScalarValue<int64_t>(idx);
-        case DATA_TYPE::ULONGLONG: return GetFixedScalarValue<uint64_t>(idx);
-        case DATA_TYPE::FLOAT:     return GetFixedScalarValue<float>(idx);
-        case DATA_TYPE::DOUBLE:    return GetFixedScalarValue<double>(idx);
+        case DATA_TYPE::SATELLITEID: return isArray ? FieldValueVariant(GetFixedArrayValue<uint32_t>(idx, arrayLength))
+                                                    : FieldValueVariant(GetFixedScalarValue<uint32_t>(idx));
+        case DATA_TYPE::LONGLONG:  return isArray ? FieldValueVariant(GetFixedArrayValue<int64_t>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<int64_t>(idx));
+        case DATA_TYPE::ULONGLONG: return isArray ? FieldValueVariant(GetFixedArrayValue<uint64_t>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<uint64_t>(idx));
+        case DATA_TYPE::FLOAT:     return isArray ? FieldValueVariant(GetFixedArrayValue<float>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<float>(idx));
+        case DATA_TYPE::DOUBLE:    return isArray ? FieldValueVariant(GetFixedArrayValue<double>(idx, arrayLength))
+                                                  : FieldValueVariant(GetFixedScalarValue<double>(idx));
         default: throw std::runtime_error("GetFieldValue(): unknown DATA_TYPE");
         }
     }
@@ -289,41 +307,13 @@ struct MessageBody
     {
         switch (field_.type)
         {
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-            if (arrayField == nullptr) { throw std::runtime_error("GetFieldValue(): missing fixed array metadata"); }
-
-            const size_t idx = field_.index;
-            const size_t size = static_cast<size_t>(arrayField->arrayLength) * field_.dataType.length;
-            if (idx + size > fixedFields.size()) { throw std::runtime_error("GetFieldValue(): fixed array index out of range"); }
-
-            switch (field_.dataType.name)
-            {
-            case DATA_TYPE::BOOL:      return GetFixedArrayValue<uint8_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::CHAR:      return GetFixedArrayValue<int8_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::HEXBYTE:   [[fallthrough]];
-            case DATA_TYPE::UCHAR:     return GetFixedArrayValue<uint8_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::SHORT:     return GetFixedArrayValue<int16_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::USHORT:    return GetFixedArrayValue<uint16_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::INT:       [[fallthrough]];
-            case DATA_TYPE::LONG:      return GetFixedArrayValue<int32_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::UINT:      [[fallthrough]];
-            case DATA_TYPE::ULONG:     [[fallthrough]];
-            case DATA_TYPE::SATELLITEID: return GetFixedArrayValue<uint32_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::LONGLONG:  return GetFixedArrayValue<int64_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::ULONGLONG: return GetFixedArrayValue<uint64_t>(idx, arrayField->arrayLength);
-            case DATA_TYPE::FLOAT:     return GetFixedArrayValue<float>(idx, arrayField->arrayLength);
-            case DATA_TYPE::DOUBLE:    return GetFixedArrayValue<double>(idx, arrayField->arrayLength);
-            default: throw std::runtime_error("GetFieldValue(): unknown fixed array DATA_TYPE");
-            }
-        }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR:
             if (field_.index >= varFields.size()) { throw std::runtime_error("GetFieldValue(): var field index out of range"); }
 
-            return std::visit([](const auto& value) -> FieldValueVariant { return value; }, varFields[field_.index]);
+            return varFields[field_.index];
         case FIELD_TYPE::ENUM:
             switch (field_.dataType.length)
             {
@@ -346,17 +336,30 @@ struct MessageBody
             return static_cast<size_t>(arrayField->arrayLength) * field_.dataType.length;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR:
             if (field_.index >= varFields.size()) { throw std::runtime_error("GetFieldByteSize(): var field index out of range"); }
 
             return std::visit(
-                [](const auto& value) -> size_t {
+                [&field_](const auto& value) -> size_t {
                     using T = std::decay_t<decltype(value)>;
                     if constexpr (std::is_same_v<T, std::string>) { return value.size(); }
+                    else if constexpr (std::is_same_v<T, std::vector<std::byte>>) { return value.size(); }
                     else if constexpr (std::is_same_v<T, std::vector<MessageBody>>)
                     {
-                        throw std::runtime_error("GetFieldByteSize(): field arrays require typed access");
+                        const auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(&field_);
+                        if (fieldArrayField == nullptr) { throw std::runtime_error("GetFieldByteSize(): missing field array metadata"); }
+                        if (fieldArrayField->fieldInfo.varFieldCount == 0) { return fieldArrayField->fieldInfo.fixedFieldBytes * value.size(); }
+                        size_t byteSize = 0;
+                        for (const auto& messageBody : value)
+                        {
+                            for (const auto& field : fieldArrayField->fieldInfo.messageOrderedFields)
+                            {
+                                byteSize += messageBody.GetFieldByteSize(*field);
+                            }
+                        }
+                        return byteSize;
                     }
                     else if constexpr (std::is_arithmetic_v<T>)
                     {
@@ -365,18 +368,16 @@ struct MessageBody
                     else { return sizeof(typename T::value_type) * value.size(); }
                 },
                 varFields[field_.index]);
-        case FIELD_TYPE::FIELD_ARRAY:
-            throw std::runtime_error("GetFieldByteSize(): field arrays require typed access");
         default: return field_.dataType.length;
         }
     }
 
-    size_t CopyFieldToBuffer(const BaseField& field_, std::byte* buffer_, const size_t capacity_) const
+    size_t WriteFieldToBuffer(const BaseField& field_, std::byte* buffer_, const size_t capacity_) const
     {
-        if (buffer_ == nullptr && capacity_ != 0) { throw std::runtime_error("CopyFieldToBuffer(): destination buffer is null"); }
+        if (buffer_ == nullptr && capacity_ != 0) { throw std::runtime_error("WriteFieldToBuffer(): destination buffer is null"); }
 
         const auto copyBytes = [&](const std::byte* source_, const size_t size_) -> size_t {
-            if (size_ > capacity_) { throw std::runtime_error("CopyFieldToBuffer(): destination buffer too small"); }
+            if (size_ > capacity_) { throw std::runtime_error("WriteFieldToBuffer(): destination buffer too small"); }
             if (size_ > 0) { std::memcpy(buffer_, source_, size_); }
             return size_;
         };
@@ -385,13 +386,13 @@ struct MessageBody
         {
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
             const auto size = GetFieldByteSize(field_);
-            if (field_.index + size > fixedFields.size()) { throw std::runtime_error("CopyFieldToBuffer(): fixed array index out of range"); }
+            if (field_.index + size > fixedFields.size()) { throw std::runtime_error("WriteFieldToBuffer(): fixed array index out of range"); }
             return copyBytes(fixedFields.data() + field_.index, size);
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR:
-            if (field_.index >= varFields.size()) { throw std::runtime_error("CopyFieldToBuffer(): var field index out of range"); }
+            if (field_.index >= varFields.size()) { throw std::runtime_error("WriteFieldToBuffer(): var field index out of range"); }
 
             return std::visit(
                 [&](const auto& value) -> size_t {
@@ -402,11 +403,11 @@ struct MessageBody
                     }
                     else if constexpr (std::is_same_v<T, std::vector<MessageBody>>)
                     {
-                        throw std::runtime_error("CopyFieldToBuffer(): field arrays require typed access");
+                        throw std::runtime_error("WriteFieldToBuffer(): field arrays require typed access");
                     }
                     else if constexpr (std::is_arithmetic_v<T>)
                     {
-                        throw std::runtime_error("CopyFieldToBuffer(): scalar values are not valid var field payloads");
+                        throw std::runtime_error("WriteFieldToBuffer(): scalar values are not valid var field payloads");
                     }
                     else
                     {
@@ -415,68 +416,28 @@ struct MessageBody
                 },
                 varFields[field_.index]);
         case FIELD_TYPE::FIELD_ARRAY:
-            throw std::runtime_error("CopyFieldToBuffer(): field arrays require typed access");
+            throw std::runtime_error("WriteFieldToBuffer(): field arrays require typed access");
         default:
             if (field_.index + field_.dataType.length > fixedFields.size())
             {
-                throw std::runtime_error("CopyFieldToBuffer(): fixed field index out of range");
+                throw std::runtime_error("WriteFieldToBuffer(): fixed field index out of range");
             }
             return copyBytes(fixedFields.data() + field_.index, field_.dataType.length);
         }
     }
 
-    size_t CopyFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_) const
+    size_t WriteFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_) const
     {
         if (buffer_ == nullptr || *buffer_ == nullptr)
         {
             if (capacity_ == 0) { return 0; }
-            throw std::runtime_error("CopyFieldToBuffer(): destination buffer is null");
+            throw std::runtime_error("WriteFieldToBuffer(): destination buffer is null");
         }
 
-        const auto written = CopyFieldToBuffer(field_, reinterpret_cast<std::byte*>(*buffer_), static_cast<size_t>(capacity_));
+        const auto written = WriteFieldToBuffer(field_, reinterpret_cast<std::byte*>(*buffer_), static_cast<size_t>(capacity_));
         *buffer_ += written;
         capacity_ -= static_cast<uint32_t>(written);
         return written;
-    }
-
-    // Non-breaking alias methods for API migration.
-    template <bool Fixed = true, typename T>
-    void WriteFieldData(const size_t startIndex_, const T* values_, const size_t n = 1)
-    {
-        CopyToBuffer<Fixed>(startIndex_, values_, n);
-    }
-
-    template <bool Fixed = true, typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void WriteFieldData(const size_t startIndex_, const T& value_, const size_t n = 1)
-    {
-        CopyToBuffer<Fixed>(startIndex_, value_, n);
-    }
-
-    template <bool Fixed = true, typename T>
-    void WriteFieldData(const size_t startIndex_, std::vector<T>&& values_)
-    {
-        CopyToBuffer<Fixed>(startIndex_, std::move(values_));
-    }
-
-    template <bool Fixed = true>
-    void WriteFieldData(const size_t startIndex_, std::string&& value_)
-    {
-        CopyToBuffer<Fixed>(startIndex_, std::move(value_));
-    }
-
-    template <bool Fixed = true, typename T>
-    void WriteFieldElement(const size_t startIndex_, const size_t elementIndex_, const T& value_)
-    {
-        SetFieldElement<Fixed>(startIndex_, elementIndex_, value_);
-    }
-
-    [[nodiscard]] FieldValueVariant ReadFieldValue(const BaseField& field_) const { return GetFieldValue(field_); }
-
-    [[nodiscard]] size_t GetFieldSerializedSizeBytes(const BaseField& field_) const { return GetFieldByteSize(field_); }
-
-    [[nodiscard]] size_t WriteFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_) const
-    {
-        return CopyFieldToBuffer(field_, buffer_, capacity_);
     }
 };
 
@@ -691,7 +652,7 @@ class MessageDecoderBase
                     }
                     return std::nullopt;
                 },
-                vIntermediateFormat_.ReadFieldValue(*it->second));
+                vIntermediateFormat_.GetFieldValue(*it->second));
 
             if (arraySize) { return *arraySize; }
         }

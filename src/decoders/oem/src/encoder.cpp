@@ -417,7 +417,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         stMessageData_.uiMessageHeaderLength = 1;
 
         if (fieldDefinitions.size() <= 1) { return STATUS::MALFORMED_INPUT; }
-        auto sResponse = std::get<std::string>(stMessage_.body.ReadFieldValue(*fieldDefinitions.at(1)));
+        auto sResponse = std::get<std::string>(stMessage_.body.GetFieldValue(*fieldDefinitions.at(1)));
         if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
         if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         stMessageData_.pucMessage = *ppucBuffer_;

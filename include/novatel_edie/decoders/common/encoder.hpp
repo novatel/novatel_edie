@@ -462,7 +462,7 @@ template <typename Derived> class EncoderBase
                         if (!AlignBufferPointer(static_cast<uint8_t>(arrayFieldDef->arrayLengthFieldSize), startBuf, ppucOutBuf_, uiBytesLeft_))
                             return false;
                     }
-                    const auto elemCount = stInterMessage_.GetFieldSerializedSizeBytes(*fieldDef) / fieldDef->dataType.length;
+                    const auto elemCount = stInterMessage_.GetFieldByteSize(*fieldDef) / fieldDef->dataType.length;
                     switch (arrayFieldDef->arrayLengthFieldSize)
                     {
                     case 1: if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint8_t>(elemCount))) return false; break;
@@ -479,8 +479,8 @@ template <typename Derived> class EncoderBase
                 if constexpr (Flatten)
                 {
                     const auto maxSize = arrayFieldDef->arrayLength * fieldDef->dataType.length;
-                    const auto written = stInterMessage_.GetFieldSerializedSizeBytes(*fieldDef);
-                    if (written < maxSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, maxSize - written)) return false;
+                    const auto written = stInterMessage_.GetFieldByteSize(*fieldDef);
+                    if (written < static_cast<size_t>(maxSize) && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, maxSize - static_cast<uint32_t>(written))) return false;
                 }
             }
             else if (fieldDef->type == FIELD_TYPE::STRING)
@@ -493,8 +493,8 @@ template <typename Derived> class EncoderBase
                 {
                     const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(fieldDef.get());
                     const auto maxSize = arrayFieldDef->arrayLength * fieldDef->dataType.length;
-                    const auto written = stInterMessage_.GetFieldSerializedSizeBytes(*fieldDef);
-                    if (written < maxSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, maxSize - written)) return false;
+                    const auto written = stInterMessage_.GetFieldByteSize(*fieldDef);
+                    if (written < static_cast<size_t>(maxSize) && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, maxSize - static_cast<uint32_t>(written))) return false;
                 }
                 else
                 {
