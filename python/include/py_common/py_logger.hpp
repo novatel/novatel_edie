@@ -239,6 +239,17 @@ class PyLoggerManager : public LoggerManager
 
   public:
     //----------------------------------------------------------------------------
+    //! \brief Constructs the PyLoggerManager.
+    //!
+    //! Initializes a `novatel_edie` logger on the python side.
+    //----------------------------------------------------------------------------
+    PyLoggerManager()
+    {
+        nb::handle logging = nb::module_::import_("logging");
+        logging.attr("getLogger")("novatel_edie");
+    }
+
+    //----------------------------------------------------------------------------
     //! \brief Destructs the PyLoggerManager.
     //!
     //! Shutdown should be called first.
