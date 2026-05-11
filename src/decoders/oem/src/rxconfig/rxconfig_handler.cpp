@@ -417,7 +417,7 @@ STATUS RxConfigHandler::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSiz
     if (stMessage_.definition == nullptr) { return STATUS::MALFORMED_INPUT; }
     const auto& fieldDefinitions = stMessage_.definition->GetMsgDefFromCrc(*pclMyLogger, stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
     if (fieldDefinitions.empty()) { return STATUS::MALFORMED_INPUT; }
-    const auto& vEmbeddedData = std::get<std::vector<uint8_t>>(stMessage_.body.ReadFieldValue(*fieldDefinitions.at(0)));
+    const auto& vEmbeddedData = std::get<std::vector<uint8_t>>(stMessage_.body.GetFieldValue(*fieldDefinitions.at(0)));
     std::unique_ptr<unsigned char[]> pucEmbeddedDataBuffer = std::make_unique<unsigned char[]>(vEmbeddedData.size());
     unsigned char* pucEmbeddedDataPointer = pucEmbeddedDataBuffer.get();
     for (const auto& value : vEmbeddedData) { *pucEmbeddedDataPointer++ = value; }
