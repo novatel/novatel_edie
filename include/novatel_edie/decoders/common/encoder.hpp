@@ -295,7 +295,7 @@ template <typename Derived> class EncoderBase
     //! 4 and the requested alignment.
     //
     //! For binary formats that use packed structures and do not align fields
-    //! this function should be overridden in a derived decoder class to skip
+    //! this function should be overridden in a derived encoder class to skip
     //! alignment.
     //
     //! \return True when alignment succeeds, false if there is not enough
@@ -317,7 +317,7 @@ template <typename Derived> class EncoderBase
         return true;
     }
 
-    template <bool Flatten, bool Align>
+    template <bool Flatten>
     [[nodiscard]] bool EncodeBinaryBody(const MessageBody& stInterMessage_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
                                         unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
     {
@@ -335,27 +335,25 @@ template <typename Derived> class EncoderBase
 
         for (const auto& fieldDef : fieldDefinitions_)
         {
-            if constexpr (Align)
-            {
-                if (!AlignBufferPointer(static_cast<uint8_t>(fieldDef->dataType.length), startBuf, ppucOutBuf_, uiBytesLeft_)) { return false; }
-            }
+            if (!AlignBufferPointer(static_cast<uint8_t>(fieldDef->dataType.length), startBuf, ppucOutBuf_, uiBytesLeft_)) { return false; }
 
-            if (fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
+            if (fieldDef->type == FIELD_TYPE::FIELD_ARRAY || fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
             {
-                const auto* arrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
+                bool isFieldArray = fieldDef->type == FIELD_TYPE::FIELD_ARRAY;
+                const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(fieldDef.get());
+                const auto* fieldArrayFieldDef = isFieldArray ? dynamic_cast<const FieldArrayField*>(fieldDef.get()) : nullptr;
                 const auto& varField = stInterMessage_.varFields[fieldDef->index];
                 const auto* flat = std::get_if<std::vector<std::byte>>(&varField);
-                const auto* elements = flat ? nullptr : &std::get<std::vector<MessageBody>>(varField);
-                const size_t count = flat ? flat->size() / arrayFieldDef->fieldInfo.fixedFieldBytes : elements->size();
+                const auto* elements = flat || !isFieldArray ? nullptr : &std::get<std::vector<MessageBody>>(varField);
+                const size_t count = flat ? flat->size() / fieldArrayFieldDef->fieldInfo.fixedFieldBytes
+                                          : isFieldArray ? elements->size()
+                                                         : stInterMessage_.GetFieldByteSize(*fieldDef) / fieldDef->dataType.length;
 
-                // Write array length if needed
+                // Write array length
                 if (arrayFieldDef->arrayLengthRef.empty())
                 {
-                    if constexpr (Align)
-                    {
-                        if (!AlignBufferPointer(static_cast<uint8_t>(arrayFieldDef->arrayLengthFieldSize), startBuf, ppucOutBuf_, uiBytesLeft_))
-                            return false;
-                    }
+                    if (!AlignBufferPointer(static_cast<uint8_t>(arrayFieldDef->arrayLengthFieldSize), startBuf, ppucOutBuf_, uiBytesLeft_))
+                        return false;
                     switch (arrayFieldDef->arrayLengthFieldSize)
                     {
                     case 1: if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint8_t>(count))) return false; break;
@@ -367,61 +365,28 @@ template <typename Derived> class EncoderBase
 
                 const unsigned char* startPos = *ppucOutBuf_;
 
-                if (flat)
+                // Fast path: all fields are fixed - directly copy the whole array
+                if (flat || fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
                 {
-                    if (flat->size() > uiBytesLeft_) return false;
-                    std::memcpy(*ppucOutBuf_, flat->data(), flat->size());
-                    *ppucOutBuf_ += flat->size();
-                    uiBytesLeft_ -= static_cast<uint32_t>(flat->size());
+                    if (!stInterMessage_.WriteFieldToBuffer(*fieldDef, ppucOutBuf_, uiBytesLeft_)) { return false; }
                 }
+                // Slow path (only for FIELD_ARRAY): individually encode each element of the array
                 else
                 {
                     for (const auto& element : *elements)
                     {
-                        if (!EncodeBinaryBody<Flatten, Align>(element, arrayFieldDef->fieldInfo.messageOrderedFields, ppucOutBuf_, uiBytesLeft_))
+                        if (!EncodeBinaryBody<Flatten>(element, fieldArrayFieldDef->fieldInfo.messageOrderedFields, ppucOutBuf_, uiBytesLeft_))
                             return false;
                     }
                 }
 
-                // Pad to max size if flattened
+                // For a flattened version of the log, fill in the remaining fields with 0x00.
                 if constexpr (Flatten)
                 {
                     const auto written = static_cast<uint32_t>(*ppucOutBuf_ - startPos);
-                    if (written < arrayFieldDef->fieldSize && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, arrayFieldDef->fieldSize - written))
-                        return false;
-                }
-            }
-            else if (fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
-            {
-                const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(fieldDef.get());
-
-                // Write array length if needed
-                if (arrayFieldDef->arrayLengthRef.empty())
-                {
-                    if constexpr (Align)
-                    {
-                        if (!AlignBufferPointer(static_cast<uint8_t>(arrayFieldDef->arrayLengthFieldSize), startBuf, ppucOutBuf_, uiBytesLeft_))
-                            return false;
-                    }
-                    const auto elemCount = stInterMessage_.GetFieldByteSize(*fieldDef) / fieldDef->dataType.length;
-                    switch (arrayFieldDef->arrayLengthFieldSize)
-                    {
-                    case 1: if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint8_t>(elemCount))) return false; break;
-                    case 2: if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint16_t>(elemCount))) return false; break;
-                    case 4: if (!CopyToBuffer(ppucOutBuf_, uiBytesLeft_, static_cast<uint32_t>(elemCount))) return false; break;
-                    default: return false;
-                    }
-                }
-
-                // Copy array data
-                if (!stInterMessage_.WriteFieldToBuffer(*fieldDef, ppucOutBuf_, uiBytesLeft_)) return false;
-
-                // Pad to max size if flattened
-                if constexpr (Flatten)
-                {
-                    const auto maxSize = arrayFieldDef->arrayLength * fieldDef->dataType.length;
-                    const auto written = stInterMessage_.GetFieldByteSize(*fieldDef);
-                    if (written < static_cast<size_t>(maxSize) && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, maxSize - static_cast<uint32_t>(written))) return false;
+                    const int remaining = (isFieldArray ? fieldArrayFieldDef->fieldSize
+                                                        : arrayFieldDef->arrayLength * fieldDef->dataType.length) - written;
+                    if (remaining > 0 && !SetInBuffer(ppucOutBuf_, uiBytesLeft_, 0, remaining)) { return false; }
                 }
             }
             else if (fieldDef->type == FIELD_TYPE::STRING)
@@ -518,59 +483,34 @@ template <typename Derived> class EncoderBase
                         }
                         newIndentLine = true;
                     }
-                    // Data was printed so a new line is required at the end of the array if there are more fields in the log
+                }
+                // Data was printed so a new line is required at the end of the array if there are more fields in the log
+                for (size_t i = 0; i < elementCount; ++i)
+                {
+                    if constexpr (Abbreviated)
+                    {
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
+                    }
+
+                    bool encoded = false;
+                    if (pFlat)
+                    {
+                        const auto* elementFixed = pFlat->data() + (i * perElem);
+                        encoded = EncodeAsciiBodyRegions<Abbreviated>(elementFixed, perElem, std::nullopt,
+                                                                      arrayFieldDef->fieldInfo.messageOrderedFields,
+                                                                      ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1);
+                    }
                     else
                     {
-                        for (size_t i = 0; i < elementCount; ++i)
-                        {
-                            if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
-
-                            bool encoded = false;
-                            if (pFlat)
-                            {
-                                const auto* elementFixed = pFlat->data() + (i * perElem);
-                                encoded = EncodeAsciiBodyRegions<true>(elementFixed, perElem, std::nullopt,
-                                                                       arrayFieldDef->fieldInfo.messageOrderedFields,
-                                                                       ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1);
-                            }
-                            else
-                            {
-                                const auto& element = (*pElements)[i];
-                                encoded = EncodeAsciiBodyRegions<true>(element.fixedFields.data(), element.fixedFields.size(), std::cref(element.varFields),
-                                                                       arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_,
-                                                                       uiIndents_ + 1);
-                            }
-
-                            if (!encoded) { return false; }
-                        }
-                        newIndentLine = true;
+                        const auto& element = (*pElements)[i];
+                        encoded = EncodeAsciiBodyRegions<Abbreviated>(element.fixedFields.data(), element.fixedFields.size(), std::cref(element.varFields),
+                                                                      arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_,
+                                                                      uiIndents_ + 1);
                     }
+
+                    if (!encoded) { return false; }
                 }
-                else
-                {
-                    for (size_t i = 0; i < elementCount; ++i)
-                    {
-                        if (pFlat)
-                        {
-                            const auto* elementFixed = pFlat->data() + (i * perElem);
-                            if (!EncodeAsciiBodyRegions<false>(elementFixed, perElem, std::nullopt,
-                                                               arrayFieldDef->fieldInfo.messageOrderedFields,
-                                                               ppcOutBuf_, uiBytesLeft_))
-                            {
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            const auto& element = (*pElements)[i];
-                            if (!EncodeAsciiBodyRegions<false>(element.fixedFields.data(), element.fixedFields.size(), std::cref(element.varFields),
-                                                               arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                }
+                newIndentLine = true;
             }
             else if (fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
             {
