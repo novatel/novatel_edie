@@ -546,11 +546,11 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
         break;
     }
     case ENCODE_FORMAT::FLATTENED_BINARY:
-        if (!EncodeBinaryBody<true, true>(stMessage_, fieldDefinitions, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
+        if (!EncodeBinaryBody<true>(stMessage_, fieldDefinitions, &pucTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         [[fallthrough]];
 
     case ENCODE_FORMAT::BINARY: {
-        if (eFormat_ == ENCODE_FORMAT::BINARY && !EncodeBinaryBody<false, true>(stMessage_, fieldDefinitions, &pucTempBuffer, uiBufferSize_))
+        if (eFormat_ == ENCODE_FORMAT::BINARY && !EncodeBinaryBody<false>(stMessage_, fieldDefinitions, &pucTempBuffer, uiBufferSize_))
         {
             return STATUS::BUFFER_FULL;
         }
