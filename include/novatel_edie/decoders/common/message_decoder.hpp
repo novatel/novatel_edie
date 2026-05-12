@@ -390,6 +390,7 @@ struct MessageBody
             return copyBytes(fixedFields.data() + field_.index, size);
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR:
             if (field_.index >= varFields.size()) { throw std::runtime_error("WriteFieldToBuffer(): var field index out of range"); }
@@ -401,9 +402,13 @@ struct MessageBody
                     {
                         return copyBytes(reinterpret_cast<const std::byte*>(value.data()), value.size());
                     }
+                    else if constexpr (std::is_same_v<T, std::vector<std::byte>>)
+                    {
+                        return copyBytes(value.data(), value.size());
+                    }
                     else if constexpr (std::is_same_v<T, std::vector<MessageBody>>)
                     {
-                        throw std::runtime_error("WriteFieldToBuffer(): field arrays require typed access");
+                        throw std::runtime_error("WriteFieldToBuffer(): field arrays with variable length elements not allowed");
                     }
                     else if constexpr (std::is_arithmetic_v<T>)
                     {
@@ -415,8 +420,6 @@ struct MessageBody
                     }
                 },
                 varFields[field_.index]);
-        case FIELD_TYPE::FIELD_ARRAY:
-            throw std::runtime_error("WriteFieldToBuffer(): field arrays require typed access");
         default:
             if (field_.index + field_.dataType.length > fixedFields.size())
             {

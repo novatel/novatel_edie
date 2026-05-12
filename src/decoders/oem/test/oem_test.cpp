@@ -4299,7 +4299,7 @@ class NovatelTypesTest : public ::testing::Test
         bool TestEncodeBinaryBody(const MessageBody& stInterMessage_, const std::vector<BaseField::Ptr>& msgDefFields_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(msgDefFields_);
-            return EncodeBinaryBody<false, true>(stInterMessage_, fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytes);
+            return EncodeBinaryBody<false>(stInterMessage_, fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytes);
         }
     };
 
