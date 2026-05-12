@@ -14,6 +14,8 @@
 
 namespace novatel::edie::py_common {
 
+using ssize_t = std::make_signed_t<size_t>;
+
 //============================================================================
 //! \class PyField
 //! \brief A python representation for a single message or message field.
@@ -142,7 +144,7 @@ struct PyFieldArray
                           py_common::PyMessageDatabaseCore::ConstPtr parentDb_, nb::object parent_)
         : data(&data_), fieldDef(fieldDef_), parentDb(std::move(parentDb_)), parent(std::move(parent_)), cache(data_.size()) {};
 
-    nb::object getitem(size_t index) const;
+    nb::object getitem(ssize_t index) const;
     size_t len() const;
 
     std::vector<FieldContainer>* data;

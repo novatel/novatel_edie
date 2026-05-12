@@ -190,15 +190,23 @@ PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
     return resolve_entry(it->second);
 }
 
-PYCOMMON_EXPORT nb::object PyFieldArray::getitem(size_t index) const
+nb::object getIndexError()
 {
-    if (index >= data->size())
+    // Raise index error in python
+    // Equivalent to `raise nb::index_error()` but much faster because it avoids throwing a C++ exception
+    PyErr_SetString(PyExc_IndexError, "");
+    return nb::object();
+}
+
+PYCOMMON_EXPORT nb::object PyFieldArray::getitem(ssize_t signedIndex) const
+{
+    if (signedIndex < 0)
     {
-        // Raise index error in python
-        // Equivalent to `raise nb::index_error()` but much faster because it avoids throwing a C++ exception
-        PyErr_SetString(PyExc_IndexError, "");
-        return nb::object();
+        signedIndex = data->size() + signedIndex;
+        if (signedIndex < 0) { return getIndexError(); }
     }
+    size_t index = signedIndex;
+    if (index >= data->size()) { return getIndexError(); }
 
     // Check if a cached object has been created
     if (cache[index].has_value())
