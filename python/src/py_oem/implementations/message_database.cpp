@@ -8,7 +8,7 @@ using namespace novatel::edie;
 
 void py_oem::ThrowRXConfigConstructionError() { throw py_common::FailureException("RXConfig definition in database cannot be handled."); }
 
-std::unique_ptr<py_common::MessageDBExtrasBase> py_oem::AllocateDatabaseExtras(py_common::PyMessageDatabaseCore::Ptr database)
+std::unique_ptr<py_common::MessageDBExtrasBase> py_oem::AllocateDatabaseExtras(MessageDatabase::Ptr database)
 {
     auto extras = std::make_unique<DatabaseExtras>();
     extras->encoder = std::make_unique<oem::Encoder>(database);

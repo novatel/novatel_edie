@@ -16,7 +16,7 @@ struct DatabaseExtras : public py_common::MessageDBExtrasBase
     std::unique_ptr<oem::RxConfigHandler> rxConfigHandler;
 };
 
-std::unique_ptr<py_common::MessageDBExtrasBase> AllocateDatabaseExtras(py_common::PyMessageDatabaseCore::Ptr database);
+std::unique_ptr<py_common::MessageDBExtrasBase> AllocateDatabaseExtras(MessageDatabase::Ptr database);
 
 const DatabaseExtras& GetDatabaseExtras(const py_common::PyMessageDatabase& database);
 

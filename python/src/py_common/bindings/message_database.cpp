@@ -166,7 +166,7 @@ void py_common::init_common_message_database(nb::module_& m)
                 .format(msg_def.name, msg_def._id, msg_def.logID, msg_def.description, self.attr("fields"), msg_def.latestMessageCrc);
         });
 
-    nb::class_<py_common::PyMessageDatabase>(m, "MessageDatabase", nb::is_weak_referenceable())
+    nb::class_<py_common::PyMessageDatabase>(m, "MessageDatabase")
         .def(nb::new_([]() { return std::make_shared<py_common::PyMessageDatabase>(); }))
         .def(nb::new_(
                  [](std::filesystem::path& file_path) {

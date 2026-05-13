@@ -20,15 +20,13 @@ struct FieldLookupEntry
 
 using FieldNameMap = std::unordered_map<std::string, FieldLookupEntry>;
 
-class PyMessageDatabaseCore;
-
 class MessageDBExtrasBase
 {
   public:
     virtual ~MessageDBExtrasBase() = default;
 };
 
-using MessageFamilyExtrasAllocFn = std::unique_ptr<MessageDBExtrasBase> (*)(std::shared_ptr<PyMessageDatabaseCore> database);
+using MessageFamilyExtrasAllocFn = std::unique_ptr<MessageDBExtrasBase> (*)(std::shared_ptr<MessageDatabase> database);
 
 struct MessageFamilyRegistration
 {
@@ -39,16 +37,43 @@ struct MessageFamilyRegistration
 std::unordered_map<std::string, MessageFamilyRegistration>& GetMessageFamilyRegistrations();
 const MessageFamilyRegistration* GetMessageFamilyRegistration(const std::string& message_family);
 
-class PyMessageDatabaseCore : public MessageDatabase
+//============================================================================
+//! \class PyMessageDatabase
+//! \brief A Python-facing message database that owns a MessageDatabase, the
+//!        Python type caches built from it, and any registered message-family
+//!        extras (e.g. OEM Encoder, RxConfigHandler).
+//============================================================================
+class PyMessageDatabase
 {
   public:
-    explicit PyMessageDatabaseCore(MessageDatabase&& message_db = MessageDatabase());
+    using Ptr = std::shared_ptr<PyMessageDatabase>;
+    using ConstPtr = std::shared_ptr<const PyMessageDatabase>;
 
-    PyMessageDatabaseCore(const PyMessageDatabaseCore&) = delete;
-    PyMessageDatabaseCore& operator=(const PyMessageDatabaseCore&) = delete;
-    PyMessageDatabaseCore(PyMessageDatabaseCore&&) = delete;
-    PyMessageDatabaseCore& operator=(PyMessageDatabaseCore&&) = delete;
+    explicit PyMessageDatabase(MessageDatabase&& message_db = MessageDatabase());
 
+    PyMessageDatabase(const PyMessageDatabase&) = delete;
+    PyMessageDatabase& operator=(const PyMessageDatabase&) = delete;
+    PyMessageDatabase(PyMessageDatabase&&) = delete;
+    PyMessageDatabase& operator=(PyMessageDatabase&&) = delete;
+
+    [[nodiscard]] const MessageDatabase::Ptr& core() const { return core_; }
+    [[nodiscard]] const MessageDBExtrasBase* GetMessageFamilyExtras() const { return extras_.get(); }
+
+    // Mutators — wrap MessageDatabase mutations so the Python caches stay in sync.
+    void Merge(const Ptr& other);
+    void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_);
+    void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_);
+    void RemoveMessage(uint32_t iMsgId_);
+    void RemoveEnumeration(std::string strEnumeration_);
+
+    // Definition lookups — forward to the underlying MessageDatabase.
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view name) const { return core_->GetMsgDef(name); }
+    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t id) const { return core_->GetMsgDef(id); }
+    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(const std::string& id) const { return core_->GetEnumDefId(id); }
+    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(const std::string& name) const { return core_->GetEnumDefName(name); }
+    [[nodiscard]] std::string MsgIdToMsgName(uint32_t id) const { return core_->MsgIdToMsgName(id); }
+
+    // Python type-cache lookups.
     [[nodiscard]] nb::object GetFieldType(const BaseField* field) const
     {
         auto it = field_types.find(field);
@@ -69,13 +94,11 @@ class PyMessageDatabaseCore : public MessageDatabase
         if (message == nullptr) { return nb::none(); }
         return GetMessageType(message, message->latestMessageCrc);
     }
-
     [[nodiscard]] nb::object GetMessageType(std::string_view messageName, uint32_t crc) const
     {
         return GetMessageType(GetMsgDef(messageName).get(), crc);
     }
     [[nodiscard]] nb::object GetMessageType(std::string_view messageName) const { return GetMessageType(GetMsgDef(messageName).get()); }
-
     [[nodiscard]] nb::object GetMessageType(int32_t id, uint32_t crc) const { return GetMessageType(GetMsgDef(id).get(), crc); }
     [[nodiscard]] nb::object GetMessageType(int32_t id) const { return GetMessageType(GetMsgDef(id).get()); }
 
@@ -109,14 +132,6 @@ class PyMessageDatabaseCore : public MessageDatabase
     void SetMessageFamily(const std::string& messageFamily);
 
     [[nodiscard]] const MessageFamilyRegistration* GetMessageFamilyRegistration() const { return message_family_registration_; }
-
-    // MessageDatabase overloads
-    void Merge(const std::shared_ptr<PyMessageDatabaseCore> other_);
-    void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_);
-    void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_);
-    void RemoveMessage(uint32_t iMsgId_);
-    void RemoveFieldTypes(const std::vector<BaseField::Ptr>& fieldDefs);
-    void RemoveEnumeration(std::string strEnumeration_);
 
     void bindFieldsToModule(nanobind::module_& m_, const std::vector<BaseField::Ptr>& fields_)
     {
@@ -164,59 +179,29 @@ class PyMessageDatabaseCore : public MessageDatabase
         for (const auto& [enum_def, enum_type] : enum_types) { enumsMod_.attr(enum_def->name.c_str()) = enum_type; }
     }
 
+    [[nodiscard]] Ptr clone() const;
+
   private:
     void Initialize();
+    void ResolveBaseType();
+    void allocateExtras();
 
     //-----------------------------------------------------------------------
     //! \brief Creates Python Enums for multiple enum definitions.
-    //!
-    //! These classes are stored by EnumDefinition pointer in the enum_types map.
     //-----------------------------------------------------------------------
     void AppendEnumTypes(const std::vector<EnumDefinition::ConstPtr>& enum_defs);
-    //-----------------------------------------------------------------------
-    //! \brief Removes an enum type from the Python type map.
-    //-----------------------------------------------------------------------
     void RemoveEnumType(const std::string& enum_name);
     //-----------------------------------------------------------------------
     //! \brief Creates Python types for multiple message definitions and their fields.
-    //!
-    //! A message named "MESSAGE" will be mapped to a Python class named "MESSAGE".
-    //! A field of that payload named "FIELD" will be mapped to a class named "MESSAGE_FIELD_Field".
-    //! A subfield of that field named "SUBFIELD" will be mapped to a class named "MESSAGE_FIELD_Field_SUBFIELD_Field".
-    //!
-    //! These classes are stored by name in the messages_by_name and fields_by_message maps.
     //-----------------------------------------------------------------------
     void AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs);
-    //-----------------------------------------------------------------------
-    //! \brief Removes a message type and its associated field types from the Python type maps.
-    //!
-    //! Removes the message from messages_by_name and all its associated fields from
-    //! fields_by_name and fields_by_message.
-    //-----------------------------------------------------------------------
     void RemoveMessageType(uint32_t message_id);
+    void RemoveFieldTypes(const std::vector<BaseField::Ptr>& fieldDefs);
 
-    void GenerateMessageMappings() override;
-    void GenerateEnumMappings() override;
-    //-----------------------------------------------------------------------
-    //! \brief Creates Python Enums for each enum definition in the database.
-    //!
-    //! These classes are stored by EnumDefinition pointer in the enum_types map.
-    //-----------------------------------------------------------------------
     void UpdatePythonEnums();
-    //-----------------------------------------------------------------------
-    //! \brief Creates Python types for each component of all message definitions in the database.
-    //!
-    //! A message named "MESSAGE" will be mapped to a Python class named "MESSAGE".
-    //! A field of that payload named "FIELD" will be mapped to a class named "MESSAGE_FIELD_Field".
-    //! A subfield of that field named "SUBFIELD" will be mapped to a class named "MESSAGE_FIELD_Field_SUBFIELD_Field".
-    //!
-    //! These classes are stored by name in the messages_by_name map.
-    //-----------------------------------------------------------------------
     void UpdatePythonMessageTypes();
     void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message, nb::handle type_cons,
                       nb::handle type_tuple, nb::handle type_dict);
-
-    void ResolveBaseType();
 
     const MessageFamilyRegistration* message_family_registration_ = nullptr;
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_types{};
@@ -225,77 +210,8 @@ class PyMessageDatabaseCore : public MessageDatabase
     std::unordered_map<const BaseField*, FieldNameMap> field_name_maps_{};
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, FieldNameMap>> message_field_name_maps_{};
 
-  public:
-    using Ptr = std::shared_ptr<PyMessageDatabaseCore>;
-    using ConstPtr = std::shared_ptr<const PyMessageDatabaseCore>;
-};
-
-//============================================================================
-//! \class PyMessageDatabase
-//! \brief A Python-facing wrapper that owns a PyMessageDatabaseCore alongside
-//!        any registered message-family extras (e.g. OEM Encoder, RxConfigHandler).
-//!
-//! Owning the extras here — rather than inside the core — breaks any
-//! shared_ptr cycles.
-//============================================================================
-class PyMessageDatabase
-{
-  public:
-    using Ptr = std::shared_ptr<PyMessageDatabase>;
-    using ConstPtr = std::shared_ptr<const PyMessageDatabase>;
-
-    explicit PyMessageDatabase(MessageDatabase&& message_db = MessageDatabase());
-
-    PyMessageDatabase(const PyMessageDatabase&) = delete;
-    PyMessageDatabase& operator=(const PyMessageDatabase&) = delete;
-    PyMessageDatabase(PyMessageDatabase&&) = delete;
-    PyMessageDatabase& operator=(PyMessageDatabase&&) = delete;
-
-    [[nodiscard]] const PyMessageDatabaseCore::Ptr& core() const { return core_; }
-    [[nodiscard]] const MessageDBExtrasBase* GetMessageFamilyExtras() const { return extras_.get(); }
-
-    // Delegated MessageDatabase / PyMessageDatabaseCore interface.
-    void Merge(const Ptr& other) { core_->Merge(other->core_); }
-    void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& msgs) { core_->AppendMessages(msgs); }
-    void AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& enums) { core_->AppendEnumerations(enums); }
-    void RemoveMessage(uint32_t msgId) { core_->RemoveMessage(msgId); }
-    void RemoveEnumeration(std::string enumeration) { core_->RemoveEnumeration(std::move(enumeration)); }
-
-    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(std::string_view name) const { return core_->GetMsgDef(name); }
-    [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t id) const { return core_->GetMsgDef(id); }
-    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefId(const std::string& id) const { return core_->GetEnumDefId(id); }
-    [[nodiscard]] EnumDefinition::ConstPtr GetEnumDefName(const std::string& name) const { return core_->GetEnumDefName(name); }
-    [[nodiscard]] std::string MsgIdToMsgName(uint32_t id) const { return core_->MsgIdToMsgName(id); }
-
-    [[nodiscard]] nb::object GetFieldType(const BaseField* field) const { return core_->GetFieldType(field); }
-    [[nodiscard]] nb::object GetMessageType(const MessageDefinition* msg, uint32_t crc) const { return core_->GetMessageType(msg, crc); }
-    [[nodiscard]] nb::object GetMessageType(const MessageDefinition* msg) const { return core_->GetMessageType(msg); }
-    [[nodiscard]] nb::object GetMessageType(std::string_view name, uint32_t crc) const { return core_->GetMessageType(name, crc); }
-    [[nodiscard]] nb::object GetMessageType(std::string_view name) const { return core_->GetMessageType(name); }
-    [[nodiscard]] nb::object GetMessageType(int32_t id, uint32_t crc) const { return core_->GetMessageType(id, crc); }
-    [[nodiscard]] nb::object GetMessageType(int32_t id) const { return core_->GetMessageType(id); }
-    [[nodiscard]] nb::object GetEnumType(const EnumDefinition* def) const { return core_->GetEnumType(def); }
-    [[nodiscard]] nb::object GetEnumTypeByName(const std::string& name) const { return core_->GetEnumTypeByName(name); }
-    [[nodiscard]] nb::object GetEnumTypeById(const std::string& id) const { return core_->GetEnumTypeById(id); }
-
-    [[nodiscard]] const FieldNameMap* GetFieldNameMap(const BaseField* field) const { return core_->GetFieldNameMap(field); }
-    [[nodiscard]] const FieldNameMap* GetMessageFieldNameMap(const MessageDefinition* def, uint32_t crc) const
-    {
-        return core_->GetMessageFieldNameMap(def, crc);
-    }
-
-    [[nodiscard]] std::string GetMessageFamily() const { return core_->GetMessageFamily(); }
-    void SetMessageFamily(const std::string& messageFamily);
-
-    void bindToModule(nanobind::module_& messageMod, nanobind::module_& enumsMod) { core_->bindToModule(messageMod, enumsMod); }
-
-    [[nodiscard]] Ptr clone() const;
-
-  private:
-    void allocateExtras();
-
     std::unique_ptr<MessageDBExtrasBase> extras_;
-    PyMessageDatabaseCore::Ptr core_;
+    MessageDatabase::Ptr core_;
 };
 
 } // namespace novatel::edie::py_common
