@@ -415,11 +415,8 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 // -------------------------------------------------------------------------------------------------------
 // Decode an ASCII array formatted with the %Z conversion string
 static STATUS DecodeZConversionStringAsciiArray(std::vector<uint8_t>& vDecodedValues_, const char** ppcLogBuf_,
-                                                const BaseField::ConstPtr& field_, uint32_t uiArraySize_)
+                                                uint32_t uiArraySize_)
 {
-    assert(field_->conversionHash == CalculateBlockCrc32("Z"));
-    assert(field_->dataType.name == DATA_TYPE::UCHAR || field_->dataType.name == DATA_TYPE::HEXBYTE);
-
     vDecodedValues_.resize(uiArraySize_);
     for (uint32_t i = 0; i < uiArraySize_; ++i)
     {
@@ -463,11 +460,8 @@ static STATUS DecodeNonCommaSeparatedAsciiArrayField(CharType& cValue_, const ch
 }
 
 // Decode an ASCII array which is formatted like a string with opening and closing quotes, e.g. "string value"
-static STATUS DecodeStringAsciiArray(std::string& sDecodedValue_, const char** ppcLogBuf_, const BaseField::ConstPtr& field_,
-                                     uint32_t uiArraySize_)
+static STATUS DecodeStringAsciiArray(std::string& sDecodedValue_, const char** ppcLogBuf_, uint32_t uiArraySize_)
 {
-    assert(field_->isString);
-
     sDecodedValue_.assign(uiArraySize_, '\0');
 
     // Look for opening double-quote
@@ -608,8 +602,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             STATUS eStatus = STATUS::SUCCESS;
             if (field->conversionHash == CalculateBlockCrc32("Z"))
             {
+                assert(field->dataType.name == DATA_TYPE::UCHAR || field->dataType.name == DATA_TYPE::HEXBYTE);
                 std::vector<uint8_t> vDecodedValues;
-                eStatus = DecodeZConversionStringAsciiArray(vDecodedValues, ppcLogBuf_, field, uiArraySize);
+                eStatus = DecodeZConversionStringAsciiArray(vDecodedValues, ppcLogBuf_, uiArraySize);
                 if (eStatus == STATUS::SUCCESS)
                 {
                     if (fixed)
@@ -629,7 +624,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             else if (field->isString)
             {
                 std::string sDecodedValue;
-                eStatus = DecodeStringAsciiArray(sDecodedValue, ppcLogBuf_, field, uiArraySize);
+                eStatus = DecodeStringAsciiArray(sDecodedValue, ppcLogBuf_, uiArraySize);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 if (fixed) { vIntermediateFormat_.WriteFieldData<true>(field->index, std::move(sDecodedValue)); }
                 else { vIntermediateFormat_.WriteFieldData<false>(field->index, std::move(sDecodedValue)); }
