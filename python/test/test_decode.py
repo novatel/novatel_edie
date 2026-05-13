@@ -49,7 +49,7 @@ def nest_values(message: ne.Field):
     for i, value in enumerate(values):
         if isinstance(value, ne.Field):
             values[i] = nest_values(value)
-        elif isinstance(value, list):
+        elif isinstance(value, (list, ne.FieldArray)):
             list_values = []
             for item in value:
                 if isinstance(item, ne.Field):
@@ -57,6 +57,7 @@ def nest_values(message: ne.Field):
                 else:
                     list_values.append(item)
             values[i] = list_values
+
     return values
 
 def compare_with_floating_point(item1, item2) -> bool:

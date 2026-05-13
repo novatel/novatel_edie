@@ -16,7 +16,7 @@ using namespace novatel::edie;
 
 void py_common::init_field_objects(nb::module_& m)
 {
-    nb::class_<py_common::PyField>(m, "Field")
+    nb::class_<py_common::PyField>(m, "Field", nb::is_weak_referenceable())
         .def("__getattr__", &py_common::PyField::getattr, "field_name"_a)
         .def("__repr__",
              [](nb::handle self) {
@@ -86,4 +86,8 @@ void py_common::init_field_objects(nb::module_& m)
             Returns:
                 A list representation of the field.
             )doc");
+
+    nb::class_<py_common::PyFieldArray>(m, "FieldArray", nb::is_weak_referenceable())
+        .def("__getitem__", &py_common::PyFieldArray::getitem, "index"_a)
+        .def("__len__", &py_common::PyFieldArray::len);
 }
