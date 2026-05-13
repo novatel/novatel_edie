@@ -18,9 +18,9 @@ void py_oem::init_novatel_range_decompressor(nb::module_& m)
     nb::class_<oem::RangeDecompressor>(m, "RangeDecompressor")
         .def(
             "__init__",
-            [](oem::RangeDecompressor* t, py_common::PyMessageDatabaseCore::Ptr message_db) {
+            [](oem::RangeDecompressor* t, py_common::PyMessageDatabase::Ptr message_db) {
                 if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); };
-                new (t) oem::RangeDecompressor(message_db);
+                new (t) oem::RangeDecompressor(message_db->core());
                 t->GetLogger()->warn(
                     "The RangeDecompressor interface is currently unstable! It may undergo breaking changes between minor version increments.");
             },

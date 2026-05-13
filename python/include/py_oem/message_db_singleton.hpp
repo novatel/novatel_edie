@@ -24,7 +24,7 @@ class MessageDbSingleton
     //!
     //! If the instance does not yet exist, it will be created and returned.
     //----------------------------------------------------------------------------
-    [[nodiscard]] static py_common::PyMessageDatabaseCore::Ptr& get();
+    [[nodiscard]] static py_common::PyMessageDatabase::Ptr& get();
 };
 
 } // namespace novatel::edie::py_oem

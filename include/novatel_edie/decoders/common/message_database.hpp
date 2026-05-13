@@ -571,6 +571,15 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     [[nodiscard]] DbMetadata::ConstPtr GetDbMetadata() const { return pDbMetadata; }
 
+    //----------------------------------------------------------------------------
+    //! \brief Sets the message family on the DB metadata, creating it if absent.
+    //----------------------------------------------------------------------------
+    void SetMessageFamily(const std::string& messageFamily_)
+    {
+        if (!pDbMetadata) { pDbMetadata = std::make_shared<DbMetadata>(); }
+        pDbMetadata->messageFamily = messageFamily_;
+    }
+
   protected:
     virtual void GenerateEnumMappings()
     {

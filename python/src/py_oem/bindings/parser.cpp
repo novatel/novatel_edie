@@ -19,7 +19,7 @@ using namespace novatel::edie::py_common;
 
 nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_,
                                           std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
-                                          py_oem::PyMessageDatabase::ConstPtr database_)
+                                          py_common::PyMessageDatabase::ConstPtr database_)
 {
     header_.format = metadata_.eFormat;
     switch (status_)
@@ -96,7 +96,7 @@ void py_oem::init_novatel_parser(nb::module_& m)
     nb::class_<py_oem::PyParser>(m, "Parser")
         .def(
             "__init__",
-            [](py_oem::PyParser* self, py_common::PyMessageDatabaseCore::Ptr message_db) {
+            [](py_oem::PyParser* self, py_common::PyMessageDatabase::Ptr message_db) {
                 if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); }
                 new (self) py_oem::PyParser(message_db);
             },
