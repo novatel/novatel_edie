@@ -54,7 +54,6 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
     STATUS status;
     MessageDataStruct message_data = MessageDataStruct();
     const py_oem::DatabaseExtras& extras = py_oem::GetDatabaseExtras(*parentDb);
-    RxConfigHandler* pclRxConfigHandler = extras.rxConfigHandler.get();
 
     // Allocate more space for JSON messages.
     // A TRACKSTAT message can use about 47k bytes when encoded as JSON.
@@ -62,7 +61,7 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
     uint8_t buffer[MESSAGE_SIZE_MAX * 3];
     auto buf_ptr = reinterpret_cast<uint8_t*>(&buffer);
     uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
-    if (pclRxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
+    if (extras.rxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
     {
         status = extras.rxConfigHandler->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
     }
