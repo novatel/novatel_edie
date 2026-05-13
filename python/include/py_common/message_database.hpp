@@ -22,14 +22,18 @@ using FieldNameMap = std::unordered_map<std::string, FieldLookupEntry>;
 
 class PyMessageDatabaseCore;
 
-using MessageFamilyExtrasAllocFn = void* (*)(PyMessageDatabaseCore* database);
-using MessageFamilyExtrasFreeFn = void (*)(void* extras);
+class MessageDBExtrasBase
+{
+  public:
+    virtual ~MessageDBExtrasBase() = default;
+};
+
+using MessageFamilyExtrasAllocFn = std::unique_ptr<MessageDBExtrasBase> (*)(PyMessageDatabaseCore* database);
 
 struct MessageFamilyRegistration
 {
     nb::handle messageType;
     MessageFamilyExtrasAllocFn allocateExtras;
-    MessageFamilyExtrasFreeFn freeExtras;
 };
 
 std::unordered_map<std::string, MessageFamilyRegistration>& GetMessageFamilyRegistrations();
@@ -40,7 +44,6 @@ class PyMessageDatabaseCore : public MessageDatabase
   public:
     // All python message databases are to be managed via a shared pointer
     static std::shared_ptr<PyMessageDatabaseCore> Create(MessageDatabase message_db = MessageDatabase());
-    ~PyMessageDatabaseCore();
 
     // Only allow construction via static Create method
     PyMessageDatabaseCore(const PyMessageDatabaseCore&) = delete;
@@ -107,7 +110,7 @@ class PyMessageDatabaseCore : public MessageDatabase
     [[nodiscard]] std::string GetMessageFamily() const;
     void SetMessageFamily(const std::string& messageFamily);
 
-    [[nodiscard]] void* GetMessageFamilyExtras() const { return message_family_extras_; }
+    [[nodiscard]] MessageDBExtrasBase* GetMessageFamilyExtras() const { return message_family_extras_.get(); }
     [[nodiscard]] std::shared_ptr<PyMessageDatabaseCore> GetSharedPtr() const { return self_weak_.lock(); }
 
     // MessageDatabase overloads
@@ -168,7 +171,6 @@ class PyMessageDatabaseCore : public MessageDatabase
     explicit PyMessageDatabaseCore(MessageDatabase&& message_db);
 
     void Initialize();
-    void ResetMessageFamilyExtras();
 
     //-----------------------------------------------------------------------
     //! \brief Creates Python Enums for multiple enum definitions.
@@ -222,7 +224,7 @@ class PyMessageDatabaseCore : public MessageDatabase
     void ResolveBaseType();
 
     const MessageFamilyRegistration* message_family_registration_ = nullptr;
-    void* message_family_extras_ = nullptr;
+    std::unique_ptr<MessageDBExtrasBase> message_family_extras_;
     std::weak_ptr<PyMessageDatabaseCore> self_weak_;
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_types{};
     std::unordered_map<const BaseField*, nb::object> field_types{};

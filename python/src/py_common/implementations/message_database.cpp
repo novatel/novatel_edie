@@ -31,8 +31,6 @@ void py_common::PyMessageDatabaseCore::Initialize()
     UpdatePythonMessageTypes();
 }
 
-PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::~PyMessageDatabaseCore() { ResetMessageFamilyExtras(); }
-
 PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::GenerateMessageMappings()
 {
     MessageDatabase::GenerateMessageMappings();
@@ -52,15 +50,6 @@ void py_common::PyMessageDatabaseCore::SetMessageFamily(const std::string& messa
     pDbMetadata->messageFamily = messageFamily;
     ResolveBaseType();
     UpdatePythonMessageTypes();
-}
-
-void py_common::PyMessageDatabaseCore::ResetMessageFamilyExtras()
-{
-    if (message_family_extras_ && message_family_registration_ && message_family_registration_->freeExtras)
-    {
-        message_family_registration_->freeExtras(message_family_extras_);
-    }
-    message_family_extras_ = nullptr;
 }
 
 void py_common::PyMessageDatabaseCore::Merge(const std::shared_ptr<PyMessageDatabaseCore> other_)
@@ -151,7 +140,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::ResolveBaseType()
         pDbMetadata = dbMetadata;
     }
 
-    ResetMessageFamilyExtras();
+    message_family_extras_.reset();
 
     message_family_registration_ = GetMessageFamilyRegistration(pDbMetadata->messageFamily);
     if (!message_family_registration_ || !message_family_registration_->messageType.is_valid())

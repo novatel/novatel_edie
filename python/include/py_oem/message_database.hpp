@@ -10,15 +10,14 @@ namespace nb = nanobind;
 
 namespace novatel::edie::py_oem {
 
-struct DatabaseExtras
+struct DatabaseExtras : public py_common::MessageDBExtrasBase
 {
     const py_common::PyMessageDatabaseCore* database;
     std::unique_ptr<oem::Encoder> encoder;
     std::unique_ptr<oem::RxConfigHandler> rxConfigHandler;
 };
 
-void* AllocateDatabaseExtras(py_common::PyMessageDatabaseCore* database);
-void FreeDatabaseExtras(void* extras);
+std::unique_ptr<py_common::MessageDBExtrasBase> AllocateDatabaseExtras(py_common::PyMessageDatabaseCore* database);
 
 const DatabaseExtras& GetDatabaseExtras(const py_common::PyMessageDatabaseCore& database);
 
