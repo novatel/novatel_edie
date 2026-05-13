@@ -706,7 +706,7 @@ class MessageDecoderBase
     //! \brief Decode a message payload from the provided frame.
     //
     //! \param[in] pucMessage_ A pointer to a message payload.
-    //! \param[out] stInterMessage_ The MessageBody to be populated.
+    //! \param[out] stInterMessage_ The DefinedMessageBody to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
     //
