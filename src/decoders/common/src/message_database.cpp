@@ -194,8 +194,8 @@ MessageDefinition::ConstPtr MessageDatabase::GetResponseDefinition() const
     responseFieldInfo.fixedFieldBytes = sizeof(uint32_t);
     responseFieldInfo.varFieldCount = 1;
     responseFieldInfo.messageOrderedFields = {responseIdField, responseStrField};
-    responseFieldInfo.fields[responseIdField->name] = responseIdField;
-    responseFieldInfo.fields[responseStrField->name] = responseStrField;
+    responseFieldInfo.fieldNameToDef[responseIdField->name] = responseIdField;
+    responseFieldInfo.fieldNameToDef[responseStrField->name] = responseStrField;
 
     pResponseDefinition = responseDefinition;
     return pResponseDefinition;

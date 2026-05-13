@@ -227,7 +227,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
     if (j_.get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON array"); }
     vFields_.messageOrderedFields = std::vector<BaseField::ConstPtr>();
     vFields_.messageOrderedFields.reserve(fields.size());
-    vFields_.fields.reserve(fields.size());
+    vFields_.fieldNameToDef.reserve(fields.size());
 
     auto alignFixed = [&](size_t typeLength) {
         const size_t alignment = std::min(typeLength, size_t{4});
@@ -251,7 +251,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
             alignFixed(stDataType.length);
             pstField->index = vFields_.fixedFieldBytes;
             vFields_.messageOrderedFields.push_back(pstField);
-            vFields_.fields[pstField->name] = pstField;
+            vFields_.fieldNameToDef[pstField->name] = pstField;
             uiFieldSize += stDataType.length;
             vFields_.fixedFieldBytes += stDataType.length;
         }
@@ -262,7 +262,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
             alignFixed(stDataType.length);
             pstField->index = vFields_.fixedFieldBytes;
             vFields_.messageOrderedFields.push_back(pstField);
-            vFields_.fields[pstField->name] = pstField;
+            vFields_.fieldNameToDef[pstField->name] = pstField;
             uiFieldSize += stDataType.length;
             vFields_.fixedFieldBytes += stDataType.length;
         }
@@ -281,7 +281,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
             else { pstField->index = vFields_.varFieldCount; }
 
             vFields_.messageOrderedFields.push_back(pstField);
-            vFields_.fields[pstField->name] = pstField;
+            vFields_.fieldNameToDef[pstField->name] = pstField;
             if (sFieldType != "FIXED_LENGTH_ARRAY") { vFields_.varFieldCount++; }
         }
         else if (sFieldType == "FIELD_ARRAY") {
@@ -289,7 +289,7 @@ uint32_t ParseFields(element j_, FieldInfo& vFields_)
             ParseFieldArrayField(field, *pstField);
             vFields_.messageOrderedFields.push_back(pstField);
             pstField->index = vFields_.varFieldCount;
-            vFields_.fields[pstField->name] = pstField;
+            vFields_.fieldNameToDef[pstField->name] = pstField;
             vFields_.varFieldCount++;
         }
         else { throw std::runtime_error("Could not find field type"); }
