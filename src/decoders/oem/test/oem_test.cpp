@@ -4245,7 +4245,7 @@ class NovatelTypesTest : public ::testing::Test
             }
 
             fieldInfo.messageOrderedFields.push_back(fieldDef);
-            fieldInfo.fields[fieldDef->name] = fieldDef;
+            fieldInfo.fieldNameToDef[fieldDef->name] = fieldDef;
         }
 
         fieldInfo.fixedFieldBytes = fixedOffset;

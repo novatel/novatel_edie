@@ -362,7 +362,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
             const uint32_t uiArraySize =
-                GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), vIntermediateFormat_, vMsgDefFields_.fields);
+                GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), vIntermediateFormat_, vMsgDefFields_.fieldNameToDef);
             DecodeBinaryField<false>(field, ppucLogBuf_, vIntermediateFormat_, uiArraySize);
             break;
         }
@@ -376,26 +376,25 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             const auto* subFieldDefinitions = dynamic_cast<const FieldArrayField*>(field.get());
-            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, vIntermediateFormat_, vMsgDefFields_.fields);
+            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, vIntermediateFormat_, vMsgDefFields_.fieldNameToDef);
 
             if (subFieldDefinitions->fieldInfo.varFieldCount == 0)
             {
                 const size_t totalBytes = uiArraySize * subFieldDefinitions->fieldInfo.fixedFieldBytes;
-                std::vector<std::byte> flat(totalBytes);
-                std::memcpy(flat.data(), *ppucLogBuf_, totalBytes);
+                vIntermediateFormat_.varFields[field->index] = std::vector<std::byte>(totalBytes);
+                std::memcpy(std::get<std::vector<std::byte>>(vIntermediateFormat_.varFields[field->index]).data(), *ppucLogBuf_, totalBytes);
                 *ppucLogBuf_ += totalBytes;
-                vIntermediateFormat_.varFields[field->index] = std::move(flat);
             }
             else
             {
                 vIntermediateFormat_.varFields[field->index] = std::vector<MessageBody>(uiArraySize);
-                auto& pvFieldArrayContainer = std::get<std::vector<MessageBody>>(vIntermediateFormat_.varFields[field->index]);
+                auto& vFieldArrayContainer = std::get<std::vector<MessageBody>>(vIntermediateFormat_.varFields[field->index]);
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
                     AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
-                    pvFieldArrayContainer[i].fixedFields = std::vector<std::byte>(subFieldDefinitions->fieldInfo.fixedFieldBytes);
-                    pvFieldArrayContainer[i].varFields.resize(subFieldDefinitions->fieldInfo.varFieldCount);
-                    STATUS eStatus = DecodeBinary(subFieldDefinitions->fieldInfo, ppucLogBuf_, pvFieldArrayContainer[i],
+                    vFieldArrayContainer[i].fixedFields = std::vector<std::byte>(subFieldDefinitions->fieldInfo.fixedFieldBytes);
+                    vFieldArrayContainer[i].varFields.resize(subFieldDefinitions->fieldInfo.varFieldCount);
+                    STATUS eStatus = DecodeBinary(subFieldDefinitions->fieldInfo, ppucLogBuf_, vFieldArrayContainer[i],
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 }
@@ -456,6 +455,22 @@ static STATUS DecodeNonCommaSeparatedAsciiArrayField(CharType& cValue_, const ch
         cValue_ = static_cast<CharType>(**ppcLogBuf_);
         *ppcLogBuf_ += 1; // Consume 1 char
     }
+    return STATUS::SUCCESS;
+}
+
+// Decode an ASCII array made up of non-comma separated values, e.g. a raw ASCII values or hex representations
+template <typename CharType>
+static STATUS DecodeNonCommaSeparatedAsciiArray(MessageBody& vIntermediateFormat_, const char** ppcLogBuf_, const BaseField::ConstPtr& field_,
+                                                uint32_t uiArraySize_, bool fixed_)
+{
+    std::vector<CharType> vDecodedValues(uiArraySize_);
+    for (uint32_t i = 0; i < uiArraySize_; ++i)
+    {
+        STATUS eStatus = DecodeNonCommaSeparatedAsciiArrayField(vDecodedValues[i], ppcLogBuf_);
+        if (eStatus != STATUS::SUCCESS) { return eStatus; }
+    }
+    if (fixed_) { vIntermediateFormat_.WriteFieldData<true>(field_->index, std::move(vDecodedValues)); }
+    else { vIntermediateFormat_.WriteFieldData<false>(field_->index, std::move(vDecodedValues)); }
     return STATUS::SUCCESS;
 }
 
@@ -632,28 +647,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             }
             else if (!field->isCsv)
             {
-                if (field->dataType.name == DATA_TYPE::CHAR)
-                {
-                    std::vector<int8_t> vDecodedValues(uiArraySize);
-                    for (uint32_t i = 0; i < uiArraySize; ++i)
-                    {
-                        eStatus = DecodeNonCommaSeparatedAsciiArrayField(vDecodedValues[i], ppcLogBuf_);
-                        if (eStatus != STATUS::SUCCESS) { return eStatus; }
-                    }
-                    if (fixed) { vIntermediateFormat_.WriteFieldData<true>(field->index, std::move(vDecodedValues)); }
-                    else { vIntermediateFormat_.WriteFieldData<false>(field->index, std::move(vDecodedValues)); }
-                }
-                else
-                {
-                    std::vector<uint8_t> vDecodedValues(uiArraySize);
-                    for (uint32_t i = 0; i < uiArraySize; ++i)
-                    {
-                        eStatus = DecodeNonCommaSeparatedAsciiArrayField(vDecodedValues[i], ppcLogBuf_);
-                        if (eStatus != STATUS::SUCCESS) { return eStatus; }
-                    }
-                    if (fixed) { vIntermediateFormat_.WriteFieldData<true>(field->index, std::move(vDecodedValues)); }
-                    else { vIntermediateFormat_.WriteFieldData<false>(field->index, std::move(vDecodedValues)); }
-                }
+                eStatus = field->dataType.name == DATA_TYPE::CHAR ? DecodeNonCommaSeparatedAsciiArray<int8_t>(vIntermediateFormat_, ppcLogBuf_, field, uiArraySize, fixed)
+                                                  : DecodeNonCommaSeparatedAsciiArray<uint8_t>(vIntermediateFormat_, ppcLogBuf_, field, uiArraySize, fixed);
+                if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 *ppcLogBuf_ += 1;
             }
             else
