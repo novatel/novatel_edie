@@ -15,13 +15,13 @@ namespace novatel::edie::py_oem {
 class PyDecoder
 {
   public:
-    py_common::PyMessageDatabaseCore::Ptr database;
+    py_common::PyMessageDatabase::Ptr database;
     oem::HeaderDecoder header_decoder;
     oem::MessageDecoder message_decoder;
     oem::RxConfigHandler rx_config_handler;
 
-    PyDecoder(py_common::PyMessageDatabaseCore::Ptr pclMessageDb_)
-        : database(std::move(pclMessageDb_)), header_decoder(database), message_decoder(database), rx_config_handler(database)
+    PyDecoder(py_common::PyMessageDatabase::Ptr pclMessageDb_)
+        : database(std::move(pclMessageDb_)), header_decoder(database->core()), message_decoder(database->core()), rx_config_handler(database->core())
     {
     }
 

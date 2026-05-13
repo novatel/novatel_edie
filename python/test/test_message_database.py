@@ -22,6 +22,9 @@
 #
 ################################################################################=
 
+import gc
+import weakref
+
 import pytest
 
 from novatel_edie import MessageDatabase, FailureException
@@ -71,6 +74,26 @@ def test_remove_message(json_db: MessageDatabase):
     assert new_db.get_msg_type("BESTPOS") is None
     assert new_db.get_msg_def(range_id) == range_def
     assert new_db.get_msg_type("RANGE") is new_range_type
+
+def test_database_does_not_leak():
+    """The OEM Encoder/RxConfigHandler used to hold shared_ptrs back to the
+    database core, creating a cycle that prevented deallocation. The
+    PyMessageDatabase wrapper now owns the extras alongside the core, breaking
+    that cycle so a dropped database is actually collected."""
+    json = (
+        '{"enums": ['
+        '{"name": "Responses", "_id": "0", "enumerators": []},'
+        '{"name": "Commands", "_id": "0", "enumerators": []},'
+        '{"name": "PortAddress", "_id": "0", "enumerators": []},'
+        '{"name": "GPSTimeStatus", "_id": "0", "enumerators": []}'
+        '], "messages": []}'
+    )
+    db = MessageDatabase.from_string(json)
+    db_ref = weakref.ref(db)
+    del db
+    gc.collect()
+    assert db_ref() is None, "MessageDatabase kept alive by an internal cycle (encoder/rxconfig back-refs)"
+
 
 def test_merge(json_db: MessageDatabase):
     """Tests that one databases messages can be merged into another."""

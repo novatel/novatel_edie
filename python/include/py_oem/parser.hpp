@@ -14,16 +14,16 @@ namespace novatel::edie::py_oem {
 
 nb::object HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_,
                                   std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
-                                  py_common::PyMessageDatabaseCore::ConstPtr database_);
+                                  py_common::PyMessageDatabase::ConstPtr database_);
 
 class PyParser : public oem::Parser
 {
   private:
-    py_common::PyMessageDatabaseCore::Ptr pclPyMessageDb;
+    py_common::PyMessageDatabase::Ptr pclPyMessageDb;
 
   public:
     // inherit constructors
-    PyParser(py_common::PyMessageDatabaseCore::Ptr& pclMessageDb_) : Parser(pclMessageDb_), pclPyMessageDb(pclMessageDb_) {}
+    PyParser(py_common::PyMessageDatabase::Ptr& pclMessageDb_) : Parser(pclMessageDb_->core()), pclPyMessageDb(pclMessageDb_) {}
 
     nb::object PyRead(bool decode_incomplete);
     nb::object PyIterRead();

@@ -8,9 +8,9 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
+py_common::PyMessageDatabase::Ptr& py_oem::MessageDbSingleton::get()
 {
-    static py_common::PyMessageDatabaseCore::Ptr json_db = nullptr;
+    static py_common::PyMessageDatabase::Ptr json_db = nullptr;
 
     // If the database has already been loaded, return it
     if (json_db) { return json_db; }
@@ -25,7 +25,7 @@ py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
     if (!nb::cast<bool>(builtins.attr("bool")(module_spec)))
     {
         // If the package does not exist, return an empty database
-        json_db = py_common::PyMessageDatabaseCore::Create();
+        json_db = std::make_shared<py_common::PyMessageDatabase>();
         return json_db;
     }
 
@@ -34,7 +34,7 @@ py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
     if (!nb::cast<bool>(builtins.attr("bool")(module_origin)))
     {
         // Return an empty database if the package is empty
-        json_db = py_common::PyMessageDatabaseCore::Create();
+        json_db = std::make_shared<py_common::PyMessageDatabase>();
         return json_db;
     }
     nb::object novatel_edie_path = os_path.attr("dirname")(module_spec.attr("origin"));
@@ -43,11 +43,11 @@ py_common::PyMessageDatabaseCore::Ptr& py_oem::MessageDbSingleton::get()
     bool db_exists = nb::cast<bool>(os_path.attr("isfile")(db_path));
     if (!db_exists)
     {
-        json_db = py_common::PyMessageDatabaseCore::Create();
+        json_db = std::make_shared<py_common::PyMessageDatabase>();
         return json_db;
     }
     // If the database file exists, load it
     std::string default_json_db_path = nb::cast<std::string>(db_path);
-    json_db = py_common::PyMessageDatabaseCore::Create(*LoadJsonDbFile(default_json_db_path));
+    json_db = std::make_shared<py_common::PyMessageDatabase>(std::move(*LoadJsonDbFile(default_json_db_path)));
     return json_db;
 }

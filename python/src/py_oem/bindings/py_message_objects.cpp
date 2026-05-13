@@ -98,7 +98,7 @@ nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHea
 }
 
 nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector<FieldContainer>&& message_fields, MetaDataStruct& metadata,
-                                           py_common::PyMessageDatabaseCore::ConstPtr database)
+                                           py_common::PyMessageDatabase::ConstPtr database)
 {
 
     const MessageDefinition* msgDef = database->GetMsgDef(metadata.usMessageId).get();
@@ -115,10 +115,9 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, std::vector
         return response_pyinst;
     }
 
-    const PyMessageDatabaseCore* coreDatabase = database.get();
     uint32_t crc = metadata.uiMessageCrc;
 
-    nb::handle message_pytype = coreDatabase->GetMessageType(metadata.usMessageId, crc);
+    nb::handle message_pytype = database->GetMessageType(metadata.usMessageId, crc);
     if (message_pytype.is_none())
     {
         // Fallback to latest CRC

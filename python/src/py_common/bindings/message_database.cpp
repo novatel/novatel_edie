@@ -166,35 +166,33 @@ void py_common::init_common_message_database(nb::module_& m)
                 .format(msg_def.name, msg_def._id, msg_def.logID, msg_def.description, self.attr("fields"), msg_def.latestMessageCrc);
         });
 
-    nb::class_<py_common::PyMessageDatabaseCore>(m, "MessageDatabase")
-        .def(nb::new_([]() { return py_common::PyMessageDatabaseCore::Create(); }))
+    nb::class_<py_common::PyMessageDatabase>(m, "MessageDatabase", nb::is_weak_referenceable())
+        .def(nb::new_([]() { return std::make_shared<py_common::PyMessageDatabase>(); }))
         .def(nb::new_(
-                 [](std::filesystem::path& file_path) { return py_common::PyMessageDatabaseCore::Create(std::move(*LoadJsonDbFile(file_path))); }),
+                 [](std::filesystem::path& file_path) {
+                     return std::make_shared<py_common::PyMessageDatabase>(std::move(*LoadJsonDbFile(file_path)));
+                 }),
              "file_path"_a)
         .def_static(
-            "from_string", [](std::string_view json_data) { return py_common::PyMessageDatabaseCore::Create(std::move(*ParseJsonDb(json_data))); },
+            "from_string",
+            [](std::string_view json_data) { return std::make_shared<py_common::PyMessageDatabase>(std::move(*ParseJsonDb(json_data))); },
             "json_data"_a)
-        .def("merge", &py_common::PyMessageDatabaseCore::Merge, "other_db"_a)
-        .def("append_messages", &py_common::PyMessageDatabaseCore::AppendMessages, "messages"_a)
-        .def("append_enumerations", &py_common::PyMessageDatabaseCore::AppendEnumerations, "enums"_a)
-        .def("remove_message", &py_common::PyMessageDatabaseCore::RemoveMessage, "msg_id"_a)
-        .def("remove_enumeration", &py_common::PyMessageDatabaseCore::RemoveEnumeration, "enumeration"_a)
-        .def("get_msg_def", nb::overload_cast<std::string_view>(&py_common::PyMessageDatabaseCore::GetMsgDef, nb::const_), "msg_name"_a)
-        .def("get_msg_def", nb::overload_cast<int32_t>(&py_common::PyMessageDatabaseCore::GetMsgDef, nb::const_), "msg_id"_a)
-        .def("get_enum_def", &py_common::PyMessageDatabaseCore::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def_by_id", &py_common::PyMessageDatabaseCore::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def_by_name", &py_common::PyMessageDatabaseCore::GetEnumDefName, "enum_name"_a)
+        .def("merge", &py_common::PyMessageDatabase::Merge, "other_db"_a)
+        .def("append_messages", &py_common::PyMessageDatabase::AppendMessages, "messages"_a)
+        .def("append_enumerations", &py_common::PyMessageDatabase::AppendEnumerations, "enums"_a)
+        .def("remove_message", &py_common::PyMessageDatabase::RemoveMessage, "msg_id"_a)
+        .def("remove_enumeration", &py_common::PyMessageDatabase::RemoveEnumeration, "enumeration"_a)
+        .def("get_msg_def", nb::overload_cast<std::string_view>(&py_common::PyMessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
+        .def("get_msg_def", nb::overload_cast<int32_t>(&py_common::PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
+        .def("get_enum_def", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
+        .def("get_enum_def_by_id", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
+        .def("get_enum_def_by_name", &py_common::PyMessageDatabase::GetEnumDefName, "enum_name"_a)
         .def(
-            "get_msg_type", [](py_common::PyMessageDatabaseCore& self, std::string name) { return self.GetMessageType(name); }, "name"_a)
+            "get_msg_type", [](py_common::PyMessageDatabase& self, std::string name) { return self.GetMessageType(name); }, "name"_a)
         .def(
-            "get_enum_type_by_name", [](py_common::PyMessageDatabaseCore& self, std::string name) { return self.GetEnumTypeByName(name); }, "name"_a)
+            "get_enum_type_by_name", [](py_common::PyMessageDatabase& self, std::string name) { return self.GetEnumTypeByName(name); }, "name"_a)
         .def(
-            "get_enum_type_by_id", [](py_common::PyMessageDatabaseCore& self, std::string id) { return self.GetEnumTypeById(id); }, "id"_a)
-        .def_prop_rw("message_family", &py_common::PyMessageDatabaseCore::GetMessageFamily, &py_common::PyMessageDatabaseCore::SetMessageFamily)
-        .def(
-            "clone",
-            [](const py_common::PyMessageDatabaseCore& self) {
-                return py_common::PyMessageDatabaseCore::Create(static_cast<const MessageDatabase&>(self));
-            },
-            "Create an copy of this database.");
+            "get_enum_type_by_id", [](py_common::PyMessageDatabase& self, std::string id) { return self.GetEnumTypeById(id); }, "id"_a)
+        .def_prop_rw("message_family", &py_common::PyMessageDatabase::GetMessageFamily, &py_common::PyMessageDatabase::SetMessageFamily)
+        .def("clone", &py_common::PyMessageDatabase::clone, "Create a copy of this database.");
 }

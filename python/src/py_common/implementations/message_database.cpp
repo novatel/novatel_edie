@@ -14,15 +14,7 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
-PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(MessageDatabase&& message_db) : MessageDatabase(std::move(message_db)) {}
-
-PYCOMMON_EXPORT std::shared_ptr<py_common::PyMessageDatabaseCore> py_common::PyMessageDatabaseCore::Create(MessageDatabase message_db)
-{
-    auto db = std::shared_ptr<PyMessageDatabaseCore>(new PyMessageDatabaseCore(std::move(message_db)));
-    db->self_weak_ = db;
-    db->Initialize();
-    return db;
-}
+PYCOMMON_EXPORT py_common::PyMessageDatabaseCore::PyMessageDatabaseCore(MessageDatabase&& message_db) : MessageDatabase(std::move(message_db)) { Initialize(); }
 
 void py_common::PyMessageDatabaseCore::Initialize()
 {
@@ -140,15 +132,11 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabaseCore::ResolveBaseType()
         pDbMetadata = dbMetadata;
     }
 
-    message_family_extras_.reset();
-
-    message_family_registration_ = GetMessageFamilyRegistration(pDbMetadata->messageFamily);
+    message_family_registration_ = py_common::GetMessageFamilyRegistration(pDbMetadata->messageFamily);
     if (!message_family_registration_ || !message_family_registration_->messageType.is_valid())
     {
         throw FailureException(pDbMetadata->messageFamily + " is not a recognized message type.");
     }
-
-    if (message_family_registration_->allocateExtras) { message_family_extras_ = message_family_registration_->allocateExtras(this); }
 }
 
 static py_common::FieldNameMap BuildFieldNameMapFromDefs(const std::vector<BaseField::Ptr>& fields)
@@ -273,4 +261,28 @@ PYCOMMON_EXPORT const py_common::MessageFamilyRegistration* py_common::GetMessag
     auto registrationIt = registrations.find(message_family);
     if (registrationIt == registrations.end()) { return nullptr; }
     return &registrationIt->second;
+}
+
+PYCOMMON_EXPORT py_common::PyMessageDatabase::PyMessageDatabase(MessageDatabase&& message_db)
+    : core_(std::make_shared<PyMessageDatabaseCore>(std::move(message_db)))
+{
+    allocateExtras();
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::allocateExtras()
+{
+    const MessageFamilyRegistration* registration = core_->GetMessageFamilyRegistration();
+    if (registration && registration->allocateExtras) { extras_ = registration->allocateExtras(core_); }
+    else { extras_.reset(); }
+}
+
+PYCOMMON_EXPORT void py_common::PyMessageDatabase::SetMessageFamily(const std::string& messageFamily)
+{
+    core_->SetMessageFamily(messageFamily);
+    allocateExtras();
+}
+
+PYCOMMON_EXPORT py_common::PyMessageDatabase::Ptr py_common::PyMessageDatabase::clone() const
+{
+    return std::make_shared<PyMessageDatabase>(MessageDatabase(static_cast<const MessageDatabase&>(*core_)));
 }
