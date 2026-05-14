@@ -64,8 +64,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
             for (size_t sz = 0; sz < vstrTestInput.size(); ++sz)
             {
-                MessageBody vIntermediateFormat_;
-                vIntermediateFormat_.fixedFields.resize(DataTypeSize(D));
+                MessageBody vIntermediateFormat_(DataTypeSize(D), 0);
 
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
@@ -87,8 +86,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
         template <typename T, DATA_TYPE D> void InvalidSizeSimpleASCIIHelper(std::string_view strTestInput)
         {
-            MessageBody vIntermediateFormat;
-            vIntermediateFormat.fixedFields.resize(DataTypeSize(D) + 2);
+            MessageBody vIntermediateFormat(DataTypeSize(D) + 2, 0);
 
             auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 2, D);
             const char* tempStr = strTestInput.data();
@@ -105,8 +103,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
             for (size_t sz = 0; sz < vvucTestInput.size(); ++sz)
             {
-                MessageBody vIntermediateFormat_;
-                vIntermediateFormat_.fixedFields.resize(DataTypeSize(D));
+                MessageBody vIntermediateFormat_(DataTypeSize(D), 0);
 
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
@@ -233,8 +230,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
 TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("CHAR_1", FIELD_TYPE::SIMPLE, "%c", DATA_TYPE::CHAR));
-    MessageBody vIntermediateFormat_;
-    vIntermediateFormat_.fixedFields.resize(1);
+    MessageBody vIntermediateFormat_(1, 0);
 
     const auto* testInput = "4";
     FieldInfo fieldInfo;
@@ -247,8 +243,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("B_True", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::BOOL));
-    MessageBody vIntermediateFormat_;
-    vIntermediateFormat_.fixedFields.resize(4);
+    MessageBody vIntermediateFormat_(4, 0);
 
     const auto* testInput = "TRUE";
     FieldInfo fieldInfo;
@@ -287,8 +282,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
     MsgDefFields.emplace_back(e1);
     MsgDefFields.emplace_back(e2);
 
-    MessageBody vIntermediateFormat;
-    vIntermediateFormat.fixedFields.resize(12);
+    MessageBody vIntermediateFormat(12, 0);
 
     const auto* testInput = "UNKNOWN,APPROXIMATE,SATTIME";
 
@@ -304,8 +298,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN));
-    MessageBody vIntermediateFormat;
-    vIntermediateFormat.varFields.resize(1);
+    MessageBody vIntermediateFormat(0, 1);
 
     std::vector<const char*> testInputs = {"SOL_COMPUTED,WAAS"};
     std::vector<const char*> testTargets = {"SOL_COMPUTED","WAAS"};
@@ -317,7 +310,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
         fieldInfo.messageOrderedFields = constFields;
         fieldInfo.varFieldCount = 1;
         ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInputs[sz], vIntermediateFormat), STATUS::SUCCESS);
-        ASSERT_EQ(std::get<std::string>(vIntermediateFormat.varFields[0]), testTargets[sz]);
+        ASSERT_EQ(std::get<std::string>(vIntermediateFormat.GetVarFields()[0]), testTargets[sz]);
     }
 }
 
@@ -355,8 +348,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%", DATA_TYPE::UNKNOWN));
-    MessageBody vIntermediateFormat_;
-    vIntermediateFormat_.fixedFields.resize(1);
+    MessageBody vIntermediateFormat_(1, 0);
 
     const unsigned char* testInput = nullptr;
 
@@ -369,8 +361,7 @@ TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 {
     MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%", DATA_TYPE::UNKNOWN));
-    MessageBody vIntermediateFormat_;
-    vIntermediateFormat_.fixedFields.resize(1);
+    MessageBody vIntermediateFormat_(1, 0);
 
     const unsigned char* testInput = nullptr;
 
@@ -405,8 +396,7 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     addSimpleField("%f", 4, DATA_TYPE::FLOAT);
     addSimpleField("%lf", 8, DATA_TYPE::DOUBLE);
 
-    MessageBody vIntermediateFormat;
-    vIntermediateFormat.fixedFields.resize(offset);
+    MessageBody vIntermediateFormat(offset, 0);
 
     const auto* testInput = "TRUE,63,227,56,2734,-3842,38283,54244,-4359,5293,79338432,-289834,2.54,5.44061788e+03";
 
