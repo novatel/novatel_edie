@@ -47,27 +47,107 @@
 
 namespace novatel::edie {
 
-struct MessageBody;
+class MessageBody;
 
 #define PRIMITIVE_TYPES bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double
 #define PRIMITIVE_VECTORS std::vector<int8_t>, std::vector<int16_t>, std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>, std::vector<uint64_t>, std::vector<float>, std::vector<double>
 using FieldValueVariant = std::variant<PRIMITIVE_TYPES, PRIMITIVE_VECTORS, std::vector<MessageBody>, std::vector<std::byte>, std::string>;
 
-struct MessageBody
+class MessageBody
 {
+  private:
     std::vector<std::byte> fixedFields;
     std::vector<FieldValueVariant> varFields;
+    MessageDefinition::ConstPtr definition;
+    std::optional<uint32_t> defCrc;
 
+  public:
+    // ---------------------------------------------------------------------------
+    //! \brief Default constructor.
+    // ---------------------------------------------------------------------------
     MessageBody() = default;
 
-    template <bool Fixed = true, typename T>
-    void WriteFieldData(const size_t startIndex_, const T* values_, size_t n = 1)
+    // ---------------------------------------------------------------------------
+    //! \brief Construct a MessageBody with pre-allocated fixed and variable field storage.
+    //!
+    //! \param[in] fixedFieldSize_ The size in bytes for the fixed fields buffer.
+    //! \param[in] varFieldCount_ The number of variable field slots to allocate.
+    // ---------------------------------------------------------------------------
+    MessageBody(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_) {}
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get a non-const reference to the fixed fields buffer.
+    //!
+    //! \return Reference to the fixed fields vector.
+    // ---------------------------------------------------------------------------
+    std::vector<std::byte>& GetFixedFields() { return fixedFields; }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get a const reference to the fixed fields buffer.
+    //!
+    //! \return Const reference to the fixed fields vector.
+    // ---------------------------------------------------------------------------
+    const std::vector<std::byte>& GetFixedFields() const { return fixedFields; }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get a non-const reference to the variable fields vector.
+    //!
+    //! \return Reference to the variable fields vector.
+    // ---------------------------------------------------------------------------
+    std::vector<FieldValueVariant>& GetVarFields() { return varFields; }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get a const reference to the variable fields vector.
+    //!
+    //! \return Const reference to the variable fields vector.
+    // ---------------------------------------------------------------------------
+    const std::vector<FieldValueVariant>& GetVarFields() const { return varFields; }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get the message definition.
+    //!
+    //! \return Const reference to the message definition pointer.
+    // ---------------------------------------------------------------------------
+    const MessageDefinition::ConstPtr& GetDefinition() const { return definition; }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get the CRC of the message definition.
+    //!
+    //! \return Const reference to the optional definition CRC.
+    // ---------------------------------------------------------------------------
+    const std::optional<uint32_t>& GetDefinitionCrc() const { return defCrc; }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Set the message definition and optional CRC.
+    //!
+    //! \param[in] definition_ The message definition pointer.
+    //! \param[in] defCrc_ Optional CRC of the definition. Defaults to nullopt.
+    // ---------------------------------------------------------------------------
+    void SetDefinition(const MessageDefinition::ConstPtr& definition_, const std::optional<uint32_t>& defCrc_ = std::nullopt)
     {
-        static_assert(std::is_trivially_copyable_v<T>, "WriteFieldData only supports trivially copyable types");
+        definition = definition_;
+        defCrc = defCrc_;
+    }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Set field values at the specified index.
+    //!
+    //! \tparam Fixed True for fixed fields, false for variable-length fields.
+    //! \tparam T The value type (must be trivially copyable).
+    //! \param[in] startIndex_ The starting index in the target field storage (byte
+    //!     offset for fixed fields, element index for variable-length fields).
+    //! \param[in] values_ Pointer to values to set.
+    //! \param[in] n Number of values to copy (defaults to 1).
+    //! \throws std::runtime_error on buffer overflow or invalid index.
+    // ---------------------------------------------------------------------------
+    template <bool Fixed = true, typename T>
+    void SetField(const size_t startIndex_, const T* values_, size_t n = 1)
+    {
+        static_assert(std::is_trivially_copyable_v<T>, "SetField only supports trivially copyable types");
 
         if (values_ == nullptr)
         {
-            throw std::runtime_error("WriteFieldData(): source pointer is null");
+            throw std::runtime_error("SetField(): source pointer is null");
         }
 
         const size_t valueSize = sizeof(T) * n;
@@ -76,7 +156,7 @@ struct MessageBody
         {
             if (startIndex_ + valueSize > fixedFields.size())
             {
-                throw std::runtime_error("WriteFieldData(): fixedFields buffer overflow");
+                throw std::runtime_error("SetField(): fixedFields buffer overflow");
             }
 
             std::memcpy(fixedFields.data() + startIndex_, values_, valueSize);
@@ -85,7 +165,7 @@ struct MessageBody
         {
             if (startIndex_ >= varFields.size())
             {
-                throw std::runtime_error("WriteFieldData(): varFields index is out of range");
+                throw std::runtime_error("SetField(): varFields index is out of range");
             }
 
             using BufferElementType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
@@ -95,24 +175,42 @@ struct MessageBody
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Set a single field value at the specified index.
+    //!
+    //! \tparam Fixed True for fixed fields, false for variable-length fields.
+    //! \tparam T The value type (must not be a pointer).
+    //! \param[in] startIndex_ The index in the target field storage.
+    //! \param[in] value_ The value to set.
+    //! \param[in] n Number of values to copy (defaults to 1).
+    // ---------------------------------------------------------------------------
     template <bool Fixed = true, typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void WriteFieldData(const size_t startIndex_, const T& value_, size_t n = 1)
+    void SetField(const size_t startIndex_, const T& value_, size_t n = 1)
     {
-        WriteFieldData<Fixed>(startIndex_, &value_, n);
+        SetField<Fixed>(startIndex_, &value_, n);
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Set field values from a vector.
+    //!
+    //! \tparam Fixed True for fixed fields, false for variable-length fields.
+    //! \tparam T The element type (must be trivially copyable and not bool).
+    //! \param[in] startIndex_ The index in the target field storage.
+    //! \param[in] values_ Rvalue reference to vector of values to move.
+    //! \throws std::runtime_error on buffer overflow or invalid index.
+    // ---------------------------------------------------------------------------
     template <bool Fixed = true, typename T>
-    void WriteFieldData(const size_t startIndex_, std::vector<T>&& values_)
+    void SetField(const size_t startIndex_, std::vector<T>&& values_)
     {
-        static_assert(std::is_trivially_copyable_v<T>, "WriteFieldData only supports trivially copyable vector element types");
-        static_assert(!std::is_same_v<T, bool>, "WriteFieldData does not support std::vector<bool>");
+        static_assert(std::is_trivially_copyable_v<T>, "SetField only supports trivially copyable vector element types");
+        static_assert(!std::is_same_v<T, bool>, "SetField does not support std::vector<bool>");
 
         if constexpr (Fixed)
         {
             const size_t valueSize = sizeof(T) * values_.size();
             if (startIndex_ + valueSize > fixedFields.size())
             {
-                throw std::runtime_error("WriteFieldData(): fixedFields buffer overflow");
+                throw std::runtime_error("SetField(): fixedFields buffer overflow");
             }
 
             if (valueSize > 0)
@@ -124,22 +222,30 @@ struct MessageBody
         {
             if (startIndex_ >= varFields.size())
             {
-                throw std::runtime_error("WriteFieldData(): varFields index is out of range");
+                throw std::runtime_error("SetField(): varFields index is out of range");
             }
 
             varFields[startIndex_] = std::move(values_);
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Set field values from a string.
+    //!
+    //! \tparam Fixed True for fixed fields, false for variable-length fields.
+    //! \param[in] startIndex_ The index in the target field storage.
+    //! \param[in] value_ Rvalue reference to string to move.
+    //! \throws std::runtime_error on buffer overflow or invalid index.
+    // ---------------------------------------------------------------------------
     template <bool Fixed = true>
-    void WriteFieldData(const size_t startIndex_, std::string&& value_)
+    void SetField(const size_t startIndex_, std::string&& value_)
     {
         if constexpr (Fixed)
         {
             const size_t valueSize = value_.size();
             if (startIndex_ + valueSize > fixedFields.size())
             {
-                throw std::runtime_error("WriteFieldData(): fixedFields buffer overflow");
+                throw std::runtime_error("SetField(): fixedFields buffer overflow");
             }
 
             if (valueSize > 0)
@@ -151,15 +257,25 @@ struct MessageBody
         {
             if (startIndex_ >= varFields.size())
             {
-                throw std::runtime_error("WriteFieldData(): varFields index is out of range");
+                throw std::runtime_error("SetField(): varFields index is out of range");
             }
 
             varFields[startIndex_] = std::move(value_);
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Set a single element within a field array.
+    //!
+    //! \tparam Fixed True for fixed fields, false for variable-length fields.
+    //! \tparam T The element type.
+    //! \param[in] startIndex_ The index of the field in the target storage.
+    //! \param[in] elementIndex_ The element index within the field array.
+    //! \param[in] value_ The value to set.
+    //! \throws std::runtime_error on invalid index or type mismatch.
+    // ---------------------------------------------------------------------------
     template <bool Fixed = true, typename T>
-    void WriteFieldElement(const size_t startIndex_, size_t elementIndex_, const T& value_)
+    void SetFieldElement(const size_t startIndex_, size_t elementIndex_, const T& value_)
     {
         using StoredType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
 
@@ -168,18 +284,18 @@ struct MessageBody
             if constexpr (std::is_same_v<T, bool>)
             {
                 const auto storedValue = static_cast<uint8_t>(value_);
-                WriteFieldData<true>(startIndex_ + (elementIndex_ * sizeof(StoredType)), storedValue, 1);
+                SetField<true>(startIndex_ + (elementIndex_ * sizeof(StoredType)), storedValue);
             }
             else
             {
-                WriteFieldData<true>(startIndex_ + (elementIndex_ * sizeof(T)), value_, 1);
+                SetField<true>(startIndex_ + (elementIndex_ * sizeof(T)), value_);
             }
             return;
         }
 
         if (startIndex_ >= varFields.size())
         {
-            throw std::runtime_error("WriteFieldElement(): varFields index is out of range");
+            throw std::runtime_error("SetFieldElement(): varFields index is out of range");
         }
 
         // If this var field is already configured as flat bytes, preserve that storage type
@@ -203,41 +319,21 @@ struct MessageBody
 
         if (values == nullptr)
         {
-            throw std::runtime_error("WriteFieldElement(): field storage type mismatch");
+            throw std::runtime_error("SetFieldElement(): field storage type mismatch");
         }
 
         if (values->size() <= elementIndex_) { values->resize(elementIndex_ + 1); }
         (*values)[elementIndex_] = static_cast<StoredType>(value_);
     }
 
-    void SetFlatFieldArrayByte(const size_t fieldIndex_, const size_t elementIndex_, const std::byte value_)
-    {
-        if (fieldIndex_ >= varFields.size())
-        {
-            throw std::runtime_error("SetFlatFieldArrayByte(): varFields index is out of range");
-        }
-
-        auto* values = std::get_if<std::vector<std::byte>>(&varFields[fieldIndex_]);
-        if (values == nullptr)
-        {
-            varFields[fieldIndex_] = std::vector<std::byte>{};
-            values = std::get_if<std::vector<std::byte>>(&varFields[fieldIndex_]);
-        }
-
-        if (values == nullptr)
-        {
-            throw std::runtime_error("SetFlatFieldArrayByte(): field storage type mismatch");
-        }
-
-        if (values->size() <= elementIndex_) { values->resize(elementIndex_ + 1); }
-        (*values)[elementIndex_] = value_;
-    }
-
-    void SetFlatFieldArrayByte(const size_t fieldIndex_, const size_t elementIndex_, const uint8_t value_)
-    {
-        SetFlatFieldArrayByte(fieldIndex_, elementIndex_, static_cast<std::byte>(value_));
-    }
-
+    // ---------------------------------------------------------------------------
+    //! \brief Get a scalar value from fixed fields.
+    //!
+    //! \tparam T The scalar type to retrieve.
+    //! \param[in] idx_ The byte offset in fixed fields.
+    //! \return The scalar value at the specified offset.
+    //! \throws std::runtime_error if index is out of range.
+    // ---------------------------------------------------------------------------
     template <typename T>
     T GetFixedScalarValue(const size_t idx_) const
     {
@@ -248,6 +344,15 @@ struct MessageBody
         return value;
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get an array of values from fixed fields.
+    //!
+    //! \tparam T The element type to retrieve.
+    //! \param[in] idx_ The byte offset in fixed fields.
+    //! \param[in] count_ The number of elements to retrieve.
+    //! \return Vector of values at the specified offset.
+    //! \throws std::runtime_error if index is out of range.
+    // ---------------------------------------------------------------------------
     template <typename T>
     std::vector<T> GetFixedArrayValue(const size_t idx_, const size_t count_) const
     {
@@ -259,6 +364,13 @@ struct MessageBody
         return values;
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value from fixed fields with type conversion.
+    //!
+    //! \param[in] field_ The field definition describing the value to retrieve.
+    //! \return A FieldValueVariant containing the value with appropriate type.
+    //! \throws std::runtime_error on out-of-range index or unsupported type.
+    // ---------------------------------------------------------------------------
     FieldValueVariant GetFixedFieldValue(const BaseField& field_) const
     {
         const size_t idx = field_.index;
@@ -303,6 +415,13 @@ struct MessageBody
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value by field definition.
+    //!
+    //! \param[in] field_ The field definition.
+    //! \return A FieldValueVariant containing the field value.
+    //! \throws std::runtime_error on invalid index or unsupported type.
+    // ---------------------------------------------------------------------------
     FieldValueVariant GetFieldValue(const BaseField& field_) const
     {
         switch (field_.type)
@@ -326,6 +445,27 @@ struct MessageBody
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Get a field value by field name.
+    //!
+    //! \param[in] fieldName_ The name of the field to retrieve.
+    //! \return A FieldValueVariant containing the field value.
+    //! \throws std::runtime_error if definition is not set or field name not found.
+    // ---------------------------------------------------------------------------
+    FieldValueVariant GetFieldValue(const std::string& fieldName_) const
+    {
+        if (definition == nullptr) { throw std::runtime_error("GetFieldValue(): message definition not set"); }
+        const auto field = definition->GetMsgDefFromCrc(defCrc.value_or(definition->latestMessageCrc)).fieldNameToDef.at(fieldName_);
+        return GetFieldValue(*field);
+    }
+
+    // ---------------------------------------------------------------------------
+    //! \brief Get the byte size of a field.
+    //!
+    //! \param[in] field_ The field definition.
+    //! \return The size in bytes of the field's data.
+    //! \throws std::runtime_error on invalid index or type mismatch.
+    // ---------------------------------------------------------------------------
     size_t GetFieldByteSize(const BaseField& field_) const
     {
         switch (field_.type)
@@ -372,6 +512,16 @@ struct MessageBody
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Write a field's data to a given (byte*) buffer.
+    //!
+    //! \param[in] field_ The field definition.
+    //! \param[out] buffer_ The destination buffer.
+    //! \param[in] capacity_ The capacity of the destination buffer.
+    //! \return The number of bytes written.
+    //! \throws std::runtime_error on invalid index, type mismatch, or insufficient
+    //!     buffer capacity.
+    // ---------------------------------------------------------------------------
     size_t WriteFieldToBuffer(const BaseField& field_, std::byte* buffer_, const size_t capacity_) const
     {
         if (buffer_ == nullptr && capacity_ != 0) { throw std::runtime_error("WriteFieldToBuffer(): destination buffer is null"); }
@@ -429,6 +579,16 @@ struct MessageBody
         }
     }
 
+    // ---------------------------------------------------------------------------
+    //! \brief Write a field's data to a given (unsigned char**) buffer.
+    //!
+    //! \param[in] field_ The field definition.
+    //! \param[out] buffer_ The destination buffer.
+    //! \param[in] capacity_ The capacity of the destination buffer.
+    //! \return The number of bytes written.
+    //! \throws std::runtime_error on invalid index, type mismatch, or insufficient
+    //!     buffer capacity.
+    // ---------------------------------------------------------------------------
     size_t WriteFieldToBuffer(const BaseField& field_, unsigned char** buffer_, uint32_t& capacity_) const
     {
         if (buffer_ == nullptr || *buffer_ == nullptr)
@@ -442,12 +602,6 @@ struct MessageBody
         capacity_ -= static_cast<uint32_t>(written);
         return written;
     }
-};
-
-struct DefinedMessageBody
-{
-    MessageBody body;
-    MessageDefinition::ConstPtr definition;
 };
 
 
@@ -559,7 +713,7 @@ class MessageDecoderBase
 
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse numeric value"); }
 
-        vIntermediateFormat_.WriteFieldElement<Fixed>(fieldIndex_, elementIndex_, value);
+        vIntermediateFormat_.SetFieldElement<Fixed>(fieldIndex_, elementIndex_, value);
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -595,8 +749,8 @@ class MessageDecoderBase
         if (clJsonField_.get(intermediateValue) == simdjson::SUCCESS)
         {
             T value = static_cast<T>(intermediateValue);
-            if (fixed_) { vIntermediate_.WriteFieldElement<true>(fieldIndex_, elementIndex_, value); }
-            else { vIntermediate_.WriteFieldElement<false>(fieldIndex_, elementIndex_, value); }
+            if (fixed_) { vIntermediate_.SetFieldElement<true>(fieldIndex_, elementIndex_, value); }
+            else { vIntermediate_.SetFieldElement<false>(fieldIndex_, elementIndex_, value); }
         }
         else
         {
@@ -706,7 +860,7 @@ class MessageDecoderBase
     //! \brief Decode a message payload from the provided frame.
     //
     //! \param[in] pucMessage_ A pointer to a message payload.
-    //! \param[out] stInterMessage_ The DefinedMessageBody to be populated.
+    //! \param[out] stInterMessage_ The MessageBody to be populated.
     //! \param[in, out] stMetaData_ MetaDataStruct to provide information about
     //! the frame and be fully populated to help describe the decoded log.
     //
@@ -723,7 +877,7 @@ class MessageDecoderBase
     //!   UNSUPPORTED: Attempted to decode an unsupported format.
     //!   UNKNOWN: The header format provided is not known.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, DefinedMessageBody& stInterMessage_, MetaDataBase& stMetaData_) const;
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, MessageBody& stInterMessage_, MetaDataBase& stMetaData_) const;
 };
 
 } // namespace novatel::edie
