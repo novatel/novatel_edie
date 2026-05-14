@@ -177,7 +177,7 @@ template <size_t N> static void DecodeLog(benchmark::State& state, const unsigne
         const unsigned char* dataPtr = data;
         MetaDataStruct metaData;
         IntermediateHeader header;
-        DefinedMessageBody message;
+        MessageBody message;
 
         (void)headerDecoder.Decode(dataPtr, header, metaData);
         dataPtr += metaData.uiHeaderLength;
@@ -264,7 +264,7 @@ template <ENCODE_FORMAT Format> static void EncodeLog(benchmark::State& state)
     MetaDataStruct metaData;
     MessageDataStruct messageData;
     IntermediateHeader header;
-    DefinedMessageBody message;
+    MessageBody message;
 
     const unsigned char* tempPtr = bestposBinary;
 

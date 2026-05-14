@@ -322,12 +322,12 @@ template <typename Derived> class EncoderBase
                                         unsigned char** ppucOutBuf_, uint32_t& uiBytesLeft_) const
     {
         // Fast path: all-fixed message — single memcpy of the dense fixedFields blob
-        if (stInterMessage_.varFields.empty())
+        if (stInterMessage_.GetVarFields().empty())
         {
-            if (stInterMessage_.fixedFields.size() > uiBytesLeft_) { return false; }
-            std::memcpy(*ppucOutBuf_, stInterMessage_.fixedFields.data(), stInterMessage_.fixedFields.size());
-            *ppucOutBuf_ += stInterMessage_.fixedFields.size();
-            uiBytesLeft_ -= static_cast<uint32_t>(stInterMessage_.fixedFields.size());
+            if (stInterMessage_.GetFixedFields().size() > uiBytesLeft_) { return false; }
+            std::memcpy(*ppucOutBuf_, stInterMessage_.GetFixedFields().data(), stInterMessage_.GetFixedFields().size());
+            *ppucOutBuf_ += stInterMessage_.GetFixedFields().size();
+            uiBytesLeft_ -= static_cast<uint32_t>(stInterMessage_.GetFixedFields().size());
             return true;
         }
 
@@ -342,7 +342,7 @@ template <typename Derived> class EncoderBase
                 bool isFieldArray = fieldDef->type == FIELD_TYPE::FIELD_ARRAY;
                 const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(fieldDef.get());
                 const auto* fieldArrayFieldDef = isFieldArray ? dynamic_cast<const FieldArrayField*>(fieldDef.get()) : nullptr;
-                const auto& varField = stInterMessage_.varFields[fieldDef->index];
+                const auto& varField = stInterMessage_.GetVarFields()[fieldDef->index];
                 const auto* flat = std::get_if<std::vector<std::byte>>(&varField);
                 const auto* elements = flat || !isFieldArray ? nullptr : &std::get<std::vector<MessageBody>>(varField);
                 const size_t count = flat ? flat->size() / fieldArrayFieldDef->fieldInfo.fixedFieldBytes
@@ -504,7 +504,7 @@ template <typename Derived> class EncoderBase
                     else
                     {
                         const auto& element = (*pElements)[i];
-                        encoded = EncodeAsciiBodyRegions<Abbreviated>(element.fixedFields.data(), element.fixedFields.size(), std::cref(element.varFields),
+                        encoded = EncodeAsciiBodyRegions<Abbreviated>(element.GetFixedFields().data(), element.GetFixedFields().size(), std::cref(element.GetVarFields()),
                                                                       arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_,
                                                                       uiIndents_ + 1);
                     }
@@ -674,8 +674,8 @@ template <typename Derived> class EncoderBase
     [[nodiscard]] bool EncodeAsciiBody(const MessageBody& vIntermediateFormat_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
                                        char** ppcOutBuf_, uint32_t& uiBytesLeft_, const uint32_t uiIndents_ = 1) const
     {
-        return EncodeAsciiBodyRegions<Abbreviated>(vIntermediateFormat_.fixedFields.data(), vIntermediateFormat_.fixedFields.size(),
-                                                   std::cref(vIntermediateFormat_.varFields), fieldDefinitions_, ppcOutBuf_, uiBytesLeft_, uiIndents_);
+        return EncodeAsciiBodyRegions<Abbreviated>(vIntermediateFormat_.GetFixedFields().data(), vIntermediateFormat_.GetFixedFields().size(),
+                                                   std::cref(vIntermediateFormat_.GetVarFields()), fieldDefinitions_, ppcOutBuf_, uiBytesLeft_, uiIndents_);
     }
 
     // Raw byte ASCII conversion for flat field arrays
@@ -843,7 +843,7 @@ template <typename Derived> class EncoderBase
                         else
                         {
                             const auto& element = (*pElements)[i];
-                            if (!EncodeJsonBodyRegions(element.fixedFields.data(), element.fixedFields.size(), std::cref(element.varFields),
+                            if (!EncodeJsonBodyRegions(element.GetFixedFields().data(), element.GetFixedFields().size(), std::cref(element.GetVarFields()),
                                                        arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_) ||
                                 !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
                             {
@@ -1047,8 +1047,8 @@ template <typename Derived> class EncoderBase
     [[nodiscard]] bool EncodeJsonBody(const MessageBody& stInterMessage_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
                                       char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
-        return EncodeJsonBodyRegions(stInterMessage_.fixedFields.data(), stInterMessage_.fixedFields.size(),
-                                     std::cref(stInterMessage_.varFields), fieldDefinitions_, ppcOutBuf_, uiBytesLeft_);
+        return EncodeJsonBodyRegions(stInterMessage_.GetFixedFields().data(), stInterMessage_.GetFixedFields().size(),
+                                     std::cref(stInterMessage_.GetVarFields()), fieldDefinitions_, ppcOutBuf_, uiBytesLeft_);
     }
 
   public:
@@ -1100,3 +1100,5 @@ template <typename Derived> class EncoderBase
 } // namespace novatel::edie
 
 #endif // ENCODER_HPP
+
+

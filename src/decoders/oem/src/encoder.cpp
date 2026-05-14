@@ -379,7 +379,7 @@ bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, ch
 // -------------------------------------------------------------------------------------------------------
 STATUS
 Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                const DefinedMessageBody& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
+                const MessageBody& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
                 ENCODE_FORMAT eFormat_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
@@ -391,9 +391,9 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
     const bool isResponse = (stHeader_.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0;
 
     // Keep ownership only when we must fetch fallback response definition.
-    // Non-response messages use stMessage_.definition directly with no shared_ptr copy.
+    // Non-response messages use stMessage_ definition directly with no shared_ptr copy.
     MessageDefinition::ConstPtr pclResponseDefinition;
-    const MessageDefinition* pclMessageDefinition = stMessage_.definition.get();
+    const MessageDefinition* pclMessageDefinition = stMessage_.GetDefinition().get();
 
     if (isResponse && pclMessageDefinition == nullptr)
     {
@@ -404,7 +404,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
     if (pclMessageDefinition == nullptr) { return STATUS::NO_DEFINITION; }
 
     const auto& fieldDefinitions = isResponse ? pclMessageDefinition->fieldInfo.at(0).messageOrderedFields
-                                              : pclMessageDefinition->GetMsgDefFromCrc(*pclMyLogger, stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
+                                              : pclMessageDefinition->GetMsgDefFromCrc(stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
@@ -417,7 +417,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
         stMessageData_.uiMessageHeaderLength = 1;
 
         if (fieldDefinitions.size() <= 1) { return STATUS::MALFORMED_INPUT; }
-        auto sResponse = std::get<std::string>(stMessage_.body.GetFieldValue(*fieldDefinitions.at(1)));
+        auto sResponse = std::get<std::string>(stMessage_.GetFieldValue(*fieldDefinitions.at(1)));
         if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
         if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         stMessageData_.pucMessage = *ppucBuffer_;
@@ -436,7 +436,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"(,"body": )")) { return STATUS::BUFFER_FULL; }
     }
 
-    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_.body, fieldDefinitions, stMessageData_, eHeaderFormat_, eFormat_);
+    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, fieldDefinitions, stMessageData_, eHeaderFormat_, eFormat_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageBodyLength;

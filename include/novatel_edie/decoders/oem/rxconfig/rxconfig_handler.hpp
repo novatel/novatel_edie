@@ -123,7 +123,7 @@ class RxConfigHandler
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const DefinedMessageBody& stMessage_, MessageDataStruct& stMessageData_,
+                                const MessageBody& stMessage_, MessageDataStruct& stMessageData_,
                                 MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
@@ -147,7 +147,7 @@ class RxConfigHandler
     [[nodiscard]] STATUS EncodeBinary(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                       MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                       MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                      DefinedMessageBody& stEmbeddedMessage_) const;
+                                      MessageBody& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into ASCII format.
@@ -170,7 +170,7 @@ class RxConfigHandler
     [[nodiscard]] STATUS EncodeAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                      MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                      MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                     DefinedMessageBody& stEmbeddedMessage_) const;
+                                     MessageBody& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into Abbreviated Ascii format.
@@ -193,7 +193,7 @@ class RxConfigHandler
     [[nodiscard]] STATUS EncodeAbbrevAscii(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                            MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
                                            MetaDataStruct& stEmbeddedMetaData_, IntermediateHeader& stEmbeddedHeader_,
-                                           DefinedMessageBody& stEmbeddedMessage_) const;
+                                           MessageBody& stEmbeddedMessage_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into JSON format.
@@ -215,7 +215,7 @@ class RxConfigHandler
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS EncodeJSON(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
                                     MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_,
-                                    IntermediateHeader& stEmbeddedHeader_, DefinedMessageBody& stEmbeddedMessage_) const;
+                                    IntermediateHeader& stEmbeddedHeader_, MessageBody& stEmbeddedMessage_) const;
 
   public:
     //! NOTE: The following constructors prevent this class from ever being
@@ -304,7 +304,7 @@ class RxConfigHandler
     //!    NO_DEFINITION: The message ID was not found in the database.
     //!    UNSUPPORTED: The message ID is not for an RXCONFIG type message.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, DefinedMessageBody& stInterMessage_,
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, MessageBody& stInterMessage_,
                                 MetaDataStruct& stRxConfigMetaData_) const;
 
     //----------------------------------------------------------------------------
@@ -335,7 +335,7 @@ class RxConfigHandler
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const DefinedMessageBody& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
+                                const MessageBody& stMessage_, MessageDataStruct& stMessageData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Flush all bytes from the internal Framer.

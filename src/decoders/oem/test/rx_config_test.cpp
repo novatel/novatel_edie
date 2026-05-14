@@ -186,24 +186,24 @@ TEST_F(RxConfigTest, RXCONFIG_ROUNDTRIP_BINARY)
 TEST_F(RxConfigTest, RXCONFIG_CONVERT_ASCII_TO_JSON)
 {
     unsigned char aucLog[] = "#RXCONFIGA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;#ADJUST1PPSA,COM2,235,77.0,"
-                             "UNKNOWN,0,0.727,02000020,f702,17002;OFF*4c2dbb6d*1600a42a\r\n";
+                             "UNKNOWN,0,0.727,02000020,f702,17002;OFF,ONCE,0*4c2dbb6d*298F0154\r\n";
     unsigned char aucJsonLog[] =
-        R"({"header": {"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"header": {"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"mode": "OFF"}}})";
+        R"({"header": {"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"header": {"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002},"body": {"mode": "OFF","period": "ONCE","time": 0}}})";
     MessageDataStruct stExpectedRxConfigMessageData;
     stExpectedRxConfigMessageData.pucMessage = &aucJsonLog[0];
-    stExpectedRxConfigMessageData.uiMessageLength = 517;
+    stExpectedRxConfigMessageData.uiMessageLength = 544;
     stExpectedRxConfigMessageData.pucMessageHeader = &aucJsonLog[11];
     stExpectedRxConfigMessageData.uiMessageHeaderLength = 229;
     stExpectedRxConfigMessageData.pucMessageBody = &aucJsonLog[249];
-    stExpectedRxConfigMessageData.uiMessageBodyLength = 267;
+    stExpectedRxConfigMessageData.uiMessageBodyLength = 294;
 
     MessageDataStruct stExpectedEmbeddedMessageData;
     stExpectedEmbeddedMessageData.pucMessage = &aucJsonLog[249];
-    stExpectedEmbeddedMessageData.uiMessageLength = 267;
+    stExpectedEmbeddedMessageData.uiMessageLength = 294;
     stExpectedEmbeddedMessageData.pucMessageHeader = &aucJsonLog[260];
     stExpectedEmbeddedMessageData.uiMessageHeaderLength = 231;
     stExpectedEmbeddedMessageData.pucMessageBody = &aucJsonLog[500];
-    stExpectedEmbeddedMessageData.uiMessageBodyLength = 15;
+    stExpectedEmbeddedMessageData.uiMessageBodyLength = 42;
 
     WriteBytesToHandler(aucLog, sizeof(aucLog));
     ASSERT_TRUE(TestSameFormatCompare(ENCODE_FORMAT::JSON, &stExpectedRxConfigMessageData, &stExpectedEmbeddedMessageData));

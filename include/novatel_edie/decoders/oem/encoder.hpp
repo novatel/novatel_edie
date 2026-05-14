@@ -105,7 +105,7 @@ class Encoder : public EncoderBase<Encoder>
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const DefinedMessageBody& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
+                                const MessageBody& stMessage_, MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_,
                                 ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------

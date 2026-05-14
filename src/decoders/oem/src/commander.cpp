@@ -80,7 +80,7 @@ STATUS Commander::Encode(const char* pcAbbrevAsciiCommand_, const uint32_t uiAbb
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;
     IntermediateHeader stIntermediateHeader;
-    DefinedMessageBody stIntermediateMessage;
+    MessageBody stIntermediateMessage;
 
     // Prime the metadata with information we already know
     stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
@@ -134,7 +134,7 @@ STATUS Commander::Encode(const MessageDatabase& clJsonDb_, const MessageDecoder&
     MessageDataStruct stMessageData;
     MetaDataStruct stMetaData;
     IntermediateHeader stIntermediateHeader;
-    DefinedMessageBody stIntermediateMessage;
+    MessageBody stIntermediateMessage;
 
     // Prime the metadata with information we already know
     stMetaData.eFormat = HEADER_FORMAT::ABB_ASCII;
