@@ -990,14 +990,14 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
 
         if (vMsgDef == nullptr)
         {
-            SPDLOG_LOGGER_INFO(pclMyLogger, "No log definition for ID {}", stMetaData_.usMessageId);
+            LogMissingMsgDef(*pclMyLogger, stMetaData_.usMessageId);
             return STATUS::NO_DEFINITION;
         }
     }
 
     if (stMetaData_.messageName == "RXCONFIG")
     {
-        SPDLOG_LOGGER_INFO(pclMyLogger, "RXCONFIG payload decoding is unsupported by this version of EDIE. Support coming soon!");
+        SPDLOG_LOGGER_INFO(pclMyLogger, "RXCONFIG payload must be decoded via RxConfigHandler, not MessageDecoder.");
         return STATUS::UNSUPPORTED;
     }
     const std::vector<BaseField::Ptr>& msgFields =
