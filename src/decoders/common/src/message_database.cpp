@@ -202,7 +202,7 @@ MessageDefinition::ConstPtr MessageDatabase::GetResponseDefinition() const
 }
 
 // -------------------------------------------------------------------------------------------------------
-const FieldInfo& MessageDefinition::GetMsgDefFromCrc([[maybe_unused]] spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const
+const FieldInfo& MessageDefinition::GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) const
 {
     auto it = fieldInfo.find(uiMsgDefCrc_);
     return (it != fieldInfo.end()) ? it->second : fieldInfo.at(latestMessageCrc);

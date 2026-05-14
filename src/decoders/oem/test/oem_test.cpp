@@ -2214,7 +2214,7 @@ class DecodeEncodeTest : public ::testing::Test
                                 uint32_t uiEncodeBufferSize_, MetaDataStruct& stMetaData_, MessageDataStruct& stMessageData_)
     {
         IntermediateHeader stHeader;
-        DefinedMessageBody stMessage;
+        MessageBody stMessage;
 
         unsigned char* pucTempPtr = pucMessageBuffer_;
         STATUS eStatus = pclMyHeaderDecoder->Decode(pucTempPtr, stHeader, stMetaData_);
@@ -3123,11 +3123,11 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     MessageDataStruct stMessageData;
 
     IntermediateHeader stHeader;
-    DefinedMessageBody stMessage;
+    MessageBody stMessage;
     stHeader.ucMessageType = static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE);
     auto messageDefinition = std::make_shared<MessageDefinition>();
     messageDefinition->fieldInfo[0];
-    stMessage.definition = messageDefinition;
+    stMessage.SetDefinition(messageDefinition, std::optional<uint32_t>(0));
     const std::vector<BaseField::ConstPtr> fieldDefinitions;
 
     unsigned char acEncodeBuffer[MAX_ASCII_MESSAGE_LENGTH];
@@ -3136,7 +3136,7 @@ TEST_F(DecodeEncodeTest, ENCODE_FORMAT_UNSPECIFIED)
     ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->Encode(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessage, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
     ASSERT_EQ(STATUS::UNSUPPORTED, pclMyEncoder->EncodeHeader(&pucEncodeBuffer, sizeof(acEncodeBuffer), stHeader, stMessageData, stMetaData.eFormat, ENCODE_FORMAT::UNSPECIFIED));
     ASSERT_EQ(STATUS::UNSUPPORTED,
-              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage.body, fieldDefinitions, stMessageData, stMetaData.eFormat,
+              pclMyEncoder->EncodeBody(&pucEncodeBuffer, sizeof(acEncodeBuffer), stMessage, fieldDefinitions, stMessageData, stMetaData.eFormat,
                                        ENCODE_FORMAT::UNSPECIFIED));
 }
 
@@ -4261,16 +4261,16 @@ class NovatelTypesTest : public ::testing::Test
         STATUS TestDecodeAscii(const std::vector<BaseField::Ptr>& MsgDefFields_, const char** ppcLogBuf_, MessageBody& vIntermediateFormat_)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
-            vIntermediateFormat_.fixedFields = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
-            vIntermediateFormat_.varFields.resize(fieldInfo.varFieldCount);
+            vIntermediateFormat_.GetFixedFields() = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
+            vIntermediateFormat_.GetVarFields().resize(fieldInfo.varFieldCount);
             return DecodeAscii<false>(fieldInfo, ppcLogBuf_, vIntermediateFormat_);
         }
 
         STATUS TestDecodeBinary(const std::vector<BaseField::Ptr>& MsgDefFields_, const unsigned char** ppucLogBuf_, MessageBody& vIntermediateFormat_)
         {
             const FieldInfo fieldInfo = BuildFieldInfo(MsgDefFields_);
-            vIntermediateFormat_.fixedFields = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
-            vIntermediateFormat_.varFields.resize(fieldInfo.varFieldCount);
+            vIntermediateFormat_.GetFixedFields() = std::vector<std::byte>(fieldInfo.fixedFieldBytes);
+            vIntermediateFormat_.GetVarFields().resize(fieldInfo.varFieldCount);
 
             uint16_t msgDefFieldsSize = 0;
             for (const auto& field : fieldInfo.messageOrderedFields)

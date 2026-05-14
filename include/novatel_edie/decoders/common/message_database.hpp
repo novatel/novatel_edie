@@ -577,7 +577,7 @@ struct MessageDefinition
     std::unordered_map<uint32_t, FieldInfo> fieldInfo; // map of crc keys to field info
     uint32_t latestMessageCrc{0};
 
-    const FieldInfo& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
+    const FieldInfo& GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Compares the non-cached fields. Two `MessageDefinition`s compare
