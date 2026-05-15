@@ -71,9 +71,9 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // vector so we can iterate through every possible valid combination of a basefield
                 auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
-                DecodeAsciiField(std::move(stMessageDataType), &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
+                DecodeAsciiField(stMessageDataType, &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
 
-                const T value = vIntermediateFormat_.GetFixedScalarValue<T>(0);
+                const T value = std::get<T>(vIntermediateFormat_.GetFieldValue(*stMessageDataType));
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {
                     const T tolerance = std::max<T>(std::numeric_limits<T>::epsilon() * static_cast<T>(10),
@@ -111,9 +111,9 @@ class MessageDecoderTypesTest : public ::testing::Test
                 auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), D);
                 // there should be a better way to do this
                 const uint8_t* pucTestInput = vvucTestInput[sz].data();
-                DecodeBinaryField(std::move(stMessageDataType), &pucTestInput, vIntermediateFormat_);
+                DecodeBinaryField(stMessageDataType, &pucTestInput, vIntermediateFormat_);
 
-                const T value = vIntermediateFormat_.GetFixedScalarValue<T>(0);
+                const T value = std::get<T>(vIntermediateFormat_.GetFieldValue(*stMessageDataType));
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
                 {
                     const T tolerance = std::max<T>(std::numeric_limits<T>::epsilon() * static_cast<T>(10),
@@ -237,7 +237,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
     ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat_));
-    ASSERT_EQ(vIntermediateFormat_.GetFixedScalarValue<int8_t>(0), static_cast<int8_t>('4'));
+    ASSERT_EQ(std::get<int8_t>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[0])), static_cast<int8_t>('4'));
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
@@ -250,7 +250,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
     ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat_));
-    ASSERT_TRUE(vIntermediateFormat_.GetFixedScalarValue<bool>(0));
+    ASSERT_TRUE(std::get<bool>(vIntermediateFormat_.GetFieldValue(*MsgDefFields[0])));
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
@@ -290,9 +290,9 @@ TEST_F(MessageDecoderTypesTest, ASCII_ENUM_VALID)
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
     ASSERT_EQ(pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat), STATUS::SUCCESS);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint32_t>(0), 20U);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint32_t>(4), 60U);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint32_t>(8), 200U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.GetFieldValue(*e0)), 20U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.GetFieldValue(*e1)), 60U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.GetFieldValue(*e2)), 200U);
 }
 
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
@@ -404,18 +404,18 @@ TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
     std::vector<BaseField::ConstPtr> constFields(MsgDefFields.begin(), MsgDefFields.end());
     fieldInfo.messageOrderedFields = constFields;
     ASSERT_EQ(STATUS::SUCCESS, pclMyDecoderTester->TestDecodeAscii(fieldInfo, &testInput, vIntermediateFormat));
-    ASSERT_TRUE(vIntermediateFormat.GetFixedScalarValue<bool>(0));
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint8_t>(1), 0x63U);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<int16_t>(2), 227);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint32_t>(4), 56U);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint32_t>(8), 2734U);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<int32_t>(12), -3842);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<int32_t>(16), 38283);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint64_t>(20), 54244ULL);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<int64_t>(28), -4359LL);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint16_t>(36), 5293);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<uint32_t>(38), 79338432U);
-    ASSERT_EQ(vIntermediateFormat.GetFixedScalarValue<int32_t>(42), -289834);
-    ASSERT_NEAR(vIntermediateFormat.GetFixedScalarValue<float>(46), 2.54F, 0.001F);
-    ASSERT_NEAR(vIntermediateFormat.GetFixedScalarValue<double>(50), 5.44061788e3, 0.001);
+    ASSERT_TRUE(std::get<bool>(vIntermediateFormat.GetFieldValue(*MsgDefFields[0])));
+    ASSERT_EQ(std::get<uint8_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[1])), 0x63U);
+    ASSERT_EQ(std::get<int16_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[2])), 227);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[3])), 56U);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[4])), 2734U);
+    ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[5])), -3842);
+    ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[6])), 38283);
+    ASSERT_EQ(std::get<uint64_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[7])), 54244ULL);
+    ASSERT_EQ(std::get<int64_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[8])), -4359LL);
+    ASSERT_EQ(std::get<uint16_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[9])), 5293);
+    ASSERT_EQ(std::get<uint32_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[10])), 79338432U);
+    ASSERT_EQ(std::get<int32_t>(vIntermediateFormat.GetFieldValue(*MsgDefFields[11])), -289834);
+    ASSERT_NEAR(std::get<float>(vIntermediateFormat.GetFieldValue(*MsgDefFields[12])), 2.54F, 0.001F);
+    ASSERT_NEAR(std::get<double>(vIntermediateFormat.GetFieldValue(*MsgDefFields[13])), 5.44061788e3, 0.001);
 }
