@@ -662,6 +662,15 @@ class MessageDatabase
     using ConstPtr = std::shared_ptr<const MessageDatabase>;
 };
 
+//----------------------------------------------------------------------------
+//! \brief Report a missing message definition. Logs at info the first time a
+//! given ID is reported on the calling thread, and at debug thereafter.
+//
+//! \param[in] pclLogger_ The logger to emit the notice through.
+//! \param[in] iMsgId_ The message ID with no matching definition.
+//----------------------------------------------------------------------------
+void LogMissingMsgDef(spdlog::logger& pclLogger_, int32_t iMsgId_);
+
 } // namespace novatel::edie
 
 #endif

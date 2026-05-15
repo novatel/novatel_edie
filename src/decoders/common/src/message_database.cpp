@@ -26,6 +26,8 @@
 
 #include "novatel_edie/decoders/common/message_database.hpp"
 
+#include <unordered_set>
+
 #include "novatel_edie/decoders/common/common.hpp"
 
 namespace novatel::edie {
@@ -142,6 +144,15 @@ MessageDefinition::ConstPtr MessageDatabase::GetMsgDef(const int32_t iMsgId_) co
 {
     const auto it = mMessageId.find(iMsgId_);
     return it != mMessageId.end() ? it->second : nullptr;
+}
+
+//-----------------------------------------------------------------------
+void LogMissingMsgDef(spdlog::logger& pclLogger_, const int32_t iMsgId_)
+{
+    thread_local std::unordered_set<int32_t> loggedMissingMsgDefs;
+    const bool bFirstReport = loggedMissingMsgDefs.insert(iMsgId_).second;
+    if (bFirstReport) { SPDLOG_LOGGER_INFO(&pclLogger_, "No log definition for ID {}", iMsgId_); }
+    else { SPDLOG_LOGGER_DEBUG(&pclLogger_, "No log definition for ID {}", iMsgId_); }
 }
 
 // -------------------------------------------------------------------------------------------------------
