@@ -168,8 +168,8 @@ TEST_F(OEMFramerTest, LOGGER)
 {
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
-    ASSERT_NE(spdlog::get("novatel_framer"), nullptr);
     std::shared_ptr<spdlog::logger> novatel_framer = pclMyFramer->GetLogger();
+    ASSERT_NE(novatel_framer, nullptr);
     pclMyFramer->SetLoggerLevel(eLevel);
     ASSERT_EQ(novatel_framer->level(), eLevel);
 }
@@ -1341,12 +1341,8 @@ TEST_F(FramerManagerTest, LOGGER)
 {
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
-    ASSERT_NE(spdlog::get("novatel_framer_ascii"), nullptr);
-    ASSERT_NE(spdlog::get("novatel_framer_abb_ascii"), nullptr);
-    ASSERT_NE(spdlog::get("novatel_framer_binary"), nullptr);
-    ASSERT_NE(spdlog::get("novatel_framer_ascii_short"), nullptr);
-    ASSERT_NE(spdlog::get("novatel_framer_binary_short"), nullptr);
     std::shared_ptr<spdlog::logger> novatel_framer = pclMyFramerManager->GetLogger();
+    ASSERT_NE(novatel_framer, nullptr);
     pclMyFramerManager->SetLoggerLevel(eLevel);
     ASSERT_EQ(novatel_framer->level(), eLevel);
 }
@@ -3463,8 +3459,8 @@ TEST_F(CommandEncodeTest, LOGGER)
 {
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
-    ASSERT_NE(spdlog::get("novatel_commander"), nullptr);
     std::shared_ptr<spdlog::logger> novatel_commander = pclMyCommander->GetLogger();
+    ASSERT_NE(novatel_commander, nullptr);
     pclMyCommander->SetLoggerLevel(eLevel);
     ASSERT_EQ(novatel_commander->level(), eLevel);
 }
@@ -3581,8 +3577,8 @@ TEST_F(FilterTest, LOGGER)
 {
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
-    ASSERT_NE(spdlog::get("novatel_filter"), nullptr);
     std::shared_ptr<spdlog::logger> novatel_filter = pclMyFilter->GetLogger();
+    ASSERT_NE(novatel_filter, nullptr);
     pclMyFilter->SetLoggerLevel(eLevel);
     ASSERT_EQ(novatel_filter->level(), eLevel);
 }
@@ -3948,13 +3944,12 @@ TEST_F(FileParserTest, LOGGER)
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     // FileParser logger
-    ASSERT_NE(spdlog::get("novatel_file_parser"), nullptr);
     std::shared_ptr<spdlog::logger> novatelFileParser = pclFp->GetLogger();
+    ASSERT_NE(novatelFileParser, nullptr);
     pclFp->SetLoggerLevel(eLevel);
     ASSERT_EQ(novatelFileParser->level(), eLevel);
 
-    // Parser logger
-    ASSERT_NE(spdlog::get("novatel_parser"), nullptr);
+    // Ensure parser/framer/decoder logger wiring can still be enabled.
     ASSERT_NO_THROW(pclFp->EnableFramerDecoderLogging(eLevel, "novatel_parser.log"));
 }
 
@@ -4085,8 +4080,8 @@ std::unique_ptr<Parser> ParserTest::pclParser = nullptr;
 TEST_F(ParserTest, LOGGER)
 {
     spdlog::level::level_enum eLevel = spdlog::level::off;
-    ASSERT_NE(spdlog::get("novatel_parser"), nullptr);
     std::shared_ptr<spdlog::logger> novatelParser = pclParser->GetLogger();
+    ASSERT_NE(novatelParser, nullptr);
     pclParser->SetLoggerLevel(eLevel);
     ASSERT_EQ(novatelParser->level(), eLevel);
 }

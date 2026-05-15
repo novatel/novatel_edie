@@ -381,7 +381,10 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             if (subFieldDefinitions->fieldInfo.varFieldCount == 0)
             {
                 const size_t totalBytes = uiArraySize * subFieldDefinitions->fieldInfo.fixedFieldBytes;
-                vIntermediateFormat_.SetField<false>(field->index, reinterpret_cast<const std::byte*>(*ppucLogBuf_), totalBytes);
+                // Store flat FIELD_ARRAY directly as std::vector<std::byte>
+                std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
+                                                     reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
+                vIntermediateFormat_.GetVarFields()[field->index] = std::move(flatFieldData);
                 *ppucLogBuf_ += totalBytes;
             }
             else

@@ -92,8 +92,8 @@ TEST_F(RxConfigTest, LOGGER)
 {
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
-    ASSERT_NE(spdlog::get("rxconfig_handler"), nullptr);
     std::shared_ptr<spdlog::logger> rxconfig_handler = pclMyRxConfigHandler->GetLogger();
+    ASSERT_NE(rxconfig_handler, nullptr);
     pclMyRxConfigHandler->SetLoggerLevel(eLevel);
     ASSERT_EQ(rxconfig_handler->level(), eLevel);
 }

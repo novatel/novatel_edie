@@ -343,11 +343,12 @@ template <typename Derived> class EncoderBase
                 const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(fieldDef.get());
                 const auto* fieldArrayFieldDef = isFieldArray ? dynamic_cast<const FieldArrayField*>(fieldDef.get()) : nullptr;
                 const auto& varField = stInterMessage_.GetVarFields()[fieldDef->index];
-                const auto* flat = std::get_if<std::vector<std::byte>>(&varField);
-                const auto* elements = flat || !isFieldArray ? nullptr : &std::get<std::vector<MessageBody>>(varField);
-                const size_t count = flat ? flat->size() / fieldArrayFieldDef->fieldInfo.fixedFieldBytes
-                                          : isFieldArray ? elements->size()
-                                                         : stInterMessage_.GetFieldByteSize(*fieldDef) / fieldDef->dataType.length;
+                const auto* flatArray = std::get_if<std::vector<std::byte>>(&varField);
+                const auto* elements = (flatArray || !isFieldArray) ? nullptr : &std::get<std::vector<MessageBody>>(varField);
+                size_t count = 0;
+                if (flatArray) { count = flatArray->size() / fieldArrayFieldDef->fieldInfo.fixedFieldBytes; }
+                else if (isFieldArray && elements) { count = elements->size(); }
+                else if (!isFieldArray) { count = stInterMessage_.GetFieldByteSize(*fieldDef) / fieldDef->dataType.length; }
 
                 // Write array length
                 if (arrayFieldDef->arrayLengthRef.empty())
@@ -366,7 +367,7 @@ template <typename Derived> class EncoderBase
                 const unsigned char* startPos = *ppucOutBuf_;
 
                 // Fast path: all fields are fixed - directly copy the whole array
-                if (flat || !isFieldArray)
+                if (flatArray || !isFieldArray)
                 {
                     if (!stInterMessage_.WriteFieldToBuffer(*fieldDef, ppucOutBuf_, uiBytesLeft_)) { return false; }
                 }
@@ -458,13 +459,15 @@ template <typename Derived> class EncoderBase
                 if (!varRegion_ || fieldDef->index >= varRegion_->get().size() || arrayFieldDef == nullptr) { return false; }
 
                 const auto& varField = varRegion_->get()[fieldDef->index];
-                const auto* pFlat = std::get_if<std::vector<std::byte>>(&varField);
-                const auto* pElements = pFlat ? nullptr : std::get_if<std::vector<MessageBody>>(&varField);
+                const auto* pFlatArray = std::get_if<std::vector<std::byte>>(&varField);
+                const auto* pElements = pFlatArray ? nullptr : std::get_if<std::vector<MessageBody>>(&varField);
 
                 const size_t perElem = arrayFieldDef->fieldInfo.fixedFieldBytes;
-                if (pFlat && perElem == 0) { return false; }
-                const size_t elementCount = pFlat ? (pFlat->size() / perElem) : (pElements ? pElements->size() : 0);
-                if (!pFlat && pElements == nullptr) { return false; }
+                if (pFlatArray && perElem == 0) { return false; }
+                size_t elementCount = 0;
+                if (pFlatArray) { elementCount = pFlatArray->size() / perElem; }
+                else if (pElements) { elementCount = pElements->size(); }
+                else { return false; }
 
                 if (!WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, elementCount) ||
                     !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
@@ -494,9 +497,9 @@ template <typename Derived> class EncoderBase
                     }
 
                     bool encoded = false;
-                    if (pFlat)
+                    if (pFlatArray)
                     {
-                        const auto* elementFixed = pFlat->data() + (i * perElem);
+                        const auto* elementFixed = pFlatArray->data() + (i * perElem);
                         encoded = EncodeAsciiBodyRegions<Abbreviated>(elementFixed, perElem, std::nullopt,
                                                                       arrayFieldDef->fieldInfo.messageOrderedFields,
                                                                       ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1);
@@ -810,16 +813,15 @@ template <typename Derived> class EncoderBase
                 const auto* arrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
                 if (!varRegion_ || fieldDef->index >= varRegion_->get().size() || arrayFieldDef == nullptr) { return false; }
                 const auto& varField = varRegion_->get()[fieldDef->index];
-                const auto* pFlat = std::get_if<std::vector<std::byte>>(&varField);
-                const auto* pElements = pFlat ? nullptr : std::get_if<std::vector<MessageBody>>(&varField);
+                const auto* pFlatArray = std::get_if<std::vector<std::byte>>(&varField);
+                const auto* pElements = std::get_if<std::vector<MessageBody>>(&varField);
                 
                 const size_t perElem = arrayFieldDef->fieldInfo.fixedFieldBytes;
-                if (pFlat)
-                {
-                    if (perElem == 0) { return false; }
-                }
-                const size_t elementCount = pFlat ? (pFlat->size() / perElem) : (pElements ? pElements->size() : 0);
-                if (!pFlat && pElements == nullptr) { return false; }
+                if (pFlatArray && perElem == 0) { return false; }
+                size_t elementCount = 0;
+                if (pFlatArray) { elementCount = pFlatArray->size() / perElem; }
+                else if (pElements) { elementCount = pElements->size(); }
+                else { return false; }
 
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": [)")) { return false; }
                 if (elementCount == 0)
@@ -830,10 +832,10 @@ template <typename Derived> class EncoderBase
                 {
                     for (size_t i = 0; i < elementCount; ++i)
                     {
-                        if (pFlat)
+                        if (pFlatArray)
                         {
-                            const auto* elementFixed = pFlat->data() + (i * perElem);
-                            if (!EncodeJsonBodyRegions(elementFixed, perElem, std::nullopt,
+                            const auto* elementPtr = pFlatArray->data() + (i * perElem);
+                            if (!EncodeJsonBodyRegions(elementPtr, perElem, std::nullopt,
                                                        arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_) ||
                                 !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
                             {
@@ -863,7 +865,7 @@ template <typename Derived> class EncoderBase
                         using ArrayType = std::decay_t<decltype(arrayElements)>;
                         if constexpr (std::is_same_v<ArrayType, std::vector<std::byte>>)
                         {
-                            return false; // Flat arrays should be handled as FIELD_ARRAY
+                            return false; // Flat byte arrays should be handled as FIELD_ARRAY
                         }
                         else if constexpr (std::is_same_v<ArrayType, std::string>)
                         {

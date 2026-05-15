@@ -47,21 +47,82 @@
 
 namespace novatel::edie {
 
+
 class MessageBody;
 
-#define PRIMITIVE_TYPES bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double
-#define PRIMITIVE_VECTORS std::vector<int8_t>, std::vector<int16_t>, std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>, std::vector<uint64_t>, std::vector<float>, std::vector<double>
-using FieldValueVariant = std::variant<PRIMITIVE_TYPES, PRIMITIVE_VECTORS, std::vector<MessageBody>, std::vector<std::byte>, std::string>;
+using FieldValueVariant = std::variant<
+    bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double,
+    std::vector<int8_t>, std::vector<int16_t>, std::vector<int32_t>, std::vector<int64_t>,
+    std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>, std::vector<uint64_t>,
+    std::vector<float>, std::vector<double>,
+    std::vector<MessageBody>, std::vector<std::byte>, std::string>;
+
 
 class MessageBody
 {
-  private:
+private:
     std::vector<std::byte> fixedFields;
     std::vector<FieldValueVariant> varFields;
     MessageDefinition::ConstPtr definition;
     std::optional<uint32_t> defCrc;
 
-  public:
+    template <typename T>
+    static FieldValueVariant ReadValueAtPointer(const std::byte* data_, const size_t count_ = 1)
+    {
+        if (data_ == nullptr) { throw std::runtime_error("ReadValueAtPointer(): null data pointer"); }
+
+        if (count_ <= 1)
+        {
+            T value{};
+            std::memcpy(&value, data_, sizeof(T));
+            return FieldValueVariant(value);
+        }
+
+        std::vector<T> values(count_);
+        std::memcpy(values.data(), data_, sizeof(T) * count_);
+        return FieldValueVariant(std::move(values));
+    }
+
+    static FieldValueVariant DecodeFieldValue(const BaseField& field_, const std::byte* data_, const size_t count_ = 1)
+    {
+        if (data_ == nullptr) { throw std::runtime_error("DecodeFieldValue(): null data pointer"); }
+
+        if (field_.type == FIELD_TYPE::ENUM)
+        {
+            switch (field_.dataType.length)
+            {
+            case 1: return ReadValueAtPointer<uint8_t>(data_, count_);
+            case 2: return ReadValueAtPointer<uint16_t>(data_, count_);
+            case 4: return ReadValueAtPointer<uint32_t>(data_, count_);
+            default: throw std::runtime_error("DecodeFieldValue(): unsupported enum width");
+            }
+        }
+
+        switch (field_.dataType.name)
+        {
+        case DATA_TYPE::BOOL:
+            return count_ <= 1
+                ? FieldValueVariant(static_cast<bool>(std::get<uint8_t>(ReadValueAtPointer<uint8_t>(data_))))
+                : ReadValueAtPointer<uint8_t>(data_, count_);
+        case DATA_TYPE::CHAR: return ReadValueAtPointer<int8_t>(data_, count_);
+        case DATA_TYPE::HEXBYTE: [[fallthrough]];
+        case DATA_TYPE::UCHAR: return ReadValueAtPointer<uint8_t>(data_, count_);
+        case DATA_TYPE::SHORT: return ReadValueAtPointer<int16_t>(data_, count_);
+        case DATA_TYPE::USHORT: return ReadValueAtPointer<uint16_t>(data_, count_);
+        case DATA_TYPE::INT: [[fallthrough]];
+        case DATA_TYPE::LONG: return ReadValueAtPointer<int32_t>(data_, count_);
+        case DATA_TYPE::UINT: [[fallthrough]];
+        case DATA_TYPE::ULONG: [[fallthrough]];
+        case DATA_TYPE::SATELLITEID: return ReadValueAtPointer<uint32_t>(data_, count_);
+        case DATA_TYPE::LONGLONG: return ReadValueAtPointer<int64_t>(data_, count_);
+        case DATA_TYPE::ULONGLONG: return ReadValueAtPointer<uint64_t>(data_, count_);
+        case DATA_TYPE::FLOAT: return ReadValueAtPointer<float>(data_, count_);
+        case DATA_TYPE::DOUBLE: return ReadValueAtPointer<double>(data_, count_);
+        default: throw std::runtime_error("DecodeFieldValue(): unknown DATA_TYPE");
+        }
+    }
+
+public:
     // ---------------------------------------------------------------------------
     //! \brief Default constructor.
     // ---------------------------------------------------------------------------
@@ -75,19 +136,48 @@ class MessageBody
     // ---------------------------------------------------------------------------
     MessageBody(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_) {}
 
-    // ---------------------------------------------------------------------------
-    //! \brief Get a non-const reference to the fixed fields buffer.
-    //!
-    //! \return Reference to the fixed fields vector.
-    // ---------------------------------------------------------------------------
     std::vector<std::byte>& GetFixedFields() { return fixedFields; }
+    const std::vector<std::byte>& GetFixedFields() const { return fixedFields; }
 
     // ---------------------------------------------------------------------------
-    //! \brief Get a const reference to the fixed fields buffer.
+    //! \brief Get a field value from a flat field array (std::vector<std::byte>).
     //!
-    //! \return Const reference to the fixed fields vector.
+    //! \param[in] fieldDef_ The definition of the field to retrieve.
+    //! \param[in] fieldArrayDef_ The definition of the field array containing the target field.
+    //! \param[in] index The index of the element within the field array to retrieve
+    //! \return The value of the specified field as a FieldValueVariant.
     // ---------------------------------------------------------------------------
-    const std::vector<std::byte>& GetFixedFields() const { return fixedFields; }
+    FieldValueVariant GetValueFromFlatFieldArray(const BaseField& fieldDef, const FieldArrayField& fieldArrayDef, size_t index) const
+    {
+        // Get the flat field array data
+        if (fieldArrayDef.index >= varFields.size())
+        {
+            throw std::runtime_error("GetValueFromFlatFieldArray(): field array index out of range");
+        }
+
+        const auto* flatArray = std::get_if<std::vector<std::byte>>(&varFields[fieldArrayDef.index]);
+        if (flatArray == nullptr)
+        {
+            throw std::runtime_error("GetValueFromFlatFieldArray(): field is not a flat field array");
+        }
+
+        const size_t elementSize = fieldArrayDef.fieldInfo.fixedFieldBytes;
+        if (elementSize == 0)
+        {
+            throw std::runtime_error("GetValueFromFlatFieldArray(): invalid element size");
+        }
+
+        const size_t elementOffset = index * elementSize;
+        if (elementOffset + fieldDef.dataType.length > flatArray->size())
+        {
+            throw std::runtime_error("GetValueFromFlatFieldArray(): element index out of range");
+        }
+
+        // Extract the field value from the flat array at the specified element and field offset
+        const size_t byteOffset = elementOffset + fieldDef.index;
+
+        return DecodeFieldValue(fieldDef, flatArray->data() + byteOffset);
+    }
 
     // ---------------------------------------------------------------------------
     //! \brief Get a non-const reference to the variable fields vector.
@@ -150,16 +240,14 @@ class MessageBody
             throw std::runtime_error("SetField(): source pointer is null");
         }
 
-        const size_t valueSize = sizeof(T) * n;
-
         if constexpr (Fixed)
         {
-            if (startIndex_ + valueSize > fixedFields.size())
+            const size_t byteSize = sizeof(T) * n;
+            if (startIndex_ + byteSize > fixedFields.size())
             {
-                throw std::runtime_error("SetField(): fixedFields buffer overflow");
+                throw std::runtime_error("SetField(): fixed field index out of range");
             }
-
-            std::memcpy(fixedFields.data() + startIndex_, values_, valueSize);
+            std::memcpy(fixedFields.data() + startIndex_, values_, byteSize);
         }
         else
         {
@@ -168,12 +256,14 @@ class MessageBody
                 throw std::runtime_error("SetField(): varFields index is out of range");
             }
 
+            const size_t valueSize = sizeof(T) * n;
             using BufferElementType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
             std::vector<BufferElementType> values(n);
             std::memcpy(values.data(), values_, valueSize);
             varFields[startIndex_] = std::move(values);
         }
     }
+
 
     // ---------------------------------------------------------------------------
     //! \brief Set a single field value at the specified index.
@@ -207,16 +297,12 @@ class MessageBody
 
         if constexpr (Fixed)
         {
-            const size_t valueSize = sizeof(T) * values_.size();
-            if (startIndex_ + valueSize > fixedFields.size())
+            const size_t byteSize = sizeof(T) * values_.size();
+            if (startIndex_ + byteSize > fixedFields.size())
             {
-                throw std::runtime_error("SetField(): fixedFields buffer overflow");
+                throw std::runtime_error("SetField(): fixed field index out of range");
             }
-
-            if (valueSize > 0)
-            {
-                std::memcpy(fixedFields.data() + startIndex_, values_.data(), valueSize);
-            }
+            std::memcpy(fixedFields.data() + startIndex_, values_.data(), byteSize);
         }
         else
         {
@@ -242,16 +328,12 @@ class MessageBody
     {
         if constexpr (Fixed)
         {
-            const size_t valueSize = value_.size();
-            if (startIndex_ + valueSize > fixedFields.size())
+            const size_t byteSize = value_.size();
+            if (startIndex_ + byteSize > fixedFields.size())
             {
-                throw std::runtime_error("SetField(): fixedFields buffer overflow");
+                throw std::runtime_error("SetField(): fixed field index out of range");
             }
-
-            if (valueSize > 0)
-            {
-                std::memcpy(fixedFields.data() + startIndex_, value_.data(), valueSize);
-            }
+            std::memcpy(fixedFields.data() + startIndex_, value_.data(), byteSize);
         }
         else
         {
@@ -298,18 +380,6 @@ class MessageBody
             throw std::runtime_error("SetFieldElement(): varFields index is out of range");
         }
 
-        // If this var field is already configured as flat bytes, preserve that storage type
-        // and accept any 1-byte scalar assignment.
-        if constexpr (!std::is_same_v<T, bool> && std::is_integral_v<T> && sizeof(T) == 1)
-        {
-            if (auto* byteValues = std::get_if<std::vector<std::byte>>(&varFields[startIndex_]))
-            {
-                if (byteValues->size() <= elementIndex_) { byteValues->resize(elementIndex_ + 1); }
-                (*byteValues)[elementIndex_] = static_cast<std::byte>(static_cast<uint8_t>(value_));
-                return;
-            }
-        }
-
         auto* values = std::get_if<std::vector<StoredType>>(&varFields[startIndex_]);
         if (values == nullptr)
         {
@@ -327,121 +397,34 @@ class MessageBody
     }
 
     // ---------------------------------------------------------------------------
-    //! \brief Get a scalar value from fixed fields.
-    //!
-    //! \tparam T The scalar type to retrieve.
-    //! \param[in] idx_ The byte offset in fixed fields.
-    //! \return The scalar value at the specified offset.
-    //! \throws std::runtime_error if index is out of range.
-    // ---------------------------------------------------------------------------
-    template <typename T>
-    T GetFixedScalarValue(const size_t idx_) const
-    {
-        if (idx_ + sizeof(T) > fixedFields.size()) { throw std::runtime_error("GetFieldValue(): fixed field index out of range"); }
-
-        T value{};
-        std::memcpy(&value, fixedFields.data() + idx_, sizeof(value));
-        return value;
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get an array of values from fixed fields.
-    //!
-    //! \tparam T The element type to retrieve.
-    //! \param[in] idx_ The byte offset in fixed fields.
-    //! \param[in] count_ The number of elements to retrieve.
-    //! \return Vector of values at the specified offset.
-    //! \throws std::runtime_error if index is out of range.
-    // ---------------------------------------------------------------------------
-    template <typename T>
-    std::vector<T> GetFixedArrayValue(const size_t idx_, const size_t count_) const
-    {
-        const size_t size = sizeof(T) * count_;
-        if (idx_ + size > fixedFields.size()) { throw std::runtime_error("GetFieldValue(): fixed array index out of range"); }
-
-        std::vector<T> values(count_);
-        if (size > 0) { std::memcpy(values.data(), fixedFields.data() + idx_, size); }
-        return values;
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field value from fixed fields with type conversion.
-    //!
-    //! \param[in] field_ The field definition describing the value to retrieve.
-    //! \return A FieldValueVariant containing the value with appropriate type.
-    //! \throws std::runtime_error on out-of-range index or unsupported type.
-    // ---------------------------------------------------------------------------
-    FieldValueVariant GetFixedFieldValue(const BaseField& field_) const
-    {
-        const size_t idx = field_.index;
-        if (idx + field_.dataType.length > fixedFields.size()) { throw std::runtime_error("GetFieldValue(): index out of range"); }
-        bool isArray = field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY;
-        uint32_t arrayLength = 0;
-        if (isArray) {
-            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
-            if (arrayField == nullptr) { throw std::runtime_error("GetFixedFieldValue(): missing fixed array metadata"); }
-            arrayLength = arrayField->arrayLength;
-        }
-
-        switch (field_.dataType.name)
-        {
-        case DATA_TYPE::BOOL:      return isArray ? FieldValueVariant(GetFixedArrayValue<uint8_t>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<bool>(idx));
-        case DATA_TYPE::CHAR:      return isArray ? FieldValueVariant(GetFixedArrayValue<int8_t>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<int8_t>(idx));
-        case DATA_TYPE::HEXBYTE:   [[fallthrough]];
-        case DATA_TYPE::UCHAR:     return isArray ? FieldValueVariant(GetFixedArrayValue<uint8_t>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<uint8_t>(idx));
-        case DATA_TYPE::SHORT:     return isArray ? FieldValueVariant(GetFixedArrayValue<int16_t>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<int16_t>(idx));
-        case DATA_TYPE::USHORT:    return isArray ? FieldValueVariant(GetFixedArrayValue<uint16_t>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<uint16_t>(idx));
-        case DATA_TYPE::INT:       [[fallthrough]];
-        case DATA_TYPE::LONG:      return isArray ? FieldValueVariant(GetFixedArrayValue<int32_t>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<int32_t>(idx));
-        case DATA_TYPE::UINT:      [[fallthrough]];
-        case DATA_TYPE::ULONG:     [[fallthrough]];
-        case DATA_TYPE::SATELLITEID: return isArray ? FieldValueVariant(GetFixedArrayValue<uint32_t>(idx, arrayLength))
-                                                    : FieldValueVariant(GetFixedScalarValue<uint32_t>(idx));
-        case DATA_TYPE::LONGLONG:  return isArray ? FieldValueVariant(GetFixedArrayValue<int64_t>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<int64_t>(idx));
-        case DATA_TYPE::ULONGLONG: return isArray ? FieldValueVariant(GetFixedArrayValue<uint64_t>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<uint64_t>(idx));
-        case DATA_TYPE::FLOAT:     return isArray ? FieldValueVariant(GetFixedArrayValue<float>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<float>(idx));
-        case DATA_TYPE::DOUBLE:    return isArray ? FieldValueVariant(GetFixedArrayValue<double>(idx, arrayLength))
-                                                  : FieldValueVariant(GetFixedScalarValue<double>(idx));
-        default: throw std::runtime_error("GetFieldValue(): unknown DATA_TYPE");
-        }
-    }
-
-    // ---------------------------------------------------------------------------
-    //! \brief Get a field value by field definition.
-    //!
-    //! \param[in] field_ The field definition.
-    //! \return A FieldValueVariant containing the field value.
-    //! \throws std::runtime_error on invalid index or unsupported type.
-    // ---------------------------------------------------------------------------
     FieldValueVariant GetFieldValue(const BaseField& field_) const
     {
         switch (field_.type)
         {
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
+            if (arrayField == nullptr) { throw std::runtime_error("GetFieldValue(): missing fixed array metadata"); }
+
+            const size_t idx = field_.index;
+            const size_t count = static_cast<size_t>(arrayField->arrayLength);
+            const size_t byteCount = field_.dataType.length * count;
+            if (idx + byteCount > fixedFields.size()) { throw std::runtime_error("GetFieldValue(): fixed array index out of range"); }
+            return DecodeFieldValue(field_, fixedFields.data() + idx, count);
+        }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
         case FIELD_TYPE::RESPONSE_STR:
             if (field_.index >= varFields.size()) { throw std::runtime_error("GetFieldValue(): var field index out of range"); }
-
             return varFields[field_.index];
-        case FIELD_TYPE::ENUM:
-            switch (field_.dataType.length)
+        default: {
+            const size_t idx = field_.index;
+            if (idx + field_.dataType.length > fixedFields.size())
             {
-            case 1: return GetFixedScalarValue<uint8_t>(field_.index);
-            case 2: return GetFixedScalarValue<uint16_t>(field_.index);
-            case 4: return GetFixedScalarValue<uint32_t>(field_.index);
-            default: throw std::runtime_error("GetFieldValue(): unsupported enum width");
+                throw std::runtime_error("GetFieldValue(): fixed field index out of range");
             }
-        default: return GetFixedFieldValue(field_);
+            return DecodeFieldValue(field_, fixedFields.data() + idx);
+        }
         }
     }
 
@@ -484,8 +467,7 @@ class MessageBody
             return std::visit(
                 [&field_](const auto& value) -> size_t {
                     using T = std::decay_t<decltype(value)>;
-                    if constexpr (std::is_same_v<T, std::string>) { return value.size(); }
-                    else if constexpr (std::is_same_v<T, std::vector<std::byte>>) { return value.size(); }
+                    if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::vector<std::byte>>) { return value.size(); }
                     else if constexpr (std::is_same_v<T, std::vector<MessageBody>>)
                     {
                         const auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(&field_);
@@ -536,8 +518,9 @@ class MessageBody
         {
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
             const auto size = GetFieldByteSize(field_);
-            if (field_.index + size > fixedFields.size()) { throw std::runtime_error("WriteFieldToBuffer(): fixed array index out of range"); }
-            return copyBytes(fixedFields.data() + field_.index, size);
+            const auto& fixed = GetFixedFields();
+            if (field_.index + size > fixed.size()) { throw std::runtime_error("WriteFieldToBuffer(): fixed array index out of range"); }
+            return copyBytes(fixed.data() + field_.index, size);
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
@@ -548,13 +531,9 @@ class MessageBody
             return std::visit(
                 [&](const auto& value) -> size_t {
                     using T = std::decay_t<decltype(value)>;
-                    if constexpr (std::is_same_v<T, std::string>)
+                    if constexpr (std::is_same_v<T, std::string> || std::is_same_v<T, std::vector<std::byte>>)
                     {
                         return copyBytes(reinterpret_cast<const std::byte*>(value.data()), value.size());
-                    }
-                    else if constexpr (std::is_same_v<T, std::vector<std::byte>>)
-                    {
-                        return copyBytes(value.data(), value.size());
                     }
                     else if constexpr (std::is_same_v<T, std::vector<MessageBody>>)
                     {
@@ -571,11 +550,14 @@ class MessageBody
                 },
                 varFields[field_.index]);
         default:
-            if (field_.index + field_.dataType.length > fixedFields.size())
+            {
+            const auto& fixed = GetFixedFields();
+            if (field_.index + field_.dataType.length > fixed.size())
             {
                 throw std::runtime_error("WriteFieldToBuffer(): fixed field index out of range");
             }
-            return copyBytes(fixedFields.data() + field_.index, field_.dataType.length);
+            return copyBytes(fixed.data() + field_.index, field_.dataType.length);
+            }
         }
     }
 
