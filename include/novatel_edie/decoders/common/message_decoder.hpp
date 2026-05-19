@@ -75,12 +75,12 @@ private:
         {
             T value{};
             std::memcpy(&value, data_, sizeof(T));
-            return FieldValueVariant(value);
+            return value;
         }
 
         std::vector<T> values(count_);
         std::memcpy(values.data(), data_, sizeof(T) * count_);
-        return FieldValueVariant(std::move(values));
+        return std::move(values);
     }
 
     static FieldValueVariant DecodeFieldValue(const BaseField& field_, const std::byte* data_, const size_t count_ = 1)

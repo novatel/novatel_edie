@@ -419,10 +419,46 @@ template <typename Derived> class EncoderBase
     }
 
     template <bool Abbreviated>
-    [[nodiscard]] bool EncodeAsciiBodyRegions(const std::byte* fixedRegion_, size_t fixedRegionSize_,
-                                              std::optional<std::reference_wrapper<const std::vector<FieldValueVariant>>> varRegion_,
-                                              const std::vector<BaseField::ConstPtr>& fieldDefinitions_, char** ppcOutBuf_,
-                                              uint32_t& uiBytesLeft_, const uint32_t uiIndents_ = 1) const
+    [[nodiscard]] bool EncodeFixedAsciiField(const MessageBody& clMessageBody_, const BaseField::ConstPtr& fieldDefinition_,
+                                            char** ppcOutBuf_, uint32_t& uiBytesLeft_, const size_t elementCount_ = 0) const
+    {
+        switch (fieldDefinition_->type)
+        {
+        case FIELD_TYPE::FIELD_ARRAY: {
+            auto arrayFieldDef = std::dynamic_pointer_cast<const FieldArrayField>(fieldDefinition_);
+            if (!arrayFieldDef) return false;
+            for (size_t i = 0; i < elementCount_; i++)
+            {
+                if constexpr (Abbreviated)
+                {
+                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
+                }
+                for (const auto& fieldDef : arrayFieldDef->fieldInfo.messageOrderedFields)
+                {
+                    if (!FieldToAscii<Abbreviated>(fieldDef, clMessageBody_.GetValueFromFlatFieldArray(*fieldDef, *arrayFieldDef, i), ppcOutBuf_, uiBytesLeft_)) { return false; }
+                }
+            }
+            break;
+        }
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+            if (!FieldToAscii<Abbreviated>(fieldDefinition_, clMessageBody_.GetFieldValue(*fieldDefinition_), ppcOutBuf_, uiBytesLeft_)) { return false; }
+            break;
+        }
+        case FIELD_TYPE::RESPONSE_ID: break; // Do nothing, ascii logs don't output this field
+        case FIELD_TYPE::ENUM: [[fallthrough]];
+        case FIELD_TYPE::SIMPLE: {
+            if (!FieldToAscii<Abbreviated>(fieldDefinition_, clMessageBody_.GetFieldValue(*fieldDefinition_), ppcOutBuf_, uiBytesLeft_)) { return false; }
+            break;
+        }
+        default:
+            return false;
+        }
+        return true;
+    }
+
+    template <bool Abbreviated>
+    [[nodiscard]] bool EncodeAsciiBody(const MessageBody& clMessageBody_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
+                                       char** ppcOutBuf_, uint32_t& uiBytesLeft_, const uint32_t uiIndents_ = 1) const
     {
         constexpr char separator = Abbreviated ? Derived::separatorAbbAscii : Derived::separatorAscii;
 
@@ -456,18 +492,15 @@ template <typename Derived> class EncoderBase
             {
             case FIELD_TYPE::FIELD_ARRAY: {
                 const auto* arrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
-                if (!varRegion_ || fieldDef->index >= varRegion_->get().size() || arrayFieldDef == nullptr) { return false; }
+                if (arrayFieldDef == nullptr || fieldDef->index >= clMessageBody_.GetVarFields().size()) { return false; }
 
-                const auto& varField = varRegion_->get()[fieldDef->index];
-                const auto* pFlatArray = std::get_if<std::vector<std::byte>>(&varField);
-                const auto* pElements = pFlatArray ? nullptr : std::get_if<std::vector<MessageBody>>(&varField);
+                const auto& varField = clMessageBody_.GetVarFields()[fieldDef->index];
+                const auto* flat = std::get_if<std::vector<std::byte>>(&varField);
+                const auto* elements = flat ? nullptr : std::get_if<std::vector<MessageBody>>(&varField);
 
                 const size_t perElem = arrayFieldDef->fieldInfo.fixedFieldBytes;
-                if (pFlatArray && perElem == 0) { return false; }
-                size_t elementCount = 0;
-                if (pFlatArray) { elementCount = pFlatArray->size() / perElem; }
-                else if (pElements) { elementCount = pElements->size(); }
-                else { return false; }
+                if ((!flat && !elements) || (flat && perElem == 0)) { return false; }
+                size_t elementCount = flat ? flat->size() / perElem : elements->size();
 
                 if (!WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, elementCount) ||
                     !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
@@ -488,234 +521,73 @@ template <typename Derived> class EncoderBase
                         newIndentLine = true;
                     }
                 }
-                // Data was printed so a new line is required at the end of the array if there are more fields in the log
-                for (size_t i = 0; i < elementCount; ++i)
+
+                if (flat)
                 {
-                    if constexpr (Abbreviated)
-                    {
-                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
-                    }
-
-                    bool encoded = false;
-                    if (pFlatArray)
-                    {
-                        const auto* elementFixed = pFlatArray->data() + (i * perElem);
-                        encoded = EncodeAsciiBodyRegions<Abbreviated>(elementFixed, perElem, std::nullopt,
-                                                                      arrayFieldDef->fieldInfo.messageOrderedFields,
-                                                                      ppcOutBuf_, uiBytesLeft_, uiIndents_ + 1);
-                    }
-                    else
-                    {
-                        const auto& element = (*pElements)[i];
-                        encoded = EncodeAsciiBodyRegions<Abbreviated>(element.GetFixedFields().data(), element.GetFixedFields().size(), std::cref(element.GetVarFields()),
-                                                                      arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_,
-                                                                      uiIndents_ + 1);
-                    }
-
-                    if (!encoded) { return false; }
+                    if (!EncodeFixedAsciiField<Abbreviated>(clMessageBody_, fieldDef, ppcOutBuf_, uiBytesLeft_, elementCount)) { return false; }
                 }
-                newIndentLine = true;
-                break;
-            }
-            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-                if (!varRegion_) { return false; }
-                const bool encoded = std::visit(
-                    [&](auto&& arrayElements) -> bool {
-                        using ArrayType = std::decay_t<decltype(arrayElements)>;
-                        if constexpr (std::is_same_v<ArrayType, std::vector<std::byte>> || std::is_same_v<ArrayType, std::vector<MessageBody>>)
+                else
+                {
+                    // Data was printed so a new line is required at the end of the array if there are more fields in the log
+                    for (size_t i = 0; i < elementCount; ++i)
+                    {
+                        if constexpr (Abbreviated)
                         {
-                            return false; // Flat arrays should be handled as FIELD_ARRAY
+                            if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\r\n")) { return false; }
                         }
-                        else if constexpr (!is_specialization_of_v<ArrayType, std::vector> && !std::is_same_v<ArrayType, std::string>)
+
+                        const auto& element = (*elements)[i];
+                        if (!EncodeAsciiBody<Abbreviated>(element, arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_,
+                                                          uiBytesLeft_, uiIndents_ + 1))
                         {
                             return false;
                         }
-                        else
-                        {
-                            using ValueType = typename ArrayType::value_type;
-
-                            // Print the array size first
-                            if ((!WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, arrayElements.size()) ||
-                                !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) ||
-                                (fieldDef->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"')))
-                            {
-                                return false;
-                            }
-
-                            for (const auto& arrayField : arrayElements)
-                            {
-                                using ElemType = std::decay_t<decltype(arrayField)>;
-                                // If we are printing a string, don't print the null terminator or any padding bytes
-                                if (fieldDef->isString)
-                                {
-                                    if constexpr (std::is_same_v<ElemType, int8_t> || std::is_same_v<ElemType, uint8_t>)
-                                    {
-                                        if (arrayField == '\0') { break; }
-                                    }
-                                }
-
-                                if (!FieldToAscii(fieldDef, arrayField, ppcOutBuf_, uiBytesLeft_) ||
-                                    (fieldDef->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)))
-                                {
-                                    return false;
-                                }
-                            }
-
-                            return true;
-                        }
-                    },
-                    varRegion_->get()[fieldDef->index]
-                );
-                if (!encoded) { return false; }
-
-                // Quoted elements need a trailing comma
-                if (fieldDef->isString)
-                {
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"') || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
-                }
-                // Non-quoted, non-internally-separated elements also need a trailing comma
-                else if (!fieldDef->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
-                break;
-            }
-            case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-                if (fieldDef->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"')) { return false; }
-
-                const auto arrayFieldDef = std::dynamic_pointer_cast<const ArrayField>(fieldDef);
-                const size_t elemByteSize = fieldDef->dataType.length;
-                const size_t baseIndex = fieldDef->index;
-                for (size_t i = 0; i < arrayFieldDef->arrayLength; i++)
-                {
-                    const size_t elementOffset = baseIndex + (i * elemByteSize);
-                    if (elementOffset + elemByteSize > fixedRegionSize_) { return false; }
-                    const std::byte* const elementPtr = fixedRegion_ + elementOffset;
-
-                    if (fieldDef->isString)
-                    {
-                        if (*elementPtr == std::byte{0}) { break; }
-                    }
-
-                    if (!FieldToAscii(fieldDef, elementPtr, ppcOutBuf_, uiBytesLeft_) ||
-                        (fieldDef->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)))
-                    {
-                        return false;
                     }
                 }
 
-                // Quoted elements need a trailing comma
-                if (fieldDef->isString)
-                {
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"') || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
-                }
-                // Non-quoted, non-internally-separated elements also need a trailing comma
-                else if (!fieldDef->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
+                newIndentLine = true;
                 break;
             }
+            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+                if (!FieldToAscii<Abbreviated>(fieldDef, clMessageBody_.GetFieldValue(*fieldDef), ppcOutBuf_, uiBytesLeft_))
+                {
+                    return false;
+                }
+                break;
             case FIELD_TYPE::STRING: // STRING types can be handled all at once because they are a single element and have a null terminator
-                if (!varRegion_) { return false; }
-                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::get<std::string>(varRegion_->get()[fieldDef->index]), '"') ||
+                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::get<std::string>(clMessageBody_.GetFieldValue(*fieldDef)), '"') ||
                     !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                 {
                     return false;
                 }
                 break;
-            case FIELD_TYPE::ENUM: {
-                const auto* enumField = dynamic_cast<const EnumField*>(fieldDef.get());
-                if (enumField == nullptr || fieldDef->index + enumField->length > fixedRegionSize_) { return false; }
-
-                if (enumField->length == 1)
-                {
-                    const uint8_t value = *reinterpret_cast<const uint8_t*>(fixedRegion_ + fieldDef->index);
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, value)) ||
-                        !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
-                    {
-                        return false;
-                    }
-                }
-                else if (enumField->length == 2)
-                {
-                    const uint16_t value = *reinterpret_cast<const uint16_t*>(fixedRegion_ + fieldDef->index);
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, value)) ||
-                        !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
-                    {
-                        return false;
-                    }
-                }
-                else if (enumField->length == 4)
-                {
-                    const uint32_t value = *reinterpret_cast<const uint32_t*>(fixedRegion_ + fieldDef->index);
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, value)) ||
-                        !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
-                    {
-                        return false;
-                    }
-                }
-                else { return false; }
-                break;
-            }
-            case FIELD_TYPE::RESPONSE_ID: break; // Do nothing, ascii logs don't output this field
             case FIELD_TYPE::RESPONSE_STR:
-                if (!varRegion_) { return false; }
-                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string>(varRegion_->get()[fieldDef->index])) ||
+                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::get<std::string>(clMessageBody_.GetFieldValue(*fieldDef))) ||
                     !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
                 {
                     return false;
                 }
                 break;
-            case FIELD_TYPE::SIMPLE: {
-                if (fieldDef->index + fieldDef->dataType.length > fixedRegionSize_) { return false; }
-                const std::byte* const valuePtr = fixedRegion_ + fieldDef->index;
-                if (!FieldToAscii(fieldDef, valuePtr, ppcOutBuf_, uiBytesLeft_) || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
-                break;
-            }
-            default: return false;
+            default:
+                if (!EncodeFixedAsciiField<Abbreviated>(clMessageBody_, fieldDef, ppcOutBuf_, uiBytesLeft_)) { return false; }
             }
         }
         return true;
     }
 
-    template <bool Abbreviated>
-    [[nodiscard]] bool EncodeAsciiBody(const MessageBody& vIntermediateFormat_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
-                                       char** ppcOutBuf_, uint32_t& uiBytesLeft_, const uint32_t uiIndents_ = 1) const
+    template <typename T>
+    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const T& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
-        return EncodeAsciiBodyRegions<Abbreviated>(vIntermediateFormat_.GetFixedFields().data(), vIntermediateFormat_.GetFixedFields().size(),
-                                                   std::cref(vIntermediateFormat_.GetVarFields()), fieldDefinitions_, ppcOutBuf_, uiBytesLeft_, uiIndents_);
-    }
-
-    // Raw byte ASCII conversion for flat field arrays
-    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const std::byte* valuePtr_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
-    {
-        if (valuePtr_ == nullptr) { return false; }
-
-        switch (fd_->dataType.name)
-        {
-        case DATA_TYPE::BOOL: return FieldToAscii(fd_, *reinterpret_cast<const bool*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::HEXBYTE:
-        case DATA_TYPE::UCHAR: return FieldToAscii(fd_, *reinterpret_cast<const uint8_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::CHAR: return FieldToAscii(fd_, *reinterpret_cast<const int8_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::USHORT: return FieldToAscii(fd_, *reinterpret_cast<const uint16_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::SHORT: return FieldToAscii(fd_, *reinterpret_cast<const int16_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::UINT:
-        case DATA_TYPE::ULONG:
-        case DATA_TYPE::SATELLITEID: return FieldToAscii(fd_, *reinterpret_cast<const uint32_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::INT:
-        case DATA_TYPE::LONG: return FieldToAscii(fd_, *reinterpret_cast<const int32_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::ULONGLONG: return FieldToAscii(fd_, *reinterpret_cast<const uint64_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::LONGLONG: return FieldToAscii(fd_, *reinterpret_cast<const int64_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::FLOAT: return FieldToAscii(fd_, *reinterpret_cast<const float*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::DOUBLE: return FieldToAscii(fd_, *reinterpret_cast<const double*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        default: return false;
-        }
-    }
-
-    template <typename FieldType>
-    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const FieldType& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
-    {
-        if constexpr (std::is_same_v<std::decay_t<FieldType>, std::byte>) { return false; } // Flat arrays handled separately
-        else if constexpr (std::is_same_v<std::decay_t<FieldType>, MessageBody>) { return false; }
-        else
-        {
+        if constexpr (std::is_arithmetic_v<T>) {
             auto it = asciiFieldMap.find(fd_->conversionHash);
-            if (it != asciiFieldMap.end()) { return it->second(fd_, FieldValueVariant{val_}, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
+            if (it != asciiFieldMap.end()) { return it->second(fd_, FieldValueVariant(val_), ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
+
+            if (fd_->type == FIELD_TYPE::ENUM)
+            {
+                auto enumFieldPtr = std::dynamic_pointer_cast<const EnumField>(fd_);
+                if (!enumFieldPtr) return false;
+                return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumFieldPtr->enumDef, val_));
+            }
 
             switch (fd_->dataType.name)
             {
@@ -733,49 +605,91 @@ template <typename Derived> class EncoderBase
             case DATA_TYPE::LONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int64_t>(val_));
             case DATA_TYPE::FLOAT:
                 return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<float>(val_), FloatingPointFormat(*fd_, static_cast<float>(val_)),
-                                          fd_->precision);
+                                            fd_->precision);
             case DATA_TYPE::DOUBLE:
                 return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<double>(val_), FloatingPointFormat(*fd_, static_cast<double>(val_)),
-                                          fd_->precision);
+                                            fd_->precision);
             default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToAscii(): unknown type."); throw std::runtime_error("FieldToAscii(): unknown type.");
             }
         }
+        return false;
     }
 
-    [[nodiscard]] bool FieldToJson(const BaseField::ConstPtr& fd_, const std::byte* valuePtr_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    template <bool Abbreviated>
+    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const FieldValueVariant& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
-        if (valuePtr_ == nullptr) { return false; }
+        constexpr char separator = Abbreviated ? Derived::separatorAbbAscii : Derived::separatorAscii;
 
-        switch (fd_->dataType.name)
-        {
-        case DATA_TYPE::BOOL: return FieldToJson(fd_, *reinterpret_cast<const bool*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::HEXBYTE:
-        case DATA_TYPE::UCHAR: return FieldToJson(fd_, *reinterpret_cast<const uint8_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::CHAR: return FieldToJson(fd_, *reinterpret_cast<const int8_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::USHORT: return FieldToJson(fd_, *reinterpret_cast<const uint16_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::SHORT: return FieldToJson(fd_, *reinterpret_cast<const int16_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::UINT:
-        case DATA_TYPE::ULONG:
-        case DATA_TYPE::SATELLITEID: return FieldToJson(fd_, *reinterpret_cast<const uint32_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::INT:
-        case DATA_TYPE::LONG: return FieldToJson(fd_, *reinterpret_cast<const int32_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::ULONGLONG: return FieldToJson(fd_, *reinterpret_cast<const uint64_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::LONGLONG: return FieldToJson(fd_, *reinterpret_cast<const int64_t*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::FLOAT: return FieldToJson(fd_, *reinterpret_cast<const float*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        case DATA_TYPE::DOUBLE: return FieldToJson(fd_, *reinterpret_cast<const double*>(valuePtr_), ppcOutBuf_, uiBytesLeft_);
-        default: return false;
-        }
+        return std::visit([&](auto&& fieldValue) -> bool {
+            using ValueType = std::decay_t<decltype(fieldValue)>;
+            switch (fd_->type)
+            {
+            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+                if constexpr (is_specialization_of_v<ValueType, std::vector>)
+                {
+                    // Print the array size first
+                    if (!WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, fieldValue.size()) ||
+                        !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
+                    {
+                        return false;
+                    }
+                }
+                else { return false; }
+                [[fallthrough]];
+            case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+                if constexpr (is_specialization_of_v<ValueType, std::vector>)
+                {
+                    if (fd_->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"')) { return false; }
+
+                    for (const auto& element : fieldValue)
+                    {
+                        using ElemType = std::decay_t<decltype(element)>;
+                        if (fd_->isString)
+                        {
+                            if constexpr (std::is_same_v<ElemType, int8_t> || std::is_same_v<ElemType, uint8_t>)
+                            {
+                                if (element == '\0') { break; }
+                            }
+                        }
+
+                        if (!FieldToAscii(fd_, element, ppcOutBuf_, uiBytesLeft_) ||
+                            (fd_->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)))
+                        {
+                            return false;
+                        }
+                    }
+
+                    // Quoted elements need a trailing comma
+                    if (fd_->isString)
+                    {
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"') || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
+                    }
+                    // Non-quoted, non-internally-separated elements also need a trailing comma
+                    else if (!fd_->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
+                }
+                else { return false; }
+                break;
+            }
+            default:
+                if constexpr (is_specialization_of_v<ValueType, std::vector>) { return false; }
+                else { return FieldToAscii(fd_, fieldValue, ppcOutBuf_, uiBytesLeft_) && CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator); }
+            }
+            return true;
+        }, val_);
     }
 
-    template <typename FieldType>
-    [[nodiscard]] bool FieldToJson(const BaseField::ConstPtr& fd_, const FieldType& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    template <typename T>
+    [[nodiscard]] bool FieldToJson(const BaseField::ConstPtr& fd_, const T& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
-        if constexpr (std::is_same_v<std::decay_t<FieldType>, std::byte>) { return false; } // Flat arrays handled separately
-        else if constexpr (std::is_same_v<std::decay_t<FieldType>, MessageBody>) { return false; }
-        else
-        {
+        if constexpr (std::is_arithmetic_v<T>) {
             auto it = jsonFieldMap.find(fd_->conversionHash);
             if (it != jsonFieldMap.end()) { return it->second(fd_, FieldValueVariant{val_}, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
+
+            if (fd_->type == FIELD_TYPE::ENUM) {
+                auto enumFieldPtr = std::dynamic_pointer_cast<const EnumField>(fd_);
+                if (!enumFieldPtr) return false;
+                return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', GetEnumString(enumFieldPtr->enumDef, val_), "\"");
+            }
 
             switch (fd_->dataType.name)
             {
@@ -796,12 +710,123 @@ template <typename Derived> class EncoderBase
             default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToJson(): unknown type."); throw std::runtime_error("FieldToJson(): unknown type.");
             }
         }
+        return false;
     }
 
-    [[nodiscard]] bool EncodeJsonBodyRegions(const std::byte* fixedRegion_, size_t fixedRegionSize_,
-                                             std::optional<std::reference_wrapper<const std::vector<FieldValueVariant>>> varRegion_,
-                                             const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
-                                             char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool FieldToJson(const BaseField::ConstPtr& fd_, const FieldValueVariant& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    {
+        if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fd_->name), "\": ")) { return false; }
+
+        return std::visit([&](auto&& fieldValue) -> bool {
+            using ValueType = std::decay_t<decltype(fieldValue)>;
+            switch (fd_->type)
+            {
+            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
+            case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+                if constexpr (is_specialization_of_v<ValueType, std::vector>)
+                {
+                    if (fd_->isString)
+                    {
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"')) { return false; }
+                    }
+                    // This is an array of simple elements
+                    else if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '['))
+                    {
+                        return false;
+                    }
+
+                    bool wroteAny = false;
+                    // Numeric array
+                    for (const auto& elem : fieldValue)
+                    {
+                        using ElemType = std::decay_t<decltype(elem)>;
+                        // Skip null terminators for string data
+                        if (fd_->isString)
+                        {
+                            if constexpr (std::is_same_v<ElemType, int8_t> || std::is_same_v<ElemType, uint8_t>)
+                            {
+                                if (elem == '\0') { break; }
+                            }
+                        }
+
+                        if (!FieldToJson(fd_, elem, ppcOutBuf_, uiBytesLeft_) ||
+                            (!fd_->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')))
+                        {
+                            return false;
+                        }
+                        wroteAny = true;
+                    }
+
+                    // Quoted elements need a trailing comma
+                    if (fd_->isString)
+                    {
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\",")) { return false; }
+                    }
+                    // Non-quoted, non-internally-separated elements also need a trailing comma
+                    else
+                    {
+                        if (wroteAny) { *(*ppcOutBuf_ - 1) = ']'; }
+                        else if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ']')) { return false; }
+                        if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
+                    }
+                    break;
+                }
+                else { return false; }
+            }
+            default:
+                if constexpr (is_specialization_of_v<ValueType, std::vector>) { return false; }
+                else { return FieldToJson(fd_, fieldValue, ppcOutBuf_, uiBytesLeft_) && CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','); }
+            }
+            return true;
+        }, val_);
+    }
+
+    [[nodiscard]] bool EncodeFixedJsonField(const MessageBody& clMessageBody_, const BaseField::ConstPtr& fieldDefinition_,
+                                           char** ppcOutBuf_, uint32_t& uiBytesLeft_, const size_t elementCount_ = 0) const
+    {
+        switch (fieldDefinition_->type)
+        {
+        case FIELD_TYPE::FIELD_ARRAY: {
+            auto arrayFieldDef = std::dynamic_pointer_cast<const FieldArrayField>(fieldDefinition_);
+            if (!arrayFieldDef) return false;
+            for (size_t i = 0; i < elementCount_; i++)
+            {
+                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '{')) { return false; }
+                for (const auto& fieldDef : arrayFieldDef->fieldInfo.messageOrderedFields)
+                {
+                    if (!FieldToJson(fieldDef, clMessageBody_.GetValueFromFlatFieldArray(*fieldDef, *arrayFieldDef, i), ppcOutBuf_, uiBytesLeft_)) { return false; }
+                }
+                *(*ppcOutBuf_ - 1) = '}';
+                if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
+            }
+            break;
+        }
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+            if (!FieldToJson(fieldDefinition_, clMessageBody_.GetFieldValue(*fieldDefinition_), ppcOutBuf_, uiBytesLeft_)) { return false; }
+            break;
+        }
+        case FIELD_TYPE::RESPONSE_ID: {
+            const auto value = std::get<int32_t>(clMessageBody_.GetFieldValue(*fieldDefinition_));
+            if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDefinition_->name), R"(": )",
+                            value, ','))
+            {
+                return false;
+            }
+            break;
+        }
+        case FIELD_TYPE::ENUM: [[fallthrough]];
+        case FIELD_TYPE::SIMPLE: {
+            if (!FieldToJson(fieldDefinition_, clMessageBody_.GetFieldValue(*fieldDefinition_), ppcOutBuf_, uiBytesLeft_)) { return false; }
+            break;
+        }
+        default:
+            return false;
+        }
+        return true;
+    }
+
+    [[nodiscard]] bool EncodeJsonBody(const MessageBody& clMessageBody_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
+                                      char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
         if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '{')) { return false; }
 
@@ -811,17 +836,15 @@ template <typename Derived> class EncoderBase
             {
             case FIELD_TYPE::FIELD_ARRAY: {
                 const auto* arrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
-                if (!varRegion_ || fieldDef->index >= varRegion_->get().size() || arrayFieldDef == nullptr) { return false; }
-                const auto& varField = varRegion_->get()[fieldDef->index];
-                const auto* pFlatArray = std::get_if<std::vector<std::byte>>(&varField);
-                const auto* pElements = std::get_if<std::vector<MessageBody>>(&varField);
-                
+                if (arrayFieldDef == nullptr || fieldDef->index >= clMessageBody_.GetVarFields().size()) { return false; }
+
+                const auto& varField = clMessageBody_.GetVarFields()[fieldDef->index];
+                const auto* flat = std::get_if<std::vector<std::byte>>(&varField);
+                const auto* elements = flat ? nullptr : std::get_if<std::vector<MessageBody>>(&varField);
+
                 const size_t perElem = arrayFieldDef->fieldInfo.fixedFieldBytes;
-                if (pFlatArray && perElem == 0) { return false; }
-                size_t elementCount = 0;
-                if (pFlatArray) { elementCount = pFlatArray->size() / perElem; }
-                else if (pElements) { elementCount = pElements->size(); }
-                else { return false; }
+                if ((!flat && !elements) || (flat && perElem == 0)) { return false; }
+                size_t elementCount = flat ? flat->size() / perElem : elements->size();
 
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": [)")) { return false; }
                 if (elementCount == 0)
@@ -830,27 +853,20 @@ template <typename Derived> class EncoderBase
                 }
                 else
                 {
-                    for (size_t i = 0; i < elementCount; ++i)
+                    if (flat)
                     {
-                        if (pFlatArray)
+                        if (!EncodeFixedJsonField(clMessageBody_, fieldDef, ppcOutBuf_, uiBytesLeft_, elementCount)) { return false; }
+                    }
+                    else
+                    {
+                        for (size_t i = 0; i < elementCount; ++i)
                         {
-                            const auto* elementPtr = pFlatArray->data() + (i * perElem);
-                            if (!EncodeJsonBodyRegions(elementPtr, perElem, std::nullopt,
-                                                       arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_) ||
-                                !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
+                            const auto& element = (*elements)[i];
+                            if (!EncodeJsonBody(element, arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_))
                             {
                                 return false;
                             }
-                        }
-                        else
-                        {
-                            const auto& element = (*pElements)[i];
-                            if (!EncodeJsonBodyRegions(element.GetFixedFields().data(), element.GetFixedFields().size(), std::cref(element.GetVarFields()),
-                                                       arrayFieldDef->fieldInfo.messageOrderedFields, ppcOutBuf_, uiBytesLeft_) ||
-                                !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
-                            {
-                                return false;
-                            }
+                            if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
                         }
                     }
                     *(*ppcOutBuf_ - 1) = ']';
@@ -858,119 +874,14 @@ template <typename Derived> class EncoderBase
                 }
                 break;
             }
-            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-                if (!varRegion_) { return false; }
-                const bool encoded = std::visit(
-                    [&](auto&& arrayElements) -> bool {
-                        using ArrayType = std::decay_t<decltype(arrayElements)>;
-                        if constexpr (std::is_same_v<ArrayType, std::vector<std::byte>>)
-                        {
-                            return false; // Flat byte arrays should be handled as FIELD_ARRAY
-                        }
-                        else if constexpr (std::is_same_v<ArrayType, std::string>)
-                        {
-                            // For strings, output as quoted string not array
-                            return true;  // Special handling below
-                        }
-                        else if constexpr (std::is_same_v<ArrayType, std::vector<MessageBody>>)
-                        {
-                            return true;  // Should not reach here
-                        }
-                        else if constexpr (std::is_arithmetic_v<ArrayType>)
-                        {
-                            throw std::runtime_error("EncodeJsonBody(): scalar values are not valid array payloads");
-                        }
-                        else
-                        {
-                            if (fieldDef->isString)
-                            {
-                                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")")) { return false; }
-                            }
-                            // This is an array of simple elements
-                            else if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": [)") ||
-                                        (arrayElements.empty() && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ']')))
-                            {
-                                return false;
-                            }
-
-                            // Numeric array
-                            for (const auto& elem : arrayElements)
-                            {
-                                using ValueType = std::decay_t<decltype(elem)>;
-                                // Skip null terminators for string data
-                                if (fieldDef->isString && ((std::is_same_v<ValueType, int8_t> && elem == '\0') ||
-                                                           (std::is_same_v<ValueType, uint8_t> && elem == '\0')))
-                                    break;
-
-                                if (!FieldToJson(fieldDef, elem, ppcOutBuf_, uiBytesLeft_) ||
-                                    (!fieldDef->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')))
-                                {
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }
-                    },
-                    varRegion_->get()[fieldDef->index]);
-
-                if (!encoded) { return false; }
-
-                // Quoted elements need a trailing comma
-                if (fieldDef->isString)
-                {
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\",")) { return false; }
-                }
-                // Non-quoted, non-internally-separated elements also need a trailing comma
-                else
-                {
-                    *(*ppcOutBuf_ - 1) = ']';
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
-                }
-                break;
-            }
-            case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-                if (fieldDef->isString)
-                {
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")")) { return false; }
-                }
-                else if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": [)"))
+            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+                if (!FieldToJson(fieldDef, clMessageBody_.GetFieldValue(*fieldDef), ppcOutBuf_, uiBytesLeft_))
                 {
                     return false;
                 }
-
-                const auto arrayFieldDef = std::dynamic_pointer_cast<const ArrayField>(fieldDef);
-                const size_t elemByteSize = fieldDef->dataType.length;
-                const size_t baseIndex = fieldDef->index;
-                bool wroteAny = false;
-
-                for (size_t i = 0; i < arrayFieldDef->arrayLength; i++)
-                {
-                    const std::byte* const elementPtr = fixedRegion_ + baseIndex + (i * elemByteSize);
-
-                    if (fieldDef->isString && (*elementPtr == std::byte{0})) { break; }
-
-                    if (!FieldToJson(fieldDef, elementPtr, ppcOutBuf_, uiBytesLeft_)) { return false; }
-
-                    if (!fieldDef->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
-                    wroteAny = true;
-                }
-
-                if (fieldDef->isString)
-                {
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, "\",")) { return false; }
-                }
-                else
-                {
-                    if (wroteAny) { *(*ppcOutBuf_ - 1) = ']'; }
-                    else if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ']')) { return false; }
-
-                    if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
-                }
                 break;
-            }
             case FIELD_TYPE::STRING: {
-                if (!varRegion_) { return false; }
-                const auto& str = std::get<std::string>(varRegion_->get()[fieldDef->index]);
+                const auto& str = std::get<std::string>(clMessageBody_.GetFieldValue(*fieldDef));
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")",
                                      str, "\","))
                 {
@@ -978,79 +889,21 @@ template <typename Derived> class EncoderBase
                 }
                 break;
             }
-            case FIELD_TYPE::ENUM: {
-                const auto* enumField = dynamic_cast<const EnumField*>(fieldDef.get());
-                if (enumField == nullptr || fieldDef->index + enumField->length > fixedRegionSize_) { return false; }
-
-                switch (enumField->length)
-                {
-                case 1: {
-                    const uint8_t value = *reinterpret_cast<const uint8_t*>(fixedRegion_ + fieldDef->index);
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")",
-                                         GetEnumString(enumField->enumDef, value), "\","))
-                        return false;
-                    break;
-                }
-                case 2: {
-                    const uint16_t value = *reinterpret_cast<const uint16_t*>(fixedRegion_ + fieldDef->index);
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")",
-                                         GetEnumString(enumField->enumDef, value), "\","))
-                        return false;
-                    break;
-                }
-                case 4: {
-                    const uint32_t value = *reinterpret_cast<const uint32_t*>(fixedRegion_ + fieldDef->index);
-                    if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")",
-                                         GetEnumString(enumField->enumDef, value), "\","))
-                        return false;
-                    break;
-                }
-                default: return false;
-                }
-                break;
-            }
-            case FIELD_TYPE::RESPONSE_ID: {
-                const int32_t value = *reinterpret_cast<const int32_t*>(fixedRegion_ + fieldDef->index);
-                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": )",
-                             value, ','))
-                {
-                    return false;
-                }
-                break;
-            }
             case FIELD_TYPE::RESPONSE_STR: {
-                if (!varRegion_) { return false; }
-                const auto& str = std::get<std::string>(varRegion_->get()[fieldDef->index]);
+                const auto& str = std::get<std::string>(clMessageBody_.GetFieldValue(*fieldDef));
                 if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), R"(": ")", str, "\","))
                 {
                     return false;
                 }
                 break;
             }
-            case FIELD_TYPE::SIMPLE: {
-                if (fieldDef->index + fieldDef->dataType.length > fixedRegionSize_) { return false; }
-                const std::byte* const valuePtr = fixedRegion_ + fieldDef->index;
-                if (!CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', std::string_view(fieldDef->name), "\": ") ||
-                    !FieldToJson(fieldDef, valuePtr, ppcOutBuf_, uiBytesLeft_) ||
-                    !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ','))
-                {
-                    return false;
-                }
-                break;
-            }
-            default: return false;
+            default:
+                if (!EncodeFixedJsonField(clMessageBody_, fieldDef, ppcOutBuf_, uiBytesLeft_)) { return false; }
             }
         }
 
         *(*ppcOutBuf_ - 1) = '}';
         return true;
-    }
-
-    [[nodiscard]] bool EncodeJsonBody(const MessageBody& stInterMessage_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
-                                      char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
-    {
-        return EncodeJsonBodyRegions(stInterMessage_.GetFixedFields().data(), stInterMessage_.GetFixedFields().size(),
-                                     std::cref(stInterMessage_.GetVarFields()), fieldDefinitions_, ppcOutBuf_, uiBytesLeft_);
     }
 
   public:
