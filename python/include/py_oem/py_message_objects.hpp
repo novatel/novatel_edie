@@ -225,15 +225,13 @@ struct PyEncodableField : public py_common::PyField
 
   public:
     PyHeader header;
-    const MessageDefinition* messageDef;
-    uint32_t messageCrc;
 
     // Return the message name from the stored message definition.
     // Falls back to "UNKNOWN" if no message definition is availiable
     std::string name() const
     {
-        if (!messageDef) { return std::string("UNKNOWN"); }
-        return messageDef->name;
+        if (!fields.definition) { return std::string("UNKNOWN"); }
+        return fields.definition->name;
     }
 
     explicit PyEncodableField(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_,
@@ -272,7 +270,7 @@ struct PyMessage : public PyEncodableField
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header);
 
-nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>&& message_fields, oem::MetaDataStruct& metadata,
+nb::object create_message_instance(PyHeader& header, MessageBody&& message_fields, oem::MetaDataStruct& metadata,
                                    py_common::PyMessageDatabase::ConstPtr database);
 
 //============================================================================
@@ -285,9 +283,8 @@ nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>
 struct PyResponse : public PyEncodableField
 {
     bool complete;
-    explicit PyResponse(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_,
-                        const MessageDefinition* messageDef_, uint32_t messageCrc_)
-        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_), complete(complete_) {};
+    explicit PyResponse(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_)
+        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_)), complete(complete_) {};
 
     // Retrieve response ID from first field of response
     int32_t GetResponseId() { return std::get<int>(fieldsPtr[0].fieldValue); }

@@ -16,7 +16,7 @@ using namespace novatel::edie::py_common;
 
 nb::object py_oem::PyDecoder::DecodeMessage(const nb::bytes raw_body, py_oem::PyHeader& header, oem::MetaDataStruct& metadata) const
 {
-    std::vector<FieldContainer> fields;
+    MessageBody fields;
     STATUS status;
 
     if (rx_config_handler.IsRxConfigTypeMsg(header.usMessageId))
@@ -116,7 +116,7 @@ void py_oem::init_novatel_decoder(nb::module_& m)
             [](const py_oem::PyDecoder& decoder, const nb::bytes raw_message) {
                 oem::MetaDataStruct metadata;
                 metadata.uiLength = static_cast<uint32_t>(raw_message.size());
-                std::vector<FieldContainer> fields;
+                MessageBody fields;
                 py_oem::PyHeader header;
                 const unsigned char* message_pointer = reinterpret_cast<const unsigned char*>(raw_message.c_str());
                 STATUS status = decoder.header_decoder.Decode(message_pointer, header, metadata);

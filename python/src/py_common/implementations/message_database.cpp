@@ -217,7 +217,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumType(const std::str
     }
 }
 
-static py_common::FieldNameMap BuildFieldNameMapFromDefs(const std::vector<BaseField::Ptr>& fields)
+static py_common::FieldNameMap BuildFieldNameMapFromDefs(const std::vector<BaseField::ConstPtr>& fields)
 {
     py_common::FieldNameMap map;
     for (size_t i = 0; i < fields.size(); i++)
@@ -250,7 +250,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AddFieldType(std::vector<std:
     {
         if (field->type == FIELD_TYPE::FIELD_ARRAY)
         {
-            auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
+            auto* field_array_field = dynamic_cast<const FieldArrayField*>(field.get());
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
             nb::object field_type = type_constructor(field_name);
             field_types[field.get()] = field_type;
@@ -295,7 +295,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessageTypes(const std:
         RemoveMessageType(message_def->logID);
         messages_types[message_def.get()] = std::map<uint32_t, nb::object>{};
 
-        for (const auto& [crc, message_fields] : message_def->fields)
+        for (const auto& [crc, field_info] : message_def->fieldInfo)
         {
             std::ostringstream ss;
             ss << message_def->name << "_" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << crc;
@@ -328,10 +328,10 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessageType(uint32_t me
     message_field_name_maps_.erase(message_def.get());
 
     // remove all field types associated with this message from field_types
-    for (const auto& [crc, fields] : message_def->fields) { RemoveFieldTypes(fields); }
+    for (const auto& [crc, field_info] : message_def->fieldInfo) { RemoveFieldTypes(field_info.messageOrderedFields); }
 }
 
-void py_common::PyMessageDatabase::RemoveFieldTypes(const std::vector<BaseField::Ptr>& fieldDefs)
+void py_common::PyMessageDatabase::RemoveFieldTypes(const std::vector<BaseField::ConstPtr>& fieldDefs)
 {
     for (const auto& fieldDef : fieldDefs)
     {
@@ -344,8 +344,8 @@ void py_common::PyMessageDatabase::RemoveFieldTypes(const std::vector<BaseField:
         field_name_maps_.erase(fieldDef.get());
         if (fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
         {
-            auto* fieldArrayFieldDef = dynamic_cast<FieldArrayField*>(fieldDef.get());
-            RemoveFieldTypes(fieldArrayFieldDef->fields);
+            auto* fieldArrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDef.get());
+            RemoveFieldTypes(fieldArrayFieldDef->fieldInfo.messageOrderedFields);
         }
     }
 }
