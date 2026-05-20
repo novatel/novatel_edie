@@ -47,6 +47,18 @@
 
 namespace novatel::edie {
 
+template <typename T, template <typename...> class Template> struct is_specialization_of : std::false_type
+{
+};
+
+template <template <typename...> class Template, typename... Args>
+struct is_specialization_of<Template<Args...>, Template> : std::true_type
+{
+};
+
+template <typename T, template <typename...> class Template>
+inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
+
 
 class MessageBody;
 
@@ -140,43 +152,30 @@ public:
     const std::vector<std::byte>& GetFixedFields() const { return fixedFields; }
 
     // ---------------------------------------------------------------------------
-    //! \brief Get a field value from a flat field array (std::vector<std::byte>).
+    //! \brief Get a field value from flat field-array storage.
     //!
     //! \param[in] fieldDef_ The definition of the field to retrieve.
-    //! \param[in] fieldArrayDef_ The definition of the field array containing the target field.
-    //! \param[in] index The index of the element within the field array to retrieve
+    //! \param[in] flatFieldArray_ The flat field-array bytes.
+    //! \param[in] index_ The element index within the field array.
+    //! \param[in] fixedFieldBytes_ The byte size of one field-array element.
     //! \return The value of the specified field as a FieldValueVariant.
     // ---------------------------------------------------------------------------
-    FieldValueVariant GetValueFromFlatFieldArray(const BaseField& fieldDef, const FieldArrayField& fieldArrayDef, size_t index) const
+    static FieldValueVariant GetValueFromFlatFieldArray(const BaseField& fieldDef_, const std::vector<std::byte>& flatFieldArray_, size_t index_,
+                                                        size_t fixedFieldBytes_)
     {
-        // Get the flat field array data
-        if (fieldArrayDef.index >= varFields.size())
-        {
-            throw std::runtime_error("GetValueFromFlatFieldArray(): field array index out of range");
-        }
-
-        const auto* flatArray = std::get_if<std::vector<std::byte>>(&varFields[fieldArrayDef.index]);
-        if (flatArray == nullptr)
-        {
-            throw std::runtime_error("GetValueFromFlatFieldArray(): field is not a flat field array");
-        }
-
-        const size_t elementSize = fieldArrayDef.fieldInfo.fixedFieldBytes;
-        if (elementSize == 0)
+        if (fixedFieldBytes_ == 0)
         {
             throw std::runtime_error("GetValueFromFlatFieldArray(): invalid element size");
         }
 
-        const size_t elementOffset = index * elementSize;
-        if (elementOffset + fieldDef.dataType.length > flatArray->size())
+        const size_t elementOffset = index_ * fixedFieldBytes_;
+        if (elementOffset + fieldDef_.dataType.length > flatFieldArray_.size())
         {
             throw std::runtime_error("GetValueFromFlatFieldArray(): element index out of range");
         }
 
-        // Extract the field value from the flat array at the specified element and field offset
-        const size_t byteOffset = elementOffset + fieldDef.index;
-
-        return DecodeFieldValue(fieldDef, flatArray->data() + byteOffset);
+        const size_t byteOffset = elementOffset + fieldDef_.index;
+        return DecodeFieldValue(fieldDef_, flatFieldArray_.data() + byteOffset);
     }
 
     // ---------------------------------------------------------------------------
@@ -491,6 +490,47 @@ public:
                 },
                 varFields[field_.index]);
         default: return field_.dataType.length;
+        }
+    }
+
+    size_t GetFieldSize(const BaseField& field_) const
+    {
+        switch (field_.type)
+        {
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+            const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
+            if (arrayField == nullptr) { throw std::runtime_error("GetFieldByteSize(): missing fixed array metadata"); }
+            return static_cast<size_t>(arrayField->arrayLength);
+        }
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::STRING: [[fallthrough]];
+        case FIELD_TYPE::RESPONSE_STR:
+            if (field_.index >= varFields.size()) { throw std::runtime_error("GetFieldByteSize(): var field index out of range"); }
+
+            return std::visit(
+                [&field_](const auto& value) -> size_t {
+                    using T = std::decay_t<decltype(value)>;
+                    if constexpr (std::is_same_v<T, std::vector<std::byte>>)
+                    {
+                        const auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(&field_);
+                        if (fieldArrayField == nullptr || fieldArrayField->fieldInfo.fixedFieldBytes == 0)
+                        {
+                            throw std::runtime_error("GetFieldSize(): missing field array metadata");
+                        }
+                        return value.size() / fieldArrayField->fieldInfo.fixedFieldBytes;
+                    }
+                    else if constexpr (std::is_same_v<T, std::string> || is_specialization_of_v<T, std::vector>)
+                    {
+                        return value.size();
+                    }
+                    else
+                    {
+                        throw std::runtime_error("GetFieldSize(): scalar values are not valid var field payloads");
+                    }
+                },
+                varFields[field_.index]);
+        default: return 1;
         }
     }
 
