@@ -18,7 +18,7 @@ using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
 nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_,
-                                          std::vector<FieldContainer>&& message_fields_, oem::MetaDataStruct& metadata_,
+                                          MessageBody&& message_fields_, oem::MetaDataStruct& metadata_,
                                           py_common::PyMessageDatabase::ConstPtr database_)
 {
     header_.format = metadata_.eFormat;
@@ -37,7 +37,7 @@ nb::object py_oem::PyParser::PyRead(bool decode_incomplete)
     static oem::MetaDataStruct metadata;
     static MessageDataStruct message_data;
     py_oem::PyHeader header;
-    std::vector<FieldContainer> message_fields;
+    MessageBody message_fields;
 
     STATUS status = ReadIntermediate(message_data, header, message_fields, metadata, decode_incomplete);
     return HandlePythonReadStatus(status, message_data, header, std::move(message_fields), metadata, pclPyMessageDb);
@@ -61,7 +61,7 @@ nb::object py_oem::PyParser::PyConvert(ENCODE_FORMAT fmt, bool decode_incomplete
     static oem::MetaDataStruct metadata;
     static MessageDataStruct message_data;
     static py_oem::PyHeader header;
-    static std::vector<FieldContainer> message_fields;
+    static MessageBody message_fields;
 
     SetEncodeFormat(fmt);
 

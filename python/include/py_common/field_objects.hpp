@@ -28,8 +28,7 @@ class PyFieldArray;
 //! \class PyField
 //! \brief A python representation for a single message or message field.
 //!
-//! Contains a vector of FieldContainer objects, which behave like attributes
-//! within the Python API.
+//! Contains a MessageBody object and exposes its fields like Python attributes.
 //============================================================================
 struct PyField
 {
@@ -137,7 +136,7 @@ struct PyField
     nb::object getattr(nb::str field_name) const;
 
   protected:
-    nb::object convert_field(FieldContainer& field) const;
+    nb::object convert_field(const BaseField& field) const;
     nb::object resolve_entry(const FieldLookupEntry& entry) const;
 
     // Reference to the backing field vector. Only valid when this field owns its
@@ -183,15 +182,15 @@ struct PyField
 
 template <typename Fn> void PyField::for_each_entry(Fn&& visitor) const
 {
-    for (size_t i = 0; i < fieldCount; i++)
+    const auto& orderedFields = GetOrderedFields();
+    for (size_t i = 0; i < orderedFields.size(); i++)
     {
-        const auto& def = fieldsPtr[i].fieldDef;
+        const auto& def = orderedFields[i];
         if (def->type == FIELD_TYPE::FIELD_ARRAY || def->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
         {
-            auto& arr = std::get<std::vector<FieldContainer>>(fieldsPtr[i].fieldValue);
-            visitor(def->name + "_length", nb::cast(arr.size()));
+            visitor(def->name + "_length", resolve_entry(FieldLookupEntry{i, true}));
         }
-        visitor(def->name, convert_field(fieldsPtr[i]));
+        visitor(def->name, convert_field(*def));
     }
 }
 

@@ -1,6 +1,6 @@
 #include "py_common/field_objects.hpp"
 
-#include <cassert>
+#include <algorithm>
 #include <type_traits>
 #include <variant>
 
@@ -109,12 +109,25 @@ PYCOMMON_EXPORT nb::object PyField::py_new(nb::handle cls, nb::kwargs kwargs)
 
 PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
 {
-    FieldContainer& field = fieldsPtr[entry.index];
+    const auto& orderedFields = GetOrderedFields();
+    if (entry.index >= orderedFields.size()) { throw std::runtime_error("PyField::resolve_entry(): field lookup index out of range"); }
+
+    const auto& field = *orderedFields[entry.index];
     if (entry.is_length)
     {
-        auto& arr = std::get<std::vector<FieldContainer>>(field.fieldValue);
-        return nb::cast(arr.size());
+        if (IsFlatElement())
+        {
+            const auto* arrayDef = dynamic_cast<const ArrayField*>(&field); // array elements in flat field arrays must be fixed-length arrays
+            if (arrayDef == nullptr)
+            {
+                throw std::runtime_error("PyField::resolve_entry(): invalid fixed array metadata");
+            }
+            return nb::cast(static_cast<size_t>(arrayDef->arrayLength));
+        }
+
+        return GetMessageBody()->GetFieldSize(field);
     }
+
     return convert_field(field);
 }
 
@@ -135,26 +148,26 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
         nb::object enum_type = parentDb->GetEnumType(enumField->enumDef.get());
         if (enum_type.is_none())
         {
-            throw std::runtime_error("Enum definition for " + field.fieldDef->name + " field with ID '" + enumField->enumId +
-                                     "' not found in the JSON database");
+            throw std::runtime_error("Enum definition for " + field.name + " field with ID '" + enumField->enumId + "' not found in the JSON database");
         }
+
         return std::visit(
-            [&](auto&& value) {
+            [&](auto&& value) -> nb::object {
                 using T = std::decay_t<decltype(value)>;
                 if constexpr (std::is_integral_v<T>)
                 {
                     const uint32_t key = static_cast<uint32_t>(value);
                     if (enumDef->valueName.count(key) > 0) { return enum_type(key); }
-                    else { return enum_type(enumDef->unknownValue); }
                 }
-                else { return enum_type(enumDef->unknownValue); }
+                return enum_type(enumDef->unknownValue);
             },
-            field.fieldValue);
+            fieldValue);
     }
-    else if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue))
+
+    if (field.conversion == "%s")
     {
-        auto& message_field = std::get<std::vector<FieldContainer>>(field.fieldValue);
-        if (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
+        if (const auto* stringValue = std::get_if<std::string>(&fieldValue)) { return nb::cast(*stringValue); }
+        if (const auto* bytes = std::get_if<std::vector<uint8_t>>(&fieldValue))
         {
             // Handle Field Arrays — find the index of this field for caching
             size_t fieldIdx = static_cast<size_t>(&field - fieldsPtr);
@@ -194,37 +207,33 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
             return nb::cast(sub_values);
         }
     }
-    else if (field.fieldDef->conversion == "%id")
+
+    if (field.conversion == "%id")
     {
-        // Handle Satellite IDs
-        const uint32_t temp_id = std::get<uint32_t>(field.fieldValue);
+        const uint32_t temp_id = std::get<uint32_t>(fieldValue);
         SatelliteId sat_id;
         sat_id.usPrnOrSlot = temp_id & 0x0000FFFF;
         sat_id.sFrequencyChannel = (temp_id & 0xFFFF0000) >> 16;
         return nb::cast(sat_id);
     }
-    else
-    {
-        // Handle most types by simply extracting the value from the variant and casting
-        return std::visit([](auto&& value) { return nb::cast(value); }, field.fieldValue);
-    }
+
+    return std::visit(
+        [](auto&& value) -> nb::object {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, std::vector<std::byte>>)
+            {
+                throw std::runtime_error("PyField::convert_field(): raw byte arrays should be handled through the PyFieldArray interface");
+            }
+            else { return nb::cast(value); }
+        },
+        fieldValue);
 }
 
 PYCOMMON_EXPORT nb::dict& PyField::to_shallow_dict() const
 {
     if (cached_values_.size() == 0)
     {
-        for (size_t i = 0; i < fieldCount; i++)
-        {
-            FieldContainer& field = fieldsPtr[i];
-            if (std::holds_alternative<std::vector<FieldContainer>>(field.fieldValue) &&
-                (field.fieldDef->type == FIELD_TYPE::FIELD_ARRAY || field.fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY))
-            {
-                std::vector<FieldContainer> field_array = std::get<std::vector<FieldContainer>>(field.fieldValue);
-                cached_values_[nb::cast(field.fieldDef->name + "_length")] = field_array.size();
-            }
-            cached_values_[nb::cast(field.fieldDef->name)] = convert_field(field);
-        }
+        for_each_entry([&](const std::string& name, nb::object value) { cached_values_[nb::cast(name)] = std::move(value); });
     }
     return cached_values_;
 }
@@ -284,6 +293,7 @@ PYCOMMON_EXPORT nb::dict PyField::to_dict() const
 
 PYCOMMON_EXPORT nb::object PyField::getattr(nb::str field_name) const
 {
+    if (fieldNameMap_ == nullptr) { throw nb::attribute_error(field_name.c_str()); }
     auto it = fieldNameMap_->find(field_name.c_str());
     if (it == fieldNameMap_->end()) { throw nb::attribute_error(field_name.c_str()); }
     return resolve_entry(it->second);
@@ -334,7 +344,7 @@ PYCOMMON_EXPORT nb::object PyFieldArray::getitem(ssize_t signedIndex) const
     nb::handle field_ptype = parentDb->GetFieldType(fieldDef.get());
     nb::object pyinst = nb::inst_alloc(field_ptype);
     PyField* cinst = nb::inst_ptr<PyField>(pyinst);
-    new (cinst) PyField(subfields, fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
+    new (cinst) PyField(data, index, fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
     nb::inst_mark_ready(pyinst);
 
     cache[index] = nb::weakref(pyinst);
