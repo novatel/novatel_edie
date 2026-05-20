@@ -26,7 +26,7 @@ class PyFileParser : public oem::FileParser
     }
 
   public:
-    PyFileParser(const std::filesystem::path& filepath_) : PyFileParser(filepath_, py_oem::MessageDbSingleton::get()) {};
+    PyFileParser(const std::filesystem::path& filepath_) : PyFileParser(filepath_, py_oem::MessageDbSingleton::get()){};
 
     PyFileParser(const std::filesystem::path& filepath_, const py_common::PyMessageDatabase::Ptr& message_db_pointer)
         : FileParser(message_db_pointer->core()), pclPyMessageDb(message_db_pointer)

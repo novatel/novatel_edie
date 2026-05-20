@@ -284,7 +284,7 @@ struct PyResponse : public PyEncodableField
 {
     bool complete;
     explicit PyResponse(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_)
-        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_)), complete(complete_) {};
+        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_)), complete(complete_){};
 
     // Retrieve response ID from first field of response
     int32_t GetResponseId() { return std::get<int>(fieldsPtr[0].fieldValue); }

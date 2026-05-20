@@ -44,11 +44,11 @@ void MessageDecoder::InitOemFieldMaps()
     // ASCII Field Mapping
     // =========================================================
     asciiFieldMap[CalculateBlockCrc32("c")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         // TODO: check that the character is printable
         // if (!isprint(**ppcToken_)) { throw ... }
-        const uint32_t value = static_cast<uint32_t>(**ppcToken_);
+        const auto value = static_cast<uint32_t>(static_cast<unsigned char>(**ppcToken_));
         if (fixed_) { vIntermediateFormat_.SetFieldElement<true>(pstMessageDataType_->index, elementIndex_, value); }
         else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, value); }
     };
@@ -56,35 +56,35 @@ void MessageDecoder::InitOemFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("lk")] = SimpleAsciiMapEntry<double>();
 
     asciiFieldMap[CalculateBlockCrc32("ucb")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                   const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                   const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                   const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                   const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         const uint32_t value = static_cast<uint32_t>(std::bitset<8>(*ppcToken_).to_ulong());
         if (fixed_) { vIntermediateFormat_.SetFieldElement<true>(pstMessageDataType_->index, elementIndex_, value); }
         else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, value); }
     };
 
     asciiFieldMap[CalculateBlockCrc32("T")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         double value;
         std::from_chars_result result = std::from_chars(*ppcToken_, *ppcToken_ + tokenLength_, value);
         if (result.ec != std::errc()) { throw std::runtime_error("Failed to parse double value"); }
-        const uint32_t converted = static_cast<uint32_t>(std::llround(value * SEC_TO_MILLI_SEC));
+        const auto converted = static_cast<uint32_t>(std::llround(value * SEC_TO_MILLI_SEC));
         if (fixed_) { vIntermediateFormat_.SetFieldElement<true>(pstMessageDataType_->index, elementIndex_, converted); }
         else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, converted); }
     };
 
     asciiFieldMap[CalculateBlockCrc32("m")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         const uint32_t value = pclMsgDb_.MsgNameToMsgId(std::string(*ppcToken_, tokenLength_));
         if (fixed_) { vIntermediateFormat_.SetFieldElement<true>(pstMessageDataType_->index, elementIndex_, value); }
         else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, value); }
     };
 
     asciiFieldMap[CalculateBlockCrc32("id")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                  const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         const auto* pcDelimiter = static_cast<const char*>(memchr(*ppcToken_, '+', tokenLength_));
         if (pcDelimiter == nullptr) { pcDelimiter = static_cast<const char*>(memchr(*ppcToken_, '-', tokenLength_)); }
 
@@ -110,8 +110,8 @@ void MessageDecoder::InitOemFieldMaps()
     };
 
     asciiFieldMap[CalculateBlockCrc32("R")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         // RXCONFIG in ASCII is always #COMMANDNAMEA
         MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(std::string_view(*ppcToken_ + 1, tokenLength_ - 2)); // + 1 to Skip the '#'
         const uint32_t value = pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, 0, 1, 0) : 0;
@@ -127,8 +127,8 @@ void MessageDecoder::InitOemFieldMaps()
     jsonFieldMap[CalculateBlockCrc32("lk")] = SimpleJsonMapEntry<double>();
 
     jsonFieldMap[CalculateBlockCrc32("ucb")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                   simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
-                                                   [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                  simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
+                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         std::string_view sValue;
         if (clJsonField_.get(sValue) != simdjson::SUCCESS)
         {
@@ -140,8 +140,8 @@ void MessageDecoder::InitOemFieldMaps()
     };
 
     jsonFieldMap[CalculateBlockCrc32("m")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
-                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
+                                                [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         std::string_view sValue;
         if (clJsonField_.get(sValue) != simdjson::SUCCESS)
         {
@@ -153,8 +153,8 @@ void MessageDecoder::InitOemFieldMaps()
     };
 
     jsonFieldMap[CalculateBlockCrc32("T")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
-                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
+                                                [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         double dValue;
         if (clJsonField_.get(dValue) != simdjson::SUCCESS)
         {
@@ -166,8 +166,8 @@ void MessageDecoder::InitOemFieldMaps()
     };
 
     jsonFieldMap[CalculateBlockCrc32("id")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                  simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
-                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
+                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         std::string_view sTemp;
         if (clJsonField_.get(sTemp) != simdjson::SUCCESS)
         {
@@ -211,13 +211,13 @@ void MessageDecoder::InitOemFieldMaps()
         }
 
         const uint32_t uiSatId = (usSlot | (sFreq << 16));
-    if (fixed_) { vIntermediateFormat_.SetFieldElement<true>(pstMessageDataType_->index, elementIndex_, uiSatId); }
-    else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, uiSatId); }
+        if (fixed_) { vIntermediateFormat_.SetFieldElement<true>(pstMessageDataType_->index, elementIndex_, uiSatId); }
+        else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, uiSatId); }
     };
 
     jsonFieldMap[CalculateBlockCrc32("R")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
-                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
+                                                [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         std::string_view sValue;
         if (clJsonField_.get(sValue) != simdjson::SUCCESS)
         {

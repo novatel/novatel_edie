@@ -164,8 +164,9 @@ class Encoder : public EncoderBase<Encoder>
     //!   UNSUPPORTED: eEncodeFormat_ contains a format that is not supported for
     //! encoding.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const MessageBody& stMessage_, const std::vector<BaseField::ConstPtr>& fieldDefinitions,
-                                    MessageDataStruct& stMessageData_, HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const;
+    [[nodiscard]] STATUS EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const MessageBody& stMessage_,
+                                    const std::vector<BaseField::ConstPtr>& fieldDefinitions, MessageDataStruct& stMessageData_,
+                                    HEADER_FORMAT eHeaderFormat_, ENCODE_FORMAT eFormat_) const;
 
     friend class EncoderBase<Encoder>;
 };

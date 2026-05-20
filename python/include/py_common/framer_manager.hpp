@@ -9,7 +9,7 @@ namespace novatel::edie {
 class PyFramerManager : public FramerManager
 {
   public:
-    PyFramerManager(const std::vector<std::string> selectedFramers) : FramerManager(selectedFramers) {};
+    PyFramerManager(const std::vector<std::string> selectedFramers) : FramerManager(selectedFramers){};
 
     bool GetReportUnknownBytes() { return bMyReportUnknownBytes; }
 

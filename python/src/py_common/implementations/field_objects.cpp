@@ -118,10 +118,7 @@ PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry)
         if (IsFlatElement())
         {
             const auto* arrayDef = dynamic_cast<const ArrayField*>(&field); // array elements in flat field arrays must be fixed-length arrays
-            if (arrayDef == nullptr)
-            {
-                throw std::runtime_error("PyField::resolve_entry(): invalid fixed array metadata");
-            }
+            if (arrayDef == nullptr) { throw std::runtime_error("PyField::resolve_entry(): invalid fixed array metadata"); }
             return nb::cast(static_cast<size_t>(arrayDef->arrayLength));
         }
 
@@ -148,7 +145,8 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
         nb::object enum_type = parentDb->GetEnumType(enumField->enumDef.get());
         if (enum_type.is_none())
         {
-            throw std::runtime_error("Enum definition for " + field.name + " field with ID '" + enumField->enumId + "' not found in the JSON database");
+            throw std::runtime_error("Enum definition for " + field.name + " field with ID '" + enumField->enumId +
+                                     "' not found in the JSON database");
         }
 
         return std::visit(
