@@ -245,18 +245,6 @@ template <typename T> struct HexValue
     uint32_t width;
 };
 
-template <typename T, template <typename...> class Template> struct is_specialization_of : std::false_type
-{
-};
-
-template <template <typename...> class Template, typename... Args>
-struct is_specialization_of<Template<Args...>, Template> : std::true_type
-{
-};
-
-template <typename T, template <typename...> class Template>
-inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
-
 // -------------------------------------------------------------------------------------------------------
 template <typename BufferType, typename... Args> [[nodiscard]] bool CopyAllToBuffer(BufferType* buffer_, uint32_t& uiBytesLeft_, Args&&... args_)
 {
@@ -494,7 +482,13 @@ template <typename Derived> class EncoderBase
                 }
                 for (const auto& fieldDef : arrayFieldDef->fieldInfo.messageOrderedFields)
                 {
-                    if (!FieldToAscii<Abbreviated>(fieldDef, clMessageBody_.GetValueFromFlatFieldArray(*fieldDef, *arrayFieldDef, i), ppcOutBuf_, uiBytesLeft_)) { return false; }
+                    if (!FieldToAscii<Abbreviated>(fieldDef,
+                                                   MessageBody::GetValueFromFlatFieldArray(*fieldDef, std::get<std::vector<std::byte>>(clMessageBody_.GetFieldValue(*fieldDefinition_)), i,
+                                                                                           arrayFieldDef->fieldInfo.fixedFieldBytes),
+                                                   ppcOutBuf_, uiBytesLeft_))
+                    {
+                        return false;
+                    }
                 }
             }
             break;
@@ -853,7 +847,13 @@ template <typename Derived> class EncoderBase
                 if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '{')) { return false; }
                 for (const auto& fieldDef : arrayFieldDef->fieldInfo.messageOrderedFields)
                 {
-                    if (!FieldToJson(fieldDef, clMessageBody_.GetValueFromFlatFieldArray(*fieldDef, *arrayFieldDef, i), ppcOutBuf_, uiBytesLeft_)) { return false; }
+                    if (!FieldToJson(fieldDef,
+                                     MessageBody::GetValueFromFlatFieldArray(*fieldDef, std::get<std::vector<std::byte>>(clMessageBody_.GetFieldValue(*fieldDefinition_)), i,
+                                                                             arrayFieldDef->fieldInfo.fixedFieldBytes),
+                                     ppcOutBuf_, uiBytesLeft_))
+                    {
+                        return false;
+                    }
                 }
                 *(*ppcOutBuf_ - 1) = '}';
                 if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, ',')) { return false; }
