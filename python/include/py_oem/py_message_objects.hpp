@@ -112,21 +112,17 @@ struct PyEncodableField : public py_common::PyField
 
   public:
     PyHeader header;
-    const MessageDefinition* messageDef;
-    uint32_t messageCrc;
 
     // Return the message name from the stored message definition.
     // Falls back to "UNKNOWN" if no message definition is availiable
     std::string name() const
     {
-        if (!messageDef) { return std::string("UNKNOWN"); }
-        return messageDef->name;
+        if (!fields.definition) { return std::string("UNKNOWN"); }
+        return fields.definition->name;
     }
 
-    explicit PyEncodableField(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_,
-                              const MessageDefinition* messageDef_, uint32_t messageCrc_)
-        : PyField(std::move(fields_), messageDef_, messageCrc_, std::move(database_)), header(std::move(header_)), messageDef(messageDef_),
-          messageCrc(messageCrc_) {};
+        explicit PyEncodableField(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_)
+            : PyField(std::move(fields_), std::move(database_)), header(std::move(header_)) {};
 
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
     py_common::PyMessageData to_ascii();
@@ -142,14 +138,13 @@ struct PyEncodableField : public py_common::PyField
 //============================================================================
 struct PyMessage : public PyEncodableField
 {
-    explicit PyMessage(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
-                       const MessageDefinition* messageDef_, uint32_t messageCrc_)
-        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_) {};
+    explicit PyMessage(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_)
+        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_)) {};
 };
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header);
 
-nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>&& message_fields, oem::MetaDataStruct& metadata,
+nb::object create_message_instance(PyHeader& header, MessageBody&& message_fields, oem::MetaDataStruct& metadata,
                                    py_common::PyMessageDatabase::ConstPtr database);
 
 //============================================================================
@@ -162,15 +157,24 @@ nb::object create_message_instance(PyHeader& header, std::vector<FieldContainer>
 struct PyResponse : public PyEncodableField
 {
     bool complete;
-    explicit PyResponse(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_,
-                        const MessageDefinition* messageDef_, uint32_t messageCrc_)
-        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_), complete(complete_) {};
+    explicit PyResponse(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_)
+        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_)), complete(complete_) {};
 
     // Retrieve response ID from first field of response
-    int32_t GetResponseId() { return std::get<int>(fields[0].fieldValue); }
+    int32_t GetResponseId()
+    {
+        if (!fields.definition) { return 0; }
+        const auto& defs = fields.definition->GetMsgDefFromCrc(fields.crc).messageOrderedFields;
+        return defs.empty() ? 0 : std::get<int32_t>(fields.GetFieldValue(*defs.at(0)));
+    }
 
     // Retrieve response string from second field of response
-    std::string GetResponseString() const { return std::get<std::string>(fields[1].fieldValue); }
+    std::string GetResponseString() const
+    {
+        if (!fields.definition) { return std::string(); }
+        const auto& defs = fields.definition->GetMsgDefFromCrc(fields.crc).messageOrderedFields;
+        return defs.size() < 2 ? std::string() : std::get<std::string>(fields.GetFieldValue(*defs.at(1)));
+    }
 
     nb::object GetEnumValue()
     {

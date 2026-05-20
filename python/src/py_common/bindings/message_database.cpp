@@ -138,13 +138,15 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(nb::init())
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_rw("field_size", &FieldArrayField::fieldSize)
-        .def_rw("fields", &FieldArrayField::fields, nb::rv_policy::reference_internal)
+        .def_prop_ro("fields",
+                     [](const FieldArrayField& field) { return nb::cast(field.fieldInfo.messageOrderedFields); },
+                     nb::rv_policy::reference_internal)
         .def("__repr__", [](const FieldArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             return nb::str("FieldArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r}, field_size={!r}, "
                            "fields={!r})")
                 .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.arrayLength, field.fieldSize,
-                        field.fields);
+                        nb::cast(field.fieldInfo.messageOrderedFields));
         });
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")
@@ -156,7 +158,7 @@ void py_common::init_common_message_database(nb::module_& m)
         .def_prop_ro("fields",
                      [](MessageDefinition& self) {
                          nb::dict py_map;
-                         for (const auto& [id, value] : self.fields) { py_map[nb::cast(id)] = nb::cast(value); }
+                         for (const auto& [id, value] : self.fieldInfo) { py_map[nb::cast(id)] = nb::cast(value.messageOrderedFields); }
                          return py_map;
                      })
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)

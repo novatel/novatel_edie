@@ -133,31 +133,31 @@ class PyMessageDatabase
 
     [[nodiscard]] const MessageFamilyRegistration* GetMessageFamilyRegistration() const { return message_family_registration_; }
 
-    void bindFieldsToModule(nanobind::module_& m_, const std::vector<BaseField::Ptr>& fields_)
+    void bindFieldsToModule(nanobind::module_& m_, const std::vector<BaseField::ConstPtr>& fields_)
     {
         for (const auto& field : fields_)
         {
             if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
-                auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
+                auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(field.get());
                 nb::handle fieldType = field_types.at(fieldArrayField);
                 m_.attr(fieldType.attr("__name__")) = fieldType;
-                bindFieldsToModule(m_, fieldArrayField->fields);
+                bindFieldsToModule(m_, fieldArrayField->fieldInfo.messageOrderedFields);
             }
         }
     }
 
-    void addFieldAliasToModule(nanobind::module_& m_, const std::vector<BaseField::Ptr>& fields_, const std::string& parentAlias_)
+    void addFieldAliasToModule(nanobind::module_& m_, const std::vector<BaseField::ConstPtr>& fields_, const std::string& parentAlias_)
     {
         for (const auto& field : fields_)
         {
             if (field->type == FIELD_TYPE::FIELD_ARRAY)
             {
-                auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
+                auto* fieldArrayField = dynamic_cast<const FieldArrayField*>(field.get());
                 nb::handle fieldType = field_types[fieldArrayField];
                 std::string alias = parentAlias_ + "_" + fieldArrayField->name;
                 m_.attr(alias.c_str()) = fieldType;
-                addFieldAliasToModule(m_, fieldArrayField->fields, alias);
+                addFieldAliasToModule(m_, fieldArrayField->fieldInfo.messageOrderedFields, alias);
             }
         }
     }
@@ -170,9 +170,9 @@ class PyMessageDatabase
             {
                 std::string name = nb::cast<nb::str>(message_type.attr("__name__")).c_str();
                 messageMod_.attr(message_type.attr("__name__")) = message_type;
-                bindFieldsToModule(messageMod_, message_def->fields.at(crc));
+                bindFieldsToModule(messageMod_, message_def->fieldInfo.at(crc).messageOrderedFields);
             }
-            const std::vector<BaseField::Ptr>& latestDef = message_def->fields.at(message_def->latestMessageCrc);
+            const std::vector<BaseField::ConstPtr>& latestDef = message_def->fieldInfo.at(message_def->latestMessageCrc).messageOrderedFields;
             messageMod_.attr(message_def->name.c_str()) = message_version_defs.at(message_def->latestMessageCrc);
             addFieldAliasToModule(messageMod_, latestDef, message_def->name);
         }
@@ -196,11 +196,11 @@ class PyMessageDatabase
     //-----------------------------------------------------------------------
     void AppendMessageTypes(const std::vector<MessageDefinition::ConstPtr>& message_defs);
     void RemoveMessageType(uint32_t message_id);
-    void RemoveFieldTypes(const std::vector<BaseField::Ptr>& fieldDefs);
+    void RemoveFieldTypes(const std::vector<BaseField::ConstPtr>& fieldDefs);
 
     void UpdatePythonEnums();
     void UpdatePythonMessageTypes();
-    void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message, nb::handle type_cons,
+    void AddFieldType(std::vector<BaseField::ConstPtr> fields, std::string base_name, std::string parent_message, nb::handle type_cons,
                       nb::handle type_tuple, nb::handle type_dict);
 
     const MessageFamilyRegistration* message_family_registration_ = nullptr;
