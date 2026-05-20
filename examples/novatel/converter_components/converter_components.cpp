@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
                     // Decode the Log, pass the metadata and populate the intermediate log.
                     MessageBody stMessage;
                     eDecoderStatus = clMessageDecoder.Decode(pucFrameBuffer, stMessage, stMetaData);
-                    
+
                     if (eDecoderStatus == STATUS::SUCCESS)
                     {
                         MessageDataStruct stMessageData;

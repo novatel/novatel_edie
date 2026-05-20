@@ -82,8 +82,8 @@ void MessageDecoderBase::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("lg")] = SimpleAsciiMapEntry<double>();
 
     asciiFieldMap[CalculateBlockCrc32("e")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 4:
@@ -101,8 +101,8 @@ void MessageDecoderBase::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("f")] = asciiFieldMap[CalculateBlockCrc32("e")];
 
     asciiFieldMap[CalculateBlockCrc32("d")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         constexpr uint32_t nTrue = 4; // "TRUE"
         if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
         {
@@ -118,8 +118,8 @@ void MessageDecoderBase::InitFieldMaps()
     };
 
     asciiFieldMap[CalculateBlockCrc32("u")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1:
@@ -127,15 +127,24 @@ void MessageDecoderBase::InitFieldMaps()
             else { ParseAndEmplace<false, uint8_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 2:
-            if (fixed_) { ParseAndEmplace<true, uint16_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_)
+            {
+                ParseAndEmplace<true, uint16_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_);
+            }
             else { ParseAndEmplace<false, uint16_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 4:
-            if (fixed_) { ParseAndEmplace<true, uint32_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_)
+            {
+                ParseAndEmplace<true, uint32_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_);
+            }
             else { ParseAndEmplace<false, uint32_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 8:
-            if (fixed_) { ParseAndEmplace<true, uint64_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_)
+            {
+                ParseAndEmplace<true, uint64_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_);
+            }
             else { ParseAndEmplace<false, uint64_t>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         default: throw std::runtime_error("invalid unsigned length");
@@ -143,24 +152,36 @@ void MessageDecoderBase::InitFieldMaps()
     };
 
     asciiFieldMap[CalculateBlockCrc32("x")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         switch (pstMessageDataType_->dataType.length)
         {
         case 1:
-            if (fixed_) { ParseAndEmplace<true, uint8_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_)
+            {
+                ParseAndEmplace<true, uint8_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_);
+            }
             else { ParseAndEmplace<false, uint8_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 2:
-            if (fixed_) { ParseAndEmplace<true, uint16_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_)
+            {
+                ParseAndEmplace<true, uint16_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_);
+            }
             else { ParseAndEmplace<false, uint16_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 4:
-            if (fixed_) { ParseAndEmplace<true, uint32_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_)
+            {
+                ParseAndEmplace<true, uint32_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_);
+            }
             else { ParseAndEmplace<false, uint32_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 8:
-            if (fixed_) { ParseAndEmplace<true, uint64_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_)
+            {
+                ParseAndEmplace<true, uint64_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_);
+            }
             else { ParseAndEmplace<false, uint64_t, 16>(vIntermediateFormat_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
             return;
             ;
@@ -171,17 +192,17 @@ void MessageDecoderBase::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("X")] = asciiFieldMap[CalculateBlockCrc32("x")];
 
     asciiFieldMap[CalculateBlockCrc32("c")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                 const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        const int8_t value = static_cast<int8_t>(**ppcToken_);
+                                                 const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                 const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        const auto value = static_cast<int8_t>(**ppcToken_);
         if (fixed_) { vIntermediateFormat_.SetFieldElement<true>(pstMessageDataType_->index, elementIndex_, value); }
         else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, value); }
     };
 
     asciiFieldMap[CalculateBlockCrc32("uc")] = [](MessageBody& vIntermediateFormat_, const BaseField::ConstPtr& pstMessageDataType_,
-                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-                                                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        const uint8_t value = static_cast<uint8_t>(**ppcToken_);
+                                                  const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
+                                                  const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        const auto value = static_cast<uint8_t>(static_cast<unsigned char>(**ppcToken_));
         if (fixed_) { vIntermediateFormat_.SetFieldElement<true>(pstMessageDataType_->index, elementIndex_, value); }
         else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, value); }
     };
@@ -265,43 +286,29 @@ void MessageDecoderBase::DecodeBinaryField(const BaseField::ConstPtr& pstMessage
 {
     switch (pstMessageDataType_->dataType.name)
     {
-    case DATA_TYPE::BOOL:
-        vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const bool*>(*ppucLogBuf_), n);
-        break;
+    case DATA_TYPE::BOOL: vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const bool*>(*ppucLogBuf_), n); break;
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR:
-        vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint8_t*>(*ppucLogBuf_), n);
-        break;
-    case DATA_TYPE::CHAR:
-        vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int8_t*>(*ppucLogBuf_), n);
-        break;
+    case DATA_TYPE::UCHAR: vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint8_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::CHAR: vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int8_t*>(*ppucLogBuf_), n); break;
     case DATA_TYPE::USHORT:
         vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint16_t*>(*ppucLogBuf_), n);
         break;
-    case DATA_TYPE::SHORT:
-        vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int16_t*>(*ppucLogBuf_), n);
-        break;
+    case DATA_TYPE::SHORT: vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int16_t*>(*ppucLogBuf_), n); break;
     case DATA_TYPE::UINT: [[fallthrough]];
     case DATA_TYPE::SATELLITEID: [[fallthrough]];
     case DATA_TYPE::ULONG:
         vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint32_t*>(*ppucLogBuf_), n);
         break;
     case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG:
-        vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int32_t*>(*ppucLogBuf_), n);
-        break;
+    case DATA_TYPE::LONG: vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int32_t*>(*ppucLogBuf_), n); break;
     case DATA_TYPE::ULONGLONG:
         vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint64_t*>(*ppucLogBuf_), n);
         break;
     case DATA_TYPE::LONGLONG:
         vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int64_t*>(*ppucLogBuf_), n);
         break;
-    case DATA_TYPE::FLOAT:
-        vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const float*>(*ppucLogBuf_), n);
-        break;
-    case DATA_TYPE::DOUBLE:
-        vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const double*>(*ppucLogBuf_), n);
-        break;
+    case DATA_TYPE::FLOAT: vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const float*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::DOUBLE: vIntermediateFormat_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const double*>(*ppucLogBuf_), n); break;
     default: throw std::runtime_error("DecodeBinaryField(): Unknown field type\n");
     }
 
@@ -314,13 +321,13 @@ void MessageDecoderBase::DecodeAsciiField(const BaseField::ConstPtr& pstMessageD
 {
     const auto it = asciiFieldMap.find(pstMessageDataType_->conversionHash);
     if (it == asciiFieldMap.end()) { throw std::runtime_error("DecodeAsciiField(): Unknown field type\n"); }
-    it->second(vIntermediateFormat_, std::move(pstMessageDataType_), ppcToken_, tokenLength_, elementIndex_, fixed_, *pclMyMsgDb);
+    it->second(vIntermediateFormat_, pstMessageDataType_, ppcToken_, tokenLength_, elementIndex_, fixed_, *pclMyMsgDb);
 }
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_,
-                                 MessageBody& vIntermediateFormat_, const uint32_t uiMessageLength_) const
+MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, MessageBody& vIntermediateFormat_,
+                                 const uint32_t uiMessageLength_) const
 {
     const unsigned char* pucTempStart = *ppucLogBuf_;
 
@@ -361,8 +368,8 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            const uint32_t uiArraySize =
-                GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), vIntermediateFormat_, vMsgDefFields_.fieldNameToDef);
+            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), vIntermediateFormat_,
+                                                        vMsgDefFields_.fieldNameToDef);
             DecodeBinaryField<false>(field, ppucLogBuf_, vIntermediateFormat_, uiArraySize);
             break;
         }
@@ -376,7 +383,8 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             const auto* subFieldDefinitions = dynamic_cast<const FieldArrayField*>(field.get());
-            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, vIntermediateFormat_, vMsgDefFields_.fieldNameToDef);
+            const uint32_t uiArraySize =
+                GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, vIntermediateFormat_, vMsgDefFields_.fieldNameToDef);
 
             if (subFieldDefinitions->fieldInfo.varFieldCount == 0)
             {
@@ -394,7 +402,8 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
                     AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
-                    vFieldArrayContainer[i] = MessageBody(subFieldDefinitions->fieldInfo.fixedFieldBytes, subFieldDefinitions->fieldInfo.varFieldCount);
+                    vFieldArrayContainer[i] =
+                        MessageBody(subFieldDefinitions->fieldInfo.fixedFieldBytes, subFieldDefinitions->fieldInfo.varFieldCount);
                     STATUS eStatus = DecodeBinary(subFieldDefinitions->fieldInfo, ppucLogBuf_, vFieldArrayContainer[i],
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
@@ -414,8 +423,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 
 // -------------------------------------------------------------------------------------------------------
 // Decode an ASCII array formatted with the %Z conversion string
-static STATUS DecodeZConversionStringAsciiArray(std::vector<uint8_t>& vDecodedValues_, const char** ppcLogBuf_,
-                                                uint32_t uiArraySize_)
+static STATUS DecodeZConversionStringAsciiArray(std::vector<uint8_t>& vDecodedValues_, const char** ppcLogBuf_, uint32_t uiArraySize_)
 {
     vDecodedValues_.resize(uiArraySize_);
     for (uint32_t i = 0; i < uiArraySize_; ++i)
@@ -430,8 +438,7 @@ static STATUS DecodeZConversionStringAsciiArray(std::vector<uint8_t>& vDecodedVa
 }
 
 // Decode an ASCII array field that is not comma separated, e.g. a raw ASCII value or hex representation
-template <typename CharType>
-static STATUS DecodeNonCommaSeparatedAsciiArrayField(CharType& cValue_, const char** ppcLogBuf_)
+template <typename CharType> static STATUS DecodeNonCommaSeparatedAsciiArrayField(CharType& cValue_, const char** ppcLogBuf_)
 {
     // Escaped '\' character
     if (strncmp("\\\\", *ppcLogBuf_, 2) == 0)
@@ -500,8 +507,8 @@ static STATUS DecodeStringAsciiArray(std::string& sDecodedValue_, const char** p
 }
 
 template <bool Abbreviated>
-STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const char** ppcLogBuf_,
-                                       MessageBody& vIntermediateFormat_, const char* pcBufEnd) const
+STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const char** ppcLogBuf_, MessageBody& vIntermediateFormat_,
+                                       const char* pcBufEnd) const
 {
     constexpr char fieldDelim = Abbreviated ? ' ' : ',';
     constexpr char endDelim = Abbreviated ? '\r' : '*';
@@ -580,7 +587,10 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             std::string_view sResponse(*ppcLogBuf_, tokenLength);
             if (sResponse == "OK") { vIntermediateFormat_.SetField<true>(field->index, 1); }
             // Note: This won't match responses with format specifiers in them (%d, %s, etc.), they will be given id=0
-            else { vIntermediateFormat_.SetField<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length()))); }
+            else
+            {
+                vIntermediateFormat_.SetField<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length())));
+            }
             // Do not advance buffer, need to reprocess this field for the following RESPONSE_STR.
             bEarlyEndOfMessage = false;
             break;
@@ -625,15 +635,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 {
                     if (fixed)
                     {
-                        if (uiArraySize > 0)
-                        {
-                            vIntermediateFormat_.SetField<true>(field->index, vDecodedValues.data(), uiArraySize);
-                        }
+                        if (uiArraySize > 0) { vIntermediateFormat_.SetField<true>(field->index, vDecodedValues.data(), uiArraySize); }
                     }
-                    else
-                    {
-                        vIntermediateFormat_.SetField<false>(field->index, std::move(vDecodedValues));
-                    }
+                    else { vIntermediateFormat_.SetField<false>(field->index, std::move(vDecodedValues)); }
                 }
                 *ppcLogBuf_ += 1;
             }
@@ -648,8 +652,9 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             }
             else if (!field->isCsv)
             {
-                eStatus = field->dataType.name == DATA_TYPE::CHAR ? DecodeNonCommaSeparatedAsciiArray<int8_t>(vIntermediateFormat_, ppcLogBuf_, field, uiArraySize, fixed)
-                                                  : DecodeNonCommaSeparatedAsciiArray<uint8_t>(vIntermediateFormat_, ppcLogBuf_, field, uiArraySize, fixed);
+                eStatus = field->dataType.name == DATA_TYPE::CHAR
+                              ? DecodeNonCommaSeparatedAsciiArray<int8_t>(vIntermediateFormat_, ppcLogBuf_, field, uiArraySize, fixed)
+                              : DecodeNonCommaSeparatedAsciiArray<uint8_t>(vIntermediateFormat_, ppcLogBuf_, field, uiArraySize, fixed);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 *ppcLogBuf_ += 1;
             }
@@ -720,8 +725,7 @@ template STATUS MessageDecoderBase::DecodeAscii<true>(const FieldInfo&, const ch
 template STATUS MessageDecoderBase::DecodeAscii<false>(const FieldInfo&, const char**, MessageBody&, const char*) const;
 
 // -------------------------------------------------------------------------------------------------------
-STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_,
-                                      simdjson::dom::element jsonData, MessageBody& vIntermediateFormat_) const
+STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, MessageBody& vIntermediateFormat_) const
 {
     for (const auto& field : vMsgDefFields_.messageOrderedFields)
     {
@@ -765,7 +769,11 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_,
             if (clField.get(sResponse) == simdjson::SUCCESS)
             {
                 if (sResponse == "OK") { vIntermediateFormat_.SetField<true>(field->index, 1); }
-                else { vIntermediateFormat_.SetField<true>(field->index, GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length()))); }
+                else
+                {
+                    vIntermediateFormat_.SetField<true>(field->index,
+                                                        GetResponseId(vMyResponseDefinitions, sResponse.substr(svErrorPrefix.length())));
+                }
             }
             break;
         }
@@ -785,19 +793,13 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_,
                     {
                         if (strValue.size() > uiArraySize) { return STATUS::MALFORMED_INPUT; }
                         std::vector<uint8_t> vDecodedValues(uiArraySize, 0);
-                        for (size_t i = 0; i < strValue.size(); ++i)
-                        {
-                            vDecodedValues[i] = static_cast<uint8_t>(strValue[i]);
-                        }
+                        for (size_t i = 0; i < strValue.size(); ++i) { vDecodedValues[i] = static_cast<uint8_t>(strValue[i]); }
                         if (!vDecodedValues.empty())
                         {
                             vIntermediateFormat_.SetField<true>(field->index, vDecodedValues.data(), vDecodedValues.size());
                         }
                     }
-                    else
-                    {
-                        vIntermediateFormat_.SetField<false>(field->index, std::string(strValue));
-                    }
+                    else { vIntermediateFormat_.SetField<false>(field->index, std::string(strValue)); }
                 }
             }
             else
@@ -913,7 +915,7 @@ void MessageDecoderBase::DecodeJsonField(const BaseField::ConstPtr& pstMessageDa
 {
     const auto it = jsonFieldMap.find(pstMessageDataType_->conversionHash);
     if (it == jsonFieldMap.end()) { throw std::runtime_error("DecodeJsonField(): Unknown field type\n"); }
-    it->second(vIntermediateFormat_, std::move(pstMessageDataType_), clJsonField_, elementIndex_, fixed_, *pclMyMsgDb);
+    it->second(vIntermediateFormat_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_, *pclMyMsgDb);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -952,9 +954,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, MessageBody& stInte
         SPDLOG_LOGGER_INFO(pclMyLogger, "RXCONFIG payload must be decoded via RxConfigHandler, not MessageDecoder.");
         return STATUS::UNSUPPORTED;
     }
-    const FieldInfo& msgFieldInfo =
-        stMetaData_.bResponse ? pclMsgDef->fieldInfo.at(0) : pclMsgDef->GetMsgDefFromCrc(stMetaData_.uiMessageCrc);
-
+    const FieldInfo& msgFieldInfo = stMetaData_.bResponse ? pclMsgDef->fieldInfo.at(0) : pclMsgDef->GetMsgDefFromCrc(stMetaData_.uiMessageCrc);
 
     stInterMessage_ = MessageBody(msgFieldInfo.fixedFieldBytes, msgFieldInfo.varFieldCount);
     stInterMessage_.SetDefinition(pclMsgDef, stMetaData_.bResponse ? std::nullopt : std::optional<uint32_t>(stMetaData_.uiMessageCrc));

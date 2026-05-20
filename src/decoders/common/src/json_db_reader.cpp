@@ -160,7 +160,8 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_)
 
     auto alignFixed = [&](size_t typeLength) {
         const size_t alignment = std::min(typeLength, size_t{4});
-        if (alignment > 1) {
+        if (alignment > 1)
+        {
             const size_t misalign = vFields_.fixedFieldBytes % alignment;
             if (misalign != 0) { vFields_.fixedFieldBytes += alignment - misalign; }
         }
@@ -209,7 +210,8 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_)
             vFields_.fieldNameToDef[pstField->name] = pstField;
             if (sFieldType != "FIXED_LENGTH_ARRAY") { vFields_.varFieldCount++; }
         }
-        else if (sFieldType == "FIELD_ARRAY") {
+        else if (sFieldType == "FIELD_ARRAY")
+        {
             auto pstField = std::make_shared<FieldArrayField>(field);
             vFields_.messageOrderedFields.push_back(pstField);
             pstField->index = vFields_.varFieldCount;

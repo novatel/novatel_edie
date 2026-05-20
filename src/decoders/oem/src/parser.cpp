@@ -94,8 +94,8 @@ MessageDatabase::ConstPtr Parser::MessageDb() const { return std::const_pointer_
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& stHeader_, MessageBody& stMessage_,
-                         MetaDataStruct& stMetaData_, bool bDecodeIncompleteAbbreviated_)
+Parser::ReadIntermediate(MessageDataStruct& stMessageData_, IntermediateHeader& stHeader_, MessageBody& stMessage_, MetaDataStruct& stMetaData_,
+                         bool bDecodeIncompleteAbbreviated_)
 {
     while (true)
     {
