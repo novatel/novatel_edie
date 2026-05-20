@@ -17,9 +17,8 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
-nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_,
-                                          MessageBody&& message_fields_, oem::MetaDataStruct& metadata_,
-                                          py_common::PyMessageDatabase::ConstPtr database_)
+nb::object py_oem::HandlePythonReadStatus(STATUS status_, MessageDataStruct& message_data_, py_oem::PyHeader& header_, MessageBody&& message_fields_,
+                                          oem::MetaDataStruct& metadata_, py_common::PyMessageDatabase::ConstPtr database_)
 {
     header_.format = metadata_.eFormat;
     switch (status_)

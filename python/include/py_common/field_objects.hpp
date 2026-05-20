@@ -26,7 +26,8 @@ struct PyField
 {
     //! Construct the root message object that owns the decoded MessageBody.
     explicit PyField(MessageBody message_, py_common::PyMessageDatabase::ConstPtr parentDb_)
-        : fields(std::move(message_)), msgDef(fields.GetDefinition().get()), msgCrc(fields.GetDefinitionCrc().value_or(0)), parentDb(std::move(parentDb_))
+        : fields(std::move(message_)), msgDef(fields.GetDefinition().get()), msgCrc(fields.GetDefinitionCrc().value_or(0)),
+          parentDb(std::move(parentDb_))
     {
         fieldNameMap_ = msgDef ? parentDb->GetMessageFieldNameMap(msgDef, msgCrc) : nullptr;
         cachedArrays_.resize(GetOrderedFields().size());
@@ -35,8 +36,8 @@ struct PyField
     //! Construct a field-array element view that references parent field-array storage.
     explicit PyField(const FieldValueVariant* parentData_, size_t parentIndex_, const ::novatel::edie::BaseField* fieldDef_,
                      py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parentField_)
-        : parentData(parentData_), parentIndex(parentIndex_), parentFieldArrayDef(dynamic_cast<const FieldArrayField*>(fieldDef_)), fieldDef(fieldDef_),
-          parentDb(std::move(parentDb_)), parent(std::move(parentField_))
+        : parentData(parentData_), parentIndex(parentIndex_), parentFieldArrayDef(dynamic_cast<const FieldArrayField*>(fieldDef_)),
+          fieldDef(fieldDef_), parentDb(std::move(parentDb_)), parent(std::move(parentField_))
     {
         fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(fieldDef_) : nullptr;
         cachedArrays_.resize(GetOrderedFields().size());
@@ -135,7 +136,7 @@ struct PyFieldArray
 {
     explicit PyFieldArray(const FieldValueVariant* data_, const ::novatel::edie::BaseField* fieldDef_,
                           py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parent_)
-        : data(data_), fieldDef(dynamic_cast<const FieldArrayField*>(fieldDef_)), parentDb(std::move(parentDb_)), parent(std::move(parent_)) {};
+        : data(data_), fieldDef(dynamic_cast<const FieldArrayField*>(fieldDef_)), parentDb(std::move(parentDb_)), parent(std::move(parent_)){};
 
     nb::object getitem(ssize_t index) const;
     size_t len() const;

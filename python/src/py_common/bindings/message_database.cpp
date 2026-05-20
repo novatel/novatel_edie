@@ -138,9 +138,8 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(nb::init())
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_rw("field_size", &FieldArrayField::fieldSize)
-        .def_prop_ro("fields",
-                     [](const FieldArrayField& field) { return nb::cast(field.fieldInfo.messageOrderedFields); },
-                     nb::rv_policy::reference_internal)
+        .def_prop_ro(
+            "fields", [](const FieldArrayField& field) { return nb::cast(field.fieldInfo.messageOrderedFields); }, nb::rv_policy::reference_internal)
         .def("__repr__", [](const FieldArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             return nb::str("FieldArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r}, field_size={!r}, "
@@ -170,10 +169,9 @@ void py_common::init_common_message_database(nb::module_& m)
 
     nb::class_<py_common::PyMessageDatabase>(m, "MessageDatabase")
         .def(nb::new_([]() { return std::make_shared<py_common::PyMessageDatabase>(); }))
-        .def(nb::new_(
-                 [](std::filesystem::path& file_path) {
-                     return std::make_shared<py_common::PyMessageDatabase>(std::move(*LoadJsonDbFile(file_path)));
-                 }),
+        .def(nb::new_([](std::filesystem::path& file_path) {
+                 return std::make_shared<py_common::PyMessageDatabase>(std::move(*LoadJsonDbFile(file_path)));
+             }),
              "file_path"_a)
         .def_static(
             "from_string",

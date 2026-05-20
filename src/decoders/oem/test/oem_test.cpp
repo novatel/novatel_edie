@@ -4277,6 +4277,7 @@ class NovatelTypesTest : public ::testing::Test
     {
       public:
         EncoderTester(MessageDatabase::Ptr pclMessageDb_) : Encoder(pclMessageDb_) {}
+        ~EncoderTester() override = default;
 
         bool TestEncodeBinaryBody(const MessageBody& stInterMessage_, const std::vector<BaseField::Ptr>& msgDefFields_, unsigned char** ppcOutBuf_, uint32_t uiBytes)
         {

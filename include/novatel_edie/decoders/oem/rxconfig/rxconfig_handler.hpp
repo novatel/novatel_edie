@@ -123,8 +123,8 @@ class RxConfigHandler
     //! encoding.
     //----------------------------------------------------------------------------
     [[nodiscard]] STATUS Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
-                                const MessageBody& stMessage_, MessageDataStruct& stMessageData_,
-                                MessageDataStruct& stEmbeddedMessageData_, MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
+                                const MessageBody& stMessage_, MessageDataStruct& stMessageData_, MessageDataStruct& stEmbeddedMessageData_,
+                                MetaDataStruct& stEmbeddedMetaData_, ENCODE_FORMAT eFormat_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encodes an RXCONFIG message into Binary format.
@@ -304,8 +304,7 @@ class RxConfigHandler
     //!    NO_DEFINITION: The message ID was not found in the database.
     //!    UNSUPPORTED: The message ID is not for an RXCONFIG type message.
     //----------------------------------------------------------------------------
-    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, MessageBody& stInterMessage_,
-                                MetaDataStruct& stRxConfigMetaData_) const;
+    [[nodiscard]] STATUS Decode(const unsigned char* pucMessage_, MessageBody& stInterMessage_, MetaDataStruct& stRxConfigMetaData_) const;
 
     //----------------------------------------------------------------------------
     //! \brief Encode an RXConfig message from the provided intermediate structures.

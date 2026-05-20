@@ -18,10 +18,7 @@ using namespace novatel::edie::py_common;
 
 PYCOMMON_EXPORT const std::vector<BaseField::ConstPtr>& PyField::GetOrderedFields() const
 {
-    if (msgDef != nullptr)
-    {
-        return msgDef->GetMsgDefFromCrc(msgCrc).messageOrderedFields;
-    }
+    if (msgDef != nullptr) { return msgDef->GetMsgDefFromCrc(msgCrc).messageOrderedFields; }
 
     if (fieldDef != nullptr && fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
     {
@@ -45,10 +42,7 @@ PYCOMMON_EXPORT const MessageBody* PyField::GetMessageBody() const
     return &(*elements)[parentIndex];
 }
 
-PYCOMMON_EXPORT bool PyField::IsFlatElement() const
-{
-    return parentData != nullptr && std::holds_alternative<std::vector<std::byte>>(*parentData);
-}
+PYCOMMON_EXPORT bool PyField::IsFlatElement() const { return parentData != nullptr && std::holds_alternative<std::vector<std::byte>>(*parentData); }
 
 PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
 {
@@ -61,10 +55,7 @@ PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry)
         if (IsFlatElement())
         {
             const auto* arrayDef = dynamic_cast<const ArrayField*>(&field); // array elements in flat field arrays must be fixed-length arrays
-            if (arrayDef == nullptr)
-            {
-                throw std::runtime_error("PyField::resolve_entry(): invalid fixed array metadata");
-            }
+            if (arrayDef == nullptr) { throw std::runtime_error("PyField::resolve_entry(): invalid fixed array metadata"); }
             return nb::cast(static_cast<size_t>(arrayDef->arrayLength));
         }
 
@@ -79,8 +70,8 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
     if (field.type == FIELD_TYPE::FIELD_ARRAY)
     {
         const auto& orderedFields = GetOrderedFields();
-        const auto it = std::find_if(orderedFields.begin(), orderedFields.end(),
-                                     [&field](const BaseField::ConstPtr& f) { return f.get() == &field; });
+        const auto it =
+            std::find_if(orderedFields.begin(), orderedFields.end(), [&field](const BaseField::ConstPtr& f) { return f.get() == &field; });
         if (it == orderedFields.end()) { throw std::runtime_error("PyField::convert_field(): field lookup failed"); }
         const size_t fieldIdx = static_cast<size_t>(std::distance(orderedFields.begin(), it));
 
@@ -95,10 +86,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
 
         const MessageBody* messageBody = GetMessageBody();
         const auto& varFields = messageBody->GetVarFields();
-        if (field.index >= varFields.size())
-        {
-            throw std::runtime_error("PyField::convert_field(): field array index out of range");
-        }
+        if (field.index >= varFields.size()) { throw std::runtime_error("PyField::convert_field(): field array index out of range"); }
 
         nb::object pyArr = nb::cast(PyFieldArray(&varFields[field.index], &field, parentDb, nb::cast(this, nb::rv_policy::none)));
         cachedArrays_[fieldIdx] = nb::weakref(pyArr);
@@ -127,7 +115,8 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
         nb::object enum_type = parentDb->GetEnumType(enumField->enumDef.get());
         if (enum_type.is_none())
         {
-            throw std::runtime_error("Enum definition for " + field.name + " field with ID '" + enumField->enumId + "' not found in the JSON database");
+            throw std::runtime_error("Enum definition for " + field.name + " field with ID '" + enumField->enumId +
+                                     "' not found in the JSON database");
         }
 
         return std::visit(

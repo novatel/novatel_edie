@@ -48,7 +48,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
         STATUS TestDecodeBinary(const FieldInfo& FieldInfo_, const unsigned char** ppucLogBuf_, MessageBody& vIntermediateFormat_)
         {
-            return DecodeBinary(FieldInfo_, ppucLogBuf_, vIntermediateFormat_, 0);  // 0 for message length since it's not used in these tests
+            return DecodeBinary(FieldInfo_, ppucLogBuf_, vIntermediateFormat_, 0); // 0 for message length since it's not used in these tests
         }
 
         template <typename T, DATA_TYPE D> void ValidSimpleASCIIHelper(std::vector<std::string> vstrTestInput, std::vector<T> vTargets)
@@ -89,7 +89,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
             auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 2, D);
             const char* tempStr = strTestInput.data();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(std::move(stMessageDataType), &tempStr, strTestInput.size(), vIntermediateFormat),
+            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(stMessageDataType, &tempStr, strTestInput.size(), vIntermediateFormat),
                          std::runtime_error);
         }
 

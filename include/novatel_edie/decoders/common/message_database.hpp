@@ -348,7 +348,7 @@ struct FieldInfo
 {
     size_t fixedFieldBytes{0};
     size_t varFieldCount{0};
-    std::vector<BaseField::ConstPtr> messageOrderedFields; // vector of field definitions in the order they are encoded in the message
+    std::vector<BaseField::ConstPtr> messageOrderedFields;                 // vector of field definitions in the order they are encoded in the message
     std::unordered_map<std::string, BaseField::ConstPtr> fieldNameToDef{}; // map of field name to field definition
 };
 
