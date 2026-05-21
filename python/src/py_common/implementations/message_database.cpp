@@ -222,8 +222,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessageTypes(const std:
     nb::dict globals;
     globals["field_type"] = nb::type<py_common::PyField>();
     globals["message_type"] = message_family_registration_->messageType;
-    nb::handle my_py_obj = nb::find(this);
-    globals["db"] = nb::none();
+    globals["db"] = nb::find(this);
 
     nb::exec(R"(
     def message_type_cons(name):

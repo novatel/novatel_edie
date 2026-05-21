@@ -12,6 +12,51 @@ namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
+// Register custom garbage collection logic for message database so that
+// it can share a lifetime with its owned types
+// https://nanobind.readthedocs.io/en/latest/refleaks.html#fixing-reference-leaks
+
+int py_common::db_tp_traverse(PyObject* self, visitproc visit, void* arg)
+{
+    // We must traverse the implicit dependency of an object on its
+    // associated type object.
+    Py_VISIT(Py_TYPE(self));
+
+    // The tp_traverse method may be called after __new__ but before or during
+    // __init__, before the C++ constructor has been completed. We must not
+    // inspect the C++ state if the constructor has not yet completed.
+    if (!nb::inst_ready(self)) { return 0; }
+
+    // Get the C++ object associated with 'self' (this always succeeds)
+    py_common::PyMessageDatabase* db = nb::inst_ptr<py_common::PyMessageDatabase>(self);
+
+    // Traverse all python types held by the database
+    for (auto& message_version_types : db->messages_types)
+    {
+        for (auto& message_type : message_version_types.second) { Py_VISIT(message_type.second.ptr()); }
+    }
+    for (auto& field_type : db->field_types) { Py_VISIT(field_type.second.ptr()); }
+    for (auto& enum_type : db->enum_types) { Py_VISIT(enum_type.second.ptr()); }
+
+    return 0;
+}
+
+int py_common::db_tp_clear(PyObject* self)
+{
+    // Get the C++ object associated with 'self' (this always succeeds)
+    py_common::PyMessageDatabase* db = nb::inst_ptr<py_common::PyMessageDatabase>(self);
+
+    // Break the reference cycle!
+    db->messages_types.clear();
+    db->field_types.clear();
+    db->enum_types.clear();
+
+    return 0;
+}
+
+// Table of custom type slots we want to install
+PyType_Slot db_slots[] = {{Py_tp_traverse, (void*)py_common::db_tp_traverse}, {Py_tp_clear, (void*)py_common::db_tp_clear}, {0, 0}};
+
 void py_common::init_common_message_database(nb::module_& m)
 {
     nb::enum_<DATA_TYPE>(m, "DATA_TYPE", "The concrete data types of base-level message fields.", nb::is_arithmetic())
@@ -166,14 +211,12 @@ void py_common::init_common_message_database(nb::module_& m)
                 .format(msg_def.name, msg_def._id, msg_def.logID, msg_def.description, self.attr("fields"), msg_def.latestMessageCrc);
         });
 
-    nb::class_<py_common::PyMessageDatabase>(m, "MessageDatabase")
+    nb::class_<py_common::PyMessageDatabase>(m, "MessageDatabase", nb::type_slots(db_slots))
         .def(nb::new_([]() { return py_common::PyMessageDatabase::Create(); }))
-        .def(nb::new_(
-                 [](std::filesystem::path& file_path) { return py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(file_path))); }),
+        .def(nb::new_([](std::filesystem::path& file_path) { return py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(file_path))); }),
              "file_path"_a)
         .def_static(
-            "from_string",
-            [](std::string_view json_data) { return py_common::PyMessageDatabase::Create(std::move(*ParseJsonDb(json_data))); },
+            "from_string", [](std::string_view json_data) { return py_common::PyMessageDatabase::Create(std::move(*ParseJsonDb(json_data))); },
             "json_data"_a)
         .def("merge", &py_common::PyMessageDatabase::Merge, "other_db"_a)
         .def("append_messages", &py_common::PyMessageDatabase::AppendMessages, "messages"_a)

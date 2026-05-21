@@ -12,6 +12,11 @@ namespace nb = nanobind;
 
 namespace novatel::edie::py_common {
 
+// Forward declarations for nanobind GC type slots; declared as friends of
+// PyMessageDatabase so they can poke at private state during traversal/clear.
+int db_tp_traverse(PyObject* self, visitproc visit, void* arg);
+int db_tp_clear(PyObject* self);
+
 struct FieldLookupEntry
 {
     size_t index;
@@ -187,6 +192,9 @@ class PyMessageDatabase
     [[nodiscard]] nb::object clone() const;
 
   private:
+    friend int db_tp_traverse(PyObject* self, visitproc visit, void* arg);
+    friend int db_tp_clear(PyObject* self);
+
     explicit PyMessageDatabase(MessageDatabase&& message_db);
 
     void Initialize();
