@@ -425,7 +425,7 @@ template <typename Derived> class EncoderBase
         switch (fieldDefinition_->type)
         {
         case FIELD_TYPE::FIELD_ARRAY: {
-            auto arrayFieldDef = std::dynamic_pointer_cast<const FieldArrayField>(fieldDefinition_);
+            auto arrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDefinition_.get());
             if (!arrayFieldDef) return false;
             for (size_t i = 0; i < elementCount_; i++)
             {
@@ -447,14 +447,8 @@ template <typename Derived> class EncoderBase
             }
             break;
         }
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-            if (!FieldToAscii<Abbreviated>(fieldDefinition_, clMessageBody_.GetFieldValue(*fieldDefinition_), ppcOutBuf_, uiBytesLeft_))
-            {
-                return false;
-            }
-            break;
-        }
         case FIELD_TYPE::RESPONSE_ID: break; // Do nothing, ascii logs don't output this field
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::ENUM: [[fallthrough]];
         case FIELD_TYPE::SIMPLE: {
             if (!FieldToAscii<Abbreviated>(fieldDefinition_, clMessageBody_.GetFieldValue(*fieldDefinition_), ppcOutBuf_, uiBytesLeft_))
@@ -581,39 +575,38 @@ template <typename Derived> class EncoderBase
     }
 
     template <typename T>
-    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const T& val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const T* val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
+        if (val_ == nullptr) { return false; }
+
         if constexpr (std::is_arithmetic_v<T>)
         {
-            auto it = asciiFieldMap.find(fd_->conversionHash);
-            if (it != asciiFieldMap.end()) { return it->second(fd_, FieldValueVariant(val_), ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb); }
-
             if (fd_->type == FIELD_TYPE::ENUM)
             {
-                auto enumFieldPtr = std::dynamic_pointer_cast<const EnumField>(fd_);
+                auto enumFieldPtr = dynamic_cast<const EnumField*>(fd_.get());
                 if (!enumFieldPtr) return false;
-                return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumFieldPtr->enumDef, val_));
+                return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(*val_)));
             }
 
             switch (fd_->dataType.name)
             {
-            case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::string_view(static_cast<bool>(val_) ? "TRUE" : "FALSE"));
-            case DATA_TYPE::HEXBYTE: return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint8_t>(val_), 2);
-            case DATA_TYPE::UCHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint8_t>(val_));
-            case DATA_TYPE::CHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(val_));
-            case DATA_TYPE::USHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint16_t>(val_));
-            case DATA_TYPE::SHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int16_t>(val_));
-            case DATA_TYPE::UINT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint32_t>(val_));
-            case DATA_TYPE::INT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(val_));
-            case DATA_TYPE::ULONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint32_t>(val_));
-            case DATA_TYPE::ULONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint64_t>(val_));
-            case DATA_TYPE::LONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(val_));
-            case DATA_TYPE::LONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int64_t>(val_));
+            case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::string_view(static_cast<bool>(*val_) ? "TRUE" : "FALSE"));
+            case DATA_TYPE::HEXBYTE: return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint8_t>(*val_), 2);
+            case DATA_TYPE::UCHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint8_t>(*val_));
+            case DATA_TYPE::CHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(*val_));
+            case DATA_TYPE::USHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint16_t>(*val_));
+            case DATA_TYPE::SHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int16_t>(*val_));
+            case DATA_TYPE::UINT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint32_t>(*val_));
+            case DATA_TYPE::INT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(*val_));
+            case DATA_TYPE::ULONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint32_t>(*val_));
+            case DATA_TYPE::ULONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint64_t>(*val_));
+            case DATA_TYPE::LONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(*val_));
+            case DATA_TYPE::LONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int64_t>(*val_));
             case DATA_TYPE::FLOAT:
-                return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<float>(val_), FloatingPointFormat(*fd_, static_cast<float>(val_)),
+                return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<float>(*val_), FloatingPointFormat(*fd_, static_cast<float>(*val_)),
                                           fd_->precision);
             case DATA_TYPE::DOUBLE:
-                return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<double>(val_), FloatingPointFormat(*fd_, static_cast<double>(val_)),
+                return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<double>(*val_), FloatingPointFormat(*fd_, static_cast<double>(*val_)),
                                           fd_->precision);
             default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToAscii(): unknown type."); throw std::runtime_error("FieldToAscii(): unknown type.");
             }
@@ -626,29 +619,42 @@ template <typename Derived> class EncoderBase
     {
         constexpr char separator = Abbreviated ? Derived::separatorAbbAscii : Derived::separatorAscii;
 
-        return std::visit(
+        const auto& it = asciiFieldMap.find(fd_->conversionHash);
+
+        if (fd_->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"')) { return false; }
+
+        auto encoded = std::visit(
             [&](auto&& fieldValue) -> bool {
                 using ValueType = std::decay_t<decltype(fieldValue)>;
                 switch (fd_->type)
                 {
-                case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
-                    if constexpr (is_specialization_of_v<ValueType, std::vector>)
+                case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
+                case FIELD_TYPE::FIXED_LENGTH_ARRAY:
+                    if constexpr ((is_specialization_of_v<ValueType, std::vector> ||
+                                   std::is_pointer_v<ValueType>)&&!std::is_same_v<ValueType, std::vector<std::byte>> &&
+                                  !std::is_same_v<ValueType, std::vector<MessageBody>>)
                     {
-                        // Print the array size first
-                        if (!WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, fieldValue.size()) || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))
+                        size_t elementCount;
+                        // Print the array size first for variable length arrays
+                        if constexpr (is_specialization_of_v<ValueType, std::vector>)
                         {
-                            return false;
+                            elementCount = fieldValue.size();
+                            if (fd_->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY &&
+                                (!WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, elementCount) || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)))
+                            {
+                                return false;
+                            }
                         }
-                    }
-                    else { return false; }
-                    [[fallthrough]];
-                case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
-                    if constexpr (is_specialization_of_v<ValueType, std::vector>)
-                    {
-                        if (fd_->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"')) { return false; }
-
-                        for (const auto& element : fieldValue)
+                        else
                         {
+                            const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(fd_.get());
+                            if (!arrayFieldDef) { return false; }
+                            elementCount = arrayFieldDef->arrayLength;
+                        }
+
+                        for (size_t i = 0; i < elementCount; i++)
+                        {
+                            const auto& element = fieldValue[i];
                             using ElemType = std::decay_t<decltype(element)>;
                             if (fd_->isString)
                             {
@@ -656,33 +662,46 @@ template <typename Derived> class EncoderBase
                                 {
                                     if (element == '\0') { break; }
                                 }
+                                else if constexpr (std::is_same_v<ElemType, std::byte>)
+                                {
+                                    if (element == std::byte{0}) { break; }
+                                }
                             }
 
-                            if (!FieldToAscii(fd_, element, ppcOutBuf_, uiBytesLeft_) ||
-                                (fd_->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)))
+                            if (it != asciiFieldMap.end())
                             {
-                                return false;
+                                if (!it->second(fd_, element, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb)) { return false; }
                             }
+                            else if (!FieldToAscii(fd_, &element, ppcOutBuf_, uiBytesLeft_)) { return false; }
+                            if (fd_->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
                         }
-
-                        // Quoted elements need a trailing comma
-                        if (fd_->isString)
-                        {
-                            if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"') || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
-                        }
-                        // Non-quoted, non-internally-separated elements also need a trailing comma
-                        else if (!fd_->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
                     }
-                    else { return false; }
+                    else { throw std::runtime_error("FieldToAscii: unsupported type for array"); }
                     break;
-                }
                 default:
                     if constexpr (is_specialization_of_v<ValueType, std::vector>) { return false; }
-                    else { return FieldToAscii(fd_, fieldValue, ppcOutBuf_, uiBytesLeft_) && CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator); }
+
+                    if (it != asciiFieldMap.end())
+                    {
+                        if (!it->second(fd_, fieldValue, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb)) { return false; }
+                    }
+                    else if (!FieldToAscii(fd_, &fieldValue, ppcOutBuf_, uiBytesLeft_)) { return false; }
+
+                    return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator);
                 }
                 return true;
             },
             val_);
+        if (!encoded) { return false; }
+
+        // Quoted elements need a trailing comma
+        if (fd_->isString)
+        {
+            if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"') || !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
+        }
+        // Non-quoted, non-internally-separated elements also need a trailing comma
+        else if (!fd_->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
+        return true;
     }
 
     template <typename T>
@@ -695,7 +714,7 @@ template <typename Derived> class EncoderBase
 
             if (fd_->type == FIELD_TYPE::ENUM)
             {
-                auto enumFieldPtr = std::dynamic_pointer_cast<const EnumField>(fd_);
+                auto enumFieldPtr = dynamic_cast<const EnumField*>(fd_.get());
                 if (!enumFieldPtr) return false;
                 return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_, '"', GetEnumString(enumFieldPtr->enumDef, val_), "\"");
             }
@@ -796,7 +815,7 @@ template <typename Derived> class EncoderBase
         switch (fieldDefinition_->type)
         {
         case FIELD_TYPE::FIELD_ARRAY: {
-            auto arrayFieldDef = std::dynamic_pointer_cast<const FieldArrayField>(fieldDefinition_);
+            auto arrayFieldDef = dynamic_cast<const FieldArrayField*>(fieldDefinition_.get());
             if (!arrayFieldDef) return false;
             for (size_t i = 0; i < elementCount_; i++)
             {
