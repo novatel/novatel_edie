@@ -60,9 +60,15 @@ template <typename T, template <typename...> class Template> inline constexpr bo
 class MessageBody;
 
 using FieldValueVariant =
-    std::variant<bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double, std::vector<int8_t>,
-                 std::vector<int16_t>, std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>,
-                 std::vector<uint64_t>, std::vector<float>, std::vector<double>, std::vector<MessageBody>, std::vector<std::byte>, std::string>;
+    std::variant<bool, int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t, float, double, // Primitive types
+                 const bool*, const int8_t*, const uint8_t*, const int16_t*, const uint16_t*, const int32_t*, const uint32_t*,
+                 const int64_t*,                               // FIXED_LENGTH_ARRAY pointer types
+                 const uint64_t*, const float*, const double*, // FIXED_LENGTH_ARRAY pointer types continued
+                 std::vector<int8_t>, std::vector<int16_t>, std::vector<int32_t>, std::vector<int64_t>, std::vector<uint8_t>,
+                 std::vector<uint16_t>, // VARIABLE_LENGTH_ARRAY types
+                 std::vector<uint32_t>, std::vector<uint64_t>, std::vector<float>, std::vector<double>,
+                 std::string,                                       // VARIABLE_LENGTH_ARRAY types continued
+                 std::vector<MessageBody>, std::vector<std::byte>>; // FIELD_ARRAY types
 
 class MessageBody
 {
@@ -78,10 +84,14 @@ class MessageBody
 
         if (count_ <= 1)
         {
+            if (reinterpret_cast<uintptr_t>(data_) % alignof(T) == 0U) { return *reinterpret_cast<const T*>(data_); }
+
             T value{};
             std::memcpy(&value, data_, sizeof(T));
             return value;
         }
+
+        if ((reinterpret_cast<uintptr_t>(data_) % alignof(T)) == 0U) { return reinterpret_cast<const T*>(data_); }
 
         std::vector<T> values(count_);
         std::memcpy(values.data(), data_, sizeof(T) * count_);
@@ -357,25 +367,23 @@ class MessageBody
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
             const auto* arrayField = dynamic_cast<const ArrayField*>(&field_);
             if (arrayField == nullptr) { throw std::runtime_error("GetFieldValue(): missing fixed array metadata"); }
-
-            const size_t idx = field_.index;
-            const size_t count = static_cast<size_t>(arrayField->arrayLength);
-            const size_t byteCount = field_.dataType.length * count;
-            if (idx + byteCount > fixedFields.size()) { throw std::runtime_error("GetFieldValue(): fixed array index out of range"); }
-            return DecodeFieldValue(field_, fixedFields.data() + idx, count);
+            return DecodeFieldValue(field_, fixedFields.data() + field_.index, arrayField->arrayLength);
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: [[fallthrough]];
         case FIELD_TYPE::STRING: [[fallthrough]];
         case FIELD_TYPE::FIELD_ARRAY: [[fallthrough]];
-        case FIELD_TYPE::RESPONSE_STR:
-            if (field_.index >= varFields.size()) { throw std::runtime_error("GetFieldValue(): var field index out of range"); }
-            return varFields[field_.index];
+        case FIELD_TYPE::RESPONSE_STR: return varFields[field_.index];
         default: {
-            const size_t idx = field_.index;
-            if (idx + field_.dataType.length > fixedFields.size()) { throw std::runtime_error("GetFieldValue(): fixed field index out of range"); }
-            return DecodeFieldValue(field_, fixedFields.data() + idx);
+            return DecodeFieldValue(field_, fixedFields.data() + field_.index);
         }
         }
+    }
+
+    // ---------------------------------------------------------------------------
+    FieldValueVariant GetFieldValue(const ArrayField& field_) const
+    {
+        if (field_.type == FIELD_TYPE::FIXED_LENGTH_ARRAY) { return DecodeFieldValue(field_, fixedFields.data() + field_.index, field_.arrayLength); }
+        return GetFieldValue(static_cast<const BaseField&>(field_));
     }
 
     // ---------------------------------------------------------------------------
@@ -437,7 +445,8 @@ class MessageBody
                     {
                         throw std::runtime_error("GetFieldByteSize(): scalar values are not valid var field payloads");
                     }
-                    else { return sizeof(typename T::value_type) * value.size(); }
+                    else if constexpr (is_specialization_of_v<T, std::vector>) { return sizeof(typename T::value_type) * value.size(); }
+                    else { throw std::runtime_error("GetFieldByteSize(): unsupported var field payload type"); }
                 },
                 varFields[field_.index]);
         default: return field_.dataType.length;
@@ -528,7 +537,11 @@ class MessageBody
                     {
                         throw std::runtime_error("WriteFieldToBuffer(): scalar values are not valid var field payloads");
                     }
-                    else { return copyBytes(reinterpret_cast<const std::byte*>(value.data()), sizeof(typename T::value_type) * value.size()); }
+                    else if constexpr (is_specialization_of_v<T, std::vector>)
+                    {
+                        return copyBytes(reinterpret_cast<const std::byte*>(value.data()), sizeof(typename T::value_type) * value.size());
+                    }
+                    else { throw std::runtime_error("WriteFieldToBuffer(): unsupported var field payload type"); }
                 },
                 varFields[field_.index]);
         default: {
