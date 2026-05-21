@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include <nanobind/eval.h>
 #include <nanobind/stl/unordered_map.h>
 
 #include "novatel_edie/decoders/common/message_database.hpp"
@@ -31,8 +32,19 @@ PYCOMMON_EXPORT const py_common::MessageFamilyRegistration* py_common::GetMessag
 PYCOMMON_EXPORT py_common::PyMessageDatabase::PyMessageDatabase(MessageDatabase&& message_db)
     : core_(std::make_shared<MessageDatabase>(std::move(message_db)))
 {
-    Initialize();
-    allocateExtras();
+}
+
+PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::Create(MessageDatabase&& message_db)
+{
+    PyMessageDatabase::Ptr db(new PyMessageDatabase(std::move(message_db)));
+    // Publish the Python wrapper into nanobind's instance map so nb::find(this)
+    // returns it during Initialize(). The returned nb::object keeps the wrapper
+    // alive for the caller; dropping it before Initialize would destroy the
+    // wrapper and unregister it from the instance map.
+    nb::object wrapper = nb::cast(db);
+    db->Initialize();
+    db->allocateExtras();
+    return wrapper;
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::Initialize()
@@ -109,10 +121,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumeration(std::string
     core_->RemoveEnumeration(strEnumeration_);
 }
 
-PYCOMMON_EXPORT py_common::PyMessageDatabase::Ptr py_common::PyMessageDatabase::clone() const
-{
-    return std::make_shared<PyMessageDatabase>(MessageDatabase(*core_));
-}
+PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::clone() const { return Create(MessageDatabase(*core_)); }
 
 static void cleanString(std::string& str)
 {
@@ -185,8 +194,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::UpdatePythonMessageTypes()
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name,
-                                                                std::string parent_message, nb::handle type_constructor, nb::handle type_tuple,
-                                                                nb::handle type_dict)
+                                                                std::string parent_message, nb::handle type_constructor)
 {
     // rescursively add field types for each field array element within the provided vector
     for (const auto& field : fields)
@@ -195,10 +203,10 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AddFieldType(std::vector<std:
         {
             auto* field_array_field = dynamic_cast<FieldArrayField*>(field.get());
             std::string field_name = base_name + "_" + field_array_field->name + "_Field";
-            nb::object field_type = type_constructor(field_name, type_tuple, type_dict);
+            nb::object field_type = type_constructor(field_name);
             field_types[field.get()] = field_type;
             field_name_maps_[field.get()] = BuildFieldNameMapFromDefs(field_array_field->fields);
-            AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor, type_tuple, type_dict);
+            AddFieldType(field_array_field->fields, field_name, parent_message, type_constructor);
         }
     }
 }
@@ -211,13 +219,22 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessageTypes(const std:
     }
 
     // get type constructor
-    nb::object type_constructor = nb::module_::import_("builtins").attr("type");
-    // specify the python superclass for the message body types
-    nb::tuple field_type_tuple = nb::make_tuple(nb::type<py_common::PyField>());
-    // provide no additional attributes via `__dict__`
-    nb::dict type_dict = nb::dict();
-    nb::tuple message_type_tuple = nb::make_tuple(message_family_registration_->messageType);
-    type_dict[nb::str("__slots__")] = nb::make_tuple();
+    nb::dict globals;
+    globals["field_type"] = nb::type<py_common::PyField>();
+    globals["message_type"] = message_family_registration_->messageType;
+    nb::handle my_py_obj = nb::find(this);
+    globals["db"] = nb::none();
+
+    nb::exec(R"(
+    def message_type_cons(name):
+        return type(name, (message_type,), {'__slots__': (), '_owner_db': db})
+
+    def field_type_cons(name):
+        return type(name, (field_type,), {'__slots__': (), '_owner_db': db})
+    )",
+             globals);
+    nb::object msg_type_cons = globals["message_type_cons"];
+    nb::object field_type_cons = globals["field_type_cons"];
 
     // add message and message body types for each message definition
     for (const auto& message_def : message_defs)
@@ -234,11 +251,11 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessageTypes(const std:
             std::string message_name = ss.str();
 
             // specify the python superclass for the message type
-            nb::object msg_py_type = type_constructor(message_name, message_type_tuple, type_dict);
+            nb::object msg_py_type = msg_type_cons(message_name);
             messages_types[message_def.get()][crc] = msg_py_type;
             message_field_name_maps_[message_def.get()][crc] = BuildFieldNameMapFromDefs(message_fields);
 
-            AddFieldType(message_fields, message_name, message_name, type_constructor, field_type_tuple, type_dict);
+            AddFieldType(message_fields, message_name, message_name, field_type_cons);
         }
     }
 }

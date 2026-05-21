@@ -49,7 +49,12 @@ class PyMessageDatabase
     using Ptr = std::shared_ptr<PyMessageDatabase>;
     using ConstPtr = std::shared_ptr<const PyMessageDatabase>;
 
-    explicit PyMessageDatabase(MessageDatabase&& message_db = MessageDatabase());
+    // Factory — must be used instead of constructing directly. Publishes the
+    // Python wrapper before running Python-touching init so nb::find(this)
+    // works during Initialize(). Returns the Python wrapper directly; cast
+    // back to Ptr with nb::cast<Ptr>(...) if the caller needs the shared_ptr.
+    // Requires the GIL to be held.
+    [[nodiscard]] static nb::object Create(MessageDatabase&& message_db = MessageDatabase());
 
     PyMessageDatabase(const PyMessageDatabase&) = delete;
     PyMessageDatabase& operator=(const PyMessageDatabase&) = delete;
@@ -179,9 +184,11 @@ class PyMessageDatabase
         for (const auto& [enum_def, enum_type] : enum_types) { enumsMod_.attr(enum_def->name.c_str()) = enum_type; }
     }
 
-    [[nodiscard]] Ptr clone() const;
+    [[nodiscard]] nb::object clone() const;
 
   private:
+    explicit PyMessageDatabase(MessageDatabase&& message_db);
+
     void Initialize();
     void ResolveBaseType();
     void allocateExtras();
@@ -200,8 +207,7 @@ class PyMessageDatabase
 
     void UpdatePythonEnums();
     void UpdatePythonMessageTypes();
-    void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message, nb::handle type_cons,
-                      nb::handle type_tuple, nb::handle type_dict);
+    void AddFieldType(std::vector<std::shared_ptr<BaseField>> fields, std::string base_name, std::string parent_message, nb::handle type_cons);
 
     const MessageFamilyRegistration* message_family_registration_ = nullptr;
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, nb::object>> messages_types{};
