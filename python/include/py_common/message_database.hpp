@@ -25,6 +25,22 @@ struct FieldLookupEntry
 
 using FieldNameMap = std::unordered_map<std::string, FieldLookupEntry>;
 
+struct MessageTypeLookupEntry
+{
+    const MessageDefinition* def;
+    uint32_t crc;
+};
+
+struct HandlePtrHash
+{
+    size_t operator()(nb::handle h) const noexcept { return std::hash<PyObject*>{}(h.ptr()); }
+};
+
+struct HandlePtrEq
+{
+    bool operator()(nb::handle a, nb::handle b) const noexcept { return a.ptr() == b.ptr(); }
+};
+
 class MessageDBExtrasBase
 {
   public:
@@ -111,6 +127,24 @@ class PyMessageDatabase
     [[nodiscard]] nb::object GetMessageType(std::string_view messageName) const { return GetMessageType(GetMsgDef(messageName).get()); }
     [[nodiscard]] nb::object GetMessageType(int32_t id, uint32_t crc) const { return GetMessageType(GetMsgDef(id).get(), crc); }
     [[nodiscard]] nb::object GetMessageType(int32_t id) const { return GetMessageType(GetMsgDef(id).get()); }
+
+    [[nodiscard]] const MessageTypeLookupEntry* GetMessageTypeLookup(nb::handle cls) const
+    {
+        auto it = message_type_lookup_.find(cls);
+        return it == message_type_lookup_.end() ? nullptr : &it->second;
+    }
+
+    [[nodiscard]] const BaseField* GetFieldTypeLookup(nb::handle cls) const
+    {
+        auto it = field_type_lookup_.find(cls);
+        return it == field_type_lookup_.end() ? nullptr : it->second;
+    }
+
+    [[nodiscard]] const EnumDefinition* GetEnumTypeLookup(nb::handle cls) const
+    {
+        auto it = enum_type_lookup_.find(cls);
+        return it == enum_type_lookup_.end() ? nullptr : it->second;
+    }
 
     [[nodiscard]] const std::unordered_map<const BaseField*, nb::object> GetFieldsByDefDict() const { return field_types; }
 
@@ -223,6 +257,9 @@ class PyMessageDatabase
     std::unordered_map<const EnumDefinition*, nb::object> enum_types{};
     std::unordered_map<const BaseField*, FieldNameMap> field_name_maps_{};
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, FieldNameMap>> message_field_name_maps_{};
+    std::unordered_map<nb::handle, MessageTypeLookupEntry, HandlePtrHash, HandlePtrEq> message_type_lookup_{};
+    std::unordered_map<nb::handle, const BaseField*, HandlePtrHash, HandlePtrEq> field_type_lookup_{};
+    std::unordered_map<nb::handle, const EnumDefinition*, HandlePtrHash, HandlePtrEq> enum_type_lookup_{};
 
     std::unique_ptr<MessageDBExtrasBase> extras_;
     MessageDatabase::Ptr core_;

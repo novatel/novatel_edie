@@ -50,6 +50,9 @@ int py_common::db_tp_clear(PyObject* self)
     db->messages_types.clear();
     db->field_types.clear();
     db->enum_types.clear();
+    db->message_type_lookup_.clear();
+    db->field_type_lookup_.clear();
+    db->enum_type_lookup_.clear();
 
     return 0;
 }
