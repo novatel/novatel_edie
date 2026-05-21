@@ -12,4 +12,7 @@ void py_oem::init_message_db_singleton(nb::module_& m, nb::module_& messagesMod,
 {
     m.def("get_builtin_database", &py_oem::MessageDbSingleton::get, "Get the JSON database built-in to the package.");
     py_oem::MessageDbSingleton::get()->bindToModule(messagesMod, enumsMod);
+    nb::module_ atexit = nb::module_::import_("atexit");
+    // Register singleton to be freed during interpreter teardown
+    atexit.attr("register")(nb::cpp_function(&py_oem::MessageDbSingleton::cleanup));
 }

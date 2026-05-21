@@ -2,16 +2,15 @@
 
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "py_common/bindings_core.hpp"
-#include "py_common/message_database.hpp"
 
 namespace nb = nanobind;
 using namespace nb::literals;
 using namespace novatel::edie;
 
+py_common::PyMessageDatabase::Ptr py_oem::MessageDbSingleton::json_db;
+
 py_common::PyMessageDatabase::Ptr& py_oem::MessageDbSingleton::get()
 {
-    static py_common::PyMessageDatabase::Ptr json_db = nullptr;
-
     // If the database has already been loaded, return it
     if (json_db) { return json_db; }
 
@@ -51,3 +50,5 @@ py_common::PyMessageDatabase::Ptr& py_oem::MessageDbSingleton::get()
     json_db = nb::cast<py_common::PyMessageDatabase::Ptr>(py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(default_json_db_path))));
     return json_db;
 }
+
+void py_oem::MessageDbSingleton::cleanup() { json_db = nullptr; }

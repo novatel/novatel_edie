@@ -24,14 +24,13 @@ void py_common::init_common_logger(nb::module_& m, nb::module_& internal_m)
         "enable_internal_logging", [manager]() { manager->EnableInternalLogging(); },
         "Enable logging which originates from novatel_edie's native C++ code.");
 
-    // Create python entry-point to custom setLevel and cleanup functions
+    // Create python entry-point to custom setLevel function
     internal_m.def("set_level", [manager](nb::handle self, nb::args args_, nb::kwargs kwargs_) { manager->SetLoggerLevel(self, args_, kwargs_); });
-    internal_m.def("exit_cleanup", [manager]() { manager->Shutdown(); });
 
-    // Provide these the setLevel entry-point to the LoggerManager
+    // Provide the setLevel entry-point to the LoggerManager
     manager->SetInternalMod(internal_m);
 
     // Run the custom cleanup code before any normal termination of the Python interpreter
     nb::module_ atexit = nb::module_::import_("atexit");
-    atexit.attr("register")(internal_m.attr("exit_cleanup"));
+    atexit.attr("register")(nb::cpp_function([manager]() { manager->Shutdown(); }));
 }

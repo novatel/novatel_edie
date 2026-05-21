@@ -25,6 +25,16 @@ class MessageDbSingleton
     //! If the instance does not yet exist, it will be created and returned.
     //----------------------------------------------------------------------------
     [[nodiscard]] static py_common::PyMessageDatabase::Ptr& get();
+
+    //----------------------------------------------------------------------------
+    //! \brief Frees the singleton database.
+    //!
+    //! Must be called at Python interpreter exit; relying on static destruction
+    //! leads to this being done too late.
+    //----------------------------------------------------------------------------
+    static void cleanup();
+
+    static py_common::PyMessageDatabase::Ptr json_db;
 };
 
 } // namespace novatel::edie::py_oem
