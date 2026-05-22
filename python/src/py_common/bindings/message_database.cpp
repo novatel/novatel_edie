@@ -120,16 +120,11 @@ void py_common::init_common_message_database(nb::module_& m)
             return nb::str("EnumDefinition(id={!r}, name={!r}, enumerators={!r})").format(enum_def._id, enum_def.name, enum_def.enumerators);
         });
 
-    nb::class_<BaseDataType>(m, "BaseDataType", "Struct containing basic elements of data type fields in the UI DB")
+    nb::class_<SimpleDataType>(m, "SimpleDataType", "Struct containing elements of simple data type fields in the UI DB")
         .def(nb::init())
-        .def_rw("name", &BaseDataType::name)
-        .def_rw("length", &BaseDataType::length)
-        .def_rw("description", &BaseDataType::description)
-        .def("__eq__", [](const BaseDataType& self, const BaseDataType& other) { return self == other; });
-
-    nb::class_<SimpleDataType, BaseDataType>(m, "SimpleDataType", "Struct containing elements of simple data type fields in the UI DB")
-        .def(nb::init())
-        .def_rw("enums", &SimpleDataType::enums)
+        .def_rw("name", &SimpleDataType::name)
+        .def_rw("length", &SimpleDataType::length)
+        .def_rw("description", &SimpleDataType::description)
         .def("__eq__", [](const SimpleDataType& self, const SimpleDataType& other) { return self == other; });
 
     nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")

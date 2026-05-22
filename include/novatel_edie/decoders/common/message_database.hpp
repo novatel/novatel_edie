@@ -270,33 +270,20 @@ struct EnumDefinition
 };
 
 //-----------------------------------------------------------------------
-//! \struct BaseDataType
-//! \brief Struct containing basic elements of data type fields in the
+//! \struct SimpleDataType
+//! \brief Struct containing elements of simple data type fields in the
 //! UI DB.
 //-----------------------------------------------------------------------
-struct BaseDataType
+struct SimpleDataType
 {
     DATA_TYPE name{DATA_TYPE::UNKNOWN};
     uint16_t length{0};
     std::string description;
 
-    [[nodiscard]] bool operator==(const BaseDataType& other) const
+    [[nodiscard]] bool operator==(const SimpleDataType& other) const
     {
         return name == other.name && length == other.length && description == other.description;
     }
-    [[nodiscard]] bool operator!=(const BaseDataType& other) const { return !(*this == other); }
-};
-
-//-----------------------------------------------------------------------
-//! \struct SimpleDataType
-//! \brief Struct containing elements of simple data type fields in the
-//! UI DB.
-//-----------------------------------------------------------------------
-struct SimpleDataType : BaseDataType
-{
-    std::unordered_map<int32_t, EnumDataType> enums;
-
-    [[nodiscard]] bool operator==(const SimpleDataType& other) const { return BaseDataType::operator==(other) && enums == other.enums; }
     [[nodiscard]] bool operator!=(const SimpleDataType& other) const { return !(*this == other); }
 };
 
@@ -408,9 +395,9 @@ struct BaseField
     //----------------------------------------------------------------------------
     [[nodiscard]] virtual bool equalsImpl(const BaseField& other) const
     {
-        return name == other.name && type == other.type && description == other.description && conversion == other.conversion
-               && conversionHash == other.conversionHash && width == other.width && precision == other.precision && isString == other.isString
-               && isCsv == other.isCsv && dataType == other.dataType;
+        return name == other.name && type == other.type && description == other.description && conversion == other.conversion &&
+               conversionHash == other.conversionHash && width == other.width && precision == other.precision && isString == other.isString &&
+               isCsv == other.isCsv && dataType == other.dataType;
     }
 };
 
@@ -539,8 +526,8 @@ struct MessageDefinition
     //----------------------------------------------------------------------------
     [[nodiscard]] bool operator==(const MessageDefinition& other) const
     {
-        if (_id != other._id || logID != other.logID || name != other.name || description != other.description
-            || messageStyle != other.messageStyle || latestMessageCrc != other.latestMessageCrc || fields.size() != other.fields.size())
+        if (_id != other._id || logID != other.logID || name != other.name || description != other.description ||
+            messageStyle != other.messageStyle || latestMessageCrc != other.latestMessageCrc || fields.size() != other.fields.size())
         {
             return false;
         }

@@ -38,7 +38,6 @@ using json = nlohmann::json;
 
 // Forward declaration of from_json
 void from_json(const json& j_, EnumDataType& f_);
-void from_json(const json& j_, BaseDataType& f_);
 void from_json(const json& j_, SimpleDataType& f_);
 void from_json(const json& j_, BaseField& f_);
 void from_json(const json& j_, EnumField& f_);
@@ -61,23 +60,12 @@ void from_json(const json& j_, EnumDataType& f_)
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, BaseDataType& f_)
+void from_json(const json& j_, SimpleDataType& f_)
 {
     auto itrDataTypeMapping = DataTypeEnumLookup.find(j_.at("name"));
     f_.name = itrDataTypeMapping != DataTypeEnumLookup.end() ? itrDataTypeMapping->second : DATA_TYPE::UNKNOWN;
     f_.length = j_.at("length");
     f_.description = j_.at("description").is_null() ? "" : j_.at("description");
-}
-
-//-----------------------------------------------------------------------
-void from_json(const json& j_, SimpleDataType& f_)
-{
-    from_json(j_, static_cast<BaseDataType&>(f_));
-
-    if (j_.find("enum") != j_.end())
-    {
-        for (const auto& e : j_.at("enum")) { f_.enums[e.at("value")] = e; }
-    }
 }
 
 //-----------------------------------------------------------------------
@@ -188,7 +176,7 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
     for (const auto& field : j_)
     {
         const auto sFieldType = field.at("type").get<std::string_view>();
-        const auto stDataType = field.at("dataType").get<BaseDataType>();
+        const auto stDataType = field.at("dataType").get<SimpleDataType>();
 
         if (sFieldType == "SIMPLE")
         {
