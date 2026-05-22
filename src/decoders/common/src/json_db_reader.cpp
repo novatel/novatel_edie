@@ -35,6 +35,7 @@
 namespace novatel::edie {
 
 using json = nlohmann::json;
+using AlignFunction = std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>;
 
 // Forward declaration of from_json
 void from_json(const json& j_, EnumDataType& f_);
@@ -44,12 +45,11 @@ void from_json(const json& j_, BaseField& f_);
 void from_json(const json& j_, EnumField& f_);
 void from_json(const json& j_, ArrayField& fd_);
 void from_json(const json& j_, FieldArrayField& fd_);
-void from_json(const json& j_, MessageDefinition& md_);
 void from_json(const json& j_, EnumDefinition& ed_);
 void from_json(const json& j_, DbMetadata& dbm_);
 
 // Forward declaration of parse_fields and parse_enumerators
-uint32_t ParseFields(const json& j_, FieldInfo& vFields_);
+uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& alignFn_ = MessageDatabase::NoAlign);
 void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
 
 //-----------------------------------------------------------------------
@@ -130,24 +130,6 @@ void from_json(const json& j_, FieldArrayField& fd_)
     if (j_.find("arrayLengthRef") != j_.end()) { fd_.arrayLengthRef = j_.at("arrayLengthRef").is_null() ? "" : j_.at("arrayLengthRef"); }
 }
 
-//-----------------------------------------------------------------------
-void from_json(const json& j_, MessageDefinition& md_)
-{
-    md_._id = j_.at("_id");
-    md_.logID = j_.at("messageID"); // this was "logID"
-    md_.name = j_.at("name");
-    md_.description = j_.at("description").is_null() ? "" : j_.at("description");
-    md_.latestMessageCrc = std::stoul(j_.at("latestMsgDefCrc").get<std::string>());
-    md_.messageStyle = j_.contains("messageStyle") && !j_.at("messageStyle").is_null() ? j_.at("messageStyle") : "OEM4_MESSAGE_STYLE";
-
-    for (const auto& fields : j_.at("fields").items())
-    {
-        uint32_t defCrc = std::stoul(fields.key());
-        ParseFields(fields.value(), md_.fieldInfo[defCrc]);
-    }
-}
-
-//-----------------------------------------------------------------------
 void from_json(const json& j_, EnumDefinition& ed_)
 {
     ed_._id = j_.at("_id");
@@ -179,7 +161,7 @@ void from_json(const json& j_, DbMetadata& dbm_)
 }
 
 //-----------------------------------------------------------------------
-uint32_t ParseFields(const json& j_, FieldInfo& vFields_)
+uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& alignFn_)
 {
     uint32_t uiFieldSize = 0;
     vFields_.messageOrderedFields = std::vector<BaseField::ConstPtr>();
@@ -187,12 +169,8 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_)
     vFields_.fieldNameToDef.reserve(j_.size());
 
     auto alignFixed = [&](size_t typeLength) {
-        const size_t alignment = std::min(typeLength, size_t{4});
-        if (alignment > 1)
-        {
-            const size_t misalign = vFields_.fixedFieldBytes % alignment;
-            if (misalign != 0) { vFields_.fixedFieldBytes += alignment - misalign; }
-        }
+        const auto ptr = static_cast<uintptr_t>(vFields_.fixedFieldBytes);
+        vFields_.fixedFieldBytes += alignFn_(typeLength, uintptr_t{0}, ptr);
     };
 
     for (const auto& field : j_)
@@ -241,6 +219,8 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_)
         else if (sFieldType == "FIELD_ARRAY")
         {
             auto pstField = std::make_shared<FieldArrayField>(field);
+            pstField->fieldInfo = {};
+            pstField->fieldSize = pstField->arrayLength * ParseFields(field.at("fields"), pstField->fieldInfo, alignFn_);
             vFields_.messageOrderedFields.push_back(pstField);
             pstField->index = vFields_.varFieldCount;
             vFields_.fieldNameToDef[pstField->name] = pstField;
@@ -259,13 +239,29 @@ void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_)
 }
 
 //-----------------------------------------------------------------------
-std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(const json& jArray)
+std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(const json& jArray, const AlignFunction& alignFn_)
 {
     const auto& data = jArray["messages"];
     std::vector<MessageDefinition::ConstPtr> res;
     res.reserve(data.size());
 
-    for (const auto& it : data) { res.emplace_back(std::make_shared<MessageDefinition>(it)); }
+    for (const auto& it : data)
+    {
+        auto md = std::make_shared<MessageDefinition>();
+        md->_id = it.at("_id");
+        md->logID = it.at("messageID");
+        md->name = it.at("name");
+        md->description = it.at("description").is_null() ? "" : it.at("description");
+        md->latestMessageCrc = std::stoul(it.at("latestMsgDefCrc").get<std::string>());
+        md->messageStyle = it.contains("messageStyle") && !it.at("messageStyle").is_null() ? it.at("messageStyle") : "OEM4_MESSAGE_STYLE";
+
+        for (const auto& fields : it.at("fields").items())
+        {
+            uint32_t defCrc = std::stoul(fields.key());
+            ParseFields(fields.value(), md->fieldInfo[defCrc], alignFn_);
+        }
+        res.emplace_back(std::move(md));
+    }
 
     return res;
 }
@@ -290,11 +286,18 @@ template <typename T> MessageDatabase::Ptr ParseJsonDbImpl(T&& source, std::stri
     {
         auto json = json::parse(std::forward<T>(source));
 
-        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
-        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
-
         DbMetadata::Ptr dbMeta;
         if (json.contains("meta")) { dbMeta = std::make_shared<DbMetadata>(json.at("meta").template get<DbMetadata>()); }
+
+        AlignFunction alignFn = MessageDatabase::NoAlign;
+        if (dbMeta && !dbMeta->messageFamily.empty())
+        {
+            const auto it = MessageDatabase::GetAlignmentFunctions().find(dbMeta->messageFamily);
+            if (it != MessageDatabase::GetAlignmentFunctions().end()) { alignFn = it->second; }
+        }
+
+        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json), std::cref(alignFn));
+        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
 
         return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get(), dbMeta);
     }

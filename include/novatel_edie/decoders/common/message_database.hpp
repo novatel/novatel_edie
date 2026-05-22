@@ -599,6 +599,35 @@ class MessageDatabase
         pDbMetadata->messageFamily = messageFamily_;
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Registers an alignment function for a given message family.
+    //!
+    //! \param[in] messageFamily_ The message family for which to register the alignment function
+    //! \param[in] fn The alignment function to register, which takes the field length,
+    //!     a pointer to the start of the message body, and a pointer to the current position,
+    //!     and returns the number of bytes to move forward to align the field.
+    //----------------------------------------------------------------------------
+    static void RegisterAlignmentFunction(std::string messageFamily_,
+                                          std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fn)
+    {
+        GetAlignmentFunctions()[messageFamily_] = std::move(fn);
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief Retrieves the alignment functions map.
+    //! \return A reference to the map of message family names to their corresponding alignment functions.
+    //----------------------------------------------------------------------------
+    static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>>& GetAlignmentFunctions()
+    {
+        static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>> alignmentFunctions;
+        return alignmentFunctions;
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief A no-op alignment function that always returns 0.
+    //----------------------------------------------------------------------------
+    static size_t NoAlign(uint8_t, const uintptr_t, const uintptr_t) noexcept { return 0; }
+
   protected:
     virtual void GenerateEnumMappings()
     {
