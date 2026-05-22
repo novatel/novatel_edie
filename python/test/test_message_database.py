@@ -41,16 +41,25 @@ def test_append_messages(json_db: MessageDatabase):
     new_db = MessageDatabase()
     bestpos_id = 42
     bestpos_def = json_db.get_msg_def(bestpos_id)
+    bestpos_type = json_db.get_msg_type("BESTPOS")
     range_id = 43
     range_def = json_db.get_msg_def(range_id)
+    range_type = json_db.get_msg_type("RANGE")
 
     # Act
     new_db.append_messages([bestpos_def, range_def])
 
     # Assert
+    assert json_db.get_msg_def(bestpos_id) == bestpos_def
+    assert json_db.get_msg_type("BESTPOS") is bestpos_type
+    assert json_db.get_msg_def(range_id) == range_def
+    assert json_db.get_msg_type("RANGE") is range_type
+
     assert new_db.get_msg_def(bestpos_id) == bestpos_def
+    assert new_db.get_msg_type("BESTPOS") is not bestpos_type
     assert new_db.get_msg_type("BESTPOS") is not None
     assert new_db.get_msg_def(range_id) == range_def
+    assert new_db.get_msg_type("RANGE") is not range_type
     assert new_db.get_msg_type("RANGE") is not None
 
 def test_remove_message(json_db: MessageDatabase):
@@ -58,6 +67,7 @@ def test_remove_message(json_db: MessageDatabase):
     new_db = MessageDatabase()
     bestpos_id = 42
     bestpos_def = json_db.get_msg_def(bestpos_id)
+    bestpos_type = json_db.get_msg_type("BESTPOS")
     range_id = 43
     range_def = json_db.get_msg_def(range_id)
     new_db.append_messages([bestpos_def, range_def])
@@ -67,6 +77,9 @@ def test_remove_message(json_db: MessageDatabase):
     new_db.remove_message(bestpos_id)
 
     # Assert
+    assert json_db.get_msg_def(bestpos_id) == bestpos_def
+    assert json_db.get_msg_type("BESTPOS") is bestpos_type
+
     assert new_db.get_msg_def(bestpos_id) is None
     assert new_db.get_msg_type("BESTPOS") is None
     assert new_db.get_msg_def(range_id) == range_def
@@ -83,8 +96,8 @@ def test_merge(json_db: MessageDatabase):
     bestpos_msg_type = new_db_with_bestpos.get_msg_type(bestpos_name)
     other_msg_name = "RANGE"
     other_msg_def = oem_minus_bestpos_db.get_msg_def(other_msg_name)
-    other_msg_type = oem_minus_bestpos_db.get_msg_type(other_msg_name)
     oem_minus_bestpos_db.remove_message(bestpos_msg_def.log_id)
+    other_msg_type = oem_minus_bestpos_db.get_msg_type(other_msg_name)
 
     # Act
     new_db_with_bestpos.merge(oem_minus_bestpos_db)
@@ -95,3 +108,34 @@ def test_merge(json_db: MessageDatabase):
     assert new_db_with_bestpos.get_msg_def(other_msg_name) == other_msg_def
     assert new_db_with_bestpos.get_msg_type(other_msg_name) is not None
     assert new_db_with_bestpos.get_msg_type(other_msg_name) != other_msg_type
+
+    # The source database must be unaffected by the merge.
+    assert oem_minus_bestpos_db.get_msg_def(bestpos_name) is None
+    assert oem_minus_bestpos_db.get_msg_type(bestpos_name) is None
+    assert oem_minus_bestpos_db.get_msg_def(other_msg_name) == other_msg_def
+    assert oem_minus_bestpos_db.get_msg_type(other_msg_name) is other_msg_type
+
+def test_clone(json_db: MessageDatabase):
+    """Tests that a cloned database exposes the same messages and types as the original."""
+    # Arrange
+    bestpos_name = "BESTPOS"
+    bestpos_def = json_db.get_msg_def(bestpos_name)
+    bestpos_type = json_db.get_msg_type(bestpos_name)
+    range_name = "RANGE"
+    range_def = json_db.get_msg_def(range_name)
+    range_type = json_db.get_msg_type(range_name)
+
+    # Act
+    cloned_db = json_db.clone()
+
+    # Assert
+    assert cloned_db is not json_db
+    assert cloned_db.get_msg_def(bestpos_name) == bestpos_def
+    assert cloned_db.get_msg_type(bestpos_name) is bestpos_type
+    assert cloned_db.get_msg_def(range_name) == range_def
+    assert cloned_db.get_msg_type(range_name) is range_type
+
+    assert json_db.get_msg_def(bestpos_name) == bestpos_def
+    assert json_db.get_msg_type(bestpos_name) is bestpos_type
+    assert json_db.get_msg_def(range_name) == range_def
+    assert json_db.get_msg_type(range_name) is range_type

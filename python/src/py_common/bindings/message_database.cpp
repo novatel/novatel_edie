@@ -103,6 +103,7 @@ void py_common::init_common_message_database(nb::module_& m)
         .def_rw("value", &EnumDataType::value)
         .def_rw("name", &EnumDataType::name)
         .def_rw("description", &EnumDataType::description)
+        .def("__eq__", [](const EnumDataType& self, const EnumDataType& other) { return self == other; })
         .def("__repr__", [](const EnumDataType& enum_data_type) {
             if (enum_data_type.description.empty())
                 return nb::str("EnumDataType(name={!r}, value={!r})").format(enum_data_type.name, enum_data_type.value);
@@ -123,11 +124,13 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(nb::init())
         .def_rw("name", &BaseDataType::name)
         .def_rw("length", &BaseDataType::length)
-        .def_rw("description", &BaseDataType::description);
+        .def_rw("description", &BaseDataType::description)
+        .def("__eq__", [](const BaseDataType& self, const BaseDataType& other) { return self == other; });
 
     nb::class_<SimpleDataType, BaseDataType>(m, "SimpleDataType", "Struct containing elements of simple data type fields in the UI DB")
         .def(nb::init())
-        .def_rw("enums", &SimpleDataType::enums);
+        .def_rw("enums", &SimpleDataType::enums)
+        .def("__eq__", [](const SimpleDataType& self, const SimpleDataType& other) { return self == other; });
 
     nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")
         .def(nb::init())
@@ -140,6 +143,7 @@ void py_common::init_common_message_database(nb::module_& m)
         .def_rw("precision", &BaseField::precision)
         .def_rw("data_type", &BaseField::dataType)
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
+        .def("__eq__", [](const BaseField& self, const BaseField& other) { return self == other; })
         .def("__repr__", [](const BaseField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             if (desc.empty() && field.conversion.empty())
@@ -208,6 +212,7 @@ void py_common::init_common_message_database(nb::module_& m)
                          return py_map;
                      })
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)
+        .def("__eq__", [](const MessageDefinition& self, const MessageDefinition& other) { return self == other; })
         .def("__repr__", [](nb::handle_t<MessageDefinition> self) {
             auto& msg_def = nb::cast<MessageDefinition&>(self);
             return nb::str("MessageDefinition(name={!r}, id={!r}, log_id={!r}, description={!r}, fields={!r}, latest_message_crc={!r})")
@@ -226,11 +231,41 @@ void py_common::init_common_message_database(nb::module_& m)
         .def("append_enumerations", &py_common::PyMessageDatabase::AppendEnumerations, "enums"_a)
         .def("remove_message", &py_common::PyMessageDatabase::RemoveMessage, "msg_id"_a)
         .def("remove_enumeration", &py_common::PyMessageDatabase::RemoveEnumeration, "enumeration"_a)
-        .def("get_msg_def", nb::overload_cast<std::string_view>(&py_common::PyMessageDatabase::GetMsgDef, nb::const_), "msg_name"_a)
-        .def("get_msg_def", nb::overload_cast<int32_t>(&py_common::PyMessageDatabase::GetMsgDef, nb::const_), "msg_id"_a)
-        .def("get_enum_def", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def_by_id", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
-        .def("get_enum_def_by_name", &py_common::PyMessageDatabase::GetEnumDefName, "enum_name"_a)
+        .def(
+            "get_msg_def",
+            [](const py_common::PyMessageDatabase& self, std::string_view msg_name) -> MessageDefinition::ConstPtr {
+                auto def = self.GetMsgDef(msg_name);
+                return def ? py_common::cloneMessageDef(*def) : nullptr;
+            },
+            "msg_name"_a)
+        .def(
+            "get_msg_def",
+            [](const py_common::PyMessageDatabase& self, int32_t msg_id) -> MessageDefinition::ConstPtr {
+                auto def = self.GetMsgDef(msg_id);
+                return def ? py_common::cloneMessageDef(*def) : nullptr;
+            },
+            "msg_id"_a)
+        .def(
+            "get_enum_def",
+            [](const py_common::PyMessageDatabase& self, const std::string& enum_id) -> EnumDefinition::ConstPtr {
+                auto def = self.GetEnumDefId(enum_id);
+                return def ? py_common::cloneEnumDef(*def) : nullptr;
+            },
+            "enum_id"_a)
+        .def(
+            "get_enum_def_by_id",
+            [](const py_common::PyMessageDatabase& self, const std::string& enum_id) -> EnumDefinition::ConstPtr {
+                auto def = self.GetEnumDefId(enum_id);
+                return def ? py_common::cloneEnumDef(*def) : nullptr;
+            },
+            "enum_id"_a)
+        .def(
+            "get_enum_def_by_name",
+            [](const py_common::PyMessageDatabase& self, const std::string& enum_name) -> EnumDefinition::ConstPtr {
+                auto def = self.GetEnumDefName(enum_name);
+                return def ? py_common::cloneEnumDef(*def) : nullptr;
+            },
+            "enum_name"_a)
         .def(
             "get_msg_type", [](py_common::PyMessageDatabase& self, std::string name) { return self.GetMessageType(name); }, "name"_a)
         .def(

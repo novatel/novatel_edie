@@ -58,6 +58,20 @@ struct MessageFamilyRegistration
 std::unordered_map<std::string, MessageFamilyRegistration>& GetMessageFamilyRegistrations();
 const MessageFamilyRegistration* GetMessageFamilyRegistration(const std::string& message_family);
 
+// Deep-copy helpers that duplicate every `BaseField` in the definition. Used by
+// callers that publish a definition into a database (or hand it back out to
+// Python) where the recipient might mutate the shared `EnumField::enumDef`
+// cache and corrupt the source.
+[[nodiscard]] MessageDefinition::Ptr cloneMessageDef(const MessageDefinition& source);
+[[nodiscard]] std::vector<MessageDefinition::ConstPtr> cloneMessageDefs(const std::vector<MessageDefinition::ConstPtr>& source);
+
+// Deep-copy helpers for enum definitions. The default copy would alias the
+// source's enumerator strings via the `string_view`-keyed lookup maps; this
+// rebuilds those maps from the copied `enumerators` vector so the new
+// definition owns all of its storage.
+[[nodiscard]] EnumDefinition::Ptr cloneEnumDef(const EnumDefinition& source);
+[[nodiscard]] std::vector<EnumDefinition::ConstPtr> cloneEnumDefs(const std::vector<EnumDefinition::ConstPtr>& source);
+
 //============================================================================
 //! \class PyMessageDatabase
 //! \brief A Python-facing message database that owns a MessageDatabase, the

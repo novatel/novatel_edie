@@ -202,6 +202,12 @@ struct EnumDataType
     uint32_t value{0};
     std::string name;
     std::string description;
+
+    [[nodiscard]] bool operator==(const EnumDataType& other) const
+    {
+        return value == other.value && name == other.name && description == other.description;
+    }
+    [[nodiscard]] bool operator!=(const EnumDataType& other) const { return !(*this == other); }
 };
 
 //-----------------------------------------------------------------------
@@ -232,6 +238,12 @@ struct BaseDataType
     DATA_TYPE name{DATA_TYPE::UNKNOWN};
     uint16_t length{0};
     std::string description;
+
+    [[nodiscard]] bool operator==(const BaseDataType& other) const
+    {
+        return name == other.name && length == other.length && description == other.description;
+    }
+    [[nodiscard]] bool operator!=(const BaseDataType& other) const { return !(*this == other); }
 };
 
 //-----------------------------------------------------------------------
@@ -242,6 +254,9 @@ struct BaseDataType
 struct SimpleDataType : BaseDataType
 {
     std::unordered_map<int32_t, EnumDataType> enums;
+
+    [[nodiscard]] bool operator==(const SimpleDataType& other) const { return BaseDataType::operator==(other) && enums == other.enums; }
+    [[nodiscard]] bool operator!=(const SimpleDataType& other) const { return !(*this == other); }
 };
 
 //-----------------------------------------------------------------------
@@ -273,6 +288,37 @@ struct BaseField
     }
 
     virtual ~BaseField() = default;
+
+    //----------------------------------------------------------------------------
+    //! \brief Structural equality. Returns true when `other` has the same
+    //! runtime type and every visible field compares equal.
+    //
+    //! `EnumField::enumDef` is intentionally not part of the comparison —
+    //! it's a cache derived from `enumId`, and we want two `EnumField`
+    //! instances that name the same enum to compare equal regardless of
+    //! which database happens to have resolved their cache pointer.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] bool operator==(const BaseField& other) const { return typeid(*this) == typeid(other) && equalsImpl(other); }
+
+    [[nodiscard]] bool operator!=(const BaseField& other) const { return !(*this == other); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Produce a deep copy of this field definition.
+    //
+    //! Subclasses must override to preserve their runtime type. The base
+    //! implementation copy-constructs a plain `BaseField` and is correct only
+    //! for `FIELD_TYPE`s that don't have a subclass (`SIMPLE`, `STRING`,
+    //! `RESPONSE_ID`, `RESPONSE_STR`, `BITFIELD`, `RXCONFIG_*`, `UNKNOWN`).
+    //
+    //! `FieldArrayField::clone()` recursively deep-copies its nested `fields`
+    //! vector so the resulting tree shares no `shared_ptr<BaseField>` storage
+    //! with the source.
+    //
+    //! `EnumField::enumDef` and other `*Definition::ConstPtr` members are
+    //! shallow-copied: those entities are treated as immutable values, so
+    //! sharing the pointer is safe.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual std::shared_ptr<BaseField> clone() const { return std::make_shared<BaseField>(*this); }
 
     void SetConversion(std::string&& sConversion_)
     {
@@ -312,6 +358,19 @@ struct BaseField
 
     using Ptr = std::shared_ptr<BaseField>;
     using ConstPtr = std::shared_ptr<const BaseField>;
+
+  protected:
+    //----------------------------------------------------------------------------
+    //! \brief Virtual hook used by `operator==` after a runtime-type match.
+    //! Subclasses override to compare their own members in addition to the
+    //! base class fields.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual bool equalsImpl(const BaseField& other) const
+    {
+        return name == other.name && type == other.type && description == other.description && conversion == other.conversion
+               && conversionHash == other.conversionHash && width == other.width && precision == other.precision && isString == other.isString
+               && isCsv == other.isCsv && dataType == other.dataType;
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -324,8 +383,18 @@ struct EnumField : BaseField
     EnumDefinition::ConstPtr enumDef{nullptr};
     uint32_t length{0};
 
+    [[nodiscard]] std::shared_ptr<BaseField> clone() const override { return std::make_shared<EnumField>(*this); }
+
     using Ptr = std::shared_ptr<EnumField>;
     using ConstPtr = std::shared_ptr<const EnumField>;
+
+  protected:
+    [[nodiscard]] bool equalsImpl(const BaseField& other) const override
+    {
+        if (!BaseField::equalsImpl(other)) { return false; }
+        const auto& o = static_cast<const EnumField&>(other);
+        return enumId == o.enumId && length == o.length;
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -338,8 +407,18 @@ struct ArrayField : BaseField
     std::string arrayLengthRef;
     uint8_t arrayLengthFieldSize{0}; // in bytes, only for variable-length and field arrays
 
+    [[nodiscard]] std::shared_ptr<BaseField> clone() const override { return std::make_shared<ArrayField>(*this); }
+
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;
+
+  protected:
+    [[nodiscard]] bool equalsImpl(const BaseField& other) const override
+    {
+        if (!BaseField::equalsImpl(other)) { return false; }
+        const auto& o = static_cast<const ArrayField&>(other);
+        return arrayLength == o.arrayLength && arrayLengthRef == o.arrayLengthRef && arrayLengthFieldSize == o.arrayLengthFieldSize;
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -351,8 +430,33 @@ struct FieldArrayField : ArrayField
     uint32_t fieldSize{0};
     std::vector<std::shared_ptr<BaseField>> fields;
 
+    [[nodiscard]] std::shared_ptr<BaseField> clone() const override
+    {
+        auto copy = std::make_shared<FieldArrayField>(*this);
+        for (auto& sub : copy->fields) { sub = sub->clone(); }
+        return copy;
+    }
+
     using Ptr = std::shared_ptr<FieldArrayField>;
     using ConstPtr = std::shared_ptr<const FieldArrayField>;
+
+  protected:
+    [[nodiscard]] bool equalsImpl(const BaseField& other) const override
+    {
+        if (!ArrayField::equalsImpl(other)) { return false; }
+        const auto& o = static_cast<const FieldArrayField&>(other);
+        if (fieldSize != o.fieldSize) { return false; }
+        if (fields.size() != o.fields.size()) { return false; }
+        for (size_t i = 0; i < fields.size(); ++i)
+        {
+            if (!fields[i] || !o.fields[i])
+            {
+                if (fields[i] != o.fields[i]) { return false; }
+            }
+            else if (*fields[i] != *o.fields[i]) { return false; }
+        }
+        return true;
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -385,6 +489,39 @@ struct MessageDefinition
     uint32_t latestMessageCrc{0};
 
     const std::vector<BaseField::Ptr>& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Structural equality. Two `MessageDefinition`s compare equal if
+    //! every scalar field matches and every `BaseField::Ptr` in `fields`
+    //! dereferences to a structurally-equal field. Pointer identity is not
+    //! required, so a deep-copied definition compares equal to its source.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] bool operator==(const MessageDefinition& other) const
+    {
+        if (_id != other._id || logID != other.logID || name != other.name || description != other.description
+            || messageStyle != other.messageStyle || latestMessageCrc != other.latestMessageCrc || fields.size() != other.fields.size())
+        {
+            return false;
+        }
+        for (const auto& [crc, fieldVec] : fields)
+        {
+            auto it = other.fields.find(crc);
+            if (it == other.fields.end()) { return false; }
+            const auto& otherVec = it->second;
+            if (fieldVec.size() != otherVec.size()) { return false; }
+            for (size_t i = 0; i < fieldVec.size(); ++i)
+            {
+                if (!fieldVec[i] || !otherVec[i])
+                {
+                    if (fieldVec[i] != otherVec[i]) { return false; }
+                }
+                else if (*fieldVec[i] != *otherVec[i]) { return false; }
+            }
+        }
+        return true;
+    }
+
+    [[nodiscard]] bool operator!=(const MessageDefinition& other) const { return !(*this == other); }
 
     using Ptr = std::shared_ptr<MessageDefinition>;
     using ConstPtr = std::shared_ptr<const MessageDefinition>;

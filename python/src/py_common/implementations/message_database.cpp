@@ -97,16 +97,71 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
     AppendMessageTypes(other_->core_->MessageDefinitions());
 }
 
+// Deep-copies a message definition. The underlying MessageDatabase::AppendMessages
+// writes through `EnumField::enumDef` via MapMessageEnumFields; without an owned
+// copy that mutation corrupts the source database's shared field defs.
+// `get_msg_def` returns a clone for the same reason: handing the caller a pointer
+// into our internal storage lets them mutate our state (directly, or by appending
+// the def into another database). Python-bound databases are the only callers
+// that legitimately share defs across databases, so the duplication lives here
+// rather than in the C++ base class.
+PYCOMMON_EXPORT MessageDefinition::Ptr py_common::cloneMessageDef(const MessageDefinition& source)
+{
+    auto copy = std::make_shared<MessageDefinition>(source);
+    for (auto& [_crc, fields] : copy->fields)
+    {
+        for (auto& field : fields) { field = field->clone(); }
+    }
+    return copy;
+}
+
+PYCOMMON_EXPORT std::vector<MessageDefinition::ConstPtr> py_common::cloneMessageDefs(const std::vector<MessageDefinition::ConstPtr>& source)
+{
+    std::vector<MessageDefinition::ConstPtr> copies;
+    copies.reserve(source.size());
+    for (const auto& msgDef : source) { copies.push_back(cloneMessageDef(*msgDef)); }
+    return copies;
+}
+
+PYCOMMON_EXPORT EnumDefinition::Ptr py_common::cloneEnumDef(const EnumDefinition& source)
+{
+    auto copy = std::make_shared<EnumDefinition>();
+    copy->_id = source._id;
+    copy->name = source.name;
+    copy->enumerators = source.enumerators;
+    copy->unknownValue = source.unknownValue;
+    // Rebuild the string_view-keyed lookup maps against the copied enumerators
+    // vector so the new definition owns all of its storage (the source's
+    // string_views point into the source's enumerator strings).
+    for (const auto& enumerator : copy->enumerators)
+    {
+        copy->nameValue[enumerator.name] = enumerator.value;
+        copy->valueName[enumerator.value] = enumerator.name;
+        copy->descriptionValue[enumerator.description] = enumerator.value;
+    }
+    return copy;
+}
+
+PYCOMMON_EXPORT std::vector<EnumDefinition::ConstPtr> py_common::cloneEnumDefs(const std::vector<EnumDefinition::ConstPtr>& source)
+{
+    std::vector<EnumDefinition::ConstPtr> copies;
+    copies.reserve(source.size());
+    for (const auto& enumDef : source) { copies.push_back(cloneEnumDef(*enumDef)); }
+    return copies;
+}
+
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
 {
-    core_->AppendMessages(vMessageDefinitions_);
-    AppendMessageTypes(vMessageDefinitions_);
+    auto owned = py_common::cloneMessageDefs(vMessageDefinitions_);
+    core_->AppendMessages(owned);
+    AppendMessageTypes(owned);
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
 {
-    core_->AppendEnumerations(vEnumDefinitions_);
-    AppendEnumTypes(vEnumDefinitions_);
+    auto owned = py_common::cloneEnumDefs(vEnumDefinitions_);
+    core_->AppendEnumerations(owned);
+    AppendEnumTypes(owned);
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessage(uint32_t iMsgId_)
@@ -121,7 +176,30 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumeration(std::string
     core_->RemoveEnumeration(strEnumeration_);
 }
 
-PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::clone() const { return Create(MessageDatabase(*core_)); }
+PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::clone() const
+{
+    // Build a new wrapper around a shallow copy of the C++ database — same
+    // MessageDefinition / EnumDefinition / BaseField pointers, just a different
+    // MessageDatabase instance.
+    PyMessageDatabase::Ptr db(new PyMessageDatabase(MessageDatabase(*core_)));
+    nb::object wrapper = nb::cast(db);
+    db->ResolveBaseType();
+    // Share the Python type caches with the source. Map keys are raw pointers
+    // into the shared core_, so the same keys identify the same defs in either
+    // database. The dynamic Python types' `_owner_db` attr still points at the
+    // source, which is fine: the type belongs to whichever DB built it, and
+    // GetMessageTypeLookup works on either map.
+    db->messages_types = messages_types;
+    db->field_types = field_types;
+    db->enum_types = enum_types;
+    db->field_name_maps_ = field_name_maps_;
+    db->message_field_name_maps_ = message_field_name_maps_;
+    db->message_type_lookup_ = message_type_lookup_;
+    db->field_type_lookup_ = field_type_lookup_;
+    db->enum_type_lookup_ = enum_type_lookup_;
+    db->allocateExtras();
+    return wrapper;
+}
 
 static void cleanString(std::string& str)
 {
