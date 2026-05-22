@@ -114,11 +114,8 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vec
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
 {
-    std::vector<EnumDefinition::ConstPtr> owned;
-    owned.reserve(vEnumDefinitions_.size());
-    for (const auto& enumDef : vEnumDefinitions_) { owned.push_back(std::make_shared<EnumDefinition>(*enumDef)); }
-    core_->AppendEnumerations(owned);
-    AppendEnumTypes(owned);
+    core_->AppendEnumerations(vEnumDefinitions_);
+    AppendEnumTypes(vEnumDefinitions_);
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessage(uint32_t iMsgId_)

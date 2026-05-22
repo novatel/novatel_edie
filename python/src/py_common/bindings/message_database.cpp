@@ -100,9 +100,9 @@ void py_common::init_common_message_database(nb::module_& m)
 
     nb::class_<EnumDataType>(m, "EnumDataType", "Enum Data Type representing contents of UI DB")
         .def(nb::init())
-        .def_rw("value", &EnumDataType::value)
-        .def_rw("name", &EnumDataType::name)
-        .def_rw("description", &EnumDataType::description)
+        .def_ro("value", &EnumDataType::value)
+        .def_ro("name", &EnumDataType::name)
+        .def_ro("description", &EnumDataType::description)
         .def("__eq__", [](const EnumDataType& self, const EnumDataType& other) { return self == other; })
         .def("__repr__", [](const EnumDataType& enum_data_type) {
             if (enum_data_type.description.empty())
@@ -113,9 +113,9 @@ void py_common::init_common_message_database(nb::module_& m)
 
     nb::class_<EnumDefinition>(m, "EnummeratorDefinition", "Enum Definition representing contents of UI DB")
         .def(nb::init())
-        .def_rw("id", &EnumDefinition::_id)
-        .def_rw("name", &EnumDefinition::name)
-        .def_rw("enumerators", &EnumDefinition::enumerators)
+        .def_ro("id", &EnumDefinition::_id)
+        .def_ro("name", &EnumDefinition::name)
+        .def_ro("enumerators", &EnumDefinition::enumerators)
         .def("__repr__", [](const EnumDefinition& enum_def) {
             return nb::str("EnumDefinition(id={!r}, name={!r}, enumerators={!r})").format(enum_def._id, enum_def.name, enum_def.enumerators);
         });
@@ -169,7 +169,7 @@ void py_common::init_common_message_database(nb::module_& m)
             },
             "name"_a, "enumerators"_a)
         .def_rw("enum_id", &EnumField::enumId)
-        .def_rw("enum_def", &EnumField::enumDef)
+        .def_ro("enum_def", &EnumField::enumDef)
         .def_rw("length", &EnumField::length)
         .def("__repr__", [](const EnumField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
@@ -245,27 +245,9 @@ void py_common::init_common_message_database(nb::module_& m)
                 return def ? std::make_shared<MessageDefinition>(*def) : nullptr;
             },
             "msg_id"_a)
-        .def(
-            "get_enum_def",
-            [](const py_common::PyMessageDatabase& self, const std::string& enum_id) -> EnumDefinition::ConstPtr {
-                auto def = self.GetEnumDefId(enum_id);
-                return def ? std::make_shared<EnumDefinition>(*def) : nullptr;
-            },
-            "enum_id"_a)
-        .def(
-            "get_enum_def_by_id",
-            [](const py_common::PyMessageDatabase& self, const std::string& enum_id) -> EnumDefinition::ConstPtr {
-                auto def = self.GetEnumDefId(enum_id);
-                return def ? std::make_shared<EnumDefinition>(*def) : nullptr;
-            },
-            "enum_id"_a)
-        .def(
-            "get_enum_def_by_name",
-            [](const py_common::PyMessageDatabase& self, const std::string& enum_name) -> EnumDefinition::ConstPtr {
-                auto def = self.GetEnumDefName(enum_name);
-                return def ? std::make_shared<EnumDefinition>(*def) : nullptr;
-            },
-            "enum_name"_a)
+        .def("get_enum_def", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
+        .def("get_enum_def_by_id", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
+        .def("get_enum_def_by_name", &py_common::PyMessageDatabase::GetEnumDefName, "enum_name"_a)
         .def(
             "get_msg_type", [](py_common::PyMessageDatabase& self, std::string name) { return self.GetMessageType(name); }, "name"_a)
         .def(
