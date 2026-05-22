@@ -634,38 +634,36 @@ template <typename Derived> class EncoderBase
     }
 
     template <typename T>
-    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const T* val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
+    [[nodiscard]] bool FieldToAscii(const BaseField::ConstPtr& fd_, const T val_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
     {
-        if (val_ == nullptr) { return false; }
-
         if constexpr (std::is_arithmetic_v<T>)
         {
             if (fd_->type == FIELD_TYPE::ENUM)
             {
                 auto enumFieldPtr = dynamic_cast<const EnumField*>(fd_.get());
                 if (!enumFieldPtr) return false;
-                return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(*val_)));
+                return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumFieldPtr->enumDef, static_cast<uint32_t>(val_)));
             }
 
             switch (fd_->dataType.name)
             {
-            case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::string_view(static_cast<bool>(*val_) ? "TRUE" : "FALSE"));
-            case DATA_TYPE::HEXBYTE: return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint8_t>(*val_), 2);
-            case DATA_TYPE::UCHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint8_t>(*val_));
-            case DATA_TYPE::CHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(*val_));
-            case DATA_TYPE::USHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint16_t>(*val_));
-            case DATA_TYPE::SHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int16_t>(*val_));
-            case DATA_TYPE::UINT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint32_t>(*val_));
-            case DATA_TYPE::INT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(*val_));
-            case DATA_TYPE::ULONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint32_t>(*val_));
-            case DATA_TYPE::ULONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint64_t>(*val_));
-            case DATA_TYPE::LONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(*val_));
-            case DATA_TYPE::LONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int64_t>(*val_));
+            case DATA_TYPE::BOOL: return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, std::string_view(static_cast<bool>(val_) ? "TRUE" : "FALSE"));
+            case DATA_TYPE::HEXBYTE: return WriteHexToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint8_t>(val_), 2);
+            case DATA_TYPE::UCHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint8_t>(val_));
+            case DATA_TYPE::CHAR: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int8_t>(val_));
+            case DATA_TYPE::USHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint16_t>(val_));
+            case DATA_TYPE::SHORT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int16_t>(val_));
+            case DATA_TYPE::UINT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint32_t>(val_));
+            case DATA_TYPE::INT: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(val_));
+            case DATA_TYPE::ULONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint32_t>(val_));
+            case DATA_TYPE::ULONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<uint64_t>(val_));
+            case DATA_TYPE::LONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int32_t>(val_));
+            case DATA_TYPE::LONGLONG: return WriteIntToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<int64_t>(val_));
             case DATA_TYPE::FLOAT:
-                return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<float>(*val_), FloatingPointFormat(*fd_, static_cast<float>(*val_)),
+                return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<float>(val_), FloatingPointFormat(*fd_, static_cast<float>(val_)),
                                           fd_->precision);
             case DATA_TYPE::DOUBLE:
-                return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<double>(*val_), FloatingPointFormat(*fd_, static_cast<double>(*val_)),
+                return WriteFloatToBuffer(ppcOutBuf_, uiBytesLeft_, static_cast<double>(val_), FloatingPointFormat(*fd_, static_cast<double>(val_)),
                                           fd_->precision);
             default: SPDLOG_LOGGER_CRITICAL(pclMyLogger, "FieldToAscii(): unknown type."); throw std::runtime_error("FieldToAscii(): unknown type.");
             }
@@ -678,7 +676,7 @@ template <typename Derived> class EncoderBase
     {
         constexpr char separator = Abbreviated ? Derived::separatorAbbAscii : Derived::separatorAscii;
 
-        const auto& it = asciiFieldMap.find(fd_->conversionHash);
+        auto it = asciiFieldMap.end();
 
         if (fd_->isString && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, '"')) { return false; }
 
@@ -727,24 +725,33 @@ template <typename Derived> class EncoderBase
                                 }
                             }
 
+                            if (i == 0) { it = asciiFieldMap.find(fd_->conversionHash); }
                             if (it != asciiFieldMap.end())
                             {
                                 if (!it->second(fd_, element, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb)) { return false; }
                             }
-                            else if (!FieldToAscii(fd_, &element, ppcOutBuf_, uiBytesLeft_)) { return false; }
+                            else if (!FieldToAscii(fd_, element, ppcOutBuf_, uiBytesLeft_)) { return false; }
                             if (fd_->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)) { return false; }
                         }
                     }
                     else { throw std::runtime_error("FieldToAscii: unsupported type for array"); }
                     break;
+                case FIELD_TYPE::ENUM:
+                    if (!FieldToAscii(fd_, fieldValue, ppcOutBuf_, uiBytesLeft_) ||
+                        (fd_->isCsv && !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator)))
+                    {
+                        return false;
+                    }
+                    break;
                 default:
                     if constexpr (is_specialization_of_v<ValueType, std::vector>) { return false; }
 
+                    it = asciiFieldMap.find(fd_->conversionHash);
                     if (it != asciiFieldMap.end())
                     {
                         if (!it->second(fd_, fieldValue, ppcOutBuf_, uiBytesLeft_, *pclMyMsgDb)) { return false; }
                     }
-                    else if (!FieldToAscii(fd_, &fieldValue, ppcOutBuf_, uiBytesLeft_)) { return false; }
+                    else if (!FieldToAscii(fd_, fieldValue, ppcOutBuf_, uiBytesLeft_)) { return false; }
 
                     return CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator);
                 }
