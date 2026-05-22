@@ -291,7 +291,8 @@ template <typename Derived> class EncoderBase
 
         for (const auto& fieldDef : fieldDefinitions_)
         {
-            auto align = fMyAlignmentFunc(fieldDef->dataType.length, reinterpret_cast<uintptr_t>(startBuf), reinterpret_cast<uintptr_t>(*ppucOutBuf_));
+            auto align =
+                fMyAlignmentFunc(fieldDef->dataType.length, reinterpret_cast<uintptr_t>(startBuf), reinterpret_cast<uintptr_t>(*ppucOutBuf_));
             if (align > uiBytesLeft_) { return false; }
             *ppucOutBuf_ += align;
             uiBytesLeft_ -= static_cast<uint32_t>(align);
@@ -312,7 +313,8 @@ template <typename Derived> class EncoderBase
                 // Write array length
                 if (arrayFieldDef->arrayLengthRef.empty())
                 {
-                    align = fMyAlignmentFunc(arrayFieldDef->arrayLengthFieldSize, reinterpret_cast<uintptr_t>(startBuf), reinterpret_cast<uintptr_t>(*ppucOutBuf_));
+                    align = fMyAlignmentFunc(arrayFieldDef->arrayLengthFieldSize, reinterpret_cast<uintptr_t>(startBuf),
+                                             reinterpret_cast<uintptr_t>(*ppucOutBuf_));
                     if (align > uiBytesLeft_) { return false; }
                     *ppucOutBuf_ += align;
                     uiBytesLeft_ -= static_cast<uint32_t>(align);

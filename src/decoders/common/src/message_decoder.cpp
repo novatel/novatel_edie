@@ -393,7 +393,8 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 auto& vFieldArrayContainer = std::get<std::vector<MessageBody>>(vIntermediateFormat_.GetVarFields()[field->index]);
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
-                    *ppucLogBuf_ += fMyAlignmentFunc(fieldTypeLength, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
+                    *ppucLogBuf_ +=
+                        fMyAlignmentFunc(fieldTypeLength, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
                     vFieldArrayContainer[i] =
                         MessageBody(subFieldDefinitions->fieldInfo.fixedFieldBytes, subFieldDefinitions->fieldInfo.varFieldCount);
                     STATUS eStatus = DecodeBinary(subFieldDefinitions->fieldInfo, ppucLogBuf_, vFieldArrayContainer[i],
@@ -915,30 +916,23 @@ STATUS
 MessageDecoderBase::Decode(const unsigned char* pucMessage_, MessageBody& stInterMessage_, MetaDataBase& stMetaData_) const
 {
     if (pucMessage_ == nullptr) { return STATUS::NULL_PROVIDED; }
+    if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     const unsigned char* pucTempInData = pucMessage_;
-    MessageDefinition::ConstPtr pclMsgDef = nullptr;
-    if (stMetaData_.bResponse)
+
+    if (stMetaData_.bResponse && (stMetaData_.eFormat != HEADER_FORMAT::BINARY && stMetaData_.eFormat != HEADER_FORMAT::SHORT_BINARY &&
+                                  stMetaData_.eFormat != HEADER_FORMAT::ASCII && stMetaData_.eFormat != HEADER_FORMAT::SHORT_ASCII &&
+                                  stMetaData_.eFormat != HEADER_FORMAT::ABB_ASCII && stMetaData_.eFormat != HEADER_FORMAT::SHORT_ABB_ASCII))
     {
-        if (stMetaData_.eFormat != HEADER_FORMAT::BINARY && stMetaData_.eFormat != HEADER_FORMAT::SHORT_BINARY &&
-            stMetaData_.eFormat != HEADER_FORMAT::ASCII && stMetaData_.eFormat != HEADER_FORMAT::SHORT_ASCII &&
-            stMetaData_.eFormat != HEADER_FORMAT::ABB_ASCII && stMetaData_.eFormat != HEADER_FORMAT::SHORT_ABB_ASCII)
-        {
-            return STATUS::NO_DEFINITION;
-        }
-        pclMsgDef = pclMyMsgDb != nullptr ? pclMyMsgDb->GetResponseDefinition() : nullptr;
+        return STATUS::NO_DEFINITION;
     }
-    else
+
+    MessageDefinition::ConstPtr pclMsgDef = GetMessageDefinition(stMetaData_);
+
+    if (pclMsgDef == nullptr)
     {
-        if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
-
-        pclMsgDef = pclMyMsgDb->GetMsgDef(stMetaData_.usMessageId);
-
-        if (pclMsgDef == nullptr)
-        {
-            SPDLOG_LOGGER_INFO(pclMyLogger, "No log definition for ID {}", stMetaData_.usMessageId);
-            return STATUS::NO_DEFINITION;
-        }
+        SPDLOG_LOGGER_INFO(pclMyLogger, "No log definition for ID {}", stMetaData_.usMessageId);
+        return STATUS::NO_DEFINITION;
     }
 
     if (stMetaData_.messageName == "RXCONFIG")
@@ -949,7 +943,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, MessageBody& stInte
     const FieldInfo& msgFieldInfo = stMetaData_.bResponse ? pclMsgDef->fieldInfo.at(0) : pclMsgDef->GetMsgDefFromCrc(stMetaData_.uiMessageCrc);
 
     stInterMessage_ = MessageBody(msgFieldInfo.fixedFieldBytes, msgFieldInfo.varFieldCount);
-    stInterMessage_.SetDefinition(pclMsgDef, stMetaData_.bResponse ? std::nullopt : std::optional<uint32_t>(stMetaData_.uiMessageCrc));
+    stInterMessage_.SetDefinition(pclMsgDef, std::optional<uint32_t>(stMetaData_.bResponse ? 0 : stMetaData_.uiMessageCrc));
 
     // Decode the detected format
     switch (stMetaData_.eFormat)

@@ -38,6 +38,8 @@ namespace novatel::edie::oem {
 class MessageDecoder : public MessageDecoderBase
 {
   private:
+    mutable MessageDefinition::ConstPtr pResponseDefinition;
+
     void InitOemFieldMaps();
 
     //----------------------------------------------------------------------------
@@ -55,6 +57,15 @@ class MessageDecoder : public MessageDecoderBase
         auto offset = static_cast<uintptr_t>(*ptr - start) % 4;
         if (offset != 0) { *ptr += 4 - offset; }
     }
+
+    //----------------------------------------------------------------------------
+    //! \brief Get the message definition corresponding to the given metadata.
+    //!     Returns an artificial response definition if stMetaData.isResponse.
+    //
+    //! \param[in] stMetaData_ The metadata containing the message ID to look up.
+    //! \return A pointer to the definition.
+    //----------------------------------------------------------------------------
+    MessageDefinition::ConstPtr GetMessageDefinition(MetaDataBase& stMetaData_) const override;
 
   public:
     //----------------------------------------------------------------------------
