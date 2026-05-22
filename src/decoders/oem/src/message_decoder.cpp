@@ -229,3 +229,52 @@ void MessageDecoder::InitOemFieldMaps()
         else { vIntermediateFormat_.SetFieldElement<false>(pstMessageDataType_->index, elementIndex_, value); }
     };
 }
+
+novatel::edie::MessageDefinition::ConstPtr MessageDecoder::GetMessageDefinition(MetaDataBase& stMetaData_) const
+{
+    if (stMetaData_.bResponse)
+    {
+        if (pResponseDefinition != nullptr) { return pResponseDefinition; }
+
+        auto responseDefinition = std::make_shared<MessageDefinition>();
+        responseDefinition->name = "response";
+
+        auto responsesEnum = pclMyMsgDb->GetEnumDefName("Responses");
+
+        SimpleDataType responseIdDataType;
+        responseIdDataType.description = "Response as numerical id";
+        responseIdDataType.length = 4;
+        responseIdDataType.name = DATA_TYPE::UINT;
+
+        auto responseIdField = std::make_shared<EnumField>();
+        responseIdField->name = "response_id";
+        responseIdField->type = FIELD_TYPE::RESPONSE_ID;
+        responseIdField->dataType = responseIdDataType;
+        responseIdField->index = 0;
+        responseIdField->length = 4;
+        if (responsesEnum != nullptr) { responseIdField->enumId = responsesEnum->_id; }
+        responseIdField->enumDef = responsesEnum;
+
+        SimpleDataType responseStrDataType;
+        responseStrDataType.description = "Response as a string";
+        responseStrDataType.length = 1;
+        responseStrDataType.name = DATA_TYPE::CHAR;
+
+        auto responseStrField = std::make_shared<BaseField>();
+        responseStrField->name = "response_str";
+        responseStrField->type = FIELD_TYPE::RESPONSE_STR;
+        responseStrField->dataType = responseStrDataType;
+        responseStrField->index = 0;
+
+        auto& responseFieldInfo = responseDefinition->fieldInfo[0]; // Responses do not use definition CRCs.
+        responseFieldInfo.fixedFieldBytes = sizeof(uint32_t);
+        responseFieldInfo.varFieldCount = 1;
+        responseFieldInfo.messageOrderedFields = {responseIdField, responseStrField};
+        responseFieldInfo.fieldNameToDef[responseIdField->name] = responseIdField;
+        responseFieldInfo.fieldNameToDef[responseStrField->name] = responseStrField;
+
+        pResponseDefinition = responseDefinition;
+        return pResponseDefinition;
+    }
+    return MessageDecoderBase::GetMessageDefinition(stMetaData_);
+}

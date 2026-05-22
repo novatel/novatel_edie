@@ -414,23 +414,19 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
 
     unsigned char* pucTempEncodeBuffer = *ppucBuffer_;
 
-    const bool isResponse = (stHeader_.ucMessageType & static_cast<uint8_t>(MESSAGE_TYPE_MASK::RESPONSE)) != 0;
+    const auto* pMessageDef = stMessage_.GetDefinition().get();
+    const auto findFieldDefinitions = [&](uint32_t defCrc) -> const std::vector<BaseField::ConstPtr>* {
+        const auto it = pMessageDef->fieldInfo.find(defCrc);
+        return it != pMessageDef->fieldInfo.end() ? &it->second.messageOrderedFields : nullptr;
+    };
 
-    // Keep ownership only when we must fetch fallback response definition.
-    // Non-response messages use stMessage_ definition directly with no shared_ptr copy.
-    MessageDefinition::ConstPtr pclResponseDefinition;
-    const MessageDefinition* pclMessageDefinition = stMessage_.GetDefinition().get();
-
-    if (isResponse && pclMessageDefinition == nullptr)
+    const std::vector<BaseField::ConstPtr>* fieldDefinitions =
+        stMessage_.GetDefinitionCrc().has_value() ? findFieldDefinitions(stMessage_.GetDefinitionCrc().value()) : nullptr;
+    if (fieldDefinitions == nullptr)
     {
-        pclResponseDefinition = pclMyMsgDb->GetResponseDefinition();
-        pclMessageDefinition = pclResponseDefinition.get();
+        fieldDefinitions = findFieldDefinitions(pMessageDef->latestMessageCrc);
+        if (fieldDefinitions == nullptr) { return STATUS::NO_DEFINITION; }
     }
-
-    if (pclMessageDefinition == nullptr) { return STATUS::NO_DEFINITION; }
-
-    const auto& fieldDefinitions = isResponse ? pclMessageDefinition->fieldInfo.at(0).messageOrderedFields
-                                              : pclMessageDefinition->GetMsgDefFromCrc(stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
 
     if (eFormat_ == ENCODE_FORMAT::JSON)
     {
@@ -442,8 +438,8 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, "<")) { return STATUS::BUFFER_FULL; }
         stMessageData_.uiMessageHeaderLength = 1;
 
-        if (fieldDefinitions.size() <= 1) { return STATUS::MALFORMED_INPUT; }
-        auto sResponse = std::get<std::string>(stMessage_.GetFieldValue(*fieldDefinitions.at(1)));
+        if (fieldDefinitions->size() <= 1) { return STATUS::MALFORMED_INPUT; }
+        auto sResponse = std::get<std::string>(stMessage_.GetFieldValue(*fieldDefinitions->at(1)));
         if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, sResponse.c_str())) { return STATUS::BUFFER_FULL; }
         if (!CopyToBuffer(reinterpret_cast<char**>(&pucTempEncodeBuffer), uiBufferSize_, "\r\n")) { return STATUS::BUFFER_FULL; }
         stMessageData_.pucMessage = *ppucBuffer_;
@@ -462,7 +458,7 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
         if (!CopyToBuffer(&pucTempEncodeBuffer, uiBufferSize_, R"(,"body": )")) { return STATUS::BUFFER_FULL; }
     }
 
-    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, fieldDefinitions, stMessageData_, eHeaderFormat_, eFormat_);
+    eStatus = EncodeBody(&pucTempEncodeBuffer, uiBufferSize_, stMessage_, *fieldDefinitions, stMessageData_, eHeaderFormat_, eFormat_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
 
     pucTempEncodeBuffer += stMessageData_.uiMessageBodyLength;
