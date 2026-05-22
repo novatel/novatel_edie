@@ -97,69 +97,26 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
     AppendMessageTypes(other_->core_->MessageDefinitions());
 }
 
-// Deep-copies a message definition. The underlying MessageDatabase::AppendMessages
-// writes through `EnumField::enumDef` via MapMessageEnumFields; without an owned
-// copy that mutation corrupts the source database's shared field defs.
-// `get_msg_def` returns a clone for the same reason: handing the caller a pointer
-// into our internal storage lets them mutate our state (directly, or by appending
-// the def into another database). Python-bound databases are the only callers
-// that legitimately share defs across databases, so the duplication lives here
-// rather than in the C++ base class.
-PYCOMMON_EXPORT MessageDefinition::Ptr py_common::cloneMessageDef(const MessageDefinition& source)
-{
-    auto copy = std::make_shared<MessageDefinition>(source);
-    for (auto& [_crc, fields] : copy->fields)
-    {
-        for (auto& field : fields) { field = field->clone(); }
-    }
-    return copy;
-}
-
-PYCOMMON_EXPORT std::vector<MessageDefinition::ConstPtr> py_common::cloneMessageDefs(const std::vector<MessageDefinition::ConstPtr>& source)
-{
-    std::vector<MessageDefinition::ConstPtr> copies;
-    copies.reserve(source.size());
-    for (const auto& msgDef : source) { copies.push_back(cloneMessageDef(*msgDef)); }
-    return copies;
-}
-
-PYCOMMON_EXPORT EnumDefinition::Ptr py_common::cloneEnumDef(const EnumDefinition& source)
-{
-    auto copy = std::make_shared<EnumDefinition>();
-    copy->_id = source._id;
-    copy->name = source.name;
-    copy->enumerators = source.enumerators;
-    copy->unknownValue = source.unknownValue;
-    // Rebuild the string_view-keyed lookup maps against the copied enumerators
-    // vector so the new definition owns all of its storage (the source's
-    // string_views point into the source's enumerator strings).
-    for (const auto& enumerator : copy->enumerators)
-    {
-        copy->nameValue[enumerator.name] = enumerator.value;
-        copy->valueName[enumerator.value] = enumerator.name;
-        copy->descriptionValue[enumerator.description] = enumerator.value;
-    }
-    return copy;
-}
-
-PYCOMMON_EXPORT std::vector<EnumDefinition::ConstPtr> py_common::cloneEnumDefs(const std::vector<EnumDefinition::ConstPtr>& source)
-{
-    std::vector<EnumDefinition::ConstPtr> copies;
-    copies.reserve(source.size());
-    for (const auto& enumDef : source) { copies.push_back(cloneEnumDef(*enumDef)); }
-    return copies;
-}
-
+// Why clone on the way in:
+// MessageDatabase::AppendMessages writes through `EnumField::enumDef` via
+// MapMessageEnumFields; without an owned copy that mutation corrupts the
+// source database's shared field defs. Python is the only client that
+// legitimately reuses a def across databases, so the duplication is paid here
+// rather than inside the C++ AppendMessages.
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
 {
-    auto owned = py_common::cloneMessageDefs(vMessageDefinitions_);
+    std::vector<MessageDefinition::ConstPtr> owned;
+    owned.reserve(vMessageDefinitions_.size());
+    for (const auto& msgDef : vMessageDefinitions_) { owned.push_back(std::make_shared<MessageDefinition>(*msgDef)); }
     core_->AppendMessages(owned);
     AppendMessageTypes(owned);
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
 {
-    auto owned = py_common::cloneEnumDefs(vEnumDefinitions_);
+    std::vector<EnumDefinition::ConstPtr> owned;
+    owned.reserve(vEnumDefinitions_.size());
+    for (const auto& enumDef : vEnumDefinitions_) { owned.push_back(std::make_shared<EnumDefinition>(*enumDef)); }
     core_->AppendEnumerations(owned);
     AppendEnumTypes(owned);
 }

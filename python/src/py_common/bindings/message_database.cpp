@@ -235,35 +235,35 @@ void py_common::init_common_message_database(nb::module_& m)
             "get_msg_def",
             [](const py_common::PyMessageDatabase& self, std::string_view msg_name) -> MessageDefinition::ConstPtr {
                 auto def = self.GetMsgDef(msg_name);
-                return def ? py_common::cloneMessageDef(*def) : nullptr;
+                return def ? std::make_shared<MessageDefinition>(*def) : nullptr;
             },
             "msg_name"_a)
         .def(
             "get_msg_def",
             [](const py_common::PyMessageDatabase& self, int32_t msg_id) -> MessageDefinition::ConstPtr {
                 auto def = self.GetMsgDef(msg_id);
-                return def ? py_common::cloneMessageDef(*def) : nullptr;
+                return def ? std::make_shared<MessageDefinition>(*def) : nullptr;
             },
             "msg_id"_a)
         .def(
             "get_enum_def",
             [](const py_common::PyMessageDatabase& self, const std::string& enum_id) -> EnumDefinition::ConstPtr {
                 auto def = self.GetEnumDefId(enum_id);
-                return def ? py_common::cloneEnumDef(*def) : nullptr;
+                return def ? std::make_shared<EnumDefinition>(*def) : nullptr;
             },
             "enum_id"_a)
         .def(
             "get_enum_def_by_id",
             [](const py_common::PyMessageDatabase& self, const std::string& enum_id) -> EnumDefinition::ConstPtr {
                 auto def = self.GetEnumDefId(enum_id);
-                return def ? py_common::cloneEnumDef(*def) : nullptr;
+                return def ? std::make_shared<EnumDefinition>(*def) : nullptr;
             },
             "enum_id"_a)
         .def(
             "get_enum_def_by_name",
             [](const py_common::PyMessageDatabase& self, const std::string& enum_name) -> EnumDefinition::ConstPtr {
                 auto def = self.GetEnumDefName(enum_name);
-                return def ? py_common::cloneEnumDef(*def) : nullptr;
+                return def ? std::make_shared<EnumDefinition>(*def) : nullptr;
             },
             "enum_name"_a)
         .def(

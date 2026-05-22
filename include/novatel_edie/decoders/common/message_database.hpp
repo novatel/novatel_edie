@@ -226,6 +226,47 @@ struct EnumDefinition
 
     using Ptr = std::shared_ptr<EnumDefinition>;
     using ConstPtr = std::shared_ptr<const EnumDefinition>;
+
+    EnumDefinition() = default;
+    ~EnumDefinition() = default;
+
+    //----------------------------------------------------------------------------
+    //! \brief Deep copy. The lookup maps are rebuilt against the new
+    //! `enumerators` vector — a default copy would alias the source's
+    //! enumerator strings via the `string_view` keys, dangling once the source
+    //! is destroyed.
+    //----------------------------------------------------------------------------
+    EnumDefinition(const EnumDefinition& other) : _id(other._id), name(other.name), enumerators(other.enumerators), unknownValue(other.unknownValue)
+    {
+        for (const auto& enumerator : enumerators)
+        {
+            nameValue[enumerator.name] = enumerator.value;
+            valueName[enumerator.value] = enumerator.name;
+            descriptionValue[enumerator.description] = enumerator.value;
+        }
+    }
+
+    EnumDefinition& operator=(const EnumDefinition& other)
+    {
+        if (this == &other) { return *this; }
+        _id = other._id;
+        name = other.name;
+        enumerators = other.enumerators;
+        unknownValue = other.unknownValue;
+        nameValue.clear();
+        valueName.clear();
+        descriptionValue.clear();
+        for (const auto& enumerator : enumerators)
+        {
+            nameValue[enumerator.name] = enumerator.value;
+            valueName[enumerator.value] = enumerator.name;
+            descriptionValue[enumerator.description] = enumerator.value;
+        }
+        return *this;
+    }
+
+    EnumDefinition(EnumDefinition&&) = default;
+    EnumDefinition& operator=(EnumDefinition&&) = default;
 };
 
 //-----------------------------------------------------------------------
@@ -522,6 +563,49 @@ struct MessageDefinition
     }
 
     [[nodiscard]] bool operator!=(const MessageDefinition& other) const { return !(*this == other); }
+
+    MessageDefinition() = default;
+    ~MessageDefinition() = default;
+
+    //----------------------------------------------------------------------------
+    //! \brief Deep copy. The default copy would alias every `BaseField::Ptr`
+    //! in `fields`; this walks each variant and replaces it with
+    //! `field->clone()` so the new definition shares no field storage with
+    //! the source.
+    //----------------------------------------------------------------------------
+    MessageDefinition(const MessageDefinition& other)
+        : _id(other._id), logID(other.logID), name(other.name), description(other.description), messageStyle(other.messageStyle),
+          latestMessageCrc(other.latestMessageCrc)
+    {
+        for (const auto& [crc, fieldVec] : other.fields)
+        {
+            auto& copyVec = fields[crc];
+            copyVec.reserve(fieldVec.size());
+            for (const auto& f : fieldVec) { copyVec.push_back(f ? f->clone() : nullptr); }
+        }
+    }
+
+    MessageDefinition& operator=(const MessageDefinition& other)
+    {
+        if (this == &other) { return *this; }
+        _id = other._id;
+        logID = other.logID;
+        name = other.name;
+        description = other.description;
+        messageStyle = other.messageStyle;
+        latestMessageCrc = other.latestMessageCrc;
+        fields.clear();
+        for (const auto& [crc, fieldVec] : other.fields)
+        {
+            auto& copyVec = fields[crc];
+            copyVec.reserve(fieldVec.size());
+            for (const auto& f : fieldVec) { copyVec.push_back(f ? f->clone() : nullptr); }
+        }
+        return *this;
+    }
+
+    MessageDefinition(MessageDefinition&&) = default;
+    MessageDefinition& operator=(MessageDefinition&&) = default;
 
     using Ptr = std::shared_ptr<MessageDefinition>;
     using ConstPtr = std::shared_ptr<const MessageDefinition>;
