@@ -591,8 +591,6 @@ class MessageDecoderBase
 
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("message_decoder")};
 
-    MessageDatabase::Ptr pclMyMsgDb{nullptr};
-
     EnumDefinition::ConstPtr vMyResponseDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyCommandDefinitions{nullptr};
     EnumDefinition::ConstPtr vMyPortAddressDefinitions{nullptr};
@@ -607,6 +605,8 @@ class MessageDecoderBase
     void InitFieldMaps();
 
   protected:
+    MessageDatabase::Ptr pclMyMsgDb{nullptr};
+
     std::unordered_map<uint32_t, std::function<void(MessageBody&, const BaseField::ConstPtr&, const char**, [[maybe_unused]] size_t,
                                                     [[maybe_unused]] size_t, [[maybe_unused]] bool, [[maybe_unused]] MessageDatabase&)>>
         asciiFieldMap;
@@ -759,6 +759,20 @@ class MessageDecoderBase
         throw std::runtime_error("GetArrayLength(): No matching field found for arrayLengthRef");
     }
 
+    //----------------------------------------------------------------------------
+    //! \brief Get the message definition corresponding to the given metadata.
+    //
+    //! \param[in] stMetaData_ The metadata containing the message ID to look up.
+    //! \return A pointer to the message definition.
+    //----------------------------------------------------------------------------
+    virtual MessageDefinition::ConstPtr GetMessageDefinition(MetaDataBase& stMetaData_) const
+    {
+        if (pclMyMsgDb == nullptr) { throw std::runtime_error("GetMessageDefinition(): no message database loaded"); }
+
+        auto msgDef = pclMyMsgDb->GetMsgDef(stMetaData_.usMessageId);
+        return msgDef;
+    }
+
   public:
     //----------------------------------------------------------------------------
     //! \brief A constructor for the MessageDecoderBase class.
@@ -768,8 +782,8 @@ class MessageDecoderBase
     //----------------------------------------------------------------------------
     MessageDecoderBase(std::string expectedMessageFamily_, MessageDatabase::Ptr pclMessageDb_ = nullptr,
                        std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fAlignmentFunc_ = MessageDatabase::NoAlign)
-        : pclMyMsgDb(std::move(pclMessageDb_)), sMyExpectedMessageFamily(std::move(expectedMessageFamily_)),
-          fMyAlignmentFunc(std::move(fAlignmentFunc_))
+        : sMyExpectedMessageFamily(std::move(expectedMessageFamily_)), fMyAlignmentFunc(std::move(fAlignmentFunc_)),
+          pclMyMsgDb(std::move(pclMessageDb_))
     {
         InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadJsonDb(std::move(pclMessageDb_)); }

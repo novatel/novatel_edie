@@ -678,7 +678,6 @@ class MessageDatabase
     std::unordered_map<int32_t, MessageDefinition::ConstPtr> mMessageId;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumName;
     std::unordered_map<std::string_view, EnumDefinition::ConstPtr> mEnumId;
-    mutable MessageDefinition::ConstPtr pResponseDefinition;
 
   public:
     //----------------------------------------------------------------------------
@@ -799,11 +798,6 @@ class MessageDatabase
     [[nodiscard]] MessageDefinition::ConstPtr GetMsgDef(int32_t iMsgId_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Get a fabricated response message definition shared by all components.
-    //----------------------------------------------------------------------------
-    [[nodiscard]] MessageDefinition::ConstPtr GetResponseDefinition() const;
-
-    //----------------------------------------------------------------------------
     //! \brief Convert a message name string to a message ID number.
     //
     //! \param[in] sMsgName_ The message name string
@@ -871,8 +865,7 @@ class MessageDatabase
     //!     a pointer to the start of the message body, and a pointer to the current position,
     //!     and returns the number of bytes to move forward to align the field.
     //----------------------------------------------------------------------------
-    static void RegisterAlignmentFunction(std::string messageFamily_,
-                                          std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fn)
+    static void RegisterAlignmentFunction(std::string messageFamily_, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fn)
     {
         GetAlignmentFunctions()[messageFamily_] = std::move(fn);
     }
