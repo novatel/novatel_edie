@@ -33,14 +33,6 @@
 using namespace novatel::edie;
 
 // -------------------------------------------------------------------------------------------------------
-MessageDecoderBase::MessageDecoderBase(std::string expectedMessageFamily_, MessageDatabase::Ptr pclMessageDb_)
-    : sMyExpectedMessageFamily(std::move(expectedMessageFamily_))
-{
-    InitFieldMaps();
-    if (pclMessageDb_ != nullptr) { LoadJsonDb(std::move(pclMessageDb_)); }
-}
-
-// -------------------------------------------------------------------------------------------------------
 void MessageDecoderBase::LoadJsonDb(MessageDatabase::Ptr pclMessageDb_)
 {
     ValidateMessageDatabaseFamily(pclMyMsgDb, sMyExpectedMessageFamily, pclMyLogger);
@@ -334,7 +326,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
     for (const auto& field : vMsgDefFields_.messageOrderedFields)
     {
         auto fieldTypeLength = static_cast<uint8_t>(field->dataType.length);
-        AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
+        *ppucLogBuf_ += fMyAlignmentFunc(fieldTypeLength, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
 
         switch (field->type)
         {
@@ -401,7 +393,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 auto& vFieldArrayContainer = std::get<std::vector<MessageBody>>(vIntermediateFormat_.GetVarFields()[field->index]);
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
-                    AlignBufferPointer(fieldTypeLength, pucTempStart, ppucLogBuf_);
+                    *ppucLogBuf_ += fMyAlignmentFunc(fieldTypeLength, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
                     vFieldArrayContainer[i] =
                         MessageBody(subFieldDefinitions->fieldInfo.fixedFieldBytes, subFieldDefinitions->fieldInfo.varFieldCount);
                     STATUS eStatus = DecodeBinary(subFieldDefinitions->fieldInfo, ppucLogBuf_, vFieldArrayContainer[i],

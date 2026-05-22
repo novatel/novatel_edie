@@ -600,6 +600,8 @@ class MessageDecoderBase
 
     std::string sMyExpectedMessageFamily;
 
+    std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fMyAlignmentFunc = MessageDatabase::NoAlign;
+
     // Enum util functions
     void InitEnumDefinitions();
     void InitFieldMaps();
@@ -626,33 +628,6 @@ class MessageDecoderBase
                           MessageBody& vIntermediateFormat_, size_t elementIndex_ = 0, bool fixed_ = true) const;
     void DecodeJsonField(const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_, MessageBody& vIntermediateFormat_,
                          size_t elementIndex_ = 0, bool fixed_ = true) const;
-
-    //----------------------------------------------------------------------------
-    //! \brief Align the binary buffer pointer to the expected type boundary.
-    //
-    //! \param[in] align The alignment requirement in bytes.
-    //! \param[in] start The starting pointer of the binary buffer. Used to
-    //! calculate the current offset relative to the beginning of the payload.
-    //! \param[in, out] ptr A pointer to the buffer pointer to be advanced
-    //! to meet the alignment requirement.
-    //
-    //! \remark This default implementation assumes NovAtel binary log alignment,
-    //! where fields are generally aligned to 4-byte boundaries, unless the
-    //! field's type length is smaller. The alignment applied is the minimum of
-    //! 4 and the requested alignment.
-    //
-    //! For binary formats that use packed structures and do not align fields
-    //! this function should be overridden in a derived decoder class to skip
-    //! alignment.
-    //
-    //! \return None. The buffer pointer is updated in place.
-    //----------------------------------------------------------------------------
-    virtual void AlignBufferPointer(const uint8_t align, const unsigned char* start, const unsigned char** ptr) const
-    {
-        uint8_t alignment = std::min(static_cast<uint8_t>(4), align);
-        uint64_t offset = static_cast<uintptr_t>(*ptr - start) % alignment;
-        if (offset != 0) { *ptr += alignment - offset; }
-    }
 
     //----------------------------------------------------------------------------
     //! \brief Add padding after string fields if necessary to maintain alignment.
@@ -749,7 +724,7 @@ class MessageDecoderBase
             if (!(lenBytes == 1 || lenBytes == 2 || lenBytes == 4))
                 throw std::runtime_error("GetArrayLength: Unsupported length size; must be 1,2 or 4");
 
-            AlignBufferPointer(static_cast<uint8_t>(lenBytes), pucTempStart, ppucLogBuf_);
+            *ppucLogBuf_ += fMyAlignmentFunc(lenBytes, reinterpret_cast<uintptr_t>(pucTempStart), reinterpret_cast<uintptr_t>(*ppucLogBuf_));
 
             uint32_t uiArrayLength = 0;
             for (std::size_t i = 0; i < lenBytes; ++i) { uiArrayLength |= static_cast<uint32_t>((*ppucLogBuf_)[i]) << (8 * i); }
@@ -794,7 +769,14 @@ class MessageDecoderBase
     //! \param[in] expectedMessageFamily_ The expected message family for the encoder.
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    MessageDecoderBase(std::string expectedMessageFamily_, MessageDatabase::Ptr pclMessageDb_ = nullptr);
+    MessageDecoderBase(std::string expectedMessageFamily_, MessageDatabase::Ptr pclMessageDb_ = nullptr,
+                       std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fAlignmentFunc_ = MessageDatabase::NoAlign)
+        : pclMyMsgDb(std::move(pclMessageDb_)), sMyExpectedMessageFamily(std::move(expectedMessageFamily_)),
+          fMyAlignmentFunc(std::move(fAlignmentFunc_))
+    {
+        InitFieldMaps();
+        if (pclMessageDb_ != nullptr) { LoadJsonDb(std::move(pclMessageDb_)); }
+    }
 
     virtual ~MessageDecoderBase() = default;
 
