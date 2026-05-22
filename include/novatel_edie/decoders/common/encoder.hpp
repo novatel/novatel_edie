@@ -316,6 +316,7 @@ template <typename Derived> class EncoderBase
 {
   private:
     std::string sMyExpectedMessageFamily;
+    std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fMyAlignmentFunc = MessageDatabase::NoAlign;
 
   protected:
     std::shared_ptr<spdlog::logger> pclMyLogger{GetBaseLoggerManager()->RegisterLogger("encoder")};
@@ -330,43 +331,6 @@ template <typename Derived> class EncoderBase
         asciiFieldMap;
     std::unordered_map<uint64_t, std::function<bool(const BaseField::ConstPtr&, const FieldValueVariant&, char**, uint32_t&, const MessageDatabase&)>>
         jsonFieldMap;
-
-    //----------------------------------------------------------------------------
-    //! \brief Align the binary buffer pointer to the expected type boundary.
-    //
-    //! \param[in] align The alignment requirement in bytes.
-    //! \param[in] start The starting pointer of the binary buffer. Used to
-    //! calculate the current offset relative to the beginning of the payload.
-    //! \param[in, out] ptr A pointer to the buffer pointer to be advanced
-    //! to meet the alignment requirement.
-    //
-    //! \remark This default implementation assumes NovAtel binary log alignment,
-    //! where fields are generally aligned to 4-byte boundaries, unless the
-    //! field's type length is smaller. The alignment applied is the minimum of
-    //! 4 and the requested alignment.
-    //
-    //! For binary formats that use packed structures and do not align fields
-    //! this function should be overridden in a derived encoder class to skip
-    //! alignment.
-    //
-    //! \return True when alignment succeeds, false if there is not enough
-    //! remaining buffer space to apply padding.
-    //----------------------------------------------------------------------------
-    virtual bool AlignBufferPointer(const uint8_t align, const unsigned char* start, unsigned char** ptr, uint32_t& uiBytesLeft_) const
-    {
-        const uint8_t alignment = std::min(static_cast<uint8_t>(4), align);
-        if (alignment <= 1U) { return true; }
-
-        const uint64_t offset = static_cast<uintptr_t>(*ptr - start) % alignment;
-        if (offset == 0U) { return true; }
-
-        const auto padding = static_cast<uint32_t>(alignment - offset);
-        if (uiBytesLeft_ < padding) { return false; }
-
-        *ptr += padding;
-        uiBytesLeft_ -= padding;
-        return true;
-    }
 
     template <bool Flatten>
     [[nodiscard]] bool EncodeBinaryBody(const MessageBody& stInterMessage_, const std::vector<BaseField::ConstPtr>& fieldDefinitions_,
@@ -386,7 +350,10 @@ template <typename Derived> class EncoderBase
 
         for (const auto& fieldDef : fieldDefinitions_)
         {
-            if (!AlignBufferPointer(static_cast<uint8_t>(fieldDef->dataType.length), startBuf, ppucOutBuf_, uiBytesLeft_)) { return false; }
+            auto align = fMyAlignmentFunc(fieldDef->dataType.length, reinterpret_cast<uintptr_t>(startBuf), reinterpret_cast<uintptr_t>(*ppucOutBuf_));
+            if (align > uiBytesLeft_) { return false; }
+            *ppucOutBuf_ += align;
+            uiBytesLeft_ -= static_cast<uint32_t>(align);
 
             if (fieldDef->type == FIELD_TYPE::FIELD_ARRAY || fieldDef->type == FIELD_TYPE::VARIABLE_LENGTH_ARRAY)
             {
@@ -404,8 +371,10 @@ template <typename Derived> class EncoderBase
                 // Write array length
                 if (arrayFieldDef->arrayLengthRef.empty())
                 {
-                    if (!AlignBufferPointer(static_cast<uint8_t>(arrayFieldDef->arrayLengthFieldSize), startBuf, ppucOutBuf_, uiBytesLeft_))
-                        return false;
+                    align = fMyAlignmentFunc(arrayFieldDef->arrayLengthFieldSize, reinterpret_cast<uintptr_t>(startBuf), reinterpret_cast<uintptr_t>(*ppucOutBuf_));
+                    if (align > uiBytesLeft_) { return false; }
+                    *ppucOutBuf_ += align;
+                    uiBytesLeft_ -= static_cast<uint32_t>(align);
                     switch (arrayFieldDef->arrayLengthFieldSize)
                     {
                     case 1:
@@ -993,8 +962,9 @@ template <typename Derived> class EncoderBase
     //! \param[in] expectedMessageFamily_ The expected message family for the encoder.
     //! \param[in] pclMessageDb_ A pointer to a MessageDatabase object. Defaults to nullptr.
     //----------------------------------------------------------------------------
-    EncoderBase(std::string expectedMessageFamily_, MessageDatabase::ConstPtr pclMessageDb_ = nullptr)
-        : sMyExpectedMessageFamily(std::move(expectedMessageFamily_))
+    EncoderBase(std::string expectedMessageFamily_, MessageDatabase::ConstPtr pclMessageDb_ = nullptr,
+                std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fAlignmentFunc_ = MessageDatabase::NoAlign)
+        : sMyExpectedMessageFamily(std::move(expectedMessageFamily_)), fMyAlignmentFunc(std::move(fAlignmentFunc_))
     {
         static_cast<Derived*>(this)->InitFieldMaps();
         if (pclMessageDb_ != nullptr) { LoadJsonDb(pclMessageDb_); }
