@@ -306,22 +306,30 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
-    uint32_t conversionHash{0ULL};       // cached
-    std::optional<int32_t> width;        // cached
-    std::optional<int32_t> precision;    // cached
-    bool isString{false};                // cached; has a FIELD_TYPE of STRING or conversion string of either %s or %S
-    bool isCsv{false};                   // cached; Ascii encoding of this field is comma-separated,
-                                         // true for arrays which are not strings and do not use the %Z or %P conversion strings
+    uint32_t conversionHash{0ULL};    // cached
+    std::optional<int32_t> width;     // cached
+    std::optional<int32_t> precision; // cached
+    bool isString{false};             // cached; has a FIELD_TYPE of STRING or conversion string of either %s or %S
+    bool isCsv{false};                // cached; Ascii encoding of this field is comma-separated,
+                                      // true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
 
     BaseField() = default;
 
+    // TODO: Remove this? A DATA_TYPE should only have one length
     BaseField(std::string name_, const FIELD_TYPE type_, std::string&& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
         : name(std::move(name_)), type(type_)
     {
         SetConversion(std::move(sConversion_));
         dataType.length = static_cast<uint16_t>(length_);
         dataType.name = eDataTypeName_;
+    }
+
+    BaseField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_) : name(std::move(name_)), type(type_)
+    {
+        dataType.name = eDataTypeName_;
+        dataType.length = static_cast<uint16_t>(DataTypeSize(eDataTypeName_));
+        if (!conversion_.empty()) { SetConversion(std::move(conversion_)); }
     }
 
     virtual ~BaseField() = default;
@@ -421,6 +429,13 @@ struct EnumField : BaseField
     std::string enumId;
     EnumDefinition::ConstPtr enumDef{nullptr}; // cached
 
+    EnumField() = default;
+
+    EnumField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_, std::string enumId_)
+        : BaseField(std::move(name_), type_, std::move(conversion_), eDataTypeName_), enumId(std::move(enumId_))
+    {
+    }
+
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override { return std::make_shared<EnumField>(*this); }
 
     using Ptr = std::shared_ptr<EnumField>;
@@ -445,6 +460,13 @@ struct ArrayField : BaseField
     std::string arrayLengthRef;
     uint8_t arrayLengthFieldSize{0}; // in bytes, only for variable-length and field arrays
 
+    ArrayField() = default;
+
+    ArrayField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_, uint32_t arrayLength_)
+        : BaseField(std::move(name_), type_, std::move(conversion_), eDataTypeName_), arrayLength(arrayLength_)
+    {
+    }
+
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override { return std::make_shared<ArrayField>(*this); }
 
     using Ptr = std::shared_ptr<ArrayField>;
@@ -467,6 +489,14 @@ struct FieldArrayField : ArrayField
 {
     uint32_t fieldSize{0}; // cached
     std::vector<std::shared_ptr<BaseField>> fields;
+
+    FieldArrayField() = default;
+
+    FieldArrayField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_, uint32_t arrayLength_,
+                    std::vector<std::shared_ptr<BaseField>> fields_)
+        : ArrayField(std::move(name_), type_, std::move(conversion_), eDataTypeName_, arrayLength_), fields(std::move(fields_))
+    {
+    }
 
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override
     {
@@ -562,6 +592,13 @@ struct MessageDefinition
 
     MessageDefinition() = default;
     ~MessageDefinition() = default;
+
+    MessageDefinition(std::string id_, uint32_t logID_, std::string name_, std::string description_, uint32_t latestMessageCrc_,
+                      std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields_)
+        : _id(std::move(id_)), logID(logID_), name(std::move(name_)), description(std::move(description_)), fields(std::move(fields_)),
+          latestMessageCrc(latestMessageCrc_)
+    {
+    }
 
     //----------------------------------------------------------------------------
     //! \brief Deep copy. The default copy would alias every `BaseField::Ptr`

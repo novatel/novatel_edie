@@ -85,6 +85,14 @@ class PyMessageDatabase
     [[nodiscard]] const MessageDatabase::Ptr& core() const { return core_; }
     [[nodiscard]] const MessageDBExtrasBase* GetMessageFamilyExtras() const { return extras_.get(); }
 
+    // Lock state — once locked, any mutator throws UnsupportedException.
+    void Lock() { locked_ = true; }
+    [[nodiscard]] bool IsLocked() const { return locked_; }
+    void ThrowIfLocked() const
+    {
+        if (locked_) { throw UnsupportedException("MessageDatabase is locked and cannot be mutated."); }
+    }
+
     // Mutators — wrap MessageDatabase mutations so the Python caches stay in sync.
     void Merge(const Ptr& other);
     void AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_);
@@ -223,7 +231,7 @@ class PyMessageDatabase
         for (const auto& [enum_def, enum_type] : enum_types) { enumsMod_.attr(enum_def->name.c_str()) = enum_type; }
     }
 
-    [[nodiscard]] nb::object clone() const;
+    [[nodiscard]] nb::object clone();
 
   private:
     friend int db_tp_traverse(PyObject* self, visitproc visit, void* arg);
@@ -263,6 +271,7 @@ class PyMessageDatabase
 
     std::unique_ptr<MessageDBExtrasBase> extras_;
     MessageDatabase::Ptr core_;
+    bool locked_ = false;
 };
 
 } // namespace novatel::edie::py_common

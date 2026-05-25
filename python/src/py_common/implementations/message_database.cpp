@@ -83,6 +83,7 @@ PYCOMMON_EXPORT std::string py_common::PyMessageDatabase::GetMessageFamily() con
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::SetMessageFamily(const std::string& messageFamily)
 {
+    ThrowIfLocked();
     core_->SetMessageFamily(messageFamily);
     ResolveBaseType();
     UpdatePythonMessageTypes();
@@ -91,6 +92,8 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::SetMessageFamily(const std::s
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
 {
+    ThrowIfLocked();
+    other_->Lock();
     core_->AppendEnumerations(other_->core_->EnumDefinitions());
     AppendEnumTypes(other_->core_->EnumDefinitions());
     core_->AppendMessages(other_->core_->MessageDefinitions());
@@ -105,6 +108,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::Merge(const Ptr& other_)
 // rather than inside the C++ AppendMessages.
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vector<MessageDefinition::ConstPtr>& vMessageDefinitions_)
 {
+    ThrowIfLocked();
     std::vector<MessageDefinition::ConstPtr> owned;
     owned.reserve(vMessageDefinitions_.size());
     for (const auto& msgDef : vMessageDefinitions_) { owned.push_back(std::make_shared<MessageDefinition>(*msgDef)); }
@@ -114,24 +118,28 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessages(const std::vec
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendEnumerations(const std::vector<EnumDefinition::ConstPtr>& vEnumDefinitions_)
 {
+    ThrowIfLocked();
     core_->AppendEnumerations(vEnumDefinitions_);
     AppendEnumTypes(vEnumDefinitions_);
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveMessage(uint32_t iMsgId_)
 {
+    ThrowIfLocked();
     RemoveMessageType(iMsgId_);
     core_->RemoveMessage(iMsgId_);
 }
 
 PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumeration(std::string strEnumeration_)
 {
+    ThrowIfLocked();
     RemoveEnumType(strEnumeration_);
     core_->RemoveEnumeration(strEnumeration_);
 }
 
-PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::clone() const
+PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::clone()
 {
+    Lock();
     // Build a new wrapper around a shallow copy of the C++ database — same
     // MessageDefinition / EnumDefinition / BaseField pointers, just a different
     // MessageDatabase instance.

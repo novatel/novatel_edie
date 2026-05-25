@@ -24,8 +24,8 @@
 
 import pytest
 
-from novatel_edie import MessageDatabase, FailureException
-from novatel_edie.oem import Decoder
+from novatel_edie import MessageDatabase, UnsupportedException
+from novatel_edie.oem import Decoder, Parser, FileParser, get_builtin_database
 from novatel_edie.oem.enums import Datum
 from novatel_edie import MessageDefinition, EnumFieldDefinition, EnumDefinition, EnumDataType
 from novatel_edie import FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, FIELD_TYPE, DATA_TYPE
@@ -37,7 +37,7 @@ class TestDatabaseObjects:
     @pytest.mark.parametrize("values", [
         {},
         {"value": 2, "name": "val", "description": "a value of 2"},
-        {"value": 0, "name": "error", "description": "an error msg"}])
+        {"value": 0, "name": "error"}])
     class TestEnumDataType:
         """Tests for EnumDataType."""
         defaults = {
@@ -92,7 +92,6 @@ class TestDatabaseObjects:
 
     class TestFieldDefinition:
         """Tests for FieldDefinition (BaseField)."""
-
         @pytest.mark.parametrize("values", [
             {},
             {"name": "field1", "type": FIELD_TYPE.SIMPLE, "conversion": "%d", "data_type": DATA_TYPE.INT},
@@ -267,6 +266,72 @@ class TestDatabaseObjects:
 
 class TestDatabaseActions:
     """Tests for the effect of preforming actions on a database."""
+    class TestDatabaseLocking:
+        """Tests for the database's locking mechanism.
+
+        Any access to the database's immutable types or exposure of them to other
+        C++ objects should permenantly lock the database from further mutation.
+        """
+        def test_lock(self, json_db: MessageDatabase):
+            # Arrange
+            db = MessageDatabase()
+            # Act
+            db.lock()
+
+            # Assert
+            assert db.is_locked
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.append_messages(MessageDefinition())
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.append_enumerations(EnumDefinition())
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.remove_message(0)
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.remove_enumeration("Datum")
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.merge(json_db)
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.message_family = "OEM"
+
+        def test_global_lock(self):
+            assert get_builtin_database().is_locked
+
+        def test_merge_locking(self):
+            # Arrange
+            old_db = MessageDatabase()
+            new_db = MessageDatabase()
+            # Act
+            new_db.merge(old_db)
+            # Assert
+            assert old_db.is_locked
+            assert not new_db.is_locked
+
+        def test_clone_locking(self):
+            # Arrange
+            old_db = MessageDatabase()
+            # Act
+            new_db = old_db.clone()
+            # Assert
+            assert old_db.is_locked
+            assert not new_db.is_locked
+
+        def test_pytype_access_locking(self, json_db: MessageDatabase):
+            # Arrange
+            db = json_db.clone()
+            # Act
+            db.get_msg_type("BESTPOS")
+            # Assert
+            assert db.is_locked
+
+        @pytest.mark.parametrize("consumer_cons", [Decoder, Parser, lambda x: FileParser("", x)])
+        def test_consumer_locking(self, consumer_cons, json_db: MessageDatabase):
+            # Arrange
+            db = json_db.clone()
+            # Act
+            consumer_cons(db)
+            # Assert
+            assert db.is_locked
+
     def test_message_db_enums(self, json_db):
         # Act
         datum_enum = json_db.get_enum_type_by_name("Datum")
@@ -310,7 +375,6 @@ class TestDatabaseActions:
         range_id = 43
         range_def = json_db.get_msg_def(range_id)
         new_db.append_messages([bestpos_def, range_def])
-        new_range_type = new_db.get_msg_type("RANGE")
 
         # Act
         new_db.remove_message(bestpos_id)
@@ -322,7 +386,7 @@ class TestDatabaseActions:
         assert new_db.get_msg_def(bestpos_id) is None
         assert new_db.get_msg_type("BESTPOS") is None
         assert new_db.get_msg_def(range_id) == range_def
-        assert new_db.get_msg_type("RANGE") is new_range_type
+        assert new_db.get_msg_type("RANGE") is not None
 
     def test_merge(self, json_db: MessageDatabase):
         """Tests that one databases messages can be merged into another."""
@@ -332,7 +396,6 @@ class TestDatabaseActions:
         bestpos_name = "BESTPOS"
         bestpos_msg_def = oem_minus_bestpos_db.get_msg_def(bestpos_name)
         new_db_with_bestpos.append_messages([bestpos_msg_def])
-        bestpos_msg_type = new_db_with_bestpos.get_msg_type(bestpos_name)
         other_msg_name = "RANGE"
         other_msg_def = oem_minus_bestpos_db.get_msg_def(other_msg_name)
         oem_minus_bestpos_db.remove_message(bestpos_msg_def.log_id)
@@ -343,7 +406,7 @@ class TestDatabaseActions:
 
         # Assert
         assert new_db_with_bestpos.get_msg_def(bestpos_name) == bestpos_msg_def
-        assert new_db_with_bestpos.get_msg_type(bestpos_name) is bestpos_msg_type
+        assert new_db_with_bestpos.get_msg_type(bestpos_name) is not None
         assert new_db_with_bestpos.get_msg_def(other_msg_name) == other_msg_def
         assert new_db_with_bestpos.get_msg_type(other_msg_name) is not None
         assert new_db_with_bestpos.get_msg_type(other_msg_name) != other_msg_type

@@ -295,7 +295,7 @@ TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_ENUM_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%s", 1, DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(1);
 
@@ -342,22 +342,12 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%", 1, DATA_TYPE::UNKNOWN));
-    std::vector<FieldContainer> vIntermediateFormat_;
-
-    const unsigned char* testInput = nullptr;
-
-    ASSERT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
+    ASSERT_THROW(MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%", 1, DATA_TYPE::UNKNOWN)), std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%", 1, DATA_TYPE::UNKNOWN));
-    std::vector<FieldContainer> vIntermediateFormat_;
-
-    const unsigned char* testInput = nullptr;
-
-    ASSERT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
+    ASSERT_THROW(MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%", 1, DATA_TYPE::UNKNOWN)), std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)

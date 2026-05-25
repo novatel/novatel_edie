@@ -99,8 +99,7 @@ void py_common::init_common_message_database(nb::module_& m)
     m.attr("str_to_FIELD_TYPE") = FieldTypeEnumLookup;
 
     nb::class_<EnumDataType>(m, "EnumDataType", "Enum Data Type representing contents of UI DB")
-        .def(nb::init())
-        .def(nb::init<uint32_t, std::string, std::string>(), "value"_a, "name"_a, "description"_a)
+        .def(nb::init<uint32_t, std::string, std::string>(), "value"_a = uint32_t{0}, "name"_a = std::string{}, "description"_a = std::string{})
         .def_rw("value", &EnumDataType::value)
         .def_rw("name", &EnumDataType::name)
         .def_rw("description", &EnumDataType::description)
@@ -113,9 +112,8 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<EnumDefinition>(m, "EnumDefinition", "Enum Definition representing contents of UI DB")
-        .def(nb::init())
-        .def(nb::init<std::string, std::string, std::vector<EnumDataType>>(),
-             "id"_a = std::string{}, "name"_a = std::string{}, "enumerators"_a = std::vector<EnumDataType>{})
+        .def(nb::init<std::string, std::string, std::vector<EnumDataType>>(), "id"_a = std::string{}, "name"_a = std::string{},
+             "enumerators"_a = std::vector<EnumDataType>{})
         .def_rw("id", &EnumDefinition::_id)
         .def_rw("name", &EnumDefinition::name)
         .def_rw("enumerators", &EnumDefinition::enumerators)
@@ -124,18 +122,8 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")
-        .def(nb::init())
-        .def(
-            "__init__",
-            [](BaseField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type) {
-                auto* field = new (t) BaseField; // NOLINT(*.NewDeleteLeaks)
-                field->name = std::move(name);
-                field->type = type;
-                field->dataType.name = data_type;
-                field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
-                if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
-            },
-            "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN)
+        .def(nb::init<std::string, FIELD_TYPE, std::string, DATA_TYPE>(), "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN,
+             "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN)
         .def_rw("name", &BaseField::name)
         .def_rw("type", &BaseField::type)
         .def_rw("description", &BaseField::description)
@@ -170,19 +158,8 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<EnumField, BaseField>(m, "EnumFieldDefinition", "Struct containing elements of enum fields in the UI DB")
-        .def(
-            "__init__",
-            [](EnumField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, std::string enum_id) {
-                auto* field = new (t) EnumField; // NOLINT(*.NewDeleteLeaks)
-                field->name = std::move(name);
-                field->type = type;
-                field->dataType.name = data_type;
-                field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
-                if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
-                field->enumId = std::move(enum_id);
-            },
-            "name"_a = std::string{}, "type"_a = FIELD_TYPE::ENUM, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
-            "enum_id"_a = std::string{})
+        .def(nb::init<std::string, FIELD_TYPE, std::string, DATA_TYPE, std::string>(), "name"_a = std::string{}, "type"_a = FIELD_TYPE::ENUM,
+             "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN, "enum_id"_a = std::string{})
         .def_rw("enum_id", &EnumField::enumId)
         .def_ro("enum_def", &EnumField::enumDef)
         .def("__repr__", [](const EnumField& field) {
@@ -192,20 +169,8 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<ArrayField, BaseField>(m, "ArrayFieldDefinition", "Struct containing elements of array fields in the UI DB")
-        .def(nb::init())
-        .def(
-            "__init__",
-            [](ArrayField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, uint32_t array_length) {
-                auto* field = new (t) ArrayField; // NOLINT(*.NewDeleteLeaks)
-                field->name = std::move(name);
-                field->type = type;
-                field->dataType.name = data_type;
-                field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
-                if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
-                field->arrayLength = array_length;
-            },
-            "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
-            "array_length"_a = uint32_t{0})
+        .def(nb::init<std::string, FIELD_TYPE, std::string, DATA_TYPE, uint32_t>(), "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN,
+             "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN, "array_length"_a = uint32_t{0})
         .def_rw("array_length", &ArrayField::arrayLength)
         .def("__repr__", [](const ArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
@@ -214,21 +179,9 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<FieldArrayField, BaseField>(m, "FieldArrayFieldDefinition", "Struct containing elements of field array fields in the UI DB")
-        .def(
-            "__init__",
-            [](FieldArrayField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, uint32_t array_length,
-               std::vector<std::shared_ptr<BaseField>> fields) {
-                auto* field = new (t) FieldArrayField; // NOLINT(*.NewDeleteLeaks)
-                field->name = std::move(name);
-                field->type = type;
-                field->dataType.name = data_type;
-                field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
-                if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
-                field->arrayLength = array_length;
-                field->fields = std::move(fields);
-            },
-            "name"_a = std::string{}, "type"_a = FIELD_TYPE::FIELD_ARRAY, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
-            "array_length"_a = uint32_t{0}, "fields"_a = std::vector<std::shared_ptr<BaseField>>{})
+        .def(nb::init<std::string, FIELD_TYPE, std::string, DATA_TYPE, uint32_t, std::vector<std::shared_ptr<BaseField>>>(), "name"_a = std::string{},
+             "type"_a = FIELD_TYPE::FIELD_ARRAY, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN, "array_length"_a = uint32_t{0},
+             "fields"_a = std::vector<std::shared_ptr<BaseField>>{})
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_rw("fields", &FieldArrayField::fields, nb::rv_policy::reference_internal)
         .def("__repr__", [](const FieldArrayField& field) {
@@ -239,22 +192,10 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")
-        .def(nb::init())
-        .def(
-            "__init__",
-            [](MessageDefinition* t, std::string id, uint32_t log_id, std::string name, std::string description, uint32_t latest_message_crc,
-               std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>> fields) {
-                auto* def = new (t) MessageDefinition; // NOLINT(*.NewDeleteLeaks)
-                def->_id = std::move(id);
-                def->logID = log_id;
-                def->name = std::move(name);
-                def->description = std::move(description);
-                def->latestMessageCrc = latest_message_crc;
-                def->fields = std::move(fields);
-            },
-            "id"_a = std::string{}, "log_id"_a = uint32_t{0}, "name"_a = std::string{}, "description"_a = std::string{},
-            "latest_message_crc"_a = uint32_t{0},
-            "fields"_a = std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>{})
+        .def(nb::init<std::string, uint32_t, std::string, std::string, uint32_t,
+                      std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>>(),
+             "id"_a = std::string{}, "log_id"_a = uint32_t{0}, "name"_a = std::string{}, "description"_a = std::string{},
+             "latest_message_crc"_a = uint32_t{0}, "fields"_a = std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>{})
         .def_rw("id", &MessageDefinition::_id)
         .def_rw("log_id", &MessageDefinition::logID)
         .def_rw("name", &MessageDefinition::name)
@@ -284,9 +225,23 @@ void py_common::init_common_message_database(nb::module_& m)
         .def_static(
             "from_string", [](std::string_view json_data) { return py_common::PyMessageDatabase::Create(std::move(*ParseJsonDb(json_data))); },
             "json_data"_a)
+        .def("lock", &py_common::PyMessageDatabase::Lock, "Prevent further mutation of this database.")
+        .def_prop_ro("is_locked", &py_common::PyMessageDatabase::IsLocked)
         .def("merge", &py_common::PyMessageDatabase::Merge, "other_db"_a)
-        .def("append_messages", &py_common::PyMessageDatabase::AppendMessages, "messages"_a)
-        .def("append_enumerations", &py_common::PyMessageDatabase::AppendEnumerations, "enums"_a)
+        .def(
+            "append_messages",
+            [](py_common::PyMessageDatabase& self, nb::object messages) {
+                self.ThrowIfLocked();
+                self.AppendMessages(nb::cast<std::vector<MessageDefinition::ConstPtr>>(messages));
+            },
+            "messages"_a)
+        .def(
+            "append_enumerations",
+            [](py_common::PyMessageDatabase& self, nb::object enums) {
+                self.ThrowIfLocked();
+                self.AppendEnumerations(nb::cast<std::vector<EnumDefinition::ConstPtr>>(enums));
+            },
+            "enums"_a)
         .def("remove_message", &py_common::PyMessageDatabase::RemoveMessage, "msg_id"_a)
         .def("remove_enumeration", &py_common::PyMessageDatabase::RemoveEnumeration, "enumeration"_a)
         .def(
@@ -307,11 +262,26 @@ void py_common::init_common_message_database(nb::module_& m)
         .def("get_enum_def_by_id", &py_common::PyMessageDatabase::GetEnumDefId, "enum_id"_a)
         .def("get_enum_def_by_name", &py_common::PyMessageDatabase::GetEnumDefName, "enum_name"_a)
         .def(
-            "get_msg_type", [](py_common::PyMessageDatabase& self, std::string name) { return self.GetMessageType(name); }, "name"_a)
+            "get_msg_type",
+            [](py_common::PyMessageDatabase& self, std::string name) {
+                self.Lock();
+                return self.GetMessageType(name);
+            },
+            "name"_a)
         .def(
-            "get_enum_type_by_name", [](py_common::PyMessageDatabase& self, std::string name) { return self.GetEnumTypeByName(name); }, "name"_a)
+            "get_enum_type_by_name",
+            [](py_common::PyMessageDatabase& self, std::string name) {
+                self.Lock();
+                return self.GetEnumTypeByName(name);
+            },
+            "name"_a)
         .def(
-            "get_enum_type_by_id", [](py_common::PyMessageDatabase& self, std::string id) { return self.GetEnumTypeById(id); }, "id"_a)
+            "get_enum_type_by_id",
+            [](py_common::PyMessageDatabase& self, std::string id) {
+                self.Lock();
+                return self.GetEnumTypeById(id);
+            },
+            "id"_a)
         .def_prop_rw("message_family", &py_common::PyMessageDatabase::GetMessageFamily, &py_common::PyMessageDatabase::SetMessageFamily)
-        .def("clone", &py_common::PyMessageDatabase::clone, "Create a copy of this database.");
+        .def("clone", &py_common::PyMessageDatabase::clone, "Create a copy of this database.", nb::sig("def clone(self) -> \"MessageDatabase\""));
 }

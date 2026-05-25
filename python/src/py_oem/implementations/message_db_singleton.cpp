@@ -25,29 +25,32 @@ py_common::PyMessageDatabase::Ptr& py_oem::MessageDbSingleton::get()
     {
         // If the package does not exist, return an empty database
         json_db = nb::cast<py_common::PyMessageDatabase::Ptr>(py_common::PyMessageDatabase::Create());
-        return json_db;
     }
-
-    // Determine the path to the database file within the novatel_edie package
-    nb::object module_origin = module_spec.attr("origin");
-    if (!nb::cast<bool>(builtins.attr("bool")(module_origin)))
+    else
     {
-        // Return an empty database if the package is empty
-        json_db = nb::cast<py_common::PyMessageDatabase::Ptr>(py_common::PyMessageDatabase::Create());
-        return json_db;
+        // Determine the path to the database file within the novatel_edie package
+        nb::object module_origin = module_spec.attr("origin");
+        if (!nb::cast<bool>(builtins.attr("bool")(module_origin)))
+        {
+            // Return an empty database if the package is empty
+            json_db = nb::cast<py_common::PyMessageDatabase::Ptr>(py_common::PyMessageDatabase::Create());
+        }
+        else
+        {
+            nb::object novatel_edie_path = os_path.attr("dirname")(module_spec.attr("origin"));
+            nb::object db_path = os_path.attr("join")(novatel_edie_path, "database.json");
+            // If the database file does not exist, return an empty database
+            bool db_exists = nb::cast<bool>(os_path.attr("isfile")(db_path));
+            if (!db_exists) { json_db = nb::cast<py_common::PyMessageDatabase::Ptr>(py_common::PyMessageDatabase::Create()); }
+            else
+            {
+                std::string default_json_db_path = nb::cast<std::string>(db_path);
+                json_db = nb::cast<py_common::PyMessageDatabase::Ptr>(
+                    py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(default_json_db_path))));
+            }
+        }
     }
-    nb::object novatel_edie_path = os_path.attr("dirname")(module_spec.attr("origin"));
-    nb::object db_path = os_path.attr("join")(novatel_edie_path, "database.json");
-    // If the database file does not exist, return an empty database
-    bool db_exists = nb::cast<bool>(os_path.attr("isfile")(db_path));
-    if (!db_exists)
-    {
-        json_db = nb::cast<py_common::PyMessageDatabase::Ptr>(py_common::PyMessageDatabase::Create());
-        return json_db;
-    }
-    // If the database file exists, load it
-    std::string default_json_db_path = nb::cast<std::string>(db_path);
-    json_db = nb::cast<py_common::PyMessageDatabase::Ptr>(py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(default_json_db_path))));
+    json_db->Lock();
     return json_db;
 }
 
