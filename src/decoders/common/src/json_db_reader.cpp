@@ -185,9 +185,7 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
         }
         else if (sFieldType == "ENUM")
         {
-            auto pstField = std::make_shared<EnumField>(field);
-            pstField->length = stDataType.length;
-            vFields_.emplace_back(pstField);
+            vFields_.emplace_back(std::make_shared<EnumField>(field));
             uiFieldSize += stDataType.length;
         }
         else if (sFieldType == "FIXED_LENGTH_ARRAY" || sFieldType == "VARIABLE_LENGTH_ARRAY" || sFieldType == "STRING")

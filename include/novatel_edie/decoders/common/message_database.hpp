@@ -219,9 +219,9 @@ struct EnumDefinition
     std::string _id;
     std::string name;
     std::vector<EnumDataType> enumerators;
-    std::unordered_map<std::string_view, uint32_t> nameValue;
-    std::unordered_map<std::string_view, uint32_t> descriptionValue;
-    std::unordered_map<uint32_t, std::string_view> valueName;
+    std::unordered_map<std::string_view, uint32_t> nameValue;        // cached
+    std::unordered_map<std::string_view, uint32_t> descriptionValue; // cached
+    std::unordered_map<uint32_t, std::string_view> valueName;        // cached
     uint32_t unknownValue;
 
     using Ptr = std::shared_ptr<EnumDefinition>;
@@ -297,12 +297,12 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
-    uint32_t conversionHash{0ULL};
-    std::optional<int32_t> width;
-    std::optional<int32_t> precision;
-    bool isString{false}; // Has a FIELD_TYPE of STRING or conversion string of either %s or %S
-    bool isCsv{false};    // Ascii encoding of this field is comma-separated,
-                          // true for arrays which are not strings and do not use the %Z or %P conversion strings
+    uint32_t conversionHash{0ULL};       // cached
+    std::optional<int32_t> width;        // cached
+    std::optional<int32_t> precision;    // cached
+    bool isString{false};                // cached; has a FIELD_TYPE of STRING or conversion string of either %s or %S
+    bool isCsv{false};                   // cached; Ascii encoding of this field is comma-separated,
+                                         // true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
 
     BaseField() = default;
@@ -376,6 +376,8 @@ struct BaseField
 
         conversionHash = 0;
 
+        if (!std::isalpha(*sConvertString)) { throw std::runtime_error("Conversion string must contain a character"); }
+
         while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
 
         if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
@@ -408,8 +410,7 @@ struct BaseField
 struct EnumField : BaseField
 {
     std::string enumId;
-    EnumDefinition::ConstPtr enumDef{nullptr};
-    uint32_t length{0};
+    EnumDefinition::ConstPtr enumDef{nullptr}; // cached
 
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override { return std::make_shared<EnumField>(*this); }
 
@@ -421,7 +422,7 @@ struct EnumField : BaseField
     {
         if (!BaseField::equalsImpl(other)) { return false; }
         const auto& o = static_cast<const EnumField&>(other);
-        return enumId == o.enumId && length == o.length;
+        return enumId == o.enumId;
     }
 };
 
@@ -455,7 +456,7 @@ struct ArrayField : BaseField
 //-----------------------------------------------------------------------
 struct FieldArrayField : ArrayField
 {
-    uint32_t fieldSize{0};
+    uint32_t fieldSize{0}; // cached
     std::vector<std::shared_ptr<BaseField>> fields;
 
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override

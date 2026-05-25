@@ -40,7 +40,7 @@ from .common_bindings import (
     FIELD_TYPE, DATA_TYPE,
     MessageDatabase,
     MessageDefinition, FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, EnumFieldDefinition,
-    EnumDataType,
+    EnumDefinition, EnumDataType,
     ENCODE_FORMAT, HEADER_FORMAT,
     MAX_MESSAGE_LENGTH, MAX_ASCII_MESSAGE_LENGTH, MAX_SHORT_ASCII_MESSAGE_LENGTH, MAX_BINARY_MESSAGE_LENGTH, MAX_SHORT_BINARY_MESSAGE_LENGTH,
     MAX_ABB_ASCII_RESPONSE_LENGTH, MAX_NMEA_MESSAGE_LENGTH,
@@ -49,6 +49,7 @@ from .common_bindings import (
     UNKNOWN_REASON, UnknownBytes, Field, FieldArray, MessageData,
     FramerManager, MetaDataBase
 )
+EnummeratorDefinition = EnumDefinition
 
 from .oem.oem_bindings import get_builtin_database
 

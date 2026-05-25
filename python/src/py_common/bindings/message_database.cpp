@@ -100,9 +100,10 @@ void py_common::init_common_message_database(nb::module_& m)
 
     nb::class_<EnumDataType>(m, "EnumDataType", "Enum Data Type representing contents of UI DB")
         .def(nb::init())
-        .def_ro("value", &EnumDataType::value)
-        .def_ro("name", &EnumDataType::name)
-        .def_ro("description", &EnumDataType::description)
+        .def(nb::init<uint32_t, std::string, std::string>(), "value"_a, "name"_a, "description"_a)
+        .def_rw("value", &EnumDataType::value)
+        .def_rw("name", &EnumDataType::name)
+        .def_rw("description", &EnumDataType::description)
         .def("__eq__", [](const EnumDataType& self, const EnumDataType& other) { return self == other; })
         .def("__repr__", [](const EnumDataType& enum_data_type) {
             if (enum_data_type.description.empty())
@@ -111,32 +112,64 @@ void py_common::init_common_message_database(nb::module_& m)
                 .format(enum_data_type.name, enum_data_type.value, enum_data_type.description);
         });
 
-    nb::class_<EnumDefinition>(m, "EnummeratorDefinition", "Enum Definition representing contents of UI DB")
+    nb::class_<EnumDefinition>(m, "EnumDefinition", "Enum Definition representing contents of UI DB")
         .def(nb::init())
-        .def_ro("id", &EnumDefinition::_id)
-        .def_ro("name", &EnumDefinition::name)
-        .def_ro("enumerators", &EnumDefinition::enumerators)
+        .def(
+            "__init__",
+            [](EnumDefinition* t, std::string id, std::string name, std::vector<EnumDataType> enumerators) {
+                auto* def = new (t) EnumDefinition; // NOLINT(*.NewDeleteLeaks)
+                def->_id = std::move(id);
+                def->name = std::move(name);
+                def->enumerators = std::move(enumerators);
+                for (const auto& enumerator : def->enumerators)
+                {
+                    def->nameValue[enumerator.name] = enumerator.value;
+                    def->valueName[enumerator.value] = enumerator.name;
+                    def->descriptionValue[enumerator.description] = enumerator.value;
+                }
+            },
+            "id"_a = std::string{}, "name"_a = std::string{}, "enumerators"_a = std::vector<EnumDataType>{})
+        .def_rw("id", &EnumDefinition::_id)
+        .def_rw("name", &EnumDefinition::name)
+        .def_rw("enumerators", &EnumDefinition::enumerators)
         .def("__repr__", [](const EnumDefinition& enum_def) {
             return nb::str("EnumDefinition(id={!r}, name={!r}, enumerators={!r})").format(enum_def._id, enum_def.name, enum_def.enumerators);
         });
 
-    nb::class_<SimpleDataType>(m, "SimpleDataType", "Struct containing elements of simple data type fields in the UI DB")
-        .def(nb::init())
-        .def_rw("name", &SimpleDataType::name)
-        .def_rw("length", &SimpleDataType::length)
-        .def_rw("description", &SimpleDataType::description)
-        .def("__eq__", [](const SimpleDataType& self, const SimpleDataType& other) { return self == other; });
-
     nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")
         .def(nb::init())
-        .def(nb::init<std::string, FIELD_TYPE, std::string, size_t, DATA_TYPE>(), "name"_a, "type"_a, "conversion"_a, "length"_a, "data_type"_a)
+        .def(
+            "__init__",
+            [](BaseField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type) {
+                auto* field = new (t) BaseField; // NOLINT(*.NewDeleteLeaks)
+                field->name = std::move(name);
+                field->type = type;
+                field->dataType.name = data_type;
+                field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
+                if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
+            },
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN)
         .def_rw("name", &BaseField::name)
         .def_rw("type", &BaseField::type)
         .def_rw("description", &BaseField::description)
-        .def_rw("conversion", &BaseField::conversion)
-        .def_rw("width", &BaseField::width)
-        .def_rw("precision", &BaseField::precision)
-        .def_rw("data_type", &BaseField::dataType)
+        .def_prop_rw(
+            "conversion", [](const BaseField& self) -> const std::string& { return self.conversion; },
+            [](BaseField& self, std::string value) {
+                try
+                {
+                    self.SetConversion(std::move(value));
+                }
+                catch (const std::exception& e)
+                {
+                    throw nb::attribute_error(e.what());
+                }
+            })
+        .def_prop_rw(
+            "data_type", [](const BaseField& self) { return self.dataType.name; },
+            [](BaseField& self, DATA_TYPE value) {
+                self.dataType.name = value;
+                self.dataType.length = static_cast<uint16_t>(DataTypeSize(value));
+            })
         .def("set_conversion", &BaseField::SetConversion, "conversion"_a)
         .def("__eq__", [](const BaseField& self, const BaseField& other) { return self == other; })
         .def("__repr__", [](const BaseField& field) {
@@ -150,30 +183,74 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<EnumField, BaseField>(m, "EnumFieldDefinition", "Struct containing elements of enum fields in the UI DB")
-        .def(nb::init())
         .def(
             "__init__",
-            [](EnumField* t, std::string name, std::vector<EnumDataType> enumerators) {
-                auto enum_def = std::make_shared<EnumDefinition>();
-                enum_def->name = name;
-                enum_def->enumerators = std::move(enumerators);
+            [](EnumField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, std::string enum_id,
+               std::vector<EnumDataType> enumerators) {
                 auto* field = new (t) EnumField; // NOLINT(*.NewDeleteLeaks)
-                field->name = name;
-                field->enumDef = std::move(enum_def);
-                field->type = FIELD_TYPE::ENUM;
+                field->name = std::move(name);
+                field->type = type;
+                field->dataType.name = data_type;
+                field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
+                if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
+                field->enumId = std::move(enum_id);
+                if (!enumerators.empty())
+                {
+                    auto enum_def = std::make_shared<EnumDefinition>();
+                    enum_def->enumerators = std::move(enumerators);
+                    for (const auto& enumerator : enum_def->enumerators)
+                    {
+                        enum_def->nameValue[enumerator.name] = enumerator.value;
+                        enum_def->valueName[enumerator.value] = enumerator.name;
+                        enum_def->descriptionValue[enumerator.description] = enumerator.value;
+                    }
+                    field->enumDef = std::move(enum_def);
+                }
             },
-            "name"_a, "enumerators"_a)
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::ENUM, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
+            "enum_id"_a = std::string{}, "enumerators"_a = std::vector<EnumDataType>{})
         .def_rw("enum_id", &EnumField::enumId)
         .def_ro("enum_def", &EnumField::enumDef)
-        .def_rw("length", &EnumField::length)
+        .def_prop_rw(
+            "enumerators",
+            [](const EnumField& self) { return self.enumDef ? self.enumDef->enumerators : std::vector<EnumDataType>{}; },
+            [](EnumField& self, std::vector<EnumDataType> enumerators) {
+                auto new_def = std::make_shared<EnumDefinition>();
+                if (self.enumDef)
+                {
+                    new_def->_id = self.enumDef->_id;
+                    new_def->name = self.enumDef->name;
+                }
+                new_def->enumerators = std::move(enumerators);
+                for (const auto& enumerator : new_def->enumerators)
+                {
+                    new_def->nameValue[enumerator.name] = enumerator.value;
+                    new_def->valueName[enumerator.value] = enumerator.name;
+                    new_def->descriptionValue[enumerator.description] = enumerator.value;
+                }
+                self.enumDef = std::move(new_def);
+            })
         .def("__repr__", [](const EnumField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
-            return nb::str("EnumField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, enum_id={!r}, length={!r})")
-                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.enumId, field.length);
+            return nb::str("EnumField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, enum_id={!r})")
+                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.enumId);
         });
 
     nb::class_<ArrayField, BaseField>(m, "ArrayFieldDefinition", "Struct containing elements of array fields in the UI DB")
         .def(nb::init())
+        .def(
+            "__init__",
+            [](ArrayField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, uint32_t array_length) {
+                auto* field = new (t) ArrayField; // NOLINT(*.NewDeleteLeaks)
+                field->name = std::move(name);
+                field->type = type;
+                field->dataType.name = data_type;
+                field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
+                if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
+                field->arrayLength = array_length;
+            },
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
+            "array_length"_a = uint32_t{0})
         .def_rw("array_length", &ArrayField::arrayLength)
         .def("__repr__", [](const ArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
@@ -182,16 +259,28 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<FieldArrayField, BaseField>(m, "FieldArrayFieldDefinition", "Struct containing elements of field array fields in the UI DB")
-        .def(nb::init())
+        .def(
+            "__init__",
+            [](FieldArrayField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, uint32_t array_length,
+               std::vector<std::shared_ptr<BaseField>> fields) {
+                auto* field = new (t) FieldArrayField; // NOLINT(*.NewDeleteLeaks)
+                field->name = std::move(name);
+                field->type = type;
+                field->dataType.name = data_type;
+                field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
+                if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
+                field->arrayLength = array_length;
+                field->fields = std::move(fields);
+            },
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::FIELD_ARRAY, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
+            "array_length"_a = uint32_t{0}, "fields"_a = std::vector<std::shared_ptr<BaseField>>{})
         .def_rw("array_length", &FieldArrayField::arrayLength)
-        .def_rw("field_size", &FieldArrayField::fieldSize)
         .def_rw("fields", &FieldArrayField::fields, nb::rv_policy::reference_internal)
         .def("__repr__", [](const FieldArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
-            return nb::str("FieldArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r}, field_size={!r}, "
+            return nb::str("FieldArrayField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, array_length={!r}, "
                            "fields={!r})")
-                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.arrayLength, field.fieldSize,
-                        field.fields);
+                .format(field.name, nb::cast(field.type), field.dataType.name, desc, field.conversion, field.arrayLength, field.fields);
         });
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")

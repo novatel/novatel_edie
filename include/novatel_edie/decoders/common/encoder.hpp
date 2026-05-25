@@ -562,7 +562,7 @@ template <typename Derived> class EncoderBase
                     break;
                 case FIELD_TYPE::ENUM: {
                     const auto* enumField = dynamic_cast<const EnumField*>(field.fieldDef.get());
-                    if (enumField->length == 2)
+                    if (enumField->dataType.length == 2)
                     {
                         if (!CopyToBuffer(ppcOutBuf_, uiBytesLeft_, GetEnumString(enumField->enumDef, std::get<int16_t>(field.fieldValue))) ||
                             !CopyToBuffer(ppcOutBuf_, uiBytesLeft_, separator))

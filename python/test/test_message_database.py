@@ -27,6 +27,241 @@ import pytest
 from novatel_edie import MessageDatabase, FailureException
 from novatel_edie.oem import Decoder
 from novatel_edie.oem.enums import Datum
+from novatel_edie import MessageDefinition, EnumFieldDefinition, EnumDefinition, EnumDataType
+from novatel_edie import FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, FIELD_TYPE, DATA_TYPE
+from novatel_edie.oem import Header
+
+class TestDatabaseDefinitionObjects:
+    """Tests that verify the interface for definition objects."""
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"value": 2, "name": "val", "description": "a value of 2"},
+        {"value": 0, "name": "error", "description": "an error msg"}])
+    class TestEnumDataType:
+        """Tests for EnumDataType."""
+        defaults = {
+            "value": 0,
+            "name": "",
+            "description": ""
+        }
+        def test_construct(self, values: dict):
+            # Act
+            data = EnumDataType(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(data, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            data = EnumDataType()
+            # Act
+            for attr, value in values.items():
+                setattr(data, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(data, attr) == values.get(attr, default)
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"id": "1", "name": "Datum", "enumerators": [EnumDataType(61, "WGS84", "WGS84 datum")]},
+        {"id": "0", "name": "empty", "enumerators": []}])
+    class TestEnumDefinition:
+        """Tests for EnumDefinition."""
+        defaults = {
+            "id": "",
+            "name": "",
+            "enumerators": []
+        }
+        def test_construct(self, values: dict):
+            # Act
+            enum_def = EnumDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(enum_def, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            enum_def = EnumDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(enum_def, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(enum_def, attr) == values.get(attr, default)
+
+    class TestFieldDefinition:
+        """Tests for FieldDefinition (BaseField)."""
+
+        @pytest.mark.parametrize("values", [
+            {},
+            {"name": "field1", "type": FIELD_TYPE.SIMPLE, "conversion": "%d", "data_type": DATA_TYPE.INT},
+            {"name": "field2", "type": FIELD_TYPE.SIMPLE, "conversion": "%.3f", "data_type": DATA_TYPE.DOUBLE}])
+        class TestValues:
+            """Tests that values are set correctly."""
+            defaults = {
+                "name": "",
+                "type": FIELD_TYPE.UNKNOWN,
+                "conversion": "",
+                "data_type": DATA_TYPE.UNKNOWN
+            }
+            def test_construct(self, values: dict):
+                # Act
+                field = FieldDefinition(**values)
+                # Assert
+                for attr, default in self.defaults.items():
+                    assert getattr(field, attr) == values.get(attr, default)
+
+            def test_set_direct(self, values: dict):
+                # Arrange
+                field = FieldDefinition()
+                # Act
+                for attr, value in values.items():
+                    setattr(field, attr, value)
+                # Assert
+                for attr, default in self.defaults.items():
+                    assert getattr(field, attr) == values.get(attr, default)
+
+        @pytest.mark.parametrize("invalid_conversion", [
+            "",
+            "d",
+            "%q!",
+            "%5.2"])
+        def test_invalid_conversion_raises_attribute_error(self, invalid_conversion: str):
+            # Arrange
+            field = FieldDefinition()
+            # Act / Assert
+            with pytest.raises(AttributeError):
+                field.conversion = invalid_conversion
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"name": "field1", "type": FIELD_TYPE.SIMPLE, "conversion": "%d", "data_type": DATA_TYPE.ULONG, "enum_id": "42", "enumerators": [EnumDataType(1, "A", "first"), EnumDataType(2, "B", "second")]},
+        {"name": "field2"}])
+    class TestEnumFieldDefinition:
+        """Tests for EnumFieldDefinition."""
+        defaults = {
+            "name": "",
+            "type": FIELD_TYPE.ENUM,
+            "conversion": "",
+            "data_type": DATA_TYPE.UNKNOWN,
+            "enum_id": "",
+            "enumerators": [],
+        }
+        def test_construct(self, values: dict):
+            # Act
+            field = EnumFieldDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            field = EnumFieldDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(field, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"name": "arr1", "type": FIELD_TYPE.FIXED_LENGTH_ARRAY, "conversion": "%s", "data_type": DATA_TYPE.UCHAR, "array_length": 4},
+        {"name": "arr2", "array_length": 0}])
+    class TestArrayFieldDefinition:
+        """Tests for ArrayFieldDefinition."""
+        defaults = {
+            "name": "",
+            "type": FIELD_TYPE.UNKNOWN,
+            "conversion": "",
+            "data_type": DATA_TYPE.UNKNOWN,
+            "array_length": 0,
+        }
+        def test_construct(self, values: dict):
+            # Act
+            field = ArrayFieldDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            field = ArrayFieldDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(field, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"name": "fa1", "array_length": 4},
+        {"name": "fa2", "array_length": 0, "type": FIELD_TYPE.SIMPLE, "conversion": "%s", "data_type": DATA_TYPE.UNKNOWN},
+        {"name": "fa3", "array_length": 2, "fields": [
+            FieldDefinition(name="x", type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.INT),
+            EnumFieldDefinition(name="kind", enum_id="42", enumerators=[EnumDataType(1, "A", "first")]),
+        ]}])
+    class TestFieldArrayFieldDefinition:
+        """Tests for FieldArrayFieldDefinition."""
+        defaults = {
+            "name": "",
+            "type": FIELD_TYPE.FIELD_ARRAY,
+            "conversion": "",
+            "data_type": DATA_TYPE.UNKNOWN,
+            "array_length": 0,
+            "fields": [],
+        }
+        def test_construct(self, values: dict):
+            # Act
+            field = FieldArrayFieldDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            field = FieldArrayFieldDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(field, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"id": "1", "log_id": 42, "name": "BESTPOS", "description": "best position log", "latest_message_crc": 1234},
+        {"id": "0", "log_id": 0, "name": "", "description": "", "latest_message_crc": 0}])
+    class TestMessageDefinition:
+        """Tests for MessageDefinition."""
+        defaults = {
+            "id": "",
+            "log_id": 0,
+            "name": "",
+            "description": "",
+            "latest_message_crc": 0,
+            "fields": {},
+        }
+        def test_construct(self, values: dict):
+            # Act
+            msg_def = MessageDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(msg_def, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            msg_def = MessageDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(msg_def, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(msg_def, attr) == values.get(attr, default)
+
+
 
 def test_message_db_enums(json_db):
     # Act
