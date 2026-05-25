@@ -270,6 +270,8 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::AppendMessageTypes(const std:
 
     // get type constructor
     nb::dict globals;
+    // Initializing builtins appears necessary to access 'type' functions in older python versions
+    globals["__builtins__"] = nb::module_::import_("builtins");
     globals["field_type"] = nb::type<py_common::PyField>();
     globals["message_type"] = message_family_registration_->messageType;
     globals["db"] = nb::find(this);
