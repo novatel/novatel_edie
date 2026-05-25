@@ -285,16 +285,35 @@ void py_common::init_common_message_database(nb::module_& m)
 
     nb::class_<MessageDefinition>(m, "MessageDefinition", "Struct containing elements of message definitions in the UI DB")
         .def(nb::init())
+        .def(
+            "__init__",
+            [](MessageDefinition* t, std::string id, uint32_t log_id, std::string name, std::string description, uint32_t latest_message_crc,
+               std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>> fields) {
+                auto* def = new (t) MessageDefinition; // NOLINT(*.NewDeleteLeaks)
+                def->_id = std::move(id);
+                def->logID = log_id;
+                def->name = std::move(name);
+                def->description = std::move(description);
+                def->latestMessageCrc = latest_message_crc;
+                def->fields = std::move(fields);
+            },
+            "id"_a = std::string{}, "log_id"_a = uint32_t{0}, "name"_a = std::string{}, "description"_a = std::string{},
+            "latest_message_crc"_a = uint32_t{0},
+            "fields"_a = std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>>{})
         .def_rw("id", &MessageDefinition::_id)
         .def_rw("log_id", &MessageDefinition::logID)
         .def_rw("name", &MessageDefinition::name)
         .def_rw("description", &MessageDefinition::description)
-        .def_prop_ro("fields",
-                     [](MessageDefinition& self) {
-                         nb::dict py_map;
-                         for (const auto& [id, value] : self.fields) { py_map[nb::cast(id)] = nb::cast(value); }
-                         return py_map;
-                     })
+        .def_prop_rw(
+            "fields",
+            [](MessageDefinition& self) {
+                nb::dict py_map;
+                for (const auto& [id, value] : self.fields) { py_map[nb::cast(id)] = nb::cast(value); }
+                return py_map;
+            },
+            [](MessageDefinition& self, std::unordered_map<uint32_t, std::vector<std::shared_ptr<BaseField>>> fields) {
+                self.fields = std::move(fields);
+            })
         .def_rw("latest_message_crc", &MessageDefinition::latestMessageCrc)
         .def("__eq__", [](const MessageDefinition& self, const MessageDefinition& other) { return self == other; })
         .def("__repr__", [](nb::handle_t<MessageDefinition> self) {

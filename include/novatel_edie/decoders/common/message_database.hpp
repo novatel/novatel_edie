@@ -513,7 +513,6 @@ struct MessageDefinition
     uint32_t logID{0};
     std::string name;
     std::string description;
-    std::string messageStyle;
     std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields; // map of crc keys to field definitions
     uint32_t latestMessageCrc{0};
 
@@ -528,7 +527,7 @@ struct MessageDefinition
     [[nodiscard]] bool operator==(const MessageDefinition& other) const
     {
         if (_id != other._id || logID != other.logID || name != other.name || description != other.description ||
-            messageStyle != other.messageStyle || latestMessageCrc != other.latestMessageCrc || fields.size() != other.fields.size())
+            latestMessageCrc != other.latestMessageCrc || fields.size() != other.fields.size())
         {
             return false;
         }
@@ -562,8 +561,7 @@ struct MessageDefinition
     //! the source.
     //----------------------------------------------------------------------------
     MessageDefinition(const MessageDefinition& other)
-        : _id(other._id), logID(other.logID), name(other.name), description(other.description), messageStyle(other.messageStyle),
-          latestMessageCrc(other.latestMessageCrc)
+        : _id(other._id), logID(other.logID), name(other.name), description(other.description), latestMessageCrc(other.latestMessageCrc)
     {
         for (const auto& [crc, fieldVec] : other.fields)
         {
@@ -580,7 +578,6 @@ struct MessageDefinition
         logID = other.logID;
         name = other.name;
         description = other.description;
-        messageStyle = other.messageStyle;
         latestMessageCrc = other.latestMessageCrc;
         fields.clear();
         for (const auto& [crc, fieldVec] : other.fields)
