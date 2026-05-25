@@ -116,16 +116,37 @@ void py_common::init_common_message_database(nb::module_& m)
              "enumerators"_a = std::vector<EnumDataType>{})
         .def_rw("id", &EnumDefinition::_id)
         .def_rw("name", &EnumDefinition::name)
-        .def_rw("enumerators", &EnumDefinition::enumerators)
+        .def_prop_rw(
+            "enumerators", [](EnumDefinition& self) -> std::vector<EnumDataType>& { return self.enumerators; },
+            [](EnumDefinition& self, std::vector<EnumDataType> value) {
+                self.enumerators = std::move(value);
+                self.RebuildCaches();
+            })
         .def("__repr__", [](const EnumDefinition& enum_def) {
             return nb::str("EnumDefinition(id={!r}, name={!r}, enumerators={!r})").format(enum_def._id, enum_def.name, enum_def.enumerators);
         });
 
     nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")
-        .def(nb::init<std::string, FIELD_TYPE, std::string, DATA_TYPE>(), "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN,
-             "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN)
+        .def(
+            "__init__",
+            [](BaseField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type) {
+                try
+                {
+                    new (t) BaseField(std::move(name), type, std::move(conversion), data_type); // NOLINT(*.NewDeleteLeaks)
+                }
+                catch (const std::exception& e)
+                {
+                    throw nb::value_error(e.what());
+                }
+            },
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN)
         .def_rw("name", &BaseField::name)
-        .def_rw("type", &BaseField::type)
+        .def_prop_rw(
+            "type", [](const BaseField& self) { return self.type; },
+            [](BaseField& self, FIELD_TYPE value) {
+                self.type = value;
+                self.RecomputeStringFlags();
+            })
         .def_rw("description", &BaseField::description)
         .def_prop_rw(
             "conversion", [](const BaseField& self) -> const std::string& { return self.conversion; },
@@ -158,8 +179,20 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<EnumField, BaseField>(m, "EnumFieldDefinition", "Struct containing elements of enum fields in the UI DB")
-        .def(nb::init<std::string, FIELD_TYPE, std::string, DATA_TYPE, std::string>(), "name"_a = std::string{}, "type"_a = FIELD_TYPE::ENUM,
-             "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN, "enum_id"_a = std::string{})
+        .def(
+            "__init__",
+            [](EnumField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, std::string enum_id) {
+                try
+                {
+                    new (t) EnumField(std::move(name), type, std::move(conversion), data_type, std::move(enum_id)); // NOLINT(*.NewDeleteLeaks)
+                }
+                catch (const std::exception& e)
+                {
+                    throw nb::value_error(e.what());
+                }
+            },
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::ENUM, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
+            "enum_id"_a = std::string{})
         .def_rw("enum_id", &EnumField::enumId)
         .def_ro("enum_def", &EnumField::enumDef)
         .def("__repr__", [](const EnumField& field) {
@@ -169,8 +202,20 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<ArrayField, BaseField>(m, "ArrayFieldDefinition", "Struct containing elements of array fields in the UI DB")
-        .def(nb::init<std::string, FIELD_TYPE, std::string, DATA_TYPE, uint32_t>(), "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN,
-             "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN, "array_length"_a = uint32_t{0})
+        .def(
+            "__init__",
+            [](ArrayField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, uint32_t array_length) {
+                try
+                {
+                    new (t) ArrayField(std::move(name), type, std::move(conversion), data_type, array_length); // NOLINT(*.NewDeleteLeaks)
+                }
+                catch (const std::exception& e)
+                {
+                    throw nb::value_error(e.what());
+                }
+            },
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::UNKNOWN, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
+            "array_length"_a = uint32_t{0})
         .def_rw("array_length", &ArrayField::arrayLength)
         .def("__repr__", [](const ArrayField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
@@ -179,9 +224,22 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<FieldArrayField, BaseField>(m, "FieldArrayFieldDefinition", "Struct containing elements of field array fields in the UI DB")
-        .def(nb::init<std::string, FIELD_TYPE, std::string, DATA_TYPE, uint32_t, std::vector<std::shared_ptr<BaseField>>>(), "name"_a = std::string{},
-             "type"_a = FIELD_TYPE::FIELD_ARRAY, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN, "array_length"_a = uint32_t{0},
-             "fields"_a = std::vector<std::shared_ptr<BaseField>>{})
+        .def(
+            "__init__",
+            [](FieldArrayField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, uint32_t array_length,
+               std::vector<std::shared_ptr<BaseField>> fields) {
+                try
+                {
+                    new (t) FieldArrayField(std::move(name), type, std::move(conversion), data_type, array_length,
+                                            std::move(fields)); // NOLINT(*.NewDeleteLeaks)
+                }
+                catch (const std::exception& e)
+                {
+                    throw nb::value_error(e.what());
+                }
+            },
+            "name"_a = std::string{}, "type"_a = FIELD_TYPE::FIELD_ARRAY, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
+            "array_length"_a = uint32_t{0}, "fields"_a = std::vector<std::shared_ptr<BaseField>>{})
         .def_rw("array_length", &FieldArrayField::arrayLength)
         .def_rw("fields", &FieldArrayField::fields, nb::rv_policy::reference_internal)
         .def("__repr__", [](const FieldArrayField& field) {

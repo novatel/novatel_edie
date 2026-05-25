@@ -367,38 +367,43 @@ struct BaseField
 
     void SetConversion(std::string&& sConversion_)
     {
-        conversion = std::move(sConversion_);
-        width = {};
-        precision = {};
-
-        const char* sConvertString = conversion.c_str();
+        const char* sConvertString = sConversion_.c_str();
 
         if (*sConvertString != '%') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
-
         ++sConvertString;
 
+        std::optional<int32_t> newWidth;
         if (std::isdigit(*sConvertString))
         {
-            width = std::stoi(sConvertString);
-            sConvertString += std::to_string(*width).length();
+            newWidth = std::stoi(sConvertString);
+            sConvertString += std::to_string(*newWidth).length();
         }
 
         if (*sConvertString == '.') { ++sConvertString; }
 
+        std::optional<int32_t> newPrecision;
         if (std::isdigit(*sConvertString))
         {
-            precision = std::stoi(sConvertString);
-            sConvertString += std::to_string(*precision).length();
+            newPrecision = std::stoi(sConvertString);
+            sConvertString += std::to_string(*newPrecision).length();
         }
-
-        conversionHash = 0;
 
         if (!std::isalpha(*sConvertString)) { throw std::runtime_error("Conversion string must contain a character"); }
 
-        while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
+        uint32_t newHash = 0;
+        while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(newHash, *sConvertString++); }
 
         if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
 
+        conversion = std::move(sConversion_);
+        width = newWidth;
+        precision = newPrecision;
+        conversionHash = newHash;
+        RecomputeStringFlags();
+    }
+
+    void RecomputeStringFlags()
+    {
         isString = type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
         isCsv = !isString && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
     }
@@ -496,6 +501,23 @@ struct FieldArrayField : ArrayField
                     std::vector<std::shared_ptr<BaseField>> fields_)
         : ArrayField(std::move(name_), type_, std::move(conversion_), eDataTypeName_, arrayLength_), fields(std::move(fields_))
     {
+        uint32_t childTotal = 0;
+        for (const auto& f : fields)
+        {
+            if (!f) { continue; }
+            switch (f->type)
+            {
+            case FIELD_TYPE::SIMPLE:
+            case FIELD_TYPE::ENUM: childTotal += f->dataType.length; break;
+            case FIELD_TYPE::FIXED_LENGTH_ARRAY:
+            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            case FIELD_TYPE::STRING:
+                if (const auto* a = dynamic_cast<const ArrayField*>(f.get())) { childTotal += f->dataType.length * a->arrayLength; }
+                break;
+            default: break;
+            }
+        }
+        fieldSize = arrayLength * childTotal;
     }
 
     [[nodiscard]] std::shared_ptr<BaseField> clone() const override
