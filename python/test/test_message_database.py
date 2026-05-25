@@ -136,7 +136,7 @@ class TestDatabaseObjects:
 
     @pytest.mark.parametrize("values", [
         {},
-        {"name": "field1", "type": FIELD_TYPE.SIMPLE, "conversion": "%d", "data_type": DATA_TYPE.ULONG, "enum_id": "42", "enumerators": [EnumDataType(1, "A", "first"), EnumDataType(2, "B", "second")]},
+        {"name": "field1", "type": FIELD_TYPE.SIMPLE, "conversion": "%d", "data_type": DATA_TYPE.ULONG, "enum_id": "42"},
         {"name": "field2"}])
     class TestEnumFieldDefinition:
         """Tests for EnumFieldDefinition."""
@@ -145,8 +145,7 @@ class TestDatabaseObjects:
             "type": FIELD_TYPE.ENUM,
             "conversion": "",
             "data_type": DATA_TYPE.UNKNOWN,
-            "enum_id": "",
-            "enumerators": [],
+            "enum_id": ""
         }
         def test_construct(self, values: dict):
             # Act
@@ -201,7 +200,7 @@ class TestDatabaseObjects:
         {"name": "fa2", "array_length": 0, "type": FIELD_TYPE.SIMPLE, "conversion": "%s", "data_type": DATA_TYPE.UNKNOWN},
         {"name": "fa3", "array_length": 2, "fields": [
             FieldDefinition(name="x", type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.INT),
-            EnumFieldDefinition(name="kind", enum_id="42", enumerators=[EnumDataType(1, "A", "first")]),
+            EnumFieldDefinition(name="kind", enum_id="42"),
         ]}])
     class TestFieldArrayFieldDefinition:
         """Tests for FieldArrayFieldDefinition."""

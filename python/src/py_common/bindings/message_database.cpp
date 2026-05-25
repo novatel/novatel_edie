@@ -114,21 +114,8 @@ void py_common::init_common_message_database(nb::module_& m)
 
     nb::class_<EnumDefinition>(m, "EnumDefinition", "Enum Definition representing contents of UI DB")
         .def(nb::init())
-        .def(
-            "__init__",
-            [](EnumDefinition* t, std::string id, std::string name, std::vector<EnumDataType> enumerators) {
-                auto* def = new (t) EnumDefinition; // NOLINT(*.NewDeleteLeaks)
-                def->_id = std::move(id);
-                def->name = std::move(name);
-                def->enumerators = std::move(enumerators);
-                for (const auto& enumerator : def->enumerators)
-                {
-                    def->nameValue[enumerator.name] = enumerator.value;
-                    def->valueName[enumerator.value] = enumerator.name;
-                    def->descriptionValue[enumerator.description] = enumerator.value;
-                }
-            },
-            "id"_a = std::string{}, "name"_a = std::string{}, "enumerators"_a = std::vector<EnumDataType>{})
+        .def(nb::init<std::string, std::string, std::vector<EnumDataType>>(),
+             "id"_a = std::string{}, "name"_a = std::string{}, "enumerators"_a = std::vector<EnumDataType>{})
         .def_rw("id", &EnumDefinition::_id)
         .def_rw("name", &EnumDefinition::name)
         .def_rw("enumerators", &EnumDefinition::enumerators)
@@ -185,8 +172,7 @@ void py_common::init_common_message_database(nb::module_& m)
     nb::class_<EnumField, BaseField>(m, "EnumFieldDefinition", "Struct containing elements of enum fields in the UI DB")
         .def(
             "__init__",
-            [](EnumField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, std::string enum_id,
-               std::vector<EnumDataType> enumerators) {
+            [](EnumField* t, std::string name, FIELD_TYPE type, std::string conversion, DATA_TYPE data_type, std::string enum_id) {
                 auto* field = new (t) EnumField; // NOLINT(*.NewDeleteLeaks)
                 field->name = std::move(name);
                 field->type = type;
@@ -194,42 +180,11 @@ void py_common::init_common_message_database(nb::module_& m)
                 field->dataType.length = static_cast<uint16_t>(DataTypeSize(data_type));
                 if (!conversion.empty()) { field->SetConversion(std::move(conversion)); }
                 field->enumId = std::move(enum_id);
-                if (!enumerators.empty())
-                {
-                    auto enum_def = std::make_shared<EnumDefinition>();
-                    enum_def->enumerators = std::move(enumerators);
-                    for (const auto& enumerator : enum_def->enumerators)
-                    {
-                        enum_def->nameValue[enumerator.name] = enumerator.value;
-                        enum_def->valueName[enumerator.value] = enumerator.name;
-                        enum_def->descriptionValue[enumerator.description] = enumerator.value;
-                    }
-                    field->enumDef = std::move(enum_def);
-                }
             },
             "name"_a = std::string{}, "type"_a = FIELD_TYPE::ENUM, "conversion"_a = std::string{}, "data_type"_a = DATA_TYPE::UNKNOWN,
-            "enum_id"_a = std::string{}, "enumerators"_a = std::vector<EnumDataType>{})
+            "enum_id"_a = std::string{})
         .def_rw("enum_id", &EnumField::enumId)
         .def_ro("enum_def", &EnumField::enumDef)
-        .def_prop_rw(
-            "enumerators",
-            [](const EnumField& self) { return self.enumDef ? self.enumDef->enumerators : std::vector<EnumDataType>{}; },
-            [](EnumField& self, std::vector<EnumDataType> enumerators) {
-                auto new_def = std::make_shared<EnumDefinition>();
-                if (self.enumDef)
-                {
-                    new_def->_id = self.enumDef->_id;
-                    new_def->name = self.enumDef->name;
-                }
-                new_def->enumerators = std::move(enumerators);
-                for (const auto& enumerator : new_def->enumerators)
-                {
-                    new_def->nameValue[enumerator.name] = enumerator.value;
-                    new_def->valueName[enumerator.value] = enumerator.name;
-                    new_def->descriptionValue[enumerator.description] = enumerator.value;
-                }
-                self.enumDef = std::move(new_def);
-            })
         .def("__repr__", [](const EnumField& field) {
             const std::string& desc = field.description == "[Brief Description]" ? "" : field.description;
             return nb::str("EnumField(name={!r}, type={}, data_type={}, description={!r}, conversion={!r}, enum_id={!r})")

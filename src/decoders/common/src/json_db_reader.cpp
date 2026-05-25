@@ -138,24 +138,9 @@ void from_json(const json& j_, MessageDefinition& md_)
 //-----------------------------------------------------------------------
 void from_json(const json& j_, EnumDefinition& ed_)
 {
-    ed_._id = j_.at("_id");
-    ed_.name = j_.at("name");
-
-    // Parse enumerators into the vector
-    ParseEnumerators(j_.at("enumerators"), ed_.enumerators);
-
-    // Populate the lookup maps
-    uint32_t maxVal = 0;
-    for (const auto& enumerator : ed_.enumerators)
-    {
-        maxVal = std::max(maxVal, enumerator.value);
-        ed_.nameValue[enumerator.name] = enumerator.value;
-        ed_.valueName[enumerator.value] = enumerator.name;
-        ed_.descriptionValue[enumerator.description] = enumerator.value;
-    }
-    ed_.unknownValue = maxVal + 1;
-    assert(ed_.unknownValue > maxVal &&
-           "Overflow encountered when determining placeholder value. Enumerator values are expected to  be within [0, 2^31).");
+    std::vector<EnumDataType> enumerators;
+    ParseEnumerators(j_.at("enumerators"), enumerators);
+    ed_ = EnumDefinition(j_.at("_id"), j_.at("name"), std::move(enumerators));
 }
 
 //-----------------------------------------------------------------------

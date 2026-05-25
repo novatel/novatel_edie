@@ -27,6 +27,8 @@
 #ifndef MESSAGE_DATABASE_HPP
 #define MESSAGE_DATABASE_HPP
 
+#include <algorithm>
+#include <cassert>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -222,7 +224,7 @@ struct EnumDefinition
     std::unordered_map<std::string_view, uint32_t> nameValue;        // cached
     std::unordered_map<std::string_view, uint32_t> descriptionValue; // cached
     std::unordered_map<uint32_t, std::string_view> valueName;        // cached
-    uint32_t unknownValue;
+    uint32_t unknownValue{0};                                        // cached; one greater than the largest enumerator value
 
     using Ptr = std::shared_ptr<EnumDefinition>;
     using ConstPtr = std::shared_ptr<const EnumDefinition>;
@@ -230,21 +232,19 @@ struct EnumDefinition
     EnumDefinition() = default;
     ~EnumDefinition() = default;
 
+    EnumDefinition(std::string id_, std::string name_, std::vector<EnumDataType> enumerators_)
+        : _id(std::move(id_)), name(std::move(name_)), enumerators(std::move(enumerators_))
+    {
+        RebuildCaches();
+    }
+
     //----------------------------------------------------------------------------
     //! \brief Deep copy. The lookup maps are rebuilt against the new
     //! `enumerators` vector — a default copy would alias the source's
     //! enumerator strings via the `string_view` keys, dangling once the source
     //! is destroyed.
     //----------------------------------------------------------------------------
-    EnumDefinition(const EnumDefinition& other) : _id(other._id), name(other.name), enumerators(other.enumerators), unknownValue(other.unknownValue)
-    {
-        for (const auto& enumerator : enumerators)
-        {
-            nameValue[enumerator.name] = enumerator.value;
-            valueName[enumerator.value] = enumerator.name;
-            descriptionValue[enumerator.description] = enumerator.value;
-        }
-    }
+    EnumDefinition(const EnumDefinition& other) : _id(other._id), name(other.name), enumerators(other.enumerators) { RebuildCaches(); }
 
     EnumDefinition& operator=(const EnumDefinition& other)
     {
@@ -252,21 +252,30 @@ struct EnumDefinition
         _id = other._id;
         name = other.name;
         enumerators = other.enumerators;
-        unknownValue = other.unknownValue;
-        nameValue.clear();
-        valueName.clear();
-        descriptionValue.clear();
-        for (const auto& enumerator : enumerators)
-        {
-            nameValue[enumerator.name] = enumerator.value;
-            valueName[enumerator.value] = enumerator.name;
-            descriptionValue[enumerator.description] = enumerator.value;
-        }
+        RebuildCaches();
         return *this;
     }
 
     EnumDefinition(EnumDefinition&&) = default;
     EnumDefinition& operator=(EnumDefinition&&) = default;
+
+    void RebuildCaches()
+    {
+        nameValue.clear();
+        valueName.clear();
+        descriptionValue.clear();
+        uint32_t maxVal = 0;
+        for (const auto& enumerator : enumerators)
+        {
+            maxVal = std::max(maxVal, enumerator.value);
+            nameValue[enumerator.name] = enumerator.value;
+            valueName[enumerator.value] = enumerator.name;
+            descriptionValue[enumerator.description] = enumerator.value;
+        }
+        unknownValue = maxVal + 1;
+        assert(unknownValue > maxVal &&
+               "Overflow encountered when determining placeholder value. Enumerator values are expected to be within [0, 2^31).");
+    }
 };
 
 //-----------------------------------------------------------------------
