@@ -399,10 +399,10 @@ struct BaseField
         width = newWidth;
         precision = newPrecision;
         conversionHash = newHash;
-        RecomputeStringFlags();
+        ComputeStringFlags();
     }
 
-    void RecomputeStringFlags()
+    void ComputeStringFlags()
     {
         isString = type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
         isCsv = !isString && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
@@ -420,8 +420,7 @@ struct BaseField
     [[nodiscard]] virtual bool equalsImpl(const BaseField& other) const
     {
         return name == other.name && type == other.type && description == other.description && conversion == other.conversion &&
-               conversionHash == other.conversionHash && width == other.width && precision == other.precision && isString == other.isString &&
-               isCsv == other.isCsv && dataType == other.dataType;
+               dataType == other.dataType;
     }
 };
 
@@ -535,15 +534,13 @@ struct FieldArrayField : ArrayField
     {
         if (!ArrayField::equalsImpl(other)) { return false; }
         const auto& o = static_cast<const FieldArrayField&>(other);
-        if (fieldSize != o.fieldSize) { return false; }
         if (fields.size() != o.fields.size()) { return false; }
         for (size_t i = 0; i < fields.size(); ++i)
         {
-            if (!fields[i] || !o.fields[i])
-            {
-                if (fields[i] != o.fields[i]) { return false; }
-            }
-            else if (*fields[i] != *o.fields[i]) { return false; }
+            const bool lhs_null = !fields[i];
+            const bool rhs_null = !o.fields[i];
+            if (lhs_null != rhs_null) { return false; }
+            if (!lhs_null && *fields[i] != *o.fields[i]) { return false; }
         }
         return true;
     }
@@ -600,11 +597,10 @@ struct MessageDefinition
             if (fieldVec.size() != otherVec.size()) { return false; }
             for (size_t i = 0; i < fieldVec.size(); ++i)
             {
-                if (!fieldVec[i] || !otherVec[i])
-                {
-                    if (fieldVec[i] != otherVec[i]) { return false; }
-                }
-                else if (*fieldVec[i] != *otherVec[i]) { return false; }
+                const bool lhs_null = !fieldVec[i];
+                const bool rhs_null = !otherVec[i];
+                if (lhs_null != rhs_null) { return false; }
+                if (!lhs_null && *fieldVec[i] != *otherVec[i]) { return false; }
             }
         }
         return true;

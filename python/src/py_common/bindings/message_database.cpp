@@ -145,7 +145,7 @@ void py_common::init_common_message_database(nb::module_& m)
             "type", [](const BaseField& self) { return self.type; },
             [](BaseField& self, FIELD_TYPE value) {
                 self.type = value;
-                self.RecomputeStringFlags();
+                self.ComputeStringFlags();
             })
         .def_rw("description", &BaseField::description)
         .def_prop_rw(

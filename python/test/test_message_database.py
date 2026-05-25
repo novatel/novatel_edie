@@ -25,7 +25,7 @@
 import pytest
 
 from novatel_edie import MessageDatabase, UnsupportedException
-from novatel_edie.oem import Decoder, Parser, FileParser, get_builtin_database
+from novatel_edie.oem import Decoder, Parser, FileParser, Commander, RangeDecompressor, RxConfigHandler, get_builtin_database
 from novatel_edie.oem.enums import Datum
 from novatel_edie import MessageDefinition, EnumFieldDefinition, EnumDefinition, EnumDataType
 from novatel_edie import FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, FIELD_TYPE, DATA_TYPE
@@ -323,7 +323,8 @@ class TestDatabaseActions:
             # Assert
             assert db.is_locked
 
-        @pytest.mark.parametrize("consumer_cons", [Decoder, Parser, lambda x: FileParser("", x)])
+        @pytest.mark.parametrize("consumer_cons", [Decoder, Parser, lambda x: FileParser("", x),
+                                                   Commander, RangeDecompressor, RxConfigHandler])
         def test_consumer_locking(self, consumer_cons, json_db: MessageDatabase):
             # Arrange
             db = json_db.clone()
