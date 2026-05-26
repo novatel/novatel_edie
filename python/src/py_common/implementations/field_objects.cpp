@@ -308,7 +308,7 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
 
     for (auto it = values.begin(); it != values.end(); it++)
     {
-        if (!nb::isinstance<PyField>(nb::handle(*it.value))) { throw nb::value_error("Only Fields can appear within a FieldArray!"); }
+        if (!nb::isinstance<PyField>(nb::handle(*it))) { throw nb::value_error("Only Fields can appear within a FieldArray!"); }
     }
     PyField* candidate = nb::inst_ptr<PyField>(nb::handle(*values.begin()));
     fieldDef = candidate->fieldDef;
@@ -319,7 +319,7 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
     size_t index = 0;
     for (auto it = values.begin(); it != values.end(); it++)
     {
-        nb::handle itHandle = nb::handle(*it.value);
+        nb::handle itHandle = nb::handle(*it);
         PyField* itVal = nb::inst_ptr<PyField>(itHandle);
         if (itVal->parent.is_valid())
         {
@@ -356,7 +356,7 @@ std::vector<FieldContainer> PyField::get_regular_array(const std::shared_ptr<con
         fixedArrVal.reserve(listVal.size());
         for (auto listIt = listVal.begin(); listIt != listVal.end(); listIt++)
         {
-            fixedArrVal.emplace_back(get_simple_attribute(fixedArrDef, nb::handle(*listIt.value)));
+            fixedArrVal.emplace_back(get_simple_attribute(fixedArrDef, nb::handle(*listIt)));
         }
     }
     else { throw nb::attribute_error("Value cannot be converted to a fixed length array."); }
