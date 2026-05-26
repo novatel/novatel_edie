@@ -16,6 +16,76 @@ using namespace nb::literals;
 using namespace novatel::edie;
 using namespace novatel::edie::py_common;
 
+namespace {
+
+// Returns a zero-initialised FieldValueVariant alternative matching the given DATA_TYPE.
+// Used by BuildDefaultFields to populate scalar fields with sensible defaults.
+// ENUM fields are handled at the call site (int32_t to satisfy the debug-mode
+// FieldContainer::Validate() invariant).
+FieldValueVariant MakeDefaultScalarValue(DATA_TYPE dt)
+{
+    switch (dt)
+    {
+    case DATA_TYPE::BOOL: return bool{};
+    case DATA_TYPE::CHAR: return int8_t{};
+    case DATA_TYPE::UCHAR: return uint8_t{};
+    case DATA_TYPE::SHORT: return int16_t{};
+    case DATA_TYPE::USHORT: return uint16_t{};
+    case DATA_TYPE::INT: [[fallthrough]];
+    case DATA_TYPE::LONG: return int32_t{};
+    case DATA_TYPE::UINT: [[fallthrough]];
+    case DATA_TYPE::ULONG: return uint32_t{};
+    case DATA_TYPE::LONGLONG: return int64_t{};
+    case DATA_TYPE::ULONGLONG: return uint64_t{};
+    case DATA_TYPE::FLOAT: return float{};
+    case DATA_TYPE::DOUBLE: return double{};
+    case DATA_TYPE::HEXBYTE: return uint8_t{};
+    case DATA_TYPE::SATELLITEID: return uint32_t{};
+    default: return uint32_t{};
+    }
+}
+
+template <typename T> T attr_cast(nb::handle value)
+{
+    try
+    {
+        return nb::cast<T>(value);
+    }
+    catch (nb::cast_error&)
+    {
+        throw nb::type_error("Invalid type conversion.");
+    }
+}
+
+// Builds a SIMPLE-typed FieldContainer from a Python value, casting to the
+// variant alternative that matches fieldDef's DATA_TYPE. Each return site is a
+// prvalue, so mandatory copy elision applies. Unsupported DATA_TYPEs raise.
+FieldContainer get_simple_attribute(BaseField::ConstPtr fieldDef, nb::handle value)
+{
+    switch (fieldDef->dataType.name)
+    {
+    case DATA_TYPE::BOOL: return FieldContainer{attr_cast<bool>(value), std::move(fieldDef)};
+    case DATA_TYPE::CHAR: return FieldContainer{attr_cast<int8_t>(value), std::move(fieldDef)};
+    case DATA_TYPE::UCHAR: return FieldContainer{attr_cast<uint8_t>(value), std::move(fieldDef)};
+    case DATA_TYPE::SHORT: return FieldContainer{attr_cast<int16_t>(value), std::move(fieldDef)};
+    case DATA_TYPE::USHORT: return FieldContainer{attr_cast<uint16_t>(value), std::move(fieldDef)};
+    case DATA_TYPE::LONG: [[fallthrough]];
+    case DATA_TYPE::INT: return FieldContainer{attr_cast<int32_t>(value), std::move(fieldDef)};
+    case DATA_TYPE::ULONG: [[fallthrough]];
+    case DATA_TYPE::UINT: return FieldContainer{attr_cast<uint32_t>(value), std::move(fieldDef)};
+    case DATA_TYPE::LONGLONG: return FieldContainer{attr_cast<int64_t>(value), std::move(fieldDef)};
+    case DATA_TYPE::ULONGLONG: return FieldContainer{attr_cast<uint64_t>(value), std::move(fieldDef)};
+    case DATA_TYPE::FLOAT: return FieldContainer{attr_cast<float>(value), std::move(fieldDef)};
+    case DATA_TYPE::DOUBLE: return FieldContainer{attr_cast<double>(value), std::move(fieldDef)};
+    default:
+        throw nb::attribute_error(
+            ("Modification of attributes with the \"" + std::string(DataTypeToString(fieldDef->dataType.name)) + "\" type is not yet supported.")
+                .c_str());
+    }
+}
+
+} // namespace
+
 PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
 {
     FieldContainer& field = fieldsPtr[entry.index];
@@ -231,3 +301,127 @@ PYCOMMON_EXPORT nb::object PyFieldArray::getitem(ssize_t signedIndex) const
 }
 
 PYCOMMON_EXPORT size_t PyFieldArray::len() const { return data->size(); }
+
+std::vector<FieldContainer> PyField::get_regular_array(const std::shared_ptr<const ArrayField>& fixedArrDef, nb::handle value)
+{
+    std::vector<FieldContainer> fixedArrVal;
+    if (nb::isinstance<nb::str>(value) || nb::isinstance<nb::bytes>(value))
+    {
+        std::string_view strVal;
+        if (nb::isinstance<nb::str>(value)) { strVal = nb::cast<nb::str>(value).c_str(); }
+        else { strVal = nb::cast<nb::bytes>(value).c_str(); }
+        if (strVal.size() > fixedArrDef->arrayLength) { throw nb::value_error("Supplied string does not fit within fixed array size."); }
+        fixedArrVal.reserve(strVal.size());
+        for (unsigned char b : strVal) { fixedArrVal.emplace_back(FieldContainer{b, fixedArrDef}); }
+    }
+    else if (nb::isinstance<nb::list>(value))
+    {
+        auto listVal = nb::cast<nb::list>(value);
+        if (listVal.size() > fixedArrDef->arrayLength) { throw nb::value_error("List contains too many elements for fixed array."); }
+        fixedArrVal.reserve(listVal.size());
+        for (auto listIt = listVal.begin(); listIt != listVal.end(); listIt++)
+        {
+            fixedArrVal.emplace_back(get_simple_attribute(fixedArrDef, nb::handle(*listIt.value)));
+        }
+    }
+    else { throw nb::attribute_error("Value cannot be converted to a fixed length array."); }
+    return fixedArrVal;
+}
+
+PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
+{
+    try
+    {
+
+        if (fieldNameMap_ == nullptr) { throw nb::attribute_error(field_name.c_str()); }
+
+        auto it = fieldNameMap_->find(field_name.c_str());
+        if (it == fieldNameMap_->end()) { throw nb::attribute_error(field_name.c_str()); }
+        const FieldLookupEntry& entry = it->second;
+
+        if (entry.is_length) { throw nb::attribute_error("Length cannot be set directly, modify the corresponding array instead."); }
+
+        FieldContainer& field = fieldsPtr[entry.index];
+
+        switch (field.fieldDef->type)
+        {
+        case FIELD_TYPE::SIMPLE: field = get_simple_attribute(field.fieldDef, value); break;
+        case FIELD_TYPE::ENUM: field.fieldValue = attr_cast<int32_t>(value); break;
+        case FIELD_TYPE::STRING: field.fieldValue = attr_cast<std::string>(value); break;
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            field.fieldValue = get_regular_array(std::dynamic_pointer_cast<const ArrayField>(field.fieldDef), value);
+            break;
+        default:
+            throw nb::attribute_error(
+                ("Modification of attributes with the \"" + std::string(FieldTypeToString(field.fieldDef->type)) + "\" type is not yet supported.")
+                    .c_str());
+        }
+    }
+    catch (nb::builtin_exception& e)
+    {
+        std::string msg = "Failed to set attribute \"" + std::string(field_name.c_str()) + "\": " + e.what();
+        throw nb::builtin_exception(e.type(), msg.c_str());
+    }
+    // Invalidate the to_shallow_dict cache so the new value is visible to future reads.
+    cached_values_.clear();
+}
+
+PYCOMMON_EXPORT std::vector<FieldContainer> PyField::BuildDefaultFields(const std::vector<BaseField::Ptr>& fieldDefs)
+{
+    std::vector<FieldContainer> fields;
+    fields.reserve(fieldDefs.size());
+
+    for (const auto& fieldDef : fieldDefs)
+    {
+        switch (fieldDef->type)
+        {
+        case FIELD_TYPE::FIELD_ARRAY: {
+            fields.emplace_back(std::vector<FieldContainer>{}, fieldDef);
+            break;
+        }
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+            const auto* arrayDef = dynamic_cast<const ArrayField*>(fieldDef.get());
+            const size_t arrayLength = arrayDef ? arrayDef->arrayLength : 0;
+            std::vector<FieldContainer> arrayValues;
+            arrayValues.reserve(arrayLength);
+            for (size_t i = 0; i < arrayLength; ++i) { arrayValues.emplace_back(MakeDefaultScalarValue(fieldDef->dataType.name), fieldDef); }
+            fields.emplace_back(std::move(arrayValues), fieldDef);
+            break;
+        }
+        case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
+            fields.emplace_back(std::vector<FieldContainer>{}, fieldDef);
+            break;
+        }
+        case FIELD_TYPE::STRING: {
+            fields.emplace_back(std::string{}, fieldDef);
+            break;
+        }
+        case FIELD_TYPE::ENUM: {
+            // int32_t to satisfy FieldContainer::Validate() in debug builds.
+            fields.emplace_back(int32_t{0}, fieldDef);
+            break;
+        }
+        default: {
+            fields.emplace_back(MakeDefaultScalarValue(fieldDef->dataType.name), fieldDef);
+            break;
+        }
+        }
+    }
+
+    return fields;
+}
+
+PYCOMMON_EXPORT std::vector<FieldContainer> PyField::BuildDefaultFields(const ::novatel::edie::BaseField* fieldDef)
+{
+    if (const auto* arrField = dynamic_cast<const FieldArrayField*>(fieldDef)) { return BuildDefaultFields(arrField->fields); }
+    return {};
+}
+
+PYCOMMON_EXPORT std::vector<FieldContainer> PyField::BuildDefaultFields(const ::novatel::edie::MessageDefinition* msgDef, uint32_t crc)
+{
+    if (msgDef == nullptr) { return {}; }
+    auto it = msgDef->fields.find(crc);
+    if (it == msgDef->fields.end()) { return {}; }
+    return BuildDefaultFields(it->second);
+}

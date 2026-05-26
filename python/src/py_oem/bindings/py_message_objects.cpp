@@ -190,22 +190,38 @@ void py_oem::init_header_objects(nb::module_& m)
         .def_prop_ro("source", &py_oem::PyMessageTypeField::GetMeasurementSource, "Where the message originates from.");
 
     nb::class_<py_oem::PyHeader>(m, "Header")
-        .def_ro("message_id", &py_oem::PyHeader::usMessageId, "The Message ID number.")
+        .def(nb::init<>())
+        .def(
+            "__init__",
+            [](py_oem::PyHeader* self, uint16_t message_id, uint32_t port_address, uint16_t sequence, uint8_t idle_time, uint16_t week,
+               double milliseconds, uint16_t receiver_sw_version) {
+                new (self) py_oem::PyHeader{};
+                self->usMessageId = message_id;
+                self->uiPortAddress = port_address;
+                self->usSequence = sequence;
+                self->ucIdleTime = idle_time;
+                self->usWeek = week;
+                self->dMilliseconds = milliseconds;
+                self->usReceiverSwVersion = receiver_sw_version;
+            },
+            nb::kw_only(), "message_id"_a = uint16_t{0}, "port_address"_a = uint32_t{0}, "sequence"_a = uint16_t{0}, "idle_time"_a = uint8_t{0},
+            "week"_a = uint16_t{0}, "milliseconds"_a = double{0.0}, "receiver_sw_version"_a = uint16_t{0})
+        .def_rw("message_id", &py_oem::PyHeader::usMessageId, "The Message ID number.")
         .def_prop_ro("message_type", &py_oem::PyHeader::GetPyMessageType, nb::sig("def message_type(self) -> MessageType"),
                      "Information regarding the type of the message.")
-        .def_ro("port_address", &py_oem::PyHeader::uiPortAddress, "The port the message was sent from.")
+        .def_rw("port_address", &py_oem::PyHeader::uiPortAddress, "The port the message was sent from.")
         .def_ro("length", &py_oem::PyHeader::usLength, "The length of the message. Will be 0 if unknown.")
-        .def_ro("sequence", &py_oem::PyHeader::usSequence, "Number of remaning related messages following this one. Will be 0 for most messages.")
-        .def_ro("idle_time", &py_oem::PyHeader::ucIdleTime, "Time that the processor is idle. Divide by two to get the percentage.")
+        .def_rw("sequence", &py_oem::PyHeader::usSequence, "Number of remaning related messages following this one. Will be 0 for most messages.")
+        .def_rw("idle_time", &py_oem::PyHeader::ucIdleTime, "Time that the processor is idle. Divide by two to get the percentage.")
         .def_prop_ro(
             "time_status", [](const py_oem::PyHeader& self) { return TIME_STATUS(self.uiTimeStatus); }, "The quality of the GPS reference time.")
-        .def_ro("week", &py_oem::PyHeader::usWeek, "GPS reference wekk number.")
-        .def_ro("milliseconds", &py_oem::PyHeader::dMilliseconds, "Milliseconds from the beginning of the GPS reference week.")
+        .def_rw("week", &py_oem::PyHeader::usWeek, "GPS reference wekk number.")
+        .def_rw("milliseconds", &py_oem::PyHeader::dMilliseconds, "Milliseconds from the beginning of the GPS reference week.")
         .def_prop_ro("receiver_status", &py_oem::PyHeader::GetRecieverStatus,
                      "32-bits representing the status of various hardware and software components of the receiver.")
         .def_ro("message_definition_crc", &py_oem::PyHeader::uiMessageDefinitionCrc,
                 "A value for validating the message definition used for decoding.")
-        .def_ro("receiver_sw_version", &py_oem::PyHeader::usReceiverSwVersion, "A value (0 - 65535) representing the receiver software build number.")
+        .def_rw("receiver_sw_version", &py_oem::PyHeader::usReceiverSwVersion, "A value (0 - 65535) representing the receiver software build number.")
         .def(
             "to_dict", [](const py_oem::PyHeader& self) { return self.to_dict(); },
             R"doc(
@@ -277,7 +293,7 @@ void py_oem::init_message_objects(nb::module_& m)
     nb::class_<py_oem::PyMessage, py_common::PyField>(m, "Message")
         .def_static(
             "__new__",
-            [](nb::handle cls, py_oem::PyHeader* header, [[maybe_unused]] nb::kwargs kwargs) {
+            [](nb::handle cls, [[maybe_unused]] py_oem::PyHeader* header, [[maybe_unused]] nb::kwargs kwargs) {
                 PyMessageDatabase::Ptr database = nb::cast<PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
 
                 if (!database) { throw py_common::FailureException("Constructor could not resolve owning MessageDatabase for this type."); }
@@ -290,8 +306,7 @@ void py_oem::init_message_objects(nb::module_& m)
 
                 nb::object message_pyinst = nb::inst_alloc(cls);
                 py_oem::PyMessage* message_cinst = nb::inst_ptr<py_oem::PyMessage>(message_pyinst);
-                new (message_cinst)
-                    py_oem::PyMessage(std::vector<FieldContainer>{}, database, py_oem::PyHeader{}, type_lookup->def, type_lookup->crc);
+                new (message_cinst) py_oem::PyMessage(database, type_lookup->def, type_lookup->crc);
                 nb::inst_mark_ready(message_pyinst);
                 return message_pyinst;
             },
@@ -299,7 +314,15 @@ void py_oem::init_message_objects(nb::module_& m)
         .def(
             "__init__",
             [](nb::handle self, py_oem::PyHeader* header, nb::kwargs kwargs) {
-                throw py_common::FailureException("Message initialization not implemented.");
+                auto& m = nb::cast<py_oem::PyMessage&>(self);
+                if (header != nullptr) { m.header = *header; }
+                // Override the header's identification fields from the message's own
+                // definition so the encoded message always identifies as itself.
+                m.header.usMessageId = m.messageDef->logID;
+                m.header.uiMessageDefinitionCrc = m.messageCrc;
+
+                // Set the values for all subfields
+                for (auto kv : kwargs) { m.setattr(nb::cast<nb::str>(kv.first), kv.second); }
             },
             nb::arg("header") = nb::none(), "kwargs"_a)
         .def("encode", &py_oem::PyMessage::encode)
