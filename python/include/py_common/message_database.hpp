@@ -142,7 +142,7 @@ class PyMessageDatabase
         return it == message_type_lookup_.end() ? nullptr : &it->second;
     }
 
-    [[nodiscard]] const BaseField* GetFieldTypeLookup(nb::handle cls) const
+    [[nodiscard]] BaseField::ConstPtr GetFieldTypeLookup(nb::handle cls) const
     {
         auto it = field_type_lookup_.find(cls);
         return it == field_type_lookup_.end() ? nullptr : it->second;
@@ -274,7 +274,7 @@ class PyMessageDatabase
     std::unordered_map<const BaseField*, FieldNameMap> field_name_maps_{};
     std::unordered_map<const MessageDefinition*, std::map<uint32_t, FieldNameMap>> message_field_name_maps_{};
     std::unordered_map<nb::handle, MessageTypeLookupEntry, HandlePtrHash, HandlePtrEq> message_type_lookup_{};
-    std::unordered_map<nb::handle, const BaseField*, HandlePtrHash, HandlePtrEq> field_type_lookup_{};
+    std::unordered_map<nb::handle, BaseField::ConstPtr, HandlePtrHash, HandlePtrEq> field_type_lookup_{};
     std::unordered_map<nb::handle, const EnumDefinition*, HandlePtrHash, HandlePtrEq> enum_type_lookup_{};
 
     std::unique_ptr<MessageDBExtrasBase> extras_;

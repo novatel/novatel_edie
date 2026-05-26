@@ -151,7 +151,7 @@ class StubGenerator:
             else:
                 python_type = f'list[{self.data_type_to_pytype.get(field["dataType"]["name"])}]'
         if field['type'] == 'FIELD_ARRAY':
-            python_type = f'list[{parent}_{field["name"]}_Field]'
+            python_type = f'FieldArray[{parent}_{field["name"]}_Field]'
         if not python_type:
             python_type = 'Any'
         return python_type
@@ -268,7 +268,7 @@ class StubGenerator:
             A string containing type hint stubs for all messages in the database.
         """
         stub_str = 'from typing import Any\n\n'
-        stub_str += 'from novatel_edie import Field, SatelliteId\n'
+        stub_str += 'from novatel_edie import Field, FieldArray, SatelliteId\n'
         stub_str += 'from novatel_edie.oem import Header, Message\n'
         stub_str += 'from novatel_edie.oem.enums import *\n\n'
         stub_str += ('class UNKNOWN(Message):\n'

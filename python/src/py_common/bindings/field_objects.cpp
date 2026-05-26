@@ -23,12 +23,12 @@ void py_common::init_field_objects(nb::module_& m)
                 py_common::PyMessageDatabase::Ptr database = nb::cast<py_common::PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
                 if (!database) { throw py_common::FailureException("Constructor could not resolve owning MessageDatabase for this type."); }
 
-                const BaseField* field_def = database->GetFieldTypeLookup(cls);
+                BaseField::ConstPtr field_def = database->GetFieldTypeLookup(cls);
                 if (!field_def) { throw py_common::FailureException("Constructor could not resolve BaseField for this type."); }
 
                 nb::object field_pyinst = nb::inst_alloc(cls);
                 py_common::PyField* field_cinst = nb::inst_ptr<py_common::PyField>(field_pyinst);
-                new (field_cinst) py_common::PyField(field_def, database);
+                new (field_cinst) py_common::PyField(std::move(field_def), database);
                 nb::inst_mark_ready(field_pyinst);
                 return field_pyinst;
             },
@@ -113,6 +113,7 @@ void py_common::init_field_objects(nb::module_& m)
             )doc");
 
     nb::class_<py_common::PyFieldArray>(m, "FieldArray", nb::is_weak_referenceable())
+        .def(nb::init<nb::list>(), "values"_a)
         .def("__getitem__", &py_common::PyFieldArray::getitem, "index"_a)
         .def("__len__", &py_common::PyFieldArray::len);
 }

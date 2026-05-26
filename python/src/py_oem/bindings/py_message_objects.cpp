@@ -193,19 +193,20 @@ void py_oem::init_header_objects(nb::module_& m)
         .def(nb::init<>())
         .def(
             "__init__",
-            [](py_oem::PyHeader* self, uint16_t message_id, uint32_t port_address, uint16_t sequence, uint8_t idle_time, uint16_t week,
-               double milliseconds, uint16_t receiver_sw_version) {
+            [](py_oem::PyHeader* self, uint16_t message_id, uint32_t port_address, uint16_t sequence, uint8_t idle_time, TIME_STATUS time_status,
+               uint16_t week, double milliseconds, uint16_t receiver_sw_version) {
                 new (self) py_oem::PyHeader{};
                 self->usMessageId = message_id;
                 self->uiPortAddress = port_address;
                 self->usSequence = sequence;
                 self->ucIdleTime = idle_time;
+                self->uiTimeStatus = static_cast<uint32_t>(time_status);
                 self->usWeek = week;
                 self->dMilliseconds = milliseconds;
                 self->usReceiverSwVersion = receiver_sw_version;
             },
             nb::kw_only(), "message_id"_a = uint16_t{0}, "port_address"_a = uint32_t{0}, "sequence"_a = uint16_t{0}, "idle_time"_a = uint8_t{0},
-            "week"_a = uint16_t{0}, "milliseconds"_a = double{0.0}, "receiver_sw_version"_a = uint16_t{0})
+            "time_status"_a = TIME_STATUS::UNKNOWN, "week"_a = uint16_t{0}, "milliseconds"_a = double{0.0}, "receiver_sw_version"_a = uint16_t{0})
         .def_rw("message_id", &py_oem::PyHeader::usMessageId, "The Message ID number.")
         .def_prop_ro("message_type", &py_oem::PyHeader::GetPyMessageType, nb::sig("def message_type(self) -> MessageType"),
                      "Information regarding the type of the message.")
