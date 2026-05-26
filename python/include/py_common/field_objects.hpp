@@ -25,13 +25,15 @@ using ssize_t = std::make_signed_t<size_t>;
 //============================================================================
 struct PyField
 {
-    explicit PyField(std::vector<FieldContainer> message_, const ::novatel::edie::BaseField* fieldDef_,
+    explicit PyField() {}
+
+    explicit PyField(std::vector<FieldContainer> message_, ::novatel::edie::BaseField::ConstPtr fieldDef_,
                      py_common::PyMessageDatabase::ConstPtr parentDb_)
-        : fields(std::move(message_)), fieldDef(fieldDef_), parentDb(std::move(parentDb_))
+        : fields(std::move(message_)), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_))
     {
         fieldsPtr = fields.data();
         fieldCount = fields.size();
-        fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(fieldDef_) : nullptr;
+        fieldNameMap_ = fieldDef ? parentDb->GetFieldNameMap(fieldDef.get()) : nullptr;
         cachedArrays_.resize(fieldCount);
     };
 
@@ -45,20 +47,20 @@ struct PyField
         cachedArrays_.resize(fieldCount);
     };
 
-    explicit PyField(std::vector<FieldContainer>& message_, const ::novatel::edie::BaseField* fieldDef_,
+    explicit PyField(std::vector<FieldContainer>& message_, ::novatel::edie::BaseField::ConstPtr fieldDef_,
                      py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parentField_)
-        : fieldDef(fieldDef_), parentDb(std::move(parentDb_)), parent(std::move(parentField_))
+        : fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_)), parent(std::move(parentField_))
     {
         fieldsPtr = message_.data();
         fieldCount = message_.size();
-        fieldNameMap_ = fieldDef_ ? parentDb->GetFieldNameMap(fieldDef_) : nullptr;
+        fieldNameMap_ = fieldDef ? parentDb->GetFieldNameMap(fieldDef.get()) : nullptr;
         cachedArrays_.resize(fieldCount);
     };
 
     // Default-constructed field standalone (used for FIELD_ARRAY sub-fields when
     // building a default message). Populates `fields` with zero-initialised values.
-    explicit PyField(const ::novatel::edie::BaseField* fieldDef_, py_common::PyMessageDatabase::ConstPtr parentDb_)
-        : PyField(BuildDefaultFields(fieldDef_), fieldDef_, std::move(parentDb_)) {};
+    explicit PyField(::novatel::edie::BaseField::ConstPtr fieldDef_, py_common::PyMessageDatabase::ConstPtr parentDb_)
+        : PyField(BuildDefaultFields(fieldDef_.get()), fieldDef_, std::move(parentDb_)) {};
 
     // Default-constructed whole message — used by Message(...) __new__.
     explicit PyField(const ::novatel::edie::MessageDefinition* msgDef_, uint32_t crc_, py_common::PyMessageDatabase::ConstPtr parentDb_)
@@ -117,9 +119,6 @@ struct PyField
     //============================================================================
     nb::object getattr(nb::str field_name) const;
 
-    std::vector<FieldContainer> fields;
-    const BaseField* fieldDef{nullptr};
-
   protected:
     nb::object convert_field(FieldContainer& field) const;
     nb::object resolve_entry(const FieldLookupEntry& entry) const;
@@ -131,6 +130,11 @@ struct PyField
 
     static std::vector<FieldContainer> get_regular_array(const std::shared_ptr<const ArrayField>& fixedArrDef, nb::handle value);
 
+    friend struct PyFieldArray;
+
+  protected:
+    std::vector<FieldContainer> fields;
+    BaseField::ConstPtr fieldDef;
     FieldContainer* fieldsPtr;
     size_t fieldCount;
     const FieldNameMap* fieldNameMap_{nullptr};
@@ -161,17 +165,24 @@ template <typename Fn> void PyField::for_each_entry(Fn&& visitor) const
 //============================================================================
 struct PyFieldArray
 {
-    explicit PyFieldArray(std::vector<FieldContainer>& data_, const ::novatel::edie::BaseField* fieldDef_,
+    explicit PyFieldArray(nb::list values);
+
+    explicit PyFieldArray(std::vector<FieldContainer>& data_, ::novatel::edie::BaseField::ConstPtr fieldDef_,
                           py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parent_)
-        : data(&data_), fieldDef(fieldDef_), parentDb(std::move(parentDb_)), parent(std::move(parent_)), cache(data_.size()) {};
+        : data(&data_), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_)), parent(std::move(parent_)), cache(data_.size()) {};
 
     nb::object getitem(ssize_t index) const;
     size_t len() const;
 
-    std::vector<FieldContainer>* data;
-    const BaseField* fieldDef{nullptr};
-    py_common::PyMessageDatabase::ConstPtr parentDb;
+    // Data lifetime control
     nb::object parent;
+    std::vector<FieldContainer> ownedData;
+
+    // Data manipulation/access point
+    std::vector<FieldContainer>* data;
+
+    BaseField::ConstPtr fieldDef;
+    py_common::PyMessageDatabase::ConstPtr parentDb;
     mutable std::vector<std::optional<nb::weakref>> cache;
 };
 

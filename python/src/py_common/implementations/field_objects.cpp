@@ -139,7 +139,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
             }
 
             // Construct a new PyFieldArray
-            nb::object pyArr = nb::cast(PyFieldArray(message_field, field.fieldDef.get(), parentDb, nb::cast(this, nb::rv_policy::none)));
+            nb::object pyArr = nb::cast(PyFieldArray(message_field, field.fieldDef, parentDb, nb::cast(this, nb::rv_policy::none)));
             cachedArrays_[fieldIdx] = nb::weakref(pyArr);
             return pyArr;
         }
@@ -290,7 +290,7 @@ PYCOMMON_EXPORT nb::object PyFieldArray::getitem(ssize_t signedIndex) const
     FieldContainer& subfield = (*data)[index];
     auto& subfields = std::get<std::vector<FieldContainer>>(subfield.fieldValue);
 
-    nb::handle field_ptype = parentDb->GetFieldType(fieldDef);
+    nb::handle field_ptype = parentDb->GetFieldType(fieldDef.get());
     nb::object pyinst = nb::inst_alloc(field_ptype);
     PyField* cinst = nb::inst_ptr<PyField>(pyinst);
     new (cinst) PyField(subfields, fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
@@ -301,6 +301,41 @@ PYCOMMON_EXPORT nb::object PyFieldArray::getitem(ssize_t signedIndex) const
 }
 
 PYCOMMON_EXPORT size_t PyFieldArray::len() const { return data->size(); }
+
+PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
+{
+    if (values.empty()) { throw nb::value_error("Unable to determine field array type, provide at least one value"); }
+
+    for (auto it = values.begin(); it != values.end(); it++)
+    {
+        if (!nb::isinstance<PyField>(nb::handle(*it.value))) { throw nb::value_error("Only Fields can appear within a FieldArray!"); }
+    }
+    PyField* candidate = nb::inst_ptr<PyField>(nb::handle(*values.begin()));
+    fieldDef = candidate->fieldDef;
+    parentDb = candidate->parentDb;
+    cache.resize(values.size());
+    ownedData.reserve(values.size());
+    data = &ownedData;
+    size_t index = 0;
+    for (auto it = values.begin(); it != values.end(); it++)
+    {
+        nb::handle itHandle = nb::handle(*it.value);
+        PyField* itVal = nb::inst_ptr<PyField>(itHandle);
+        if (itVal->parent.is_valid())
+        {
+            // Use copy semantics for elements that have another owner
+            ownedData.emplace_back(FieldContainer(std::vector(itVal->fieldsPtr, itVal->fieldsPtr + itVal->fieldCount), fieldDef));
+        }
+        else
+        {
+            // Use move semantics for elements without another owner
+            ownedData.emplace_back(FieldContainer(std::move(itVal->fields), fieldDef));
+            itVal->parent = nb::find(this);
+            cache[index] = nb::weakref(itHandle);
+        }
+        index++;
+    }
+}
 
 std::vector<FieldContainer> PyField::get_regular_array(const std::shared_ptr<const ArrayField>& fixedArrDef, nb::handle value)
 {
@@ -352,6 +387,38 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
             field.fieldValue = get_regular_array(std::dynamic_pointer_cast<const ArrayField>(field.fieldDef), value);
             break;
+        case FIELD_TYPE::FIELD_ARRAY: {
+            if (!nb::isinstance<PyFieldArray>(value)) { throw nb::type_error("Must be initialized with a FieldArray!"); }
+            PyFieldArray* fieldArrayVal = nb::inst_ptr<PyFieldArray>(value);
+            // Note: accessing "value" or "curVal" from another thread while this is occuring is a race conditon
+            if (field.fieldDef != fieldArrayVal->fieldDef) { throw nb::type_error("FieldArray contains elements of the wrong type!"); }
+            // Transfer data ownership of existing element
+            if (cachedArrays_[entry.index].has_value())
+            {
+                nb::object curVal = cachedArrays_[entry.index].value()();
+                if (curVal.is_valid())
+                {
+                    PyFieldArray* curArray = nb::inst_ptr<PyFieldArray>(curVal);
+                    curArray->ownedData = std::move(std::get<std::vector<FieldContainer>>(field.fieldValue));
+                    curArray->data = &curArray->ownedData;
+                    curArray->parent = nb::object();
+                }
+            }
+            if (fieldArrayVal->parent.is_valid())
+            {
+                // Use copy semantics for an array that is owned by another object
+                field.fieldValue = *fieldArrayVal->data;
+            }
+            else
+            {
+                // Use move semantics for an array that owns itself
+                field.fieldValue = std::move(fieldArrayVal->ownedData);
+                fieldArrayVal->data = &std::get<std::vector<FieldContainer>>(field.fieldValue);
+                fieldArrayVal->parent = nb::find(this);
+                cachedArrays_[entry.index] = nb::weakref(value);
+            }
+            break;
+        }
         default:
             throw nb::attribute_error(
                 ("Modification of attributes with the \"" + std::string(FieldTypeToString(field.fieldDef->type)) + "\" type is not yet supported.")
