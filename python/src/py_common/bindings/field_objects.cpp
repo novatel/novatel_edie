@@ -28,15 +28,21 @@ void py_common::init_field_objects(nb::module_& m)
 
                 nb::object field_pyinst = nb::inst_alloc(cls);
                 py_common::PyField* field_cinst = nb::inst_ptr<py_common::PyField>(field_pyinst);
-                new (field_cinst) py_common::PyField(std::vector<FieldContainer>{}, field_def, database);
+                new (field_cinst) py_common::PyField(field_def, database);
                 nb::inst_mark_ready(field_pyinst);
                 return field_pyinst;
             },
             "cls"_a, "kwargs"_a)
         .def(
-            "__init__", [](nb::handle self, nb::kwargs kwargs) { throw py_common::FailureException("Field initialization not implemented."); },
+            "__init__",
+            [](nb::handle self, nb::kwargs kwargs) {
+                // Set the values for all subfields
+                auto& m = nb::cast<py_common::PyField&>(self);
+                for (auto kv : kwargs) { m.setattr(nb::cast<nb::str>(kv.first), kv.second); }
+            },
             "kwargs"_a)
         .def("__getattr__", &py_common::PyField::getattr, "field_name"_a)
+        .def("__setattr__", &py_common::PyField::setattr, "field_name"_a, "value"_a)
         .def("__repr__",
              [](nb::handle self) {
                  py_common::PyField* body = nb::inst_ptr<py_common::PyField>(self);

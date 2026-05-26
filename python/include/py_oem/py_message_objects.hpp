@@ -128,6 +128,12 @@ struct PyEncodableField : public py_common::PyField
         : PyField(std::move(fields_), messageDef_, messageCrc_, std::move(database_)), header(std::move(header_)), messageDef(messageDef_),
           messageCrc(messageCrc_) {};
 
+    // Default-construct an encodable field from a (db, def, crc) tuple.
+    // Used by Message.__new__ — populates the field vector with type-appropriate
+    // defaults via PyField::BuildDefaultFields and default-constructs the header.
+    explicit PyEncodableField(py_common::PyMessageDatabase::ConstPtr database_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyField(messageDef_, messageCrc_, std::move(database_)), messageDef(messageDef_), messageCrc(messageCrc_) {};
+
     py_common::PyMessageData encode(ENCODE_FORMAT fmt);
     py_common::PyMessageData to_ascii();
     py_common::PyMessageData to_abbrev_ascii();
@@ -145,6 +151,10 @@ struct PyMessage : public PyEncodableField
     explicit PyMessage(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_,
                        const MessageDefinition* messageDef_, uint32_t messageCrc_)
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_) {};
+
+    // Default-construct a message — used by Message(...) __new__ binding.
+    explicit PyMessage(py_common::PyMessageDatabase::ConstPtr parent_db_, const MessageDefinition* messageDef_, uint32_t messageCrc_)
+        : PyEncodableField(std::move(parent_db_), messageDef_, messageCrc_) {};
 };
 
 nb::object create_unknown_message_instance(nb::bytes data, PyHeader& header);

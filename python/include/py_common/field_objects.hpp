@@ -55,6 +55,25 @@ struct PyField
         cachedArrays_.resize(fieldCount);
     };
 
+    // Default-constructed field standalone (used for FIELD_ARRAY sub-fields when
+    // building a default message). Populates `fields` with zero-initialised values.
+    explicit PyField(const ::novatel::edie::BaseField* fieldDef_, py_common::PyMessageDatabase::ConstPtr parentDb_)
+        : PyField(BuildDefaultFields(fieldDef_), fieldDef_, std::move(parentDb_)) {};
+
+    // Default-constructed whole message — used by Message(...) __new__.
+    explicit PyField(const ::novatel::edie::MessageDefinition* msgDef_, uint32_t crc_, py_common::PyMessageDatabase::ConstPtr parentDb_)
+        : PyField(BuildDefaultFields(msgDef_, crc_), msgDef_, crc_, std::move(parentDb_)) {};
+
+    // Builds a vector of FieldContainer instances initialised to type-appropriate
+    // defaults. Used by the default-construction PyField ctors above.
+    static std::vector<FieldContainer> BuildDefaultFields(const std::vector<BaseField::Ptr>& fieldDefs);
+    static std::vector<FieldContainer> BuildDefaultFields(const ::novatel::edie::BaseField* fieldDef);
+    static std::vector<FieldContainer> BuildDefaultFields(const ::novatel::edie::MessageDefinition* msgDef, uint32_t crc);
+
+    // Assigns a single field by name. Supports SIMPLE / ENUM / STRING only; other
+    // FIELD_TYPEs and DATA_TYPEs raise nb::attribute_error.
+    void setattr(nb::str field_name, nb::handle value);
+
     //============================================================================
     //! \brief Creates a shallow dictionary representing the field.
     //!
@@ -109,6 +128,8 @@ struct PyField
 
     static nb::object unwrap_for_list(nb::object value);
     static nb::object unwrap_for_dict(nb::object value);
+
+    static std::vector<FieldContainer> get_regular_array(const std::shared_ptr<const ArrayField>& fixedArrDef, nb::handle value);
 
     FieldContainer* fieldsPtr;
     size_t fieldCount;
