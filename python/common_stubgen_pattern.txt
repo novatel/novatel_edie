@@ -19,7 +19,7 @@ common_bindings.__prefix__:
 
     T = TypeVar("T")
 
-common_bindings.FieldArray:
+common_bindings.FieldArray$:
     class FieldArray(Generic[T]):
         def __init__(self, values: list[T]): ...
 
