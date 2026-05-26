@@ -48,6 +48,25 @@ class Encoder : public EncoderBase<Encoder>
     void InitFieldMaps();
     [[nodiscard]] std::string JsonHeaderToMsgName(const IntermediateHeader& stInterHeader_) const;
 
+    //----------------------------------------------------------------------------
+    //! \brief Add padding after binary string fields to maintain alignment. OEM
+    //!     strings maintain 4-byte alignment.
+    //
+    //! \param[in, out] ptr_ A pointer to the encode buffer pointer to be padded
+    //!     if necessary. Updated in place.
+    //! \param[in, out] uiBytesLeft_ The number of bytes left in the buffer.
+    //!     Updated in place.
+    //
+    //! \return true if padding was added successfully or not needed, false if
+    //!     there was not enough space in the buffer.
+    //! \see MessageDecoder::AddStringFieldPadding() for the corresponding decoder method.
+    //----------------------------------------------------------------------------
+    bool AddStringFieldPadding(unsigned char** ptr, uint32_t& uiBytesLeft_) const override
+    {
+        if (!SetInBuffer(ptr, uiBytesLeft_, 0, 4 - (reinterpret_cast<uintptr_t>(*ptr) % 4))) return false;
+        return true;
+    }
+
   protected:
     static constexpr char separatorAscii = OEM4_ASCII_FIELD_SEPARATOR;
     static constexpr char separatorAbbAscii = OEM4_ABBREV_ASCII_SEPARATOR;
