@@ -619,7 +619,7 @@ class MessageDatabase
     //----------------------------------------------------------------------------
     //! \brief A no-op alignment function that always returns 0.
     //----------------------------------------------------------------------------
-    static size_t NoAlign(uint8_t, const uintptr_t, const uintptr_t) noexcept { return 0; }
+    static size_t NoAlign(size_t, const uintptr_t, const uintptr_t) noexcept { return 0; }
 
   protected:
     virtual void GenerateEnumMappings()
