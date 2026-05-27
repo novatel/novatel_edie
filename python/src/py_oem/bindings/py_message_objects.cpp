@@ -97,12 +97,14 @@ nb::object py_oem::create_unknown_message_instance(nb::bytes data, py_oem::PyHea
 nb::object py_oem::create_message_instance(py_oem::PyHeader& header, MessageBody&& message_fields, MetaDataStruct& metadata,
                                            py_common::PyMessageDatabase::ConstPtr database)
 {
+    const MessageDefinition* msgDef = database->GetMsgDef(metadata.usMessageId).get();
+
     if (metadata.bResponse)
     {
         nb::object response_pyinst = nb::inst_alloc(nb::type<PyResponse>());
         PyResponse* response_cinst = nb::inst_ptr<PyResponse>(response_pyinst);
         bool is_complete = (metadata.eFormat != HEADER_FORMAT::ABB_ASCII);
-        new (response_cinst) PyResponse(std::move(message_fields), database, header, is_complete);
+        new (response_cinst) PyResponse(std::move(message_fields), database, header, is_complete, msgDef ? msgDef->name : "UNKNOWN");
         nb::inst_mark_ready(response_pyinst);
         return response_pyinst;
     }
@@ -115,7 +117,7 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, MessageBody
     }
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
-    new (message_cinst) PyMessage(std::move(message_fields), database, header);
+    new (message_cinst) PyMessage(std::move(message_fields), database, header, msgDef ? msgDef->name : "UNKNOWN");
     nb::inst_mark_ready(message_pyinst);
     return message_pyinst;
 }
@@ -289,7 +291,7 @@ void py_oem::init_message_objects(nb::module_& m)
                 A dictionary representation of the message.
             )doc")
         .def_ro("header", &py_oem::PyMessage::header, "The header of the message.")
-        .def_prop_ro("name", &py_oem::PyEncodableField::name, "The type of message it is.");
+        .def_prop_ro("name", &py_oem::PyEncodableField::get_name, "The type of message it is.");
 
     auto& familyRegistrations = py_common::GetMessageFamilyRegistrations();
     familyRegistrations["OEM"] = py_common::MessageFamilyRegistration{nb::type<py_oem::PyMessage>(), &py_oem::AllocateDatabaseExtras};
@@ -336,7 +338,7 @@ void py_oem::init_message_objects(nb::module_& m)
                          if (!self.complete) { return nb::none(); }
                          return nb::cast(self.header);
                      })
-        .def_prop_ro("name", &py_oem::PyEncodableField::name, "The type of message it is.")
+        .def_prop_ro("name", &py_oem::PyEncodableField::get_name, "The type of message it is.")
         .def_prop_ro("response_id", &py_oem::PyResponse::GetResponseId)
         .def_prop_ro("response_string", &py_oem::PyResponse::GetResponseString)
         // typehints in stubgen_pattern.txt
