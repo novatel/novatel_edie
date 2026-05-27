@@ -555,9 +555,8 @@ template <typename Derived> class EncoderBase
             const auto encoded = std::visit(
                 [&](auto&& arrValue) -> bool {
                     using ValueType = std::decay_t<decltype(arrValue)>;
-                    if constexpr ((is_specialization_of_v<ValueType, std::vector> ||
-                                   std::is_pointer_v<ValueType>)&&!std::is_same_v<ValueType, std::vector<std::byte>> &&
-                                  !std::is_same_v<ValueType, std::vector<MessageBody>>)
+                    if constexpr ((is_specialization_of_v<ValueType, std::vector> || std::is_pointer_v<ValueType>) &&
+                                  !std::is_same_v<ValueType, std::vector<std::byte>> && !std::is_same_v<ValueType, std::vector<MessageBody>>)
                     {
                         size_t elementCount;
                         // Print the array size first for variable length arrays
@@ -712,7 +711,6 @@ template <typename Derived> class EncoderBase
                         return true;
                     },
                     clMessageBody_.GetVarFields()[fieldDefRef.index]);
-                    //clMessageBody_.GetFieldValue(fieldDefRef));
                 if (!encoded) { return false; }
 
                 newIndentLine = true;
@@ -808,9 +806,8 @@ template <typename Derived> class EncoderBase
             const auto encoded = std::visit(
                 [&](auto&& arrValue) -> bool {
                     using ValueType = std::decay_t<decltype(arrValue)>;
-                    if constexpr ((is_specialization_of_v<ValueType, std::vector> ||
-                                   std::is_pointer_v<ValueType>)&&!std::is_same_v<ValueType, std::vector<std::byte>> &&
-                                  !std::is_same_v<ValueType, std::vector<MessageBody>>)
+                    if constexpr ((is_specialization_of_v<ValueType, std::vector> || std::is_pointer_v<ValueType>) &&
+                                  !std::is_same_v<ValueType, std::vector<std::byte>> && !std::is_same_v<ValueType, std::vector<MessageBody>>)
                     {
                         size_t elementCount;
                         // Print the array size first for variable length arrays
@@ -941,7 +938,10 @@ template <typename Derived> class EncoderBase
                 break;
             }
             case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
-                if (!EncodePrimitiveJsonField(fieldDefRef, clMessageBody_.GetVarFields()[fieldDefRef.index], ppcOutBuf_, uiBytesLeft_)) { return false; }
+                if (!EncodePrimitiveJsonField(fieldDefRef, clMessageBody_.GetVarFields()[fieldDefRef.index], ppcOutBuf_, uiBytesLeft_))
+                {
+                    return false;
+                }
                 break;
             case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
             case FIELD_TYPE::ENUM: [[fallthrough]];

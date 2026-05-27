@@ -149,7 +149,8 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
                                      "' not found in the JSON database");
         }
 
-        return std::visit([&](auto&& value) -> nb::object {
+        return std::visit(
+            [&](auto&& value) -> nb::object {
                 using T = std::decay_t<decltype(value)>;
                 if constexpr (std::is_integral_v<T>)
                 {
@@ -157,7 +158,8 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
                     if (enumDef->valueName.count(key) > 0) { return enum_type(key); }
                 }
                 return enum_type(enumDef->unknownValue);
-            }, fieldValue);
+            },
+            fieldValue);
     }
 
     if (field.conversion == "%s")
@@ -226,15 +228,18 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
                 if constexpr (std::is_pointer_v<T>)
                 {
                     const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(&field);
-                    if (arrayFieldDef == nullptr) { throw std::runtime_error("PyField::convert_field(): missing array field metadata for pointer field array type"); }
+                    if (arrayFieldDef == nullptr)
+                    {
+                        throw std::runtime_error("PyField::convert_field(): missing array field metadata for pointer field array type");
+                    }
                     count = arrayFieldDef->arrayLength;
                 }
                 else { count = value.size(); }
-                
+
                 if constexpr (std::is_same_v<T, std::vector<uint8_t>> || std::is_same_v<T, std::vector<int8_t>> ||
                               std::is_same_v<T, std::vector<char>> || std::is_same_v<T, std::vector<unsigned char>> ||
-                              std::is_same_v<T, const uint8_t*> || std::is_same_v<T, const int8_t*> ||
-                              std::is_same_v<T, const char*> || std::is_same_v<T, const unsigned char*>)
+                              std::is_same_v<T, const uint8_t*> || std::is_same_v<T, const int8_t*> || std::is_same_v<T, const char*> ||
+                              std::is_same_v<T, const unsigned char*>)
                 {
                     if (field.conversionHash == CalculateBlockCrc32("s") || field.conversionHash == CalculateBlockCrc32("S"))
                     {

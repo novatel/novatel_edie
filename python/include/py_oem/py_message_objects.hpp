@@ -229,10 +229,7 @@ struct PyEncodableField : public py_common::PyField
 
     // Return the message name from the stored message definition.
     // Falls back to "UNKNOWN" if no message definition is availiable
-    std::string_view get_name() const
-    {
-        return name;
-    }
+    std::string_view get_name() const { return name; }
 
     explicit PyEncodableField(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_,
                               const MessageDefinition* messageDef_, uint32_t messageCrc_)
@@ -283,7 +280,8 @@ nb::object create_message_instance(PyHeader& header, MessageBody&& message_field
 struct PyResponse : public PyEncodableField
 {
     bool complete;
-    explicit PyResponse(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_, std::string name_ = "UNKNOWN")
+    explicit PyResponse(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_,
+                        std::string name_ = "UNKNOWN")
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), std::move(name_)), complete(complete_){};
 
     // Retrieve response ID from first field of response
