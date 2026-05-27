@@ -342,6 +342,10 @@ std::vector<FieldContainer> PyField::get_regular_array(const std::shared_ptr<con
     std::vector<FieldContainer> fixedArrVal;
     if (nb::isinstance<nb::str>(value) || nb::isinstance<nb::bytes>(value))
     {
+        if (fixedArrDef->isCsv)
+        {
+            throw nb::type_error("String value is not valid for a non-string array.");
+        }
         std::string_view strVal;
         if (nb::isinstance<nb::str>(value)) { strVal = nb::cast<nb::str>(value).c_str(); }
         else { strVal = nb::cast<nb::bytes>(value).c_str(); }
@@ -383,7 +387,16 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
         case FIELD_TYPE::SIMPLE: field = get_simple_attribute(field.fieldDef, value); break;
         case FIELD_TYPE::ENUM: field.fieldValue = attr_cast<int32_t>(value); break;
         case FIELD_TYPE::STRING: field.fieldValue = attr_cast<std::string>(value); break;
-        case FIELD_TYPE::FIXED_LENGTH_ARRAY: [[fallthrough]];
+        case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
+            auto arrayDef = std::dynamic_pointer_cast<const ArrayField>(field.fieldDef);
+            auto values = get_regular_array(arrayDef, value);
+            while (values.size() < arrayDef->arrayLength)
+            {
+                values.emplace_back(FieldContainer{MakeDefaultScalarValue(arrayDef->dataType.name), arrayDef});
+            }
+            field.fieldValue = std::move(values);
+            break;
+        }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
             field.fieldValue = get_regular_array(std::dynamic_pointer_cast<const ArrayField>(field.fieldDef), value);
             break;

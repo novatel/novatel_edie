@@ -58,16 +58,30 @@ class TestStandardArray:
                 array_length=64,
             ),
             ArrayFieldDefinition(
-                'fixed_arr',
+                'printable_buffer',
+                type=FIELD_TYPE.VARIABLE_LENGTH_ARRAY,
+                conversion=r'%P',
+                data_type=DATA_TYPE.UCHAR,
+                array_length=64,
+            ),
+            ArrayFieldDefinition(
+                'char_fixed_arr',
                 type=FIELD_TYPE.FIXED_LENGTH_ARRAY,
                 conversion=r'%u',
+                data_type=DATA_TYPE.UCHAR,
+                array_length=64,
+            ),
+            ArrayFieldDefinition(
+                'fixed_arr',
+                type=FIELD_TYPE.FIXED_LENGTH_ARRAY,
+                conversion=r'%hu',
                 data_type=DATA_TYPE.USHORT,
                 array_length=64,
             ),
             ArrayFieldDefinition(
                 'var_arr',
                 type=FIELD_TYPE.VARIABLE_LENGTH_ARRAY,
-                conversion=r'%u',
+                conversion=r'%d',
                 data_type=DATA_TYPE.UINT,
                 array_length=64,
             ),
@@ -105,6 +119,40 @@ class TestStandardArray:
             m = standard_array_message_type(**{field: set_value})
             # Assert
             assert getattr(m, field) == exp_value
+
+    @pytest.mark.parametrize('value', [
+        pytest.param(b'my str', id='string'),
+        pytest.param(b'AB12', id='alphanumeric'),
+        pytest.param(b'a' * 64, id='max-len'),
+        pytest.param(bytes(range(1, 65)), id='raw-bytes'),
+    ])
+    @pytest.mark.parametrize('input_type', [
+        pytest.param(lambda x: x, id='bytes'),
+        pytest.param(lambda x: x.decode('ascii'), id='str'),
+        pytest.param(list, id='list'),
+    ])
+    class TestPrintableByteArraySetters:
+        """Set the %P UCHAR variable-length array; accepts str/bytes/list, returns list of ints."""
+        field = 'printable_buffer'
+
+        def test_setter(self, standard_array_message_type: type, value: bytes, input_type: Callable):
+            # Arrange
+            m = standard_array_message_type()
+            set_value = input_type(value)
+            exp_value = list(value)
+            # Act
+            setattr(m, self.field, set_value)
+            # Assert
+            assert getattr(m, self.field) == exp_value
+
+        def test_constructor(self, standard_array_message_type: type, value: bytes, input_type: Callable):
+            # Arrange
+            set_value = input_type(value)
+            exp_value = list(value)
+            # Act
+            m = standard_array_message_type(**{self.field: set_value})
+            # Assert
+            assert getattr(m, self.field) == exp_value
 
     @pytest.mark.parametrize('value', [
         pytest.param([0, 1, 2, 3], id='small-ints'),
@@ -170,7 +218,7 @@ class TestStandardArray:
             with pytest.raises(ValueError, match='Value exceeds maximum array size'):
                 m.fixed_str = value
 
-        @pytest.mark.parametrize('field', ['fixed_arr', 'var_arr'])
+        @pytest.mark.parametrize('field', ['char_fixed_arr', 'fixed_arr', 'var_arr'])
         @pytest.mark.parametrize('value', [
             pytest.param(b'abc', id='bytes'),
             pytest.param('abc', id='str'),
@@ -180,7 +228,7 @@ class TestStandardArray:
             with pytest.raises(TypeError):
                 setattr(m, field, value)
 
-        @pytest.mark.parametrize('field', ['fixed_arr', 'var_arr'])
+        @pytest.mark.parametrize('field', ['char_fixed_arr', 'fixed_arr', 'var_arr'])
         @pytest.mark.parametrize('value', [
             pytest.param(b'abc', id='bytes'),
             pytest.param('abc', id='str'),
