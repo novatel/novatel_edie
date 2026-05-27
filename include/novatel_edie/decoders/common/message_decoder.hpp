@@ -76,7 +76,7 @@ class MessageBody
     std::vector<std::byte> fixedFields;
     std::vector<FieldValueVariant> varFields;
     MessageDefinition::ConstPtr definition;
-    std::optional<uint32_t> defCrc;
+    uint32_t defCrc;
 
     template <typename T> static FieldValueVariant ReadValueAtPointer(const std::byte* data_, const size_t count_ = 1)
     {
@@ -158,7 +158,7 @@ class MessageBody
     std::vector<FieldValueVariant>& GetVarFields() { return varFields; }
     const std::vector<FieldValueVariant>& GetVarFields() const { return varFields; }
     const MessageDefinition::ConstPtr& GetDefinition() const { return definition; }
-    const std::optional<uint32_t>& GetDefinitionCrc() const { return defCrc; }
+    uint32_t GetDefinitionCrc() const { return defCrc; }
 
     // ---------------------------------------------------------------------------
     //! \brief Get a field value by field definition.
@@ -209,7 +209,7 @@ class MessageBody
     const FieldValueVariant GetFieldValue(const std::string& fieldName_) const
     {
         if (definition == nullptr) { throw std::runtime_error("GetFieldValue(): message definition not set"); }
-        const auto field = definition->GetMsgDefFromCrc(defCrc.value_or(definition->latestMessageCrc)).fieldNameToDef.at(fieldName_);
+        const auto field = definition->GetMsgDefFromCrc(defCrc).fieldNameToDef.at(fieldName_);
         return GetFieldValue(*field);
     }
 
@@ -341,7 +341,7 @@ class MessageBody
     void SetDefinition(const MessageDefinition::ConstPtr& definition_, const std::optional<uint32_t>& defCrc_ = std::nullopt)
     {
         definition = definition_;
-        defCrc = defCrc_;
+        defCrc = defCrc_.value_or(definition_ ? definition_ ->latestMessageCrc : 0);
     }
 
     // ---------------------------------------------------------------------------
@@ -575,6 +575,50 @@ class MessageBody
         *buffer_ += written;
         capacity_ -= static_cast<uint32_t>(written);
         return written;
+    }
+
+    struct const_iterator {
+        using value_type = BaseField::ConstPtr;
+        using reference = const value_type&;
+        using pointer = const value_type*;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::forward_iterator_tag;
+
+        const std::vector<BaseField::ConstPtr>* fields;
+        size_t index;
+
+        const_iterator(const std::vector<BaseField::ConstPtr>* fields_, size_t index_ = 0) : fields(fields_), index(index_) {}
+
+        reference operator*() const { return (*fields)[index]; }
+        pointer operator->() const { return &(*fields)[index]; }
+
+        const_iterator& operator++()
+        {
+            index++;
+            return *this;
+        }
+
+        const_iterator operator--()
+        {
+            index--;
+            return *this;
+        }
+
+        bool operator==(const const_iterator& other) const { return fields == other.fields && index == other.index; }
+        bool operator!=(const const_iterator& other) const { return !(*this == other); }
+    };
+
+    const_iterator begin() const
+    {
+        if (definition == nullptr) { throw std::runtime_error("begin(): message definition not set"); }
+        return const_iterator(&definition->GetMsgDefFromCrc(defCrc).messageOrderedFields);
+    }
+
+    const_iterator end() const
+    {
+        if (definition == nullptr) { throw std::runtime_error("end(): message definition not set"); }
+        const auto& fields = definition->GetMsgDefFromCrc(defCrc).messageOrderedFields;
+        return const_iterator(&fields, fields.size());
     }
 };
 
