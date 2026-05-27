@@ -149,6 +149,8 @@ void py_oem::init_header_objects(nb::module_& m)
                                          "Boolean values indicating information about the state of the reciever.\n\n"
                                          "https://docs.novatel.com/OEM7/Content/Logs/RXSTATUS.htm#Table_ReceiverStatus")
         .def(
+            "__init__", [](py_oem::PyRecieverStatus* self, uint32_t value) { new (self) py_oem::PyRecieverStatus(value); }, "value"_a)
+        .def(
             "__init__",
             [](py_oem::PyRecieverStatus* self, bool reciever_error, bool temperature_warning, bool voltage_warning, bool antenna_powered,
                bool lna_failure, bool antenna_open_circuit, bool antenna_short_circuit, bool cpu_overload, bool com_buffer_overrun,
@@ -251,6 +253,8 @@ void py_oem::init_header_objects(nb::module_& m)
 
     nb::class_<py_oem::PyMessageTypeField>(m, "MessageType",
                                            "A message field which provides information about its source, format, and whether it is a response.")
+        .def(
+            "__init__", [](py_oem::PyMessageTypeField* self, uint8_t value) { new (self) py_oem::PyMessageTypeField(value); }, "value"_a)
         .def(
             "__init__",
             [](py_oem::PyMessageTypeField* self, bool is_response, MESSAGE_FORMAT format, uint8_t sibling_id) {
