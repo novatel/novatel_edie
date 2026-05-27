@@ -270,8 +270,6 @@ novatel::edie::MessageDefinition::ConstPtr MessageDecoder::GetMessageDefinition(
         responseFieldInfo.fixedFieldBytes = sizeof(uint32_t);
         responseFieldInfo.varFieldCount = 1;
         responseFieldInfo.messageOrderedFields = {responseIdField, responseStrField};
-        responseFieldInfo.fieldNameToDef[responseIdField->name] = responseIdField;
-        responseFieldInfo.fieldNameToDef[responseStrField->name] = responseStrField;
 
         pResponseDefinition = responseDefinition;
         return pResponseDefinition;

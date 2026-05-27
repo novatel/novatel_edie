@@ -166,7 +166,6 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& a
     uint32_t uiFieldSize = 0;
     vFields_.messageOrderedFields = std::vector<BaseField::ConstPtr>();
     vFields_.messageOrderedFields.reserve(j_.size());
-    vFields_.fieldNameToDef.reserve(j_.size());
 
     auto alignFixed = [&](size_t typeLength) {
         const auto ptr = static_cast<uintptr_t>(vFields_.fixedFieldBytes);
@@ -184,7 +183,6 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& a
             alignFixed(stDataType.length);
             pstField->index = vFields_.fixedFieldBytes;
             vFields_.messageOrderedFields.push_back(pstField);
-            vFields_.fieldNameToDef[pstField->name] = pstField;
             uiFieldSize += stDataType.length;
             vFields_.fixedFieldBytes += stDataType.length;
         }
@@ -195,7 +193,6 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& a
             pstField->index = vFields_.fixedFieldBytes;
             pstField->length = stDataType.length;
             vFields_.messageOrderedFields.push_back(pstField);
-            vFields_.fieldNameToDef[pstField->name] = pstField;
             uiFieldSize += stDataType.length;
             vFields_.fixedFieldBytes += stDataType.length;
         }
@@ -213,7 +210,6 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& a
             else { pstField->index = vFields_.varFieldCount; }
 
             vFields_.messageOrderedFields.push_back(pstField);
-            vFields_.fieldNameToDef[pstField->name] = pstField;
             if (sFieldType != "FIXED_LENGTH_ARRAY") { vFields_.varFieldCount++; }
         }
         else if (sFieldType == "FIELD_ARRAY")
@@ -223,7 +219,6 @@ uint32_t ParseFields(const json& j_, FieldInfo& vFields_, const AlignFunction& a
             pstField->fieldSize = pstField->arrayLength * ParseFields(field.at("fields"), pstField->fieldInfo, alignFn_);
             vFields_.messageOrderedFields.push_back(pstField);
             pstField->index = vFields_.varFieldCount;
-            vFields_.fieldNameToDef[pstField->name] = pstField;
             vFields_.varFieldCount++;
         }
         else { throw std::runtime_error("Could not find field type"); }
