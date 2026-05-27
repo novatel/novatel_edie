@@ -15,7 +15,7 @@ import pytest
 
 import novatel_edie as ne
 import novatel_edie.oem as oem
-from novatel_edie import ENCODE_FORMAT
+from novatel_edie import ENCODE_FORMAT, MessageDefinition, FieldArrayFieldDefinition
 from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, LOG, RANGE, PASSCOM1
 from novatel_edie.oem.enums import SolStatus, SolType, Datum
 
@@ -204,6 +204,10 @@ def test_set_variable_length_array(value, exp_value):
     # Assert
     assert m.buffer == exp_value
 
+def test_nested_field_arrays():
+    # Arrange
+    pass
+
 
 # -----------------------------------------------------------------------------
 # Negative cases
@@ -226,9 +230,9 @@ def test_field_array_setattr_rejected():
     # RANGE has a FIELD_ARRAY field `obs` — assigning to it should fail with
     # the unsupported-FIELD_ARRAY message.
     r = RANGE()
-    with pytest.raises(AttributeError) as exc:
+    with pytest.raises(TypeError) as exc:
         r.obs = [1, 2, 3]
-    assert "FIELD_ARRAY" in str(exc.value)
+    assert "FieldArray" in str(exc.value)
 
 
 def test_length_field_write_rejected():
