@@ -331,8 +331,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
-            const uint32_t uiArraySize =
-                GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), clMessageBody_);
+            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), clMessageBody_);
             DecodeBinaryField<false>(field, ppucLogBuf_, clMessageBody_, uiArraySize);
             break;
         }
@@ -346,8 +345,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         }
         case FIELD_TYPE::FIELD_ARRAY: {
             const auto* subFieldDefinitions = dynamic_cast<const FieldArrayField*>(field.get());
-            const uint32_t uiArraySize =
-                GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, clMessageBody_);
+            const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, clMessageBody_);
 
             if (subFieldDefinitions->fieldInfo.varFieldCount == 0)
             {

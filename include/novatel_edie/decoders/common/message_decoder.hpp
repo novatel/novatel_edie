@@ -95,7 +95,7 @@ class MessageBody
 
         std::vector<T> values(count_);
         std::memcpy(values.data(), data_, sizeof(T) * count_);
-        return std::move(values);
+        return values;
     }
 
     static FieldValueVariant DecodeFieldValue(const BaseField& field_, const std::byte* data_, const size_t count_ = 1)
@@ -206,7 +206,7 @@ class MessageBody
     //! \param[in] fieldName_ The name of the field to retrieve.
     //! \return true if the field was found and val_ was set, false otherwise.
     // ---------------------------------------------------------------------------
-    const bool GetFieldValue(FieldValueVariant& val_, const std::string& fieldName_) const
+    bool GetFieldValue(FieldValueVariant& val_, const std::string& fieldName_) const
     {
         if (definition == nullptr) { throw std::runtime_error("GetFieldValue(): message definition not set"); }
         const auto& fieldDefs = definition->GetMsgDefFromCrc(defCrc).messageOrderedFields;
