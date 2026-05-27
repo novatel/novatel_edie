@@ -15,14 +15,11 @@ import pytest
 
 import novatel_edie as ne
 import novatel_edie.oem as oem
-from novatel_edie import ENCODE_FORMAT, MessageDefinition, FieldArrayFieldDefinition
+from novatel_edie import ENCODE_FORMAT, MessageDefinition, ArrayFieldDefinition, FIELD_TYPE, DATA_TYPE, MessageDatabase
 from novatel_edie.oem.messages import BESTPOS, BESTPOS_B1F6, LOG, RANGE, PASSCOM1
 from novatel_edie.oem.enums import SolStatus, SolType, Datum
 
 
-# -----------------------------------------------------------------------------
-# Positive cases
-# -----------------------------------------------------------------------------
 
 def test_header_default_construct_zero_arg():
     h = oem.Header()
@@ -158,35 +155,60 @@ def test_bestpos_full():
 ])
 class TestArraySetters:
     """Test setting a simple array with all support values types."""
-    def test_bytes_setter(self, value: bytes):
+
+    @pytest.fixture(scope='class')
+    def db(self):
+        return MessageDatabase()
+
+    @pytest.fixture(scope='class')
+    def message_type(self, db: MessageDatabase):
+        """A message with regular array fields."""
+        msg_def = MessageDefinition(
+            id='0', log_id='0', name='arr_def', latest_message_crc=0,
+            fields={0: [
+                ArrayFieldDefinition(
+                'fixed_field',
+                type=FIELD_TYPE.FIXED_LENGTH_ARRAY,
+                conversion=r'%s',
+                data_type=DATA_TYPE.UCHAR,
+                array_length=20
+            )]
+            }
+        )
+
+        db.append_messages([msg_def])
+        return db.get_msg_type('arr_def')
+
+
+    def test_bytes_setter(self, message_type: type, value: bytes):
         # Arrange
-        m = BESTPOS()
+        m = message_type()
         set_value = value
         exp_value = value.decode('ascii')
         # Act
-        m.base_id = set_value
+        m.fixed_field = set_value
         # Assert
-        assert m.base_id == exp_value
+        assert m.fixed_field == exp_value
 
-    def test_string_setter(self, value: bytes):
+    def test_string_setter(self, message_type: type, value: bytes):
        # Arrange
-        m = BESTPOS()
+        m = message_type()
         set_value = value.decode('ascii')
         exp_value = value.decode('ascii')
         # Act
-        m.base_id = set_value
+        m.fixed_field = set_value
         # Assert
-        assert m.base_id == exp_value
+        assert m.fixed_field == exp_value
 
-    def test_list_setter(self, value: bytes):
+    def test_list_setter(self, message_type: type, value: bytes):
        # Arrange
-        m = BESTPOS()
+        m = message_type()
         set_value = list(value)
         exp_value = value.decode('ascii')
         # Act
-        m.base_id = set_value
+        m.fixed_field = set_value
         # Assert
-        assert m.base_id == exp_value
+        assert m.fixed_field == exp_value
 
 
 
@@ -209,44 +231,32 @@ def test_nested_field_arrays():
     pass
 
 
-# -----------------------------------------------------------------------------
-# Negative cases
-# -----------------------------------------------------------------------------
-
-def test_unknown_kwarg_rejected():
-    with pytest.raises(AttributeError) as exc:
-        BESTPOS(this_is_not_a_field=1)
-    assert "this_is_not_a_field" in str(exc.value)
+class TestInputValidation:
+    """Tests that the correct errors are raised when setting fields incorrectly."""
+    def test_unknown_kwarg_rejected(self):
+        with pytest.raises(AttributeError, match='this_is_not_a_field'):
+            BESTPOS(this_is_not_a_field=1)
 
 
-def test_unknown_setattr_rejected():
-    m = BESTPOS()
-    with pytest.raises(AttributeError) as exc:
-        m.does_not_exist = 1
-    assert "does_not_exist" in str(exc.value)
+    def test_unknown_setattr_rejected(self):
+        m = BESTPOS()
+        with pytest.raises(AttributeError, match='does_not_exist'):
+            m.does_not_exist = 1
 
 
-def test_field_array_setattr_rejected():
-    # RANGE has a FIELD_ARRAY field `obs` — assigning to it should fail with
-    # the unsupported-FIELD_ARRAY message.
-    r = RANGE()
-    with pytest.raises(TypeError) as exc:
-        r.obs = [1, 2, 3]
-    assert "FieldArray" in str(exc.value)
+    def test_field_array_setattr_rejected(self):
+        r = RANGE()
+        with pytest.raises(TypeError, match='FieldArray'):
+            r.obs = [1, 2, 3]
 
 
-def test_length_field_write_rejected():
-    # _length attributes are synthesized for FIELD_ARRAY / VARIABLE_LENGTH_ARRAY
-    # fields. RANGE.obs is a FIELD_ARRAY, so RANGE has an obs_length entry.
-    r = RANGE()
-    with pytest.raises(AttributeError) as exc:
-        r.obs_length = 5
-    assert "Length cannot be set directly" in str(exc.value)
+    def test_length_field_write_rejected(self):
+        r = RANGE()
+        with pytest.raises(AttributeError, match='Length cannot be set directly'):
+            r.obs_length = 5
 
 
-def test_setattr_type_mismatch_raises():
-    # Passing a non-castable value (a string for a float field) should raise
-    # AttributeError (wrapped from the underlying cast failure).
-    m = BESTPOS()
-    with pytest.raises(TypeError):
-        m.latitude = "not a number"
+    def test_setattr_type_mismatch_raises(self):
+        m = BESTPOS()
+        with pytest.raises(TypeError):
+            m.latitude = 'not a number'
