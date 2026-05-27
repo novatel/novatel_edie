@@ -44,7 +44,7 @@ const bool kRegisteredOemAlignment = [] {
     novatel::edie::MessageDatabase::RegisterAlignmentFunction("OEM", novatel::edie::oem::OemAlignmentFunction);
     return true;
 }();
-}
+} // namespace
 
 // -------------------------------------------------------------------------------------------------------
 MessageDecoder::MessageDecoder(const MessageDatabase::Ptr& pclMessageDb_) : MessageDecoderBase("OEM", pclMessageDb_, OemAlignmentFunction)

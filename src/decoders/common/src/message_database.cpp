@@ -158,8 +158,7 @@ void MessageDatabase::RegisterAlignmentFunction(std::string messageFamily_, std:
 }
 
 // -------------------------------------------------------------------------------------------------------
-std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>>&
-MessageDatabase::GetAlignmentFunctions()
+std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>>& MessageDatabase::GetAlignmentFunctions()
 {
     static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>> alignmentFunctions;
     return alignmentFunctions;

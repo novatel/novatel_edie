@@ -140,7 +140,7 @@ class MessageBody
     // ---------------------------------------------------------------------------
     //! \brief Default constructor.
     // ---------------------------------------------------------------------------
-    MessageBody() = default;
+    MessageBody() : defCrc{0} {};
 
     // ---------------------------------------------------------------------------
     //! \brief Construct a MessageBody with pre-allocated fixed and variable field storage.
@@ -148,7 +148,7 @@ class MessageBody
     //! \param[in] fixedFieldSize_ The size in bytes for the fixed fields buffer.
     //! \param[in] varFieldCount_ The number of variable field slots to allocate.
     // ---------------------------------------------------------------------------
-    MessageBody(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_) {}
+    MessageBody(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_), defCrc{0} {}
 
     // ---------------------------------------------------------------------------
     //! Getters for member variables
@@ -350,7 +350,7 @@ class MessageBody
                 return;
             }
         }
-        defCrc = definition_ ->latestMessageCrc;
+        defCrc = definition_->latestMessageCrc;
     }
 
     // ---------------------------------------------------------------------------
@@ -586,7 +586,8 @@ class MessageBody
         return written;
     }
 
-    struct const_iterator {
+    struct const_iterator
+    {
         using value_type = BaseField::ConstPtr;
         using reference = const value_type&;
         using pointer = const value_type*;
