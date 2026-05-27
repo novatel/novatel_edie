@@ -146,6 +146,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
         else
         {
             // Handle Fixed or Variable-Length Arrays
+            // TODO: This check should be for 'isString' but changing it would break a lot of user code
             if (field.fieldDef->conversion == "%s")
             {
                 // The array is actually a string
@@ -342,10 +343,7 @@ std::vector<FieldContainer> PyField::get_regular_array(const std::shared_ptr<con
     std::vector<FieldContainer> fixedArrVal;
     if (nb::isinstance<nb::str>(value) || nb::isinstance<nb::bytes>(value))
     {
-        if (fixedArrDef->isCsv)
-        {
-            throw nb::type_error("String value is not valid for a non-string array.");
-        }
+        if (fixedArrDef->isCsv) { throw nb::type_error("String value is not valid for a non-string array."); }
         std::string_view strVal;
         if (nb::isinstance<nb::str>(value)) { strVal = nb::cast<nb::str>(value).c_str(); }
         else { strVal = nb::cast<nb::bytes>(value).c_str(); }
