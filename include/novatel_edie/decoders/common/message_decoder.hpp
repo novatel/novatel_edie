@@ -202,15 +202,19 @@ class MessageBody
     // ---------------------------------------------------------------------------
     //! \brief Get a field value by field name.
     //!
+    //! \param[in, out] val_ A reference to a FieldValueVariant to store the retrieved value.
     //! \param[in] fieldName_ The name of the field to retrieve.
-    //! \return A FieldValueVariant containing the field value.
-    //! \throws std::runtime_error if definition is not set or field name not found.
+    //! \return true if the field was found and val_ was set, false otherwise.
     // ---------------------------------------------------------------------------
-    const FieldValueVariant GetFieldValue(const std::string& fieldName_) const
+    const bool GetFieldValue(FieldValueVariant& val_, const std::string& fieldName_) const
     {
         if (definition == nullptr) { throw std::runtime_error("GetFieldValue(): message definition not set"); }
-        const auto field = definition->GetMsgDefFromCrc(defCrc).fieldNameToDef.at(fieldName_);
-        return GetFieldValue(*field);
+        const auto& fieldDefs = definition->GetMsgDefFromCrc(defCrc).messageOrderedFields;
+        const auto it = std::find_if(fieldDefs.begin(), fieldDefs.end(),
+                                     [&fieldName_](const BaseField::ConstPtr& fieldDef) { return fieldDef->name == fieldName_; });
+        if (it == fieldDefs.end()) { return false; }
+        val_ = GetFieldValue(**it);
+        return true;
     }
 
     // ---------------------------------------------------------------------------
@@ -588,9 +592,9 @@ class MessageBody
 
     struct const_iterator
     {
-        using value_type = BaseField::ConstPtr;
+        using value_type = BaseField;
         using reference = const value_type&;
-        using pointer = const value_type*;
+        using pointer = BaseField::ConstPtr;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
 
@@ -599,8 +603,8 @@ class MessageBody
 
         const_iterator(const std::vector<BaseField::ConstPtr>* fields_, size_t index_ = 0) : fields(fields_), index(index_) {}
 
-        reference operator*() const { return (*fields)[index]; }
-        pointer operator->() const { return &(*fields)[index]; }
+        reference operator*() const { return *(*fields)[index]; }
+        pointer operator->() const { return (*fields)[index]; }
 
         const_iterator& operator++()
         {
@@ -767,7 +771,7 @@ class MessageDecoderBase
 
     // -------------------------------------------------------------------------------------------------------
     uint32_t GetArrayLength(const unsigned char* pucTempStart, const unsigned char** ppucLogBuf_, const ArrayField& arrayDef,
-                            const MessageBody& clMessageBody_, const std::unordered_map<std::string, BaseField::ConstPtr>& messageBodyDef) const
+                            const MessageBody& clMessageBody_) const
     {
         if (arrayDef.arrayLengthRef.empty())
         {
@@ -785,8 +789,8 @@ class MessageDecoderBase
         }
 
         // Traverse the decoded fields to find the arrayLengthRef field by its name.
-        auto it = messageBodyDef.find(arrayDef.arrayLengthRef);
-        if (it != messageBodyDef.end())
+        FieldValueVariant fieldValue;
+        if (clMessageBody_.GetFieldValue(fieldValue, arrayDef.arrayLengthRef))
         {
             const auto arraySize = std::visit(
                 [](const auto& value) -> std::optional<uint32_t> {
@@ -805,7 +809,7 @@ class MessageDecoderBase
                     }
                     return std::nullopt;
                 },
-                clMessageBody_.GetFieldValue(*it->second));
+                fieldValue);
 
             if (arraySize) { return *arraySize; }
         }
