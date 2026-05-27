@@ -225,13 +225,13 @@ struct PyEncodableField : public py_common::PyField
 
   public:
     PyHeader header;
+    std::string name;
 
     // Return the message name from the stored message definition.
     // Falls back to "UNKNOWN" if no message definition is availiable
-    std::string name() const
+    std::string_view get_name() const
     {
-        if (!fields.GetDefinition()) { return std::string("UNKNOWN"); }
-        return fields.GetDefinition()->name;
+        return name;
     }
 
     explicit PyEncodableField(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_,
@@ -283,8 +283,8 @@ nb::object create_message_instance(PyHeader& header, MessageBody&& message_field
 struct PyResponse : public PyEncodableField
 {
     bool complete;
-    explicit PyResponse(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_)
-        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_)), complete(complete_){};
+    explicit PyResponse(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr parent_db_, PyHeader header_, bool complete_, std::string name_ = "UNKNOWN")
+        : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), std::move(name_)), complete(complete_){};
 
     // Retrieve response ID from first field of response
     int32_t GetResponseId() { return std::get<int>(fieldsPtr[0].fieldValue); }
@@ -296,7 +296,7 @@ struct PyResponse : public PyEncodableField
     {
         nb::object response_enum = parentDb->GetEnumTypeByName("Responses");
         if (response_enum.is_none()) { return nb::none(); }
-        int32_t value = GetResponseId();
+        uint32_t value = GetResponseId();
         nb::object enum_val = response_enum(value);
         return enum_val;
     }

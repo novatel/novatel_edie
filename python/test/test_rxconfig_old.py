@@ -86,10 +86,10 @@ def test_rxconfig_roundtrip_binary(rx_config_handler):
 # Conversion to JSON unit tests.
 # -------------------------------------------------------------------------------------------------------
 def test_rxconfig_convert_ascii_to_json(rx_config_handler):
-    log = b"#RXCONFIGA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;#ADJUST1PPSA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;OFF*4c2dbb6d*1600a42a\r\n"
+    log = b"#RXCONFIGA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;#ADJUST1PPSA,COM2,235,77.0,UNKNOWN,0,0.727,02000020,f702,17002;OFF,ONCE,0*4c2dbb6d*298F0154\r\n"
     json_rx_config_header = b'{"message": "RXCONFIG","id": 128,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002}'
     json_embedded_header = b'{"message": "ADJUST1PPS","id": 429,"port": "COM2","sequence_num": 235,"percent_idle_time": 77.0,"time_status": "UNKNOWN","week": 0,"seconds": 0.727,"receiver_status": 33554464,"HEADER_reserved1": 63234,"receiver_sw_version": 17002}'
-    json_embedded_body = b'{"mode": "OFF"}'
+    json_embedded_body = b'{"mode": "OFF","period": "ONCE","time": 0}'
     json_rx_config_body = b'{"header": ' + json_embedded_header + b',"body": ' + json_embedded_body + b'}'
     json_log = b'{"header": ' + json_rx_config_header + b',"body": ' + json_rx_config_body + b'}'
 

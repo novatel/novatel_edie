@@ -208,4 +208,18 @@ const FieldInfo& MessageDefinition::GetMsgDefFromCrc(uint32_t uiMsgDefCrc_) cons
     return (it != fieldInfo.end()) ? it->second : fieldInfo.at(latestMessageCrc);
 }
 
+// -------------------------------------------------------------------------------------------------------
+void MessageDatabase::RegisterAlignmentFunction(std::string messageFamily_, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fn)
+{
+    GetAlignmentFunctions()[messageFamily_] = std::move(fn);
+}
+
+// -------------------------------------------------------------------------------------------------------
+std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>>&
+MessageDatabase::GetAlignmentFunctions()
+{
+    static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>> alignmentFunctions;
+    return alignmentFunctions;
+}
+
 } // namespace novatel::edie
