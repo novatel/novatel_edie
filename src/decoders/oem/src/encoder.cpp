@@ -418,8 +418,7 @@ Encoder::Encode(unsigned char** ppucBuffer_, uint32_t uiBufferSize_, const Inter
         return it != pMessageDef->fieldInfo.end() ? &it->second.messageOrderedFields : nullptr;
     };
 
-    const std::vector<BaseField::ConstPtr>* fieldDefinitions =
-        stMessage_.GetDefinitionCrc().has_value() ? findFieldDefinitions(stMessage_.GetDefinitionCrc().value()) : nullptr;
+    const std::vector<BaseField::ConstPtr>* fieldDefinitions = findFieldDefinitions(stMessage_.GetDefinitionCrc());
     if (fieldDefinitions == nullptr)
     {
         fieldDefinitions = findFieldDefinitions(pMessageDef->latestMessageCrc);
