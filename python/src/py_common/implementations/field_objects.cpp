@@ -345,14 +345,14 @@ std::vector<FieldContainer> PyField::get_regular_array(const std::shared_ptr<con
         std::string_view strVal;
         if (nb::isinstance<nb::str>(value)) { strVal = nb::cast<nb::str>(value).c_str(); }
         else { strVal = nb::cast<nb::bytes>(value).c_str(); }
-        if (strVal.size() > fixedArrDef->arrayLength) { throw nb::value_error("Supplied string does not fit within fixed array size."); }
+        if (strVal.size() > fixedArrDef->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
         fixedArrVal.reserve(strVal.size());
         for (unsigned char b : strVal) { fixedArrVal.emplace_back(FieldContainer{b, fixedArrDef}); }
     }
     else if (nb::isinstance<nb::list>(value))
     {
         auto listVal = nb::cast<nb::list>(value);
-        if (listVal.size() > fixedArrDef->arrayLength) { throw nb::value_error("List contains too many elements for fixed array."); }
+        if (listVal.size() > fixedArrDef->arrayLength) { throw nb::value_error("Value exceeds maximum array size."); }
         fixedArrVal.reserve(listVal.size());
         for (auto listIt = listVal.begin(); listIt != listVal.end(); listIt++)
         {
