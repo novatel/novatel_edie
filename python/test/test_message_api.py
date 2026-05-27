@@ -24,6 +24,7 @@ from novatel_edie import (
 def make_message_type(name: str, fields: list) -> type:
     """Build a fresh MessageDatabase holding one MessageDefinition and return its message type."""
     db = MessageDatabase()
+    db.message_family = 'OEM'
     msg_def = MessageDefinition(
         id=name, log_id=0, name=name, latest_message_crc=0,
         fields={0: list(fields)},
