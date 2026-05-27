@@ -119,6 +119,11 @@ class TestReceiverStatus:
         h = oem.Header(receiver_status=value)
         assert h.receiver_status.raw_value == value
 
+    @pytest.mark.parametrize('value', [0, 0x1, 0x12345678, 0xFFFFFFFF])
+    def test_positional_int_construct(self, value: int):
+        rs = oem.RecieverStatus(value)
+        assert rs.raw_value == value
+
     @pytest.mark.parametrize('field_name,mask', [
         ('reciever_error', 0x00000001),
         ('temperature_warning', 0x00000002),
@@ -242,6 +247,11 @@ class TestMessageType:
     def test_int_round_trip(self, value: int):
         h = oem.Header(message_type=value)
         assert h.message_type.raw_value == value
+
+    @pytest.mark.parametrize('value', [0, 0x1, 0x42, 0xFF])
+    def test_positional_int_construct(self, value: int):
+        mt = oem.MessageType(value)
+        assert mt.raw_value == value
 
     @pytest.mark.parametrize('is_response,msg_format,sibling_id', [
         (False, MESSAGE_FORMAT.BINARY, 0),
