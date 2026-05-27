@@ -230,8 +230,8 @@ struct PyEncodableField : public py_common::PyField
     // Falls back to "UNKNOWN" if no message definition is availiable
     std::string name() const
     {
-        if (!fields.definition) { return std::string("UNKNOWN"); }
-        return fields.definition->name;
+        if (!fields.GetDefinition()) { return std::string("UNKNOWN"); }
+        return fields.GetDefinition()->name;
     }
 
     explicit PyEncodableField(std::vector<FieldContainer> fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_,

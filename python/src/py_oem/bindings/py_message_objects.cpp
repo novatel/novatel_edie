@@ -136,11 +136,11 @@ nb::object py_oem::create_message_instance(py_oem::PyHeader& header, MessageBody
         return response_pyinst;
     }
 
-    nb::handle message_pytype = database->GetMessageType(metadata.usMessageId, message_fields.crc);
+    nb::handle message_pytype = database->GetMessageType(metadata.usMessageId, message_fields.GetDefinitionCrc());
     if (message_pytype.is_none())
     {
         // Fallback to latest CRC
-        message_pytype = database->GetMessageType(message_fields.definition, message_fields.definition->latestMessageCrc);
+        message_pytype = database->GetMessageType(message_fields.GetDefinition().get(), message_fields.GetDefinition()->latestMessageCrc);
     }
     nb::object message_pyinst = nb::inst_alloc(message_pytype);
     PyMessage* message_cinst = nb::inst_ptr<PyMessage>(message_pyinst);
