@@ -26,10 +26,9 @@ struct PyField
 {
     //! Construct the root message object that owns the decoded MessageBody.
     explicit PyField(MessageBody message_, py_common::PyMessageDatabase::ConstPtr parentDb_)
-        : fields(std::move(message_)), msgDef(fields.GetDefinition().get()), msgCrc(fields.GetDefinitionCrc().value_or(0)),
-          parentDb(std::move(parentDb_))
+        : fields(std::move(message_)), parentDb(std::move(parentDb_))
     {
-        fieldNameMap_ = msgDef ? parentDb->GetMessageFieldNameMap(msgDef, msgCrc) : nullptr;
+        fieldNameMap_ = fields.GetDefinition() ? parentDb->GetMessageFieldNameMap(fields.GetDefinition().get(), fields.GetDefinitionCrc()) : nullptr;
         cachedArrays_.resize(GetOrderedFields().size());
     };
 
@@ -91,8 +90,6 @@ struct PyField
     size_t parentIndex{0};
     const FieldArrayField* parentFieldArrayDef{nullptr};
     const BaseField* fieldDef{nullptr};
-    const MessageDefinition* msgDef{nullptr};
-    uint32_t msgCrc{0};
 
   protected:
     nb::object convert_field(const BaseField& field) const;

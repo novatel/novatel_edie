@@ -18,7 +18,7 @@ using namespace novatel::edie::py_common;
 
 PYCOMMON_EXPORT const std::vector<BaseField::ConstPtr>& PyField::GetOrderedFields() const
 {
-    if (msgDef != nullptr) { return msgDef->GetMsgDefFromCrc(msgCrc).messageOrderedFields; }
+    if (fields.GetDefinition() != nullptr) { return fields.GetDefinition()->GetMsgDefFromCrc(fields.GetDefinitionCrc()).messageOrderedFields; }
 
     if (fieldDef != nullptr && fieldDef->type == FIELD_TYPE::FIELD_ARRAY)
     {
@@ -59,7 +59,7 @@ PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry)
             return nb::cast(static_cast<size_t>(arrayDef->arrayLength));
         }
 
-        return GetMessageBody()->GetFieldSize(field);
+        return nb::cast(GetMessageBody()->GetFieldSize(field));
     }
 
     return convert_field(field);
@@ -119,8 +119,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
                                      "' not found in the JSON database");
         }
 
-        return std::visit(
-            [&](auto&& value) -> nb::object {
+        return std::visit([&](auto&& value) -> nb::object {
                 using T = std::decay_t<decltype(value)>;
                 if constexpr (std::is_integral_v<T>)
                 {
@@ -128,38 +127,10 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
                     if (enumDef->valueName.count(key) > 0) { return enum_type(key); }
                 }
                 return enum_type(enumDef->unknownValue);
-            },
-            fieldValue);
+            }, fieldValue);
     }
 
-    if (field.conversion == "%s")
-    {
-        if (const auto* stringValue = std::get_if<std::string>(&fieldValue)) { return nb::cast(*stringValue); }
-        if (const auto* bytes = std::get_if<std::vector<uint8_t>>(&fieldValue))
-        {
-            std::string str;
-            str.reserve(bytes->size());
-            for (const auto value : *bytes)
-            {
-                if (value == 0) { break; }
-                str.push_back(static_cast<char>(value));
-            }
-            return nb::cast(str);
-        }
-        if (const auto* chars = std::get_if<std::vector<int8_t>>(&fieldValue))
-        {
-            std::string str;
-            str.reserve(chars->size());
-            for (const auto value : *chars)
-            {
-                if (value == 0) { break; }
-                str.push_back(static_cast<char>(value));
-            }
-            return nb::cast(str);
-        }
-    }
-
-    if (field.conversion == "%id")
+    if (field.conversionHash == CalculateBlockCrc32("id"))
     {
         const uint32_t temp_id = std::get<uint32_t>(fieldValue);
         SatelliteId sat_id;
@@ -169,12 +140,46 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(const BaseField& fi
     }
 
     return std::visit(
-        [](auto&& value) -> nb::object {
+        [&](auto&& value) -> nb::object {
             using T = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<T, std::vector<std::byte>>)
+            if constexpr (std::is_same_v<T, std::vector<std::byte>> || std::is_same_v<T, std::vector<MessageBody>>)
             {
-                throw std::runtime_error("PyField::convert_field(): raw byte arrays should be handled through the PyFieldArray interface");
+                throw std::runtime_error("PyField::convert_field(): field array types should be handled through PyFieldArray");
             }
+            if constexpr (is_specialization_of_v<T, std::vector> || std::is_pointer_v<T>)
+            {
+                size_t count;
+                if constexpr (std::is_pointer_v<T>)
+                {
+                    const auto* arrayFieldDef = dynamic_cast<const ArrayField*>(&field);
+                    if (arrayFieldDef == nullptr) { throw std::runtime_error("PyField::convert_field(): missing array field metadata for pointer field array type"); }
+                    count = arrayFieldDef->arrayLength;
+                }
+                else { count = value.size(); }
+                
+                if constexpr (std::is_same_v<T, std::vector<uint8_t>> || std::is_same_v<T, std::vector<int8_t>> ||
+                              std::is_same_v<T, std::vector<char>> || std::is_same_v<T, std::vector<unsigned char>> ||
+                              std::is_same_v<T, const uint8_t*> || std::is_same_v<T, const int8_t*> ||
+                              std::is_same_v<T, const char*> || std::is_same_v<T, const unsigned char*>)
+                {
+                    if (field.conversionHash == CalculateBlockCrc32("s") || field.conversionHash == CalculateBlockCrc32("S"))
+                    {
+                        std::string str;
+                        str.reserve(count);
+                        for (size_t i = 0; i < count; ++i)
+                        {
+                            if (value[i] == 0) { break; }
+                            str.push_back(static_cast<char>(value[i]));
+                        }
+                        return nb::cast(str);
+                    }
+                }
+                std::vector<nb::object> vec;
+                vec.reserve(count);
+                for (size_t i = 0; i < count; ++i) { vec.push_back(nb::cast(value[i])); }
+                return nb::cast(vec);
+            }
+            // STRING and SIMPLE types
             else { return nb::cast(value); }
         },
         fieldValue);

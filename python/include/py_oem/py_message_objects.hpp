@@ -117,8 +117,8 @@ struct PyEncodableField : public py_common::PyField
     // Falls back to "UNKNOWN" if no message definition is availiable
     std::string name() const
     {
-        if (!fields.definition) { return std::string("UNKNOWN"); }
-        return fields.definition->name;
+        if (!fields.GetDefinition()) { return std::string("UNKNOWN"); }
+        return fields.GetDefinition()->name;
     }
 
     explicit PyEncodableField(MessageBody fields_, py_common::PyMessageDatabase::ConstPtr database_, PyHeader header_)
@@ -163,16 +163,16 @@ struct PyResponse : public PyEncodableField
     // Retrieve response ID from first field of response
     int32_t GetResponseId()
     {
-        if (!fields.definition) { return 0; }
-        const auto& defs = fields.definition->GetMsgDefFromCrc(fields.crc).messageOrderedFields;
+        if (!fields.GetDefinition()) { return 0; }
+        const auto& defs = fields.GetDefinition()->GetMsgDefFromCrc(fields.GetDefinitionCrc()).messageOrderedFields;
         return defs.empty() ? 0 : std::get<int32_t>(fields.GetFieldValue(*defs.at(0)));
     }
 
     // Retrieve response string from second field of response
     std::string GetResponseString() const
     {
-        if (!fields.definition) { return std::string(); }
-        const auto& defs = fields.definition->GetMsgDefFromCrc(fields.crc).messageOrderedFields;
+        if (!fields.GetDefinition()) { return std::string(); }
+        const auto& defs = fields.GetDefinition()->GetMsgDefFromCrc(fields.GetDefinitionCrc()).messageOrderedFields;
         return defs.size() < 2 ? std::string() : std::get<std::string>(fields.GetFieldValue(*defs.at(1)));
     }
 
