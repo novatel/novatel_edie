@@ -341,7 +341,16 @@ class MessageBody
     void SetDefinition(const MessageDefinition::ConstPtr& definition_, const std::optional<uint32_t>& defCrc_ = std::nullopt)
     {
         definition = definition_;
-        defCrc = defCrc_.value_or(definition_ ? definition_ ->latestMessageCrc : 0);
+        if (defCrc_.has_value())
+        {
+            // Following check needed to handle RXCONFIG embedded logs
+            if (definition->fieldInfo.find(defCrc_.value()) != definition->fieldInfo.end())
+            {
+                defCrc = defCrc_.value();
+                return;
+            }
+        }
+        defCrc = definition_ ->latestMessageCrc;
     }
 
     // ---------------------------------------------------------------------------

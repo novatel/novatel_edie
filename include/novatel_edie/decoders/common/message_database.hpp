@@ -865,20 +865,13 @@ class MessageDatabase
     //!     a pointer to the start of the message body, and a pointer to the current position,
     //!     and returns the number of bytes to move forward to align the field.
     //----------------------------------------------------------------------------
-    static void RegisterAlignmentFunction(std::string messageFamily_, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fn)
-    {
-        GetAlignmentFunctions()[messageFamily_] = std::move(fn);
-    }
+    static void RegisterAlignmentFunction(std::string messageFamily_, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)> fn);
 
     //----------------------------------------------------------------------------
     //! \brief Retrieves the alignment functions map.
     //! \return A reference to the map of message family names to their corresponding alignment functions.
     //----------------------------------------------------------------------------
-    static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>>& GetAlignmentFunctions()
-    {
-        static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>> alignmentFunctions;
-        return alignmentFunctions;
-    }
+    static std::unordered_map<std::string, std::function<size_t(const size_t, const uintptr_t, const uintptr_t)>>& GetAlignmentFunctions();
 
     //----------------------------------------------------------------------------
     //! \brief A no-op alignment function that always returns 0.
