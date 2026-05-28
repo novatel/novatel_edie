@@ -171,6 +171,13 @@ struct PyFieldArray
                           py_common::PyMessageDatabase::ConstPtr parentDb_, nb::object parent_)
         : data(&data_), fieldDef(std::move(fieldDef_)), parentDb(std::move(parentDb_)), parent(std::move(parent_)), cache(data_.size()) {};
 
+    // `data` may alias `&ownedData`, so member-wise copy/move would leave it pointing at
+    // the source's storage. Construct via nb::inst_alloc + placement-new instead.
+    PyFieldArray(const PyFieldArray&) = delete;
+    PyFieldArray(PyFieldArray&&) = delete;
+    PyFieldArray& operator=(const PyFieldArray&) = delete;
+    PyFieldArray& operator=(PyFieldArray&&) = delete;
+
     nb::object getitem(ssize_t index) const;
     size_t len() const;
 

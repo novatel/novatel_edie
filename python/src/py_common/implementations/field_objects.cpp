@@ -138,8 +138,13 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
                 if (!existing.is_none()) { return existing; }
             }
 
-            // Construct a new PyFieldArray
-            nb::object pyArr = nb::cast(PyFieldArray(message_field, field.fieldDef, parentDb, nb::cast(this, nb::rv_policy::none)));
+            // Construct a new PyFieldArray in place — PyFieldArray is non-movable
+            // (data is a self-referential pointer), so it must be placement-new'd
+            // directly into the nanobind-managed Python instance.
+            nb::object pyArr = nb::inst_alloc(nb::type<PyFieldArray>());
+            new (nb::inst_ptr<PyFieldArray>(pyArr))
+                PyFieldArray(message_field, field.fieldDef, parentDb, nb::cast(this, nb::rv_policy::none));
+            nb::inst_mark_ready(pyArr);
             cachedArrays_[fieldIdx] = nb::weakref(pyArr);
             return pyArr;
         }
@@ -309,11 +314,16 @@ PYCOMMON_EXPORT PyFieldArray::PyFieldArray(nb::list values)
 
     for (auto it = values.begin(); it != values.end(); it++)
     {
-        if (!nb::isinstance<PyField>(nb::handle(*it))) { throw nb::value_error("Only Fields can appear within a FieldArray!"); }
+        if (!nb::isinstance<PyField>(nb::handle(*it))) { throw nb::type_error("Only Fields can appear within a FieldArray!"); }
     }
     PyField* candidate = nb::inst_ptr<PyField>(nb::handle(*values.begin()));
     fieldDef = candidate->fieldDef;
     parentDb = candidate->parentDb;
+    const auto* arrayDef = static_cast<const ArrayField*>(fieldDef.get());
+    if (values.size() > arrayDef->arrayLength)
+    {
+        throw nb::value_error("Value exceeds maximum array size.");
+    }
     cache.resize(values.size());
     ownedData.reserve(values.size());
     data = &ownedData;
@@ -399,8 +409,21 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
             field.fieldValue = get_regular_array(std::dynamic_pointer_cast<const ArrayField>(field.fieldDef), value);
             break;
         case FIELD_TYPE::FIELD_ARRAY: {
-            if (!nb::isinstance<PyFieldArray>(value)) { throw nb::type_error("Must be initialized with a FieldArray!"); }
-            PyFieldArray* fieldArrayVal = nb::inst_ptr<PyFieldArray>(value);
+            nb::object owned_array_obj;
+            nb::handle array_handle = value;
+            if (!nb::isinstance<PyFieldArray>(value))
+            {
+                if (!nb::isinstance<nb::list>(value))
+                {
+                    throw nb::type_error("Must be initialized with a FieldArray or list of Fields!");
+                }
+                nb::handle py_array_type = nb::type<PyFieldArray>();
+                owned_array_obj = nb::inst_alloc(py_array_type);
+                new (nb::inst_ptr<PyFieldArray>(owned_array_obj)) PyFieldArray(nb::cast<nb::list>(value));
+                nb::inst_mark_ready(owned_array_obj);
+                array_handle = owned_array_obj;
+            }
+            PyFieldArray* fieldArrayVal = nb::inst_ptr<PyFieldArray>(array_handle);
             // Note: accessing "value" or "curVal" from another thread while this is occuring is a race conditon
             if (field.fieldDef != fieldArrayVal->fieldDef) { throw nb::type_error("FieldArray contains elements of the wrong type!"); }
             // Transfer data ownership of existing element
@@ -426,7 +449,7 @@ PYCOMMON_EXPORT void PyField::setattr(nb::str field_name, nb::handle value)
                 field.fieldValue = std::move(fieldArrayVal->ownedData);
                 fieldArrayVal->data = &std::get<std::vector<FieldContainer>>(field.fieldValue);
                 fieldArrayVal->parent = nb::find(this);
-                cachedArrays_[entry.index] = nb::weakref(value);
+                cachedArrays_[entry.index] = nb::weakref(array_handle);
             }
             break;
         }

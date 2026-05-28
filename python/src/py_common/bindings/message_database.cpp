@@ -1,7 +1,12 @@
 #include "py_common/message_database.hpp"
 
+#include <nanobind/stl/optional.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/variant.h>
+#include <nanobind/stl/vector.h>
 
+#include "novatel_edie/common/logger.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_database.hpp"
 #include "py_common/bindings_core.hpp"
@@ -277,7 +282,22 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<py_common::PyMessageDatabase>(m, "MessageDatabase", nb::type_slots(db_slots))
-        .def(nb::new_([]() { return py_common::PyMessageDatabase::Create(); }))
+        .def(nb::new_([](std::optional<std::string> message_family) {
+                 nb::object wrapper = py_common::PyMessageDatabase::Create();
+                 if (message_family.has_value())
+                 {
+                     nb::cast<py_common::PyMessageDatabase*>(wrapper)->SetMessageFamily(*message_family);
+                 }
+                 else
+                 {
+                     static const std::shared_ptr<spdlog::logger> logger = GetBaseLoggerManager()->RegisterLogger("message_database");
+                     SPDLOG_LOGGER_WARN(logger,
+                                        "MessageDatabase constructed without a message_family; "
+                                        "pass message_family= or assign db.message_family to silence this warning.");
+                 }
+                 return wrapper;
+             }),
+             "message_family"_a = nb::none())
         .def(nb::new_([](std::filesystem::path& file_path) { return py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(file_path))); }),
              "file_path"_a)
         .def_static(
@@ -326,6 +346,56 @@ void py_common::init_common_message_database(nb::module_& m)
                 return self.GetMessageType(name);
             },
             "name"_a)
+        .def(
+            "get_field_type",
+            [](py_common::PyMessageDatabase& self, std::string msg_name,
+               std::variant<std::string, std::vector<std::string>> field, std::optional<uint32_t> crc) -> nb::object {
+                std::vector<std::string> path =
+                    std::holds_alternative<std::string>(field) ? std::vector<std::string>{std::get<std::string>(field)} : std::get<std::vector<std::string>>(field);
+                if (path.empty()) { throw nb::value_error("field path must contain at least one name."); }
+
+                auto msg_def = self.GetMsgDef(msg_name);
+                if (!msg_def) { throw nb::key_error(msg_name.c_str()); }
+                const uint32_t resolvedCrc = crc.value_or(msg_def->latestMessageCrc);
+                auto it = msg_def->fields.find(resolvedCrc);
+                if (it == msg_def->fields.end()) { throw nb::key_error(std::to_string(resolvedCrc).c_str()); }
+
+                const std::vector<BaseField::Ptr>* fields = &it->second;
+                BaseField* current = nullptr;
+                for (size_t i = 0; i < path.size(); ++i)
+                {
+                    current = nullptr;
+                    for (const auto& f : *fields)
+                    {
+                        if (f->name == path[i])
+                        {
+                            current = f.get();
+                            break;
+                        }
+                    }
+                    if (current == nullptr) { throw nb::key_error(path[i].c_str()); }
+                    auto* fa = dynamic_cast<FieldArrayField*>(current);
+                    const bool last = (i == path.size() - 1);
+                    if (!last)
+                    {
+                        if (fa == nullptr)
+                        {
+                            throw nb::type_error(("cannot descend into non-FieldArray field: " + path[i]).c_str());
+                        }
+                        fields = &fa->fields;
+                    }
+                    else if (fa == nullptr)
+                    {
+                        throw nb::key_error(path[i].c_str());
+                    }
+                }
+
+                self.Lock();
+                return self.GetFieldType(current);
+            },
+            "msg_name"_a, "field"_a, "crc"_a = nb::none(),
+            "Retrieve the Python type for a FieldArray field, given the message name, a field name "
+            "(or list of names for nested FieldArrays), and an optional message CRC.")
         .def(
             "get_enum_type_by_name",
             [](py_common::PyMessageDatabase& self, std::string name) {
