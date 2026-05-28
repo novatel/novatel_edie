@@ -252,8 +252,8 @@ void MessageDecoderBase::InitFieldMaps()
 
 // -------------------------------------------------------------------------------------------------------
 template <bool Fixed>
-void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_,
-                                           MessageBody& clMessageBody_, size_t n)
+void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, MessageBody& clMessageBody_,
+                                           size_t n)
 {
     switch (pstMessageDataType_.dataType.name)
     {
@@ -375,7 +375,9 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::DecodeAsciiField(const BaseField& field_, const char** ppcToken_, const size_t tokenLength_, MessageBody& clMessageBody_, const size_t elementIndex_, const bool fixed_) const {
+void MessageDecoderBase::DecodeAsciiField(const BaseField& field_, const char** ppcToken_, const size_t tokenLength_, MessageBody& clMessageBody_,
+                                          const size_t elementIndex_, const bool fixed_) const
+{
     const auto it = asciiFieldMap.find(field_.conversionHash);
     if (it == asciiFieldMap.end()) { throw std::runtime_error("DecodeAsciiField(): Unknown field type\n"); }
     it->second(clMessageBody_, field_, ppcToken_, tokenLength_, elementIndex_, fixed_, *pclMyMsgDb);
@@ -880,7 +882,9 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, MessageBody& clMessageBody_, const size_t elementIndex_, const bool fixed_) const {
+void MessageDecoderBase::DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, MessageBody& clMessageBody_,
+                                         const size_t elementIndex_, const bool fixed_) const
+{
     const auto it = jsonFieldMap.find(field_.conversionHash);
     if (it == jsonFieldMap.end()) { throw std::runtime_error("DecodeJsonField(): Unknown field type\n"); }
     it->second(clMessageBody_, field_, clJsonField_, elementIndex_, fixed_, *pclMyMsgDb);
