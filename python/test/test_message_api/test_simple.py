@@ -6,7 +6,7 @@ Scope:
  - SIMPLE fields (FieldDefinition): round-trip assignment + construction for
    every supported scalar DATA_TYPE, default values, and validation.
 
-ENUM fields are covered separately in test_message_api_enum.py.
+ENUM fields are covered separately in test_enum.py.
 
 The supported scalar variant alternatives mirror FieldContainer's debug-mode
 ValidateSimpleField(): BOOL->bool, CHAR->int8, UCHAR->uint8, SHORT->int16,
@@ -330,3 +330,34 @@ class TestSimpleField:
             m = simple_message_type()
             with pytest.raises((AttributeError, TypeError)):
                 setattr(m, field, 1)
+
+
+class TestGeneralValidation:
+    """Message-shape-agnostic rejections on a synthetic message definition."""
+
+    @pytest.fixture(scope='class')
+    def message_type(self):
+        """Message with a single INT scalar field."""
+        msg_def = MessageDefinition(
+            id='general_validation_msg', log_id=0, name='general_validation_msg', latest_message_crc=0,
+            fields={0: [
+                FieldDefinition(
+                    name='value',
+                    type=FIELD_TYPE.SIMPLE,
+                    conversion=r'%d',
+                    data_type=DATA_TYPE.INT,
+                ),
+            ]},
+        )
+        db = MessageDatabase(message_family='OEM')
+        db.append_messages([msg_def])
+        return db.get_msg_type('general_validation_msg')
+
+    def test_unknown_kwarg_rejected(self, message_type: type):
+        with pytest.raises(AttributeError, match='this_is_not_a_field'):
+            message_type(this_is_not_a_field=1)
+
+    def test_unknown_setattr_rejected(self, message_type: type):
+        m = message_type()
+        with pytest.raises(AttributeError, match='does_not_exist'):
+            m.does_not_exist = 1
