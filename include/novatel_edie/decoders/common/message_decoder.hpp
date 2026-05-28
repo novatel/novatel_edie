@@ -399,22 +399,22 @@ class MessageBody
     //! \param[in] n Number of values to copy (defaults to 1).
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
-    template <bool Fixed = true, typename T> void SetField(const size_t startIndex_, const T* values_, size_t n = 1)
+    template <bool Fixed = true, typename T> void SetFieldValue(const size_t startIndex_, const T* values_, size_t n = 1)
     {
-        static_assert(std::is_trivially_copyable_v<T>, "SetField only supports trivially copyable types");
+        static_assert(std::is_trivially_copyable_v<T>, "SetFieldValue only supports trivially copyable types");
 
-        if (values_ == nullptr) { throw std::runtime_error("SetField(): source pointer is null"); }
+        if (values_ == nullptr) { throw std::runtime_error("SetFieldValue(): source pointer is null"); }
 
         const size_t byteSize = sizeof(T) * n;
 
         if constexpr (Fixed)
         {
-            if (startIndex_ + byteSize > fixedFields.size()) { throw std::runtime_error("SetField(): fixed field index out of range"); }
+            if (startIndex_ + byteSize > fixedFields.size()) { throw std::runtime_error("SetFieldValue(): fixed field index out of range"); }
             std::memcpy(fixedFields.data() + startIndex_, values_, byteSize);
         }
         else
         {
-            if (startIndex_ >= varFields.size()) { throw std::runtime_error("SetField(): varFields index is out of range"); }
+            if (startIndex_ >= varFields.size()) { throw std::runtime_error("SetFieldValue(): varFields index is out of range"); }
 
             using BufferElementType = std::conditional_t<std::is_same_v<T, bool>, uint8_t, T>;
             std::vector<BufferElementType> values(n);
@@ -433,9 +433,9 @@ class MessageBody
     //! \param[in] n Number of values to copy (defaults to 1).
     // ---------------------------------------------------------------------------
     template <bool Fixed = true, typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
-    void SetField(const size_t startIndex_, const T& value_, size_t n = 1)
+    void SetFieldValue(const size_t startIndex_, const T& value_, size_t n = 1)
     {
-        SetField<Fixed>(startIndex_, &value_, n);
+        SetFieldValue<Fixed>(startIndex_, &value_, n);
     }
 
     // ---------------------------------------------------------------------------
@@ -447,20 +447,20 @@ class MessageBody
     //! \param[in] values_ Rvalue reference to vector of values to move.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
-    template <bool Fixed = true, typename T> void SetField(const size_t startIndex_, std::vector<T>&& values_)
+    template <bool Fixed = true, typename T> void SetFieldValue(const size_t startIndex_, std::vector<T>&& values_)
     {
-        static_assert(std::is_trivially_copyable_v<T>, "SetField only supports trivially copyable vector element types");
-        static_assert(!std::is_same_v<T, bool>, "SetField does not support std::vector<bool>");
+        static_assert(std::is_trivially_copyable_v<T>, "SetFieldValue only supports trivially copyable vector element types");
+        static_assert(!std::is_same_v<T, bool>, "SetFieldValue does not support std::vector<bool>");
 
         if constexpr (Fixed)
         {
             const size_t byteSize = sizeof(T) * values_.size();
-            if (startIndex_ + byteSize > fixedFields.size()) { throw std::runtime_error("SetField(): fixed field index out of range"); }
+            if (startIndex_ + byteSize > fixedFields.size()) { throw std::runtime_error("SetFieldValue(): fixed field index out of range"); }
             std::memcpy(fixedFields.data() + startIndex_, values_.data(), byteSize);
         }
         else
         {
-            if (startIndex_ >= varFields.size()) { throw std::runtime_error("SetField(): varFields index is out of range"); }
+            if (startIndex_ >= varFields.size()) { throw std::runtime_error("SetFieldValue(): varFields index is out of range"); }
 
             varFields[startIndex_] = std::move(values_);
         }
@@ -474,17 +474,17 @@ class MessageBody
     //! \param[in] value_ Rvalue reference to string to move.
     //! \throws std::runtime_error on buffer overflow or invalid index.
     // ---------------------------------------------------------------------------
-    template <bool Fixed = true> void SetField(const size_t startIndex_, std::string&& value_)
+    template <bool Fixed = true> void SetFieldValue(const size_t startIndex_, std::string&& value_)
     {
         if constexpr (Fixed)
         {
             const size_t byteSize = value_.size();
-            if (startIndex_ + byteSize > fixedFields.size()) { throw std::runtime_error("SetField(): fixed field index out of range"); }
+            if (startIndex_ + byteSize > fixedFields.size()) { throw std::runtime_error("SetFieldValue(): fixed field index out of range"); }
             std::memcpy(fixedFields.data() + startIndex_, value_.data(), byteSize);
         }
         else
         {
-            if (startIndex_ >= varFields.size()) { throw std::runtime_error("SetField(): varFields index is out of range"); }
+            if (startIndex_ >= varFields.size()) { throw std::runtime_error("SetFieldValue(): varFields index is out of range"); }
 
             varFields[startIndex_] = std::move(value_);
         }
@@ -512,7 +512,7 @@ class MessageBody
 
         const auto index = fieldDef_.index;
 
-        if constexpr (Fixed) { SetField<true>(index + (elementIndex_ * sizeof(StoredType)), static_cast<StoredType>(value_)); }
+        if constexpr (Fixed) { SetFieldValue<true>(index + (elementIndex_ * sizeof(StoredType)), static_cast<StoredType>(value_)); }
         else
         {
             if (index >= varFields.size()) { throw std::runtime_error("SetArrayElement(): varFields index is out of range"); }
