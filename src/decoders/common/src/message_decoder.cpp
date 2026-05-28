@@ -73,18 +73,18 @@ void MessageDecoderBase::InitFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("g")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("lg")] = SimpleAsciiMapEntry<double>();
 
-    asciiFieldMap[CalculateBlockCrc32("e")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_,
+    asciiFieldMap[CalculateBlockCrc32("e")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_, const char** ppcToken_,
                                                  [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        switch (pstMessageDataType_->dataType.length)
+        switch (pstMessageDataType_.dataType.length)
         {
         case 4:
-            if (fixed_) { ParseAndEmplace<true, float>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, float>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, float>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, float>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 8:
-            if (fixed_) { ParseAndEmplace<true, double>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, double>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, double>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, double>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         default: throw std::runtime_error("invalid float length");
         }
@@ -92,68 +92,68 @@ void MessageDecoderBase::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("f")] = asciiFieldMap[CalculateBlockCrc32("e")];
 
-    asciiFieldMap[CalculateBlockCrc32("d")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_,
+    asciiFieldMap[CalculateBlockCrc32("d")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_, const char** ppcToken_,
                                                  [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         constexpr uint32_t nTrue = 4; // "TRUE"
-        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
+        if (pstMessageDataType_.dataType.name == DATA_TYPE::BOOL)
         {
             const bool value = (tokenLength_ == nTrue);
-            if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_->index, elementIndex_, value); }
-            else { clMessageBody_.SetArrayElement<false>(pstMessageDataType_->index, elementIndex_, value); }
+            if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
+            else { clMessageBody_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
         }
         else
         {
-            if (fixed_) { ParseAndEmplace<true, int32_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, int32_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, int32_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, int32_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("u")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_,
+    asciiFieldMap[CalculateBlockCrc32("u")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_, const char** ppcToken_,
                                                  [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        switch (pstMessageDataType_->dataType.length)
+        switch (pstMessageDataType_.dataType.length)
         {
         case 1:
-            if (fixed_) { ParseAndEmplace<true, uint8_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, uint8_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, uint8_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, uint8_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 2:
-            if (fixed_) { ParseAndEmplace<true, uint16_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, uint16_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, uint16_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, uint16_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 4:
-            if (fixed_) { ParseAndEmplace<true, uint32_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, uint32_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, uint32_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, uint32_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 8:
-            if (fixed_) { ParseAndEmplace<true, uint64_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, uint64_t>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, uint64_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, uint64_t>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         default: throw std::runtime_error("invalid unsigned length");
         }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("x")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_,
+    asciiFieldMap[CalculateBlockCrc32("x")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_, const char** ppcToken_,
                                                  [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        switch (pstMessageDataType_->dataType.length)
+        switch (pstMessageDataType_.dataType.length)
         {
         case 1:
-            if (fixed_) { ParseAndEmplace<true, uint8_t, 16>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, uint8_t, 16>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, uint8_t, 16>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, uint8_t, 16>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 2:
-            if (fixed_) { ParseAndEmplace<true, uint16_t, 16>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, uint16_t, 16>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, uint16_t, 16>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, uint16_t, 16>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 4:
-            if (fixed_) { ParseAndEmplace<true, uint32_t, 16>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, uint32_t, 16>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, uint32_t, 16>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, uint32_t, 16>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
         case 8:
-            if (fixed_) { ParseAndEmplace<true, uint64_t, 16>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
-            else { ParseAndEmplace<false, uint64_t, 16>(clMessageBody_, pstMessageDataType_->index, *ppcToken_, tokenLength_, elementIndex_); }
+            if (fixed_) { ParseAndEmplace<true, uint64_t, 16>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, uint64_t, 16>(clMessageBody_, pstMessageDataType_, *ppcToken_, tokenLength_, elementIndex_); }
             return;
             ;
         default: throw std::runtime_error("invalid hex length");
@@ -162,20 +162,20 @@ void MessageDecoderBase::InitFieldMaps()
 
     asciiFieldMap[CalculateBlockCrc32("X")] = asciiFieldMap[CalculateBlockCrc32("x")];
 
-    asciiFieldMap[CalculateBlockCrc32("c")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_,
+    asciiFieldMap[CalculateBlockCrc32("c")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_, const char** ppcToken_,
                                                  [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
                                                  [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         const auto value = static_cast<int8_t>(**ppcToken_);
-        if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_->index, elementIndex_, value); }
-        else { clMessageBody_.SetArrayElement<false>(pstMessageDataType_->index, elementIndex_, value); }
+        if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
+        else { clMessageBody_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
 
-    asciiFieldMap[CalculateBlockCrc32("uc")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_,
+    asciiFieldMap[CalculateBlockCrc32("uc")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_, const char** ppcToken_,
                                                   [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
                                                   [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         const auto value = static_cast<uint8_t>(static_cast<unsigned char>(**ppcToken_));
-        if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_->index, elementIndex_, value); }
-        else { clMessageBody_.SetArrayElement<false>(pstMessageDataType_->index, elementIndex_, value); }
+        if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
+        else { clMessageBody_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
     };
 
     // =========================================================
@@ -200,49 +200,49 @@ void MessageDecoderBase::InitFieldMaps()
     jsonFieldMap[CalculateBlockCrc32("g")] = SimpleJsonMapEntry<float>();
     jsonFieldMap[CalculateBlockCrc32("lg")] = SimpleJsonMapEntry<double>();
 
-    jsonFieldMap[CalculateBlockCrc32("f")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_,
+    jsonFieldMap[CalculateBlockCrc32("f")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        switch (pstMessageDataType_->dataType.length)
+        switch (pstMessageDataType_.dataType.length)
         {
-        case 4: PushElement<float>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
-        case 8: PushElement<double>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
+        case 4: PushElement<float>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 8: PushElement<double>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
         default: throw std::runtime_error("invalid float length");
         }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("d")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_,
+    jsonFieldMap[CalculateBlockCrc32("d")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        if (pstMessageDataType_->dataType.name == DATA_TYPE::BOOL)
+        if (pstMessageDataType_.dataType.name == DATA_TYPE::BOOL)
         {
-            PushElement<bool>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_);
+            PushElement<bool>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_);
         }
-        else { PushElement<int32_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); }
+        else { PushElement<int32_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("u")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_,
+    jsonFieldMap[CalculateBlockCrc32("u")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        switch (pstMessageDataType_->dataType.length)
+        switch (pstMessageDataType_.dataType.length)
         {
-        case 1: PushElement<uint8_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
-        case 2: PushElement<uint16_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
-        case 4: PushElement<uint32_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
-        case 8: PushElement<uint64_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
+        case 1: PushElement<uint8_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 2: PushElement<uint16_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 4: PushElement<uint32_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 8: PushElement<uint64_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
         default: throw std::runtime_error("invalid unsigned length");
         }
     };
 
-    jsonFieldMap[CalculateBlockCrc32("x")] = [](MessageBody& clMessageBody_, const BaseField::ConstPtr& pstMessageDataType_,
+    jsonFieldMap[CalculateBlockCrc32("x")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, const size_t elementIndex_, const bool fixed_,
                                                 [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-        switch (pstMessageDataType_->dataType.length)
+        switch (pstMessageDataType_.dataType.length)
         {
-        case 1: PushElement<uint8_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
-        case 2: PushElement<uint16_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
-        case 4: PushElement<uint32_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
-        case 8: PushElement<uint64_t>(clMessageBody_, pstMessageDataType_->index, clJsonField_, elementIndex_, fixed_); return;
+        case 1: PushElement<uint8_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 2: PushElement<uint16_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 4: PushElement<uint32_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
+        case 8: PushElement<uint64_t>(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_); return;
         default: throw std::runtime_error("invalid hex length");
         }
     };
@@ -252,39 +252,30 @@ void MessageDecoderBase::InitFieldMaps()
 
 // -------------------------------------------------------------------------------------------------------
 template <bool Fixed>
-void MessageDecoderBase::DecodeBinaryField(const BaseField::ConstPtr& pstMessageDataType_, const unsigned char** ppucLogBuf_,
+void MessageDecoderBase::DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_,
                                            MessageBody& clMessageBody_, size_t n)
 {
-    switch (pstMessageDataType_->dataType.name)
+    switch (pstMessageDataType_.dataType.name)
     {
-    case DATA_TYPE::BOOL: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const bool*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::BOOL: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const bool*>(*ppucLogBuf_), n); break;
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint8_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::CHAR: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int8_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::USHORT: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint16_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::SHORT: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int16_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::UCHAR: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint8_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::CHAR: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int8_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::USHORT: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint16_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::SHORT: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int16_t*>(*ppucLogBuf_), n); break;
     case DATA_TYPE::UINT: [[fallthrough]];
     case DATA_TYPE::SATELLITEID: [[fallthrough]];
-    case DATA_TYPE::ULONG: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint32_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::ULONG: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint32_t*>(*ppucLogBuf_), n); break;
     case DATA_TYPE::INT: [[fallthrough]];
-    case DATA_TYPE::LONG: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int32_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::ULONGLONG: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const uint64_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::LONGLONG: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const int64_t*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::FLOAT: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const float*>(*ppucLogBuf_), n); break;
-    case DATA_TYPE::DOUBLE: clMessageBody_.SetField<Fixed>(pstMessageDataType_->index, reinterpret_cast<const double*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::LONG: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int32_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::ULONGLONG: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const uint64_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::LONGLONG: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const int64_t*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::FLOAT: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const float*>(*ppucLogBuf_), n); break;
+    case DATA_TYPE::DOUBLE: clMessageBody_.SetField<Fixed>(pstMessageDataType_.index, reinterpret_cast<const double*>(*ppucLogBuf_), n); break;
     default: throw std::runtime_error("DecodeBinaryField(): Unknown field type\n");
     }
 
-    *ppucLogBuf_ += pstMessageDataType_->dataType.length * n;
-}
-
-// -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::DecodeAsciiField(const BaseField::ConstPtr& pstMessageDataType_, const char** ppcToken_, const size_t tokenLength_,
-                                          MessageBody& clMessageBody_, const size_t elementIndex_, const bool fixed_) const
-{
-    const auto it = asciiFieldMap.find(pstMessageDataType_->conversionHash);
-    if (it == asciiFieldMap.end()) { throw std::runtime_error("DecodeAsciiField(): Unknown field type\n"); }
-    it->second(clMessageBody_, pstMessageDataType_, ppcToken_, tokenLength_, elementIndex_, fixed_, *pclMyMsgDb);
+    *ppucLogBuf_ += pstMessageDataType_.dataType.length * n;
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -301,7 +292,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
 
         switch (field->type)
         {
-        case FIELD_TYPE::SIMPLE: DecodeBinaryField<true>(field, ppucLogBuf_, clMessageBody_, 1); break;
+        case FIELD_TYPE::SIMPLE: DecodeBinaryField<true>(*field, ppucLogBuf_, clMessageBody_, 1); break;
         case FIELD_TYPE::ENUM:
             switch (field->dataType.length)
             {
@@ -327,12 +318,12 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         }
         case FIELD_TYPE::FIXED_LENGTH_ARRAY: {
             const uint32_t uiArraySize = dynamic_cast<const ArrayField*>(field.get())->arrayLength;
-            DecodeBinaryField<true>(field, ppucLogBuf_, clMessageBody_, uiArraySize);
+            DecodeBinaryField<true>(*field, ppucLogBuf_, clMessageBody_, uiArraySize);
             break;
         }
         case FIELD_TYPE::VARIABLE_LENGTH_ARRAY: {
             const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, dynamic_cast<const ArrayField&>(*field), clMessageBody_);
-            DecodeBinaryField<false>(field, ppucLogBuf_, clMessageBody_, uiArraySize);
+            DecodeBinaryField<false>(*field, ppucLogBuf_, clMessageBody_, uiArraySize);
             break;
         }
         case FIELD_TYPE::STRING: {
@@ -381,6 +372,13 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
         if (*ppucLogBuf_ - pucTempStart >= static_cast<int32_t>(uiMessageLength_)) { return STATUS::SUCCESS; }
     }
     return STATUS::SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------------
+void MessageDecoderBase::DecodeAsciiField(const BaseField& field_, const char** ppcToken_, const size_t tokenLength_, MessageBody& clMessageBody_, const size_t elementIndex_, const bool fixed_) const {
+    const auto it = asciiFieldMap.find(field_.conversionHash);
+    if (it == asciiFieldMap.end()) { throw std::runtime_error("DecodeAsciiField(): Unknown field type\n"); }
+    it->second(clMessageBody_, field_, ppcToken_, tokenLength_, elementIndex_, fixed_, *pclMyMsgDb);
 }
 
 // -------------------------------------------------------------------------------------------------------
@@ -499,7 +497,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
         case FIELD_TYPE::SIMPLE:
             try
             {
-                DecodeAsciiField(field, ppcLogBuf_, tokenLength, clMessageBody_);
+                DecodeAsciiField(*field, ppcLogBuf_, tokenLength, clMessageBody_);
             }
             catch (const std::runtime_error&)
             {
@@ -622,9 +620,19 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
                     tokenLength = strcspn(*ppcLogBuf_, unquotedStringDelimiters.data());
-                    DecodeAsciiField(field, ppcLogBuf_, tokenLength, clMessageBody_, i, fixed);
+                    DecodeAsciiField(*field, ppcLogBuf_, tokenLength, clMessageBody_, i, fixed);
                     *ppcLogBuf_ += tokenLength + 1;
                 }
+                std::visit(
+                    [&uiArraySize](auto&& arg) {
+                        using T = std::decay_t<decltype(arg)>;
+                        if constexpr (is_specialization_of_v<T, std::vector>)
+                        {
+                            // Shrink the vector to the actual number of elements parsed
+                            if (arg.size() != uiArraySize) { arg.resize(uiArraySize); }
+                        }
+                    },
+                    clMessageBody_.GetVarFields()[field->index]);
             }
             if (eStatus != STATUS::SUCCESS)
             {
@@ -700,7 +708,7 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
         case FIELD_TYPE::SIMPLE:
             try
             {
-                DecodeJsonField(field, clField, clMessageBody_);
+                DecodeJsonField(*field, clField, clMessageBody_);
             }
             catch (const std::runtime_error&)
             {
@@ -872,12 +880,10 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
 }
 
 // -------------------------------------------------------------------------------------------------------
-void MessageDecoderBase::DecodeJsonField(const BaseField::ConstPtr& pstMessageDataType_, simdjson::dom::element clJsonField_,
-                                         MessageBody& clMessageBody_, const size_t elementIndex_, const bool fixed_) const
-{
-    const auto it = jsonFieldMap.find(pstMessageDataType_->conversionHash);
+void MessageDecoderBase::DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, MessageBody& clMessageBody_, const size_t elementIndex_, const bool fixed_) const {
+    const auto it = jsonFieldMap.find(field_.conversionHash);
     if (it == jsonFieldMap.end()) { throw std::runtime_error("DecodeJsonField(): Unknown field type\n"); }
-    it->second(clMessageBody_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_, *pclMyMsgDb);
+    it->second(clMessageBody_, field_, clJsonField_, elementIndex_, fixed_, *pclMyMsgDb);
 }
 
 // -------------------------------------------------------------------------------------------------------
