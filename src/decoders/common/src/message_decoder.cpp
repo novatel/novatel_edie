@@ -625,16 +625,19 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                     DecodeAsciiField(*field, ppcLogBuf_, tokenLength, clMessageBody_, i, fixed);
                     *ppcLogBuf_ += tokenLength + 1;
                 }
-                std::visit(
-                    [&uiArraySize](auto&& arg) {
-                        using T = std::decay_t<decltype(arg)>;
-                        if constexpr (is_specialization_of_v<T, std::vector>)
-                        {
-                            // Shrink the vector to the actual number of elements parsed
-                            if (arg.size() != uiArraySize) { arg.resize(uiArraySize); }
-                        }
-                    },
-                    clMessageBody_.GetVarFields()[field->index]);
+                if (!fixed)
+                {
+                    std::visit(
+                        [&uiArraySize](auto&& arg) {
+                            using T = std::decay_t<decltype(arg)>;
+                            if constexpr (is_specialization_of_v<T, std::vector>)
+                            {
+                                // Shrink the vector to the actual number of elements parsed
+                                if (arg.size() != uiArraySize) { arg.resize(uiArraySize); }
+                            }
+                        },
+                        clMessageBody_.GetVarFields()[field->index]);
+                }
             }
             if (eStatus != STATUS::SUCCESS)
             {
