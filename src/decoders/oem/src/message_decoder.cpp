@@ -70,9 +70,9 @@ void MessageDecoder::InitOemFieldMaps()
     asciiFieldMap[CalculateBlockCrc32("k")] = SimpleAsciiMapEntry<float>();
     asciiFieldMap[CalculateBlockCrc32("lk")] = SimpleAsciiMapEntry<double>();
 
-    asciiFieldMap[CalculateBlockCrc32("ucb")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_,
-                                                   const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_,
-                                                   const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+    asciiFieldMap[CalculateBlockCrc32("ucb")] = [](MessageBody& clMessageBody_, const BaseField& pstMessageDataType_, const char** ppcToken_,
+                                                   [[maybe_unused]] const size_t tokenLength_, const size_t elementIndex_, const bool fixed_,
+                                                   [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         const uint32_t value = static_cast<uint32_t>(std::bitset<8>(*ppcToken_).to_ulong());
         if (fixed_) { clMessageBody_.SetArrayElement<true>(pstMessageDataType_, elementIndex_, value); }
         else { clMessageBody_.SetArrayElement<false>(pstMessageDataType_, elementIndex_, value); }
