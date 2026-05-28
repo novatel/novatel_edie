@@ -209,8 +209,7 @@ class MessageBody
     bool GetFieldValue(FieldValueVariant& val_, const std::string& fieldName_) const
     {
         if (definition == nullptr) { throw std::runtime_error("GetFieldValue(): message definition not set"); }
-        const auto it = std::find_if(begin(), end(),
-                                     [&fieldName_](const BaseField& fieldDef) { return fieldDef.name == fieldName_; });
+        const auto it = std::find_if(begin(), end(), [&fieldName_](const BaseField& fieldDef) { return fieldDef.name == fieldName_; });
         if (it == end()) { return false; }
         val_ = GetFieldValue(*it);
         return true;
@@ -364,7 +363,8 @@ class MessageBody
         {
             throw std::runtime_error("GetValueFromFlatFieldArray(): field does not hold byte vector");
         }
-        return GetValueFromFlatFieldArray(fieldDef_, std::get<std::vector<std::byte>>(varFields[faFieldDef_.index]), index_, faFieldDef_.fieldInfo.fixedFieldBytes);
+        return GetValueFromFlatFieldArray(fieldDef_, std::get<std::vector<std::byte>>(varFields[faFieldDef_.index]), index_,
+                                          faFieldDef_.fieldInfo.fixedFieldBytes);
     }
 
     // ---------------------------------------------------------------------------
@@ -512,10 +512,7 @@ class MessageBody
 
         const auto index = fieldDef_.index;
 
-        if constexpr (Fixed)
-        {
-            SetField<true>(index + (elementIndex_ * sizeof(StoredType)), static_cast<StoredType>(value_));
-        }
+        if constexpr (Fixed) { SetField<true>(index + (elementIndex_ * sizeof(StoredType)), static_cast<StoredType>(value_)); }
         else
         {
             if (index >= varFields.size()) { throw std::runtime_error("SetArrayElement(): varFields index is out of range"); }
@@ -528,7 +525,10 @@ class MessageBody
                         if (varValue.size() <= elementIndex_)
                         {
                             const auto maxLen = getMaxArrayLength();
-                            if (maxLen <= elementIndex_) { throw std::runtime_error("SetArrayElement(): element index exceeds maximum array length"); }
+                            if (maxLen <= elementIndex_)
+                            {
+                                throw std::runtime_error("SetArrayElement(): element index exceeds maximum array length");
+                            }
                             varValue.resize(maxLen);
                         }
                         varValue[elementIndex_] = static_cast<StoredType>(value_);
@@ -707,8 +707,10 @@ class MessageDecoderBase
   protected:
     MessageDatabase::Ptr pclMyMsgDb{nullptr};
 
-    std::unordered_map<uint32_t, std::function<void(MessageBody&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)>> asciiFieldMap;
-    std::unordered_map<uint32_t, std::function<void(MessageBody&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>> jsonFieldMap;
+    std::unordered_map<uint32_t, std::function<void(MessageBody&, const BaseField&, const char**, size_t, size_t, bool, MessageDatabase&)>>
+        asciiFieldMap;
+    std::unordered_map<uint32_t, std::function<void(MessageBody&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)>>
+        jsonFieldMap;
 
     [[nodiscard]] STATUS DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned char** ppucLogBuf_, MessageBody& clMessageBody_,
                                       uint32_t uiMessageLength_) const;
@@ -718,10 +720,11 @@ class MessageDecoderBase
     [[nodiscard]] STATUS DecodeJson(const FieldInfo& vMsgDefFields_, simdjson::dom::element jsonData, MessageBody& clMessageBody_) const;
 
     template <bool Fixed = true>
-    static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, MessageBody& clMessageBody_,
-                                  size_t n = 1);
-    void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, MessageBody& clMessageBody_, size_t elementIndex_ = 0, bool fixed_ = true) const;
-    void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, MessageBody& clMessageBody_, size_t elementIndex_ = 0, bool fixed_ = true) const;
+    static void DecodeBinaryField(const BaseField& pstMessageDataType_, const unsigned char** ppucLogBuf_, MessageBody& clMessageBody_, size_t n = 1);
+    void DecodeAsciiField(const BaseField& field_, const char** ppcToken_, size_t tokenLength_, MessageBody& clMessageBody_, size_t elementIndex_ = 0,
+                          bool fixed_ = true) const;
+    void DecodeJsonField(const BaseField& field_, simdjson::dom::element clJsonField_, MessageBody& clMessageBody_, size_t elementIndex_ = 0,
+                         bool fixed_ = true) const;
 
     //----------------------------------------------------------------------------
     //! \brief Add padding after string fields if necessary to maintain alignment.
@@ -761,12 +764,11 @@ class MessageDecoderBase
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>, "Template argument must be integral or float");
 
-        return
-            [](MessageBody& vIntermediate_, const BaseField& pstField_, const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
-               const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
-                if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
-                else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
-            };
+        return [](MessageBody& vIntermediate_, const BaseField& pstField_, const char** ppcToken_, [[maybe_unused]] const size_t tokenLength_,
+                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+            if (fixed_) { ParseAndEmplace<true, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
+            else { ParseAndEmplace<false, T, R>(vIntermediate_, pstField_, *ppcToken_, tokenLength_, elementIndex_); }
+        };
     }
 
     // -------------------------------------------------------------------------------------------------------
@@ -801,8 +803,8 @@ class MessageDecoderBase
     template <typename T>
     static std::function<void(MessageBody&, const BaseField&, simdjson::dom::element, size_t, bool, MessageDatabase&)> SimpleJsonMapEntry()
     {
-        return [](MessageBody& vIntermediate_, const BaseField& pstMessageDataType_, simdjson::dom::element clJsonField_,
-                  const size_t elementIndex_, const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
+        return [](MessageBody& vIntermediate_, const BaseField& pstMessageDataType_, simdjson::dom::element clJsonField_, const size_t elementIndex_,
+                  const bool fixed_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
             PushElement<T>(vIntermediate_, pstMessageDataType_, clJsonField_, elementIndex_, fixed_);
         };
     }

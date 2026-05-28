@@ -70,7 +70,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // vector so we can iterate through every possible valid combination of a basefield
                 auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
-                DecodeAsciiField(stMessageDataType, &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
+                DecodeAsciiField(*stMessageDataType, &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
 
                 const T value = std::get<T>(vIntermediateFormat_.GetFieldValue(*stMessageDataType));
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
@@ -89,7 +89,7 @@ class MessageDecoderTypesTest : public ::testing::Test
 
             auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 2, D);
             const char* tempStr = strTestInput.data();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(stMessageDataType, &tempStr, strTestInput.size(), vIntermediateFormat),
+            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(*stMessageDataType, &tempStr, strTestInput.size(), vIntermediateFormat),
                          std::runtime_error);
         }
 
@@ -110,7 +110,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
                 // there should be a better way to do this
                 const uint8_t* pucTestInput = vvucTestInput[sz].data();
-                DecodeBinaryField(stMessageDataType, &pucTestInput, vIntermediateFormat_);
+                DecodeBinaryField(*stMessageDataType, &pucTestInput, vIntermediateFormat_);
 
                 const T value = std::get<T>(vIntermediateFormat_.GetFieldValue(*stMessageDataType));
                 if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>)
