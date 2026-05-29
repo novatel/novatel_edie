@@ -160,6 +160,47 @@ class TestFieldArray:
         assert p2.x == -3
         assert p2.y == 4
 
+    def test_nested_field_array_reassignment(self, polyline_message_type: type, polyline_type: type, vertex_type: type):
+        # Arrange
+        v1 = vertex_type(x=1, y=1)
+        p1 = polyline_type(vertices=[vertex_type(x=0, y=0), v1])
+        p2 = polyline_type(vertices=[vertex_type(x=2, y=2)])
+        m = polyline_message_type(polylines=[p1, p2])
+        # Act
+        m.polylines = [polyline_type(vertices=[vertex_type(x=10, y=10), vertex_type(x=11, y=11)])]
+        # Assert
+        assert len(m.polylines) == 1
+        assert len(m.polylines[0].vertices) == 2
+        assert (m.polylines[0].vertices[0].x, m.polylines[0].vertices[0].y) == (10, 10)
+        assert (m.polylines[0].vertices[1].x, m.polylines[0].vertices[1].y) == (11, 11)
+        # Originals remain independent
+        assert v1.x == 1
+        assert v1.y == 1
+        assert len(p1.vertices) == 2
+        assert (p1.vertices[0].x, p1.vertices[0].y) == (0, 0)
+        assert (p1.vertices[1].x, p1.vertices[1].y) == (1, 1)
+        assert len(p2.vertices) == 1
+        assert (p2.vertices[0].x, p2.vertices[0].y) == (2, 2)
+
+    def test_nested_field_array_setelem(self, polyline_type: type, vertex_type: type):
+        # Arrange
+        p1 = polyline_type(vertices=[vertex_type(x=0, y=0), vertex_type(x=1, y=1)])
+        p2 = polyline_type(vertices=[vertex_type(x=2, y=2)])
+        polylines = FieldArray([p1, p2])
+        # Act
+        polylines[1] = polyline_type(vertices=[vertex_type(x=10, y=10), vertex_type(x=11, y=11), vertex_type(x=12, y=12)])
+        # Assert
+        assert len(polylines[0].vertices) == 2
+        assert (polylines[0].vertices[0].x, polylines[0].vertices[0].y) == (0, 0)
+        assert (polylines[0].vertices[1].x, polylines[0].vertices[1].y) == (1, 1)
+        assert len(polylines[1].vertices) == 3
+        assert (polylines[1].vertices[0].x, polylines[1].vertices[0].y) == (10, 10)
+        assert (polylines[1].vertices[1].x, polylines[1].vertices[1].y) == (11, 11)
+        assert (polylines[1].vertices[2].x, polylines[1].vertices[2].y) == (12, 12)
+        # Original p2 is still independent
+        assert len(p2.vertices) == 1
+        assert (p2.vertices[0].x, p2.vertices[0].y) == (2, 2)
+
     def test_field_array_setelem_over_temp(self, point_type: type):
         # Arrange
         points = FieldArray([point_type(x=-5, y=5)])
