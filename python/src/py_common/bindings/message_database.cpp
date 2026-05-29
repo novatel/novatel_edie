@@ -282,13 +282,14 @@ void py_common::init_common_message_database(nb::module_& m)
         });
 
     nb::class_<py_common::PyMessageDatabase>(m, "MessageDatabase", nb::type_slots(db_slots))
-        .def(nb::new_([](std::optional<std::string> message_family) {
-                 nb::object wrapper = py_common::PyMessageDatabase::Create();
+        .def(nb::new_([](std::optional<std::filesystem::path> file_path, std::optional<std::string> message_family) {
+                 nb::object wrapper = file_path.has_value() ? py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(*file_path)))
+                                                            : py_common::PyMessageDatabase::Create();
                  if (message_family.has_value())
                  {
                      nb::cast<py_common::PyMessageDatabase*>(wrapper)->SetMessageFamily(*message_family);
                  }
-                 else
+                 else if (!file_path.has_value())
                  {
                      static const std::shared_ptr<spdlog::logger> logger = GetBaseLoggerManager()->RegisterLogger("message_database");
                      SPDLOG_LOGGER_WARN(logger,
@@ -297,9 +298,7 @@ void py_common::init_common_message_database(nb::module_& m)
                  }
                  return wrapper;
              }),
-             "message_family"_a = nb::none())
-        .def(nb::new_([](std::filesystem::path& file_path) { return py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(file_path))); }),
-             "file_path"_a)
+             "file_path"_a = nb::none(), "message_family"_a = nb::none())
         .def_static(
             "from_string", [](std::string_view json_data) { return py_common::PyMessageDatabase::Create(std::move(*ParseJsonDb(json_data))); },
             "json_data"_a)
