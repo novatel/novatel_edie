@@ -207,7 +207,7 @@ class PyMessageDatabase
             {
                 auto* fieldArrayField = dynamic_cast<FieldArrayField*>(field.get());
                 nb::handle fieldType = field_types[fieldArrayField];
-                std::string alias = parentAlias_ + "_" + fieldArrayField->name;
+                std::string alias = parentAlias_ + "_" + fieldArrayField->name + "_Field";
                 m_.attr(alias.c_str()) = fieldType;
                 addFieldAliasToModule(m_, fieldArrayField->fields, alias);
             }
