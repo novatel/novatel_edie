@@ -151,10 +151,84 @@ class TestFieldArray:
         p2 = point_type(x=-3, y=4)
         points = FieldArray([p1, p2])
         # Act
-        points[1] = point_type(10, 7)
+        points[1] = point_type(x=10, y=7)
         # Assert
         assert points[0].x == -5
         assert points[0].y == 5
+        assert points[1].x == 10
+        assert points[1].y == 7
+        assert p2.x == -3
+        assert p2.y == 4
+
+    def test_field_array_setelem_over_temp(self, point_type: type):
+        # Arrange
+        points = FieldArray([point_type(x=-5, y=5)])
+        # Act
+        points[0] = point_type(x=0, y=1)
+        # Assert
+        assert points[0].x == 0
+        assert points[0].y == 1
+
+    def test_empty_field_array(self, point_message_type: type):
+        # Act
+        points = FieldArray([])
+        m = point_message_type(points=points)
+        # Assert
+        assert len(points) == 0
+        assert len(m.points) == 0
+
+    def test_empty_field_array_implicit(self, point_message_type: type):
+        # Act
+        m = point_message_type(points=[])
+        # Assert
+        assert len(m.points) == 0
+
+    def test_drop_temp_field_array(self, point_message_type: type, point_type: type):
+        # Arrange
+        m = point_message_type(points=[point_type(x=0,y=1)])
+        # Act
+        m.points = []
+        # Assert
+        assert len(m.points) == 0
+
+    def test_drop_non_temp_field_array(self, point_message_type: type, point_type: type):
+        # Arrange
+        points = [point_type(x=0,y=1)]
+        m = point_message_type(points=points)
+        # Act
+        m.points = []
+        # Assert
+        assert points[0].x == 0
+        assert points[0].y == 1
+        assert len(m.points) == 0
+
+
+    @pytest.mark.skip('Not implemented')
+    def test_field_array_delelem(self, point_type: type):
+        # Arrange
+        p1 = point_type(x=-5, y=5)
+        p2 = point_type(x=-3, y=4)
+        points = FieldArray([p1, p2])
+        # Act
+        del points[0]
+        # Assert
+        assert points[0].x == 3
+        assert points[0].y == 4
+
+    @pytest.mark.skip('Not implemented')
+    def test_field_array_append(self, point_type: type):
+        # Arrange
+        p1 = point_type(x=-5, y=5)
+        p2 = point_type(x=-3, y=4)
+        points = FieldArray([p1])
+        # Act
+        points.append(p2)
+        # Assert
+        assert points[0].x == -5
+        assert points[0].y == 5
+        assert points[1].x == 3
+        assert points[1].y == 4
+
 
     def test_field_array_setattr_rejected(self, point_message_type: type):
         m = point_message_type()

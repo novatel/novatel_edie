@@ -179,7 +179,12 @@ struct PyFieldArray
     PyFieldArray& operator=(PyFieldArray&&) = delete;
 
     nb::object getitem(ssize_t index) const;
+    void setitem(ssize_t index, nb::object value);
+    void delitem(ssize_t index);
     size_t len() const;
+
+    // Normalize a Python-style (possibly negative) index into an in-bounds unsigned index.
+    std::optional<size_t> resolve_index(ssize_t signedIndex) const;
 
     // Data lifetime control
     nb::object parent;
