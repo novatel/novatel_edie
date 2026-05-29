@@ -63,9 +63,9 @@ py_common::PyMessageData py_oem::PyEncodableField::PyEncode(ENCODE_FORMAT format
     uint32_t buf_size = MESSAGE_SIZE_MAX * 3;
     if (extras.rxConfigHandler->IsRxConfigTypeMsg(this->header.usMessageId))
     {
-        status = extras.rxConfigHandler->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, format);
+        status = extras.rxConfigHandler->Encode(&buf_ptr, buf_size, this->header, owned_fields(), message_data, format);
     }
-    else { status = extras.encoder->Encode(&buf_ptr, buf_size, this->header, this->fields, message_data, this->header.format, format); }
+    else { status = extras.encoder->Encode(&buf_ptr, buf_size, this->header, owned_fields(), message_data, this->header.format, format); }
     throw_exception_from_status(status);
     return py_common::PyMessageData(message_data);
 }

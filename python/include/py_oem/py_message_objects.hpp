@@ -290,10 +290,10 @@ struct PyResponse : public PyEncodableField
         : PyEncodableField(std::move(fields_), std::move(parent_db_), std::move(header_), messageDef_, messageCrc_), complete(complete_) {};
 
     // Retrieve response ID from first field of response
-    int32_t GetResponseId() { return std::get<int>(fields[0].fieldValue); }
+    int32_t GetResponseId() { return std::get<int>(fieldsPtr[0].fieldValue); }
 
     // Retrieve response string from second field of response
-    std::string GetResponseString() const { return std::get<std::string>(fields[1].fieldValue); }
+    std::string GetResponseString() const { return std::get<std::string>(fieldsPtr[1].fieldValue); }
 
     nb::object GetEnumValue()
     {
