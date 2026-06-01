@@ -94,6 +94,5 @@ void py_common::init_field_objects(nb::module_& m)
         .def(nb::init<nb::list>(), "values"_a)
         .def("__getitem__", &py_common::PyFieldArray::getitem, "index"_a)
         .def("__setitem__", &py_common::PyFieldArray::setitem, "index"_a, "value"_a)
-        .def("__delitem__", &py_common::PyFieldArray::delitem, "index"_a)
         .def("__len__", &py_common::PyFieldArray::len);
 }
