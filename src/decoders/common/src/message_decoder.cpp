@@ -913,10 +913,11 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, MessageBody& stInte
         SPDLOG_LOGGER_INFO(pclMyLogger, "RXCONFIG payload must be decoded via RxConfigHandler, not MessageDecoder.");
         return STATUS::UNSUPPORTED;
     }
-    const FieldInfo& msgFieldInfo = stMetaData_.bResponse ? pclMsgDef->fieldInfo.at(0) : pclMsgDef->GetMsgDefFromCrc(stMetaData_.uiMessageCrc);
+    const uint32_t uiMessageCrc = stMetaData_.bResponse ? 0 : stMetaData_.uiMessageCrc;
+    const FieldInfo& msgFieldInfo = pclMsgDef->GetMsgDefFromCrc(uiMessageCrc);
 
-    stInterMessage_ = MessageBody(msgFieldInfo.fixedFieldBytes, msgFieldInfo.varFieldCount);
-    stInterMessage_.SetDefinition(pclMsgDef, std::optional<uint32_t>(stMetaData_.bResponse ? 0 : stMetaData_.uiMessageCrc));
+    stInterMessage_.Resize(msgFieldInfo.fixedFieldBytes, msgFieldInfo.varFieldCount);
+    stInterMessage_.SetDefinition(pclMsgDef, uiMessageCrc);
 
     // Decode the detected format
     switch (stMetaData_.eFormat)
@@ -937,6 +938,7 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, MessageBody& stInte
     case HEADER_FORMAT::SHORT_BINARY:
         if (msgFieldInfo.varFieldCount == 0)
         {
+            // Fast path: if there are no variable-length fields, copy the entire message to the fixed region
             stInterMessage_.SetFieldValue<true>(0, reinterpret_cast<const std::byte*>(pucTempInData), msgFieldInfo.fixedFieldBytes);
             return STATUS::SUCCESS;
         }

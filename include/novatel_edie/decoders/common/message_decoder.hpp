@@ -151,6 +151,18 @@ class MessageBody
     MessageBody(size_t fixedFieldSize_, size_t varFieldCount_) : fixedFields(fixedFieldSize_), varFields(varFieldCount_), defCrc{0} {}
 
     // ---------------------------------------------------------------------------
+    //! \brief Resize the memory regions of the MessageBody.
+    //!
+    //! \param[in] fixedFieldSize_ The new size in bytes for the fixed fields
+    //! \param[in] varFieldCount_ The new number of variable field slots to allocate
+    // ---------------------------------------------------------------------------
+    void Resize(size_t fixedFieldSize_, size_t varFieldCount_)
+    {
+        fixedFields.resize(fixedFieldSize_);
+        varFields.resize(varFieldCount_);
+    }
+
+    // ---------------------------------------------------------------------------
     //! Getters for member variables
     // ---------------------------------------------------------------------------
     std::vector<std::byte>& GetFixedFields() { return fixedFields; }
