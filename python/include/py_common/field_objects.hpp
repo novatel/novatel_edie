@@ -220,7 +220,6 @@ class PyFieldArray
     // Python-facing operations bound by init_field_objects.
     nb::object getitem(ssize_t index) const;
     void setitem(ssize_t index, nb::object value);
-    void delitem(ssize_t index);
     size_t len() const;
 
   private:

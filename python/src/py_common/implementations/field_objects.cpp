@@ -361,11 +361,8 @@ PYCOMMON_EXPORT void PyFieldArray::setitem(ssize_t signedIndex, nb::object value
     cache[index].reset();
 
     // Copy value in
-    // TODO: Maybe add move support if it owns its data?
     oldValue = std::vector<FieldContainer>(fieldVal->fieldsPtr, fieldVal->fieldsPtr + fieldVal->fieldCount);
 }
-
-PYCOMMON_EXPORT void PyFieldArray::delitem(ssize_t /*signedIndex*/) { throw py_common::FailureException("Item deletion is not yet implemented!"); }
 
 PYCOMMON_EXPORT size_t PyFieldArray::len() const { return length; }
 
