@@ -1,15 +1,10 @@
 """Tests for the in-Python message construction / mutation API on standard
 arrays, exercised against synthetic MessageDefinitions built in-test (no
 reliance on the shipped OEM database for the message types under test).
-
-Scope:
- - StandardArray (ArrayFieldDefinition): valid setters + validation
-
-FieldArray (FieldArrayFieldDefinition) is covered separately in
-test_field_array.py.
 """
 
-from typing import Callable
+from dataclasses import dataclass
+from typing import Callable, List
 
 import pytest
 
@@ -22,221 +17,254 @@ from novatel_edie import (
 )
 
 
+ARRAY_LENGTH = 64
+OVERSIZE = ARRAY_LENGTH + 1
+
+
+@dataclass(frozen=True)
+class ArrayFieldSpec:
+    """A standard-array field's name, FIELD_TYPE, printf-style conversion, element DATA_TYPE, and capacity."""
+    name: str
+    field_type: FIELD_TYPE
+    conversion: str
+    data_type: DATA_TYPE
+    array_length: int = ARRAY_LENGTH
+
+
+# --------------------------------------------------------------------------- #
+# Field catalogues, grouped by how their values round-trip through the API.
+# --------------------------------------------------------------------------- #
+
+# %s arrays behave as strings in Python; fixed and variable are identical.
+STRING_FIELDS = [
+    ArrayFieldSpec('fixed_str', FIELD_TYPE.FIXED_LENGTH_ARRAY,    r'%s', DATA_TYPE.UCHAR),
+    ArrayFieldSpec('var_str',   FIELD_TYPE.VARIABLE_LENGTH_ARRAY, r'%s', DATA_TYPE.UCHAR),
+]
+
+# %P UCHAR buffer: accepts str/bytes/list, returns a list of ints.
+PRINTABLE_FIELDS = [
+    ArrayFieldSpec('printable_buffer', FIELD_TYPE.VARIABLE_LENGTH_ARRAY, r'%P', DATA_TYPE.UCHAR),
+]
+
+# Numeric fixed-length arrays: accept a list of ints, return zero-padded to array_length.
+FIXED_NUMERIC_FIELDS = [
+    ArrayFieldSpec('char_fixed_arr', FIELD_TYPE.FIXED_LENGTH_ARRAY, r'%u',  DATA_TYPE.UCHAR),
+    ArrayFieldSpec('fixed_arr',      FIELD_TYPE.FIXED_LENGTH_ARRAY, r'%hu', DATA_TYPE.USHORT),
+]
+
+# Numeric variable-length arrays: accept a list of ints, return the list as given.
+VARIABLE_NUMERIC_FIELDS = [
+    ArrayFieldSpec('var_arr', FIELD_TYPE.VARIABLE_LENGTH_ARRAY, r'%d', DATA_TYPE.UINT),
+]
+
+NUMERIC_FIELDS = FIXED_NUMERIC_FIELDS + VARIABLE_NUMERIC_FIELDS
+ALL_FIELDS = STRING_FIELDS + PRINTABLE_FIELDS + FIXED_NUMERIC_FIELDS + VARIABLE_NUMERIC_FIELDS
+# Variable-length fields auto-generate a `<name>_length` companion field.
+VARIABLE_FIELDS = [s for s in ALL_FIELDS if s.field_type == FIELD_TYPE.VARIABLE_LENGTH_ARRAY]
+
+
+def _names(specs: List[ArrayFieldSpec]) -> List[str]:
+    """Field names of the given specs, for use as parametrize values/ids."""
+    return [spec.name for spec in specs]
+
+
+def _spec_params(specs: List[ArrayFieldSpec]) -> list:
+    """Build (spec,) params, one per spec, ided by field name."""
+    return [pytest.param(spec, id=spec.name) for spec in specs]
+
+
+# --------------------------------------------------------------------------- #
+# Input representations. Every test value is authored as a list of ints; these
+# convert that list into the bytes/str/list forms a field accepts.
+# --------------------------------------------------------------------------- #
+
+def _to_bytes(ints: List[int]) -> bytes:
+    return bytes(ints)
+
+
+def _to_str(ints: List[int]) -> str:
+    return bytes(ints).decode('ascii')
+
+
+def _to_list(ints: List[int]) -> List[int]:
+    return list(ints)
+
+
+# Converters for every representation a string-like array accepts.
+INPUT_CONVERTERS = [
+    pytest.param(_to_bytes, id='bytes'),
+    pytest.param(_to_str, id='str'),
+    pytest.param(_to_list, id='list'),
+]
+
+# Converters for the representations a numeric array rejects (a list is valid input, so it is excluded).
+STR_BYTES_CONVERTERS = [
+    pytest.param(_to_bytes, id='bytes'),
+    pytest.param(_to_str, id='str'),
+]
+
+
+# --------------------------------------------------------------------------- #
+# Value catalogues — all lists of ints; string content is sourced from b'...'.
+# --------------------------------------------------------------------------- #
+
+STRING_VALUES = [
+    pytest.param([], id='empty'),
+    pytest.param(list(b'my str'), id='string'),
+    pytest.param(list(b'AB12'), id='alphanumeric'),
+    pytest.param(list(b'a' * ARRAY_LENGTH), id='max-len'),
+    pytest.param(list(range(1, ARRAY_LENGTH + 1)), id='raw-bytes'),
+]
+
+FIXED_NUMERIC_VALUES = [
+    pytest.param([], id='empty'),
+    pytest.param([0, 1, 2, 3], id='small-ints'),
+    pytest.param(list(range(ARRAY_LENGTH)), id='max-len'),
+    pytest.param([0xDE, 0xAD, 0xBE, 0xEF], id='raw-bytes'),
+]
+
+VARIABLE_NUMERIC_VALUES = [
+    pytest.param([0, 1, 2, 3], id='small-ints'),
+    pytest.param(list(range(ARRAY_LENGTH)), id='max-len'),
+    pytest.param([0xDE, 0xAD, 0xBE, 0xEF], id='raw-bytes'),
+]
+
+
 class TestStandardArray:
     """Tests for ArrayFieldDefinition-backed arrays (FIXED_LENGTH and VARIABLE_LENGTH)."""
+
     @pytest.fixture(scope='class')
-    def standard_array_message_type(self):
-        """Message with a single variable-length UCHAR array field (auto-generates payload_length)."""
+    def message_type(self) -> type:
+        """Message exposing one array field per spec in ALL_FIELDS."""
+        fields = [
+            ArrayFieldDefinition(
+                spec.name, type=spec.field_type, conversion=spec.conversion,
+                data_type=spec.data_type, array_length=spec.array_length,
+            )
+            for spec in ALL_FIELDS
+        ]
         msg_def = MessageDefinition(
             id='standard_array_msg', log_id=0, name='standard_array_msg', latest_message_crc=0,
-            fields={0: [
-            ArrayFieldDefinition(
-                'fixed_str',
-                type=FIELD_TYPE.FIXED_LENGTH_ARRAY,
-                conversion=r'%s',
-                data_type=DATA_TYPE.UCHAR,
-                array_length=64,
-            ),
-            ArrayFieldDefinition(
-                'var_str',
-                type=FIELD_TYPE.VARIABLE_LENGTH_ARRAY,
-                conversion=r'%s',
-                data_type=DATA_TYPE.UCHAR,
-                array_length=64,
-            ),
-            ArrayFieldDefinition(
-                'printable_buffer',
-                type=FIELD_TYPE.VARIABLE_LENGTH_ARRAY,
-                conversion=r'%P',
-                data_type=DATA_TYPE.UCHAR,
-                array_length=64,
-            ),
-            ArrayFieldDefinition(
-                'char_fixed_arr',
-                type=FIELD_TYPE.FIXED_LENGTH_ARRAY,
-                conversion=r'%u',
-                data_type=DATA_TYPE.UCHAR,
-                array_length=64,
-            ),
-            ArrayFieldDefinition(
-                'fixed_arr',
-                type=FIELD_TYPE.FIXED_LENGTH_ARRAY,
-                conversion=r'%hu',
-                data_type=DATA_TYPE.USHORT,
-                array_length=64,
-            ),
-            ArrayFieldDefinition(
-                'var_arr',
-                type=FIELD_TYPE.VARIABLE_LENGTH_ARRAY,
-                conversion=r'%d',
-                data_type=DATA_TYPE.UINT,
-                array_length=64,
-            ),
-        ]},
+            fields={0: fields},
         )
         db = MessageDatabase(message_family='OEM')
         db.append_messages([msg_def])
         return db.get_msg_type('standard_array_msg')
 
-    @pytest.mark.parametrize('value', [
-        pytest.param(b'', id='empty'),
-        pytest.param(b'my str', id='string'),
-        pytest.param(b'AB12', id='alphanumeric'),
-        pytest.param(b'a' * 64, id='max-len'),
-        pytest.param(bytes(range(1, 65)), id='raw-bytes'),
-    ])
-    @pytest.mark.parametrize('input_type', [
-        pytest.param(lambda x: x, id='bytes'),
-        pytest.param(lambda x: x.decode('ascii'), id='str'),
-        pytest.param(list, id='list'),
-    ])
-    @pytest.mark.parametrize('field', ['fixed_str', 'var_str'])
+    @pytest.mark.parametrize('value', STRING_VALUES)
+    @pytest.mark.parametrize('converter', INPUT_CONVERTERS)
+    @pytest.mark.parametrize('field', _names(STRING_FIELDS))
     class TestStringArraySetters:
         """Set %s-conversion arrays; in Python they're just strings, so fixed and variable behave the same."""
-        def test_setter(self, standard_array_message_type: type, value: bytes, field: str, input_type: Callable):
-            # Arrange
-            m = standard_array_message_type()
-            set_value = input_type(value)
-            exp_value = value.decode('ascii')
-            # Act
-            setattr(m, field, set_value)
-            # Assert
-            assert getattr(m, field) == exp_value
 
-        def test_constructor(self, standard_array_message_type: type, value: bytes, field: str, input_type: Callable):
+        def test_setter(self, message_type: type, value: List[int], field: str, converter: Callable):
             # Arrange
-            set_value = input_type(value)
-            exp_value = value.decode('ascii')
+            m = message_type()
             # Act
-            m = standard_array_message_type(**{field: set_value})
+            setattr(m, field, converter(value))
             # Assert
-            assert getattr(m, field) == exp_value
+            assert getattr(m, field) == _to_str(value)
 
-    @pytest.mark.parametrize('value', [
-        pytest.param(b'', id='empty'),
-        pytest.param(b'my str', id='string'),
-        pytest.param(b'AB12', id='alphanumeric'),
-        pytest.param(b'a' * 64, id='max-len'),
-        pytest.param(bytes(range(1, 65)), id='raw-bytes'),
-    ])
-    @pytest.mark.parametrize('input_type', [
-        pytest.param(lambda x: x, id='bytes'),
-        pytest.param(lambda x: x.decode('ascii'), id='str'),
-        pytest.param(list, id='list'),
-    ])
+        def test_constructor(self, message_type: type, value: List[int], field: str, converter: Callable):
+            # Act
+            m = message_type(**{field: converter(value)})
+            # Assert
+            assert getattr(m, field) == _to_str(value)
+
+    @pytest.mark.parametrize('value', STRING_VALUES)
+    @pytest.mark.parametrize('converter', INPUT_CONVERTERS)
+    @pytest.mark.parametrize('field', _names(PRINTABLE_FIELDS))
     class TestPrintableByteArraySetters:
-        """Set the %P UCHAR variable-length array; accepts str/bytes/list, returns list of ints."""
-        field = 'printable_buffer'
+        """Set %P UCHAR arrays; accept str/bytes/list, return a list of ints."""
 
-        def test_setter(self, standard_array_message_type: type, value: bytes, input_type: Callable):
+        def test_setter(self, message_type: type, value: List[int], field: str, converter: Callable):
             # Arrange
-            m = standard_array_message_type()
-            set_value = input_type(value)
-            exp_value = list(value)
+            m = message_type()
             # Act
-            setattr(m, self.field, set_value)
+            setattr(m, field, converter(value))
             # Assert
-            assert getattr(m, self.field) == exp_value
+            assert getattr(m, field) == value
 
-        def test_constructor(self, standard_array_message_type: type, value: bytes, input_type: Callable):
+        def test_constructor(self, message_type: type, value: List[int], field: str, converter: Callable):
+            # Act
+            m = message_type(**{field: converter(value)})
+            # Assert
+            assert getattr(m, field) == value
+
+    @pytest.mark.parametrize('value', FIXED_NUMERIC_VALUES)
+    @pytest.mark.parametrize('spec', _spec_params(FIXED_NUMERIC_FIELDS))
+    class TestFixedNumericArraySetters:
+        """Set numeric fixed-length arrays; shorter values are accepted and the return is zero-padded to array_length."""
+
+        def test_setter(self, message_type: type, spec: ArrayFieldSpec, value: list):
             # Arrange
-            set_value = input_type(value)
-            exp_value = list(value)
+            m = message_type()
+            exp_value = value + [0] * (spec.array_length - len(value))
             # Act
-            m = standard_array_message_type(**{self.field: set_value})
+            setattr(m, spec.name, value)
             # Assert
-            assert getattr(m, self.field) == exp_value
+            assert getattr(m, spec.name) == exp_value
 
-    @pytest.mark.parametrize('value', [
-        pytest.param([], id='empty'),
-        pytest.param([0, 1, 2, 3], id='small-ints'),
-        pytest.param(list(range(64)), id='max-len'),
-        pytest.param([0xDE, 0xAD, 0xBE, 0xEF], id='raw-bytes'),
-    ])
-    class TestFixedRegularArraySetters:
-        """Set the %u fixed-length array; shorter values are accepted and the return is zero-padded to the array length."""
-        field = 'fixed_arr'
-        array_length = 64
-
-        def test_setter(self, standard_array_message_type: type, value: list):
+        def test_constructor(self, message_type: type, spec: ArrayFieldSpec, value: list):
             # Arrange
-            m = standard_array_message_type()
-            exp_value = value + [0] * (self.array_length - len(value))
+            exp_value = value + [0] * (spec.array_length - len(value))
             # Act
-            setattr(m, self.field, value)
+            m = message_type(**{spec.name: value})
             # Assert
-            assert getattr(m, self.field) == exp_value
+            assert getattr(m, spec.name) == exp_value
 
-        def test_constructor(self, standard_array_message_type: type, value: list):
-            # Arrange
-            exp_value = value + [0] * (self.array_length - len(value))
-            # Act
-            m = standard_array_message_type(**{self.field: value})
-            # Assert
-            assert getattr(m, self.field) == exp_value
-
-    @pytest.mark.parametrize('field,array_length', [
-        ('fixed_arr', 64),
-        ('char_fixed_arr', 64),
-    ])
-    def test_fixed_array_default_construction_is_zero_padded(self, standard_array_message_type: type, field: str, array_length: int):
+    @pytest.mark.parametrize('spec', _spec_params(FIXED_NUMERIC_FIELDS))
+    def test_fixed_array_default_construction_is_zero_padded(self, message_type: type, spec: ArrayFieldSpec):
         # Act
-        m = standard_array_message_type()
+        m = message_type()
         # Assert
-        assert getattr(m, field) == [0] * array_length
+        assert getattr(m, spec.name) == [0] * spec.array_length
 
-    @pytest.mark.parametrize('value', [
-        pytest.param([0, 1, 2, 3], id='small-ints'),
-        pytest.param(list(range(64)), id='max-len'),
-        pytest.param([0xDE, 0xAD, 0xBE, 0xEF], id='raw-bytes'),
-    ])
-    class TestVariableRegularArraySetters:
-        """Set the %u variable-length array; value may be shorter than the array."""
-        field = 'var_arr'
+    @pytest.mark.parametrize('value', VARIABLE_NUMERIC_VALUES)
+    @pytest.mark.parametrize('spec', _spec_params(VARIABLE_NUMERIC_FIELDS))
+    class TestVariableNumericArraySetters:
+        """Set numeric variable-length arrays; the value may be shorter than array_length and is returned as given."""
 
-        def test_setter(self, standard_array_message_type: type, value: list):
+        def test_setter(self, message_type: type, spec: ArrayFieldSpec, value: list):
             # Arrange
-            m = standard_array_message_type()
+            m = message_type()
             # Act
-            setattr(m, self.field, value)
+            setattr(m, spec.name, value)
             # Assert
-            assert getattr(m, self.field) == value
+            assert getattr(m, spec.name) == value
 
-        def test_constructor(self, standard_array_message_type: type, value: list):
+        def test_constructor(self, message_type: type, spec: ArrayFieldSpec, value: list):
             # Act
-            m = standard_array_message_type(**{self.field: value})
+            m = message_type(**{spec.name: value})
             # Assert
-            assert getattr(m, self.field) == value
+            assert getattr(m, spec.name) == value
 
     class TestValidation:
         """Validation rejections specific to standard arrays."""
-        @pytest.mark.parametrize('length_field', ['var_str_length', 'var_arr_length'])
-        def test_length_field_write_rejected(self, standard_array_message_type: type, length_field: str):
-            m = standard_array_message_type()
+
+        @pytest.mark.parametrize('length_field', [f'{spec.name}_length' for spec in VARIABLE_FIELDS])
+        def test_length_field_write_rejected(self, message_type: type, length_field: str):
+            m = message_type()
             with pytest.raises(AttributeError, match='Length cannot be set directly'):
                 setattr(m, length_field, 5)
 
-        @pytest.mark.parametrize('value', [b'x' * 65, 'a' * 65, [0] * 65])
-        def test_oversize_value_rejected(self, standard_array_message_type: type, value):
-            m = standard_array_message_type()
+        @pytest.mark.parametrize('converter', INPUT_CONVERTERS)
+        @pytest.mark.parametrize('field', _names(STRING_FIELDS))
+        def test_oversize_value_rejected(self, message_type: type, field: str, converter: Callable):
+            m = message_type()
             with pytest.raises(ValueError, match='Value exceeds maximum array size'):
-                m.fixed_str = value
+                setattr(m, field, converter(list(b'a' * OVERSIZE)))
 
-        @pytest.mark.parametrize('field', ['char_fixed_arr', 'fixed_arr', 'var_arr'])
-        @pytest.mark.parametrize('value', [
-            pytest.param(b'abc', id='bytes'),
-            pytest.param('abc', id='str'),
-        ])
-        def test_string_value_rejected_for_regular_field(self, standard_array_message_type: type, field: str, value):
-            m = standard_array_message_type()
-            with pytest.raises(TypeError):
-                setattr(m, field, value)
+        @pytest.mark.parametrize('converter', STR_BYTES_CONVERTERS)
+        @pytest.mark.parametrize('field', _names(NUMERIC_FIELDS))
+        class TestStringRejectedForNumericField:
+            """Numeric arrays reject str/bytes input (a list is valid), via both setter and constructor."""
 
-        @pytest.mark.parametrize('field', ['char_fixed_arr', 'fixed_arr', 'var_arr'])
-        @pytest.mark.parametrize('value', [
-            pytest.param(b'abc', id='bytes'),
-            pytest.param('abc', id='str'),
-        ])
-        def test_string_value_rejected_for_regular_field_constructor(self, standard_array_message_type: type, field: str, value):
-            with pytest.raises(TypeError):
-                standard_array_message_type(**{field: value})
+            def test_setter(self, message_type: type, field: str, converter: Callable):
+                m = message_type()
+                with pytest.raises(TypeError):
+                    setattr(m, field, converter(list(b'abc')))
+
+            def test_constructor(self, message_type: type, field: str, converter: Callable):
+                with pytest.raises(TypeError):
+                    message_type(**{field: converter(list(b'abc'))})
