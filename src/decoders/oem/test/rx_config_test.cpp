@@ -29,6 +29,7 @@
 
 #include <gtest/gtest.h>
 
+#include "novatel_edie/common/test_utils/logger_registry_test.hpp"
 #include "novatel_edie/decoders/common/common.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
@@ -90,6 +91,7 @@ std::unique_ptr<RxConfigHandler> RxConfigTest::pclMyRxConfigHandler = nullptr;
 // -------------------------------------------------------------------------------------------------------
 TEST_F(RxConfigTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     ASSERT_NE(spdlog::get("rxconfig_handler"), nullptr);

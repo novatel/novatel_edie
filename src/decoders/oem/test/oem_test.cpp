@@ -36,6 +36,7 @@
 #include <novatel_edie/decoders/common/framer_manager.hpp>
 #include <novatel_edie/decoders/common/framer_registration.hpp>
 
+#include "novatel_edie/common/test_utils/logger_registry_test.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/common/message_decoder.hpp"
 #include "novatel_edie/decoders/oem/commander.hpp"
@@ -166,6 +167,7 @@ TYPED_TEST_SUITE(ShortAsciiFramerTest, ShortAsciiFramerTypes, ::testing::interna
 // -------------------------------------------------------------------------------------------------------
 TEST_F(OEMFramerTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     ASSERT_NE(spdlog::get("novatel_framer"), nullptr);
@@ -1339,6 +1341,7 @@ std::unique_ptr<unsigned char[]> FramerManagerTest::pucMyTestFrameBuffer = nullp
 // -------------------------------------------------------------------------------------------------------
 TEST_F(FramerManagerTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     ASSERT_NE(spdlog::get("novatel_framer_ascii"), nullptr);
@@ -2305,6 +2308,7 @@ std::unique_ptr<Encoder> DecodeEncodeTest::pclMyEncoder = nullptr;
 // -------------------------------------------------------------------------------------------------------
 TEST_F(DecodeEncodeTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     ASSERT_NE(spdlog::get("novatel_header_decoder"), nullptr);
     std::shared_ptr<spdlog::logger> novatel_header_decoder = pclMyHeaderDecoder->GetLogger();
     pclMyHeaderDecoder->SetLoggerLevel(spdlog::level::critical);
@@ -3454,6 +3458,7 @@ std::unique_ptr<Commander> CommandEncodeTest::pclMyCommander = nullptr;
 // -------------------------------------------------------------------------------------------------------
 TEST_F(CommandEncodeTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     ASSERT_NE(spdlog::get("novatel_commander"), nullptr);
@@ -3572,6 +3577,7 @@ std::unique_ptr<Filter> FilterTest::pclMyFilter = nullptr;
 
 TEST_F(FilterTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     ASSERT_NE(spdlog::get("novatel_filter"), nullptr);
@@ -3938,6 +3944,7 @@ std::unique_ptr<FileParser> FileParserTest::pclFp = nullptr;
 
 TEST_F(FileParserTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     // FileParser logger
@@ -4077,6 +4084,7 @@ std::unique_ptr<Parser> ParserTest::pclParser = nullptr;
 
 TEST_F(ParserTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
     ASSERT_NE(spdlog::get("novatel_parser"), nullptr);
     std::shared_ptr<spdlog::logger> novatelParser = pclParser->GetLogger();
