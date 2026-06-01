@@ -1,19 +1,6 @@
 """Tests for the in-Python message API on scalar fields, exercised against
 synthetic MessageDefinitions built in-test (no reliance on the shipped OEM
 database for the message types under test).
-
-Scope:
- - SIMPLE fields (FieldDefinition): round-trip assignment + construction for
-   every supported scalar DATA_TYPE, default values, and validation.
-
-ENUM fields are covered separately in test_enum.py.
-
-The supported scalar variant alternatives mirror FieldContainer's debug-mode
-ValidateSimpleField(): BOOL->bool, CHAR->int8, UCHAR->uint8, SHORT->int16,
-USHORT->uint16, INT/LONG->int32, UINT/ULONG->uint32, LONGLONG->int64,
-ULONGLONG->uint64, FLOAT->float, DOUBLE->double. ENUM values are stored as
-int32. HEXBYTE and SATELLITEID are valid container types but are intentionally
-not settable through the Python attribute API.
 """
 
 import math

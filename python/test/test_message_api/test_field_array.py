@@ -2,10 +2,6 @@
 FieldArrayFieldDefinition-backed arrays of nested records, exercised against
 synthetic MessageDefinitions built in-test (no reliance on the shipped OEM
 database for the message types under test).
-
-Scope:
- - FieldArray (FieldArrayFieldDefinition): construction (explicit + implicit),
-   nested field arrays, reassignment, element assignment, and validation.
 """
 
 import pytest
