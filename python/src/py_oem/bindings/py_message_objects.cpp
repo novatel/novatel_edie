@@ -169,7 +169,7 @@ void py_oem::init_header_objects(nb::module_& m)
         .def_prop_ro("auxiliary_3_event", [](const py_oem::PyRecieverStatus& self) { return (self.value & 0x20000000) != 0; })
         .def_prop_ro("auxiliary_2_event", [](const py_oem::PyRecieverStatus& self) { return (self.value & 0x40000000) != 0; })
         .def_prop_ro("auxiliary_1_event", [](const py_oem::PyRecieverStatus& self) { return (self.value & 0x80000000) != 0; })
-        .def_prop_ro("version_bits", [](const py_oem::PyRecieverStatus& self) { return (self.value >> 25) & 0x06000000; })
+        .def_prop_ro("version_bits", [](const py_oem::PyRecieverStatus& self) { return (self.value & 0x06000000) >> 25; })
         .def("__repr__", [](const py_oem::PyRecieverStatus& self) {
             return nb::str("RecieverStatus(") + nb::str(nb::module_::import_("builtins").attr("hex")(self.value)) + nb::str(")");
         });
