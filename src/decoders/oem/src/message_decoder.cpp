@@ -118,28 +118,40 @@ void MessageDecoder::InitOemFieldMaps()
     jsonFieldMap[CalculateBlockCrc32("ucb")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                   simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         std::string_view sValue;
-        if (clJsonField_.get(sValue) != simdjson::SUCCESS) { throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'"); }
+        if (clJsonField_.get(sValue) != simdjson::SUCCESS)
+        {
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+        }
         vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::bitset<8>(std::string(sValue)).to_ulong()), std::move(pstMessageDataType_));
     };
 
     jsonFieldMap[CalculateBlockCrc32("m")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         std::string_view sValue;
-        if (clJsonField_.get(sValue) != simdjson::SUCCESS) { throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'"); }
+        if (clJsonField_.get(sValue) != simdjson::SUCCESS)
+        {
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+        }
         vIntermediateFormat_.emplace_back(pclMsgDb_.MsgNameToMsgId(std::string(sValue)), std::move(pstMessageDataType_));
     };
 
     jsonFieldMap[CalculateBlockCrc32("T")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         double dValue;
-        if (clJsonField_.get(dValue) != simdjson::SUCCESS) { throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'"); }
+        if (clJsonField_.get(dValue) != simdjson::SUCCESS)
+        {
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+        }
         vIntermediateFormat_.emplace_back(static_cast<uint32_t>(std::llround(dValue * SEC_TO_MILLI_SEC)), std::move(pstMessageDataType_));
     };
 
     jsonFieldMap[CalculateBlockCrc32("id")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                  simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         std::string_view sTemp;
-        if (clJsonField_.get(sTemp) != simdjson::SUCCESS) { throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'"); }
+        if (clJsonField_.get(sTemp) != simdjson::SUCCESS)
+        {
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+        }
         size_t sDelimiter = sTemp.find_last_of('+');
         if (sDelimiter == std::string_view::npos) { sDelimiter = sTemp.find_last_of('-'); }
 
@@ -184,7 +196,10 @@ void MessageDecoder::InitOemFieldMaps()
     jsonFieldMap[CalculateBlockCrc32("R")] = [](std::vector<FieldContainer>& vIntermediateFormat_, BaseField::ConstPtr&& pstMessageDataType_,
                                                 simdjson::dom::element clJsonField_, [[maybe_unused]] MessageDatabase& pclMsgDb_) {
         std::string_view sValue;
-        if (clJsonField_.get(sValue) != simdjson::SUCCESS) { throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'"); }
+        if (clJsonField_.get(sValue) != simdjson::SUCCESS)
+        {
+            throw std::runtime_error("Failed to decode JSON field '" + pstMessageDataType_->name + "'");
+        }
         MessageDefinition::ConstPtr pclMessageDef = pclMsgDb_.GetMsgDef(sValue);
         vIntermediateFormat_.emplace_back(pclMessageDef != nullptr ? CreateMsgId(pclMessageDef->logID, 0, 1, 0) : 0, std::move(pstMessageDataType_));
     };
