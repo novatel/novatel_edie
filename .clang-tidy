@@ -49,7 +49,5 @@ HeaderFilterRegex: 'src/.*|examples/.*'
 
 WarningsAsErrors: '*'
 
-# On MSVC builds, clang-tidy does not honor /EHsc and assumes C++ exceptions are
-# disabled, so it reports a false error on every try/throw. -Xclang -fcxx-exceptions
-# tells clang-tidy that exceptions are enabled.
+# Explictly allow exceptions, otherwise MSVC with clang-tidy runs into issues
 ExtraArgs: [-Wno-unknown-pragmas, -Xclang, -fcxx-exceptions]
