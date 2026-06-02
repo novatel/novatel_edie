@@ -173,8 +173,8 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
     // Is the lock time relative and has a bitfield change been found?
     if (!stLockTimeInfo.bAbsolute && ucLockTimeBits_ != stLockTimeInfo.ucBits)
     {
-        // Set lock time as absolute if bits are 0 or transitioning from relative to absolute.
-        if (ucLockTimeBits_ == 0 || (stLockTimeInfo.ucBits != 0xFF && ucLockTimeBits_ > stLockTimeInfo.ucBits))
+        // Set lock time as absolute if bits are 0 or if bits have changed since previous observation.
+        if (ucLockTimeBits_ == 0 || ucLockTimeBits_ > stLockTimeInfo.ucBits)
         {
             stLockTimeInfo.bAbsolute = true;
 
@@ -201,14 +201,12 @@ double RangeDecompressor::GetRangeCmp4LockTime(const MetaDataStruct& stMetaData_
         pclMyLogger->warn("Detected a lock time slip (perhaps caused by an outage) of {}ms at time {}w, {}ms.",
                           stLockTimeInfo.dMilliseconds - lockTime[stLockTimeInfo.ucBits], stMetaData_.usWeek, stMetaData_.dMilliseconds);
     }
-    else
+    // If the lock time is absolute and the bitfield hasn't changed within the expected time, reset the last change time
+    else if (stLockTimeInfo.bAbsolute && ucLockTimeBits_ < 15 &&
+             stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > lockTime[ucLockTimeBits_ + 1])
     {
-        // If the lock time is absolute and the bitfield hasn't changed within the expected time, reset the last change time
-        if (stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds > 2 * lockTime[ucLockTimeBits_])
-        {
-            stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
-            pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms.", stMetaData_.usWeek, stMetaData_.dMilliseconds);
-        }
+        stLockTimeInfo.dLastBitfieldChangeMilliseconds = stMetaData_.dMilliseconds;
+        pclMyLogger->warn("Expected a bit change much sooner at time {}w, {}ms.", stMetaData_.usWeek, stMetaData_.dMilliseconds);
     }
     stLockTimeInfo.dMilliseconds = stMetaData_.dMilliseconds - stLockTimeInfo.dLastBitfieldChangeMilliseconds + lockTime[stLockTimeInfo.ucBits];
     return stLockTimeInfo.dMilliseconds / SEC_TO_MILLI_SEC;
@@ -503,6 +501,17 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 
     auto systems = ExtractBitfield<uint16_t, SATELLITE_SYSTEMS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
 
+    // Function to skip a differential block when reference data is not available. This is needed to keep the
+    // bit offset (uiBitOffset) and byte pointer (pucData_) in the correct position so that subsequent blocks
+    // can be read correctly.
+    const auto skipDBlock = [&uiBytesLeft, &uiBitOffset, &pucData_](bool& primary) {
+        const uint32_t uiBitsToSkip = primary ? SIG_DBLK_PRIMARY_BITS : SIG_DBLK_SECONDARY_BITS;
+        uiBytesLeft -= (uiBitsToSkip + uiBitOffset) / 8;
+        pucData_ += (uiBitsToSkip + uiBitOffset) / 8;
+        uiBitOffset = (uiBitsToSkip + uiBitOffset) % 8;
+        primary = false;
+    };
+
     while (systems)
     {
         auto system = static_cast<SYSTEM>(PopLsb(systems));
@@ -552,9 +561,16 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 
                 if (stMbHeader.bIsDifferentialData) // This is a differential block.
                 {
-                    try
+                    const auto& it = mMyReferenceBlocks.find(key);
+                    if (it == mMyReferenceBlocks.end())
                     {
-                        const std::pair<MeasurementBlockHeader, MeasurementSignalBlock>& stRb = mMyReferenceBlocks.at(key);
+                        pclMyLogger->warn("No reference data exists for SYSTEM {}, SIGNAL {}, PRN {}, ID {}", static_cast<int32_t>(system),
+                                          static_cast<int32_t>(signal), prn, stMbHeader.ucReferenceId);
+                        skipDBlock(bPrimaryBlock);
+                    }
+                    else
+                    {
+                        const auto& stRb = it->second;
 
                         if (stMbHeader.ucReferenceId == stRb.first.ucReferenceId)
                         {
@@ -572,12 +588,8 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
                         else
                         {
                             pclMyLogger->warn("Invalid reference data: Diff ID {} != Ref ID {}", stMbHeader.ucReferenceId, stRb.first.ucReferenceId);
+                            skipDBlock(bPrimaryBlock);
                         }
-                    }
-                    catch (...)
-                    {
-                        pclMyLogger->warn("No reference data exists for SYSTEM {}, SIGNAL {}, PRN {}, ID {}", static_cast<int32_t>(system),
-                                          static_cast<int32_t>(signal), prn, stMbHeader.ucReferenceId);
                     }
                 }
                 else // This is a reference block.
