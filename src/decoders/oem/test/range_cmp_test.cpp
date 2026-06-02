@@ -26,6 +26,7 @@
 
 #include <gtest/gtest.h>
 
+#include "novatel_edie/common/test_utils/logger_registry_test.hpp"
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 #include "novatel_edie/decoders/oem/rangecmp/range_decompressor.hpp"
 
@@ -84,6 +85,7 @@ MessageDatabase::Ptr RangeCmpTest::pclMyJsonDb = nullptr;
 // -------------------------------------------------------------------------------------------------------
 TEST_F(RangeCmpTest, LOGGER)
 {
+    SKIP_IF_STATIC_SPDLOG_REGISTRY();
     spdlog::level::level_enum eLevel = spdlog::level::off;
 
     ASSERT_NE(spdlog::get("range_decompressor"), nullptr);

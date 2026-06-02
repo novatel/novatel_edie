@@ -107,6 +107,15 @@ if(BUILD_TESTS)
     # https://gitlab.kitware.com/cmake/cmake/-/issues/21730
     set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
     include(CTest)
+    if(BUILD_PYTHON)
+        # Python builds link spdlog statically into the EDIE shared libraries, so spdlog's
+        # global registry inside the library is a separate instance from the one in the test
+        # executable. The *.LOGGER test cases assert against a shared registry and cannot hold
+        # in that configuration, so SKIP_IF_STATIC_SPDLOG_REGISTRY() skips them (see
+        # include/novatel_edie/common/test_utils/logger_registry_test.hpp). Directory-scoped so
+        # only the test subdirectories added below pick it up.
+        add_compile_definitions(NOVATEL_EDIE_STATIC_SPDLOG)
+    endif()
     add_subdirectory(src/common/test)
     add_subdirectory(src/decoders/common/test)
     add_subdirectory(src/decoders/oem/test)
