@@ -78,8 +78,7 @@ void py_common::init_common_message_database(nb::module_& m)
         .def_rw("description", &BaseDataType::description);
 
     nb::class_<SimpleDataType, BaseDataType>(m, "SimpleDataType", "Struct containing elements of simple data type fields in the UI DB")
-        .def(nb::init())
-        .def_rw("enums", &SimpleDataType::enums);
+        .def(nb::init());
 
     nb::class_<BaseField>(m, "FieldDefinition", "Struct containing elements of basic fields in the UI DB")
         .def(nb::init())

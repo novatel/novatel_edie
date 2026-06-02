@@ -241,7 +241,6 @@ struct BaseDataType
 //-----------------------------------------------------------------------
 struct SimpleDataType : BaseDataType
 {
-    std::unordered_map<int32_t, EnumDataType> enums;
 };
 
 //-----------------------------------------------------------------------
