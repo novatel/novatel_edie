@@ -330,6 +330,14 @@ constexpr std::array<uint32_t, 2> RBLK_DOPPLER_BITS = {26, 14};
 constexpr std::array<uint32_t, 2> RBLK_DOPPLER_SIGNEXT_MASK = {0xFC000000, 0xFFFFC000};
 constexpr std::array<int64_t, 2> RBLK_INVALID_PSR = {137438953471, -524288};
 
+constexpr uint32_t SIG_DBLK_PRIMARY_BITS = SIG_BLK_PARITY_FLAG_BITS + SIG_BLK_HALF_CYCLE_BITS + SIG_BLK_CNO_BITS + SIG_BLK_LOCK_TIME_BITS +
+                                           SIG_BLK_PSR_STDDEV_BITS + SIG_BLK_ADR_STDDEV_BITS + SIG_DBLK_PSR_BITS + SIG_DBLK_PHR_BITS +
+                                           DBLK_DOPPLER_BITS[0];
+
+constexpr uint32_t SIG_DBLK_SECONDARY_BITS = SIG_BLK_PARITY_FLAG_BITS + SIG_BLK_HALF_CYCLE_BITS + SIG_BLK_CNO_BITS + SIG_BLK_LOCK_TIME_BITS +
+                                             SIG_BLK_PSR_STDDEV_BITS + SIG_BLK_ADR_STDDEV_BITS + SIG_DBLK_PSR_BITS + SIG_DBLK_PHR_BITS +
+                                             DBLK_DOPPLER_BITS[1];
+
 } // namespace rangecmp4
 
 namespace rangecmp5 {
