@@ -71,14 +71,16 @@ std::string AsString(element el_) { return std::string(AsStringView(el_)); }
 //! Read an element as a string, mapping a JSON null to an empty string.
 std::string AsStringOrEmpty(element el_) { return el_.is_null() ? std::string() : AsString(el_); }
 
-//! Read any JSON integer (tagged int64 or uint64) as int64. Throws otherwise.
-int64_t AsInt(element el_)
+//! Read a JSON integer known to be unsigned, accepting either simdjson tag.
+//! simdjson stores a number that fits in int64 as INT64 and a larger one as UINT64, and get<T>()
+//! is strict about that tag, so both cases must be tried. Throws if the value is not an integer or is negative.
+uint64_t AsUint(element el_)
 {
-    int64_t i;
-    if (el_.get(i) == simdjson::SUCCESS) { return i; }
     uint64_t u;
-    if (el_.get(u) == simdjson::SUCCESS) { return static_cast<int64_t>(u); }
-    throw std::runtime_error("Expected a JSON integer value");
+    if (el_.get(u) == simdjson::SUCCESS) { return u; }
+    int64_t i;
+    if (el_.get(i) == simdjson::SUCCESS && i >= 0) { return static_cast<uint64_t>(i); }
+    throw std::runtime_error("Expected an unsigned JSON integer value");
 }
 
 //! Read an optional string member, returning the default if the key is absent.
@@ -106,7 +108,7 @@ void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_);
 //-----------------------------------------------------------------------
 void ParseEnumDataType(element j_, EnumDataType& f_)
 {
-    f_.value = static_cast<uint32_t>(AsInt(Member(j_, "value")));
+    f_.value = static_cast<uint32_t>(AsUint(Member(j_, "value")));
     f_.name = AsString(Member(j_, "name"));
     f_.description = AsStringOrEmpty(Member(j_, "description"));
 }
@@ -116,7 +118,7 @@ void ParseBaseDataType(element j_, BaseDataType& f_)
 {
     const auto itrDataTypeMapping = DataTypeEnumLookup.find(std::string(AsStringView(Member(j_, "name"))));
     f_.name = itrDataTypeMapping != DataTypeEnumLookup.end() ? itrDataTypeMapping->second : DATA_TYPE::UNKNOWN;
-    f_.length = static_cast<uint16_t>(AsInt(Member(j_, "length")));
+    f_.length = static_cast<uint16_t>(AsUint(Member(j_, "length")));
     f_.description = AsStringOrEmpty(Member(j_, "description"));
 }
 
@@ -176,11 +178,11 @@ void ParseArrayField(element j_, ArrayField& fd_)
 {
     ParseBaseField(j_, fd_);
 
-    fd_.arrayLength = static_cast<uint32_t>(AsInt(Member(j_, "arrayLength")));
+    fd_.arrayLength = static_cast<uint32_t>(AsUint(Member(j_, "arrayLength")));
 
     element arrayLengthFieldSize;
     fd_.arrayLengthFieldSize =
-        j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsInt(arrayLengthFieldSize)) : 4;
+        j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsUint(arrayLengthFieldSize)) : 4;
 
     element arrayLengthRef;
     if (j_["arrayLengthRef"].get(arrayLengthRef) == simdjson::SUCCESS) { fd_.arrayLengthRef = AsStringOrEmpty(arrayLengthRef); }
@@ -192,11 +194,11 @@ void ParseFieldArrayField(element j_, FieldArrayField& fd_)
     ParseBaseField(j_, fd_);
 
     element arrayLength = Member(j_, "arrayLength");
-    fd_.arrayLength = arrayLength.is_null() ? 0 : static_cast<uint32_t>(AsInt(arrayLength));
+    fd_.arrayLength = arrayLength.is_null() ? 0 : static_cast<uint32_t>(AsUint(arrayLength));
 
     element arrayLengthFieldSize;
     fd_.arrayLengthFieldSize =
-        j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsInt(arrayLengthFieldSize)) : 4;
+        j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsUint(arrayLengthFieldSize)) : 4;
 
     fd_.fieldSize = fd_.arrayLength * ParseFields(Member(j_, "fields"), fd_.fields);
 
@@ -208,7 +210,7 @@ void ParseFieldArrayField(element j_, FieldArrayField& fd_)
 void ParseMessageDefinition(element j_, MessageDefinition& md_)
 {
     md_._id = AsString(Member(j_, "_id"));
-    md_.logID = static_cast<uint32_t>(AsInt(Member(j_, "messageID"))); // this was "logID"
+    md_.logID = static_cast<uint32_t>(AsUint(Member(j_, "messageID"))); // this was "logID"
     md_.name = AsString(Member(j_, "name"));
     md_.description = AsStringOrEmpty(Member(j_, "description"));
     md_.latestMessageCrc = std::stoul(AsString(Member(j_, "latestMsgDefCrc")));
@@ -292,7 +294,7 @@ uint32_t ParseFields(element j_, std::vector<BaseField::Ptr>& vFields_)
         {
             auto pstField = std::make_shared<ArrayField>();
             ParseArrayField(field, *pstField);
-            auto uiArrayLength = static_cast<uint32_t>(AsInt(Member(field, "arrayLength")));
+            auto uiArrayLength = static_cast<uint32_t>(AsUint(Member(field, "arrayLength")));
             vFields_.emplace_back(std::move(pstField));
             uiFieldSize += stDataType.length * uiArrayLength;
         }

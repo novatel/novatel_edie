@@ -854,7 +854,17 @@ STATUS MessageDecoderBase::DecodeJson(const std::vector<BaseField::Ptr>& vMsgDef
 
         switch (field->type)
         {
-        case FIELD_TYPE::SIMPLE: DecodeJsonField(field, clField, vIntermediateFormat_); break;
+        case FIELD_TYPE::SIMPLE:
+            try
+            {
+                DecodeJsonField(field, clField, vIntermediateFormat_);
+            }
+            catch (const std::runtime_error&)
+            {
+                SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeJsonField(): Exception when decoding field. Malformed Input\n");
+                return STATUS::MALFORMED_INPUT;
+            }
+            break;
 
         case FIELD_TYPE::ENUM: {
             std::string_view enumValue;
