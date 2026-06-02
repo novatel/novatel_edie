@@ -292,7 +292,7 @@ uint32_t ParseFields(element j_, std::vector<BaseField::Ptr>& vFields_)
         {
             auto pstField = std::make_shared<ArrayField>();
             ParseArrayField(field, *pstField);
-            uint32_t uiArrayLength = static_cast<uint32_t>(AsInt(Member(field, "arrayLength")));
+            auto uiArrayLength = static_cast<uint32_t>(AsInt(Member(field, "arrayLength")));
             vFields_.emplace_back(std::move(pstField));
             uiFieldSize += stDataType.length * uiArrayLength;
         }
