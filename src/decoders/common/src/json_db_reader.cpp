@@ -26,136 +26,214 @@
 
 #include "novatel_edie/decoders/common/json_db_reader.hpp"
 
+#include <algorithm>
+#include <cassert>
 #include <future>
+#include <stdexcept>
+#include <string>
 
-#include <nlohmann/json.hpp>
+#include <simdjson.h>
 
 #include "novatel_edie/decoders/common/common.hpp"
 
 namespace novatel::edie {
 
-using json = nlohmann::json;
+namespace {
 
-// Forward declaration of from_json
-void from_json(const json& j_, EnumDataType& f_);
-void from_json(const json& j_, BaseDataType& f_);
-void from_json(const json& j_, SimpleDataType& f_);
-void from_json(const json& j_, BaseField& f_);
-void from_json(const json& j_, EnumField& f_);
-void from_json(const json& j_, ArrayField& fd_);
-void from_json(const json& j_, FieldArrayField& fd_);
-void from_json(const json& j_, MessageDefinition& md_);
-void from_json(const json& j_, EnumDefinition& ed_);
-void from_json(const json& j_, DbMetadata& dbm_);
-
-// Forward declaration of parse_fields and parse_enumerators
-uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_);
-void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_);
+using simdjson::dom::array;
+using simdjson::dom::element;
+using simdjson::dom::object;
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, EnumDataType& f_)
+// Small helpers providing required-member, optional-member and null-aware
+// access semantics on top of the simdjson DOM API.
+//-----------------------------------------------------------------------
+
+//! Resolve a required object member. Throws if the key is absent.
+element Member(element obj_, std::string_view key_)
 {
-    f_.value = j_.at("value");
-    f_.name = j_.at("name");
-    f_.description = j_.at("description").is_null() ? "" : j_.at("description");
+    element out;
+    if (obj_[key_].get(out) != simdjson::SUCCESS) { throw std::runtime_error("Missing required JSON field: " + std::string(key_)); }
+    return out;
+}
+
+//! Read an element as a string view. Throws if it is not a string.
+std::string_view AsStringView(element el_)
+{
+    std::string_view sv;
+    if (el_.get(sv) != simdjson::SUCCESS) { throw std::runtime_error("Expected a JSON string value"); }
+    return sv;
+}
+
+//! Read an element as an owned string. Throws if it is not a string.
+std::string AsString(element el_) { return std::string(AsStringView(el_)); }
+
+//! Read an element as a string, mapping a JSON null to an empty string.
+std::string AsStringOrEmpty(element el_) { return el_.is_null() ? std::string() : AsString(el_); }
+
+//! Read any JSON integer (tagged int64 or uint64) as int64. Throws otherwise.
+int64_t AsInt(element el_)
+{
+    int64_t i;
+    if (el_.get(i) == simdjson::SUCCESS) { return i; }
+    uint64_t u;
+    if (el_.get(u) == simdjson::SUCCESS) { return static_cast<int64_t>(u); }
+    throw std::runtime_error("Expected a JSON integer value");
+}
+
+//! Read an optional string member, returning the default if the key is absent.
+std::string StringOr(element obj_, std::string_view key_, std::string_view default_)
+{
+    element el;
+    if (obj_[key_].get(el) != simdjson::SUCCESS) { return std::string(default_); }
+    return AsString(el);
+}
+
+// Forward declarations (parse functions are mutually recursive via field arrays).
+void ParseEnumDataType(element j_, EnumDataType& f_);
+void ParseBaseDataType(element j_, BaseDataType& f_);
+void ParseSimpleDataType(element j_, SimpleDataType& f_);
+void ParseBaseField(element j_, BaseField& f_);
+void ParseEnumField(element j_, EnumField& f_);
+void ParseArrayField(element j_, ArrayField& fd_);
+void ParseFieldArrayField(element j_, FieldArrayField& fd_);
+void ParseMessageDefinition(element j_, MessageDefinition& md_);
+void ParseEnumDefinition(element j_, EnumDefinition& ed_);
+void ParseDbMetadata(element j_, DbMetadata& dbm_);
+uint32_t ParseFields(element j_, std::vector<BaseField::Ptr>& vFields_);
+void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_);
+
+//-----------------------------------------------------------------------
+void ParseEnumDataType(element j_, EnumDataType& f_)
+{
+    f_.value = static_cast<uint32_t>(AsInt(Member(j_, "value")));
+    f_.name = AsString(Member(j_, "name"));
+    f_.description = AsStringOrEmpty(Member(j_, "description"));
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, BaseDataType& f_)
+void ParseBaseDataType(element j_, BaseDataType& f_)
 {
-    auto itrDataTypeMapping = DataTypeEnumLookup.find(j_.at("name"));
+    const auto itrDataTypeMapping = DataTypeEnumLookup.find(std::string(AsStringView(Member(j_, "name"))));
     f_.name = itrDataTypeMapping != DataTypeEnumLookup.end() ? itrDataTypeMapping->second : DATA_TYPE::UNKNOWN;
-    f_.length = j_.at("length");
-    f_.description = j_.at("description").is_null() ? "" : j_.at("description");
+    f_.length = static_cast<uint16_t>(AsInt(Member(j_, "length")));
+    f_.description = AsStringOrEmpty(Member(j_, "description"));
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, SimpleDataType& f_)
+void ParseSimpleDataType(element j_, SimpleDataType& f_)
 {
-    from_json(j_, static_cast<BaseDataType&>(f_));
+    ParseBaseDataType(j_, f_);
 
-    if (j_.find("enum") != j_.end())
+    element enumEl;
+    if (j_["enum"].get(enumEl) == simdjson::SUCCESS)
     {
-        for (const auto& e : j_.at("enum")) { f_.enums[e.at("value")] = e; }
+        array enumArr;
+        if (enumEl.get(enumArr) == simdjson::SUCCESS)
+        {
+            for (element e : enumArr)
+            {
+                EnumDataType enumerator;
+                ParseEnumDataType(e, enumerator);
+                f_.enums[static_cast<int32_t>(enumerator.value)] = std::move(enumerator);
+            }
+        }
     }
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, BaseField& f_)
+void ParseBaseField(element j_, BaseField& f_)
 {
-    f_.name = j_.at("name");
-    f_.description = j_.at("description").is_null() ? "" : j_.at("description");
+    f_.name = AsString(Member(j_, "name"));
+    f_.description = AsStringOrEmpty(Member(j_, "description"));
 
-    const auto itrFieldTypeMapping = FieldTypeEnumLookup.find(j_.at("type"));
+    const auto itrFieldTypeMapping = FieldTypeEnumLookup.find(std::string(AsStringView(Member(j_, "type"))));
     f_.type = itrFieldTypeMapping != FieldTypeEnumLookup.end() ? itrFieldTypeMapping->second : FIELD_TYPE::UNKNOWN;
 
-    if (j_.find("conversionString") != j_.end())
+    element conversionString;
+    if (j_["conversionString"].get(conversionString) == simdjson::SUCCESS)
     {
-        if (j_.at("conversionString").is_null()) { f_.conversion = ""; }
-        else { f_.SetConversion(j_.at("conversionString")); }
+        if (conversionString.is_null()) { f_.conversion = ""; }
+        else { f_.SetConversion(std::string(AsStringView(conversionString))); }
     }
 
-    f_.dataType = j_.at("dataType");
+    ParseSimpleDataType(Member(j_, "dataType"), f_.dataType);
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, EnumField& f_)
+void ParseEnumField(element j_, EnumField& f_)
 {
-    from_json(j_, static_cast<BaseField&>(f_));
+    ParseBaseField(j_, f_);
 
-    if (j_.at("enumID").is_null()) { throw std::runtime_error("Invalid enum ID - cannot be NULL. JsonDB file is likely corrupted."); }
+    element enumId = Member(j_, "enumID");
+    if (enumId.is_null()) { throw std::runtime_error("Invalid enum ID - cannot be NULL. JsonDB file is likely corrupted."); }
 
-    f_.enumId = j_.at("enumID");
+    f_.enumId = AsString(enumId);
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, ArrayField& fd_)
+void ParseArrayField(element j_, ArrayField& fd_)
 {
-    from_json(j_, static_cast<BaseField&>(fd_));
+    ParseBaseField(j_, fd_);
 
-    fd_.arrayLength = j_.at("arrayLength");
-    fd_.arrayLengthFieldSize = j_.value("arrayLengthFieldSize", 4);
-    fd_.dataType = j_.at("dataType");
-    if (j_.find("arrayLengthRef") != j_.end()) { fd_.arrayLengthRef = j_.at("arrayLengthRef").is_null() ? "" : j_.at("arrayLengthRef"); }
+    fd_.arrayLength = static_cast<uint32_t>(AsInt(Member(j_, "arrayLength")));
+
+    element arrayLengthFieldSize;
+    fd_.arrayLengthFieldSize =
+        j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsInt(arrayLengthFieldSize)) : 4;
+
+    element arrayLengthRef;
+    if (j_["arrayLengthRef"].get(arrayLengthRef) == simdjson::SUCCESS) { fd_.arrayLengthRef = AsStringOrEmpty(arrayLengthRef); }
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, FieldArrayField& fd_)
+void ParseFieldArrayField(element j_, FieldArrayField& fd_)
 {
-    from_json(j_, static_cast<BaseField&>(fd_));
+    ParseBaseField(j_, fd_);
 
-    fd_.arrayLength = j_.at("arrayLength").is_null() ? 0 : static_cast<uint32_t>(j_.at("arrayLength"));
-    fd_.arrayLengthFieldSize = j_.value("arrayLengthFieldSize", 4);
-    fd_.fieldSize = fd_.arrayLength * ParseFields(j_.at("fields"), fd_.fields);
-    if (j_.find("arrayLengthRef") != j_.end()) { fd_.arrayLengthRef = j_.at("arrayLengthRef").is_null() ? "" : j_.at("arrayLengthRef"); }
+    element arrayLength = Member(j_, "arrayLength");
+    fd_.arrayLength = arrayLength.is_null() ? 0 : static_cast<uint32_t>(AsInt(arrayLength));
+
+    element arrayLengthFieldSize;
+    fd_.arrayLengthFieldSize =
+        j_["arrayLengthFieldSize"].get(arrayLengthFieldSize) == simdjson::SUCCESS ? static_cast<uint8_t>(AsInt(arrayLengthFieldSize)) : 4;
+
+    fd_.fieldSize = fd_.arrayLength * ParseFields(Member(j_, "fields"), fd_.fields);
+
+    element arrayLengthRef;
+    if (j_["arrayLengthRef"].get(arrayLengthRef) == simdjson::SUCCESS) { fd_.arrayLengthRef = AsStringOrEmpty(arrayLengthRef); }
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, MessageDefinition& md_)
+void ParseMessageDefinition(element j_, MessageDefinition& md_)
 {
-    md_._id = j_.at("_id");
-    md_.logID = j_.at("messageID"); // this was "logID"
-    md_.name = j_.at("name");
-    md_.description = j_.at("description").is_null() ? "" : j_.at("description");
-    md_.latestMessageCrc = std::stoul(j_.at("latestMsgDefCrc").get<std::string>());
-    md_.messageStyle = j_.contains("messageStyle") && !j_.at("messageStyle").is_null() ? j_.at("messageStyle") : "OEM4_MESSAGE_STYLE";
+    md_._id = AsString(Member(j_, "_id"));
+    md_.logID = static_cast<uint32_t>(AsInt(Member(j_, "messageID"))); // this was "logID"
+    md_.name = AsString(Member(j_, "name"));
+    md_.description = AsStringOrEmpty(Member(j_, "description"));
+    md_.latestMessageCrc = std::stoul(AsString(Member(j_, "latestMsgDefCrc")));
 
-    for (const auto& fields : j_.at("fields").items())
+    element messageStyle;
+    md_.messageStyle =
+        j_["messageStyle"].get(messageStyle) == simdjson::SUCCESS && !messageStyle.is_null() ? AsString(messageStyle) : "OEM4_MESSAGE_STYLE";
+
+    object fields;
+    if (Member(j_, "fields").get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON object"); }
+    for (auto field : fields)
     {
-        uint32_t defCrc = std::stoul(fields.key());
-        md_.fields[defCrc];
-        ParseFields(fields.value(), md_.fields[defCrc]);
+        uint32_t defCrc = std::stoul(std::string(field.key));
+        ParseFields(field.value, md_.fields[defCrc]);
     }
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, EnumDefinition& ed_)
+void ParseEnumDefinition(element j_, EnumDefinition& ed_)
 {
-    ed_._id = j_.at("_id");
-    ed_.name = j_.at("name");
+    ed_._id = AsString(Member(j_, "_id"));
+    ed_.name = AsString(Member(j_, "name"));
 
     // Parse enumerators into the vector
-    ParseEnumerators(j_.at("enumerators"), ed_.enumerators);
+    ParseEnumerators(Member(j_, "enumerators"), ed_.enumerators);
 
     // Populate the lookup maps
     uint32_t maxVal = 0;
@@ -172,92 +250,135 @@ void from_json(const json& j_, EnumDefinition& ed_)
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, DbMetadata& dbm_)
+void ParseDbMetadata(element j_, DbMetadata& dbm_)
 {
-    dbm_.subset = j_.value("subset", "");
-    dbm_.version = j_.value("version", "0.0.0");
-    dbm_.messageFamily = j_.value("messageFamily", "");
+    dbm_.subset = StringOr(j_, "subset", "");
+    dbm_.version = StringOr(j_, "version", "0.0.0");
+    dbm_.messageFamily = StringOr(j_, "messageFamily", "");
 }
 
 //-----------------------------------------------------------------------
-uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
+uint32_t ParseFields(element j_, std::vector<BaseField::Ptr>& vFields_)
 {
     uint32_t uiFieldSize = 0;
-    vFields_.reserve(j_.size());
 
-    for (const auto& field : j_)
+    array fields;
+    if (j_.get(fields) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'fields' to be a JSON array"); }
+    vFields_.reserve(fields.size());
+
+    for (element field : fields)
     {
-        const auto sFieldType = field.at("type").get<std::string_view>();
-        const auto stDataType = field.at("dataType").get<BaseDataType>();
+        const auto sFieldType = AsStringView(Member(field, "type"));
+
+        BaseDataType stDataType;
+        ParseBaseDataType(Member(field, "dataType"), stDataType);
 
         if (sFieldType == "SIMPLE")
         {
-            vFields_.emplace_back(std::make_shared<BaseField>(field));
+            auto pstField = std::make_shared<BaseField>();
+            ParseBaseField(field, *pstField);
+            vFields_.emplace_back(std::move(pstField));
             uiFieldSize += stDataType.length;
         }
         else if (sFieldType == "ENUM")
         {
-            auto pstField = std::make_shared<EnumField>(field);
+            auto pstField = std::make_shared<EnumField>();
+            ParseEnumField(field, *pstField);
             pstField->length = stDataType.length;
-            vFields_.emplace_back(pstField);
+            vFields_.emplace_back(std::move(pstField));
             uiFieldSize += stDataType.length;
         }
         else if (sFieldType == "FIXED_LENGTH_ARRAY" || sFieldType == "VARIABLE_LENGTH_ARRAY" || sFieldType == "STRING")
         {
-            vFields_.emplace_back(std::make_shared<ArrayField>(field));
-            uint32_t uiArrayLength = field.at("arrayLength").get<uint32_t>();
+            auto pstField = std::make_shared<ArrayField>();
+            ParseArrayField(field, *pstField);
+            uint32_t uiArrayLength = static_cast<uint32_t>(AsInt(Member(field, "arrayLength")));
+            vFields_.emplace_back(std::move(pstField));
             uiFieldSize += stDataType.length * uiArrayLength;
         }
-        else if (sFieldType == "FIELD_ARRAY") { vFields_.emplace_back(std::make_shared<FieldArrayField>(field)); }
+        else if (sFieldType == "FIELD_ARRAY")
+        {
+            auto pstField = std::make_shared<FieldArrayField>();
+            ParseFieldArrayField(field, *pstField);
+            vFields_.emplace_back(std::move(pstField));
+        }
         else { throw std::runtime_error("Could not find field type"); }
     }
     return uiFieldSize;
 }
 
 //-----------------------------------------------------------------------
-void ParseEnumerators(const json& j_, std::vector<EnumDataType>& vEnumerators_)
+void ParseEnumerators(element j_, std::vector<EnumDataType>& vEnumerators_)
 {
-    vEnumerators_.reserve(j_.size());
-    for (const auto& enumerator : j_) { vEnumerators_.emplace_back(enumerator); }
+    array enumerators;
+    if (j_.get(enumerators) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'enumerators' to be a JSON array"); }
+    vEnumerators_.reserve(enumerators.size());
+    for (element enumerator : enumerators)
+    {
+        EnumDataType enumDataType;
+        ParseEnumDataType(enumerator, enumDataType);
+        vEnumerators_.emplace_back(std::move(enumDataType));
+    }
 }
 
 //-----------------------------------------------------------------------
-std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(const json& jArray)
+std::vector<MessageDefinition::ConstPtr> ProcessMessageDefinitions(element jRoot_)
 {
-    const auto& data = jArray["messages"];
+    array data;
+    if (Member(jRoot_, "messages").get(data) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'messages' to be a JSON array"); }
+
     std::vector<MessageDefinition::ConstPtr> res;
     res.reserve(data.size());
 
-    for (const auto& it : data) { res.emplace_back(std::make_shared<MessageDefinition>(it)); }
+    for (element it : data)
+    {
+        auto md = std::make_shared<MessageDefinition>();
+        ParseMessageDefinition(it, *md);
+        res.emplace_back(std::move(md));
+    }
 
     return res;
 }
 
 //-----------------------------------------------------------------------
-std::vector<EnumDefinition::ConstPtr> ProcessEnumDefinitions(const json& jArray)
+std::vector<EnumDefinition::ConstPtr> ProcessEnumDefinitions(element jRoot_)
 {
-    const auto& data = jArray["enums"];
+    array data;
+    if (Member(jRoot_, "enums").get(data) != simdjson::SUCCESS) { throw std::runtime_error("Expected 'enums' to be a JSON array"); }
+
     std::vector<EnumDefinition::ConstPtr> res;
     res.reserve(data.size());
 
-    for (const auto& it : data) { res.emplace_back(std::make_shared<EnumDefinition>(it)); }
+    for (element it : data)
+    {
+        auto ed = std::make_shared<EnumDefinition>();
+        ParseEnumDefinition(it, *ed);
+        res.emplace_back(std::move(ed));
+    }
 
     return res;
 }
 
 //-----------------------------------------------------------------------
-namespace {
-template <typename T> MessageDatabase::Ptr ParseJsonDbImpl(T&& source, std::string_view errorContext)
+MessageDatabase::Ptr ParseJsonDbImpl(simdjson::padded_string source, std::string_view errorContext)
 {
     try
     {
-        auto json = json::parse(std::forward<T>(source));
+        simdjson::dom::parser parser;
+        element root;
+        if (parser.parse(source).get(root) != simdjson::SUCCESS) { throw std::runtime_error("Failed to parse JSON database"); }
 
-        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, std::cref(json));
-        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, std::cref(json));
+        // The parsed DOM is immutable; the message and enum subtrees can be read concurrently.
+        auto messageFuture = std::async(std::launch::async, ProcessMessageDefinitions, root);
+        auto enumFuture = std::async(std::launch::async, ProcessEnumDefinitions, root);
 
         DbMetadata::Ptr dbMeta;
-        if (json.contains("meta")) { dbMeta = std::make_shared<DbMetadata>(json.at("meta").template get<DbMetadata>()); }
+        element meta;
+        if (root["meta"].get(meta) == simdjson::SUCCESS)
+        {
+            dbMeta = std::make_shared<DbMetadata>();
+            ParseDbMetadata(meta, *dbMeta);
+        }
 
         return std::make_shared<MessageDatabase>(messageFuture.get(), enumFuture.get(), dbMeta);
     }
@@ -269,9 +390,18 @@ template <typename T> MessageDatabase::Ptr ParseJsonDbImpl(T&& source, std::stri
 } // namespace
 
 //-----------------------------------------------------------------------
-MessageDatabase::Ptr LoadJsonDbFile(const std::filesystem::path& filePath_) { return ParseJsonDbImpl(std::ifstream(filePath_), filePath_.string()); }
+MessageDatabase::Ptr LoadJsonDbFile(const std::filesystem::path& filePath_)
+{
+    simdjson::padded_string source;
+    const auto error = simdjson::padded_string::load(filePath_.string()).get(source);
+    if (error) { throw JsonDbReaderFailure(__func__, __FILE__, __LINE__, filePath_, simdjson::error_message(error)); }
+    return ParseJsonDbImpl(std::move(source), filePath_.string());
+}
 
 //-----------------------------------------------------------------------
-MessageDatabase::Ptr ParseJsonDb(std::string_view strJsonData_) { return ParseJsonDbImpl(strJsonData_, strJsonData_); }
+MessageDatabase::Ptr ParseJsonDb(std::string_view strJsonData_)
+{
+    return ParseJsonDbImpl(simdjson::padded_string(strJsonData_.data(), strJsonData_.size()), strJsonData_);
+}
 
 } // namespace novatel::edie
