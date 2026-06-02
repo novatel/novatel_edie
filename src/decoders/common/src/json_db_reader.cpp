@@ -123,25 +123,7 @@ void ParseBaseDataType(element j_, BaseDataType& f_)
 }
 
 //-----------------------------------------------------------------------
-void ParseSimpleDataType(element j_, SimpleDataType& f_)
-{
-    ParseBaseDataType(j_, f_);
-
-    element enumEl;
-    if (j_["enum"].get(enumEl) == simdjson::SUCCESS)
-    {
-        array enumArr;
-        if (enumEl.get(enumArr) == simdjson::SUCCESS)
-        {
-            for (element e : enumArr)
-            {
-                EnumDataType enumerator;
-                ParseEnumDataType(e, enumerator);
-                f_.enums[static_cast<int32_t>(enumerator.value)] = std::move(enumerator);
-            }
-        }
-    }
-}
+void ParseSimpleDataType(element j_, SimpleDataType& f_) { ParseBaseDataType(j_, f_); }
 
 //-----------------------------------------------------------------------
 void ParseBaseField(element j_, BaseField& f_)
