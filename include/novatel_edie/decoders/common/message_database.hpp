@@ -316,15 +316,6 @@ struct BaseField
 
     BaseField() = default;
 
-    // TODO: Remove this? A DATA_TYPE should only have one length
-    BaseField(std::string name_, const FIELD_TYPE type_, std::string&& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
-        : name(std::move(name_)), type(type_)
-    {
-        SetConversion(std::move(sConversion_));
-        dataType.length = static_cast<uint16_t>(length_);
-        dataType.name = eDataTypeName_;
-    }
-
     BaseField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_) : name(std::move(name_)), type(type_)
     {
         dataType.name = eDataTypeName_;
