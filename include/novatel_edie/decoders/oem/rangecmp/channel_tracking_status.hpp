@@ -188,6 +188,7 @@ class ChannelTrackingStatus
         QZSS_L5Q = 14,
         QZSS_L1CP = 16,
         QZSS_L2CM = 17,
+        QZSS_L1CB = 24,
         QZSS_L6P = 27,
         QZSS_L6D = 28,
         // SBAS
