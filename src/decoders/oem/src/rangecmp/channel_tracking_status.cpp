@@ -114,7 +114,8 @@ ChannelTrackingStatus::ChannelTrackingStatus(const SYSTEM eSystem_, const rangec
     if (eSignalType_ == rangecmp4::SIGNAL_TYPE::GPS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GLONASS_L1CA ||
         eSignalType_ == rangecmp4::SIGNAL_TYPE::SBAS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GALILEO_E1 ||
         eSignalType_ == rangecmp4::SIGNAL_TYPE::BEIDOU_B1I || eSignalType_ == rangecmp4::SIGNAL_TYPE::QZSS_L1CA ||
-        (eSatelliteSystem == CTS_SYSTEM::BEIDOU && eSignalType_ == rangecmp4::SIGNAL_TYPE::BEIDOU_B1GEO))
+        (eSatelliteSystem == CTS_SYSTEM::BEIDOU && eSignalType_ == rangecmp4::SIGNAL_TYPE::BEIDOU_B1GEO) ||
+        (eSatelliteSystem == CTS_SYSTEM::QZSS && eSignalType_ == rangecmp4::SIGNAL_TYPE::QZSS_L1CB))
     {
         bPrimaryL1Channel = true;
         eTrackingState = TRACKING_STATE::PHASE_LOCK_LOOP;
@@ -148,7 +149,8 @@ ChannelTrackingStatus::ChannelTrackingStatus(const SYSTEM eSystem_, const rangec
     if (eSignalType_ == rangecmp4::SIGNAL_TYPE::GPS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GLONASS_L1CA ||
         eSignalType_ == rangecmp4::SIGNAL_TYPE::SBAS_L1CA || eSignalType_ == rangecmp4::SIGNAL_TYPE::GALILEO_E1 ||
         eSignalType_ == rangecmp4::SIGNAL_TYPE::BEIDOU_B1I || eSignalType_ == rangecmp4::SIGNAL_TYPE::QZSS_L1CA ||
-        (eSatelliteSystem == CTS_SYSTEM::BEIDOU && eSignalType_ == rangecmp4::SIGNAL_TYPE::BEIDOU_B1GEO))
+        (eSatelliteSystem == CTS_SYSTEM::BEIDOU && eSignalType_ == rangecmp4::SIGNAL_TYPE::BEIDOU_B1GEO) ||
+        (eSatelliteSystem == CTS_SYSTEM::QZSS && eSignalType_ == rangecmp4::SIGNAL_TYPE::QZSS_L1CB))
     {
         bPrimaryL1Channel = true;
         eTrackingState = TRACKING_STATE::PHASE_LOCK_LOOP;
@@ -217,6 +219,7 @@ ChannelTrackingStatus::CTS_SIGNAL ChannelTrackingStatus::RangeCmp2SignalTypeToSi
         switch (eSignalType_)
         {
         case SIGNAL_TYPE::QZSS_L1CA: return CTS_SIGNAL::QZSS_L1CA;
+        case SIGNAL_TYPE::QZSS_L1CB: return CTS_SIGNAL::QZSS_L1CB;
         case SIGNAL_TYPE::QZSS_L2CM: return CTS_SIGNAL::QZSS_L2CM;
         case SIGNAL_TYPE::QZSS_L5Q: return CTS_SIGNAL::QZSS_L5Q;
         case SIGNAL_TYPE::QZSS_L1C: return CTS_SIGNAL::QZSS_L1CP;
@@ -304,6 +307,7 @@ ChannelTrackingStatus::CTS_SIGNAL ChannelTrackingStatus::RangeCmp4SignalTypeToSi
         switch (eSignalType_)
         {
         case SIGNAL_TYPE::QZSS_L1CA: return CTS_SIGNAL::QZSS_L1CA;
+        case SIGNAL_TYPE::QZSS_L1CB: return CTS_SIGNAL::QZSS_L1CB;
         case SIGNAL_TYPE::QZSS_L2C: return CTS_SIGNAL::QZSS_L2CM;
         case SIGNAL_TYPE::QZSS_L5Q: return CTS_SIGNAL::QZSS_L5Q;
         case SIGNAL_TYPE::QZSS_L1C: return CTS_SIGNAL::QZSS_L1CP;
@@ -438,6 +442,7 @@ double ChannelTrackingStatus::GetSignalWavelength(const int16_t sGLONASSFrequenc
         switch (eSignalType)
         {
         case CTS_SIGNAL::QZSS_L1CA: [[fallthrough]];
+        case CTS_SIGNAL::QZSS_L1CB: [[fallthrough]];
         case CTS_SIGNAL::QZSS_L1CP: return wavelengthGpsL1;
         case CTS_SIGNAL::QZSS_L2CM: return wavelengthGpsL2;
         case CTS_SIGNAL::QZSS_L5Q: return wavelengthGpsL5;

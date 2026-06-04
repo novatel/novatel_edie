@@ -521,6 +521,7 @@ enum class SIGNAL_TYPE
     GALILEO_E6B = 12,
     // QZSS
     QZSS_L1CA = 1,
+    QZSS_L1CB = 2,
     QZSS_L2CM = 3,
     QZSS_L5Q = 4,
     QZSS_L1C = 8,
@@ -616,6 +617,7 @@ constexpr double SignalScaling(SYSTEM system, SIGNAL_TYPE signal)
         switch (signal)
         {
         case SIGNAL_TYPE::QZSS_L1C: [[fallthrough]];
+        case SIGNAL_TYPE::QZSS_L1CB: [[fallthrough]];
         case SIGNAL_TYPE::QZSS_L1CA: return 1.0;
         case SIGNAL_TYPE::QZSS_L2CM: return 154.0 / 120.0;
         case SIGNAL_TYPE::QZSS_L5Q: return 154.0 / 115.0;
@@ -687,6 +689,7 @@ enum class SIGNAL_TYPE
     BEIDOU_B2BI = 11,
     // QZSS
     QZSS_L1CA = 1,
+    QZSS_L1CB = 2,
     QZSS_L2C = 3,
     QZSS_L5Q = 4,
     QZSS_L1C = 8,
