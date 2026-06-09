@@ -208,45 +208,73 @@ void py_oem::init_header_objects(nb::module_& m)
                 return self.value == nb::cast<const py_oem::PyRecieverStatus&>(other).value;
             },
             "other"_a.none(true))
-        .def_rw("raw_value", &py_oem::PyRecieverStatus::value)
-        .def_prop_rw("reciever_error", &py_oem::PyRecieverStatus::GetRecieverError, &py_oem::PyRecieverStatus::SetRecieverError)
-        .def_prop_rw("temperature_warning", &py_oem::PyRecieverStatus::GetTemperatureWarning, &py_oem::PyRecieverStatus::SetTemperatureWarning)
-        .def_prop_rw("voltage_warning", &py_oem::PyRecieverStatus::GetVoltageWarning, &py_oem::PyRecieverStatus::SetVoltageWarning)
-        .def_prop_rw("antenna_powered", &py_oem::PyRecieverStatus::GetAntennaPowered, &py_oem::PyRecieverStatus::SetAntennaPowered)
-        .def_prop_rw("lna_failure", &py_oem::PyRecieverStatus::GetLnaFailure, &py_oem::PyRecieverStatus::SetLnaFailure)
-        .def_prop_rw("antenna_open_circuit", &py_oem::PyRecieverStatus::GetAntennaOpenCircuit, &py_oem::PyRecieverStatus::SetAntennaOpenCircuit)
-        .def_prop_rw("antenna_short_circuit", &py_oem::PyRecieverStatus::GetAntennaShortCircuit, &py_oem::PyRecieverStatus::SetAntennaShortCircuit)
-        .def_prop_rw("cpu_overload", &py_oem::PyRecieverStatus::GetCpuOverload, &py_oem::PyRecieverStatus::SetCpuOverload)
-        .def_prop_rw("com_buffer_overrun", &py_oem::PyRecieverStatus::GetComBufferOverrun, &py_oem::PyRecieverStatus::SetComBufferOverrun)
-        .def_prop_rw("spoofing_detected", &py_oem::PyRecieverStatus::GetSpoofingDetected, &py_oem::PyRecieverStatus::SetSpoofingDetected)
-        .def_prop_rw("reserved", &py_oem::PyRecieverStatus::GetReserved, &py_oem::PyRecieverStatus::SetReserved)
-        .def_prop_rw("link_overrun", &py_oem::PyRecieverStatus::GetLinkOverrun, &py_oem::PyRecieverStatus::SetLinkOverrun)
-        .def_prop_rw("input_overrun", &py_oem::PyRecieverStatus::GetInputOverrun, &py_oem::PyRecieverStatus::SetInputOverrun)
-        .def_prop_rw("aux_transmit_overrun", &py_oem::PyRecieverStatus::GetAuxTransmitOverrun, &py_oem::PyRecieverStatus::SetAuxTransmitOverrun)
+        .def_rw("raw_value", &py_oem::PyRecieverStatus::value, "The raw 32-bit receiver status word.")
+        .def_prop_rw("reciever_error", &py_oem::PyRecieverStatus::GetRecieverError, &py_oem::PyRecieverStatus::SetRecieverError,
+                     "Bit 0. True if a receiver error is present (see the RXSTATUS error word), False if no error.")
+        .def_prop_rw("temperature_warning", &py_oem::PyRecieverStatus::GetTemperatureWarning, &py_oem::PyRecieverStatus::SetTemperatureWarning,
+                     "Bit 1. True if a temperature warning is active, False if within specifications.")
+        .def_prop_rw("voltage_warning", &py_oem::PyRecieverStatus::GetVoltageWarning, &py_oem::PyRecieverStatus::SetVoltageWarning,
+                     "Bit 2. True if a voltage supply warning is active, False if OK.")
+        .def_prop_rw("antenna_powered", &py_oem::PyRecieverStatus::GetAntennaPowered, &py_oem::PyRecieverStatus::SetAntennaPowered,
+                     "Bit 3, primary antenna power status (see the ANTENNAPOWER command). NOTE: this exposes the raw status bit, which is SET "
+                     "when the antenna is not powered. True therefore means the antenna is NOT powered, False means it is powered.")
+        .def_prop_rw("lna_failure", &py_oem::PyRecieverStatus::GetLnaFailure, &py_oem::PyRecieverStatus::SetLnaFailure,
+                     "Bit 4. True if an LNA failure is detected, False if OK.")
+        .def_prop_rw("antenna_open_circuit", &py_oem::PyRecieverStatus::GetAntennaOpenCircuit, &py_oem::PyRecieverStatus::SetAntennaOpenCircuit,
+                     "Bit 5. True if the primary antenna is open (disconnected), False if OK.")
+        .def_prop_rw("antenna_short_circuit", &py_oem::PyRecieverStatus::GetAntennaShortCircuit, &py_oem::PyRecieverStatus::SetAntennaShortCircuit,
+                     "Bit 6. True if a primary antenna short circuit is detected, False if OK.")
+        .def_prop_rw("cpu_overload", &py_oem::PyRecieverStatus::GetCpuOverload, &py_oem::PyRecieverStatus::SetCpuOverload,
+                     "Bit 7. True if the CPU is overloaded, False if no overload.")
+        .def_prop_rw(
+            "com_buffer_overrun", &py_oem::PyRecieverStatus::GetComBufferOverrun, &py_oem::PyRecieverStatus::SetComBufferOverrun,
+            "Bit 8. True if a COM port transmit buffer overrun occurred, False if OK. See the AUX2 status bits for individual COM port status.")
+        .def_prop_rw("spoofing_detected", &py_oem::PyRecieverStatus::GetSpoofingDetected, &py_oem::PyRecieverStatus::SetSpoofingDetected,
+                     "Bit 9. True if spoofing is detected, False if not detected.")
+        .def_prop_rw("reserved", &py_oem::PyRecieverStatus::GetReserved, &py_oem::PyRecieverStatus::SetReserved, "Bit 10. Reserved.")
+        .def_prop_rw("link_overrun", &py_oem::PyRecieverStatus::GetLinkOverrun, &py_oem::PyRecieverStatus::SetLinkOverrun,
+                     "Bit 11. True if any of the USB, ICOM, CCOM, NCOM or File ports are overrun, False if no overrun. See the AUX1, AUX2 and AUX3 "
+                     "status bits for the specific overrun port.")
+        .def_prop_rw("input_overrun", &py_oem::PyRecieverStatus::GetInputOverrun, &py_oem::PyRecieverStatus::SetInputOverrun,
+                     "Bit 12. True if a receiver port (COM, USB, ICOM or NCOM) experienced an input overrun, False if no overrun.")
+        .def_prop_rw("aux_transmit_overrun", &py_oem::PyRecieverStatus::GetAuxTransmitOverrun, &py_oem::PyRecieverStatus::SetAuxTransmitOverrun,
+                     "Bit 13. True if an auxiliary transmit overrun occurred, False if no overrun.")
         .def_prop_rw("antenna_gain_out_of_range", &py_oem::PyRecieverStatus::GetAntennaGainOutOfRange,
-                     &py_oem::PyRecieverStatus::SetAntennaGainOutOfRange)
-        .def_prop_rw("jammer_detected", &py_oem::PyRecieverStatus::GetJammerDetected, &py_oem::PyRecieverStatus::SetJammerDetected)
-        .def_prop_rw("ins_reset", &py_oem::PyRecieverStatus::GetInsReset, &py_oem::PyRecieverStatus::SetInsReset)
+                     &py_oem::PyRecieverStatus::SetAntennaGainOutOfRange,
+                     "Bit 14. True if the antenna gain state is out of range, False if OK. See the AUX3 status bits for the antenna gain status.")
+        .def_prop_rw("jammer_detected", &py_oem::PyRecieverStatus::GetJammerDetected, &py_oem::PyRecieverStatus::SetJammerDetected,
+                     "Bit 15. True if a jammer is detected, False if OK. See the AUX1 status bits for individual RF status.")
+        .def_prop_rw("ins_reset", &py_oem::PyRecieverStatus::GetInsReset, &py_oem::PyRecieverStatus::SetInsReset,
+                     "Bit 16. True if an INS reset occurred, False if no INS reset.")
         .def_prop_rw("imu_communication_failure", &py_oem::PyRecieverStatus::GetImuCommunicationFailure,
-                     &py_oem::PyRecieverStatus::SetImuCommunicationFailure)
-        .def_prop_rw("gps_almanac_invalid", &py_oem::PyRecieverStatus::GetGpsAlmanacInvalid, &py_oem::PyRecieverStatus::SetGpsAlmanacInvalid)
+                     &py_oem::PyRecieverStatus::SetImuCommunicationFailure, "Bit 17. True if there is no IMU communication, False if no error.")
+        .def_prop_rw("gps_almanac_invalid", &py_oem::PyRecieverStatus::GetGpsAlmanacInvalid, &py_oem::PyRecieverStatus::SetGpsAlmanacInvalid,
+                     "Bit 18. True if the GPS almanac / UTC is invalid, False if valid.")
         .def_prop_rw("position_solution_invalid", &py_oem::PyRecieverStatus::GetPositionSolutionInvalid,
-                     &py_oem::PyRecieverStatus::SetPositionSolutionInvalid)
-        .def_prop_rw("position_fixed", &py_oem::PyRecieverStatus::GetPositionFixed, &py_oem::PyRecieverStatus::SetPositionFixed)
+                     &py_oem::PyRecieverStatus::SetPositionSolutionInvalid, "Bit 19. True if the position solution is invalid, False if valid.")
+        .def_prop_rw("position_fixed", &py_oem::PyRecieverStatus::GetPositionFixed, &py_oem::PyRecieverStatus::SetPositionFixed,
+                     "Bit 20. True if the position is fixed (see the FIX command), False if not fixed.")
         .def_prop_rw("clock_steering_disabled", &py_oem::PyRecieverStatus::GetClockSteeringDisabled,
-                     &py_oem::PyRecieverStatus::SetClockSteeringDisabled)
-        .def_prop_rw("clock_model_invalid", &py_oem::PyRecieverStatus::GetClockModelInvalid, &py_oem::PyRecieverStatus::SetClockModelInvalid)
+                     &py_oem::PyRecieverStatus::SetClockSteeringDisabled, "Bit 21. True if clock steering is disabled, False if enabled.")
+        .def_prop_rw("clock_model_invalid", &py_oem::PyRecieverStatus::GetClockModelInvalid, &py_oem::PyRecieverStatus::SetClockModelInvalid,
+                     "Bit 22. True if the clock model is invalid, False if valid.")
         .def_prop_rw("external_oscillator_locked", &py_oem::PyRecieverStatus::GetExternalOscillatorLocked,
-                     &py_oem::PyRecieverStatus::SetExternalOscillatorLocked)
+                     &py_oem::PyRecieverStatus::SetExternalOscillatorLocked, "Bit 23. True if the external oscillator is locked, False if unlocked.")
         .def_prop_rw("software_resource_warning", &py_oem::PyRecieverStatus::GetSoftwareResourceWarning,
-                     &py_oem::PyRecieverStatus::SetSoftwareResourceWarning)
-        .def_prop_rw("tracking_mode_hdr", &py_oem::PyRecieverStatus::GetTrackingModeHdr, &py_oem::PyRecieverStatus::SetTrackingModeHdr)
+                     &py_oem::PyRecieverStatus::SetSoftwareResourceWarning, "Bit 24. True if a software resource warning is active, False if OK.")
+        .def_prop_rw(
+            "version_bits", &py_oem::PyRecieverStatus::GetVersionBits, &py_oem::PyRecieverStatus::SetVersionBits,
+            "Bits 25-26. The 2-bit version field that determines how the status/error bits are interpreted (OEM6-or-earlier vs OEM7 format).")
+        .def_prop_rw("tracking_mode_hdr", &py_oem::PyRecieverStatus::GetTrackingModeHdr, &py_oem::PyRecieverStatus::SetTrackingModeHdr,
+                     "Bit 27. True if the receiver is in HDR (High Dynamic Range) tracking mode, False if in normal tracking mode.")
         .def_prop_rw("digital_filtering_enabled", &py_oem::PyRecieverStatus::GetDigitalFilteringEnabled,
-                     &py_oem::PyRecieverStatus::SetDigitalFilteringEnabled)
-        .def_prop_rw("auxiliary_3_event", &py_oem::PyRecieverStatus::GetAuxiliary3Event, &py_oem::PyRecieverStatus::SetAuxiliary3Event)
-        .def_prop_rw("auxiliary_2_event", &py_oem::PyRecieverStatus::GetAuxiliary2Event, &py_oem::PyRecieverStatus::SetAuxiliary2Event)
-        .def_prop_rw("auxiliary_1_event", &py_oem::PyRecieverStatus::GetAuxiliary1Event, &py_oem::PyRecieverStatus::SetAuxiliary1Event)
-        .def_prop_rw("version_bits", &py_oem::PyRecieverStatus::GetVersionBits, &py_oem::PyRecieverStatus::SetVersionBits)
+                     &py_oem::PyRecieverStatus::SetDigitalFilteringEnabled, "Bit 28. True if digital filtering is enabled, False if disabled.")
+        .def_prop_rw("auxiliary_3_event", &py_oem::PyRecieverStatus::GetAuxiliary3Event, &py_oem::PyRecieverStatus::SetAuxiliary3Event,
+                     "Bit 29. True if an Auxiliary 3 status event occurred, False if no event. See the AUX3 status word.")
+        .def_prop_rw("auxiliary_2_event", &py_oem::PyRecieverStatus::GetAuxiliary2Event, &py_oem::PyRecieverStatus::SetAuxiliary2Event,
+                     "Bit 30. True if an Auxiliary 2 status event occurred, False if no event. See the AUX2 status word.")
+        .def_prop_rw("auxiliary_1_event", &py_oem::PyRecieverStatus::GetAuxiliary1Event, &py_oem::PyRecieverStatus::SetAuxiliary1Event,
+                     "Bit 31. True if an Auxiliary 1 status event occurred, False if no event. See the AUX1 status word.")
         .def("__repr__", [](const py_oem::PyRecieverStatus& self) {
             return nb::str("RecieverStatus(") + nb::str(nb::module_::import_("builtins").attr("hex")(self.value)) + nb::str(")");
         });
