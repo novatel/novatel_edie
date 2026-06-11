@@ -479,7 +479,7 @@ A database becomes locked when any of the following happen:
 - **Used by a consumer**: constructing a `Parser`, `FileParser`, `Decoder`, `Commander`, `RxConfigHandler`, or `RangeDecompressor` with the database locks it.
 - **Generating a type**: requesting a generated message or enum type via `get_msg_type`, `get_enum_type_by_name`, or `get_enum_type_by_id`.
 - **Merging into another database**: `other_db.merge(db)` locks the source database `db`.
-- **Cloning**: `db.clone()` locks the source database (the returned copy is unlocked).
+- **Forking**: `db.fork()` locks the source database (the returned copy is unlocked). (`db.clone()` is a deprecated alias for `fork()`.)
 
 ## Logging
 
