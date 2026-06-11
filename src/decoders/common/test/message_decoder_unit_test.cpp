@@ -268,7 +268,11 @@ TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_ENUM_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 {
+<<<<<<< HEAD
     MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN));
+=======
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%s", 1, DATA_TYPE::UNKNOWN));
+>>>>>>> ccf6dd64 (Initial)
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(1);
 
@@ -315,12 +319,20 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
+<<<<<<< HEAD
     ASSERT_THROW(MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%", DATA_TYPE::UNKNOWN)), std::runtime_error);
+=======
+    ASSERT_THROW(MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%", 1, DATA_TYPE::UNKNOWN)), std::runtime_error);
+>>>>>>> ccf6dd64 (Initial)
 }
 
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 {
+<<<<<<< HEAD
     ASSERT_THROW(MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%", DATA_TYPE::UNKNOWN)), std::runtime_error);
+=======
+    ASSERT_THROW(MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%", 1, DATA_TYPE::UNKNOWN)), std::runtime_error);
+>>>>>>> ccf6dd64 (Initial)
 }
 
 TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)

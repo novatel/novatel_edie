@@ -231,11 +231,15 @@ class PyMessageDatabase
         for (const auto& [enum_def, enum_type] : enum_types) { enumsMod_.attr(enum_def->name.c_str()) = enum_type; }
     }
 
+<<<<<<< HEAD
     // Returns a mutable copy of this database that shares the same definitions
     // and types for messages and enums. As a side effect, the existing database
     // (this one) is locked: any subsequent call that would modify it raises an
     // exception (see Lock / ThrowIfLocked).
     [[nodiscard]] nb::object fork();
+=======
+    [[nodiscard]] nb::object clone();
+>>>>>>> ccf6dd64 (Initial)
 
   private:
     friend int db_tp_traverse(PyObject* self, visitproc visit, void* arg);
