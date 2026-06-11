@@ -275,6 +275,33 @@ void py_oem::init_message_objects(nb::module_& m)
             )doc");
 
     nb::class_<py_oem::PyMessage, py_common::PyField>(m, "Message")
+        .def_static(
+            "__new__",
+            [](nb::handle cls, py_oem::PyHeader* header, [[maybe_unused]] nb::kwargs kwargs) {
+                PyMessageDatabase::Ptr database = nb::cast<PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
+
+                if (!database) { throw py_common::FailureException("Constructor could not resolve owning MessageDatabase for this type."); }
+
+                const py_common::MessageTypeLookupEntry* type_lookup = database->GetMessageTypeLookup(cls);
+                if (!type_lookup || !type_lookup->def)
+                {
+                    throw py_common::FailureException("Constructor could not resolve MessageDefinition for this type.");
+                }
+
+                nb::object message_pyinst = nb::inst_alloc(cls);
+                py_oem::PyMessage* message_cinst = nb::inst_ptr<py_oem::PyMessage>(message_pyinst);
+                new (message_cinst)
+                    py_oem::PyMessage(std::vector<FieldContainer>{}, database, py_oem::PyHeader{}, type_lookup->def, type_lookup->crc);
+                nb::inst_mark_ready(message_pyinst);
+                return message_pyinst;
+            },
+            "cls"_a, nb::arg("header") = nb::none(), "kwargs"_a)
+        .def(
+            "__init__",
+            [](nb::handle self, py_oem::PyHeader* header, nb::kwargs kwargs) {
+                throw py_common::FailureException("Message initialization not implemented.");
+            },
+            nb::arg("header") = nb::none(), "kwargs"_a)
         .def("encode", &py_oem::PyMessage::encode)
         .def("to_ascii", &py_oem::PyMessage::to_ascii)
         .def("to_abbrev_ascii", &py_oem::PyMessage::to_abbrev_ascii)

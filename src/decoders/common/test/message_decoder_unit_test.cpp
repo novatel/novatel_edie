@@ -74,7 +74,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), D);
                 const char* tempStr = vstrTestInput[sz].c_str();
                 DecodeAsciiField(std::move(stMessageDataType), &tempStr, vstrTestInput[sz].length(), vIntermediateFormat_);
 
@@ -85,17 +85,6 @@ class MessageDecoderTypesTest : public ::testing::Test
                 }
                 else { ASSERT_EQ(std::get<T>(vIntermediateFormat_[0].fieldValue), vTargets[sz]); }
             }
-        }
-
-        template <typename T, DATA_TYPE D> void InvalidSizeSimpleASCIIHelper(std::string_view strTestInput)
-        {
-            std::vector<FieldContainer> vIntermediateFormat;
-            vIntermediateFormat.reserve(1);
-
-            auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D) + 1, D);
-            const char* tempStr = strTestInput.data();
-            ASSERT_THROW(MessageDecoderBase::DecodeAsciiField(std::move(stMessageDataType), &tempStr, strTestInput.size(), vIntermediateFormat),
-                         std::runtime_error);
         }
 
         template <typename T, DATA_TYPE D> void ValidBinaryHelper(std::vector<std::vector<uint8_t>> vvucTestInput, std::vector<T> vTargets)
@@ -113,7 +102,7 @@ class MessageDecoderTypesTest : public ::testing::Test
                 // there is an issue here in that some data types can have multiple conversion strings or sizes
                 // associated with them. In order to fix this, we may want these DataType functions to return a
                 // vector so we can iterate through every possible valid combination of a basefield
-                auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), DataTypeSize(D), D);
+                auto stMessageDataType = std::make_shared<const BaseField>("", FIELD_TYPE::SIMPLE, DataTypeConversion(D), D);
                 // there should be a better way to do this
                 const uint8_t* pucTestInput = vvucTestInput[sz].data();
                 DecodeBinaryField(std::move(stMessageDataType), &pucTestInput, vIntermediateFormat_);
@@ -230,27 +219,9 @@ TEST_F(MessageDecoderTypesTest, ASCII_SIMPLE_VALID)
     pclMyDecoderTester->ValidSimpleASCIIHelper<double, DATA_TYPE::DOUBLE>({"2.2250738585072014e-308", "1.7976931348623157e+308", "0.0"}, {0.0});
 }
 
-TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_SIMPLE_INVALID_SIZE)
-{
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<bool, DATA_TYPE::BOOL>("FALSE");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint8_t, DATA_TYPE::UCHAR>("#");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int8_t, DATA_TYPE::CHAR>("#");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint8_t, DATA_TYPE::HEXBYTE>("0x00");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint16_t, DATA_TYPE::USHORT>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int16_t, DATA_TYPE::SHORT>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint32_t, DATA_TYPE::UINT>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int32_t, DATA_TYPE::INT>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint32_t, DATA_TYPE::ULONG>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int32_t, DATA_TYPE::LONG>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<uint64_t, DATA_TYPE::ULONGLONG>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<int64_t, DATA_TYPE::LONGLONG>("0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<float, DATA_TYPE::FLOAT>("0.0");
-    pclMyDecoderTester->InvalidSizeSimpleASCIIHelper<double, DATA_TYPE::DOUBLE>("0.0");
-}
-
 TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("CHAR_1", FIELD_TYPE::SIMPLE, "%c", 1, DATA_TYPE::CHAR));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("CHAR_1", FIELD_TYPE::SIMPLE, "%c", DATA_TYPE::CHAR));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -262,7 +233,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_CHAR_BYTE_INVALID_INPUT)
 
 TEST_F(MessageDecoderTypesTest, ASCII_BOOL_VALID_INPUT)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("B_True", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("B_True", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::BOOL));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -297,7 +268,7 @@ TEST_F(MessageDecoderTypesTest, DISABLED_ASCII_ENUM_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("MESSAGE", FIELD_TYPE::STRING, "%s", DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(1);
 
@@ -315,7 +286,7 @@ TEST_F(MessageDecoderTypesTest, ASCII_STRING_VALID)
 
 TEST_F(MessageDecoderTypesTest, ASCII_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%d", 1, DATA_TYPE::UNKNOWN));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%d", DATA_TYPE::UNKNOWN));
     std::vector<FieldContainer> vIntermediateFormat_;
     vIntermediateFormat_.reserve(1);
 
@@ -344,37 +315,27 @@ TEST_F(MessageDecoderTypesTest, BINARY_VALID)
 
 TEST_F(MessageDecoderTypesTest, BINARY_SIMPLE_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%", 1, DATA_TYPE::UNKNOWN));
-    std::vector<FieldContainer> vIntermediateFormat_;
-
-    const unsigned char* testInput = nullptr;
-
-    ASSERT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
+    ASSERT_THROW(MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%", DATA_TYPE::UNKNOWN)), std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, BINARY_TYPE_INVALID)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%", 1, DATA_TYPE::UNKNOWN));
-    std::vector<FieldContainer> vIntermediateFormat_;
-
-    const unsigned char* testInput = nullptr;
-
-    ASSERT_THROW(pclMyDecoderTester->TestDecodeBinary(MsgDefFields, &testInput, vIntermediateFormat_), std::runtime_error);
+    ASSERT_THROW(MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::UNKNOWN, "%", DATA_TYPE::UNKNOWN)), std::runtime_error);
 }
 
 TEST_F(MessageDecoderTypesTest, SIMPLE_FIELD_WIDTH_VALID)
 {
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::BOOL));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%hu", 2, DATA_TYPE::USHORT));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%hd", 2, DATA_TYPE::SHORT));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%u", 4, DATA_TYPE::UINT));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lu", 4, DATA_TYPE::ULONG));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%d", 4, DATA_TYPE::INT));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%ld", 4, DATA_TYPE::LONG));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%llu", 8, DATA_TYPE::ULONGLONG));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lld", 8, DATA_TYPE::LONGLONG));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%f", 4, DATA_TYPE::FLOAT));
-    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lf", 8, DATA_TYPE::DOUBLE));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::BOOL));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%hu", DATA_TYPE::USHORT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%hd", DATA_TYPE::SHORT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%u", DATA_TYPE::UINT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lu", DATA_TYPE::ULONG));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%d", DATA_TYPE::INT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%ld", DATA_TYPE::LONG));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%llu", DATA_TYPE::ULONGLONG));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lld", DATA_TYPE::LONGLONG));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%f", DATA_TYPE::FLOAT));
+    MsgDefFields.emplace_back(std::make_shared<BaseField>("", FIELD_TYPE::SIMPLE, "%lf", DATA_TYPE::DOUBLE));
 
     std::vector<FieldContainer> vIntermediateFormat;
     vIntermediateFormat.reserve(MsgDefFields.size());

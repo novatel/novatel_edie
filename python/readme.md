@@ -467,6 +467,20 @@ builtin_db = get_builtin_database()
 bestpos_type = builtin_db.get_message_type('BESTPOS')
 ```
 
+### Locking
+
+Once a database is put to use, it is *locked* to ensure that the data decoded against it stays consistent.
+Any attempt to mutate a locked database (e.g. `merge`, `append_messages`, `remove_message`, or setting `message_family`)
+raises an exception. Whether a database is locked can be checked via its `is_locked` property.
+
+A database becomes locked when any of the following happen:
+
+- **Explicit lock**: calling `db.lock()`.
+- **Used by a consumer**: constructing a `Parser`, `FileParser`, `Decoder`, `Commander`, `RxConfigHandler`, or `RangeDecompressor` with the database locks it.
+- **Generating a type**: requesting a generated message or enum type via `get_msg_type`, `get_enum_type_by_name`, or `get_enum_type_by_id`.
+- **Merging into another database**: `other_db.merge(db)` locks the source database `db`.
+- **Forking**: `db.fork()` locks the source database (the returned copy is unlocked). (`db.clone()` is a deprecated alias for `fork()`.)
+
 ## Logging
 
 `novatel_edie` preforms all its logging via the python standard library `logging` module 

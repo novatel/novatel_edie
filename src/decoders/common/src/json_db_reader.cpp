@@ -38,7 +38,6 @@ using json = nlohmann::json;
 
 // Forward declaration of from_json
 void from_json(const json& j_, EnumDataType& f_);
-void from_json(const json& j_, BaseDataType& f_);
 void from_json(const json& j_, SimpleDataType& f_);
 void from_json(const json& j_, BaseField& f_);
 void from_json(const json& j_, EnumField& f_);
@@ -61,23 +60,12 @@ void from_json(const json& j_, EnumDataType& f_)
 }
 
 //-----------------------------------------------------------------------
-void from_json(const json& j_, BaseDataType& f_)
+void from_json(const json& j_, SimpleDataType& f_)
 {
     auto itrDataTypeMapping = DataTypeEnumLookup.find(j_.at("name"));
     f_.name = itrDataTypeMapping != DataTypeEnumLookup.end() ? itrDataTypeMapping->second : DATA_TYPE::UNKNOWN;
     f_.length = j_.at("length");
     f_.description = j_.at("description").is_null() ? "" : j_.at("description");
-}
-
-//-----------------------------------------------------------------------
-void from_json(const json& j_, SimpleDataType& f_)
-{
-    from_json(j_, static_cast<BaseDataType&>(f_));
-
-    if (j_.find("enum") != j_.end())
-    {
-        for (const auto& e : j_.at("enum")) { f_.enums[e.at("value")] = e; }
-    }
 }
 
 //-----------------------------------------------------------------------
@@ -138,7 +126,6 @@ void from_json(const json& j_, MessageDefinition& md_)
     md_.name = j_.at("name");
     md_.description = j_.at("description").is_null() ? "" : j_.at("description");
     md_.latestMessageCrc = std::stoul(j_.at("latestMsgDefCrc").get<std::string>());
-    md_.messageStyle = j_.contains("messageStyle") && !j_.at("messageStyle").is_null() ? j_.at("messageStyle") : "OEM4_MESSAGE_STYLE";
 
     for (const auto& fields : j_.at("fields").items())
     {
@@ -151,24 +138,9 @@ void from_json(const json& j_, MessageDefinition& md_)
 //-----------------------------------------------------------------------
 void from_json(const json& j_, EnumDefinition& ed_)
 {
-    ed_._id = j_.at("_id");
-    ed_.name = j_.at("name");
-
-    // Parse enumerators into the vector
-    ParseEnumerators(j_.at("enumerators"), ed_.enumerators);
-
-    // Populate the lookup maps
-    uint32_t maxVal = 0;
-    for (const auto& enumerator : ed_.enumerators)
-    {
-        maxVal = std::max(maxVal, enumerator.value);
-        ed_.nameValue[enumerator.name] = enumerator.value;
-        ed_.valueName[enumerator.value] = enumerator.name;
-        ed_.descriptionValue[enumerator.description] = enumerator.value;
-    }
-    ed_.unknownValue = maxVal + 1;
-    assert(ed_.unknownValue > maxVal &&
-           "Overflow encountered when determining placeholder value. Enumerator values are expected to  be within [0, 2^31).");
+    std::vector<EnumDataType> enumerators;
+    ParseEnumerators(j_.at("enumerators"), enumerators);
+    ed_ = EnumDefinition(j_.at("_id"), j_.at("name"), std::move(enumerators));
 }
 
 //-----------------------------------------------------------------------
@@ -188,7 +160,7 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
     for (const auto& field : j_)
     {
         const auto sFieldType = field.at("type").get<std::string_view>();
-        const auto stDataType = field.at("dataType").get<BaseDataType>();
+        const auto stDataType = field.at("dataType").get<SimpleDataType>();
 
         if (sFieldType == "SIMPLE")
         {
@@ -197,9 +169,7 @@ uint32_t ParseFields(const json& j_, std::vector<BaseField::Ptr>& vFields_)
         }
         else if (sFieldType == "ENUM")
         {
-            auto pstField = std::make_shared<EnumField>(field);
-            pstField->length = stDataType.length;
-            vFields_.emplace_back(pstField);
+            vFields_.emplace_back(std::make_shared<EnumField>(field));
             uiFieldSize += stDataType.length;
         }
         else if (sFieldType == "FIXED_LENGTH_ARRAY" || sFieldType == "VARIABLE_LENGTH_ARRAY" || sFieldType == "STRING")

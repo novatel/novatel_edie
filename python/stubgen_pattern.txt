@@ -47,4 +47,32 @@ oem_bindings.Response.response_enum:
     if TYPE_CHECKING:
         from novatel_edie.enums import Responses
     @property
-    def response_enum(self) -> Responses
+    def response_enum(self) -> Responses: ...
+
+oem_bindings.MetaData.measurement_source$:
+    \from typing_extensions import deprecated
+    @property
+    @deprecated("MetaData.measurement_source is deprecated; use 'sibling_id' instead.")
+    def measurement_source(self) -> common_bindings.MEASUREMENT_SOURCE: ...
+    @measurement_source.setter
+    @deprecated("MetaData.measurement_source is deprecated; use 'sibling_id' instead.")
+    def measurement_source(self, arg: common_bindings.MEASUREMENT_SOURCE, /) -> None: ...
+
+oem_bindings.MetaData.message_description$:
+    \from typing_extensions import deprecated
+    @property
+    @deprecated("MetaData.message_description is deprecated as it relies on the builtin MessageDatabase matching the MetaData.")
+    def message_description(self) -> object: ...
+
+oem_bindings.MetaData.message_fields$:
+    \from typing_extensions import deprecated
+    @property
+    @deprecated("MetaData.message_fields is deprecated as it relies on the builtin MessageDatabase matching the MetaData.")
+    def message_fields(self) -> object: ...
+
+oem_bindings.MessageType.source$:
+    \from typing_extensions import deprecated
+    @property
+    @deprecated("MessageType.source is deprecated; use 'sibling_id' instead.")
+    def source(self) -> common_bindings.MEASUREMENT_SOURCE:
+        """Where the message originates from."""

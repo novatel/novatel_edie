@@ -22,76 +22,444 @@
 #
 ################################################################################=
 
+import logging
+
 import pytest
 
-from novatel_edie import MessageDatabase, FailureException
-from novatel_edie.oem import Decoder
+from novatel_edie import MessageDatabase, UnsupportedException
+from novatel_edie.oem import Decoder, Parser, FileParser, Commander, RangeDecompressor, RxConfigHandler, get_builtin_database
 from novatel_edie.oem.enums import Datum
+from novatel_edie import MessageDefinition, EnumFieldDefinition, EnumDefinition, EnumDataType
+from novatel_edie import FieldDefinition, ArrayFieldDefinition, FieldArrayFieldDefinition, FIELD_TYPE, DATA_TYPE
+from novatel_edie.oem import Header
 
-def test_message_db_enums(json_db):
-    # Act
-    datum_enum = json_db.get_enum_type_by_name("Datum")
-    # Assert
-    assert datum_enum.WGS84 == 61
-    assert datum_enum.WGS84.name == "WGS84"
-    assert datum_enum.WGS84 == Datum.WGS84
+class TestDatabaseObjects:
+    """Tests that verify the interface for definition objects."""
 
-def test_append_messages(json_db: MessageDatabase):
-    # Arrange
-    new_db = MessageDatabase()
-    bestpos_id = 42
-    bestpos_def = json_db.get_msg_def(bestpos_id)
-    range_id = 43
-    range_def = json_db.get_msg_def(range_id)
+    @pytest.mark.parametrize("values", [
+        {},
+        {"value": 2, "name": "val", "description": "a value of 2"},
+        {"value": 0, "name": "error"}])
+    class TestEnumDataType:
+        """Tests for EnumDataType."""
+        defaults = {
+            "value": 0,
+            "name": "",
+            "description": ""
+        }
+        def test_construct(self, values: dict):
+            # Act
+            data = EnumDataType(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(data, attr) == values.get(attr, default)
 
-    # Act
-    new_db.append_messages([bestpos_def, range_def])
+        def test_set_direct(self, values: dict):
+            # Arrange
+            data = EnumDataType()
+            # Act
+            for attr, value in values.items():
+                setattr(data, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(data, attr) == values.get(attr, default)
 
-    # Assert
-    assert new_db.get_msg_def(bestpos_id) == bestpos_def
-    assert new_db.get_msg_type("BESTPOS") is not None
-    assert new_db.get_msg_def(range_id) == range_def
-    assert new_db.get_msg_type("RANGE") is not None
+    @pytest.mark.parametrize("values", [
+        {},
+        {"id": "1", "name": "Datum", "enumerators": [EnumDataType(61, "WGS84", "WGS84 datum")]},
+        {"id": "0", "name": "empty", "enumerators": []}])
+    class TestEnumDefinition:
+        """Tests for EnumDefinition."""
+        defaults = {
+            "id": "",
+            "name": "",
+            "enumerators": []
+        }
+        def test_construct(self, values: dict):
+            # Act
+            enum_def = EnumDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(enum_def, attr) == values.get(attr, default)
 
-def test_remove_message(json_db: MessageDatabase):
-    # Arrange
-    new_db = MessageDatabase()
-    bestpos_id = 42
-    bestpos_def = json_db.get_msg_def(bestpos_id)
-    range_id = 43
-    range_def = json_db.get_msg_def(range_id)
-    new_db.append_messages([bestpos_def, range_def])
-    new_range_type = new_db.get_msg_type("RANGE")
+        def test_set_direct(self, values: dict):
+            # Arrange
+            enum_def = EnumDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(enum_def, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(enum_def, attr) == values.get(attr, default)
 
-    # Act
-    new_db.remove_message(bestpos_id)
+    class TestFieldDefinition:
+        """Tests for FieldDefinition (BaseField)."""
+        @pytest.mark.parametrize("values", [
+            {},
+            {"name": "field1", "type": FIELD_TYPE.SIMPLE, "conversion": "%d", "data_type": DATA_TYPE.INT},
+            {"name": "field2", "type": FIELD_TYPE.SIMPLE, "conversion": "%.3f", "data_type": DATA_TYPE.DOUBLE}])
+        class TestValues:
+            """Tests that values are set correctly."""
+            defaults = {
+                "name": "",
+                "type": FIELD_TYPE.UNKNOWN,
+                "conversion": "",
+                "data_type": DATA_TYPE.UNKNOWN
+            }
+            def test_construct(self, values: dict):
+                # Act
+                field = FieldDefinition(**values)
+                # Assert
+                for attr, default in self.defaults.items():
+                    assert getattr(field, attr) == values.get(attr, default)
 
-    # Assert
-    assert new_db.get_msg_def(bestpos_id) is None
-    assert new_db.get_msg_type("BESTPOS") is None
-    assert new_db.get_msg_def(range_id) == range_def
-    assert new_db.get_msg_type("RANGE") is new_range_type
+            def test_set_direct(self, values: dict):
+                # Arrange
+                field = FieldDefinition()
+                # Act
+                for attr, value in values.items():
+                    setattr(field, attr, value)
+                # Assert
+                for attr, default in self.defaults.items():
+                    assert getattr(field, attr) == values.get(attr, default)
 
-def test_merge(json_db: MessageDatabase):
-    """Tests that one databases messages can be merged into another."""
-    # Arrange
-    oem_minus_bestpos_db = json_db.clone()
-    new_db_with_bestpos = MessageDatabase()
-    bestpos_name = "BESTPOS"
-    bestpos_msg_def = oem_minus_bestpos_db.get_msg_def(bestpos_name)
-    new_db_with_bestpos.append_messages([bestpos_msg_def])
-    bestpos_msg_type = new_db_with_bestpos.get_msg_type(bestpos_name)
-    other_msg_name = "RANGE"
-    other_msg_def = oem_minus_bestpos_db.get_msg_def(other_msg_name)
-    other_msg_type = oem_minus_bestpos_db.get_msg_type(other_msg_name)
-    oem_minus_bestpos_db.remove_message(bestpos_msg_def.log_id)
+        @pytest.mark.parametrize("invalid_conversion", [
+            "",
+            "d",
+            "%q!",
+            "%5.2"])
+        def test_invalid_conversion_raises_attribute_error(self, invalid_conversion: str):
+            # Arrange
+            field = FieldDefinition()
+            # Act / Assert
+            with pytest.raises(AttributeError):
+                field.conversion = invalid_conversion
 
-    # Act
-    new_db_with_bestpos.merge(oem_minus_bestpos_db)
+    @pytest.mark.parametrize("values", [
+        {},
+        {"name": "field1", "type": FIELD_TYPE.SIMPLE, "conversion": "%d", "data_type": DATA_TYPE.ULONG, "enum_id": "42"},
+        {"name": "field2"}])
+    class TestEnumFieldDefinition:
+        """Tests for EnumFieldDefinition."""
+        defaults = {
+            "name": "",
+            "type": FIELD_TYPE.ENUM,
+            "conversion": "",
+            "data_type": DATA_TYPE.UNKNOWN,
+            "enum_id": ""
+        }
+        def test_construct(self, values: dict):
+            # Act
+            field = EnumFieldDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
 
-    # Assert
-    assert new_db_with_bestpos.get_msg_def(bestpos_name) == bestpos_msg_def
-    assert new_db_with_bestpos.get_msg_type(bestpos_name) is bestpos_msg_type
-    assert new_db_with_bestpos.get_msg_def(other_msg_name) == other_msg_def
-    assert new_db_with_bestpos.get_msg_type(other_msg_name) is not None
-    assert new_db_with_bestpos.get_msg_type(other_msg_name) != other_msg_type
+        def test_set_direct(self, values: dict):
+            # Arrange
+            field = EnumFieldDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(field, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"name": "arr1", "type": FIELD_TYPE.FIXED_LENGTH_ARRAY, "conversion": "%s", "data_type": DATA_TYPE.UCHAR, "array_length": 4},
+        {"name": "arr2", "array_length": 0}])
+    class TestArrayFieldDefinition:
+        """Tests for ArrayFieldDefinition."""
+        defaults = {
+            "name": "",
+            "type": FIELD_TYPE.UNKNOWN,
+            "conversion": "",
+            "data_type": DATA_TYPE.UNKNOWN,
+            "array_length": 0,
+        }
+        def test_construct(self, values: dict):
+            # Act
+            field = ArrayFieldDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            field = ArrayFieldDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(field, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"name": "fa1", "array_length": 4},
+        {"name": "fa2", "array_length": 0, "type": FIELD_TYPE.SIMPLE, "conversion": "%s", "data_type": DATA_TYPE.UNKNOWN},
+        {"name": "fa3", "array_length": 2, "fields": [
+            FieldDefinition(name="x", type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.INT),
+            EnumFieldDefinition(name="kind", enum_id="42"),
+        ]}])
+    class TestFieldArrayFieldDefinition:
+        """Tests for FieldArrayFieldDefinition."""
+        defaults = {
+            "name": "",
+            "type": FIELD_TYPE.FIELD_ARRAY,
+            "conversion": "",
+            "data_type": DATA_TYPE.UNKNOWN,
+            "array_length": 0,
+            "fields": [],
+        }
+        def test_construct(self, values: dict):
+            # Act
+            field = FieldArrayFieldDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            field = FieldArrayFieldDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(field, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(field, attr) == values.get(attr, default)
+
+    @pytest.mark.parametrize("values", [
+        {},
+        {"id": "1", "log_id": 42, "name": "BESTPOS", "description": "best position log", "latest_message_crc": 1234,
+         "fields": {1234: [
+             FieldDefinition(name="lat", type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.DOUBLE),
+             FieldDefinition(name="lon", type=FIELD_TYPE.SIMPLE, data_type=DATA_TYPE.DOUBLE),
+         ]}},
+        {"id": "0", "log_id": 0, "name": "", "description": "", "latest_message_crc": 0}])
+    class TestMessageDefinition:
+        """Tests for MessageDefinition."""
+        defaults = {
+            "id": "",
+            "log_id": 0,
+            "name": "",
+            "description": "",
+            "latest_message_crc": 0,
+            "fields": {},
+        }
+        def test_construct(self, values: dict):
+            # Act
+            msg_def = MessageDefinition(**values)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(msg_def, attr) == values.get(attr, default)
+
+        def test_set_direct(self, values: dict):
+            # Arrange
+            msg_def = MessageDefinition()
+            # Act
+            for attr, value in values.items():
+                setattr(msg_def, attr, value)
+            # Assert
+            for attr, default in self.defaults.items():
+                assert getattr(msg_def, attr) == values.get(attr, default)
+
+
+class TestDatabaseActions:
+    """Tests for the effect of preforming actions on a database."""
+    class TestDatabaseLocking:
+        """Tests for the database's locking mechanism.
+
+        Any access to the database's immutable types or exposure of them to other
+        C++ objects should permenantly lock the database from further mutation.
+        """
+        def test_lock(self, json_db: MessageDatabase):
+            # Arrange
+            db = MessageDatabase()
+            # Act
+            db.lock()
+
+            # Assert
+            assert db.is_locked
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.append_messages(MessageDefinition())
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.append_enumerations(EnumDefinition())
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.remove_message(0)
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.remove_enumeration("Datum")
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.merge(json_db)
+            with pytest.raises(UnsupportedException, match="locked"):
+                db.message_family = "OEM"
+
+        def test_global_lock(self):
+            assert get_builtin_database().is_locked
+
+        def test_merge_locking(self):
+            # Arrange
+            old_db = MessageDatabase()
+            new_db = MessageDatabase()
+            # Act
+            new_db.merge(old_db)
+            # Assert
+            assert old_db.is_locked
+            assert not new_db.is_locked
+
+        def test_fork_locking(self):
+            # Arrange
+            old_db = MessageDatabase()
+            # Act
+            new_db = old_db.fork()
+            # Assert
+            assert old_db.is_locked
+            assert not new_db.is_locked
+
+        def test_pytype_access_locking(self, json_db: MessageDatabase):
+            # Arrange
+            db = json_db.fork()
+            # Act
+            db.get_msg_type("BESTPOS")
+            # Assert
+            assert db.is_locked
+
+        @pytest.mark.parametrize("consumer_cons", [Decoder, Parser, lambda x: FileParser("", x),
+                                                   Commander, RangeDecompressor, RxConfigHandler])
+        def test_consumer_locking(self, consumer_cons, json_db: MessageDatabase):
+            # Arrange
+            db = json_db.fork()
+            # Act
+            consumer_cons(db)
+            # Assert
+            assert db.is_locked
+
+    def test_message_db_enums(self, json_db):
+        # Act
+        datum_enum = json_db.get_enum_type_by_name("Datum")
+        # Assert
+        assert datum_enum.WGS84 == 61
+        assert datum_enum.WGS84.name == "WGS84"
+        assert datum_enum.WGS84 == Datum.WGS84
+
+    def test_append_messages(self, json_db: MessageDatabase):
+        # Arrange
+        new_db = MessageDatabase()
+        bestpos_id = 42
+        bestpos_def = json_db.get_msg_def(bestpos_id)
+        bestpos_type = json_db.get_msg_type("BESTPOS")
+        range_id = 43
+        range_def = json_db.get_msg_def(range_id)
+        range_type = json_db.get_msg_type("RANGE")
+
+        # Act
+        new_db.append_messages([bestpos_def, range_def])
+
+        # Assert
+        assert json_db.get_msg_def(bestpos_id) == bestpos_def
+        assert json_db.get_msg_type("BESTPOS") is bestpos_type
+        assert json_db.get_msg_def(range_id) == range_def
+        assert json_db.get_msg_type("RANGE") is range_type
+
+        assert new_db.get_msg_def(bestpos_id) == bestpos_def
+        assert new_db.get_msg_type("BESTPOS") is not bestpos_type
+        assert new_db.get_msg_type("BESTPOS") is not None
+        assert new_db.get_msg_def(range_id) == range_def
+        assert new_db.get_msg_type("RANGE") is not range_type
+        assert new_db.get_msg_type("RANGE") is not None
+
+    def test_remove_message(self, json_db: MessageDatabase):
+        # Arrange
+        new_db = MessageDatabase()
+        bestpos_id = 42
+        bestpos_def = json_db.get_msg_def(bestpos_id)
+        bestpos_type = json_db.get_msg_type("BESTPOS")
+        range_id = 43
+        range_def = json_db.get_msg_def(range_id)
+        new_db.append_messages([bestpos_def, range_def])
+
+        # Act
+        new_db.remove_message(bestpos_id)
+
+        # Assert
+        assert json_db.get_msg_def(bestpos_id) == bestpos_def
+        assert json_db.get_msg_type("BESTPOS") is bestpos_type
+
+        assert new_db.get_msg_def(bestpos_id) is None
+        assert new_db.get_msg_type("BESTPOS") is None
+        assert new_db.get_msg_def(range_id) == range_def
+        assert new_db.get_msg_type("RANGE") is not None
+
+    def test_merge(self, json_db: MessageDatabase):
+        """Tests that one databases messages can be merged into another."""
+        # Arrange
+        oem_minus_bestpos_db = json_db.fork()
+        new_db_with_bestpos = MessageDatabase()
+        bestpos_name = "BESTPOS"
+        bestpos_msg_def = oem_minus_bestpos_db.get_msg_def(bestpos_name)
+        new_db_with_bestpos.append_messages([bestpos_msg_def])
+        other_msg_name = "RANGE"
+        other_msg_def = oem_minus_bestpos_db.get_msg_def(other_msg_name)
+        oem_minus_bestpos_db.remove_message(bestpos_msg_def.log_id)
+        other_msg_type = oem_minus_bestpos_db.get_msg_type(other_msg_name)
+
+        # Act
+        new_db_with_bestpos.merge(oem_minus_bestpos_db)
+
+        # Assert
+        assert new_db_with_bestpos.get_msg_def(bestpos_name) == bestpos_msg_def
+        assert new_db_with_bestpos.get_msg_type(bestpos_name) is not None
+        assert new_db_with_bestpos.get_msg_def(other_msg_name) == other_msg_def
+        assert new_db_with_bestpos.get_msg_type(other_msg_name) is not None
+        assert new_db_with_bestpos.get_msg_type(other_msg_name) != other_msg_type
+
+        # The source database must be unaffected by the merge.
+        assert oem_minus_bestpos_db.get_msg_def(bestpos_name) is None
+        assert oem_minus_bestpos_db.get_msg_type(bestpos_name) is None
+        assert oem_minus_bestpos_db.get_msg_def(other_msg_name) == other_msg_def
+        assert oem_minus_bestpos_db.get_msg_type(other_msg_name) is other_msg_type
+
+    def test_fork(self, json_db: MessageDatabase):
+        """Tests that a forked database exposes the same messages and types as the original."""
+        # Arrange
+        bestpos_name = "BESTPOS"
+        bestpos_def = json_db.get_msg_def(bestpos_name)
+        bestpos_type = json_db.get_msg_type(bestpos_name)
+        range_name = "RANGE"
+        range_def = json_db.get_msg_def(range_name)
+        range_type = json_db.get_msg_type(range_name)
+
+        # Act
+        forked_db = json_db.fork()
+
+        # Assert
+        assert forked_db is not json_db
+        assert forked_db.get_msg_def(bestpos_name) == bestpos_def
+        assert forked_db.get_msg_type(bestpos_name) is bestpos_type
+        assert forked_db.get_msg_def(range_name) == range_def
+        assert forked_db.get_msg_type(range_name) is range_type
+
+        assert json_db.get_msg_def(bestpos_name) == bestpos_def
+        assert json_db.get_msg_type(bestpos_name) is bestpos_type
+        assert json_db.get_msg_def(range_name) == range_def
+        assert json_db.get_msg_type(range_name) is range_type
+
+    def test_clone_deprecated(self, json_db: MessageDatabase, caplog):
+        """Tests that the deprecated clone() alias warns but still behaves like fork()."""
+        # Act
+        with caplog.at_level(logging.WARNING, logger="novatel_edie.deprecation_warning"):
+            cloned_db = json_db.clone()
+
+        # Assert: clone() behaves like fork() (independent copy, source locked).
+        assert cloned_db is not json_db
+        assert json_db.is_locked
+        assert not cloned_db.is_locked
+
+        # Assert: a deprecation warning directing the user to fork() was logged.
+        deprecation_records = [
+            rec for rec in caplog.records if rec.name == "novatel_edie.deprecation_warning"
+        ]
+        assert len(deprecation_records) == 1
+        assert deprecation_records[0].levelno == logging.WARNING
+        assert "fork" in deprecation_records[0].message

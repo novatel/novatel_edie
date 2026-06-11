@@ -673,7 +673,7 @@ STATUS MessageDecoderBase::DecodeAscii(const std::vector<BaseField::Ptr>& vMsgDe
         case FIELD_TYPE::ENUM: {
             std::string_view sEnum(*ppcLogBuf_, tokenLength);
             const auto* enumField = dynamic_cast<EnumField*>(field.get());
-            switch (enumField->length)
+            switch (enumField->dataType.length)
             {
             case 1: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(GetEnumValue(enumField->enumDef, sEnum)), field); break;
             case 2: vIntermediateFormat_.emplace_back(static_cast<uint16_t>(GetEnumValue(enumField->enumDef, sEnum)), field); break;

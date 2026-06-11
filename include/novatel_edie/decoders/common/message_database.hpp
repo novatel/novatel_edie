@@ -27,6 +27,8 @@
 #ifndef MESSAGE_DATABASE_HPP
 #define MESSAGE_DATABASE_HPP
 
+#include <algorithm>
+#include <cassert>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -202,6 +204,12 @@ struct EnumDataType
     uint32_t value{0};
     std::string name;
     std::string description;
+
+    [[nodiscard]] bool operator==(const EnumDataType& other) const
+    {
+        return value == other.value && name == other.name && description == other.description;
+    }
+    [[nodiscard]] bool operator!=(const EnumDataType& other) const { return !(*this == other); }
 };
 
 //-----------------------------------------------------------------------
@@ -213,25 +221,61 @@ struct EnumDefinition
     std::string _id;
     std::string name;
     std::vector<EnumDataType> enumerators;
-    std::unordered_map<std::string_view, uint32_t> nameValue;
-    std::unordered_map<std::string_view, uint32_t> descriptionValue;
-    std::unordered_map<uint32_t, std::string_view> valueName;
-    uint32_t unknownValue;
+    std::unordered_map<std::string_view, uint32_t> nameValue;        // cached
+    std::unordered_map<std::string_view, uint32_t> descriptionValue; // cached
+    std::unordered_map<uint32_t, std::string_view> valueName;        // cached
+    uint32_t unknownValue{0};                                        // cached; one greater than the largest enumerator value
 
     using Ptr = std::shared_ptr<EnumDefinition>;
     using ConstPtr = std::shared_ptr<const EnumDefinition>;
-};
 
-//-----------------------------------------------------------------------
-//! \struct BaseDataType
-//! \brief Struct containing basic elements of data type fields in the
-//! UI DB.
-//-----------------------------------------------------------------------
-struct BaseDataType
-{
-    DATA_TYPE name{DATA_TYPE::UNKNOWN};
-    uint16_t length{0};
-    std::string description;
+    EnumDefinition() = default;
+    ~EnumDefinition() = default;
+
+    EnumDefinition(std::string id_, std::string name_, std::vector<EnumDataType> enumerators_)
+        : _id(std::move(id_)), name(std::move(name_)), enumerators(std::move(enumerators_))
+    {
+        RebuildCaches();
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief Deep copy. The lookup maps are rebuilt against the new
+    //! `enumerators` vector — a default copy would alias the source's
+    //! enumerator strings via the `string_view` keys, dangling once the source
+    //! is destroyed.
+    //----------------------------------------------------------------------------
+    EnumDefinition(const EnumDefinition& other) : _id(other._id), name(other.name), enumerators(other.enumerators) { RebuildCaches(); }
+
+    EnumDefinition& operator=(const EnumDefinition& other)
+    {
+        if (this == &other) { return *this; }
+        _id = other._id;
+        name = other.name;
+        enumerators = other.enumerators;
+        RebuildCaches();
+        return *this;
+    }
+
+    EnumDefinition(EnumDefinition&&) = default;
+    EnumDefinition& operator=(EnumDefinition&&) = default;
+
+    void RebuildCaches()
+    {
+        nameValue.clear();
+        valueName.clear();
+        descriptionValue.clear();
+        uint32_t maxVal = 0;
+        for (const auto& enumerator : enumerators)
+        {
+            maxVal = std::max(maxVal, enumerator.value);
+            nameValue[enumerator.name] = enumerator.value;
+            valueName[enumerator.value] = enumerator.name;
+            descriptionValue[enumerator.description] = enumerator.value;
+        }
+        unknownValue = maxVal + 1;
+        assert(unknownValue > maxVal &&
+               "Overflow encountered when determining placeholder value. Enumerator values are expected to be within [0, 2^31).");
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -239,9 +283,17 @@ struct BaseDataType
 //! \brief Struct containing elements of simple data type fields in the
 //! UI DB.
 //-----------------------------------------------------------------------
-struct SimpleDataType : BaseDataType
+struct SimpleDataType
 {
-    std::unordered_map<int32_t, EnumDataType> enums;
+    DATA_TYPE name{DATA_TYPE::UNKNOWN};
+    uint16_t length{0};
+    std::string description;
+
+    [[nodiscard]] bool operator==(const SimpleDataType& other) const
+    {
+        return name == other.name && length == other.length && description == other.description;
+    }
+    [[nodiscard]] bool operator!=(const SimpleDataType& other) const { return !(*this == other); }
 };
 
 //-----------------------------------------------------------------------
@@ -254,64 +306,114 @@ struct BaseField
     FIELD_TYPE type{FIELD_TYPE::UNKNOWN};
     std::string description;
     std::string conversion;
-    uint32_t conversionHash{0ULL};
-    std::optional<int32_t> width;
-    std::optional<int32_t> precision;
-    bool isString{false}; // Has a FIELD_TYPE of STRING or conversion string of either %s or %S
-    bool isCsv{false};    // Ascii encoding of this field is comma-separated,
-                          // true for arrays which are not strings and do not use the %Z or %P conversion strings
+    uint32_t conversionHash{0ULL};    // cached
+    std::optional<int32_t> width;     // cached
+    std::optional<int32_t> precision; // cached
+    bool isString{false};             // cached; has a FIELD_TYPE of STRING or conversion string of either %s or %S
+    bool isCsv{false};                // cached; Ascii encoding of this field is comma-separated,
+                                      // true for arrays which are not strings and do not use the %Z or %P conversion strings
     SimpleDataType dataType;
 
     BaseField() = default;
 
-    BaseField(std::string name_, const FIELD_TYPE type_, std::string&& sConversion_, const size_t length_, const DATA_TYPE eDataTypeName_)
-        : name(std::move(name_)), type(type_)
+    BaseField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_) : name(std::move(name_)), type(type_)
     {
-        SetConversion(std::move(sConversion_));
-        dataType.length = static_cast<uint16_t>(length_);
         dataType.name = eDataTypeName_;
+        dataType.length = static_cast<uint16_t>(DataTypeSize(eDataTypeName_));
+        if (!conversion_.empty()) { SetConversion(std::move(conversion_)); }
     }
 
     virtual ~BaseField() = default;
 
+    //----------------------------------------------------------------------------
+    //! \brief Compares the non-cached fields. Returns true when `other` has the
+    //! same runtime type and every non-cached field compares equal.
+    //
+    //! Cached fields are intentionally excluded from the comparison. For
+    //! example, `EnumField::enumDef` is a cache derived from `enumId`, and we
+    //! want two `EnumField` instances that name the same enum to compare equal
+    //! regardless of which database happens to have resolved their cache
+    //! pointer.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] bool operator==(const BaseField& other) const { return typeid(*this) == typeid(other) && equalsImpl(other); }
+
+    [[nodiscard]] bool operator!=(const BaseField& other) const { return !(*this == other); }
+
+    //----------------------------------------------------------------------------
+    //! \brief Produce a deep copy of this field definition.
+    //
+    //! Subclasses must override to preserve their runtime type. The base
+    //! implementation copy-constructs a plain `BaseField` and is correct only
+    //! for `FIELD_TYPE`s that don't have a subclass (`SIMPLE`, `STRING`,
+    //! `RESPONSE_ID`, `RESPONSE_STR`, `BITFIELD`, `RXCONFIG_*`, `UNKNOWN`).
+    //
+    //! `FieldArrayField::clone()` recursively deep-copies its nested `fields`
+    //! vector so the resulting tree shares no `shared_ptr<BaseField>` storage
+    //! with the source.
+    //
+    //! `EnumField::enumDef` and other `*Definition::ConstPtr` members are
+    //! shallow-copied: those entities are treated as immutable values, so
+    //! sharing the pointer is safe.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual std::shared_ptr<BaseField> clone() const { return std::make_shared<BaseField>(*this); }
+
     void SetConversion(std::string&& sConversion_)
     {
-        conversion = std::move(sConversion_);
-        width = {};
-        precision = {};
-
-        const char* sConvertString = conversion.c_str();
+        const char* sConvertString = sConversion_.c_str();
 
         if (*sConvertString != '%') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
-
         ++sConvertString;
 
+        std::optional<int32_t> newWidth;
         if (std::isdigit(*sConvertString))
         {
-            width = std::stoi(sConvertString);
-            sConvertString += std::to_string(*width).length();
+            newWidth = std::stoi(sConvertString);
+            sConvertString += std::to_string(*newWidth).length();
         }
 
         if (*sConvertString == '.') { ++sConvertString; }
 
+        std::optional<int32_t> newPrecision;
         if (std::isdigit(*sConvertString))
         {
-            precision = std::stoi(sConvertString);
-            sConvertString += std::to_string(*precision).length();
+            newPrecision = std::stoi(sConvertString);
+            sConvertString += std::to_string(*newPrecision).length();
         }
 
-        conversionHash = 0;
+        if (!std::isalpha(*sConvertString)) { throw std::runtime_error("Conversion string must contain a character"); }
 
-        while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(conversionHash, *sConvertString++); }
+        uint32_t newHash = 0;
+        while (std::isalpha(*sConvertString)) { CalculateCharacterCrc32(newHash, *sConvertString++); }
 
         if (*sConvertString != '\0') { throw std::runtime_error("Encountered an unexpected character in conversion string"); }
 
+        conversion = std::move(sConversion_);
+        width = newWidth;
+        precision = newPrecision;
+        conversionHash = newHash;
+        ComputeStringFlags();
+    }
+
+    void ComputeStringFlags()
+    {
         isString = type == FIELD_TYPE::STRING || conversionHash == CalculateBlockCrc32("s") || conversionHash == CalculateBlockCrc32("S");
         isCsv = !isString && conversionHash != CalculateBlockCrc32("Z") && conversionHash != CalculateBlockCrc32("P");
     }
 
     using Ptr = std::shared_ptr<BaseField>;
     using ConstPtr = std::shared_ptr<const BaseField>;
+
+  protected:
+    //----------------------------------------------------------------------------
+    //! \brief Virtual hook used by `operator==` after a runtime-type match.
+    //! Subclasses override to compare their own members in addition to the
+    //! base class fields.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] virtual bool equalsImpl(const BaseField& other) const
+    {
+        return name == other.name && type == other.type && description == other.description && conversion == other.conversion &&
+               dataType == other.dataType;
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -321,11 +423,27 @@ struct BaseField
 struct EnumField : BaseField
 {
     std::string enumId;
-    EnumDefinition::ConstPtr enumDef{nullptr};
-    uint32_t length{0};
+    EnumDefinition::ConstPtr enumDef{nullptr}; // cached
+
+    EnumField() = default;
+
+    EnumField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_, std::string enumId_)
+        : BaseField(std::move(name_), type_, std::move(conversion_), eDataTypeName_), enumId(std::move(enumId_))
+    {
+    }
+
+    [[nodiscard]] std::shared_ptr<BaseField> clone() const override { return std::make_shared<EnumField>(*this); }
 
     using Ptr = std::shared_ptr<EnumField>;
     using ConstPtr = std::shared_ptr<const EnumField>;
+
+  protected:
+    [[nodiscard]] bool equalsImpl(const BaseField& other) const override
+    {
+        if (!BaseField::equalsImpl(other)) { return false; }
+        const auto& o = static_cast<const EnumField&>(other);
+        return enumId == o.enumId;
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -338,8 +456,25 @@ struct ArrayField : BaseField
     std::string arrayLengthRef;
     uint8_t arrayLengthFieldSize{0}; // in bytes, only for variable-length and field arrays
 
+    ArrayField() = default;
+
+    ArrayField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_, uint32_t arrayLength_)
+        : BaseField(std::move(name_), type_, std::move(conversion_), eDataTypeName_), arrayLength(arrayLength_)
+    {
+    }
+
+    [[nodiscard]] std::shared_ptr<BaseField> clone() const override { return std::make_shared<ArrayField>(*this); }
+
     using Ptr = std::shared_ptr<ArrayField>;
     using ConstPtr = std::shared_ptr<const ArrayField>;
+
+  protected:
+    [[nodiscard]] bool equalsImpl(const BaseField& other) const override
+    {
+        if (!BaseField::equalsImpl(other)) { return false; }
+        const auto& o = static_cast<const ArrayField&>(other);
+        return arrayLength == o.arrayLength && arrayLengthRef == o.arrayLengthRef && arrayLengthFieldSize == o.arrayLengthFieldSize;
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -348,11 +483,59 @@ struct ArrayField : BaseField
 //-----------------------------------------------------------------------
 struct FieldArrayField : ArrayField
 {
-    uint32_t fieldSize{0};
+    uint32_t fieldSize{0}; // cached
     std::vector<std::shared_ptr<BaseField>> fields;
+
+    FieldArrayField() = default;
+
+    FieldArrayField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_, uint32_t arrayLength_,
+                    std::vector<std::shared_ptr<BaseField>> fields_)
+        : ArrayField(std::move(name_), type_, std::move(conversion_), eDataTypeName_, arrayLength_), fields(std::move(fields_))
+    {
+        uint32_t childTotal = 0;
+        for (const auto& f : fields)
+        {
+            if (!f) { continue; }
+            switch (f->type)
+            {
+            case FIELD_TYPE::SIMPLE:
+            case FIELD_TYPE::ENUM: childTotal += f->dataType.length; break;
+            case FIELD_TYPE::FIXED_LENGTH_ARRAY:
+            case FIELD_TYPE::VARIABLE_LENGTH_ARRAY:
+            case FIELD_TYPE::STRING:
+                if (const auto* a = dynamic_cast<const ArrayField*>(f.get())) { childTotal += f->dataType.length * a->arrayLength; }
+                break;
+            default: break;
+            }
+        }
+        fieldSize = arrayLength * childTotal;
+    }
+
+    [[nodiscard]] std::shared_ptr<BaseField> clone() const override
+    {
+        auto copy = std::make_shared<FieldArrayField>(*this);
+        for (auto& sub : copy->fields) { sub = sub->clone(); }
+        return copy;
+    }
 
     using Ptr = std::shared_ptr<FieldArrayField>;
     using ConstPtr = std::shared_ptr<const FieldArrayField>;
+
+  protected:
+    [[nodiscard]] bool equalsImpl(const BaseField& other) const override
+    {
+        if (!ArrayField::equalsImpl(other)) { return false; }
+        const auto& o = static_cast<const FieldArrayField&>(other);
+        if (fields.size() != o.fields.size()) { return false; }
+        for (size_t i = 0; i < fields.size(); ++i)
+        {
+            const bool lhs_null = !fields[i];
+            const bool rhs_null = !o.fields[i];
+            if (lhs_null != rhs_null) { return false; }
+            if (!lhs_null && *fields[i] != *o.fields[i]) { return false; }
+        }
+        return true;
+    }
 };
 
 //-----------------------------------------------------------------------
@@ -380,11 +563,91 @@ struct MessageDefinition
     uint32_t logID{0};
     std::string name;
     std::string description;
-    std::string messageStyle;
     std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields; // map of crc keys to field definitions
     uint32_t latestMessageCrc{0};
 
     const std::vector<BaseField::Ptr>& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
+
+    //----------------------------------------------------------------------------
+    //! \brief Compares the non-cached fields. Two `MessageDefinition`s compare
+    //! equal if every scalar field matches and every `BaseField::Ptr` in
+    //! `fields` dereferences to an equal field (which likewise compares only
+    //! non-cached fields). Pointer identity is not required, so a deep-copied
+    //! definition compares equal to its source.
+    //----------------------------------------------------------------------------
+    [[nodiscard]] bool operator==(const MessageDefinition& other) const
+    {
+        if (_id != other._id || logID != other.logID || name != other.name || description != other.description ||
+            latestMessageCrc != other.latestMessageCrc || fields.size() != other.fields.size())
+        {
+            return false;
+        }
+        for (const auto& [crc, fieldVec] : fields)
+        {
+            auto it = other.fields.find(crc);
+            if (it == other.fields.end()) { return false; }
+            const auto& otherVec = it->second;
+            if (fieldVec.size() != otherVec.size()) { return false; }
+            for (size_t i = 0; i < fieldVec.size(); ++i)
+            {
+                const bool lhs_null = !fieldVec[i];
+                const bool rhs_null = !otherVec[i];
+                if (lhs_null != rhs_null) { return false; }
+                if (!lhs_null && *fieldVec[i] != *otherVec[i]) { return false; }
+            }
+        }
+        return true;
+    }
+
+    [[nodiscard]] bool operator!=(const MessageDefinition& other) const { return !(*this == other); }
+
+    MessageDefinition() = default;
+    ~MessageDefinition() = default;
+
+    MessageDefinition(std::string id_, uint32_t logID_, std::string name_, std::string description_, uint32_t latestMessageCrc_,
+                      std::unordered_map<uint32_t, std::vector<BaseField::Ptr>> fields_)
+        : _id(std::move(id_)), logID(logID_), name(std::move(name_)), description(std::move(description_)), fields(std::move(fields_)),
+          latestMessageCrc(latestMessageCrc_)
+    {
+    }
+
+    //----------------------------------------------------------------------------
+    //! \brief Deep copy. The default copy would alias every `BaseField::Ptr`
+    //! in `fields`; this walks each variant and replaces it with
+    //! `field->clone()` so the new definition shares no field storage with
+    //! the source.
+    //----------------------------------------------------------------------------
+    MessageDefinition(const MessageDefinition& other)
+        : _id(other._id), logID(other.logID), name(other.name), description(other.description), latestMessageCrc(other.latestMessageCrc)
+    {
+        for (const auto& [crc, fieldVec] : other.fields)
+        {
+            auto& copyVec = fields[crc];
+            copyVec.reserve(fieldVec.size());
+            for (const auto& f : fieldVec) { copyVec.push_back(f ? f->clone() : nullptr); }
+        }
+    }
+
+    MessageDefinition& operator=(const MessageDefinition& other)
+    {
+        if (this == &other) { return *this; }
+        _id = other._id;
+        logID = other.logID;
+        name = other.name;
+        description = other.description;
+        latestMessageCrc = other.latestMessageCrc;
+        fields.clear();
+        for (const auto& [crc, fieldVec] : other.fields)
+        {
+            auto& copyVec = fields[crc];
+            copyVec.reserve(fieldVec.size());
+            for (const auto& f : fieldVec) { copyVec.push_back(f ? f->clone() : nullptr); }
+        }
+        return *this;
+    }
+
+    MessageDefinition(MessageDefinition&&) = default;
+    MessageDefinition& operator=(MessageDefinition&&) = default;
 
     using Ptr = std::shared_ptr<MessageDefinition>;
     using ConstPtr = std::shared_ptr<const MessageDefinition>;

@@ -17,6 +17,25 @@ using namespace novatel::edie;
 void py_common::init_field_objects(nb::module_& m)
 {
     nb::class_<py_common::PyField>(m, "Field", nb::is_weak_referenceable())
+        .def_static(
+            "__new__",
+            [](nb::handle cls, [[maybe_unused]] nb::kwargs kwargs) {
+                py_common::PyMessageDatabase::Ptr database = nb::cast<py_common::PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
+                if (!database) { throw py_common::FailureException("Constructor could not resolve owning MessageDatabase for this type."); }
+
+                const BaseField* field_def = database->GetFieldTypeLookup(cls);
+                if (!field_def) { throw py_common::FailureException("Constructor could not resolve BaseField for this type."); }
+
+                nb::object field_pyinst = nb::inst_alloc(cls);
+                py_common::PyField* field_cinst = nb::inst_ptr<py_common::PyField>(field_pyinst);
+                new (field_cinst) py_common::PyField(std::vector<FieldContainer>{}, field_def, database);
+                nb::inst_mark_ready(field_pyinst);
+                return field_pyinst;
+            },
+            "cls"_a, "kwargs"_a)
+        .def(
+            "__init__", [](nb::handle self, nb::kwargs kwargs) { throw py_common::FailureException("Field initialization not implemented."); },
+            "kwargs"_a)
         .def("__getattr__", &py_common::PyField::getattr, "field_name"_a)
         .def("__repr__",
              [](nb::handle self) {

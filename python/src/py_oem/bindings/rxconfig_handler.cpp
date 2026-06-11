@@ -18,6 +18,7 @@ void py_oem::init_novatel_rxconfig_handler(nb::module_& m)
             "__init__",
             [](oem::RxConfigHandler* t, py_common::PyMessageDatabase::Ptr message_db) {
                 if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); };
+                message_db->Lock();
                 new (t) oem::RxConfigHandler(message_db->core());
                 t->GetLogger()->warn(
                     "The RXConfigHandler interface is currently unstable! It may undergo breaking changes between minor version increments.");

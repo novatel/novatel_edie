@@ -18,6 +18,7 @@ void py_oem::init_novatel_commander(nb::module_& m)
             "__init__",
             [](oem::Commander* t, py_common::PyMessageDatabase::Ptr message_db) {
                 if (!message_db) { message_db = py_oem::MessageDbSingleton::get(); };
+                message_db->Lock();
                 new (t) oem::Commander(message_db->core());
             },
             nb::arg("message_db") = nb::none()) // NOLINT(*.NewDeleteLeaks)
