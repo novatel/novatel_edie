@@ -65,6 +65,10 @@ build-verbosity = 1
 archs = "auto64"
 manylinux-x86_64-image = "manylinux_2_28"
 
+[tool.cibuildwheel.windows]
+# Don't try to fetch DLLs that are already bundled in the wheel
+repair-wheel-command = "delvewheel repair --ignore-existing -w {dest_dir} {wheel}"
+
 [tool.cibuildwheel.macos.environment]
 # Needed for full C++17 support
 MACOSX_DEPLOYMENT_TARGET = "13.0"
