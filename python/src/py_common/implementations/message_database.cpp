@@ -137,11 +137,7 @@ PYCOMMON_EXPORT void py_common::PyMessageDatabase::RemoveEnumeration(std::string
     core_->RemoveEnumeration(strEnumeration_);
 }
 
-<<<<<<< HEAD
 PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::fork()
-=======
-PYCOMMON_EXPORT nb::object py_common::PyMessageDatabase::clone()
->>>>>>> ccf6dd64 (Initial)
 {
     Lock();
     // Build a new wrapper around a shallow copy of the C++ database — same
