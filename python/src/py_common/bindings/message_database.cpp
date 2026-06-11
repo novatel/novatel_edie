@@ -285,16 +285,12 @@ void py_common::init_common_message_database(nb::module_& m)
         .def(nb::new_([](std::optional<std::filesystem::path> file_path, std::optional<std::string> message_family) {
                  nb::object wrapper = file_path.has_value() ? py_common::PyMessageDatabase::Create(std::move(*LoadJsonDbFile(*file_path)))
                                                             : py_common::PyMessageDatabase::Create();
-                 if (message_family.has_value())
-                 {
-                     nb::cast<py_common::PyMessageDatabase*>(wrapper)->SetMessageFamily(*message_family);
-                 }
+                 if (message_family.has_value()) { nb::cast<py_common::PyMessageDatabase*>(wrapper)->SetMessageFamily(*message_family); }
                  else if (!file_path.has_value())
                  {
                      static const std::shared_ptr<spdlog::logger> logger = GetBaseLoggerManager()->RegisterLogger("message_database");
-                     SPDLOG_LOGGER_WARN(logger,
-                                        "MessageDatabase constructed without a message_family; "
-                                        "pass message_family= or assign db.message_family to silence this warning.");
+                     SPDLOG_LOGGER_WARN(logger, "MessageDatabase constructed without a message_family; "
+                                                "pass message_family= or assign db.message_family to silence this warning.");
                  }
                  return wrapper;
              }),
@@ -347,10 +343,10 @@ void py_common::init_common_message_database(nb::module_& m)
             "name"_a)
         .def(
             "get_field_type",
-            [](py_common::PyMessageDatabase& self, std::string msg_name,
-               std::variant<std::string, std::vector<std::string>> field, std::optional<uint32_t> crc) -> nb::object {
-                std::vector<std::string> path =
-                    std::holds_alternative<std::string>(field) ? std::vector<std::string>{std::get<std::string>(field)} : std::get<std::vector<std::string>>(field);
+            [](py_common::PyMessageDatabase& self, std::string msg_name, std::variant<std::string, std::vector<std::string>> field,
+               std::optional<uint32_t> crc) -> nb::object {
+                std::vector<std::string> path = std::holds_alternative<std::string>(field) ? std::vector<std::string>{std::get<std::string>(field)}
+                                                                                           : std::get<std::vector<std::string>>(field);
                 if (path.empty()) { throw nb::value_error("field path must contain at least one name."); }
 
                 auto msg_def = self.GetMsgDef(msg_name);
@@ -377,16 +373,10 @@ void py_common::init_common_message_database(nb::module_& m)
                     const bool last = (i == path.size() - 1);
                     if (!last)
                     {
-                        if (fa == nullptr)
-                        {
-                            throw nb::type_error(("cannot descend into non-FieldArray field: " + path[i]).c_str());
-                        }
+                        if (fa == nullptr) { throw nb::type_error(("cannot descend into non-FieldArray field: " + path[i]).c_str()); }
                         fields = &fa->fields;
                     }
-                    else if (fa == nullptr)
-                    {
-                        throw nb::key_error(path[i].c_str());
-                    }
+                    else if (fa == nullptr) { throw nb::key_error(path[i].c_str()); }
                 }
 
                 self.Lock();
@@ -410,7 +400,6 @@ void py_common::init_common_message_database(nb::module_& m)
             },
             "id"_a)
         .def_prop_rw("message_family", &py_common::PyMessageDatabase::GetMessageFamily, &py_common::PyMessageDatabase::SetMessageFamily)
-<<<<<<< HEAD
         .def("fork", &py_common::PyMessageDatabase::fork,
              "Return a mutable copy of this database that shares the same definitions and types for messages and enums.\n\n"
              "As a side effect, the existing database (this one) will be locked. Any subsequent call that would modify it "
@@ -426,7 +415,4 @@ void py_common::init_common_message_database(nb::module_& m)
             },
             "Deprecated alias for fork(); use fork() instead. Like fork(), this locks the source database as a side effect.",
             nb::sig("def clone(self) -> \"MessageDatabase\""));
-=======
-        .def("clone", &py_common::PyMessageDatabase::clone, "Create a copy of this database.", nb::sig("def clone(self) -> \"MessageDatabase\""));
->>>>>>> ccf6dd64 (Initial)
 }
