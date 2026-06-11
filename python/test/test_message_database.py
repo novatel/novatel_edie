@@ -22,6 +22,8 @@
 #
 ################################################################################=
 
+import logging
+
 import pytest
 
 from novatel_edie import MessageDatabase, UnsupportedException
@@ -306,18 +308,18 @@ class TestDatabaseActions:
             assert old_db.is_locked
             assert not new_db.is_locked
 
-        def test_clone_locking(self):
+        def test_fork_locking(self):
             # Arrange
             old_db = MessageDatabase()
             # Act
-            new_db = old_db.clone()
+            new_db = old_db.fork()
             # Assert
             assert old_db.is_locked
             assert not new_db.is_locked
 
         def test_pytype_access_locking(self, json_db: MessageDatabase):
             # Arrange
-            db = json_db.clone()
+            db = json_db.fork()
             # Act
             db.get_msg_type("BESTPOS")
             # Assert
@@ -327,7 +329,7 @@ class TestDatabaseActions:
                                                    Commander, RangeDecompressor, RxConfigHandler])
         def test_consumer_locking(self, consumer_cons, json_db: MessageDatabase):
             # Arrange
-            db = json_db.clone()
+            db = json_db.fork()
             # Act
             consumer_cons(db)
             # Assert
@@ -392,7 +394,7 @@ class TestDatabaseActions:
     def test_merge(self, json_db: MessageDatabase):
         """Tests that one databases messages can be merged into another."""
         # Arrange
-        oem_minus_bestpos_db = json_db.clone()
+        oem_minus_bestpos_db = json_db.fork()
         new_db_with_bestpos = MessageDatabase()
         bestpos_name = "BESTPOS"
         bestpos_msg_def = oem_minus_bestpos_db.get_msg_def(bestpos_name)
@@ -418,8 +420,8 @@ class TestDatabaseActions:
         assert oem_minus_bestpos_db.get_msg_def(other_msg_name) == other_msg_def
         assert oem_minus_bestpos_db.get_msg_type(other_msg_name) is other_msg_type
 
-    def test_clone(self, json_db: MessageDatabase):
-        """Tests that a cloned database exposes the same messages and types as the original."""
+    def test_fork(self, json_db: MessageDatabase):
+        """Tests that a forked database exposes the same messages and types as the original."""
         # Arrange
         bestpos_name = "BESTPOS"
         bestpos_def = json_db.get_msg_def(bestpos_name)
@@ -429,16 +431,35 @@ class TestDatabaseActions:
         range_type = json_db.get_msg_type(range_name)
 
         # Act
-        cloned_db = json_db.clone()
+        forked_db = json_db.fork()
 
         # Assert
-        assert cloned_db is not json_db
-        assert cloned_db.get_msg_def(bestpos_name) == bestpos_def
-        assert cloned_db.get_msg_type(bestpos_name) is bestpos_type
-        assert cloned_db.get_msg_def(range_name) == range_def
-        assert cloned_db.get_msg_type(range_name) is range_type
+        assert forked_db is not json_db
+        assert forked_db.get_msg_def(bestpos_name) == bestpos_def
+        assert forked_db.get_msg_type(bestpos_name) is bestpos_type
+        assert forked_db.get_msg_def(range_name) == range_def
+        assert forked_db.get_msg_type(range_name) is range_type
 
         assert json_db.get_msg_def(bestpos_name) == bestpos_def
         assert json_db.get_msg_type(bestpos_name) is bestpos_type
         assert json_db.get_msg_def(range_name) == range_def
         assert json_db.get_msg_type(range_name) is range_type
+
+    def test_clone_deprecated(self, json_db: MessageDatabase, caplog):
+        """Tests that the deprecated clone() alias warns but still behaves like fork()."""
+        # Act
+        with caplog.at_level(logging.WARNING, logger="novatel_edie.deprecation_warning"):
+            cloned_db = json_db.clone()
+
+        # Assert: clone() behaves like fork() (independent copy, source locked).
+        assert cloned_db is not json_db
+        assert json_db.is_locked
+        assert not cloned_db.is_locked
+
+        # Assert: a deprecation warning directing the user to fork() was logged.
+        deprecation_records = [
+            rec for rec in caplog.records if rec.name == "novatel_edie.deprecation_warning"
+        ]
+        assert len(deprecation_records) == 1
+        assert deprecation_records[0].levelno == logging.WARNING
+        assert "fork" in deprecation_records[0].message

@@ -326,13 +326,14 @@ struct BaseField
     virtual ~BaseField() = default;
 
     //----------------------------------------------------------------------------
-    //! \brief Structural equality. Returns true when `other` has the same
-    //! runtime type and every visible field compares equal.
+    //! \brief Compares the non-cached fields. Returns true when `other` has the
+    //! same runtime type and every non-cached field compares equal.
     //
-    //! `EnumField::enumDef` is intentionally not part of the comparison —
-    //! it's a cache derived from `enumId`, and we want two `EnumField`
-    //! instances that name the same enum to compare equal regardless of
-    //! which database happens to have resolved their cache pointer.
+    //! Cached fields are intentionally excluded from the comparison. For
+    //! example, `EnumField::enumDef` is a cache derived from `enumId`, and we
+    //! want two `EnumField` instances that name the same enum to compare equal
+    //! regardless of which database happens to have resolved their cache
+    //! pointer.
     //----------------------------------------------------------------------------
     [[nodiscard]] bool operator==(const BaseField& other) const { return typeid(*this) == typeid(other) && equalsImpl(other); }
 
@@ -568,10 +569,11 @@ struct MessageDefinition
     const std::vector<BaseField::Ptr>& GetMsgDefFromCrc(spdlog::logger& pclLogger_, uint32_t uiMsgDefCrc_) const;
 
     //----------------------------------------------------------------------------
-    //! \brief Structural equality. Two `MessageDefinition`s compare equal if
-    //! every scalar field matches and every `BaseField::Ptr` in `fields`
-    //! dereferences to a structurally-equal field. Pointer identity is not
-    //! required, so a deep-copied definition compares equal to its source.
+    //! \brief Compares the non-cached fields. Two `MessageDefinition`s compare
+    //! equal if every scalar field matches and every `BaseField::Ptr` in
+    //! `fields` dereferences to an equal field (which likewise compares only
+    //! non-cached fields). Pointer identity is not required, so a deep-copied
+    //! definition compares equal to its source.
     //----------------------------------------------------------------------------
     [[nodiscard]] bool operator==(const MessageDefinition& other) const
     {

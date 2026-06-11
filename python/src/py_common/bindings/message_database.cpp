@@ -341,5 +341,19 @@ void py_common::init_common_message_database(nb::module_& m)
             },
             "id"_a)
         .def_prop_rw("message_family", &py_common::PyMessageDatabase::GetMessageFamily, &py_common::PyMessageDatabase::SetMessageFamily)
-        .def("clone", &py_common::PyMessageDatabase::clone, "Create a copy of this database.", nb::sig("def clone(self) -> \"MessageDatabase\""));
+        .def("fork", &py_common::PyMessageDatabase::fork,
+             "Return a mutable copy of this database that shares the same definitions and types for messages and enums.\n\n"
+             "As a side effect, the existing database (this one) will be locked. Any subsequent call that would modify it "
+             "will raise an exception.",
+             nb::sig("def fork(self) -> \"MessageDatabase\""))
+        .def(
+            "clone",
+            [](py_common::PyMessageDatabase& self) {
+                GetBaseLoggerManager()
+                    ->RegisterLogger("deprecation_warning")
+                    ->warn("MessageDatabase.clone() is deprecated; use MessageDatabase.fork() instead.");
+                return self.fork();
+            },
+            "Deprecated alias for fork(); use fork() instead. Like fork(), this locks the source database as a side effect.",
+            nb::sig("def clone(self) -> \"MessageDatabase\""));
 }
