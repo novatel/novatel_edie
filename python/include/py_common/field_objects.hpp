@@ -84,12 +84,10 @@ struct PyField
 
     // Python `__new__`: allocates and placement-news a PyField for the given class,
     // resolving its BaseField definition and owning MessageDatabase from the class's
-    // `_owner_db` attribute. Bound as the type's __new__.
+    // `_owner_db` attribute, then assigns each keyword argument to the matching
+    // subfield. Bound as the type's __new__; the type has no Python-level __init__
+    // (it is repointed to object.__init__) so all work happens here.
     static nb::object py_new(nb::handle cls, nb::kwargs kwargs);
-
-    // Python `__init__`: assigns each keyword argument to the matching subfield.
-    // The instance is already constructed by py_new before this runs.
-    static void py_init(nb::handle self, nb::kwargs kwargs);
 
     // Assigns a single field by name. Supports SIMPLE / ENUM / STRING only; other
     // FIELD_TYPEs and DATA_TYPEs raise nb::attribute_error.

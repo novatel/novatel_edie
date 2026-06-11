@@ -87,7 +87,7 @@ FieldContainer get_simple_attribute(BaseField::ConstPtr fieldDef, nb::handle val
 
 } // namespace
 
-PYCOMMON_EXPORT nb::object PyField::py_new(nb::handle cls, nb::kwargs /*kwargs*/)
+PYCOMMON_EXPORT nb::object PyField::py_new(nb::handle cls, nb::kwargs kwargs)
 {
     py_common::PyMessageDatabase::Ptr database = nb::cast<py_common::PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
     if (!database) { throw py_common::FailureException("Constructor could not resolve owning MessageDatabase for this type."); }
@@ -99,14 +99,12 @@ PYCOMMON_EXPORT nb::object PyField::py_new(nb::handle cls, nb::kwargs /*kwargs*/
     py_common::PyField* field_cinst = nb::inst_ptr<py_common::PyField>(field_pyinst);
     new (field_cinst) py_common::PyField(std::move(field_def), database);
     nb::inst_mark_ready(field_pyinst);
-    return field_pyinst;
-}
 
-PYCOMMON_EXPORT void PyField::py_init(nb::handle self, nb::kwargs kwargs)
-{
-    // Set the values for all subfields
-    auto& field = nb::cast<py_common::PyField&>(self);
-    for (auto kv : kwargs) { field.setattr(nb::cast<nb::str>(kv.first), kv.second); }
+    // Apply the caller's field values here rather than in a separate __init__.
+    // __init__ is repointed to object.__init__ (a fast C no-op), so all
+    // construction work happens in this single __new__ dispatch.
+    for (auto kv : kwargs) { field_cinst->setattr(nb::cast<nb::str>(kv.first), kv.second); }
+    return field_pyinst;
 }
 
 PYCOMMON_EXPORT nb::object PyField::resolve_entry(const FieldLookupEntry& entry) const
