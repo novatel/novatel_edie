@@ -453,10 +453,11 @@ void py_oem::init_message_objects(nb::module_& m)
                 A dictionary representation of the message.
             )doc");
 
-    nb::class_<py_oem::PyMessage, py_common::PyField>(m, "Message")
+    auto message_class = nb::class_<py_oem::PyMessage, py_common::PyField>(m, "Message");
+    message_class
         .def_static(
             "__new__",
-            [](nb::handle cls, [[maybe_unused]] py_oem::PyHeader* header, [[maybe_unused]] nb::kwargs kwargs) {
+            [](nb::handle cls, py_oem::PyHeader* header, nb::kwargs kwargs) {
                 PyMessageDatabase::Ptr database = nb::cast<PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
 
                 if (!database) { throw py_common::FailureException("Constructor could not resolve owning MessageDatabase for this type."); }
@@ -471,23 +472,20 @@ void py_oem::init_message_objects(nb::module_& m)
                 py_oem::PyMessage* message_cinst = nb::inst_ptr<py_oem::PyMessage>(message_pyinst);
                 new (message_cinst) py_oem::PyMessage(database, type_lookup->def, type_lookup->crc);
                 nb::inst_mark_ready(message_pyinst);
+
+                // All construction work happens here rather than in a separate
+                // __init__ (which is repointed to object.__init__, a fast C no-op).
+                if (header != nullptr) { message_cinst->header = *header; }
+                // Override the header's identification fields from the message's own
+                // definition so the encoded message always identifies as itself.
+                message_cinst->header.usMessageId = message_cinst->messageDef->logID;
+                message_cinst->header.uiMessageDefinitionCrc = message_cinst->messageCrc;
+
+                // Set the values for all subfields
+                for (auto kv : kwargs) { message_cinst->setattr(nb::cast<nb::str>(kv.first), kv.second); }
                 return message_pyinst;
             },
             "cls"_a, nb::arg("header") = nb::none(), "kwargs"_a)
-        .def(
-            "__init__",
-            [](nb::handle self, py_oem::PyHeader* header, nb::kwargs kwargs) {
-                auto& m = nb::cast<py_oem::PyMessage&>(self);
-                if (header != nullptr) { m.header = *header; }
-                // Override the header's identification fields from the message's own
-                // definition so the encoded message always identifies as itself.
-                m.header.usMessageId = m.messageDef->logID;
-                m.header.uiMessageDefinitionCrc = m.messageCrc;
-
-                // Set the values for all subfields
-                for (auto kv : kwargs) { m.setattr(nb::cast<nb::str>(kv.first), kv.second); }
-            },
-            nb::arg("header") = nb::none(), "kwargs"_a)
         .def("encode", &py_oem::PyMessage::encode)
         .def("to_ascii", &py_oem::PyMessage::to_ascii)
         .def("to_abbrev_ascii", &py_oem::PyMessage::to_abbrev_ascii)
@@ -514,6 +512,13 @@ void py_oem::init_message_objects(nb::module_& m)
             )doc")
         .def_ro("header", &py_oem::PyMessage::header, "The header of the message.")
         .def_prop_ro("name", &py_oem::PyEncodableField::name, "The type of message it is.");
+
+    // No Python-level __init__: the __new__ above does all construction work.
+    // Repoint __init__ to object.__init__ (a fast C no-op) so nanobind's default
+    // tp_init does not raise and no extra trampoline runs per construction.
+    // Generated message subclasses inherit this slot. (Base PyField already does
+    // the same, but PyMessage overrides __new__, so set it here too.)
+    message_class.attr("__init__") = nb::handle(reinterpret_cast<PyObject*>(&PyBaseObject_Type)).attr("__init__");
 
     auto& familyRegistrations = py_common::GetMessageFamilyRegistrations();
     familyRegistrations["OEM"] = py_common::MessageFamilyRegistration{nb::type<py_oem::PyMessage>(), &py_oem::AllocateDatabaseExtras};

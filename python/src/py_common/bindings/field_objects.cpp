@@ -16,9 +16,9 @@ using namespace novatel::edie;
 
 void py_common::init_field_objects(nb::module_& m)
 {
-    nb::class_<py_common::PyField>(m, "Field", nb::is_weak_referenceable())
+    auto field_class = nb::class_<py_common::PyField>(m, "Field", nb::is_weak_referenceable());
+    field_class
         .def_static("__new__", &py_common::PyField::py_new, "cls"_a, "kwargs"_a)
-        .def("__init__", &py_common::PyField::py_init, "kwargs"_a)
         .def("__getattr__", &py_common::PyField::getattr, "field_name"_a)
         .def("__setattr__", &py_common::PyField::setattr, "field_name"_a, "value"_a)
         .def("__repr__",
@@ -89,6 +89,13 @@ void py_common::init_field_objects(nb::module_& m)
             Returns:
                 A list representation of the field.
             )doc");
+
+    // No Python-level __init__ is defined: py_new does all construction work.
+    // Repoint __init__ to object.__init__ so nanobind's default tp_init (which
+    // raises "no constructor defined") is replaced by a fast C no-op. Because
+    // __new__ is overridden, object.__init__ silently ignores the kwargs it is
+    // also handed. Generated field subclasses inherit this slot.
+    field_class.attr("__init__") = nb::handle(reinterpret_cast<PyObject*>(&PyBaseObject_Type)).attr("__init__");
 
     nb::class_<py_common::PyFieldArray>(m, "FieldArray", nb::is_weak_referenceable())
         .def(nb::init<nb::list>(), "values"_a)
