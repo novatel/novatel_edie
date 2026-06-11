@@ -323,13 +323,6 @@ struct BaseField
         if (!conversion_.empty()) { SetConversion(std::move(conversion_)); }
     }
 
-    BaseField(std::string name_, FIELD_TYPE type_, std::string conversion_, DATA_TYPE eDataTypeName_) : name(std::move(name_)), type(type_)
-    {
-        dataType.name = eDataTypeName_;
-        dataType.length = static_cast<uint16_t>(DataTypeSize(eDataTypeName_));
-        if (!conversion_.empty()) { SetConversion(std::move(conversion_)); }
-    }
-
     virtual ~BaseField() = default;
 
     //----------------------------------------------------------------------------
