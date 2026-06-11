@@ -308,18 +308,30 @@ class TestDatabaseActions:
             assert old_db.is_locked
             assert not new_db.is_locked
 
+<<<<<<< HEAD
         def test_fork_locking(self):
             # Arrange
             old_db = MessageDatabase()
             # Act
             new_db = old_db.fork()
+=======
+        def test_clone_locking(self):
+            # Arrange
+            old_db = MessageDatabase()
+            # Act
+            new_db = old_db.clone()
+>>>>>>> ccf6dd64 (Initial)
             # Assert
             assert old_db.is_locked
             assert not new_db.is_locked
 
         def test_pytype_access_locking(self, json_db: MessageDatabase):
             # Arrange
+<<<<<<< HEAD
             db = json_db.fork()
+=======
+            db = json_db.clone()
+>>>>>>> ccf6dd64 (Initial)
             # Act
             db.get_msg_type("BESTPOS")
             # Assert
@@ -329,7 +341,11 @@ class TestDatabaseActions:
                                                    Commander, RangeDecompressor, RxConfigHandler])
         def test_consumer_locking(self, consumer_cons, json_db: MessageDatabase):
             # Arrange
+<<<<<<< HEAD
             db = json_db.fork()
+=======
+            db = json_db.clone()
+>>>>>>> ccf6dd64 (Initial)
             # Act
             consumer_cons(db)
             # Assert
@@ -394,7 +410,11 @@ class TestDatabaseActions:
     def test_merge(self, json_db: MessageDatabase):
         """Tests that one databases messages can be merged into another."""
         # Arrange
+<<<<<<< HEAD
         oem_minus_bestpos_db = json_db.fork()
+=======
+        oem_minus_bestpos_db = json_db.clone()
+>>>>>>> ccf6dd64 (Initial)
         new_db_with_bestpos = MessageDatabase()
         bestpos_name = "BESTPOS"
         bestpos_msg_def = oem_minus_bestpos_db.get_msg_def(bestpos_name)
@@ -420,8 +440,13 @@ class TestDatabaseActions:
         assert oem_minus_bestpos_db.get_msg_def(other_msg_name) == other_msg_def
         assert oem_minus_bestpos_db.get_msg_type(other_msg_name) is other_msg_type
 
+<<<<<<< HEAD
     def test_fork(self, json_db: MessageDatabase):
         """Tests that a forked database exposes the same messages and types as the original."""
+=======
+    def test_clone(self, json_db: MessageDatabase):
+        """Tests that a cloned database exposes the same messages and types as the original."""
+>>>>>>> ccf6dd64 (Initial)
         # Arrange
         bestpos_name = "BESTPOS"
         bestpos_def = json_db.get_msg_def(bestpos_name)
@@ -431,6 +456,7 @@ class TestDatabaseActions:
         range_type = json_db.get_msg_type(range_name)
 
         # Act
+<<<<<<< HEAD
         forked_db = json_db.fork()
 
         # Assert
@@ -439,11 +465,22 @@ class TestDatabaseActions:
         assert forked_db.get_msg_type(bestpos_name) is bestpos_type
         assert forked_db.get_msg_def(range_name) == range_def
         assert forked_db.get_msg_type(range_name) is range_type
+=======
+        cloned_db = json_db.clone()
+
+        # Assert
+        assert cloned_db is not json_db
+        assert cloned_db.get_msg_def(bestpos_name) == bestpos_def
+        assert cloned_db.get_msg_type(bestpos_name) is bestpos_type
+        assert cloned_db.get_msg_def(range_name) == range_def
+        assert cloned_db.get_msg_type(range_name) is range_type
+>>>>>>> ccf6dd64 (Initial)
 
         assert json_db.get_msg_def(bestpos_name) == bestpos_def
         assert json_db.get_msg_type(bestpos_name) is bestpos_type
         assert json_db.get_msg_def(range_name) == range_def
         assert json_db.get_msg_type(range_name) is range_type
+<<<<<<< HEAD
 
     def test_clone_deprecated(self, json_db: MessageDatabase, caplog):
         """Tests that the deprecated clone() alias warns but still behaves like fork()."""
@@ -463,3 +500,5 @@ class TestDatabaseActions:
         assert len(deprecation_records) == 1
         assert deprecation_records[0].levelno == logging.WARNING
         assert "fork" in deprecation_records[0].message
+=======
+>>>>>>> ccf6dd64 (Initial)
