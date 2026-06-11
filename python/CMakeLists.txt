@@ -153,6 +153,7 @@ add_custom_target(
     common_stubs ALL
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_binding_stubs.py
     --import $<TARGET_FILE_DIR:common_bindings>
+    --pattern-file ${CMAKE_CURRENT_SOURCE_DIR}/common_stubgen_pattern.txt
     -m common_bindings
     -o ${CMAKE_CURRENT_BINARY_DIR}/stubs/common_bindings.pyi
     DEPENDS common_bindings decoders_common

@@ -1,0 +1,15 @@
+common_bindings.MessageDatabase.clone$:
+    \from typing_extensions import deprecated
+    @deprecated("MessageDatabase.clone() is deprecated; use MessageDatabase.fork() instead.")
+    def clone(self) -> "MessageDatabase":
+        \doc
+
+common_bindings.SatelliteId.prn_or_slot$:
+    \from typing_extensions import deprecated
+    @property
+    @deprecated("SatelliteId.prn_or_slot is deprecated; use 'prn' instead.")
+    def prn_or_slot(self) -> int:
+        """DEPRECATED: Use 'prn' field instead."""
+    @prn_or_slot.setter
+    @deprecated("SatelliteId.prn_or_slot is deprecated; use 'prn' instead.")
+    def prn_or_slot(self, arg: int, /) -> None: ...
