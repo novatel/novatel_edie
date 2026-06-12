@@ -16,27 +16,11 @@ using namespace novatel::edie;
 
 void py_common::init_field_objects(nb::module_& m)
 {
-    nb::class_<py_common::PyField>(m, "Field", nb::is_weak_referenceable())
-        .def_static(
-            "__new__",
-            [](nb::handle cls, [[maybe_unused]] nb::kwargs kwargs) {
-                py_common::PyMessageDatabase::Ptr database = nb::cast<py_common::PyMessageDatabase::Ptr>(cls.attr("_owner_db"));
-                if (!database) { throw py_common::FailureException("Constructor could not resolve owning MessageDatabase for this type."); }
-
-                const BaseField* field_def = database->GetFieldTypeLookup(cls);
-                if (!field_def) { throw py_common::FailureException("Constructor could not resolve BaseField for this type."); }
-
-                nb::object field_pyinst = nb::inst_alloc(cls);
-                py_common::PyField* field_cinst = nb::inst_ptr<py_common::PyField>(field_pyinst);
-                new (field_cinst) py_common::PyField(std::vector<FieldContainer>{}, field_def, database);
-                nb::inst_mark_ready(field_pyinst);
-                return field_pyinst;
-            },
-            "cls"_a, "kwargs"_a)
-        .def(
-            "__init__", [](nb::handle self, nb::kwargs kwargs) { throw py_common::FailureException("Field initialization not implemented."); },
-            "kwargs"_a)
+    auto field_class = nb::class_<py_common::PyField>(m, "Field", nb::is_weak_referenceable());
+    field_class
+        .def_static("__new__", &py_common::PyField::py_new, "cls"_a, "kwargs"_a)
         .def("__getattr__", &py_common::PyField::getattr, "field_name"_a)
+        .def("__setattr__", &py_common::PyField::setattr, "field_name"_a, "value"_a)
         .def("__repr__",
              [](nb::handle self) {
                  py_common::PyField* body = nb::inst_ptr<py_common::PyField>(self);
@@ -106,7 +90,16 @@ void py_common::init_field_objects(nb::module_& m)
                 A list representation of the field.
             )doc");
 
+    // No Python-level __init__ is defined: py_new does all construction work.
+    // Repoint __init__ to object.__init__ so nanobind's default tp_init (which
+    // raises "no constructor defined") is replaced by a fast C no-op. Because
+    // __new__ is overridden, object.__init__ silently ignores the kwargs it is
+    // also handed. Generated field subclasses inherit this slot.
+    field_class.attr("__init__") = nb::handle(reinterpret_cast<PyObject*>(&PyBaseObject_Type)).attr("__init__");
+
     nb::class_<py_common::PyFieldArray>(m, "FieldArray", nb::is_weak_referenceable())
+        .def(nb::init<nb::list>(), "values"_a)
         .def("__getitem__", &py_common::PyFieldArray::getitem, "index"_a)
+        .def("__setitem__", &py_common::PyFieldArray::setitem, "index"_a, "value"_a)
         .def("__len__", &py_common::PyFieldArray::len);
 }

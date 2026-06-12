@@ -151,7 +151,7 @@ class StubGenerator:
             else:
                 python_type = f'list[{self.data_type_to_pytype.get(field["dataType"]["name"])}]'
         if field['type'] == 'FIELD_ARRAY':
-            python_type = f'list[{parent}_{field["name"]}_Field]'
+            python_type = f'FieldArray[{parent}_{field["name"]}_Field]'
         if not python_type:
             python_type = 'Any'
         return python_type
@@ -194,6 +194,23 @@ class StubGenerator:
     def _to_hex(self, crc: str) -> str:
         return f'{int(crc):04X}'
 
+    def _get_init_kwarg_type(self, field: dict) -> Union[str, None]:
+        """Get the type hint for a field passed as an __init__ kwarg.
+
+        Returns None if the field can't be set via the constructor / setattr
+        (FIELD_ARRAY, VARIABLE_LENGTH_ARRAY, and non-string FIXED_LENGTH_ARRAY).
+        """
+        if field['type'] == 'SIMPLE':
+            return self.data_type_to_pytype.get(field['dataType']['name'])
+        if field['type'] == 'ENUM':
+            enum_def = self.database['enums_by_id'].get(field['enumID'])
+            return enum_def['name'] if enum_def else 'Any'
+        if field['type'] == 'STRING':
+            return 'str'
+        if field['type'] == 'FIXED_LENGTH_ARRAY' and field.get('conversionString') == r'%s':
+            return 'str'
+        return None
+
     def _convert_message_def(self, message_def: dict) -> str:
         """Create a type hint string for a message definition.
 
@@ -211,8 +228,17 @@ class StubGenerator:
             name = message_def["name"] + "_" + self._to_hex(crc)
             aliases = [message_def["name"]] if crc == message_def["latestMsgDefCrc"] else []
             body_hint = f'class {name}(Message):\n'
-            if not fields:
-                body_hint += '    pass\n\n'
+
+            # __init__ signature: accepts the optional header plus a kwarg for each
+            # settable field. Always emitted (even when there are no fields), so the
+            # class body is never empty.
+            init_params = ['self', 'header: Header | None = None']
+            for field in fields:
+                kwarg_type = self._get_init_kwarg_type(field)
+                if kwarg_type is not None:
+                    init_params.append(f'{field["name"]}: {kwarg_type} = ...')
+            body_hint += f'    def __init__({", ".join(init_params)}) -> None: ...\n\n'
+
             for field in fields:
                 if field['type'] in ('FIELD_ARRAY', 'VARIABLE_LENGTH_ARRAY'):
                     body_hint += f'    @property\n'
@@ -242,7 +268,7 @@ class StubGenerator:
             A string containing type hint stubs for all messages in the database.
         """
         stub_str = 'from typing import Any\n\n'
-        stub_str += 'from novatel_edie import Field, SatelliteId\n'
+        stub_str += 'from novatel_edie import Field, FieldArray, SatelliteId\n'
         stub_str += 'from novatel_edie.oem import Header, Message\n'
         stub_str += 'from novatel_edie.oem.enums import *\n\n'
         stub_str += ('class UNKNOWN(Message):\n'

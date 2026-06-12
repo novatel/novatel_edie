@@ -13,3 +13,18 @@ common_bindings.SatelliteId.prn_or_slot$:
     @prn_or_slot.setter
     @deprecated("SatelliteId.prn_or_slot is deprecated; use 'prn' instead.")
     def prn_or_slot(self, arg: int, /) -> None: ...
+
+common_bindings.__prefix__:
+    from typing import Iterator, Generic, TypeVar
+
+    T = TypeVar("T")
+
+common_bindings.FieldArray$:
+    class FieldArray(Generic[T]):
+        def __init__(self, values: list[T]): ...
+
+        def __iter__(self) -> Iterator[T]: ...
+
+        def __getitem__(self, index: int) -> T: ...
+
+        def __len__(self) -> int: ...
