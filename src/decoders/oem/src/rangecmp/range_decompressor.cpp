@@ -496,7 +496,8 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 
     stRangeMessage_.uiNumberOfObservations = 0;
     uint32_t uiBitOffset = 0;
-    uint32_t uiBytesLeft = *reinterpret_cast<uint32_t*>(pucData_);
+    uint32_t uiBytesLeft;
+    memcpy(&uiBytesLeft, pucData_, sizeof(uint32_t));
     pucData_ += sizeof(uint32_t);
 
     auto systems = ExtractBitfield<uint16_t, SATELLITE_SYSTEMS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
