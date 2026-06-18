@@ -513,6 +513,13 @@ Framer::GetFrame(unsigned char* pucFrameBuffer_, uint32_t uiFrameBufferSize_, Me
         case NovAtelFrameState::WAITING_FOR_NMEA_CRC: {
             if (ucDataByte == '\n')
             {
+                if (uiMyByteCount <= MIN_NMEA_MESSAGE_LENGTH) // Handling the case where the message is too short. e.g. $*<CR> will incorrectly frame.
+                {
+                    uiMyByteCount = NMEA_SYNC_LENGTH;
+                    uiMyExpectedPayloadLength = 0;
+                    ResetState();
+                    continue;
+                }
                 char acCrc[NMEA_CRC_LENGTH + 1];
                 const size_t crcStartIndexInBuffer = uiMyByteCount - NMEA_CRC_LENGTH - 2;
                 for (int32_t i = 0; i < NMEA_CRC_LENGTH; ++i) { acCrc[i] = clInternalFrameBuffer[crcStartIndexInBuffer + i]; }
