@@ -427,5 +427,7 @@ constexpr uint32_t MAX_ABB_ASCII_RESPONSE_LENGTH = MESSAGE_SIZE_MAX;
 //!< NovAtel Docs - NMEA Standard Logs: Explicitly states that the maximum allowable is 82 chars.
 //!< Numerous internal logs break that standard, so we will use 256here as a safety measure.
 constexpr uint32_t MAX_NMEA_MESSAGE_LENGTH = 256; //(82)
+//!< The minimum length of a NMEA message should be 11 bytes. $GPGGA*hh<CR><LF>
+constexpr uint32_t MIN_NMEA_MESSAGE_LENGTH = 11;
 
 #endif
