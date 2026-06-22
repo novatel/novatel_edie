@@ -417,12 +417,10 @@ STATUS RxConfigHandler::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBuf
     if (stMessage_.GetDefinition() == nullptr) { return STATUS::MALFORMED_INPUT; }
     const auto& fieldDefinitions = stMessage_.GetDefinition()->GetMsgDefFromCrc(stHeader_.uiMessageDefinitionCrc).messageOrderedFields;
     if (fieldDefinitions.empty()) { return STATUS::MALFORMED_INPUT; }
-    const auto fieldValue = stMessage_.GetFieldValue(*fieldDefinitions.at(0));
-    const auto* vEmbeddedData = std::get_if<std::vector<uint8_t>>(&fieldValue);
-    if (vEmbeddedData == nullptr) { return STATUS::MALFORMED_INPUT; }
-    std::unique_ptr<unsigned char[]> pucEmbeddedDataBuffer = std::make_unique<unsigned char[]>(vEmbeddedData->size());
+    const auto fieldValue = stMessage_.GetFieldValue<std::vector<uint8_t>>(*fieldDefinitions.at(0));
+    std::unique_ptr<unsigned char[]> pucEmbeddedDataBuffer = std::make_unique<unsigned char[]>(fieldValue.size());
     unsigned char* pucEmbeddedDataPointer = pucEmbeddedDataBuffer.get();
-    for (const auto& value : *vEmbeddedData) { *pucEmbeddedDataPointer++ = value; }
+    for (const auto& value : fieldValue) { *pucEmbeddedDataPointer++ = value; }
 
     eStatus = clMyHeaderDecoder.Decode(pucEmbeddedDataBuffer.get(), stEmbeddedHeader, stEmbeddedMetaData_);
     if (eStatus != STATUS::SUCCESS) { return eStatus; }
