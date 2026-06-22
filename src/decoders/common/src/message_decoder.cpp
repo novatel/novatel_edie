@@ -335,7 +335,13 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
             break;
         }
         case FIELD_TYPE::FIELD_ARRAY: {
-            const auto* subFieldDefinitions = dynamic_cast<const FieldArrayField*>(field.get());
+            auto fieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(field);
+            if (!fieldArrayDef)
+            {
+                SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeBinary(): FIELD_ARRAY definition cast failed");
+                return STATUS::MALFORMED_INPUT;
+            }
+            const auto* subFieldDefinitions = fieldArrayDef.get();
             const uint32_t uiArraySize = GetArrayLength(pucTempStart, ppucLogBuf_, *subFieldDefinitions, clMessageBody_);
 
             if (subFieldDefinitions->fieldInfo.varFieldCount == 0)
@@ -344,13 +350,12 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                 // Store flat FIELD_ARRAY directly as std::vector<std::byte>
                 std::vector<std::byte> flatFieldData(reinterpret_cast<const std::byte*>(*ppucLogBuf_),
                                                      reinterpret_cast<const std::byte*>(*ppucLogBuf_) + totalBytes);
-                clMessageBody_.GetVarFields()[field->index] = std::move(flatFieldData);
+                clMessageBody_.GetVarFields()[field->index] = FixedFieldRegion(std::move(flatFieldData));
                 *ppucLogBuf_ += totalBytes;
             }
             else
             {
-                clMessageBody_.GetVarFields()[field->index] = std::vector<MessageBody>(uiArraySize);
-                auto& vFieldArrayContainer = std::get<std::vector<MessageBody>>(clMessageBody_.GetVarFields()[field->index]);
+                std::vector<MessageBody> vFieldArrayContainer(uiArraySize);
                 for (uint32_t i = 0; i < uiArraySize; ++i)
                 {
                     *ppucLogBuf_ +=
@@ -361,6 +366,7 @@ MessageDecoderBase::DecodeBinary(const FieldInfo& vMsgDefFields_, const unsigned
                                                   uiMessageLength_ - static_cast<uint32_t>(*ppucLogBuf_ - pucTempStart));
                     if (eStatus != STATUS::SUCCESS) { return eStatus; }
                 }
+                clMessageBody_.GetVarFields()[field->index] = std::move(vFieldArrayContainer);
             }
             break;
         }
@@ -659,7 +665,13 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
             *ppcLogBuf_ = result.ptr;
 
             ++*ppcLogBuf_;
-            const auto* subFieldDefinitions = dynamic_cast<const FieldArrayField*>(field.get());
+            auto fieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(field);
+            if (!fieldArrayDef)
+            {
+                SPDLOG_LOGGER_CRITICAL(pclMyLogger, "DecodeAscii()::FIELD_ARRAY: Definition cast failed");
+                return STATUS::MALFORMED_INPUT;
+            }
+            const auto* subFieldDefinitions = fieldArrayDef.get();
 
             if (uiArraySize > subFieldDefinitions->arrayLength)
             {
@@ -667,8 +679,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 return STATUS::MALFORMED_INPUT;
             }
 
-            clMessageBody_.GetVarFields()[field->index] = std::vector<MessageBody>(uiArraySize);
-            auto& pvFieldArrayContainer = std::get<std::vector<MessageBody>>(clMessageBody_.GetVarFields()[field->index]);
+            std::vector<MessageBody> pvFieldArrayContainer(uiArraySize);
 
             for (uint32_t i = 0; i < uiArraySize; ++i)
             {
@@ -676,6 +687,7 @@ STATUS MessageDecoderBase::DecodeAscii(const FieldInfo& vMsgDefFields_, const ch
                 STATUS eStatus = DecodeAscii<Abbreviated>(subFieldDefinitions->fieldInfo, ppcLogBuf_, pvFieldArrayContainer[i], pcBufEnd_);
                 if (eStatus != STATUS::SUCCESS) { return eStatus; }
             }
+            clMessageBody_.GetVarFields()[field->index] = std::move(pvFieldArrayContainer);
             break;
         }
         default:
@@ -845,8 +857,9 @@ STATUS MessageDecoderBase::DecodeJson(const FieldInfo& vMsgDefFields_, simdjson:
             auto error = clField.get(array);
             if (error) { return STATUS::MALFORMED_INPUT; }
 
-            const auto* subFieldDefinitions = dynamic_cast<const FieldArrayField*>(field.get());
-            if (!subFieldDefinitions) { return STATUS::MALFORMED_INPUT; }
+            auto fieldArrayDef = std::dynamic_pointer_cast<const FieldArrayField>(field);
+            if (!fieldArrayDef) { return STATUS::MALFORMED_INPUT; }
+            const auto* subFieldDefinitions = fieldArrayDef.get();
 
             std::vector<MessageBody> vFieldArrayContainer;
             vFieldArrayContainer.reserve(array.size());
