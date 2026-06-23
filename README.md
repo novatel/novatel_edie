@@ -338,7 +338,7 @@ This will generate a header file called `novatel_message_definitions.hpp` in you
 **⚠️ Disadvantages:**
 - Only works with the flattened binary format
 - Requires running Python script to generate structs
-- Uses `reinterpret_cast` (undefined behaviour if you cast to the wrong type)
+- No feedback if you copy data into the wrong message type
 
 **Example:**
 
@@ -355,7 +355,8 @@ if (eDecoderStatus == STATUS::SUCCESS)
     pucFrameBuffer += stMetaData.uiHeaderLength;
 
     if (stMetaData.usMessageId == 42/*BESTPOS*/) {
-        auto bestposLog = reinterpret_cast<struct BESTPOS*>(pucFrameBuffer);
+        struct BESTPOS bestposLog;
+        std::memcpy(&bestposLog, pucFrameBuffer, sizeof(struct BESTPOS));
         latitude = bestposLog->latitude;
     }
 }
