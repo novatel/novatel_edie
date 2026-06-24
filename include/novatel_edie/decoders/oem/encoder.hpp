@@ -59,15 +59,15 @@ class Encoder : public EncoderBase<Encoder>
     [[nodiscard]] static bool EncodeBinaryShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_);
 
     // Encode ascii
-    [[nodiscard]] bool EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
-    [[nodiscard]] bool EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
-    [[nodiscard]] bool EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_,
+    [[nodiscard]] bool EncodeAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
+    [[nodiscard]] bool EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
+    [[nodiscard]] bool EncodeAbbrevAsciiHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_,
                                                bool bIsEmbedded_ = false) const;
-    [[nodiscard]] bool EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
+    [[nodiscard]] bool EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
 
     // Encode JSON
-    [[nodiscard]] bool EncodeJsonHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
-    [[nodiscard]] bool EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, unsigned char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
+    [[nodiscard]] bool EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
+    [[nodiscard]] bool EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const;
 
   public:
     //----------------------------------------------------------------------------
