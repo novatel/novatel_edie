@@ -175,8 +175,7 @@ PYCOMMON_EXPORT nb::object py_common::PyField::convert_field(FieldContainer& fie
         else
         {
             // Handle Fixed or Variable-Length Arrays
-            // TODO: This check should be for 'isString' but changing it could break a lot of user code
-            if (field.fieldDef->conversion == "%s")
+            if (field.fieldDef->isString)
             {
                 // The array is actually a string
                 std::string str;

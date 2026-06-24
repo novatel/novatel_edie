@@ -1,5 +1,7 @@
 #include "py_oem/py_message_objects.hpp"
 
+#include <limits>
+#include <type_traits>
 #include <variant>
 
 #include <nanobind/stl/bind_vector.h>
@@ -24,6 +26,31 @@ using namespace novatel::edie::oem;
 using namespace novatel::edie::py_common;
 
 NB_MAKE_OPAQUE(std::vector<FieldContainer>);
+
+namespace {
+//! Returns true if the raw value corresponds to a defined TIME_STATUS enumerator.
+bool IsValidTimeStatus(uint32_t value)
+{
+    if (value > std::numeric_limits<std::underlying_type_t<TIME_STATUS>>::max()) { return false; }
+    switch (static_cast<TIME_STATUS>(value))
+    {
+    case TIME_STATUS::UNKNOWN:
+    case TIME_STATUS::APPROXIMATE:
+    case TIME_STATUS::COARSEADJUSTING:
+    case TIME_STATUS::COARSE:
+    case TIME_STATUS::COARSESTEERING:
+    case TIME_STATUS::FREEWHEELING:
+    case TIME_STATUS::FINEADJUSTING:
+    case TIME_STATUS::FINE:
+    case TIME_STATUS::FINEBACKUPSTEERING:
+    case TIME_STATUS::FINESTEERING:
+    case TIME_STATUS::SATTIME:
+    case TIME_STATUS::EXTERN:
+    case TIME_STATUS::EXACT: return true;
+    default: return false;
+    }
+}
+} // namespace
 
 #pragma region PyHeader Methods
 
@@ -362,14 +389,8 @@ void py_oem::init_header_objects(nb::module_& m)
         .def_prop_rw(
             "time_status",
             [](const py_oem::PyHeader& self) -> nb::object {
-                try
-                {
-                    return nb::cast(static_cast<TIME_STATUS>(self.uiTimeStatus));
-                }
-                catch (const std::exception&)
-                {
-                    return nb::cast(self.uiTimeStatus);
-                }
+                if (IsValidTimeStatus(self.uiTimeStatus)) { return nb::cast(static_cast<TIME_STATUS>(self.uiTimeStatus)); }
+                return nb::cast(self.uiTimeStatus);
             },
             [](py_oem::PyHeader& self, uint32_t value) { self.uiTimeStatus = value; }, nb::sig("def time_status(self) -> TIME_STATUS | int"),
             "The quality of the GPS reference time.")
