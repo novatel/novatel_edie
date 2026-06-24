@@ -10,21 +10,17 @@ from novatel_edie.oem import RECEIVER_STATUS_VERSION
 @pytest.mark.parametrize('kwargs', [
     pytest.param({}, id='defaults'),
     pytest.param({
-        'message_id': 42,
         'message_type': 0x42,
         'port_address': 0xC0,
-        'length': 128,
         'sequence': 7,
         'idle_time': 10,
         'time_status': TIME_STATUS.FINESTEERING,
         'week': 2300,
         'milliseconds': 345600.0,
         'receiver_status': 0x12345678,
-        'message_definition_crc': 0xDEADBEEF,
         'receiver_sw_version': 1234,
     }, id='all_fields'),
     pytest.param({
-        'message_id': 7,
         'port_address': 0xAB,
         'time_status': TIME_STATUS.COARSE,
         'week': 1234,
@@ -90,6 +86,24 @@ class TestHeaderFields:
         for key, value in kwargs.items():
             setattr(h, key, value)
         self._assert_fields(h, expected)
+
+
+@pytest.mark.parametrize('field', ['message_id', 'message_definition_crc', 'length'])
+class TestReadOnlyFields:
+    """message_id, message_definition_crc, and length are derived from the
+    message definition/encoding and must not be settable on a Header."""
+
+    def test_default_is_zero(self, field: str):
+        assert getattr(oem.Header(), field) == 0
+
+    def test_not_a_constructor_kwarg(self, field: str):
+        with pytest.raises(TypeError):
+            oem.Header(**{field: 1})
+
+    def test_cannot_setattr(self, field: str):
+        h = oem.Header()
+        with pytest.raises(AttributeError):
+            setattr(h, field, 1)
 
 
 class TestTimeStatus:

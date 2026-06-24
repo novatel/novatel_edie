@@ -344,16 +344,14 @@ void py_oem::init_header_objects(nb::module_& m)
     nb::class_<py_oem::PyHeader>(m, "Header")
         .def(
             "__init__",
-            [](py_oem::PyHeader* self, uint16_t message_id, std::variant<py_oem::PyMessageTypeField, uint8_t> message_type, uint32_t port_address,
-               uint16_t length, uint16_t sequence, uint8_t idle_time, uint32_t time_status, uint16_t week, double milliseconds,
-               std::variant<py_oem::PyRecieverStatus, uint32_t> receiver_status, uint32_t message_definition_crc, uint16_t receiver_sw_version) {
+            [](py_oem::PyHeader* self, std::variant<py_oem::PyMessageTypeField, uint8_t> message_type, uint32_t port_address, uint16_t sequence,
+               uint8_t idle_time, uint32_t time_status, uint16_t week, double milliseconds,
+               std::variant<py_oem::PyRecieverStatus, uint32_t> receiver_status, uint16_t receiver_sw_version) {
                 new (self) py_oem::PyHeader{};
-                self->usMessageId = message_id;
                 self->ucMessageType = std::holds_alternative<py_oem::PyMessageTypeField>(message_type)
                                           ? std::get<py_oem::PyMessageTypeField>(message_type).value
                                           : std::get<uint8_t>(message_type);
                 self->uiPortAddress = port_address;
-                self->usLength = length;
                 self->usSequence = sequence;
                 self->ucIdleTime = idle_time;
                 self->uiTimeStatus = time_status;
@@ -362,19 +360,18 @@ void py_oem::init_header_objects(nb::module_& m)
                 self->uiReceiverStatus = std::holds_alternative<py_oem::PyRecieverStatus>(receiver_status)
                                              ? std::get<py_oem::PyRecieverStatus>(receiver_status).value
                                              : std::get<uint32_t>(receiver_status);
-                self->uiMessageDefinitionCrc = message_definition_crc;
                 self->usReceiverSwVersion = receiver_sw_version;
             },
-            nb::sig("def __init__(self, *, message_id: int = 0, message_type: MessageType | int = 0, port_address: int = 0, length: int = 0, "
+            nb::sig("def __init__(self, *, message_type: MessageType | int = 0, port_address: int = 0, "
                     "sequence: int = 0, idle_time: int = 0, "
                     "time_status: common_bindings.TIME_STATUS | int = common_bindings.TIME_STATUS.UNKNOWN, "
                     "week: int = 0, milliseconds: float = 0.0, receiver_status: RecieverStatus | int = 0, "
-                    "message_definition_crc: int = 0, receiver_sw_version: int = 0) -> None"),
-            nb::kw_only(), "message_id"_a = uint16_t{0}, "message_type"_a = uint8_t{0}, "port_address"_a = uint32_t{0}, "length"_a = uint16_t{0},
+                    "receiver_sw_version: int = 0) -> None"),
+            nb::kw_only(), "message_type"_a = uint8_t{0}, "port_address"_a = uint32_t{0},
             "sequence"_a = uint16_t{0}, "idle_time"_a = uint8_t{0}, "time_status"_a = static_cast<uint32_t>(TIME_STATUS::UNKNOWN),
-            "week"_a = uint16_t{0}, "milliseconds"_a = double{0.0}, "receiver_status"_a = uint32_t{0}, "message_definition_crc"_a = uint32_t{0},
+            "week"_a = uint16_t{0}, "milliseconds"_a = double{0.0}, "receiver_status"_a = uint32_t{0},
             "receiver_sw_version"_a = uint16_t{0})
-        .def_rw("message_id", &py_oem::PyHeader::usMessageId, "The Message ID number.")
+        .def_ro("message_id", &py_oem::PyHeader::usMessageId, "The Message ID number.")
         .def_prop_rw(
             "message_type", &py_oem::PyHeader::GetPyMessageType,
             [](py_oem::PyHeader& self, std::variant<py_oem::PyMessageTypeField, uint8_t> value) {
@@ -383,7 +380,7 @@ void py_oem::init_header_objects(nb::module_& m)
             },
             "Information regarding the type of the message.")
         .def_rw("port_address", &py_oem::PyHeader::uiPortAddress, "The port the message was sent from.")
-        .def_rw("length", &py_oem::PyHeader::usLength, "The length of the message. Will be 0 if unknown.")
+        .def_ro("length", &py_oem::PyHeader::usLength, "The length of the message. Will be 0 if unknown.")
         .def_rw("sequence", &py_oem::PyHeader::usSequence, "Number of remaning related messages following this one. Will be 0 for most messages.")
         .def_rw("idle_time", &py_oem::PyHeader::ucIdleTime, "Time that the processor is idle. Divide by two to get the percentage.")
         .def_prop_rw(
@@ -403,7 +400,7 @@ void py_oem::init_header_objects(nb::module_& m)
                                                                                                 : std::get<uint32_t>(value);
             },
             "32-bits representing the status of various hardware and software components of the receiver.")
-        .def_rw("message_definition_crc", &py_oem::PyHeader::uiMessageDefinitionCrc,
+        .def_ro("message_definition_crc", &py_oem::PyHeader::uiMessageDefinitionCrc,
                 "A value for validating the message definition used for decoding.")
         .def_rw("receiver_sw_version", &py_oem::PyHeader::usReceiverSwVersion, "A value (0 - 65535) representing the receiver software build number.")
         .def(
