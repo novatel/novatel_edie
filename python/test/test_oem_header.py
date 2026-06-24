@@ -267,6 +267,19 @@ class TestMessageType:
         mt = oem.MessageType(value)
         assert mt.raw_value == value
 
+    @pytest.mark.parametrize('value', [0, 0x1, 0x42, 0xFF])
+    def test_setter_accepts_int(self, value: int):
+        """An int implicitly converts to MessageType when assigning the property."""
+        h = oem.Header()
+        h.message_type = value
+        assert h.message_type.raw_value == value
+
+    @pytest.mark.parametrize('value', [0, 0x1, 0x42, 0xFF])
+    def test_setter_accepts_message_type(self, value: int):
+        h = oem.Header()
+        h.message_type = oem.MessageType(value)
+        assert h.message_type.raw_value == value
+
     @pytest.mark.parametrize('is_response,msg_format,sibling_id', [
         (False, MESSAGE_FORMAT.BINARY, 0),
         (True, MESSAGE_FORMAT.ASCII, 5),

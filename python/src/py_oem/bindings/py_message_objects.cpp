@@ -308,8 +308,7 @@ void py_oem::init_header_objects(nb::module_& m)
 
     nb::class_<py_oem::PyMessageTypeField>(m, "MessageType",
                                            "A message field which provides information about its source, format, and whether it is a response.")
-        .def(
-            "__init__", [](py_oem::PyMessageTypeField* self, uint8_t value) { new (self) py_oem::PyMessageTypeField(value); }, "value"_a)
+        .def(nb::init_implicit<uint8_t>())
         .def(
             "__init__",
             [](py_oem::PyMessageTypeField* self, bool is_response, MESSAGE_FORMAT format, uint8_t sibling_id) {
@@ -344,13 +343,11 @@ void py_oem::init_header_objects(nb::module_& m)
     nb::class_<py_oem::PyHeader>(m, "Header")
         .def(
             "__init__",
-            [](py_oem::PyHeader* self, std::variant<py_oem::PyMessageTypeField, uint8_t> message_type, uint32_t port_address, uint16_t sequence,
-               uint8_t idle_time, uint32_t time_status, uint16_t week, double milliseconds,
-               std::variant<py_oem::PyRecieverStatus, uint32_t> receiver_status, uint16_t receiver_sw_version) {
+            [](py_oem::PyHeader* self, py_oem::PyMessageTypeField message_type, uint32_t port_address, uint16_t sequence, uint8_t idle_time,
+               uint32_t time_status, uint16_t week, double milliseconds, std::variant<py_oem::PyRecieverStatus, uint32_t> receiver_status,
+               uint16_t receiver_sw_version) {
                 new (self) py_oem::PyHeader{};
-                self->ucMessageType = std::holds_alternative<py_oem::PyMessageTypeField>(message_type)
-                                          ? std::get<py_oem::PyMessageTypeField>(message_type).value
-                                          : std::get<uint8_t>(message_type);
+                self->ucMessageType = message_type.value;
                 self->uiPortAddress = port_address;
                 self->usSequence = sequence;
                 self->ucIdleTime = idle_time;
@@ -367,17 +364,14 @@ void py_oem::init_header_objects(nb::module_& m)
                     "time_status: common_bindings.TIME_STATUS | int = common_bindings.TIME_STATUS.UNKNOWN, "
                     "week: int = 0, milliseconds: float = 0.0, receiver_status: RecieverStatus | int = 0, "
                     "receiver_sw_version: int = 0) -> None"),
-            nb::kw_only(), "message_type"_a = uint8_t{0}, "port_address"_a = uint32_t{0},
+            nb::kw_only(), "message_type"_a = py_oem::PyMessageTypeField(0), "port_address"_a = uint32_t{0},
             "sequence"_a = uint16_t{0}, "idle_time"_a = uint8_t{0}, "time_status"_a = static_cast<uint32_t>(TIME_STATUS::UNKNOWN),
             "week"_a = uint16_t{0}, "milliseconds"_a = double{0.0}, "receiver_status"_a = uint32_t{0},
             "receiver_sw_version"_a = uint16_t{0})
         .def_ro("message_id", &py_oem::PyHeader::usMessageId, "The Message ID number.")
         .def_prop_rw(
             "message_type", &py_oem::PyHeader::GetPyMessageType,
-            [](py_oem::PyHeader& self, std::variant<py_oem::PyMessageTypeField, uint8_t> value) {
-                self.ucMessageType = std::holds_alternative<py_oem::PyMessageTypeField>(value) ? std::get<py_oem::PyMessageTypeField>(value).value
-                                                                                               : std::get<uint8_t>(value);
-            },
+            [](py_oem::PyHeader& self, py_oem::PyMessageTypeField value) { self.ucMessageType = value.value; },
             "Information regarding the type of the message.")
         .def_rw("port_address", &py_oem::PyHeader::uiPortAddress, "The port the message was sent from.")
         .def_ro("length", &py_oem::PyHeader::usLength, "The length of the message. Will be 0 if unknown.")
