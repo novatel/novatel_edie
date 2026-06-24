@@ -190,7 +190,7 @@ struct PyMessageTypeField
 //============================================================================
 struct PyHeader : public oem::IntermediateHeader
 {
-    HEADER_FORMAT format;
+    HEADER_FORMAT format{HEADER_FORMAT::UNKNOWN};
 
     PyMessageTypeField GetPyMessageType() { return PyMessageTypeField(ucMessageType); }
     PyRecieverStatus GetRecieverStatus() { return PyRecieverStatus(uiReceiverStatus); }

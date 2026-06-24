@@ -126,6 +126,22 @@ class TestRoundTrip:
         assert parsed.longitude == pytest.approx(-123.456, abs=1e-6)
         assert parsed.orthometric_height == pytest.approx(42.5, abs=1e-6)
 
+    def test_binary_header_length_matches_encoded_data(self):
+        """Ensures that header length gets set correctly on constructed then encoded messages."""
+        CRC_LENGTH = 4
+        m = BESTPOS(latitude=49.123, longitude=-123.456, orthometric_height=42.5)
+        encoded = m.encode(ENCODE_FORMAT.BINARY)
+        raw = bytes(encoded.message)
+
+        parser = oem.Parser()
+        parser.write(raw)
+        parsed = parser.read()
+        assert isinstance(parsed, BESTPOS)
+
+        header_length = len(bytes(encoded.header))
+        assert parsed.header.length == len(raw) - header_length - CRC_LENGTH
+        assert len(raw) == header_length + parsed.header.length + CRC_LENGTH
+
 
 class TestVariableLengthArray:
     """Variable-length array setter on PASSCOM1."""
