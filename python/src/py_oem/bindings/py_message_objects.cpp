@@ -373,7 +373,7 @@ void py_oem::init_header_objects(nb::module_& m)
             },
             [](py_oem::PyHeader& self, uint32_t value) { self.uiTimeStatus = value; }, nb::sig("def time_status(self) -> TIME_STATUS | int"),
             "The quality of the GPS reference time.")
-        .def_rw("week", &py_oem::PyHeader::usWeek, "GPS reference wekk number.")
+        .def_rw("week", &py_oem::PyHeader::usWeek, "GPS reference week number.")
         .def_rw("milliseconds", &py_oem::PyHeader::dMilliseconds, "Milliseconds from the beginning of the GPS reference week.")
         .def_prop_rw(
             "receiver_status", &py_oem::PyHeader::GetRecieverStatus,
