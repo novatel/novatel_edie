@@ -2243,19 +2243,15 @@ class DecodeEncodeTest : public ::testing::Test
         ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, pucLog1, aucLog1EncodeBuffer, sizeof(aucLog1EncodeBuffer), stMetaData1, stMessageData1));
         ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, pucLog2, aucLog2EncodeBuffer, sizeof(aucLog2EncodeBuffer), stMetaData2, stMessageData2));
 
-        Oem4BinaryHeader stHeader1;
-        std::memcpy(&stHeader1, stMessageData1.pucMessageHeader, sizeof(Oem4BinaryHeader));
-        T2 stHeader2;
-        std::memcpy(&stHeader2, stMessageData2.pucMessageHeader, sizeof(T2));
+        auto stHeader1 = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData1.pucMessageHeader);
+        auto stHeader2 = LoadValueFromBuffer<T2>(stMessageData2.pucMessageHeader);
         ASSERT_EQ(stHeader1, stHeader2);
 
         // we shouldn't have to do this. should make structs for the log types tested with T != void
         if constexpr (!std::is_same<T, void>())
         {
-            T stLog1;
-            std::memcpy(&stLog1, stMessageData1.pucMessageBody, sizeof(T));
-            T stLog2;
-            std::memcpy(&stLog2, stMessageData2.pucMessageBody, sizeof(T));
+            auto stLog1 = LoadValueFromBuffer<T>(stMessageData1.pucMessageBody);
+            auto stLog2 = LoadValueFromBuffer<T>(stMessageData2.pucMessageBody);
             ASSERT_EQ(stLog1, stLog2);
         }
     }
@@ -2375,8 +2371,7 @@ TEST_F(DecodeEncodeTest, ASCII_LOG_ROUNDTRIP_GLOEPHEM)
 
     ASSERT_EQ(0, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucEncodeBuffer, sizeof(acEncodeBuffer), stMetaData, stMessageData));
 
-    GLOEPHEMERIS stGloEphemeris;
-    std::memcpy(&stGloEphemeris, stMessageData.pucMessageBody, sizeof(GLOEPHEMERIS));
+    auto stGloEphemeris = LoadValueFromBuffer<GLOEPHEMERIS>(stMessageData.pucMessageBody);
     ASSERT_EQ(stGloEphemeris.sloto, 51);
     ASSERT_EQ(stGloEphemeris.freqo, 0);
     ASSERT_EQ(stGloEphemeris.sat_type, 1);
@@ -2626,8 +2621,7 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_BESTPOS)
 
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
 
-    Oem4BinaryHeader stHeader;
-    std::memcpy(&stHeader, stMessageData.pucMessageHeader, sizeof(Oem4BinaryHeader));
+    auto stHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
     ASSERT_EQ(stHeader.ucSync1, OEM4_BINARY_SYNC1);
     ASSERT_EQ(stHeader.ucSync2, OEM4_BINARY_SYNC2);
     ASSERT_EQ(stHeader.ucSync3, OEM4_BINARY_SYNC3);
@@ -2646,8 +2640,7 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_BESTPOS)
     ASSERT_EQ(stHeader.usReceiverSwVersion, 32768);
 
     // SOL_COMPUTED SINGLE 51.15043711386 -114.03067767000 1097.2099 -17.0000 WGS84 0.9038 0.8534 1.7480 \"\" 0.000 0.000 35 30 30 30 00 06 39 33\r\n"
-    BESTPOS stLogBody;
-    std::memcpy(&stLogBody, stMessageData.pucMessageBody, sizeof(BESTPOS));
+    auto stLogBody = LoadValueFromBuffer<BESTPOS>(stMessageData.pucMessageBody);
     ASSERT_EQ(stLogBody.solution_status, 0);
     ASSERT_EQ(stLogBody.position_type, 16);
     ASSERT_EQ(stLogBody.latitude, 51.15043711386);
@@ -2683,8 +2676,7 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_GLOEPHEMA)
 
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
 
-    Oem4BinaryHeader stLogHeader;
-    std::memcpy(&stLogHeader, stMessageData.pucMessageHeader, sizeof(Oem4BinaryHeader));
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
     ASSERT_EQ(stLogHeader.ucSync1, OEM4_BINARY_SYNC1);
     ASSERT_EQ(stLogHeader.ucSync2, OEM4_BINARY_SYNC2);
     ASSERT_EQ(stLogHeader.ucSync3, OEM4_BINARY_SYNC3);
@@ -2702,8 +2694,7 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_GLOEPHEMA)
     ASSERT_EQ(stLogHeader.usMsgDefCrc, 0x8d29);
     ASSERT_EQ(stLogHeader.usReceiverSwVersion, 32768);
 
-    GLOEPHEMERIS stLogBody;
-    std::memcpy(&stLogBody, stMessageData.pucMessageBody, sizeof(GLOEPHEMERIS));
+    auto stLogBody = LoadValueFromBuffer<GLOEPHEMERIS>(stMessageData.pucMessageBody);
     ASSERT_EQ(stLogBody.sloto, 51);
     ASSERT_EQ(stLogBody.freqo, 0);
     ASSERT_EQ(stLogBody.sat_type, 1);
@@ -2750,12 +2741,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_PORTSTATSB)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(1356U, stMessageData.uiMessageLength);
 
-    Oem4BinaryHeader stLogHeader;
-    std::memcpy(&stLogHeader, stMessageData.pucMessageHeader, sizeof(Oem4BinaryHeader));
-    PORTSTATS stLogBody;
-    std::memcpy(&stLogBody, stMessageData.pucMessageBody, sizeof(PORTSTATS));
-    Oem4BinaryHeader stTestLogHeader;
-    std::memcpy(&stTestLogHeader, aucLog, sizeof(Oem4BinaryHeader));
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    auto stLogBody = LoadValueFromBuffer<PORTSTATS>(stMessageData.pucMessageBody);
+    auto stTestLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(aucLog);
     stTestLogHeader.usLength = 1356 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
     ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -2797,12 +2785,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_PSRDOPB)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(1360U, stMessageData.uiMessageLength);
 
-    Oem4BinaryHeader stLogHeader;
-    std::memcpy(&stLogHeader, stMessageData.pucMessageHeader, sizeof(Oem4BinaryHeader));
-    PSRDOP stLogBody;
-    std::memcpy(&stLogBody, stMessageData.pucMessageBody, sizeof(PSRDOP));
-    Oem4BinaryHeader stTestLogHeader;
-    std::memcpy(&stTestLogHeader, aucLog, sizeof(Oem4BinaryHeader));
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    auto stLogBody = LoadValueFromBuffer<PSRDOP>(stMessageData.pucMessageBody);
+    auto stTestLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(aucLog);
     stTestLogHeader.usLength = 1360 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
     ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -2833,12 +2818,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VALIDMODELSB)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(708U, stMessageData.uiMessageLength);
 
-    Oem4BinaryHeader stLogHeader;
-    std::memcpy(&stLogHeader, stMessageData.pucMessageHeader, sizeof(Oem4BinaryHeader));
-    VALIDMODELS stLogBody;
-    std::memcpy(&stLogBody, stMessageData.pucMessageBody, sizeof(VALIDMODELS));
-    Oem4BinaryHeader stTestLogHeader;
-    std::memcpy(&stTestLogHeader, aucLog, sizeof(Oem4BinaryHeader));
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    auto stLogBody = LoadValueFromBuffer<VALIDMODELS>(stMessageData.pucMessageBody);
+    auto stTestLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(aucLog);
     stTestLogHeader.usLength = 708 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
     ASSERT_EQ(stTestLogHeader, stLogHeader);
 
@@ -2876,8 +2858,7 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSION)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-    Oem4BinaryHeader stLogHeader;
-    std::memcpy(&stLogHeader, stMessageData.pucMessageHeader, sizeof(Oem4BinaryHeader));
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
     ASSERT_EQ(stLogHeader.ucSync1, OEM4_BINARY_SYNC1);
     ASSERT_EQ(stLogHeader.ucSync2, OEM4_BINARY_SYNC2);
     ASSERT_EQ(stLogHeader.ucSync3, OEM4_BINARY_SYNC3);
@@ -2895,8 +2876,7 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSION)
     ASSERT_EQ(stLogHeader.usMsgDefCrc, 0x3681);
     ASSERT_EQ(stLogHeader.usReceiverSwVersion, 32768);
 
-    VERSION stLogBody;
-    std::memcpy(&stLogBody, stMessageData.pucMessageBody, sizeof(VERSION));
+    auto stLogBody = LoadValueFromBuffer<VERSION>(stMessageData.pucMessageBody);
 
     // Check the populated parts of the log
     ASSERT_EQ(4U, stLogBody.versions_arraylength);
@@ -2955,8 +2935,7 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONA)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-    Oem4BinaryHeader stLogHeader;
-    std::memcpy(&stLogHeader, stMessageData.pucMessageHeader, sizeof(Oem4BinaryHeader));
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
     ASSERT_EQ(stLogHeader.ucSync1, OEM4_BINARY_SYNC1);
     ASSERT_EQ(stLogHeader.ucSync2, OEM4_BINARY_SYNC2);
     ASSERT_EQ(stLogHeader.ucSync3, OEM4_BINARY_SYNC3);
@@ -2974,8 +2953,7 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONA)
     ASSERT_EQ(stLogHeader.usMsgDefCrc, 0x3681);
     ASSERT_EQ(stLogHeader.usReceiverSwVersion, 16248);
 
-    VERSION stLogBody;
-    std::memcpy(&stLogBody, stMessageData.pucMessageBody, sizeof(VERSION));
+    auto stLogBody = LoadValueFromBuffer<VERSION>(stMessageData.pucMessageBody);
 
     // Check the populated parts of the log
     ASSERT_EQ(8U, stLogBody.versions_arraylength);
@@ -3028,12 +3006,9 @@ TEST_F(DecodeEncodeTest, FLAT_BINARY_LOG_DECODE_VERSIONB)
     ASSERT_EQ(DecodeEncodeTest::SUCCESS, DecodeEncode(ENCODE_FORMAT::FLATTENED_BINARY, aucLog, pucOutBuf, MAX_BINARY_MESSAGE_LENGTH, stMetaData, stMessageData));
     ASSERT_EQ(2196U, stMessageData.uiMessageLength);
 
-    Oem4BinaryHeader stLogHeader;
-    std::memcpy(&stLogHeader, stMessageData.pucMessageHeader, sizeof(Oem4BinaryHeader));
-    VERSION stLogBody;
-    std::memcpy(&stLogBody, stMessageData.pucMessageBody, sizeof(VERSION));
-    Oem4BinaryHeader stTestLogHeader;
-    std::memcpy(&stTestLogHeader, aucLog, sizeof(Oem4BinaryHeader));
+    auto stLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData.pucMessageHeader);
+    auto stLogBody = LoadValueFromBuffer<VERSION>(stMessageData.pucMessageBody);
+    auto stTestLogHeader = LoadValueFromBuffer<Oem4BinaryHeader>(aucLog);
     stTestLogHeader.usLength = 2196 - (OEM4_BINARY_HEADER_LENGTH + OEM4_BINARY_CRC_LENGTH); // Change the length so header comparison passes
     ASSERT_EQ(stTestLogHeader, stLogHeader);
 

@@ -602,15 +602,13 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
         // TODO: this block of code below is what's blocking us from moving this function to common (can solve this with dynamic casting or CRTP?)
         if (eHeaderFormat_ == HEADER_FORMAT::ASCII || eHeaderFormat_ == HEADER_FORMAT::BINARY || eHeaderFormat_ == HEADER_FORMAT::ABB_ASCII)
         {
-            Oem4BinaryHeader stHeader;
-            std::memcpy(&stHeader, stMessageData_.pucMessageHeader, sizeof(Oem4BinaryHeader));
+            auto stHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData_.pucMessageHeader);
             stHeader.usLength = static_cast<uint16_t>(pucTempBuffer - *ppucBuffer_);
             std::memcpy(stMessageData_.pucMessageHeader, &stHeader, sizeof(Oem4BinaryHeader));
         }
         else
         {
-            Oem4BinaryShortHeader stShortHeader;
-            std::memcpy(&stShortHeader, stMessageData_.pucMessageHeader, sizeof(Oem4BinaryShortHeader));
+            auto stShortHeader = LoadValueFromBuffer<Oem4BinaryShortHeader>(stMessageData_.pucMessageHeader);
             stShortHeader.ucLength = static_cast<uint8_t>(pucTempBuffer - *ppucBuffer_);
             std::memcpy(stMessageData_.pucMessageHeader, &stShortHeader, sizeof(Oem4BinaryShortHeader));
         }
