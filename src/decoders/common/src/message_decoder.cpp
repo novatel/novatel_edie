@@ -413,10 +413,10 @@ void MessageDecoderBase::DecodeBinaryField(BaseField::ConstPtr&& pstMessageDataT
 {
     switch (pstMessageDataType_->dataType.name)
     {
-    case DATA_TYPE::BOOL: vIntermediateFormat_.emplace_back(static_cast<const bool>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::BOOL: vIntermediateFormat_.emplace_back(static_cast<bool>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::HEXBYTE: [[fallthrough]];
-    case DATA_TYPE::UCHAR: vIntermediateFormat_.emplace_back(static_cast<const uint8_t>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
-    case DATA_TYPE::CHAR: vIntermediateFormat_.emplace_back(static_cast<const int8_t>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::UCHAR: vIntermediateFormat_.emplace_back(static_cast<uint8_t>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
+    case DATA_TYPE::CHAR: vIntermediateFormat_.emplace_back(static_cast<int8_t>(**ppucLogBuf_), std::move(pstMessageDataType_)); break;
     case DATA_TYPE::USHORT: {
         uint16_t uiVal;
         std::memcpy(&uiVal, *ppucLogBuf_, sizeof(uint16_t));
