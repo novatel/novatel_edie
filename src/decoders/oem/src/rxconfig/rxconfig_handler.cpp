@@ -340,10 +340,7 @@ STATUS RxConfigHandler::EncodeAscii(unsigned char* const* ppucBuffer_, uint32_t 
     // Encode regular CRC
     unsigned char* pucStartPoint = *ppucBuffer_ + 1; // Skip the first byte, which is the sync byte
     uiCrc = CalculateBlockCrc32(pucStartPoint, pucTempEncodeBuffer - pucStartPoint);
-    if (!CopyAllToBuffer(&pucTempEncodeBuffer, uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n"))
-    {
-        return STATUS::BUFFER_FULL;
-    }
+    if (!CopyAllToBuffer(&pucTempEncodeBuffer, uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n")) { return STATUS::BUFFER_FULL; }
 
     // -- Resolve Message Lengths --
     stMessageData_.uiMessageBodyLength = pucTempEncodeBuffer - stMessageData_.pucMessageBody;

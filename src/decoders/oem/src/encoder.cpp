@@ -374,7 +374,7 @@ bool Encoder::EncodeAsciiShortHeader(const IntermediateHeader& stInterHeader_, c
     sMsgName.push_back(uiResponse != 0U ? 'R' : 'A'); // Append 'A' for ascii, or 'R' for ascii response
     AppendSiblingId(sMsgName, stInterHeader_);
 
-    return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_FIELD_SEPARATOR,                                 //
+    return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ASCII_FIELD_SEPARATOR,                                  //
                                     std::string_view(sMsgName),                                                            //
                                     stInterHeader_.usWeek,                                                                 //
                                     FloatValue<double>{stInterHeader_.dMilliseconds / 1000.0, std::chars_format::fixed, 3} //
@@ -390,7 +390,7 @@ bool Encoder::EncodeAbbrevAsciiShortHeader(const IntermediateHeader& stInterHead
     std::string sMsgName(pclMyMsgDb->GetMsgDef(stInterHeader_.usMessageId)->name);
     AppendSiblingId(sMsgName, stInterHeader_);
 
-    return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR,                                //
+    return CopyAllToBufferSeparated(ppcOutBuf_, uiBytesLeft_, OEM4_ABBREV_ASCII_SEPARATOR,                                 //
                                     std::string_view(sMsgName),                                                            //
                                     stInterHeader_.usWeek,                                                                 //
                                     FloatValue<double>{stInterHeader_.dMilliseconds / 1000.0, std::chars_format::fixed, 3} //
@@ -411,7 +411,7 @@ std::string Encoder::JsonHeaderToMsgName(const IntermediateHeader& stInterHeader
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_,                                                               //
+    return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_,                                                                //
                            R"({"message": ")", JsonHeaderToMsgName(stInterHeader_).c_str(),                         //
                            R"(","id": )", stInterHeader_.usMessageId,                                               //
                            R"(,"port": ")", GetEnumString(vMyPortAddressDefinitions, stInterHeader_.uiPortAddress), //
@@ -429,7 +429,7 @@ bool Encoder::EncodeJsonHeader(const IntermediateHeader& stInterHeader_, char** 
 // -------------------------------------------------------------------------------------------------------
 bool Encoder::EncodeJsonShortHeader(const IntermediateHeader& stInterHeader_, char** ppcOutBuf_, uint32_t& uiBytesLeft_) const
 {
-    return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_,                                                                                   //
+    return CopyAllToBuffer(ppcOutBuf_, uiBytesLeft_,                                                                                    //
                            R"({"message": ")", JsonHeaderToMsgName(stInterHeader_).c_str(),                                             //
                            R"(","id": )", stInterHeader_.usMessageId,                                                                   //
                            R"(,"week": )", stInterHeader_.usWeek,                                                                       //
@@ -496,8 +496,9 @@ Encoder::Encode(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const
 
 // -------------------------------------------------------------------------------------------------------
 STATUS
-Encoder::EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_, MessageDataStruct& stMessageData_,
-                      const HEADER_FORMAT eHeaderFormat_, const ENCODE_FORMAT eFormat_, const bool bIsEmbeddedHeader_) const
+Encoder::EncodeHeader(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, const IntermediateHeader& stHeader_,
+                      MessageDataStruct& stMessageData_, const HEADER_FORMAT eHeaderFormat_, const ENCODE_FORMAT eFormat_,
+                      const bool bIsEmbeddedHeader_) const
 {
     if (ppucBuffer_ == nullptr || *ppucBuffer_ == nullptr) { return STATUS::NULL_PROVIDED; }
 
@@ -572,11 +573,9 @@ Encoder::EncodeBody(unsigned char* const* ppucBuffer_, uint32_t uiBufferSize_, c
         auto* pcTempBuffer = reinterpret_cast<char*>(pucTempBuffer);
         if (!EncodeAsciiBody<false>(stMessage_, &pcTempBuffer, uiBufferSize_)) { return STATUS::BUFFER_FULL; }
         pcTempBuffer--; // Remove last delimiter ','
-        const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1, reinterpret_cast<unsigned char*>(pcTempBuffer) - stMessageData_.pucMessageHeader - 1);
-        if (!CopyAllToBuffer(&pcTempBuffer, uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n"))
-        {
-            return STATUS::BUFFER_FULL;
-        }
+        const uint32_t uiCrc = CalculateBlockCrc32(stMessageData_.pucMessageHeader + 1,
+                                                   reinterpret_cast<unsigned char*>(pcTempBuffer) - stMessageData_.pucMessageHeader - 1);
+        if (!CopyAllToBuffer(&pcTempBuffer, uiBufferSize_, '*', HexValue<uint32_t>{uiCrc, 8}, "\r\n")) { return STATUS::BUFFER_FULL; }
         pucTempBuffer = reinterpret_cast<unsigned char*>(pcTempBuffer);
         break;
     }
