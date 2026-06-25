@@ -1065,17 +1065,15 @@ MessageDecoderBase::Decode(const unsigned char* pucMessage_, std::vector<FieldCo
     case HEADER_FORMAT::SHORT_ASCII: {
         const auto* pcTempInData = reinterpret_cast<const char*>(pucTempInData);
         return DecodeAscii<false>(msgFields, &pcTempInData, stInterMessage_,
-                                  stMetaData_.uiLength > stMetaData_.uiHeaderLength
-                                      ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
-                                      : nullptr);
+                                  stMetaData_.uiLength > stMetaData_.uiHeaderLength ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
+                                                                                    : nullptr);
     }
     case HEADER_FORMAT::ABB_ASCII: [[fallthrough]];
     case HEADER_FORMAT::SHORT_ABB_ASCII: {
         const auto* pcTempInData = reinterpret_cast<const char*>(pucTempInData);
         return DecodeAscii<true>(msgFields, &pcTempInData, stInterMessage_,
-                                 stMetaData_.uiLength > stMetaData_.uiHeaderLength
-                                     ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
-                                     : nullptr);
+                                 stMetaData_.uiLength > stMetaData_.uiHeaderLength ? pcTempInData + stMetaData_.uiLength - stMetaData_.uiHeaderLength
+                                                                                   : nullptr);
     }
     case HEADER_FORMAT::BINARY: [[fallthrough]];
     case HEADER_FORMAT::SHORT_BINARY: //
