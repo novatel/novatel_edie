@@ -136,7 +136,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
     {
     case HEADER_FORMAT::ABB_ASCII: {
         // Fix embedded header indentation
-        auto* pcTempBuffer = reinterpret_cast<const char*>(pucTempMessagePointer);
+        const auto* pcTempBuffer = reinterpret_cast<const char*>(pucTempMessagePointer);
         ConsumeAbbrevFormatting(&pcTempBuffer);
         pucTempMessagePointer = reinterpret_cast<const unsigned char*>(pcTempBuffer);
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(OEM4_ABBREV_ASCII_SYNC), CopyAndMove(pclFieldDef));
@@ -175,10 +175,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
         const uint32_t uiCRC = strtoul(reinterpret_cast<const char*>(pucTempMessagePointer), nullptr, 16) ^ 0xFFFFFFFF;
         char pucCRC[OEM4_ASCII_CRC_LENGTH];
         std::to_chars(pucCRC, pucCRC + OEM4_ASCII_CRC_LENGTH, uiCRC, 16);
-        for (uint32_t i = 0; i < OEM4_ASCII_CRC_LENGTH; ++i)
-        {
-            stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(pucCRC[i]), CopyAndMove(pclFieldDef));
-        }
+        for (auto c : pucCRC) { stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(c), CopyAndMove(pclFieldDef)); }
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\r'), CopyAndMove(pclFieldDef));
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>('\n'), CopyAndMove(pclFieldDef));
         break;
