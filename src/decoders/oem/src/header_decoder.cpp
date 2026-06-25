@@ -284,8 +284,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     const auto* pcTempBuf = reinterpret_cast<const char*>(pucLogBuf_);
-    Oem4BinaryHeader stBinaryHeader{};
-    std::memcpy(&stBinaryHeader, pucLogBuf_, sizeof(Oem4BinaryHeader));
+    auto stBinaryHeader = LoadValueFromBuffer<Oem4BinaryHeader>(pucLogBuf_);
 
     stMetaData_.eFormat = [&] {
         switch (stBinaryHeader.ucSync1)
@@ -387,8 +386,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     case HEADER_FORMAT::SHORT_BINARY: {
         // Reset the IntermediateHeader ucMessageType because can incorrectly set ucSiblingId and bResponse if it isn't
         stInterHeader_.ucMessageType = 0;
-        Oem4BinaryShortHeader stBinaryShortHeader{};
-        std::memcpy(&stBinaryShortHeader, pucLogBuf_, sizeof(Oem4BinaryShortHeader));
+        auto stBinaryShortHeader = LoadValueFromBuffer<Oem4BinaryShortHeader>(pucLogBuf_);
         stInterHeader_.usLength = stBinaryShortHeader.ucLength;
         stInterHeader_.usMessageId = stBinaryShortHeader.usMessageId;
         stInterHeader_.usWeek = stBinaryShortHeader.usWeekNo;

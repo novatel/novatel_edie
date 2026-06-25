@@ -181,9 +181,7 @@ STATUS RxConfigHandler::Decode(const unsigned char* pucMessage_, std::vector<Fie
         break;
     }
     case HEADER_FORMAT::BINARY: {
-        uint32_t uiCRC;
-        std::memcpy(&uiCRC, pucTempMessagePointer, sizeof(uint32_t));
-        uiCRC ^= 0xFFFFFFFF;
+        auto uiCRC = LoadValueFromBuffer<uint32_t>(pucTempMessagePointer) ^ 0xFFFFFFFF;
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 24), CopyAndMove(pclFieldDef));
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 16), CopyAndMove(pclFieldDef));
         stEmbeddedMessageData.emplace_back(static_cast<uint8_t>(uiCRC >> 8), CopyAndMove(pclFieldDef));
@@ -376,15 +374,13 @@ STATUS RxConfigHandler::EncodeBinary(unsigned char* const* ppucBuffer_, uint32_t
     uiBufferSize_ += OEM4_BINARY_CRC_LENGTH;
     // Fill in Embedded Binary Header length
     uint32_t uiEmbeddedBodyLength = pucTempEncodeBuffer - stEmbeddedMessageData_.pucMessageBody;
-    Oem4BinaryHeader stEmbeddedHeader;
-    std::memcpy(&stEmbeddedHeader, stEmbeddedMessageData_.pucMessageHeader, sizeof(Oem4BinaryHeader));
+    auto stEmbeddedHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stEmbeddedMessageData_.pucMessageHeader);
     stEmbeddedHeader.usLength = static_cast<uint16_t>(uiEmbeddedBodyLength);
     std::memcpy(stEmbeddedMessageData_.pucMessageHeader, &stEmbeddedHeader, sizeof(Oem4BinaryHeader));
 
     // Fill in Regular Binary Header length
     uint32_t uiRxLength = pucTempEncodeBuffer - stMessageData_.pucMessageBody + OEM4_BINARY_CRC_LENGTH;
-    Oem4BinaryHeader stRxHeader;
-    std::memcpy(&stRxHeader, stMessageData_.pucMessageHeader, sizeof(Oem4BinaryHeader));
+    auto stRxHeader = LoadValueFromBuffer<Oem4BinaryHeader>(stMessageData_.pucMessageHeader);
     stRxHeader.usLength = static_cast<uint16_t>(uiRxLength);
     std::memcpy(stMessageData_.pucMessageHeader, &stRxHeader, sizeof(Oem4BinaryHeader));
 

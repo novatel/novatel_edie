@@ -429,8 +429,7 @@ void RangeDecompressor::RangeCmp2ToRange(const rangecmp2::RangeCmp& stRangeCmpMe
     uint32_t uiRangeDataBytesDecompressed = 0;
     while (uiRangeDataBytesDecompressed < stRangeCmpMessage_.uiNumberOfRangeDataBytes)
     {
-        SatelliteBlock stSatBlock;
-        std::memcpy(&stSatBlock, &stRangeCmpMessage_.aucRangeData[uiRangeDataBytesDecompressed], sizeof(SatelliteBlock));
+        auto stSatBlock = LoadValueFromBuffer<SatelliteBlock>(&stRangeCmpMessage_.aucRangeData[uiRangeDataBytesDecompressed]);
 
         const auto eSystem = GetBitfield<SYSTEM, SAT_SATELLITE_SYSTEM_ID_MASK>(stSatBlock.ulCombinedField);
         const auto ucSignalBlockCount = GetBitfield<uint8_t, SAT_NUM_SIGNAL_BLOCKS_BASE_MASK>(stSatBlock.ulCombinedField);
@@ -498,8 +497,7 @@ void RangeDecompressor::RangeCmp4ToRange(unsigned char* pucData_, Range& stRange
 
     stRangeMessage_.uiNumberOfObservations = 0;
     uint32_t uiBitOffset = 0;
-    uint32_t uiBytesLeft;
-    std::memcpy(&uiBytesLeft, pucData_, sizeof(uint32_t));
+    auto uiBytesLeft = LoadValueFromBuffer<uint32_t>(pucData_);
     pucData_ += sizeof(uint32_t);
 
     auto systems = ExtractBitfield<uint16_t, SATELLITE_SYSTEMS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
@@ -664,8 +662,7 @@ void RangeDecompressor::RangeCmp5ToRange(unsigned char* pucData_, Range& stRange
 
     stRangeMessage_.uiNumberOfObservations = 0;
     uint32_t uiBitOffset = 0;
-    uint32_t uiBytesLeft;
-    std::memcpy(&uiBytesLeft, pucData_, sizeof(uint32_t));
+    auto uiBytesLeft = LoadValueFromBuffer<uint32_t>(pucData_);
     pucData_ += sizeof(uint32_t);
 
     auto systems = ExtractBitfield<uint16_t, SATELLITE_SYSTEMS_BITS>(&pucData_, uiBytesLeft, uiBitOffset);
@@ -780,18 +777,8 @@ STATUS RangeDecompressor::Decompress(unsigned char* pucBuffer_, uint32_t uiBuffe
         Range stRange;
         switch (stMetaData_.usMessageId)
         {
-        case RANGECMP_MSG_ID: {
-            rangecmp::RangeCmp stRangeCmp;
-            std::memcpy(&stRangeCmp, pucTempMessagePointer, sizeof(rangecmp::RangeCmp));
-            RangeCmpToRange(stRangeCmp, stRange);
-            break;
-        }
-        case RANGECMP2_MSG_ID: {
-            rangecmp2::RangeCmp stRangeCmp2;
-            std::memcpy(&stRangeCmp2, pucTempMessagePointer, sizeof(rangecmp2::RangeCmp));
-            RangeCmp2ToRange(stRangeCmp2, stRange, stMetaData_);
-            break;
-        }
+        case RANGECMP_MSG_ID: RangeCmpToRange(LoadValueFromBuffer<rangecmp::RangeCmp>(pucTempMessagePointer), stRange); break;
+        case RANGECMP2_MSG_ID: RangeCmp2ToRange(LoadValueFromBuffer<rangecmp2::RangeCmp>(pucTempMessagePointer), stRange, stMetaData_); break;
         case RANGECMP3_MSG_ID: [[fallthrough]];
         case RANGECMP4_MSG_ID: RangeCmp4ToRange(pucTempMessagePointer, stRange, stMetaData_); break;
         case RANGECMP5_MSG_ID: RangeCmp5ToRange(pucTempMessagePointer, stRange, stMetaData_); break;
