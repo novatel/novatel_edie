@@ -128,7 +128,7 @@ void py_oem::init_novatel_parser(nb::module_& m)
                      "The number of bytes in the Parser's internal buffer available for writing new data.")
         .def(
             "write",
-            [](py_oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const uint8_t*>(data.c_str()), data.size()); },
+            [](py_oem::PyParser& self, const nb::bytes& data) { return self.Write(reinterpret_cast<const unsigned char*>(data.c_str()), data.size()); },
             R"doc(
              Writes data to the Parser's internal buffer allowing it to later be parsed.
 

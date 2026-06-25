@@ -181,7 +181,7 @@ void py_oem::init_novatel_file_parser(nb::module_& m)
             [](py_oem::PyFileParser& self, bool return_flushed_bytes) -> nb::object {
                 if (!return_flushed_bytes) { return nb::int_(self.Flush()); }
                 char buffer[oem::Parser::uiParserInternalBufferSize];
-                uint32_t count = self.Flush(reinterpret_cast<uint8_t*>(buffer), oem::Parser::uiParserInternalBufferSize);
+                uint32_t count = self.Flush(reinterpret_cast<unsigned char*>(buffer), oem::Parser::uiParserInternalBufferSize);
                 return nb::bytes(buffer, count);
             },
             "return_flushed_bytes"_a = false,
