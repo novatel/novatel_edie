@@ -284,10 +284,11 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
     if (pclMyMsgDb == nullptr) { return STATUS::NO_DATABASE; }
 
     const auto* pcTempBuf = reinterpret_cast<const char*>(pucLogBuf_);
-    const auto* pstBinaryHeader = reinterpret_cast<const Oem4BinaryHeader*>(pucLogBuf_);
+    Oem4BinaryHeader stBinaryHeader{};
+    std::memcpy(&stBinaryHeader, pucLogBuf_, sizeof(Oem4BinaryHeader));
 
     stMetaData_.eFormat = [&] {
-        switch (pstBinaryHeader->ucSync1)
+        switch (stBinaryHeader.ucSync1)
         {
         case OEM4_ASCII_SYNC: return HEADER_FORMAT::ASCII;
         case OEM4_SHORT_ASCII_SYNC: return HEADER_FORMAT::SHORT_ASCII;
@@ -295,7 +296,7 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         case NMEA_SYNC: return HEADER_FORMAT::NMEA;
         case '{': return HEADER_FORMAT::JSON;
         case OEM4_BINARY_SYNC1:
-            switch (pstBinaryHeader->ucSync3)
+            switch (stBinaryHeader.ucSync3)
             {
             case OEM4_BINARY_SYNC3: return HEADER_FORMAT::BINARY;
             case OEM4_SHORT_BINARY_SYNC3: return HEADER_FORMAT::SHORT_BINARY;
@@ -368,29 +369,30 @@ STATUS HeaderDecoder::Decode(const unsigned char* pucLogBuf_, IntermediateHeader
         break;
 
     case HEADER_FORMAT::BINARY:
-        stInterHeader_.usMessageId = pstBinaryHeader->usMsgNumber;
-        stInterHeader_.ucMessageType = pstBinaryHeader->ucMsgType;
-        stInterHeader_.uiPortAddress = pstBinaryHeader->ucPort;
-        stInterHeader_.usLength = pstBinaryHeader->usLength;
-        stInterHeader_.usSequence = pstBinaryHeader->usSequenceNumber;
-        stInterHeader_.ucIdleTime = pstBinaryHeader->ucIdleTime;
-        stInterHeader_.uiTimeStatus = pstBinaryHeader->ucTimeStatus;
-        stInterHeader_.usWeek = pstBinaryHeader->usWeekNo;
-        stInterHeader_.dMilliseconds = pstBinaryHeader->uiWeekMSec;
-        stInterHeader_.uiReceiverStatus = pstBinaryHeader->uiStatus;
-        stInterHeader_.usReceiverSwVersion = pstBinaryHeader->usReceiverSwVersion;
-        stInterHeader_.uiMessageDefinitionCrc = pstBinaryHeader->usMsgDefCrc;
+        stInterHeader_.usMessageId = stBinaryHeader.usMsgNumber;
+        stInterHeader_.ucMessageType = stBinaryHeader.ucMsgType;
+        stInterHeader_.uiPortAddress = stBinaryHeader.ucPort;
+        stInterHeader_.usLength = stBinaryHeader.usLength;
+        stInterHeader_.usSequence = stBinaryHeader.usSequenceNumber;
+        stInterHeader_.ucIdleTime = stBinaryHeader.ucIdleTime;
+        stInterHeader_.uiTimeStatus = stBinaryHeader.ucTimeStatus;
+        stInterHeader_.usWeek = stBinaryHeader.usWeekNo;
+        stInterHeader_.dMilliseconds = stBinaryHeader.uiWeekMSec;
+        stInterHeader_.uiReceiverStatus = stBinaryHeader.uiStatus;
+        stInterHeader_.usReceiverSwVersion = stBinaryHeader.usReceiverSwVersion;
+        stInterHeader_.uiMessageDefinitionCrc = stBinaryHeader.usMsgDefCrc;
         pcTempBuf += sizeof(Oem4BinaryHeader);
         break;
 
     case HEADER_FORMAT::SHORT_BINARY: {
         // Reset the IntermediateHeader ucMessageType because can incorrectly set ucSiblingId and bResponse if it isn't
         stInterHeader_.ucMessageType = 0;
-        const auto* pstBinaryShortHeader = reinterpret_cast<const Oem4BinaryShortHeader*>(pucLogBuf_);
-        stInterHeader_.usLength = pstBinaryShortHeader->ucLength;
-        stInterHeader_.usMessageId = pstBinaryShortHeader->usMessageId;
-        stInterHeader_.usWeek = pstBinaryShortHeader->usWeekNo;
-        stInterHeader_.dMilliseconds = pstBinaryShortHeader->uiWeekMSec;
+        Oem4BinaryShortHeader stBinaryShortHeader{};
+        std::memcpy(&stBinaryShortHeader, pucLogBuf_, sizeof(Oem4BinaryShortHeader));
+        stInterHeader_.usLength = stBinaryShortHeader.ucLength;
+        stInterHeader_.usMessageId = stBinaryShortHeader.usMessageId;
+        stInterHeader_.usWeek = stBinaryShortHeader.usWeekNo;
+        stInterHeader_.dMilliseconds = stBinaryShortHeader.uiWeekMSec;
         stInterHeader_.uiTimeStatus = static_cast<uint32_t>(TIME_STATUS::UNKNOWN);
         pcTempBuf += sizeof(Oem4BinaryShortHeader);
         break;
